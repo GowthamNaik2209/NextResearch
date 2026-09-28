@@ -1,0 +1,160 @@
+// NextResearch data model.
+// See /Users/gowtham/.claude/plans/breezy-booping-spindle.md for the design this implements.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Sectors, zones and 3D geometry are static authored content (three.js `build()`
+// functions ported into src/lib/sector-content/products.ts) — not modeled here.
+// Only what's genuinely dynamic/refreshable per company lives in the database.
+// A Company's sectorSlugs mirrors which static sector(s) reference its ticker
+// (set at seed time) so the company page can cross-link back to each ecosystem.
+model Company {
+  id             String                   @id @default(cuid())
+  ticker         String                   @unique
+  name           String
+  listed         Boolean                  @default(true)
+  role           String
+  screenerSlug   String?
+  externalId     String?
+  notes          String[]
+  sectorSlugs    String[]                 @default([])
+  financials     FinancialSnapshot[]
+  statementLines FinancialStatementLine[]
+  prices         PriceSnapshot[]
+  kpis           KpiSnapshot[]
+  news           NewsLink[]
+  watchlistedBy  Watchlist[]
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+}
+
+// 5yr revenue/net-profit trend bars (matches the artifact's fin().rev/np arrays).
+model FinancialSnapshot {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  year        Int
+  revenueCr   Decimal?
+  netProfitCr Decimal?
+
+  @@unique([companyId, year])
+}
+
+enum StatementType {
+  INCOME
+  BALANCE
+  CASHFLOW
+}
+
+// Full income/balance/cash-flow line items, all years. Sparse (mostly empty) until
+// a real data vendor is wired in — UI renders "—" for missing lineItem/year cells.
+model FinancialStatementLine {
+  id            String        @id @default(cuid())
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  statementType StatementType
+  year          Int
+  lineItem      String
+  value         Decimal
+  sortOrder     Int           @default(0)
+
+  @@unique([companyId, statementType, year, lineItem])
+}
+
+// Price chart series. isEstimate flags seeded/sparse points so the UI can visibly
+// mark them as not-real history rather than passing them off as a live feed.
+model PriceSnapshot {
+  id         String   @id @default(cuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  date       DateTime
+  close      Decimal
+  isEstimate Boolean  @default(false)
+
+  @@unique([companyId, date])
+}
+
+// Point-in-time KPI/price snapshot (matches the artifact's kpi tuple + mcap/price/range/cagr).
+model KpiSnapshot {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  asOf      DateTime
+  price     Decimal?
+  marketCap String?
+  pe        Decimal?
+  bookValue Decimal?
+  divYield  Decimal?
+  roce      Decimal?
+  roe       Decimal?
+  faceValue Decimal?
+  low52w    Decimal?
+  high52w   Decimal?
+  cagr1y    Decimal?
+  cagr3y    Decimal?
+  cagr5y    Decimal?
+  note      String?
+
+  @@unique([companyId, asOf])
+}
+
+model NewsLink {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  date      String
+  headline  String
+  source    String
+  url       String
+}
+
+// Mirrors a Supabase auth.users row (id = that user's UUID) for FK convenience.
+model Profile {
+  id           String        @id
+  email        String        @unique
+  createdAt    DateTime      @default(now())
+  watchlist    Watchlist[]
+  subscription Subscription?
+}
+
+model Watchlist {
+  id         String   @id @default(cuid())
+  userId     String
+  user       Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  priceAtAdd Decimal
+  addedAt    DateTime @default(now())
+
+  @@unique([userId, companyId])
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  NONE
+}
+
+model Subscription {
+  id                     String             @id @default(cuid())
+  userId                 String             @unique
+  user                   Profile            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  razorpaySubscriptionId String?
+  plan                   SubscriptionPlan   @default(FREE)
+  status                 SubscriptionStatus @default(NONE)
+  currentPeriodEnd       DateTime?
+  updatedAt              DateTime           @updatedAt
+}

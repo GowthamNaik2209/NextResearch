@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Ported verbatim from the original artifact (see file headers) — kept as
+    // close to byte-for-byte portable as possible rather than modernized, so it
+    // stays a trivial diff against future artifact iterations.
+    "src/lib/sector-content/products.ts",
+    "prisma/seed-source/artifact-data-slice.js",
   ]),
 ]);
 
