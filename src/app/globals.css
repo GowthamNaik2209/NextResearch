@@ -58,6 +58,24 @@ body {
   border-radius: 50%;
   vertical-align: middle;
   transition: transform 0.12s, color 0.15s, background 0.15s;
+  position: relative;
+}
+/* The visible icon stays small (17x17 svg + 3px padding = 23x23) so it doesn't
+   blow out the row heights it's inlined into (chips, tables, card headers) —
+   but a 23x23 hit area is well under the ~40x40 minimum for a reliable touch
+   target. This invisible pseudo-element enlarges the *tappable* area to 40x40
+   without affecting layout: it's absolutely positioned (out of flow) and
+   centered over the button, and generated content on an element is part of
+   that element's hit-test box, so a tap anywhere in the 40x40 square still
+   registers as a click on the button itself. */
+.watch-btn::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  transform: translate(-50%, -50%);
 }
 .watch-btn:hover {
   color: var(--danger);

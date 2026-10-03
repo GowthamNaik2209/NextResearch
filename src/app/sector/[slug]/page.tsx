@@ -250,14 +250,21 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                 <li key={item.text}>
                   <Link
                     href={`/sector/${sector.slug}/explore?zone=${encodeURIComponent(item.zoneId)}`}
-                    className="flex items-start justify-between gap-3 rounded-lg border border-line bg-panel p-3 text-sm leading-relaxed text-ink hover:border-accent"
+                    className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5 rounded-lg border border-line bg-panel p-3 text-sm leading-relaxed text-ink hover:border-accent"
                   >
                     <span>{item.text}</span>
+                    {/* flex-wrap on the parent lets this badge drop to its own line instead of
+                        forcing horizontal overflow when a long zone label (e.g. "Instrument
+                        cluster & interior electronics") can't fit next to the bottleneck text
+                        on a narrow screen. The badge text itself also isn't nowrap (some zone
+                        labels, e.g. "Railway PSU Ecosystem: Financing, Ticketing & Digital
+                        Platforms", are wider than a phone screen on their own) — only the dot+
+                        label gap is kept from breaking awkwardly via the dot's own flex-none. */}
                     <span
-                      className="flex flex-none items-center gap-1.5 whitespace-nowrap text-[10px] uppercase tracking-wide text-ink-soft"
+                      className="flex max-w-full items-center gap-1.5 text-[10px] uppercase tracking-wide text-ink-soft"
                       style={{ marginTop: 2 }}
                     >
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ background: item.zoneColor }} />
+                      <span className="h-1.5 w-1.5 flex-none rounded-full" style={{ background: item.zoneColor }} />
                       {item.zoneLabel}
                     </span>
                   </Link>

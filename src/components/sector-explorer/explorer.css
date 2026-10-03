@@ -118,6 +118,17 @@
  display:flex; flex-direction:column; min-height:0;
  }
  .panel-handle{ display:none }
+ /* Base look for the "x" close button shared by the mobile panel sheet (see the
+    @media max-width:700px block below, which only overrides position to pin it
+    inside the handle) and CompanyComparison's modal header, which renders this
+    button in normal flow at every width — without a base rule here it fell back
+    to an unstyled native <button> (no size, no background) above 700px. */
+ .panel-close-btn{
+ flex:none; width:40px; height:40px; border-radius:50%; background:var(--chip); border:1px solid var(--line);
+ color:var(--ink); font-size:18px; line-height:1; display:flex; align-items:center; justify-content:center;
+ cursor:pointer; padding:0;
+ }
+ .panel-close-btn:hover{ border-color:var(--accent); color:var(--accent) }
  .panel{
  flex:1; min-height:0; background:transparent; border:none;
  padding:18px; overflow-y:auto; display:flex; flex-direction:column; gap:14px;
@@ -141,7 +152,7 @@
  .supplier-head{ display:flex; align-items:flex-start; gap:10px }
  .supplier-head-title{ flex:1; min-width:0 }
  .nav-arrow{
- flex:none; width:32px; height:32px; border-radius:8px; background:var(--chip); border:1px solid var(--line);
+ flex:none; width:40px; height:40px; border-radius:8px; background:var(--chip); border:1px solid var(--line);
  color:var(--ink); font-size:17px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;
  }
  .nav-arrow:hover{ border-color:var(--accent); color:var(--accent) }
@@ -351,11 +362,12 @@
  font-size:11.5px; color:var(--ink-soft); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
  }
  .panel-handle .grip{ position:absolute; top:6px; left:50%; transform:translateX(-50%); width:36px; height:4px; border-radius:2px; background:var(--line) }
+ /* Position only here — size/background/border come from the base .panel-close-btn
+    rule above. Bumped to 40x40 (from 30x30) to clear the ~40x40 touch-target floor;
+    the handle's own padding (14px 44px 10px) already reserves enough room for it. */
  .panel-close-btn{
- position:absolute; top:50%; right:8px; transform:translateY(-50%);
- width:30px; height:30px; border-radius:50%; background:var(--chip); border:1px solid var(--line);
- color:var(--ink); font-size:18px; line-height:1; display:flex; align-items:center; justify-content:center;
- cursor:pointer; padding:0;
+ position:absolute; top:50%; right:6px; transform:translateY(-50%);
+ width:40px; height:40px;
  }
  .panel-wrap.collapsed .panel-close-btn{ display:none }
  .panel{ padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px)) }
