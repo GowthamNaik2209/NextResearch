@@ -10,6 +10,10 @@ export async function getCompaniesByTickers(tickers: string[]) {
     where: { ticker: { in: tickers } },
     include: {
       kpis: { orderBy: { asOf: "desc" }, take: 1 },
+      // Latest year only — the comparison view (CompanyComparison.tsx) needs one
+      // revenue figure per company side by side, not the full 5yr series that
+      // getCompanyDetail's single-company fetch returns.
+      financials: { orderBy: { year: "desc" }, take: 1 },
     },
   });
   return companies.map((c) => ({
@@ -21,6 +25,9 @@ export async function getCompaniesByTickers(tickers: string[]) {
     externalId: c.externalId,
     notes: c.notes,
     sectorSlugs: c.sectorSlugs,
+    dataStatus: c.dataStatus,
+    latestRevenueCr: c.financials[0]?.revenueCr?.toNumber() ?? null,
+    latestRevenueYear: c.financials[0]?.year ?? null,
     kpi: c.kpis[0]
       ? {
           asOf: c.kpis[0].asOf.toISOString(),
@@ -65,6 +72,7 @@ export async function getCompanyDetail(ticker: string) {
     externalId: company.externalId,
     notes: company.notes,
     sectorSlugs: company.sectorSlugs,
+    dataStatus: company.dataStatus,
     financials: company.financials.map((f) => ({
       year: f.year,
       revenueCr: f.revenueCr?.toNumber() ?? null,

@@ -10,6 +10,18 @@ datasource db {
   provider = "postgresql"
 }
 
+// Provenance label shown next to any financial/exposure figure so a demo number
+// never passes as a live, verified one (product rule: never present unverified
+// data as authoritative). Everything seeded from the original artifact today is
+// DEMO; this is the seam a real data vendor flips to VERIFIED later per-company.
+enum DataStatus {
+  DEMO
+  USER_GENERATED
+  UNVERIFIED
+  VERIFIED
+  SOURCE_REQUIRED
+}
+
 // Sectors, zones and 3D geometry are static authored content (three.js `build()`
 // functions ported into src/lib/sector-content/products.ts) — not modeled here.
 // Only what's genuinely dynamic/refreshable per company lives in the database.
@@ -25,6 +37,7 @@ model Company {
   externalId     String?
   notes          String[]
   sectorSlugs    String[]                 @default([])
+  dataStatus     DataStatus               @default(DEMO)
   financials     FinancialSnapshot[]
   statementLines FinancialStatementLine[]
   prices         PriceSnapshot[]

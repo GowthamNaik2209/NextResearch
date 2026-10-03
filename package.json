@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "validate:content": "tsx scripts/validate-sector-content.ts",
     "db:extract": "node prisma/extract-source-data.mjs",
     "db:seed": "tsx prisma/seed.ts",
     "db:migrate": "prisma migrate dev"

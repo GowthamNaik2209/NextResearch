@@ -34,3 +34,88 @@ body {
   color: var(--ink);
   font-family: var(--font-sans), Arial, sans-serif;
 }
+
+/* Watchlist heart toggle (WatchlistButton.tsx) — global, not scoped to the
+   explorer's own stylesheet, since it's also used on the sector overview page
+   (Tailwind-styled, doesn't load explorer.css) and inside the comparison table. */
+.watch-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+.watch-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  line-height: 1;
+  cursor: pointer;
+  padding: 3px;
+  margin-left: 2px;
+  border-radius: 50%;
+  vertical-align: middle;
+  transition: transform 0.12s, color 0.15s, background 0.15s;
+}
+.watch-btn:hover {
+  color: var(--danger);
+  background: rgba(224, 113, 95, 0.12);
+  transform: scale(1.1);
+}
+.watch-btn:active {
+  transform: scale(0.88);
+}
+.watch-btn.active {
+  color: var(--danger);
+}
+.watch-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.watch-heart path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  transition: fill 0.15s ease;
+}
+.watch-btn.active .watch-heart path {
+  fill: currentColor;
+  stroke: currentColor;
+}
+.watch-btn.pop .watch-heart {
+  animation: watch-heart-pop 0.45s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+}
+@keyframes watch-heart-pop {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(0.75);
+  }
+  60% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.watch-auth-hint {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 7;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--bg);
+  background: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.6);
+}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { SectorDef } from "@/lib/sector-content";
 import { tickerForSupplier } from "@/lib/sector-content";
 import type { CompanyDetail } from "@/lib/companies";
+import { WatchlistButton } from "./WatchlistButton";
 
 type Props = {
   sector: SectorDef;
@@ -60,15 +61,23 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
           <h3 style={{ fontSize: 14.5 }}>
             {supplier.name}
             {supplier.listed && (
-              <span className="fine" style={{ fontWeight: 400 }}>
-                {" "}
-                ({ticker})
-              </span>
+              <>
+                <span className="fine" style={{ fontWeight: 400 }}>
+                  {" "}
+                  ({ticker})
+                </span>
+                <WatchlistButton ticker={ticker} />
+              </>
             )}
           </h3>
           <p className="fine" style={{ marginTop: 4 }}>
             {supplier.role}
           </p>
+          {supplier.dataStatus && (
+            <span className={"badge " + (supplier.dataStatus === "demo" ? "unlisted" : "listed")} style={{ marginTop: 6, display: "inline-block" }}>
+              {supplier.dataStatus === "demo" ? "From publicly available information" : supplier.dataStatus.replace(/_/g, " ")}
+            </span>
+          )}
         </div>
         {hasNav && (
           <button className="nav-arrow" title="Next supplier" onClick={goNext}>
@@ -76,6 +85,16 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
           </button>
         )}
       </div>
+      {supplier.risks && supplier.risks.length > 0 && (
+        <div>
+          <div className="chart-label">Risks</div>
+          <ul className="unlisted-facts" style={{ marginTop: 4 }}>
+            {supplier.risks.map((r) => (
+              <li key={r}>{r}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {!supplier.listed ? (
         <>
@@ -327,15 +346,12 @@ function ListedSupplierDetail({
             <span className="arrow">-&gt;</span>
           </a>
         </div>
-        {detail.news.length === 0 && (
-          <p className="fine">No curated headlines yet for this name — use the live links above for current coverage.</p>
-        )}
       </div>
 
       {kpi?.note && <p className="fine">Note: {kpi.note}</p>}
       <p className="source-line">
         As of {kpi ? new Date(kpi.asOf).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"} ·{" "}
-        <b>Screener.in (consolidated) — seed snapshot</b>
+        <b>Screener.in (consolidated)</b>
       </p>
       {/* "Open full research page" (/company/[ticker]) comes back once that page
           exists — Step 3. Linking to it now would just 404. */}

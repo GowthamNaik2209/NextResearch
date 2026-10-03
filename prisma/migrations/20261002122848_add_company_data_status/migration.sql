@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "DataStatus" AS ENUM ('DEMO', 'USER_GENERATED', 'UNVERIFIED', 'VERIFIED', 'SOURCE_REQUIRED');
+
+-- AlterTable
+ALTER TABLE "Company" ADD COLUMN     "dataStatus" "DataStatus" NOT NULL DEFAULT 'DEMO';
