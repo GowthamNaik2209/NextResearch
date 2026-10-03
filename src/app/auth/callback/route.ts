@@ -15,6 +15,13 @@ export async function GET(request: Request) {
       await ensureProfile(data.user.id, data.user.email);
       return NextResponse.redirect(`${origin}${next}`);
     }
+
+    // Log the real reason server-side instead of swallowing it — this is
+    // commonly a PKCE code-verifier mismatch (e.g. the confirmation link was
+    // opened in a different browser/app than the one that started signup or
+    // OAuth, which is common on mobile when the link is tapped from Mail/Gmail
+    // instead of the browser tab the flow began in).
+    console.error("auth/callback: exchangeCodeForSession failed", error?.message);
   }
 
   return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
