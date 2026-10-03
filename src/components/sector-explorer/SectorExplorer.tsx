@@ -298,6 +298,11 @@ export function SectorExplorer({ slug }: Props) {
           </Link>
           <h1>{sector.headerTitle}</h1>
           <span className="sub">{sector.headerSub}</span>
+          {sector.dataStatus && (
+            <span className={"badge " + (sector.dataStatus === "demo" ? "unlisted" : "listed")}>
+              {sector.dataStatus === "demo" ? "From publicly available information" : sector.dataStatus.replace(/_/g, " ")}
+            </span>
+          )}
         </div>
         <div className="right">
           <Link href={`/sector/${sector.slug}`} className="hdr-btn">
@@ -470,11 +475,6 @@ export function SectorExplorer({ slug }: Props) {
                   <span className="zc-tag" style={{ background: zone.color }} />
                   {zone.label}
                 </h2>
-                {zone.dataStatus && (
-                  <span className={"badge " + (zone.dataStatus === "demo" ? "unlisted" : "listed")}>
-                    {zone.dataStatus === "demo" ? "From publicly available information" : zone.dataStatus.replace(/_/g, " ")}
-                  </span>
-                )}
                 <p className="zdesc">{zone.desc}</p>
 
                 {zone.roleInSystem && (

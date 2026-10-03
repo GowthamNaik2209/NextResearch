@@ -103,6 +103,39 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
           </div>
         </div>
 
+        {/* Entry choices come first, right under the header — the map is the
+            primary path in, so it shouldn't require scrolling past the
+            narrative sections to reach. Companies/bottlenecks stay sections on
+            this same page rather than separate modes, deep-linking into the
+            explorer with the right zone/company preselected via ?zone=/&company=. */}
+        <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-panel-2 p-5">
+          <Link
+            href={`/sector/${sector.slug}/explore`}
+            className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90"
+          >
+            Explore the map &rarr;
+          </Link>
+          {GUIDED_TOUR_ENABLED && (
+            <Link
+              href={`/sector/${sector.slug}/explore?tour=1`}
+              className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink"
+            >
+              Start guided tour
+            </Link>
+          )}
+          <a href="#companies" className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink">
+            Find companies
+          </a>
+          {hasBottlenecks && (
+            <a
+              href="#bottlenecks"
+              className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink"
+            >
+              Explore bottlenecks
+            </a>
+          )}
+        </section>
+
         {(sector.thesisSummary || sector.whyNow) && (
           <section className="grid gap-5 sm:grid-cols-2">
             {sector.thesisSummary && (
@@ -132,39 +165,6 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
             </div>
           </section>
         )}
-
-        {/* Entry choices: the map is the primary path in; companies/bottlenecks stay
-            sections on this same page rather than separate modes — a filtered list
-            and a bullet list don't need their own route for a slice this size — but
-            every other row item below now deep-links into the explorer with the
-            right zone/company preselected via ?zone=/&company=. */}
-        <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-panel-2 p-5">
-          <Link
-            href={`/sector/${sector.slug}/explore`}
-            className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90"
-          >
-            Explore the map &rarr;
-          </Link>
-          {GUIDED_TOUR_ENABLED && (
-            <Link
-              href={`/sector/${sector.slug}/explore?tour=1`}
-              className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink"
-            >
-              Start guided tour
-            </Link>
-          )}
-          <a href="#companies" className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink">
-            Find companies
-          </a>
-          {hasBottlenecks && (
-            <a
-              href="#bottlenecks"
-              className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink"
-            >
-              Explore bottlenecks
-            </a>
-          )}
-        </section>
 
         <section>
           <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">

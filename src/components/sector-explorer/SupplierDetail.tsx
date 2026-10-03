@@ -73,11 +73,6 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
           <p className="fine" style={{ marginTop: 4 }}>
             {supplier.role}
           </p>
-          {supplier.dataStatus && (
-            <span className={"badge " + (supplier.dataStatus === "demo" ? "unlisted" : "listed")} style={{ marginTop: 6, display: "inline-block" }}>
-              {supplier.dataStatus === "demo" ? "From publicly available information" : supplier.dataStatus.replace(/_/g, " ")}
-            </span>
-          )}
         </div>
         {hasNav && (
           <button className="nav-arrow" title="Next supplier" onClick={goNext}>

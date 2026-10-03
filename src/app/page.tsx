@@ -22,6 +22,42 @@ export default function HomePage() {
         </div>
 
         <section>
+          <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-ink-soft">How to research here</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                step: "1",
+                title: "Pick a sector",
+                body: "Each sector is a full supply chain, mapped end to end — from raw materials and components through to the manufacturers who assemble the finished product.",
+              },
+              {
+                step: "2",
+                title: "Explore the 3D map",
+                body: "The map is grouped into layers and zones. Click any highlighted part to see its role, who supplies it, and why that layer matters to the value chain.",
+              },
+              {
+                step: "3",
+                title: "Compare companies",
+                body: "Inside any zone with more than one supplier, open Compare to line up listed companies by their exposure and revenue in that specific segment — not their total company-wide numbers.",
+              },
+              {
+                step: "4",
+                title: "Watchlist what matters",
+                body: "Found a company worth tracking? Tap the heart next to its ticker anywhere on the site to save it to your watchlist and follow it over time.",
+              },
+            ].map((item) => (
+              <div key={item.step} className="rounded-2xl border border-line bg-panel p-5">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 font-mono text-xs font-bold text-accent">
+                  {item.step}
+                </div>
+                <h3 className="mt-3 font-display text-sm font-semibold text-ink">{item.title}</h3>
+                <p className="mt-2 text-xs leading-relaxed text-ink-soft">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section>
           <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-ink-soft">
             Explore a sector
           </h2>
