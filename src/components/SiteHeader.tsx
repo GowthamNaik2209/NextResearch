@@ -1,12 +1,9 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
 import { UserMenu } from "./UserMenu";
 
 export async function SiteHeader() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   const displayName = (user?.user_metadata?.display_name as string | undefined) ?? null;
 
   return (

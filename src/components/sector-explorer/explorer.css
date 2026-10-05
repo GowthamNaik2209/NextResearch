@@ -14,9 +14,21 @@
  .mono{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums}
 
  header{
+ position:relative;
  display:flex; align-items:baseline; justify-content:space-between; gap:16px;
- padding:14px 20px; border-bottom:1px solid var(--line); background:var(--panel);
+ padding:14px 112px 14px 20px; border-bottom:1px solid var(--line); background:var(--panel);
  flex-wrap:wrap;
+ }
+ /* Pinned to the header's own top-right corner rather than flowing inline
+    after Overview/LIVE MODEL — flex-wrap on a 2-item header pushes the second
+    item to a new line flush-left once the title text wraps, not flush-right,
+    so inline placement left these stranded mid-row instead of in the corner
+    users actually expect (matching the landing/overview pages). The header's
+    right padding above reserves room so title text wraps before reaching
+    under this. */
+ header .user-nav{
+ position:absolute; top:14px; right:20px;
+ display:flex; align-items:center; gap:10px;
  }
  header .title-block{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
  .brand{
@@ -306,7 +318,8 @@
 
  /* ===== Phone: stack the app vertically, dock the panel as a collapsible sheet ===== */
  @media (max-width: 700px){
- header{ padding:10px 14px; gap:6px }
+ header{ padding:10px 96px 10px 14px; gap:6px }
+ header .user-nav{ top:10px; right:14px; gap:8px }
  header h1{ font-size:15px; letter-spacing:1.2px }
  header .sub{ display:none }
  header .status{ font-size:9.5px }

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getSector, listSectorSlugs } from "@/lib/sector-content";
 import { SectorExplorer } from "@/components/sector-explorer/SectorExplorer";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
 
 export function generateStaticParams() {
   return listSectorSlugs().map((slug) => ({ slug }));
@@ -15,10 +15,7 @@ export default async function SectorExplorePage({ params }: { params: Promise<{ 
   // the client component, since functions can't be passed as React Server props.
   if (!getSector(slug)) notFound();
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   const displayName = (user?.user_metadata?.display_name as string | undefined) ?? null;
 
   return (
