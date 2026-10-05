@@ -95,3 +95,14 @@ export async function logout() {
   revalidatePath("/", "layout");
   redirect("/");
 }
+
+// Stored in Supabase's own user_metadata rather than a new Profile column —
+// avoids another schema migration for what's just a cosmetic, editable label.
+export async function updateDisplayName(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) return;
+
+  const supabase = await createClient();
+  await supabase.auth.updateUser({ data: { display_name: name } });
+  revalidatePath("/", "layout");
+}

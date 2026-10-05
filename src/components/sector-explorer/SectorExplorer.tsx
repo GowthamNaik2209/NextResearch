@@ -16,6 +16,7 @@ import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
 import { SupplierDetail } from "./SupplierDetail";
 import { CompanyComparison } from "./CompanyComparison";
 import { WatchlistButton } from "./WatchlistButton";
+import { UserMenu } from "@/components/UserMenu";
 import "./explorer.css";
 
 const TOUR_STEP_MS = 3400;
@@ -36,9 +37,11 @@ function useSpeechSupported(): boolean {
 
 type Props = {
   slug: string;
+  userEmail?: string | null;
+  displayName?: string | null;
 };
 
-export function SectorExplorer({ slug }: Props) {
+export function SectorExplorer({ slug, userEmail = null, displayName = null }: Props) {
   // Looked up here (client bundle) rather than passed as a prop from the server
   // page — the sector object carries three.js geometry-building functions, which
   // can't cross the server/client boundary as React props. The page's own
@@ -310,6 +313,19 @@ export function SectorExplorer({ slug }: Props) {
           </Link>
           <div className="status">
             <i /> LIVE MODEL &middot; drag to orbit &middot; scroll to zoom
+          </div>
+          <div className="flex flex-none items-center gap-3">
+            <Link
+              href="/watchlist"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
+              aria-label="Watchlist"
+              title="Watchlist"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 21s-7.5-4.6-10.2-9.3C.1 8.9 1 5.3 4.3 4.1c2.3-.8 4.6.1 5.9 2 .5.7 1.4 1.9 1.8 2.5.4-.6 1.3-1.8 1.8-2.5 1.3-1.9 3.6-2.8 5.9-2 3.3 1.2 4.2 4.8 2.5 7.6C19.5 16.4 12 21 12 21z" />
+              </svg>
+            </Link>
+            <UserMenu key={`${userEmail ?? "anon"}-${displayName}`} email={userEmail} displayName={displayName} />
           </div>
         </div>
       </header>

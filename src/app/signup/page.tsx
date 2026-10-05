@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signup, loginWithGoogle } from "@/app/auth/actions";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default async function SignupPage({
   searchParams,
@@ -9,6 +10,8 @@ export default async function SignupPage({
   const { error, checkEmail } = await searchParams;
 
   return (
+    <>
+    <SiteHeader />
     <main className="flex flex-1 items-center justify-center px-4 py-16">
       <div className="w-full max-w-sm rounded-2xl border border-line bg-panel p-8">
         <h1 className="font-display text-xl font-semibold text-ink">Create an account</h1>
@@ -77,5 +80,6 @@ export default async function SignupPage({
         </p>
       </div>
     </main>
+    </>
   );
 }
