@@ -104,6 +104,7 @@ export type SectorSupplier = {
   role: string;
   notes?: string[];
   f?: { ticker: string } & Record<string, unknown>;
+  strengths?: string[];
   risks?: string[];
   sourceDate?: string;
   dataStatus?: DataStatus;

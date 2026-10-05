@@ -80,6 +80,16 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
           </button>
         )}
       </div>
+      {supplier.strengths && supplier.strengths.length > 0 && (
+        <div>
+          <div className="chart-label">Strengths</div>
+          <ul className="unlisted-facts" style={{ marginTop: 4 }}>
+            {supplier.strengths.map((s) => (
+              <li key={s}>{s}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       {supplier.risks && supplier.risks.length > 0 && (
         <div>
           <div className="chart-label">Risks</div>
