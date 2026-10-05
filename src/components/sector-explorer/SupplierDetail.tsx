@@ -128,7 +128,12 @@ function ListedSupplierDetail({
     <>
       {kpi && (
         <>
-          <div className="chart-label">Key stats — seed snapshot, not live</div>
+          <div className="chart-label">
+            Key stats —{" "}
+            {kpi.live
+              ? "live from Screener.in"
+              : `as of ${new Date(kpi.asOf).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`}
+          </div>
           <div className="kpi-chips">
             {[
               ["Mkt Cap", kpi.marketCap?.replace("Rs ", "") ?? "n/a"],
