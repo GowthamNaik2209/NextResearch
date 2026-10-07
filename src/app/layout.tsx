@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+// The documented `@vercel/analytics/next` entry point fails to resolve under
+// this project's Turbopack dev server ("Module not found", reproducible even
+// with a clean .next cache, though plain Node resolves it fine) - `/react`
+// resolves correctly and the actual pageview tracking (including Next.js
+// client-side navigations) is handled by Vercel's injected script patching
+// the History API globally, not by this wrapper, so nothing is lost.
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -53,7 +60,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-bg text-ink">{children}</body>
+      <body className="min-h-full flex flex-col bg-bg text-ink">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
