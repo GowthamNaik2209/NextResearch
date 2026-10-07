@@ -1,10 +1,20 @@
 .nr-explorer {
- 
- --bg:#0A0E14; --panel:#0E141C; --panel2:#111925; --ink:#E7EDF5; --ink-soft:#7C8AA0;
+
+ /* --panel-2 (not just --panel) matters here even though explorer.css's own
+    rules never read it directly - Tailwind-styled descendants inside the
+    explorer (UserMenu, the watchlist heart link) compile to `var(--color-panel-2)`,
+    which is itself `var(--panel-2)` at :root, resolved live against whatever
+    --panel-2 is in scope at the consuming element. A name that doesn't match
+    the global token (this used to be the dead, never-read `--panel2`) means
+    that lookup falls through to :root's value instead of this scope's - i.e.
+    those elements silently pick up the page's light/dark theme regardless of
+    the canvas's own always-dark-or-grey palette. Every token below must keep
+    matching its globals.css counterpart for the same reason. */
+ --bg:#0A0E14; --panel:#0E141C; --panel-2:#111925; --ink:#E7EDF5; --ink-soft:#7C8AA0;
  --line:#1E2A3A; --grid:#152030; --accent:#49D4C9; --amber:#E3A33B; --danger:#E0715F;
  --chip:#141D29; --shadow:0 20px 50px -24px rgba(0,0,0,.7);
  color-scheme: dark;
- 
+
  *{box-sizing:border-box}
  background:var(--bg); color:var(--ink);
  font-family:'IBM Plex Sans',Arial,sans-serif;
@@ -398,4 +408,16 @@
  .picker-grid{ grid-template-columns:1fr 1fr }
  }
 
+}
+
+/* Light mode doesn't turn the 3D canvas white - it's lit and modeled for a dark
+   backdrop, and relighting every sector's three.js materials is a separate job.
+   Instead it shifts the explorer's own palette from near-black to a softer
+   charcoal grey, so it reads as "the dark workspace, toned down" rather than
+   clashing with a white page around it. Every token here must keep matching
+   its global counterpart - see the long comment on .nr-explorer's base
+   declaration above for why that matters for Tailwind-styled descendants. */
+:root[data-theme="light"] .nr-explorer {
+ --bg:#3A4149; --panel:#2E343B; --panel-2:#383E46; --ink:#EEF1F4; --ink-soft:#AAB2BB;
+ --line:#4A515A; --grid:#454C54; --chip:#333941;
 }

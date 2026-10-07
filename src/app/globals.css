@@ -16,17 +16,20 @@
 
 /* Light theme — toggled via a `data-theme` attribute on <html> (see ThemeToggle.tsx
    and the inline script in layout.tsx that applies the saved choice before paint).
-   Scoped to :root only, so the 3D sector explorer (explorer.css's `.nr-explorer`
-   block) keeps its own always-dark local tokens untouched — that canvas is tuned
-   for a dark backdrop (lighting, callout contrast) and isn't themed by this toggle. */
+   --panel/--panel-2 are a soft grey rather than pure white, so cards, buttons and
+   panels across the landing/overview/auth/watchlist pages read as a toned-down
+   surface rather than stark white. The 3D sector explorer (explorer.css's
+   `.nr-explorer` block) gets its own separate, darker grey variant scoped under
+   `:root[data-theme="light"] .nr-explorer` - that canvas is lit for a dark
+   backdrop and doesn't follow this lighter palette. */
 :root[data-theme="light"] {
-  --bg: #f6f8fa;
-  --panel: #ffffff;
-  --panel-2: #f0f3f7;
+  --bg: #eef0f3;
+  --panel: #f4f5f7;
+  --panel-2: #e8eaed;
   --ink: #131a24;
   --ink-soft: #5b6778;
-  --line: #e1e6ed;
-  --grid: #e8edf3;
+  --line: #dcdfe3;
+  --grid: #e3e5e9;
   --accent: #0d9488;
   --amber: #b9710a;
   --danger: #c23a2c;
