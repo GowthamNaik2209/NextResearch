@@ -112,6 +112,16 @@
  background:rgba(10,14,20,.8); border:1px solid var(--line); border-radius:999px; padding:6px 12px;
  font-size:11.5px; color:var(--ink-soft); backdrop-filter:blur(6px);
  }
+ /* Phone-only full-screen toggle (see the @media max-width:700px block below for
+    its visibility + the .maximized header/.rail hide it pairs with) - hidden
+    here by default so it never shows on tablet/desktop, where the stage
+    already has room without borrowing the header/rail's space. */
+ .maximize-btn{
+ display:none; position:absolute; top:12px; right:12px; z-index:5;
+ width:36px; height:36px; border-radius:50%; background:rgba(10,14,20,.8); border:1px solid var(--line);
+ color:var(--ink); align-items:center; justify-content:center; cursor:pointer; padding:0; backdrop-filter:blur(6px);
+ }
+ .maximize-btn:hover{ border-color:var(--accent); color:var(--accent) }
  .breadcrumb b{color:var(--accent); font-weight:600}
  .breadcrumb button{
  background:none; border:none; color:var(--ink); font-size:11px; font-weight:600; cursor:pointer;
@@ -333,6 +343,20 @@
 
  /* ===== Phone: stack the app vertically, dock the panel as a collapsible sheet ===== */
  @media (max-width: 700px){
+ .maximize-btn{ display:flex }
+ /* .app is already flex:1 in a flex-column .nr-explorer, so hiding header and
+    rail (its only other visible siblings) lets it - and the .stage inside it -
+    expand to fill the full viewport on its own, no fixed-position overlay
+    needed. .panel-wrap is already position:fixed (see below), so the bottom
+    sheet still floats on top of the fullscreen canvas exactly as before. */
+ /* `&` (not a bare `.maximized ...`) because this whole stylesheet nests under
+    one top-level `.nr-explorer{...}` rule, which prepends the parent selector
+    as a DESCENDANT combinator by default - `.maximized header` would compile
+    to `.nr-explorer .maximized header` (a separate .maximized descendant),
+    not `.nr-explorer.maximized header` (this same element carrying both
+    classes, which is what the JSX actually renders). */
+ &.maximized header{ display:none }
+ &.maximized .rail{ display:none }
  header{ padding:10px 185px 10px 14px; gap:6px }
  header .user-nav{ top:10px; right:14px; gap:6px; max-width:170px }
  header h1{ font-size:15px; letter-spacing:1.2px }

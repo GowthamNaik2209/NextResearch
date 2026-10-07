@@ -65,6 +65,10 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   const [activeView, setActiveView] = useState<string>(sector.defaultView || sector.views[0]?.id);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isZoneMenuOpen, setIsZoneMenuOpen] = useState(false);
+  // Phone-only: hides the header/rail chrome so the stage fills the viewport.
+  // Zone selection behaves exactly as it does normally — the panel still opens
+  // as the same bottom sheet, just floating over the fullscreen canvas.
+  const [isMaximized, setIsMaximized] = useState(false);
   const [deepStage, setDeepStage] = useState<number | null>(null);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
   const [isTouring, setIsTouring] = useState(false);
@@ -227,6 +231,16 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentZoneId, currentSupplier]);
 
+  // Toggling maximize hides/shows the header+rail via CSS, which changes the
+  // stage's actual size without ever firing a window "resize" event — the
+  // engine's resize() only listens for that, so it has no other way to know
+  // the canvas should grow/shrink. One rAF (so the browser has reflowed the
+  // new layout first) then a synthetic resize event covers it.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+    return () => cancelAnimationFrame(id);
+  }, [isMaximized]);
+
   const zone = currentZoneId ? sector.zones.find((z) => z.id === currentZoneId) ?? null : null;
   // Normalized to plain keys once here — a zone's suppliers may be bare keys or
   // {key, exposureType, exposureStrength} objects (see SectorCompanyLink) — so
@@ -293,7 +307,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   }, [isTouring, startTour, stopTour]);
 
   return (
-    <div className="nr-explorer">
+    <div className={"nr-explorer" + (isMaximized ? " maximized" : "")}>
       <header>
         <div className="title-block">
           <Link href="/" className="brand" style={{ textDecoration: "none" }}>
@@ -419,6 +433,23 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
         </div>
 
         <div className="stage" ref={stageRef}>
+          <button
+            type="button"
+            className="maximize-btn"
+            onClick={() => setIsMaximized((m) => !m)}
+            aria-label={isMaximized ? "Exit full screen" : "Full screen"}
+            title={isMaximized ? "Exit full screen" : "Full screen"}
+          >
+            {isMaximized ? (
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 3v4a2 2 0 0 1-2 2H3M15 3v4a2 2 0 0 0 2 2h4M3 15h4a2 2 0 0 1 2 2v4M15 21v-4a2 2 0 0 1 2-2h4" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9V5a2 2 0 0 1 2-2h4M15 3h4a2 2 0 0 1 2 2v4M21 15v4a2 2 0 0 1-2 2h-4M9 21H5a2 2 0 0 1-2-2v-4" />
+              </svg>
+            )}
+          </button>
           <div className="stage-grid-overlay" />
           <svg className="leader-svg" ref={leaderSvgRef} />
           <div className="callout-rail rail-left" ref={railLeftRef} />
