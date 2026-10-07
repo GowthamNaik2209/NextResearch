@@ -16,7 +16,7 @@
  header{
  position:relative;
  display:flex; align-items:baseline; justify-content:space-between; gap:16px;
- padding:14px 112px 14px 20px; border-bottom:1px solid var(--line); background:var(--panel);
+ padding:14px 250px 14px 20px; border-bottom:1px solid var(--line); background:var(--panel);
  flex-wrap:wrap;
  }
  /* Pinned to the header's own top-right corner rather than flowing inline
@@ -29,8 +29,10 @@
  header .user-nav{
  position:absolute; top:14px; right:20px;
  display:flex; align-items:center; gap:10px;
+ max-width:220px;
  }
- header .title-block{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+ header .user-nav > a{ flex:none }
+ header .title-block{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; min-width:0}
  .brand{
  font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--accent); text-transform:uppercase;
  background:color-mix(in srgb, var(--accent) 14%, transparent); border:1px solid var(--accent);
@@ -38,8 +40,11 @@
  }
  header h1{font-size:18px; letter-spacing:2px}
  header .sub{font-size:12px; color:var(--ink-soft)}
- header .right{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
- header .status{font-size:11px; color:var(--accent); display:flex; align-items:center; gap:6px}
+ header .right{display:flex; align-items:center; gap:12px; flex-wrap:wrap; min-width:0}
+ header .status{
+ font-size:11px; color:var(--accent); display:flex; align-items:center; gap:6px;
+ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;
+ }
  header .status i{width:7px;height:7px;border-radius:50%;background:var(--accent); display:inline-block; box-shadow:0 0 8px var(--accent)}
  .hdr-btn{
  background:var(--chip); border:1px solid var(--line); border-radius:8px; color:var(--ink);
@@ -318,8 +323,8 @@
 
  /* ===== Phone: stack the app vertically, dock the panel as a collapsible sheet ===== */
  @media (max-width: 700px){
- header{ padding:10px 96px 10px 14px; gap:6px }
- header .user-nav{ top:10px; right:14px; gap:8px }
+ header{ padding:10px 185px 10px 14px; gap:6px }
+ header .user-nav{ top:10px; right:14px; gap:6px; max-width:170px }
  header h1{ font-size:15px; letter-spacing:1.2px }
  header .sub{ display:none }
  header .status{ font-size:9.5px }

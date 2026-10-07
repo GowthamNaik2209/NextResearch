@@ -14,6 +14,25 @@
   color-scheme: dark;
 }
 
+/* Light theme — toggled via a `data-theme` attribute on <html> (see ThemeToggle.tsx
+   and the inline script in layout.tsx that applies the saved choice before paint).
+   Scoped to :root only, so the 3D sector explorer (explorer.css's `.nr-explorer`
+   block) keeps its own always-dark local tokens untouched — that canvas is tuned
+   for a dark backdrop (lighting, callout contrast) and isn't themed by this toggle. */
+:root[data-theme="light"] {
+  --bg: #f6f8fa;
+  --panel: #ffffff;
+  --panel-2: #f0f3f7;
+  --ink: #131a24;
+  --ink-soft: #5b6778;
+  --line: #e1e6ed;
+  --grid: #e8edf3;
+  --accent: #0d9488;
+  --amber: #b9710a;
+  --danger: #c23a2c;
+  color-scheme: light;
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-panel: var(--panel);

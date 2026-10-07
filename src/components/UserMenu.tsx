@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { logout, updateDisplayName } from "@/app/auth/actions";
+import { ThemeToggle } from "./ThemeToggle";
 
 type Props = {
   email: string | null;
@@ -27,14 +28,35 @@ export function UserMenu({ email, displayName }: Props) {
 
   if (!email) {
     return (
-      <Link
-        href="/login"
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink"
-        aria-label="Log in"
-        title="Log in"
-      >
-        <UserIcon />
-      </Link>
+      <div className="relative" ref={rootRef}>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink"
+          aria-haspopup="true"
+          aria-expanded={open}
+          aria-label="Account"
+          title="Account"
+        >
+          <UserIcon />
+        </button>
+
+        {open && (
+          <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-line bg-panel p-3 shadow-lg">
+            <div className="flex items-center justify-between gap-2 px-1 py-1">
+              <span className="text-xs font-semibold text-ink-soft">Appearance</span>
+              <ThemeToggle />
+            </div>
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
+              className="mt-2 block rounded-lg bg-accent px-2 py-1.5 text-center text-xs font-semibold text-bg hover:opacity-90"
+            >
+              Log in
+            </Link>
+          </div>
+        )}
+      </div>
     );
   }
 
@@ -52,7 +74,7 @@ export function UserMenu({ email, displayName }: Props) {
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-accent">
           <UserIcon small />
         </span>
-        <span className="max-w-[120px] truncate">{label}</span>
+        <span className="max-w-[70px] truncate sm:max-w-[120px]">{label}</span>
       </button>
 
       {open && (
@@ -91,6 +113,10 @@ export function UserMenu({ email, displayName }: Props) {
               >
                 Edit name
               </button>
+              <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-line px-2 py-1.5">
+                <span className="text-xs text-ink-soft">Appearance</span>
+                <ThemeToggle />
+              </div>
               <Link
                 href="/watchlist"
                 onClick={() => setOpen(false)}
