@@ -1,9 +1,19 @@
-import Link from "next/link";
 import { listSectors, listComingSoonSectors } from "@/lib/sector-content";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SectorBrowser } from "@/components/SectorBrowser";
 
 export default function HomePage() {
-  const sectors = listSectors();
+  // SectorBrowser is a Client Component, so only plain serializable fields cross
+  // the boundary — notably not `build`, each sector's three.js geometry function
+  // (see explore/page.tsx's comment for the same constraint).
+  const sectors = listSectors().map(({ slug, id, icon, name, tagline, category }) => ({
+    slug,
+    id,
+    icon,
+    name,
+    tagline,
+    category,
+  }));
   const comingSoon = listComingSoonSectors();
 
   return (
@@ -57,41 +67,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section>
-          <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-ink-soft">
-            Explore a sector
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {sectors.map((s) => (
-              <Link
-                key={s.slug}
-                href={`/sector/${s.slug}`}
-                className="flex flex-col gap-2 rounded-2xl border border-line bg-panel p-5 transition hover:-translate-y-0.5 hover:border-accent"
-              >
-                <div className="flex h-9 w-9 items-center justify-center rounded-md border border-line bg-panel-2 font-mono text-xs font-bold text-accent">
-                  {s.icon}
-                </div>
-                <h3 className="font-display text-base font-semibold text-ink">{s.name}</h3>
-                <p className="text-xs leading-relaxed text-ink-soft">{s.tagline}</p>
-              </Link>
-            ))}
-            {comingSoon.map((s) => (
-              <div
-                key={s.name}
-                className="flex flex-col gap-2 rounded-2xl border border-line bg-panel p-5 opacity-45"
-              >
-                <div className="flex h-9 w-9 items-center justify-center rounded-md border border-line bg-panel-2 font-mono text-xs font-bold text-accent">
-                  {s.icon}
-                </div>
-                <h3 className="font-display text-base font-semibold text-ink">{s.name}</h3>
-                <p className="text-xs leading-relaxed text-ink-soft">{s.tagline}</p>
-                <span className="mt-auto text-[10px] font-semibold uppercase tracking-wide text-accent">
-                  Coming soon
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
+        <SectorBrowser sectors={sectors} comingSoon={comingSoon} />
       </main>
     </>
   );

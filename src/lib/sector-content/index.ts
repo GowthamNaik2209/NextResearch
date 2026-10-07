@@ -128,6 +128,12 @@ export type SectorDef = {
   icon: string;
   name: string;
   tagline: string;
+  // "sector" (default, omitted on all pre-existing entries) groups by industry
+  // value chain; "policy" groups by a single government/regulatory move and the
+  // stocks it benefits (e.g. ALMM -> domestic solar module manufacturing) - same
+  // underlying zones/suppliers/3D-explorer shape, just a different entry point
+  // and filtered into its own tab on the landing page.
+  category?: "sector" | "policy";
   headerTitle: string;
   headerSub: string;
   layerNames: string[];
@@ -154,7 +160,7 @@ export type SectorDef = {
   integratorZoneId?: string;
 };
 
-type ComingSoonSector = { icon: string; name: string; tagline: string };
+type ComingSoonSector = { icon: string; name: string; tagline: string; category?: "sector" | "policy" };
 
 // products.ts is untyped authored content (see its header) — PRODUCTS itself is
 // inferred as `{}`, so cast the whole registry once here rather than per call site.

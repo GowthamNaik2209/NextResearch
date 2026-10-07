@@ -2392,7 +2392,10 @@ var ASOF = "25 Sep 2026";
  PRODUCTS._comingSoon = [
  {icon:"PH", name:"Smartphone", tagline:"Display, SoC, camera module & battery supply chain"},
  {icon:"LT", name:"Laptop", tagline:"Panel, battery, chipset & chassis supply chain"},
- {icon:"SL", name:"Solar module", tagline:"Cells, wafers, inverters & BOS supply chain"}
+ {icon:"BA", name:"Battery storage (PLI-ACC)", tagline:"Cell gigafactories benefiting from the Advanced Chemistry Cell PLI scheme", category:"policy"},
+ {icon:"H2", name:"Green Hydrogen Mission", tagline:"Electrolyser makers and green ammonia/steel offtakers benefiting from the National Green Hydrogen Mission", category:"policy"},
+ {icon:"CM", name:"Critical Minerals Mission", tagline:"Lithium, cobalt and rare-earth processors benefiting from the National Critical Mineral Mission", category:"policy"},
+ {icon:"EL", name:"Electronics PLI", tagline:"Laptop, smartphone and IT-hardware assemblers benefiting from the extended IT Hardware PLI 2.0", category:"policy"}
  ];
 
 export { PRODUCTS, NEWS, ASOF, SRC, NEWS_ASOF };
