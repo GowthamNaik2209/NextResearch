@@ -361,7 +361,10 @@
     not `.nr-explorer.maximized header` (this same element carrying both
     classes, which is what the JSX actually renders). */
  &.maximized header{ display:none }
- &.maximized .rail{ display:none }
+ /* .rail (Layers + Systems/Camera View) stays visible while maximized - only
+    the header goes away. Without layer/camera controls, maximizing stranded
+    users on whatever layer/angle they'd last picked with no way to change it
+    short of un-maximizing first. */
  &.maximized .app{ position:fixed; inset:0; height:100dvh; z-index:15 }
  header{ padding:10px 185px 10px 14px; gap:6px }
  header .user-nav{ top:10px; right:14px; gap:6px; max-width:170px }
