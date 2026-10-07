@@ -344,11 +344,16 @@
  /* ===== Phone: stack the app vertically, dock the panel as a collapsible sheet ===== */
  @media (max-width: 700px){
  .maximize-btn{ display:flex }
- /* .app is already flex:1 in a flex-column .nr-explorer, so hiding header and
-    rail (its only other visible siblings) lets it - and the .stage inside it -
-    expand to fill the full viewport on its own, no fixed-position overlay
-    needed. .panel-wrap is already position:fixed (see below), so the bottom
-    sheet still floats on top of the fullscreen canvas exactly as before. */
+ /* .app becomes a fixed overlay pinned to the actual visible viewport, rather
+    than just hiding header/rail and letting flex:1 expand to fill it - on
+    real mobile Safari that flex-only approach left .app sized against the
+    *document's* height, which can momentarily disagree with the visible
+    screen as the address-bar chrome collapses/expands, so the page itself
+    became scrollable and the bottom sheet drifted away from the true bottom
+    edge. `dvh` (not `vh`/`%`) tracks the *current* visible viewport through
+    that chrome animation instead of the largest-possible one. Taking .app out
+    of flow this way also means it no longer depends on header/rail actually
+    being hidden/zero-height to get full space - belt and suspenders. */
  /* `&` (not a bare `.maximized ...`) because this whole stylesheet nests under
     one top-level `.nr-explorer{...}` rule, which prepends the parent selector
     as a DESCENDANT combinator by default - `.maximized header` would compile
@@ -357,6 +362,7 @@
     classes, which is what the JSX actually renders). */
  &.maximized header{ display:none }
  &.maximized .rail{ display:none }
+ &.maximized .app{ position:fixed; inset:0; height:100dvh; z-index:15 }
  header{ padding:10px 185px 10px 14px; gap:6px }
  header .user-nav{ top:10px; right:14px; gap:6px; max-width:170px }
  header h1{ font-size:15px; letter-spacing:1.2px }
