@@ -524,6 +524,63 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                 </h2>
                 <p className="zdesc">{zone.desc}</p>
 
+                {/* Clickable buttons (deep dive, compare, supplier chips) come
+                    right after the header, ahead of the narrative write-up
+                    below — on a long zone with all six write-up sections
+                    filled in, these were getting pushed far enough down that
+                    the actual interactive part of the panel was off-screen. */}
+                {zone.deepDive && deepDive && (
+                  <button
+                    className="deepdive-btn"
+                    onClick={() =>
+                      deepStage !== null ? controllerRef.current?.exitDeepDive() : controllerRef.current?.enterDeepDive()
+                    }
+                  >
+                    {deepStage !== null ? "Back to product" : "Open deep dive ->"}
+                  </button>
+                )}
+                {zoneSupplierKeys.length > 1 && (
+                  <button className="compare-btn" onClick={() => setIsComparisonOpen(true)}>
+                    Compare companies &rarr;
+                  </button>
+                )}
+                <div className="chips">
+                  {zoneSupplierKeys.map((key) => {
+                    const s = sector.suppliers[key];
+                    const exposure = zoneExposure.get(key);
+                    return (
+                      <div
+                        key={key}
+                        className={"chip" + (effectiveSupplier === key ? " active" : "")}
+                        onClick={() => setCurrentSupplier(key)}
+                      >
+                        <span>
+                          {s.name}
+                          {s.listed && <WatchlistButton ticker={tickerForSupplier(s)} />}
+                          {exposure?.exposureType && (
+                            <span className="fine" style={{ marginLeft: 6 }}>
+                              {EXPOSURE_TYPE_LABEL[exposure.exposureType]}
+                              {exposure.exposureStrength ? ` · ${EXPOSURE_STRENGTH_LABEL[exposure.exposureStrength]}` : ""}
+                            </span>
+                          )}
+                        </span>
+                        <span className={"badge " + (s.listed ? "listed" : "unlisted")}>
+                          {s.listed ? "Listed" : "Unlisted"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {effectiveSupplier && (
+                  <SupplierDetail
+                    key={effectiveSupplier}
+                    sector={sector}
+                    supplierKey={effectiveSupplier}
+                    zoneSuppliers={zoneSupplierKeys}
+                    onSelectSupplier={setCurrentSupplier}
+                  />
+                )}
+
                 {zone.roleInSystem && (
                   <div>
                     <div className="chart-label">Where it fits</div>
@@ -577,58 +634,6 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                       ))}
                     </ul>
                   </div>
-                )}
-
-                {zone.deepDive && deepDive && (
-                  <button
-                    className="deepdive-btn"
-                    onClick={() =>
-                      deepStage !== null ? controllerRef.current?.exitDeepDive() : controllerRef.current?.enterDeepDive()
-                    }
-                  >
-                    {deepStage !== null ? "Back to product" : "Open deep dive ->"}
-                  </button>
-                )}
-                {zoneSupplierKeys.length > 1 && (
-                  <button className="compare-btn" onClick={() => setIsComparisonOpen(true)}>
-                    Compare companies &rarr;
-                  </button>
-                )}
-                <div className="chips">
-                  {zoneSupplierKeys.map((key) => {
-                    const s = sector.suppliers[key];
-                    const exposure = zoneExposure.get(key);
-                    return (
-                      <div
-                        key={key}
-                        className={"chip" + (effectiveSupplier === key ? " active" : "")}
-                        onClick={() => setCurrentSupplier(key)}
-                      >
-                        <span>
-                          {s.name}
-                          {s.listed && <WatchlistButton ticker={tickerForSupplier(s)} />}
-                          {exposure?.exposureType && (
-                            <span className="fine" style={{ marginLeft: 6 }}>
-                              {EXPOSURE_TYPE_LABEL[exposure.exposureType]}
-                              {exposure.exposureStrength ? ` · ${EXPOSURE_STRENGTH_LABEL[exposure.exposureStrength]}` : ""}
-                            </span>
-                          )}
-                        </span>
-                        <span className={"badge " + (s.listed ? "listed" : "unlisted")}>
-                          {s.listed ? "Listed" : "Unlisted"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                {effectiveSupplier && (
-                  <SupplierDetail
-                    key={effectiveSupplier}
-                    sector={sector}
-                    supplierKey={effectiveSupplier}
-                    zoneSuppliers={zoneSupplierKeys}
-                    onSelectSupplier={setCurrentSupplier}
-                  />
                 )}
 
                 {zone.relatedComponents && zone.relatedComponents.length > 0 && (
