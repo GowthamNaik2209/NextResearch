@@ -410,14 +410,27 @@
 
 }
 
-/* Light mode doesn't turn the 3D canvas white - it's lit and modeled for a dark
-   backdrop, and relighting every sector's three.js materials is a separate job.
-   Instead it shifts the explorer's own palette from near-black to a softer
-   charcoal grey, so it reads as "the dark workspace, toned down" rather than
-   clashing with a white page around it. Every token here must keep matching
-   its global counterpart - see the long comment on .nr-explorer's base
-   declaration above for why that matters for Tailwind-styled descendants. */
+/* Light mode: the explorer's own chrome (header/rail/panel) matches the same
+   light palette as the rest of the app now - it's the 3D stage specifically
+   (not this chrome) that stays a distinct grey, since relighting every
+   sector's three.js materials for a white backdrop is a separate job. See the
+   `.stage` and `.stage canvas` overrides further down for that. Every token
+   here must keep matching its global counterpart - see the long comment on
+   .nr-explorer's base declaration above for why that matters for
+   Tailwind-styled descendants. */
 :root[data-theme="light"] .nr-explorer {
- --bg:#3A4149; --panel:#2E343B; --panel-2:#383E46; --ink:#EEF1F4; --ink-soft:#AAB2BB;
- --line:#4A515A; --grid:#454C54; --chip:#333941;
+ --bg:#F4F5F6; --panel:#E1E4E8; --panel-2:#D4D8DC; --ink:#131A24; --ink-soft:#5B6778;
+ --line:#C7CBD0; --grid:#D8DBDF; --chip:#DDE1E5;
+}
+/* The stage viewport itself - a light grey (not white) so the greyed-out model
+   still has contrast to sit against, rather than vanishing into the page. */
+:root[data-theme="light"] .nr-explorer .stage{
+ background:radial-gradient(circle at 50% 38%, #CCCCCC 0%, #BFBFBF 42%, #A6ACB3 82%);
+}
+/* The 3D geometry itself - every sector's three.js materials are hardcoded
+   colors (teal/amber/purple per zone) with no theme awareness, so a filter on
+   the canvas is what actually makes "the model" read as grey, uniformly
+   across all sectors, without hand-editing nine build() functions' palettes. */
+:root[data-theme="light"] .nr-explorer .stage canvas{
+ filter: grayscale(0.85) brightness(1.2) contrast(0.92);
 }
