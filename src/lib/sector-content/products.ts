@@ -2628,6 +2628,7 @@ var ASOF = "25 Sep 2026";
  PRODUCTS.energy = {
  id: "energy", icon: "EN", name: "Energy Generation",
  tagline: "Thermal, solar, wind, hydro & storage - India's power generation mix",
+ muted: true,
  headerTitle: "ENERGY ANATOMY",
  headerSub: "India's generation mix as a single platform - pick a generation method to see its equipment makers and operators",
  whyNow: "India's power demand is growing faster than at any point in two decades, driven by electrification, data-centre/AI load and summer peak-demand records - and the generation mix meeting that demand is shifting fast, from a thermal-dominated base toward a thermal-plus-renewables-plus-storage system where every generation method is adding capacity simultaneously rather than one replacing another.",

@@ -134,6 +134,12 @@ export type SectorDef = {
   // underlying zones/suppliers/3D-explorer shape, just a different entry point
   // and filtered into its own tab on the landing page.
   category?: "sector" | "policy";
+  // True hides this sector's landing-page card behind the same muted,
+  // non-clickable "Coming soon" treatment as a _comingSoon placeholder, while
+  // keeping its real zones/suppliers/3D build intact and still reachable by
+  // direct URL — for a sector that's functional but not polished enough to
+  // put in front of users yet.
+  muted?: boolean;
   headerTitle: string;
   headerSub: string;
   layerNames: string[];

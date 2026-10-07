@@ -6,13 +6,14 @@ export default function HomePage() {
   // SectorBrowser is a Client Component, so only plain serializable fields cross
   // the boundary — notably not `build`, each sector's three.js geometry function
   // (see explore/page.tsx's comment for the same constraint).
-  const sectors = listSectors().map(({ slug, id, icon, name, tagline, category }) => ({
+  const sectors = listSectors().map(({ slug, id, icon, name, tagline, category, muted }) => ({
     slug,
     id,
     icon,
     name,
     tagline,
     category,
+    muted,
   }));
   const comingSoon = listComingSoonSectors();
 

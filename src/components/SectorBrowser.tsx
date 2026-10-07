@@ -3,7 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 
-type SectorCard = { slug: string; icon: string; name: string; tagline: string; category?: "sector" | "policy" };
+type SectorCard = {
+  slug: string;
+  icon: string;
+  name: string;
+  tagline: string;
+  category?: "sector" | "policy";
+  muted?: boolean;
+};
 type ComingSoonSector = { icon: string; name: string; tagline: string; category?: "sector" | "policy" };
 
 type Props = {
@@ -14,7 +21,9 @@ type Props = {
 export function SectorBrowser({ sectors, comingSoon }: Props) {
   const [tab, setTab] = useState<"sector" | "policy">("sector");
 
-  const liveSectors = sectors.filter((s) => (s.category ?? "sector") === tab);
+  const inTab = sectors.filter((s) => (s.category ?? "sector") === tab);
+  const liveSectors = inTab.filter((s) => !s.muted);
+  const mutedSectors = inTab.filter((s) => s.muted);
   const soonSectors = comingSoon.filter((s) => (s.category ?? "sector") === tab);
 
   return (
@@ -72,6 +81,16 @@ export function SectorBrowser({ sectors, comingSoon }: Props) {
             <p className="text-xs leading-relaxed text-ink-soft">{s.tagline}</p>
           </Link>
         ))}
+        {mutedSectors.map((s) => (
+          <div key={s.slug} className="flex flex-col gap-2 rounded-2xl border border-line bg-panel p-5 opacity-45">
+            <div className="flex h-9 w-9 items-center justify-center rounded-md border border-line bg-panel-2 font-mono text-xs font-bold text-accent">
+              {s.icon}
+            </div>
+            <h3 className="font-display text-base font-semibold text-ink">{s.name}</h3>
+            <p className="text-xs leading-relaxed text-ink-soft">{s.tagline}</p>
+            <span className="mt-auto text-[10px] font-semibold uppercase tracking-wide text-accent">Coming soon</span>
+          </div>
+        ))}
         {soonSectors.map((s) => (
           <div key={s.name} className="flex flex-col gap-2 rounded-2xl border border-line bg-panel p-5 opacity-45">
             <div className="flex h-9 w-9 items-center justify-center rounded-md border border-line bg-panel-2 font-mono text-xs font-bold text-accent">
@@ -82,7 +101,7 @@ export function SectorBrowser({ sectors, comingSoon }: Props) {
             <span className="mt-auto text-[10px] font-semibold uppercase tracking-wide text-accent">Coming soon</span>
           </div>
         ))}
-        {liveSectors.length === 0 && soonSectors.length === 0 && (
+        {liveSectors.length === 0 && mutedSectors.length === 0 && soonSectors.length === 0 && (
           <p className="text-sm text-ink-soft">Nothing here yet — check back soon.</p>
         )}
       </div>
