@@ -2625,6 +2625,272 @@ var ASOF = "25 Sep 2026";
  }
  };
 
+ PRODUCTS.energy = {
+ id: "energy", icon: "EN", name: "Energy Generation",
+ tagline: "Thermal, solar, wind, hydro & storage - India's power generation mix",
+ headerTitle: "ENERGY ANATOMY",
+ headerSub: "India's generation mix as a single platform - pick a generation method to see its equipment makers and operators",
+ whyNow: "India's power demand is growing faster than at any point in two decades, driven by electrification, data-centre/AI load and summer peak-demand records - and the generation mix meeting that demand is shifting fast, from a thermal-dominated base toward a thermal-plus-renewables-plus-storage system where every generation method is adding capacity simultaneously rather than one replacing another.",
+ thesisSummary: "Unlike a single-product sector, energy generation is a portfolio: thermal still supplies most actual electricity and anchors grid stability, solar and wind are the fastest-growing new-capacity additions, hydro (including pumped storage) provides flexible/peaking power, and battery storage is the newest layer stitching intermittent renewables into a reliable grid. Each generation method has its own equipment manufacturers and its own operators/IPPs - and India's listed exposure spans all five.",
+ featuredSignals: ["Monthly power demand/peak-demand records", "Renewable capacity additions (GW) by source vs. targets", "Thermal PLF (plant load factor) trend", "Battery storage (BESS) and pumped-storage project awards", "Merchant power price trends"],
+ dataStatus: "demo",
+ integratorZoneId: "thermal_gencos",
+ layerNames: ["Platform","Generation","Grid & Storage"],
+ shellMaxOpacity: 0.45, exoBaseOpacity: 0.55,
+ defaultView: "overview",
+ views: [
+ {id:"overview", label:"Overview", pos:[10,6.5,10], target:[0,0.6,0], narration:"Welcome to India's energy generation platform - five generation methods, side by side: thermal, solar, wind, hydro and storage. Each has its own equipment makers and its own operators. Let's walk through each one."},
+ {id:"thermal", label:"Thermal", pos:[-6.5,3,5], target:[-4.5,1,2], narration:"Thermal - coal and gas-fired plants that still generate most of India's actual electricity and anchor grid stability, even as renewables add most of the new capacity."},
+ {id:"solar", label:"Solar", pos:[-1,2.6,6.5], target:[-1,0.3,3], narration:"Solar - the fastest-growing source of new capacity, from utility-scale farms to rooftop installations."},
+ {id:"wind", label:"Wind", pos:[3.5,3.2,6], target:[3.2,1.2,2.5], narration:"Wind - concentrated in a handful of resource-rich states, and increasingly paired with solar in hybrid projects for steadier output."},
+ {id:"hydro", label:"Hydro", pos:[6.5,2.6,-2], target:[4.5,0.8,-3], narration:"Hydro - including pumped-storage plants, which act like a giant battery: pumping water uphill when power is cheap, releasing it to generate when demand peaks."},
+ {id:"storage", label:"Storage", pos:[-2,2.2,-5.5], target:[-1,0.5,-3.2], narration:"Battery storage - the newest layer, stitching intermittent solar and wind into power the grid can rely on around the clock."},
+ {id:"top", label:"Top", pos:[0.1,13,0.1], target:[0,0.5,0], narration:"From above - all five generation methods on one platform, connected to the same grid."}
+ ],
+ domains: [
+ {id:"thermal_gen", title:"Thermal", shortTitle:"Thermal", description:"Coal and gas-fired generation - still the backbone of India's actual electricity supply and grid stability.", color:"#D96C2B", relatedDomains:["storage_gen"]},
+ {id:"solar_gen", title:"Solar", shortTitle:"Solar", description:"Utility-scale and rooftop solar - the fastest-growing source of new generation capacity.", color:"#C99A2E", relatedDomains:["storage_gen","wind_gen"]},
+ {id:"wind_gen", title:"Wind", shortTitle:"Wind", description:"Onshore wind, concentrated in resource-rich states and increasingly hybridized with solar.", color:"#2E86AB", relatedDomains:["solar_gen"]},
+ {id:"hydro_gen", title:"Hydro", shortTitle:"Hydro", description:"Conventional and pumped-storage hydro - flexible, dispatchable generation that can ramp up or down fast.", color:"#1E9E76", relatedDomains:["storage_gen"]},
+ {id:"storage_gen", title:"Storage", shortTitle:"Storage", description:"Battery (BESS) and pumped-storage capacity that banks intermittent renewable generation for use when the grid needs it.", color:"#7A5CC7", relatedDomains:["solar_gen","hydro_gen"]}
+ ],
+ zones: [
+ {id:"thermal_equip", color:"#D96C2B", label:"Thermal Equipment & EPC", pos:[-5.2,0.5,3.0], side:"left", desc:"Boilers, turbine-generators and EPC for coal/gas-fired power plants.",
+ domainId:"thermal_gen", displayOrder:1, dataStatus:"demo",
+ roleInSystem:"Manufactures the boiler-turbine-generator (BTG) equipment at the heart of a thermal plant and executes the EPC (engineering-procurement-construction) to build it.",
+ whyItMatters:"Thermal still supplies the majority of India's actual electricity (as opposed to installed capacity), so this equipment layer underpins grid reliability even as new capacity additions shift toward renewables.",
+ valuePoolDescription:"BTG equipment manufacturing and large-scale EPC are capital-intensive, order-book-driven businesses with long execution cycles - margins depend heavily on order timing and input-cost pass-through.",
+ bottlenecks:["New domestic coal-plant ordering has slowed sharply as policy favors renewables", "Export and gas-plant orders only partly offset slower domestic coal orders", "Long execution cycles mean order-book conversion lags announcements by years"],
+ keyDrivers:["Government push for thermal capacity as a grid-stability backstop alongside renewables growth", "Replacement/life-extension orders for India's aging coal fleet", "Gas-based capacity additions in specific regions"],
+ keyRisks:["Structurally declining share of new capacity additions versus renewables", "Order-book lumpiness tied to a small number of large government/PSU contracts", "Input-cost (steel) volatility on fixed-price EPC contracts"],
+ investorMetrics:["Order book / order inflow trend", "Execution timelines versus contracted schedules", "Export order mix versus domestic"],
+ relatedComponents:["thermal_gencos"],
+ suppliers:[{key:"bhel", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"siemensEnergy", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"lt", exposureType:"indirect_supplier", exposureStrength:"low"}, {key:"thermax", exposureType:"direct_supplier", exposureStrength:"medium"}]},
+
+ {id:"thermal_gencos", color:"#D96C2B", label:"Thermal Gencos & IPPs", pos:[-3.8,0.9,1.4], side:"left", desc:"The operators who own and run coal/gas-fired power plants and sell the electricity they generate.",
+ domainId:"thermal_gen", displayOrder:2, dataStatus:"demo",
+ roleInSystem:"Owns and operates thermal power plants, selling electricity under long-term PPAs or on the merchant market - the commercial layer that turns thermal equipment into delivered electricity.",
+ whyItMatters:"Thermal gencos still generate the largest share of India's actual electricity and are what keeps the grid stable when renewable output dips.",
+ valuePoolDescription:"Gencos earn recurring revenue from capacity and energy charges under long-term PPAs (for regulated/PSU players) or more volatile merchant pricing (for some private IPPs), a steadier profile than equipment manufacturers' project-based revenue.",
+ bottlenecks:["Coal supply linkages and logistics can constrain plant load factors (PLF)", "Regulatory/tariff-setting risk for PSU gencos", "ESG and financing pressure on new thermal capacity globally"],
+ keyDrivers:["Rising overall power demand, especially summer peak load", "Capacity/energy charge tariff trends", "Coal availability and pricing"],
+ keyRisks:["Long-term structural headwind as policy favors renewable capacity additions", "Merchant-price exposure for IPPs selling outside long-term PPAs", "Carbon/ESG-linked financing and investor scrutiny"],
+ investorMetrics:["Plant load factor (PLF) trend", "Contracted vs. merchant capacity mix", "Capacity addition/retirement plans"],
+ relatedComponents:["thermal_equip","storage_integrators"],
+ suppliers:[{key:"ntpc", exposureType:"operator", exposureStrength:"high"}, {key:"adaniPower", exposureType:"operator", exposureStrength:"high"}, {key:"jswEnergy", exposureType:"operator", exposureStrength:"medium"}, {key:"tataPowerEnergy", exposureType:"operator", exposureStrength:"low"}]},
+
+ {id:"solar_equip", color:"#C99A2E", label:"Solar Equipment & EPC", pos:[-1.6,0.4,4.4], side:"right", desc:"Module manufacturing and EPC for utility-scale and rooftop solar plants.",
+ domainId:"solar_gen", displayOrder:3, dataStatus:"demo",
+ roleInSystem:"Manufactures solar modules and executes EPC to build utility-scale and rooftop solar plants - see the dedicated Solar Module Manufacturing (ALMM) policy flow for the full upstream stack.",
+ whyItMatters:"Solar is the single fastest-growing source of new generation capacity in India, and ALMM gives domestic module makers a structural procurement advantage.",
+ valuePoolDescription:"Module manufacturers capture policy-protected domestic demand under ALMM; EPC contractors earn project-based construction margins building out that capacity.",
+ bottlenecks:["Domestic cell capacity still lags module assembly capacity", "EPC margins are thin and execution-risk-heavy", "Land and grid-connectivity availability for utility-scale sites"],
+ keyDrivers:["ALMM mandate for government/utility-scale tenders", "PM Surya Ghar rooftop scheme", "Falling module costs improving project economics"],
+ keyRisks:["Industry-wide module capacity additions running ahead of demand", "EPC revenue is lumpy and execution-dependent", "Policy-dependent moat for ALMM-protected manufacturers"],
+ investorMetrics:["Module capacity utilization", "EPC order book / commissioned capacity", "ALMM-listed share of total industry capacity"],
+ relatedComponents:["solar_developers"],
+ suppliers:[{key:"waareeEnergy", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"sterlingWilsonEnergy", exposureType:"operator", exposureStrength:"high"}]},
+
+ {id:"solar_developers", color:"#C99A2E", label:"Solar & Renewable IPPs", pos:[-0.2,0.85,2.4], side:"right", desc:"Independent power producers who own and operate solar (and often wind) generation assets under long-term PPAs.",
+ domainId:"solar_gen", displayOrder:4, dataStatus:"demo",
+ roleInSystem:"Owns and operates utility-scale solar (and often hybrid wind+solar) generation assets, selling power under long-term PPAs to discoms, commercial and industrial customers.",
+ whyItMatters:"IPP capacity growth is the real-world demand signal for the entire solar equipment stack - their project pipeline determines how much module/EPC capacity actually gets utilized.",
+ valuePoolDescription:"IPPs capture long-dated, contracted power-sale revenue once a plant is operational - an annuity-like profile very different from equipment manufacturers' project-based revenue.",
+ bottlenecks:["High capital intensity funded largely by debt", "Land and transmission-connectivity availability", "Module/BOS cost inflation compressing project IRRs"],
+ keyDrivers:["India's renewable capacity targets and tender volumes", "Falling module costs improving project returns", "Corporate PPA demand from commercial/industrial customers"],
+ keyRisks:["High leverage funding aggressive capacity build-outs", "Tariff/PPA renegotiation risk on long-dated contracts", "Group-level financing/governance scrutiny for some large conglomerate-backed IPPs"],
+ investorMetrics:["Operating capacity (MW/GW) vs. under-construction pipeline", "PPA tariff trend", "Debt/equity and interest-coverage trend"],
+ relatedComponents:["solar_equip","storage_integrators"],
+ suppliers:[{key:"adaniGreenEnergy", exposureType:"owner", exposureStrength:"high"}, {key:"tataPowerEnergy", exposureType:"operator", exposureStrength:"low"}]},
+
+ {id:"wind_equip", color:"#2E86AB", label:"Wind Turbine Manufacturing", pos:[2.6,0.5,4.0], side:"right", desc:"Designs and manufactures the wind turbine generators (WTGs) that convert wind into electricity.",
+ domainId:"wind_gen", displayOrder:5, dataStatus:"demo",
+ roleInSystem:"Designs and manufactures wind turbine generators (WTGs) - the tower, nacelle and blades that convert wind into electricity - and often installs and commissions them too.",
+ whyItMatters:"India has one of the few scaled domestic wind-turbine manufacturing bases globally, rather than relying entirely on imports as it does for solar cells or batteries.",
+ valuePoolDescription:"Turbine OEMs earn equipment-sale margins plus long-dated operations-and-maintenance (O&M) service revenue across a turbine's 20+ year operating life.",
+ bottlenecks:["Wind resource is geographically concentrated, limiting where new capacity can go", "Turbine technology (larger rotor diameters, higher hub heights) requires continuous capex to stay competitive", "Past over-leverage at some domestic OEMs has weighed on balance sheets"],
+ keyDrivers:["Wind-solar hybrid project mandates improving site economics", "Repowering of India's older, smaller first-generation turbines", "Order-book recovery as domestic OEMs delever"],
+ keyRisks:["Customer concentration among a handful of large IPP order-givers", "Historical balance-sheet stress at major domestic OEMs, now improving but still a watch item", "Competition from larger global turbine makers on the biggest projects"],
+ investorMetrics:["Order book / order inflow trend", "Installed capacity (MW) commissioned per year", "Net debt trend as turnarounds progress"],
+ relatedComponents:["wind_developers"],
+ suppliers:[{key:"suzlon", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"inoxWind", exposureType:"direct_supplier", exposureStrength:"high"}]},
+
+ {id:"wind_developers", color:"#2E86AB", label:"Wind & Hybrid IPPs", pos:[4.2,0.85,1.8], side:"right", desc:"Operators of wind and wind-solar hybrid generation assets under long-term PPAs.",
+ domainId:"wind_gen", displayOrder:6, dataStatus:"demo",
+ roleInSystem:"Owns and operates wind and increasingly wind-solar hybrid generation assets, selling power under long-term PPAs.",
+ whyItMatters:"Hybrid projects pairing wind's night/monsoon-season output with solar's daytime output deliver steadier, more grid-friendly power than either alone - a growing share of new renewable capacity.",
+ valuePoolDescription:"Same annuity-like PPA revenue profile as solar IPPs, with hybrid projects commanding a premium for their steadier output profile.",
+ bottlenecks:["Wind resource is geographically concentrated in a handful of states", "Grid-connectivity and transmission capacity in wind-rich corridors", "Smaller-cap pure-play wind IPPs have thinner balance sheets than diversified majors"],
+ keyDrivers:["Wind-solar hybrid tender volumes", "Repowering of older low-capacity wind sites with modern turbines", "Round-the-clock (RTC) renewable power tenders favoring hybrid/storage-backed bids"],
+ keyRisks:["Smaller-cap wind-focused IPPs carry thinner balance sheets and less diversification than large conglomerate-backed peers", "Wind resource variability (seasonal, year-to-year) affecting generation", "PPA tariff/renegotiation risk"],
+ investorMetrics:["Operating wind/hybrid capacity (MW)", "Capacity factor trend", "PPA tariff and counterparty mix"],
+ relatedComponents:["wind_equip","solar_developers"],
+ suppliers:[{key:"adaniGreenEnergy", exposureType:"owner", exposureStrength:"medium"}, {key:"orientGreen", exposureType:"operator", exposureStrength:"high"}]},
+
+ {id:"hydro_equip", color:"#1E9E76", label:"Hydro & Pumped-Storage EPC", pos:[4.8,0.45,-2.6], side:"bottom", desc:"Turbines, generators and EPC for conventional hydro and pumped-storage plants (PSP).",
+ domainId:"hydro_gen", displayOrder:7, dataStatus:"demo",
+ roleInSystem:"Manufactures hydro turbines and generators and executes EPC for both conventional run-of-river/reservoir hydro and pumped-storage plants (PSP), which pump water uphill to store energy and release it to generate on demand.",
+ whyItMatters:"Pumped-storage hydro is one of the few proven, grid-scale ways to store renewable energy for hours at a time - a direct enabler of a higher-renewable grid.",
+ valuePoolDescription:"Hydro/PSP EPC is highly capital-intensive with multi-year construction timelines, so order-book conversion into revenue is slow but the contracts are large and long-dated.",
+ bottlenecks:["Long project gestation (often 5-8 years) from award to commissioning", "Site availability - pumped storage needs specific topography (two reservoirs at different elevations)", "Environmental and land-acquisition clearances"],
+ keyDrivers:["Renewed policy push for pumped-storage capacity as a grid-scale storage solution", "Round-the-clock (RTC) renewable tenders requiring storage-backed bids", "Life-extension/renovation orders for India's aging conventional hydro fleet"],
+ keyRisks:["Very long execution cycles mean today's order wins take years to become revenue", "Site-specific project risk (geology, hydrology, land acquisition)", "Competition from battery storage for some of the same grid-balancing use cases"],
+ investorMetrics:["PSP order book / project awards", "Execution milestones versus contracted schedules", "Conventional hydro renovation/life-extension order flow"],
+ relatedComponents:["hydro_gencos"],
+ suppliers:[{key:"bhelHydro", exposureType:"direct_supplier", exposureStrength:"medium"}]},
+
+ {id:"hydro_gencos", color:"#1E9E76", label:"Hydro & PSP Operators", pos:[5.6,0.9,-4.0], side:"bottom", desc:"PSU and private operators of conventional hydro and pumped-storage power plants.",
+ domainId:"hydro_gen", displayOrder:8, dataStatus:"demo",
+ roleInSystem:"Owns and operates conventional and pumped-storage hydro plants, providing flexible, fast-ramping generation that can be dispatched within minutes to balance the grid.",
+ whyItMatters:"As thermal's share of generation declines and renewables' share rises, fast-ramping hydro and PSP capacity becomes more valuable for keeping the grid stable minute to minute.",
+ valuePoolDescription:"PSU hydro gencos earn regulated, cost-plus-return tariffs with high revenue visibility; private PSP developers increasingly earn capacity payments for storage/flexibility services rather than just energy sold.",
+ bottlenecks:["New large hydro sites are increasingly scarce and environmentally contentious", "Multi-year construction timelines for new PSP capacity", "Seasonal/monsoon-dependent generation variability for conventional hydro"],
+ keyDrivers:["RTC renewable tenders requiring storage-backed capacity", "Regulatory tariff frameworks for PSU hydro gencos", "New PSP project awards"],
+ keyRisks:["Project pipeline for new capacity is thin relative to solar/wind/storage", "Monsoon-dependent generation variability", "Regulatory/tariff-setting risk for PSU operators"],
+ investorMetrics:["Operating capacity (MW) and new PSP project awards", "Regulated tariff/return trend for PSU operators", "Capacity factor and generation variability"],
+ relatedComponents:["hydro_equip","storage_integrators"],
+ suppliers:[{key:"nhpc", exposureType:"operator", exposureStrength:"high"}, {key:"sjvn", exposureType:"operator", exposureStrength:"high"}, {key:"tataPowerEnergy", exposureType:"operator", exposureStrength:"low"}]},
+
+ {id:"storage_equip", color:"#7A5CC7", label:"Battery Storage (BESS) Manufacturing", pos:[-2.8,0.4,-4.2], side:"left", desc:"Lithium-ion cell and battery energy storage system (BESS) manufacturing for grid-scale storage.",
+ domainId:"storage_gen", displayOrder:9, dataStatus:"demo",
+ roleInSystem:"Manufactures the lithium-ion cells and packaged battery energy storage systems (BESS) that bank renewable generation for discharge when the grid needs it.",
+ whyItMatters:"Grid-scale BESS is the newest and fastest-emerging layer of India's storage stack, needed to make a high-renewable grid reliable around the clock.",
+ valuePoolDescription:"Cell manufacturing carries the deepest technology moat; most Indian BESS capacity today still integrates imported cells into domestically packaged systems.",
+ bottlenecks:["Domestic Li-ion cell manufacturing capacity is still nascent, same gap as the EV battery stack", "Cell chemistry and cathode material supply chains run largely through China", "Grid-scale BESS is a newer, less-proven revenue line than EV batteries for most of these makers"],
+ keyDrivers:["PLI-ACC scheme support for domestic cell manufacturing", "RTC renewable tenders requiring storage-backed bids", "Falling battery costs per kWh improving BESS project economics"],
+ keyRisks:["Import dependence on cells and cathode materials, same structural gap as EV batteries", "Grid-scale BESS orders are still early-stage/pilot-scale for most domestic makers", "Competition from pumped-storage hydro for some of the same use cases"],
+ investorMetrics:["Grid-scale BESS order book / capacity awarded", "Domestic cell capacity ramp vs. targets", "Cost per kWh trend"],
+ relatedComponents:["storage_integrators"],
+ suppliers:[{key:"exideEnergy", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"amararajaEnergy", exposureType:"direct_supplier", exposureStrength:"medium"}]},
+
+ {id:"storage_integrators", color:"#7A5CC7", label:"Storage Integrators & PSP Developers", pos:[-4.0,0.85,-5.6], side:"left", desc:"Developers who deploy grid-scale BESS and pumped-storage projects and sell storage/flexibility capacity to the grid.",
+ domainId:"storage_gen", displayOrder:10, dataStatus:"demo",
+ roleInSystem:"Develops and operates grid-scale storage projects - BESS and/or pumped-storage - selling capacity and flexibility services to discoms and the grid operator, distinct from selling raw energy.",
+ whyItMatters:"Storage integrators are what actually turns intermittent solar/wind output into power the grid can rely on at any hour - the commercial layer tying the whole renewable buildout together.",
+ valuePoolDescription:"Storage/flexibility capacity payments are a newer, distinct revenue stream from traditional energy sales, increasingly bid for alongside or bundled with generation in RTC tenders.",
+ bottlenecks:["Regulatory and tariff frameworks for standalone storage are still maturing", "High upfront capital cost for both BESS and PSP", "Competition between battery storage and pumped storage for the same grid-balancing contracts"],
+ keyDrivers:["RTC (round-the-clock) renewable tender volumes requiring storage-backed bids", "Falling BESS costs improving project economics", "New PSP project awards"],
+ keyRisks:["Still-maturing regulatory/tariff frameworks for standalone storage create revenue-visibility uncertainty", "High capital intensity funded largely by debt", "Technology and cost-curve risk between competing storage approaches (BESS vs. PSP)"],
+ investorMetrics:["Storage capacity (MW/MWh) contracted or under construction", "RTC tender win rate", "Capacity payment/tariff structure trend"],
+ relatedComponents:["storage_equip","hydro_gencos"],
+ suppliers:[{key:"jswEnergy", exposureType:"operator", exposureStrength:"high"}, {key:"greenko", exposureType:"operator", exposureStrength:"medium"}, {key:"tataPowerEnergy", exposureType:"operator", exposureStrength:"low"}]}
+ ],
+ suppliers: {
+ bhel: {name:"Bharat Heavy Electricals", listed:true, role:"Boiler-turbine-generator (BTG) equipment and EPC for thermal power plants", dataStatus:"demo", sourceDate:ASOF, strengths:["India's dominant domestic BTG equipment supplier with a multi-decade installed base and a large, improving order book"], risks:["Structurally declining share of new domestic capacity additions as policy favors renewables over coal", "Historically thin and volatile margins versus private-sector peers"], f:fin([8520,9988,10971,12187,13850],[-21,243,412,587,720],"Rs 1,05,000 Cr","Rs 290","BHEL",null,[14,16,13],[180,340],[null,"bhel-ltd"],[146,38.2,0.00,6.80,4.90,10.0])},
+ siemensEnergy: {name:"Siemens Ltd", listed:true, role:"Power generation, grid and industrial equipment, including thermal and transmission systems", dataStatus:"demo", sourceDate:ASOF, strengths:["Deep global engineering base and diversified order book across power, grid and industrial segments gives steadier revenue than a pure thermal-equipment play"], risks:["Thermal/power equipment is one of several large diversified industrial segments - not separately disclosed"], f:fin([18234,20897,23654,19877,null],[1465,1842,2231,1298,null],"Rs 95,000 Cr","Rs 2,680","SIEMENS","Post FY24 demerger of Energy business into Siemens Energy India - figures reflect the transition",[12,15,8],[2100,3800],[null,"siemens-ltd"],[73.2,312,0.30,22.4,17.8,2.00])},
+ lt: {name:"Larsen & Toubro", listed:true, role:"EPC for thermal, hydro and transmission infrastructure, alongside its much larger diversified infrastructure business", dataStatus:"demo", sourceDate:ASOF, strengths:["India's largest EPC conglomerate by order book, with the balance sheet and execution scale to win the biggest power-sector contracts"], risks:["Power-sector EPC is a small slice of a vast, diversified infrastructure, defence and technology conglomerate - not separately disclosed"], f:fin([183341,203706,225613,255086,291382],[10471,13060,13626,17238,19845],"Rs 4,80,000 Cr","Rs 3,420","LT",null,[11,12,15],[2900,3980],[null,"larsen-toubro-ltd"],[24.2,870,0.80,14.5,15.6,2.00])},
+ thermax: {name:"Thermax", listed:true, role:"Boilers, heaters and power-plant equipment for industrial and utility customers", dataStatus:"demo", sourceDate:ASOF, strengths:["Established mid-sized power and industrial-equipment maker with a diversified customer base across captive, utility and industrial boiler segments"], risks:["Thermal/power equipment demand is cyclical and order-book driven, with execution timelines that can slip"], f:fin([7236,8142,8954,9512,null],[352,418,467,512,null],"Rs 38,500 Cr","Rs 3,420","THERMAX",null,[9,10,6],[2600,4200],[null,"thermax-ltd"],[75.2,420,0.40,18.6,15.1,2.00])},
+ ntpc: {name:"NTPC", listed:true, role:"India's largest power generation PSU - coal, gas and a growing renewables portfolio", dataStatus:"demo", sourceDate:ASOF, strengths:["India's largest power generator by capacity with regulated, cost-plus-return tariffs giving exceptionally high revenue visibility"], risks:["Coal/thermal still dominates the generation mix even as the renewables arm (NTPC Green) scales separately", "Regulated-tariff business caps upside versus merchant/renewable-pure-play peers"], f:fin([158922,176873,183421,179104,192677],[16626,17596,18799,17539,19450],"Rs 3,30,000 Cr","Rs 340","NTPC",null,[6,5,7],[295,445],[null,"ntpc-ltd"],[17.0,142,2.60,10.8,12.4,10.0])},
+ adaniPower: {name:"Adani Power", listed:true, role:"Large private thermal power IPP", dataStatus:"demo", sourceDate:ASOF, strengths:["India's largest private thermal power producer by capacity, with a mix of long-term PPAs and merchant capacity benefiting from tight power markets"], risks:["Revenue and profitability swing with merchant power prices and coal costs for the uncontracted portion of capacity", "Group-level financing/governance scrutiny has periodically pressured Adani group stock sentiment"], f:fin([34223,41251,50435,54483,null],[4780,10560,8140,12240,null],"Rs 2,10,000 Cr","Rs 540","ADANIPOWER",null,[18,22,14],[420,780],[null,"adani-power-ltd"],[17.2,105,0.00,19.8,36.4,10.0])},
+ jswEnergy: {name:"JSW Energy", listed:true, role:"Diversified IPP across thermal, hydro, renewables and growing battery storage capacity", dataStatus:"demo", sourceDate:ASOF, strengths:["Diversified generation mix across thermal, hydro and renewables plus an early, growing push into battery storage positions it across multiple parts of this sector at once"], risks:["Aggressive capacity expansion across generation types and storage is funded substantially by debt"], f:fin([8912,10234,11567,12890,null],[1456,1823,2140,2410,null],"Rs 95,000 Cr","Rs 560","JSWENERGY",null,[14,16,12],[420,780],[null,"jsw-energy-ltd"],[39.4,142,0.30,16.2,18.4,10.0])},
+ waareeEnergy: {name:"Waaree Energies", listed:true, role:"India's largest solar module manufacturer", dataStatus:"demo", sourceDate:ASOF, strengths:["India's largest solar module manufacturer by capacity, with a growing order book and an expanding export business to the US"], risks:["Recently listed (Oct 2024) with limited multi-year financial track record"], f:fin([2947,6677,11398,null,null],[94,414,1274,null,null],"Rs 76,000 Cr","Rs 2,850","WAAREEENER","Listed Oct 2024 - limited financial history available",[null,null,null],[1700,3650],[null,"waaree-energies-ltd"],[59.6,310,0.00,30.1,27.2,10.0])},
+ sterlingWilsonEnergy: {name:"Sterling and Wilson Renewable Energy", listed:true, role:"Solar EPC contractor", dataStatus:"demo", sourceDate:ASOF, strengths:["India's largest pure-play solar EPC contractor by track record, now past its earlier financial-stress period with a recovering order book"], risks:["History of financial stress and governance concerns a few years ago - balance sheet recovery is still relatively recent"], f:fin([4910,2458,2184,2912,3840],[-873,-574,-198,64,145],"Rs 7,200 Cr","Rs 420","SWSOLAR","Recovering from a prior period of financial stress - verify latest figures before use",[-30,-12,32],[280,620],[null,"sterling-and-wilson-renewable-energy-ltd"],[49.7,18.2,0.00,8.40,12.6,2.00])},
+ adaniGreenEnergy: {name:"Adani Green Energy", listed:true, role:"One of India's largest renewable (solar + wind) IPPs", dataStatus:"demo", sourceDate:ASOF, strengths:["One of India's largest contracted renewable generation portfolios by operating capacity, spanning both solar and wind with long-dated PPAs underpinning revenue visibility"], risks:["High leverage funding its aggressive capacity build-out", "Group-level financing/governance scrutiny has periodically pressured Adani group stock sentiment"], f:fin([7132,9123,11219,12810,null],[223,721,1260,1897,null],"Rs 1,45,000 Cr","Rs 920","ADANIGREEN",null,[28,24,18],[650,1250],[null,"adani-green-energy-ltd"],[76.4,58.0,0.00,11.2,17.8,10.0])},
+ suzlon: {name:"Suzlon Energy", listed:true, role:"India's largest wind turbine manufacturer", dataStatus:"demo", sourceDate:ASOF, strengths:["India's largest domestic wind turbine OEM, now past its earlier debt-driven financial stress with a deleveraged balance sheet and recovering order book"], risks:["History of severe financial stress and balance-sheet restructuring - the turnaround, while real, is still relatively recent"], f:fin([4287,6066,6861,10371,null],[-649,302,713,1328,null],"Rs 89,000 Cr","Rs 65.4","SUZLON","Post-restructuring - verify latest figures before use",[41,38,52],[38,86],[null,"suzlon-energy-ltd"],[67.0,5.80,0.00,22.4,38.6,2.00])},
+ inoxWind: {name:"Inox Wind", listed:true, role:"Wind turbine manufacturer", dataStatus:"demo", sourceDate:ASOF, strengths:["Established domestic wind turbine manufacturing base with an improving balance sheet and growing order book as the wind sector recovers"], risks:["Smaller scale and thinner balance sheet than the market-leading domestic OEM", "History of financial stress in the broader Inox Wind group"], f:fin([1134,1456,2187,2890,null],[-187,34,298,456,null],"Rs 22,000 Cr","Rs 185","INOXWIND","Recovering balance sheet - verify latest figures before use",[null,38,32],[110,245],[null,"inox-wind-ltd"],[48.2,22.4,0.00,24.6,28.9,10.0])},
+ orientGreen: {name:"Orient Green Power", listed:true, role:"Small-cap wind independent power producer", dataStatus:"demo", sourceDate:ASOF, strengths:["Established, long-operating wind generation asset base gives steady, if modest, recurring PPA revenue"], risks:["Small-cap with thin trading liquidity and a much smaller, less diversified asset base than large conglomerate-backed peers"], f:fin([312,298,276,342,null],[18,-24,-42,12,null],"Rs 2,100 Cr","Rs 10.2","ORIENTGREEN","Small-cap - verify latest figures before use",[null,null,null],[6.80,14.2],[null,"orient-green-power-company-ltd"],[null,2.10,0.00,4.20,5.80,10.0])},
+ bhelHydro: {name:"Bharat Heavy Electricals", listed:true, role:"Hydro turbines, generators and EPC for conventional and pumped-storage hydro plants", dataStatus:"demo", sourceDate:ASOF, strengths:["Decades of installed hydro turbine base across India's PSU hydro fleet position it for both renovation orders and new pumped-storage project awards"], risks:["Hydro/PSP equipment is one of several business lines within a broader, historically thin-margin PSU equipment manufacturer"], f:fin([8520,9988,10971,12187,13850],[-21,243,412,587,720],"Rs 1,05,000 Cr","Rs 290","BHEL",null,[14,16,13],[180,340],[null,"bhel-ltd"],[146,38.2,0.00,6.80,4.90,10.0])},
+ nhpc: {name:"NHPC", listed:true, role:"India's largest hydropower PSU generator", dataStatus:"demo", sourceDate:ASOF, strengths:["India's largest dedicated hydropower generator with regulated, cost-plus-return tariffs and a growing pumped-storage project pipeline"], risks:["Monsoon-dependent generation variability year to year", "New large hydro sites are increasingly scarce and face longer environmental/land-acquisition timelines"], f:fin([9892,10234,9876,10543,null],[3421,3678,3245,3890,null],"Rs 1,00,000 Cr","Rs 98.5","NHPC",null,[4,3,5],[72,118],[null,"nhpc-ltd"],[26.1,25.4,2.20,10.8,14.2,10.0])},
+ sjvn: {name:"SJVN", listed:true, role:"PSU hydropower generator, expanding into solar, wind and pumped storage", dataStatus:"demo", sourceDate:ASOF, strengths:["Established PSU hydro generator diversifying into solar, wind and pumped storage, giving exposure across multiple generation types under one regulated balance sheet"], risks:["Smaller scale than NHPC with a similarly monsoon-dependent core hydro business", "Diversification into renewables/storage is still early-stage relative to its legacy hydro base"], f:fin([2341,2567,2789,3012,null],[1123,1245,1189,1356,null],"Rs 38,000 Cr","Rs 97.2","SJVN",null,[6,5,8],[68,145],[null,"sjvn-ltd"],[28.0,38.6,2.00,9.40,11.6,10.0])},
+ exideEnergy: {name:"Exide Industries", listed:true, role:"Li-ion cells and grid-scale battery energy storage systems via Exide Energy Solutions", dataStatus:"demo", sourceDate:ASOF, strengths:["Long-established battery brand and distribution network to lean on while scaling the Exide Energy Solutions Li-ion gigafactory into grid-scale BESS"], risks:["Li-ion and grid-scale BESS business sits in a separate subsidiary, still small relative to the core lead-acid battery business"], f:fin([12789,15078,16770,17238,17995],[4357,823,883,800,860],"Rs 36,023 Cr","Rs 424","EXIDEIND","FY22 profit includes a one-time gain",[8,18,19],[287,496],[404,"exide-industries-ltd"],[38.4,164,0.47,8.54,5.97,1.00])},
+ amararajaEnergy: {name:"Amara Raja Energy & Mobility", listed:true, role:"Li-ion cells and energy-storage systems via Amara Raja Advanced Cell Technologies", dataStatus:"demo", sourceDate:ASOF, strengths:["Established lead-acid battery manufacturing and distribution base to lean on while scaling the Advanced Cell Technologies Li-ion business into grid-scale storage"], risks:["Li-ion and grid-scale storage business runs through a separate subsidiary, still small relative to the core lead-acid business"], f:fin([8696,10390,11260,null,null],[511,731,906,null,null],"Rs 18,568 Cr","Rs 1,014","ARE&M","FY25-FY26 not yet reflected in the source data at fetch time",[-19,7,1],[670,1023],[68,"amara-raja-energy-mobility-ltd"],[18.5,446,1.34,13.4,8.26,1.00])},
+ greenko: {name:"Greenko Group", listed:false, role:"Large pumped-storage and renewable-plus-storage project developer", dataStatus:"demo", sourceDate:ASOF, strengths:["One of India's largest dedicated pumped-storage and renewable-plus-storage developers, with a project pipeline few domestic peers can match"], risks:["Privately held (Singapore-domiciled holding structure) - no India-listed public financials; figures here are not available"], notes:["Privately held; Hyderabad-founded, backed by GIC and ADIA among other investors","One of India's largest pumped-storage and round-the-clock renewable project developers","No India-listed public market data - not listed"]},
+ tataPowerEnergy: {name:"Tata Power", listed:true, role:"Diversified generation across thermal, hydro (incl. pumped storage), solar and wind, plus transmission & distribution", dataStatus:"demo", sourceDate:ASOF, strengths:["Rare fully diversified listed generation portfolio spanning thermal, hydro/pumped-storage, solar and wind, backed by a large integrated T&D business"], risks:["Generation is spread thin across many technologies within a much larger diversified T&D and power-generation business - no single segment dominates"], f:fin([42816,55109,61449,65478,62429],[2156,3810,4280,4775,5118],"Rs 1,17,429 Cr","Rs 368","TATAPOWER",null,[15,12,9],[342,465],[1364,"tata-power-company-ltd"],[30.0,124,0.68,10.5,10.2,1.00])}
+ },
+ // Simple geometric "platform" scene: five generation-method clusters (thermal
+ // stack, solar array, wind turbines, hydro dam, storage containers) arranged
+ // around a shared grid spine - not a ported hand-sculpted model, but enough
+ // to anchor each zone's callout and read clearly as five distinct systems.
+ build: function(ctx){
+ var THREE = ctx.THREE;
+ var platformGroup = ctx.layerGroups[0], genGroup = ctx.layerGroups[1], gridGroup = ctx.layerGroups[2];
+
+ var matPlatform = new THREE.MeshStandardMaterial({color:0x5b6678, metalness:0.1, roughness:0.9, transparent:true, opacity:1});
+ var matThermal = new THREE.MeshStandardMaterial({color:0xD96C2B, metalness:0.4, roughness:0.5, transparent:true, opacity:1});
+ var matSmoke = new THREE.MeshStandardMaterial({color:0x8a97a6, metalness:0.1, roughness:0.8, transparent:true, opacity:1});
+ var matSolar = new THREE.MeshStandardMaterial({color:0x14222e, metalness:0.6, roughness:0.2, emissive:0xC99A2E, emissiveIntensity:0.15, transparent:true, opacity:1});
+ var matWindTower = new THREE.MeshStandardMaterial({color:0xcfd6dd, metalness:0.5, roughness:0.3, transparent:true, opacity:1});
+ var matWindBlade = new THREE.MeshStandardMaterial({color:0xe7edf5, metalness:0.3, roughness:0.4, side:THREE.DoubleSide, transparent:true, opacity:1});
+ var matHydro = new THREE.MeshStandardMaterial({color:0x1E9E76, metalness:0.3, roughness:0.6, transparent:true, opacity:1});
+ var matWater = new THREE.MeshStandardMaterial({color:0x2E86AB, metalness:0.1, roughness:0.2, transparent:true, opacity:0.6});
+ var matStorage = new THREE.MeshStandardMaterial({color:0x7A5CC7, metalness:0.4, roughness:0.4, emissive:0x3a1a5c, emissiveIntensity:0.3, transparent:true, opacity:1});
+ var matGridLine = new THREE.MeshStandardMaterial({color:0xe7edf5, metalness:0.6, roughness:0.3, transparent:true, opacity:1});
+
+ var platform = new THREE.Mesh(new THREE.CylinderGeometry(9,9,0.08,48), matPlatform);
+ platform.position.set(0,-0.04,0); platformGroup.add(platform);
+
+ // Thermal: boiler block + two stacks with a simple smoke puff stack.
+ var boiler = new THREE.Mesh(new THREE.BoxGeometry(1.3,1.0,1.0), matThermal);
+ boiler.position.set(-4.5,0.5,2.6); genGroup.add(boiler);
+ [[-5.0,-2.9],[-4.2,-2.9]].forEach(function(p){
+ var stack = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.16,1.8,10), matSmoke);
+ stack.position.set(p[0],1.0,p[1]); genGroup.add(stack);
+ });
+
+ // Solar: a small tilted panel array, same idiom as the dedicated solar scene.
+ var solarGeo = new THREE.BoxGeometry(0.7,0.02,0.45);
+ var solarRows = 2, solarPerRow = 4;
+ var solarInstances = new THREE.InstancedMesh(solarGeo, matSolar, solarRows*solarPerRow);
+ var sDummy = new THREE.Object3D(); var sIdx = 0;
+ for (var sr=0; sr<solarRows; sr++){
+ for (var sc=0; sc<solarPerRow; sc++){
+ sDummy.position.set(-2.2+sc*0.5, 0.35, 2.6+sr*0.7); sDummy.rotation.set(-0.3,0,0); sDummy.updateMatrix();
+ solarInstances.setMatrixAt(sIdx, sDummy.matrix); sIdx++;
+ }
+ }
+ solarInstances.instanceMatrix.needsUpdate = true; genGroup.add(solarInstances);
+
+ // Wind: two turbines - tower + nacelle + three thin blade planes each.
+ [[2.6,2.2],[3.6,3.2]].forEach(function(p, wi){
+ var tower = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.08,1.8,8), matWindTower);
+ tower.position.set(p[0],0.9,p[1]); genGroup.add(tower);
+ var nacelle = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.12,0.12), matWindTower);
+ nacelle.position.set(p[0],1.8,p[1]); genGroup.add(nacelle);
+ for (var bi=0; bi<3; bi++){
+ var blade = new THREE.Mesh(new THREE.BoxGeometry(0.75,0.08,0.015), matWindBlade);
+ blade.position.set(p[0]+0.35,1.8,p[1]);
+ blade.rotation.z = (bi*Math.PI*2/3) + wi*0.4;
+ genGroup.add(blade);
+ }
+ });
+
+ // Hydro: a dam wall + water plane in front of it.
+ var dam = new THREE.Mesh(new THREE.BoxGeometry(1.6,1.0,0.3), matHydro);
+ dam.position.set(4.8,0.5,-2.6); genGroup.add(dam);
+ var reservoir = new THREE.Mesh(new THREE.BoxGeometry(1.8,0.02,1.2), matWater);
+ reservoir.position.set(4.8,0.05,-3.6); genGroup.add(reservoir);
+
+ // Storage: a row of battery-container boxes.
+ for (var bi2=0; bi2<3; bi2++){
+ var container = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.4,0.3), matStorage);
+ container.position.set(-3.4+bi2*0.6, 0.2, -4.8); genGroup.add(container);
+ }
+
+ // Grid spine connecting all five clusters back to a central point, so the
+ // platform reads as one interconnected system rather than five islands.
+ [[-4.5,2.6],[-2.0,2.9],[3.0,2.6],[4.8,-2.6],[-3.4,-4.8]].forEach(function(p){
+ var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.6,6), matGridLine);
+ pole.position.set(p[0]*0.5,0.3,p[1]*0.5); gridGroup.add(pole);
+ });
+
+ var SHELL_MAX_OPACITY = this.shellMaxOpacity, EXO_BASE_OPACITY = this.exoBaseOpacity;
+ function clamp01(x){ return Math.max(0, Math.min(1,x)); }
+ function triangle(v, center){ return clamp01(1 - Math.abs(v-center)); }
+ function setOp(mat, v){ mat.opacity = v; mat.visible = v > 0.01; }
+
+ return {
+ applyLevel: function(v){
+ var platformOp = (v<=1) ? (EXO_BASE_OPACITY + (1-EXO_BASE_OPACITY)*v) : triangle(v,1);
+ var genOp = Math.max(triangle(v,1), clamp01(v-1)*0.85);
+ var gridOp = clamp01(v-1.4);
+ setOp(matPlatform, Math.max(platformOp, 0.4));
+ [matThermal,matSmoke,matSolar,matWindTower,matWindBlade,matHydro,matWater,matStorage].forEach(function(m){ setOp(m, genOp); });
+ setOp(matGridLine, gridOp);
+ }
+ };
+ }
+ };
+
  PRODUCTS._comingSoon = [
  {icon:"PH", name:"Smartphone", tagline:"Display, SoC, camera module & battery supply chain"},
  {icon:"LT", name:"Laptop", tagline:"Panel, battery, chipset & chassis supply chain"},
