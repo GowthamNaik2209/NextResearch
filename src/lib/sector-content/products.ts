@@ -2536,72 +2536,173 @@ var ASOF = "25 Sep 2026";
  var siteGroup = ctx.layerGroups[0], cellGroup = ctx.layerGroups[1], moduleGroup = ctx.layerGroups[2], powerGroup = ctx.layerGroups[3];
 
  var matGround = new THREE.MeshStandardMaterial({color:0x5b6678, metalness:0.1, roughness:0.9, transparent:true, opacity:1});
+ var matRoad = new THREE.MeshStandardMaterial({color:0x3a4249, metalness:0.05, roughness:0.95, transparent:true, opacity:1});
  var matFabShell = new THREE.MeshPhysicalMaterial({color:0xBFD2DE, metalness:0.1, roughness:0.3, transparent:true, opacity:0.35, side:THREE.DoubleSide, depthWrite:false});
+ var matFabTrim = new THREE.MeshStandardMaterial({color:0x8a97a6, metalness:0.5, roughness:0.4, transparent:true, opacity:1});
+ var matDock = new THREE.MeshStandardMaterial({color:0x4b5563, metalness:0.4, roughness:0.5, transparent:true, opacity:1});
+ var matOffice = new THREE.MeshPhysicalMaterial({color:0xBFD2DE, metalness:0.1, roughness:0.25, transparent:true, opacity:0.4, side:THREE.DoubleSide, depthWrite:false});
  var matFence = new THREE.MeshStandardMaterial({color:0x8a97a6, metalness:0.5, roughness:0.5, transparent:true, opacity:1});
  var matWafer = new THREE.MeshStandardMaterial({color:0x9C6B30, metalness:0.3, roughness:0.6, transparent:true, opacity:1});
- var matGlass = new THREE.MeshStandardMaterial({color:0xC99A2E, metalness:0.2, roughness:0.4, transparent:true, opacity:1});
+ var matCassette = new THREE.MeshStandardMaterial({color:0xcfd6dd, metalness:0.3, roughness:0.5, transparent:true, opacity:1});
+ var matGlassSheet = new THREE.MeshPhysicalMaterial({color:0xC9E8EA, metalness:0.1, roughness:0.1, transparent:true, opacity:0.5, side:THREE.DoubleSide});
  var matCell = new THREE.MeshStandardMaterial({color:0x2E86AB, metalness:0.5, roughness:0.25, emissive:0x0a2a3a, emissiveIntensity:0.4, transparent:true, opacity:1});
  var matPanel = new THREE.MeshStandardMaterial({color:0x14222e, metalness:0.6, roughness:0.2, emissive:0x1E9E76, emissiveIntensity:0.15, transparent:true, opacity:1});
+ var matBusbar = new THREE.MeshStandardMaterial({color:0xcfd6dd, metalness:0.7, roughness:0.2, transparent:true, opacity:1});
  var matFrame = new THREE.MeshStandardMaterial({color:0xcfd6dd, metalness:0.7, roughness:0.3, transparent:true, opacity:1});
  var matRack = new THREE.MeshStandardMaterial({color:0x64748B, metalness:0.6, roughness:0.4, transparent:true, opacity:1});
+ var matPier = new THREE.MeshStandardMaterial({color:0x7c8aa0, metalness:0.1, roughness:0.85, transparent:true, opacity:1});
  var matInverter = new THREE.MeshStandardMaterial({color:0x7A5CC7, metalness:0.4, roughness:0.35, transparent:true, opacity:1});
+ var matInverterFin = new THREE.MeshStandardMaterial({color:0x5a4590, metalness:0.5, roughness:0.3, transparent:true, opacity:1});
+ var matLed = new THREE.MeshStandardMaterial({color:0x49D4C9, emissive:0x49D4C9, emissiveIntensity:0.9, transparent:true, opacity:1});
  var matGrid = new THREE.MeshStandardMaterial({color:0x3D5A80, metalness:0.5, roughness:0.4, transparent:true, opacity:1});
+ var matInsulator = new THREE.MeshStandardMaterial({color:0xe7edf5, metalness:0.1, roughness:0.4, transparent:true, opacity:1});
 
  var ground = new THREE.Mesh(new THREE.BoxGeometry(11,0.06,8), matGround);
  ground.position.set(0,-0.03,0); siteGroup.add(ground);
+ var accessRoad = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.01,7.6), matRoad);
+ accessRoad.position.set(-5.1,0.005,0); siteGroup.add(accessRoad);
  for (var fi=0; fi<10; fi++){
  var post = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.4,6), matFence);
  post.position.set(-5+fi*1.1, 0.2, -4); siteGroup.add(post);
  }
+ var fenceRailTop = new THREE.Mesh(new THREE.BoxGeometry(10,0.02,0.02), matFence);
+ fenceRailTop.position.set(-0.05,0.37,-4); siteGroup.add(fenceRailTop);
+ var fenceRailMid = new THREE.Mesh(new THREE.BoxGeometry(10,0.02,0.02), matFence);
+ fenceRailMid.position.set(-0.05,0.2,-4); siteGroup.add(fenceRailMid);
 
- // Fab building: a simple shell with an upstream wafer/cell "stack" and a
- // module-output conveyor, so the Cells & Wafers / Modules layers both have
- // something distinct to fade in independently.
+ // Fab building: main hall + a loading-dock annex under a short awning (same
+ // "attach a secondary block via a bridge" idiom as the data-centre ops annex),
+ // a roof parapet lip, and a row of roof vents - reads as a real manufacturing
+ // campus building rather than a bare box.
  var fabShell = new THREE.Mesh(new THREE.BoxGeometry(3,1.4,2.6), matFabShell);
  fabShell.position.set(-3.6,0.7,1.6); siteGroup.add(fabShell);
-
- for (var wi=0; wi<6; wi++){
- var wafer = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.015,16), matWafer);
- wafer.rotation.x = Math.PI/2; wafer.position.set(-4.5, 0.1+wi*0.05, 2.4); cellGroup.add(wafer);
+ var parapetFront = new THREE.Mesh(new THREE.BoxGeometry(3.04,0.08,0.06), matFabTrim);
+ parapetFront.position.set(-3.6,1.42,2.9); siteGroup.add(parapetFront);
+ var parapetBack = new THREE.Mesh(new THREE.BoxGeometry(3.04,0.08,0.06), matFabTrim);
+ parapetBack.position.set(-3.6,1.42,0.3); siteGroup.add(parapetBack);
+ var parapetLeft = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.08,2.64), matFabTrim);
+ parapetLeft.position.set(-5.1,1.42,1.6); siteGroup.add(parapetLeft);
+ var parapetRight = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.08,2.64), matFabTrim);
+ parapetRight.position.set(-2.1,1.42,1.6); siteGroup.add(parapetRight);
+ for (var vi=0; vi<4; vi++){
+ var vent = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.18,10), matFabTrim);
+ vent.position.set(-4.3+vi*0.55, 1.5, 1.6); siteGroup.add(vent);
  }
- for (var ci=0; ci<8; ci++){
- var cell = new THREE.Mesh(new THREE.BoxGeometry(0.26,0.26,0.01), matCell);
- cell.position.set(-3.9+((ci%4)*0.3), 0.3+Math.floor(ci/4)*0.3, 1.9); cellGroup.add(cell);
+ // Loading-dock annex with an awning, facing the access road.
+ var dock = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.6,1.6), matDock);
+ dock.position.set(-5.0,0.3,1.6); siteGroup.add(dock);
+ var awning = new THREE.Mesh(new THREE.BoxGeometry(1.0,0.04,1.7), matFabTrim);
+ awning.position.set(-5.0,0.62,1.6); siteGroup.add(awning);
+ for (var di=-1; di<=1; di++){
+ var roller = new THREE.Mesh(new THREE.BoxGeometry(0.03,0.5,0.45), matFabTrim);
+ roller.position.set(-4.56,0.28,1.1+di*0.5); siteGroup.add(roller);
+ }
+ // Small EPC/site office near the substation - gives the EPC & Project
+ // Developers zone its own distinct geometry instead of sharing the fab.
+ var office = new THREE.Mesh(new THREE.BoxGeometry(0.8,0.55,0.6), matOffice);
+ office.position.set(4.0,0.28,1.4); siteGroup.add(office);
+ var officeDoor = new THREE.Mesh(new THREE.BoxGeometry(0.03,0.35,0.22), matDock);
+ officeDoor.position.set(3.61,0.2,1.4); siteGroup.add(officeDoor);
+
+ // Upstream materials: a wafer cassette (the industry-standard FOUP-style
+ // carrier, not loose floating discs), a sorted cell tray, and a stack of
+ // raw glass sheets for the Glass/EVA/Backsheet zone - three distinct props
+ // instead of one generic pile, so each upstream zone reads on its own.
+ var cassette = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.42,0.42), matCassette);
+ cassette.position.set(-4.5,0.21,2.5); cellGroup.add(cassette);
+ for (var wi=0; wi<8; wi++){
+ var wafer = new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.17,0.012,20), matWafer);
+ wafer.rotation.x = Math.PI/2; wafer.position.set(-4.5, 0.05+wi*0.045, 2.5); cellGroup.add(wafer);
+ }
+ for (var ci=0; ci<9; ci++){
+ var cell = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.24,0.012), matCell);
+ cell.position.set(-3.95+((ci%3)*0.27), 0.22+Math.floor(ci/3)*0.27, 1.85); cellGroup.add(cell);
+ var busbarH = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.012,0.014), matBusbar);
+ busbarH.position.set(cell.position.x, cell.position.y, 1.86); cellGroup.add(busbarH);
+ }
+ for (var gi=0; gi<5; gi++){
+ var glassSheet = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.012,0.4), matGlassSheet);
+ glassSheet.position.set(-2.6, 0.05+gi*0.03, 2.6); cellGroup.add(glassSheet);
  }
 
- // Deployed panel array: rows of tilted modules on racking - the "Modules &
- // Racking" layer, plus the frame/rack meshes also carry the BOS zones.
+ // Deployed panel array: rows of tilted modules on a proper A-frame tilt rack
+ // (angled front/rear legs + a ridge purlin + concrete piers), with a thin
+ // busbar instanced mesh over the panels so they read as cell grids up close,
+ // not flat slabs.
  var rows = 4, perRow = 6;
  var panelGeo = new THREE.BoxGeometry(0.9,0.02,0.55);
  var frameGeo = new THREE.BoxGeometry(0.94,0.03,0.59);
- var panelInstances = new THREE.InstancedMesh(panelGeo, matPanel, rows*perRow);
- var frameInstances = new THREE.InstancedMesh(frameGeo, matFrame, rows*perRow);
- var dummy = new THREE.Object3D(); var idx = 0;
+ var busbarGeo = new THREE.BoxGeometry(0.9,0.022,0.012);
+ var count = rows*perRow;
+ var panelInstances = new THREE.InstancedMesh(panelGeo, matPanel, count);
+ var frameInstances = new THREE.InstancedMesh(frameGeo, matFrame, count);
+ var busbarInstances = new THREE.InstancedMesh(busbarGeo, matBusbar, count*3);
+ var dummy = new THREE.Object3D(); var idx = 0; var bIdx = 0;
  for (var row=0; row<rows; row++){
  for (var c=0; c<perRow; c++){
  var px = -1.6 + c*0.62, pz = -2.2 + row*1.5;
  dummy.position.set(px, 0.5, pz); dummy.rotation.set(-0.35,0,0); dummy.updateMatrix();
  panelInstances.setMatrixAt(idx, dummy.matrix);
  frameInstances.setMatrixAt(idx, dummy.matrix);
+ for (var bb=-1; bb<=1; bb++){
+ dummy.position.set(px, 0.5+bb*0.09*Math.cos(0.35), pz+bb*0.09*Math.sin(0.35)*-1);
+ dummy.rotation.set(-0.35,0,0); dummy.updateMatrix();
+ busbarInstances.setMatrixAt(bIdx, dummy.matrix); bIdx++;
+ }
  idx++;
- var rack = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.5,0.06), matRack);
- rack.position.set(px, 0.22, pz+0.2); moduleGroup.add(rack);
+ // A-frame tilt rack: a shorter front leg, a taller rear leg, a ridge purlin
+ // along the row, and a concrete pier under each leg.
+ var legFront = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.32,0.05), matRack);
+ legFront.position.set(px, 0.17, pz+0.24); moduleGroup.add(legFront);
+ var legRear = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.5,0.05), matRack);
+ legRear.rotation.x = -0.35; legRear.position.set(px, 0.22, pz-0.22); moduleGroup.add(legRear);
+ [[px,pz+0.24],[px,pz-0.22]].forEach(function(pp){
+ var pier = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,0.05,8), matPier);
+ pier.position.set(pp[0],0.025,pp[1]); moduleGroup.add(pier);
+ });
  }
  }
- panelInstances.instanceMatrix.needsUpdate = true; frameInstances.instanceMatrix.needsUpdate = true;
- moduleGroup.add(panelInstances); moduleGroup.add(frameInstances);
+ panelInstances.instanceMatrix.needsUpdate = true; frameInstances.instanceMatrix.needsUpdate = true; busbarInstances.instanceMatrix.needsUpdate = true;
+ moduleGroup.add(panelInstances); moduleGroup.add(frameInstances); moduleGroup.add(busbarInstances);
+ for (var rr=0; rr<rows; rr++){
+ var purlin = new THREE.Mesh(new THREE.BoxGeometry(3.4,0.04,0.05), matRack);
+ purlin.position.set(0.5,0.17,-2.2+rr*1.5+0.24); moduleGroup.add(purlin);
+ }
  var mountRail = new THREE.Mesh(new THREE.BoxGeometry(5.0,0.04,0.08), matRack);
  mountRail.position.set(0.5,0.15,-2.6); moduleGroup.add(mountRail);
 
- // Power yard: inverter boxes + a small grid/substation block.
+ // Power yard: inverter cabinets with cooling-fin ridges and a status LED,
+ // a padmount transformer with bushings (same technique as the data-centre
+ // substation), a chain-link enclosure, and a gantry pole with insulator
+ // discs carrying the line off toward the grid edge of the site.
  for (var ii=0; ii<2; ii++){
  var inv = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.4), matInverter);
  inv.position.set(3.6+ii*0.7, 0.25, -2.0); powerGroup.add(inv);
+ for (var fin=0; fin<4; fin++){
+ var finMesh = new THREE.Mesh(new THREE.BoxGeometry(0.02,0.4,0.4), matInverterFin);
+ finMesh.position.set(3.6+ii*0.7-0.26+fin*0.004, 0.25, -2.0); powerGroup.add(finMesh);
+ }
+ var invLed = new THREE.Mesh(new THREE.SphereGeometry(0.015,6,6), matLed);
+ invLed.position.set(3.6+ii*0.7, 0.46, -1.81); powerGroup.add(invLed);
  }
  var substation = new THREE.Mesh(new THREE.BoxGeometry(0.8,0.6,0.8), matGrid);
  substation.position.set(4.6,0.3,-0.4); powerGroup.add(substation);
+ [-1,0,1].forEach(function(bi){
+ var bushing = new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.22,6), matInsulator);
+ bushing.position.set(4.6+bi*0.18,0.71,-0.4); powerGroup.add(bushing);
+ });
+ var substationPad = new THREE.Mesh(new THREE.BoxGeometry(1.2,0.04,1.2), matPier);
+ substationPad.position.set(4.6,0.02,-0.4); powerGroup.add(substationPad);
+ [[4.1,-0.9],[5.1,-0.9],[4.1,0.1],[5.1,0.1]].forEach(function(p){
+ var fencePost2 = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.35,6), matFence);
+ fencePost2.position.set(p[0],0.175,p[1]); powerGroup.add(fencePost2);
+ });
  var gridPole = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,1.3,8), matGrid);
  gridPole.position.set(4.6,0.95,-0.4); powerGroup.add(gridPole);
+ for (var ins=0; ins<3; ins++){
+ var insulator = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.03,0.08,8), matInsulator);
+ insulator.position.set(4.6-0.15+ins*0.15,1.58,-0.4); powerGroup.add(insulator);
+ }
 
  var SHELL_MAX_OPACITY = this.shellMaxOpacity, EXO_BASE_OPACITY = this.exoBaseOpacity;
  function clamp01(x){ return Math.max(0, Math.min(1,x)); }
@@ -2615,11 +2716,11 @@ var ASOF = "25 Sep 2026";
  var cellOp = triangle(v,1);
  var moduleOp = triangle(v,2);
  var powerOp = clamp01(v-2);
- setOp(matFabShell, shellOp);
- [matGround,matFence].forEach(function(m){ setOp(m, Math.max(siteOp, 0.4)); });
- [matWafer,matCell].forEach(function(m){ setOp(m, cellOp); });
- [matPanel,matFrame,matRack].forEach(function(m){ setOp(m, moduleOp); });
- [matInverter,matGrid].forEach(function(m){ setOp(m, powerOp); });
+ [matFabShell,matOffice].forEach(function(m){ setOp(m, shellOp); });
+ [matGround,matRoad,matFabTrim,matDock,matFence].forEach(function(m){ setOp(m, Math.max(siteOp, 0.4)); });
+ [matWafer,matCassette,matGlassSheet,matCell,matBusbar].forEach(function(m){ setOp(m, cellOp); });
+ [matPanel,matFrame,matRack,matPier].forEach(function(m){ setOp(m, moduleOp); });
+ [matInverter,matInverterFin,matLed,matGrid,matInsulator].forEach(function(m){ setOp(m, powerOp); });
  }
  };
  }
