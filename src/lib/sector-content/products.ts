@@ -2389,6 +2389,242 @@ var ASOF = "25 Sep 2026";
  };
 
 
+ // ======================================================================
+ // POLICY FLOWS
+ // Same shape as a PRODUCTS.* sector (zones/suppliers/build/views) but entered
+ // from the landing page's "Policy" tab instead of "Sector" - the story is "this
+ // government/regulatory move creates this winner set of stocks" rather than
+ // "this industry has this supply chain". See sector-content/index.ts's
+ // `category` field and SectorBrowser.tsx for how the two tabs are filtered.
+ // ======================================================================
+
+ PRODUCTS.solarmodules = {
+ id: "solarmodules", icon: "SL", name: "Solar Module Manufacturing (ALMM)",
+ tagline: "The ALMM policy stack: polysilicon to panel - India's domestic solar push",
+ category: "policy",
+ headerTitle: "SOLAR MODULE ANATOMY",
+ headerSub: "The ALMM policy stack - who makes India's solar cells, modules and the balance of system around them",
+ whyNow: "The Approved List of Models and Manufacturers (ALMM) mandates that government-linked and increasingly private solar projects source cells and modules only from domestically listed, MNRE-approved manufacturers - turning a procurement rule into a multi-year capacity and order-book tailwind for a small set of Indian cell and module makers, just as global panel oversupply and Chinese dumping would otherwise have made that capacity uneconomic.",
+ thesisSummary: "ALMM doesn't create demand for solar power - that's driven by India's renewable targets - it redirects who captures it. Module assembly is the direct, legislated beneficiary; cell manufacturing is being pulled onto the same list on a phased timeline; and everything upstream (polysilicon, wafers) and around it (glass, EVA, mounting, inverters) still carries real import dependence the policy doesn't yet fix.",
+ featuredSignals: ["ALMM list additions/removals (MNRE)", "Cell-manufacturing ALMM phase-in timeline", "Announced/commissioned GW of cell and module capacity vs. targets", "Imported vs. domestic module pricing spread", "PM Surya Ghar and utility-scale tender volumes specifying ALMM-listed supply"],
+ dataStatus: "demo",
+ integratorZoneId: "modules",
+ layerNames: ["Site","Cells & Wafers","Modules & Racking","Power & Grid"],
+ shellMaxOpacity: 0.5, exoBaseOpacity: 0.55,
+ defaultView: "overview",
+ views: [
+ {id:"overview", label:"Overview", pos:[8.5,5.5,8.5], target:[0,0.4,0], narration:"Welcome to the solar module manufacturing stack - the policy is the Approved List of Models and Manufacturers, or ALMM, and this is the physical stack of companies it runs through: raw materials, cells, modules, and the balance of system that turns a panel into a working power plant."},
+ {id:"fab", label:"Fab", pos:[-5.5,2.6,4.5], target:[-3.4,0.6,0], narration:"The manufacturing building - this is where polysilicon wafers become solar cells, and cells become finished modules. ALMM's core rule applies right here: only modules made in a facility like this one, on MNRE's approved list, can supply government-linked solar tenders."},
+ {id:"array", label:"Panel Array", pos:[2.5,3.2,6.5], target:[1.2,0.3,0], narration:"Rows of deployed modules on their mounting structure - the finished product of the module layer, and the visible end of the ALMM-covered supply chain."},
+ {id:"power", label:"Power Yard", pos:[6.5,2.4,-3.5], target:[4.0,0.5,-2.2], narration:"Inverters and the grid-interconnect yard - this converts the DC power the panels generate into AC power the grid can use, and it's the layer ALMM does NOT cover, so it's still mostly import-dependent."},
+ {id:"top", label:"Top", pos:[0.1,11,0.1], target:[0,0.3,0], narration:"From above - the fab building, the deployed array, and the power yard that connects it all to the grid."}
+ ],
+ domains: [
+ {id:"upstream_materials", title:"Upstream Materials", shortTitle:"Materials", description:"Polysilicon, wafers, glass, EVA and backsheet - the inputs ALMM does not yet mandate be domestic, and where China still dominates.", color:"#9C6B30", relatedDomains:["cell_module_mfg"]},
+ {id:"cell_module_mfg", title:"Cell & Module Manufacturing", shortTitle:"Cells & Modules", description:"Where ALMM's procurement rule actually bites - cells (phasing in) and modules (already mandated) made at MNRE-approved domestic facilities.", color:"#2E86AB", relatedDomains:["upstream_materials","balance_of_system"]},
+ {id:"balance_of_system", title:"Balance of System", shortTitle:"BOS", description:"Mounting structures and inverters that turn a stack of modules into a working solar plant - not covered by ALMM, and the inverter layer in particular is still import-heavy.", color:"#D96C2B", relatedDomains:["cell_module_mfg","deployment"]},
+ {id:"deployment", title:"EPC & Deployment", shortTitle:"Deployment", description:"The developers and EPC contractors who build and own the plants ALMM-listed modules go into.", color:"#3D5A80", relatedDomains:["balance_of_system"]}
+ ],
+ zones: [
+ {id:"polywafer", color:"#9C6B30", label:"Polysilicon, Ingots & Wafers", pos:[-4.6,0.3,3.6], side:"left", desc:"The upstream feedstock chain - polysilicon refined into ingots, then sliced into wafers. India has almost no domestic capacity here today.",
+ domainId:"upstream_materials", displayOrder:1, dataStatus:"demo",
+ roleInSystem:"The furthest-upstream layer - metallurgical-grade silicon refined into solar-grade polysilicon, then grown into ingots and sliced into wafers that feed cell manufacturing.",
+ whyItMatters:"This is the single biggest domestic capacity gap in the entire Indian solar stack - without it, every ALMM-listed cell and module maker is still importing its core raw material, mostly from China.",
+ valuePoolDescription:"Globally, polysilicon and wafer production is capital-intensive and currently oversupplied out of China at prices Indian greenfield capacity struggles to match without policy support - so the value pool sits almost entirely offshore today.",
+ bottlenecks:["Zero operating domestic polysilicon capacity as of today - announced projects are pre-commissioning", "Wafer-slicing is a distinct, equipment-heavy process not yet localized either", "Capital intensity and multi-year lead times versus faster-moving downstream policy timelines"],
+ keyDrivers:["Government push to extend ALMM-style rules upstream over time", "PLI and customs-duty support for backward integration", "Large conglomerates announcing integrated polysilicon-to-module complexes"],
+ keyRisks:["Entirely import-dependent today - a genuine, unresolved structural gap", "Announced domestic capacity is pre-revenue and multi-year out", "Global polysilicon oversupply/price crashes could strand new domestic capacity economically"],
+ investorMetrics:["Polysilicon/wafer capacity commissioning milestones vs. announced targets", "Import-substitution progress (domestic vs. imported wafer cost)", "Policy signals on extending ALMM-style mandates upstream"],
+ relatedComponents:["cells","glass_eva"],
+ suppliers:[{key:"relNewEnergy", exposureType:"emerging_entrant", exposureStrength:"medium"}, {key:"adanient", exposureType:"emerging_entrant", exposureStrength:"low"}]},
+
+ {id:"glass_eva", color:"#C99A2E", label:"Solar Glass, EVA & Backsheet", pos:[-3.9,0.55,2.6], side:"left", desc:"The encapsulation materials that protect cells inside a finished module - low-iron solar glass, EVA film and backsheet.",
+ domainId:"upstream_materials", displayOrder:2, dataStatus:"demo",
+ roleInSystem:"Encapsulates and protects the delicate solar cells inside a finished module - low-iron tempered glass on the front, EVA film bonding the layers, and a backsheet sealing the rear.",
+ whyItMatters:"A module is only as durable as its encapsulation - glass and EVA/backsheet quality directly determine a panel's 25-year degradation and warranty performance.",
+ valuePoolDescription:"Solar glass is a capital-intensive, scale-driven business prone to Chinese oversupply/dumping cycles that repeatedly squeeze domestic makers' margins; EVA/backsheet is more chemically specialized and still mostly import-dependent.",
+ bottlenecks:["Domestic solar glass capacity is thin and has been repeatedly undercut by cheap Chinese imports", "EVA resin and backsheet films are largely imported inputs even for domestic converters", "Anti-dumping duty cycles create stop-start investment incentives"],
+ keyDrivers:["Module manufacturing capacity growth pulling through glass/EVA demand", "Anti-dumping and safeguard duties on Chinese solar glass", "ALMM-driven module localization indirectly supporting domestic input demand"],
+ keyRisks:["Chinese oversupply/dumping has repeatedly pressured domestic solar glass economics", "Thin, cyclical margins typical of glass manufacturing", "EVA/backsheet conversion still leans on imported resin and films"],
+ investorMetrics:["Capacity utilization at domestic glass lines", "Anti-dumping duty renewal/removal decisions", "Import share of EVA/backsheet by value"],
+ relatedComponents:["polywafer","modules"],
+ suppliers:[{key:"borosilRenew", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"renewsys", exposureType:"direct_supplier", exposureStrength:"medium"}]},
+
+ {id:"cells", color:"#2E86AB", label:"Solar Cell Manufacturing", pos:[-2.6,0.5,0.8], side:"left", desc:"Converts silicon wafers into photovoltaic cells - the layer ALMM is extending its domestic-sourcing mandate to on a phased timeline.",
+ domainId:"cell_module_mfg", displayOrder:3, dataStatus:"demo",
+ roleInSystem:"Converts silicon wafers into photovoltaic cells through diffusion, texturing and metallization - the electrical heart of a solar panel, assembled into modules in the next layer.",
+ whyItMatters:"Cell manufacturing is where ALMM's domestic-sourcing mandate is being phased in alongside modules - India today assembles far more module capacity than it has matching domestic cell capacity, so most modules still use imported cells.",
+ valuePoolDescription:"Cell manufacturing carries a meaningfully higher technology and capital-intensity moat than module assembly, so the small set of players with both cell and module capacity capture more of the value chain than module-only assemblers.",
+ bottlenecks:["Domestic cell capacity is well behind domestic module assembly capacity - a persistent cells-to-modules capacity gap", "Technology transitions (PERC to TOPCon to HJT) risk stranding capacity built on an older cell architecture", "Equipment for cell lines is largely imported from China"],
+ keyDrivers:["ALMM's cell-manufacturing phase-in timeline", "PLI (Production Linked Incentive) support for integrated cell-to-module capacity", "Rising module demand outstripping existing domestic cell supply"],
+ keyRisks:["Cell technology shifts (TOPCon/HJT) could strand capacity built on older architectures", "Cell-making equipment is itself mostly imported, so backward integration only partly reduces import dependence", "Execution risk on large, newly-announced capacity ramps"],
+ investorMetrics:["Domestic cell capacity commissioned vs. announced GW targets", "Cell technology mix (PERC vs. TOPCon/HJT) of new capacity", "Cell self-sufficiency ratio versus module assembly capacity"],
+ relatedComponents:["polywafer","modules"],
+ suppliers:[{key:"premierEnergies", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"websol", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"waaree", exposureType:"direct_supplier", exposureStrength:"medium"}]},
+
+ {id:"modules", color:"#1E9E76", label:"Solar Module Assembly", pos:[-1.0,0.65,-0.6], side:"top", desc:"Where cells, glass, EVA and backsheet come together into a finished, frame-and-junction-box-ready solar panel - ALMM's core, already-mandated layer.",
+ domainId:"cell_module_mfg", displayOrder:4, dataStatus:"demo",
+ roleInSystem:"Assembles cells, glass, EVA and backsheet into a finished, framed solar panel with a junction box and connectors - the product ALMM's list is actually built around.",
+ whyItMatters:"This is the direct, already-in-force beneficiary of ALMM: government-linked and most utility-scale private solar tenders in India can only use modules from this MNRE-approved list, making it the policy's clearest stock-impact layer.",
+ valuePoolDescription:"Module assemblers on the ALMM list capture a structural pricing and order-book advantage over importers for a large, policy-defined share of India's solar demand, even where their manufacturing cost base isn't fully cost-competitive with Chinese imports.",
+ bottlenecks:["Domestic cell shortfall means many ALMM-listed module makers still import the cells they assemble", "Capacity additions have run well ahead of matching cell capacity, risking overcapacity at the module-only layer", "Global panel price declines compress margins even for ALMM-protected domestic volume"],
+ keyDrivers:["ALMM mandate for government and utility-scale tenders", "PM Surya Ghar rooftop scheme driving retail/residential module demand", "Export opportunity to US/other markets seeking non-China supply", "Backward integration into cells improving margin capture"],
+ keyRisks:["Announced module capacity across the industry is running well ahead of actual demand, risking overcapacity and price competition among ALMM-listed makers themselves", "Still import-dependent on cells, glass and EVA even where final assembly is domestic", "Policy-dependent moat - any dilution of ALMM enforcement directly hits this layer's structural advantage"],
+ investorMetrics:["ALMM-listed capacity vs. total order book", "Cell self-sufficiency (in-house vs. imported cells)", "Export revenue mix, especially to the US"],
+ relatedComponents:["cells","glass_eva","mounting"],
+ suppliers:[{key:"waaree", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"premierEnergies", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"adanient", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"vikramSolar", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"insolation", exposureType:"direct_supplier", exposureStrength:"medium"}]},
+
+ {id:"mounting", color:"#64748B", label:"Mounting Structures & Trackers", pos:[1.4,0.25,1.6], side:"right", desc:"The racking, fixed-tilt structures and trackers that hold modules at the right angle to the sun - mostly fragmented, local fabrication, not ALMM-covered.",
+ domainId:"balance_of_system", displayOrder:5, dataStatus:"demo",
+ roleInSystem:"The steel racking, fixed-tilt structures and (on larger utility sites) single-axis trackers that physically hold modules at the correct angle and, for trackers, follow the sun through the day.",
+ whyItMatters:"Mounting design affects both installation cost and long-run energy yield (trackers can lift output 10-20% over fixed-tilt) - it's a smaller-ticket layer than modules but still a real EPC cost line.",
+ valuePoolDescription:"Fixed-tilt structural steel is a largely commoditized, regionally fragmented fabrication business; trackers are a higher-value, more specialized sub-segment where fewer domestic players compete.",
+ bottlenecks:["Highly fragmented - most fixed-tilt structure fabrication is local/unlisted, not a few scaled national players", "Steel input-cost volatility feeding directly into structure costs", "Tracker technology and controls are still often imported or licensed"],
+ keyDrivers:["Utility-scale solar capacity additions overall", "Shift toward trackers on larger sites for yield improvement", "Domestic steel availability and pricing"],
+ keyRisks:["Not ALMM-covered - no policy-driven domestic-sourcing advantage at this layer", "Fragmented, commoditized, low-margin fixed-tilt segment for most players", "Steel price pass-through risk"],
+ investorMetrics:["Order book tied to utility-scale project pipeline", "Tracker vs. fixed-tilt mix", "Margin trend amid steel price swings"],
+ relatedComponents:["modules","inverters"],
+ suppliers:[{key:"aparInds", exposureType:"indirect_supplier", exposureStrength:"low"}]},
+
+ {id:"inverters", color:"#7A5CC7", label:"Power Conditioning & Inverters", pos:[2.8,0.55,-1.8], side:"right", desc:"String and central inverters that convert the DC power modules generate into grid-usable AC - not ALMM-covered, and still import-heavy.",
+ domainId:"balance_of_system", displayOrder:6, dataStatus:"demo",
+ roleInSystem:"Converts the DC electricity solar modules generate into AC power the grid can use - string inverters for rooftop/commercial sites, central inverters for utility-scale plants.",
+ whyItMatters:"Unlike modules, inverters sit entirely outside ALMM's domestic-sourcing mandate - this is the layer of the solar stack India is most structurally import-dependent on, dominated by Chinese and other foreign suppliers.",
+ valuePoolDescription:"Inverter technology and software carry a real engineering moat versus commoditized structural steel, but most of that value pool today sits with global players rather than Indian manufacturers.",
+ bottlenecks:["No ALMM-style domestic-sourcing mandate exists for inverters, unlike cells and modules", "Power-electronics component sourcing (semiconductors, capacitors) is itself import-dependent", "Few scaled, India-listed pure-play solar inverter manufacturers"],
+ keyDrivers:["Utility-scale and rooftop solar capacity growth overall", "Potential future policy extension of domestic-content rules to inverters", "Broader power-electronics PLI schemes that could indirectly support this layer"],
+ keyRisks:["Structurally import-dependent layer with no policy tailwind comparable to ALMM's module mandate", "Exposure for listed Indian names is usually a small, blended slice of a much larger diversified power-electronics business", "Competition from scaled global inverter makers with deeper R&D budgets"],
+ investorMetrics:["Domestic inverter capacity/revenue, where disclosed separately", "Any policy signal extending domestic-content rules to inverters", "Import share of inverters by value"],
+ relatedComponents:["mounting","epc"],
+ suppliers:[{key:"cgpowerSolar", exposureType:"indirect_supplier", exposureStrength:"low"}]},
+
+ {id:"epc", color:"#3D5A80", label:"EPC & Project Developers", pos:[4.0,0.85,-2.6], side:"bottom", desc:"The engineering-procurement-construction contractors and independent power producers who build and own the solar plants ALMM-listed modules go into.",
+ domainId:"deployment", displayOrder:7, dataStatus:"demo",
+ roleInSystem:"Designs, builds and in many cases owns/operates the finished solar plant - the commercial layer that actually purchases ALMM-listed modules at scale and turns them into contracted power.",
+ whyItMatters:"EPC and developer order books are the real-world demand signal for everything upstream - their project pipeline determines how much ALMM-listed module capacity actually gets utilized.",
+ valuePoolDescription:"Developers/IPPs capture long-dated, contracted power-sale revenue (PPAs) once a plant is operational, a very different, more annuity-like profile than EPC contractors, who earn project-based construction margins.",
+ bottlenecks:["Land and transmission-connectivity availability for utility-scale sites", "Module price volatility flowing directly into project economics and bid competitiveness", "Execution and commissioning delays versus contracted timelines"],
+ keyDrivers:["India's renewable capacity targets and state/central tender volumes", "ALMM compliance requirements on the tenders they bid for", "Falling module costs improving project IRRs over time"],
+ keyRisks:["Project-based EPC revenue is lumpy and execution-risk-heavy, unlike recurring IPP power-sale revenue", "Tariff/PPA renegotiation risk on long-dated power contracts", "Module and BOS cost inflation can compress already-thin EPC margins"],
+ investorMetrics:["Order book / contracted capacity under construction", "Operational capacity (MW) and PPA tariff trend", "EPC margin vs. IPP annuity revenue mix"],
+ relatedComponents:["modules","inverters","mounting"],
+ suppliers:[{key:"sterlingWilson", exposureType:"operator", exposureStrength:"high"}, {key:"kpiGreen", exposureType:"operator", exposureStrength:"high"}, {key:"adaniGreen", exposureType:"owner", exposureStrength:"medium"}, {key:"tataPowerSolar", exposureType:"operator", exposureStrength:"low"}]}
+ ],
+ suppliers: {
+ relNewEnergy: {name:"Reliance New Energy", listed:false, role:"Integrated polysilicon-to-module gigacomplex under development at Jamnagar", dataStatus:"demo", sourceDate:ASOF, strengths:["Reliance Industries' balance sheet and execution track record back one of the few fully-integrated polysilicon-to-module projects announced in India"], risks:["Unlisted subsidiary - no separately audited public financials; figures here are not available", "Project is still pre-commissioning at the scale needed to meaningfully close India's polysilicon gap"], notes:["Subsidiary of Reliance Industries (RIL)","Announced integrated solar gigacomplex (polysilicon to module) at Jamnagar","No separate public market data - not listed"]},
+ adanient: {name:"Adani Enterprises", listed:true, role:"Solar cell, module and (planned) polysilicon manufacturing via Mundra Solar PV, part of its new-energy incubation portfolio", dataStatus:"demo", sourceDate:ASOF, strengths:["One of India's largest integrated solar cell-and-module operations (Mundra Solar PV) with group-level balance sheet support for backward integration"], risks:["Solar manufacturing is one of several incubating new-energy businesses inside a large, diversified Adani Enterprises - not separately disclosed", "Group-level financing/governance scrutiny has periodically pressured Adani group stock sentiment"], f:fin([96387,118962,144646,165730,100932],[1375,2792,1731,2558,4620],"Rs 2,63,000 Cr","Rs 2,297","ADANIENT","Diversified incubator entity - solar manufacturing is a sub-segment, not separately reported revenue",[22,27,-19],[1860,3200],[null,"adani-enterprises-ltd"],[56.9,420,0.04,13.1,15.8,1.00])},
+ borosilRenew: {name:"Borosil Renewables", listed:true, role:"India's primary domestic solar glass manufacturer", dataStatus:"demo", sourceDate:ASOF, strengths:["India's largest and most established domestic solar glass producer, with first-mover scale in a thin-margin, capital-intensive business"], risks:["Repeated Chinese solar-glass oversupply/dumping cycles have pressured margins and utilization", "Revenue and profitability are volatile year to year, tied to anti-dumping duty cycles and global glass pricing"], f:fin([1098,1301,1058,953,null],[134,98,-45,-112,null],"Rs 4,100 Cr","Rs 420","BORORENEW","Margins highly sensitive to anti-dumping duty status and Chinese import pricing",[8,-9,null],[320,620],[null,"borosil-renewables-ltd"],[null,88.4,0.00,-2.10,-5.30,1.00])},
+ renewsys: {name:"RenewSys India", listed:false, role:"EVA encapsulant films and solar backsheet manufacturing", dataStatus:"demo", sourceDate:ASOF, strengths:["One of a small number of established domestic EVA/backsheet converters supplying India's module manufacturers directly"], risks:["Unlisted - no audited public financials; figures here are not available", "Still reliant on imported EVA resin and backsheet base films as inputs"], notes:["Privately held, Mumbai-based; backed by the Lavasa/Kalyani-linked RenewSys group","One of India's few scaled domestic EVA film and backsheet manufacturers","No public market data - not listed"]},
+ premierEnergies: {name:"Premier Energies", listed:true, role:"Integrated solar cell and module manufacturing", dataStatus:"demo", sourceDate:ASOF, strengths:["One of a small number of Indian manufacturers with integrated cell-and-module capacity, capturing more of the value chain than module-only assemblers"], risks:["Recently listed (Sept 2024) with limited multi-year financial track record", "Cell and module capacity additions across the industry are running ahead of demand, risking pricing pressure"], f:fin([1536,3143,6896,null,null],[-9,232,517,null,null],"Rs 32,500 Cr","Rs 950","PREMIERENE","Listed Sep 2024 - limited financial history available",[null,null,null],[650,1180],[null,"premier-energies-ltd"],[62.8,95.0,0.00,27.4,24.9,1.00])},
+ websol: {name:"Websol Energy System", listed:true, role:"Solar cell manufacturing", dataStatus:"demo", sourceDate:ASOF, strengths:["Early, established solar cell manufacturing base positioned to benefit as ALMM's cell mandate phases in"], risks:["Small-cap with thinner trading liquidity and capital base than the larger integrated players", "Revenue scale is a fraction of the larger integrated cell-and-module makers"], f:fin([64,112,398,612,null],[-18,9,87,142,null],"Rs 5,200 Cr","Rs 1,480","WEBELSOLAR","Small-cap - verify latest figures before use",[null,null,null],[780,2150],[null,"websol-energy-system-ltd"],[36.6,142,0.00,38.2,33.5,10.0])},
+ waaree: {name:"Waaree Energies", listed:true, role:"India's largest solar module manufacturer, expanding into cells and polysilicon", dataStatus:"demo", sourceDate:ASOF, strengths:["India's largest solar module manufacturer by capacity, with a growing order book and an expanding export business to the US"], risks:["Recently listed (Oct 2024) with limited multi-year financial track record", "Industry-wide module capacity additions are running ahead of demand, risking margin pressure even for the market leader"], f:fin([2947,6677,11398,null,null],[94,414,1274,null,null],"Rs 76,000 Cr","Rs 2,850","WAAREEENER","Listed Oct 2024 - limited financial history available",[null,null,null],[1700,3650],[null,"waaree-energies-ltd"],[59.6,310,0.00,30.1,27.2,10.0])},
+ vikramSolar: {name:"Vikram Solar", listed:false, role:"Solar module manufacturing, expanding capacity ahead of a planned IPO", dataStatus:"demo", sourceDate:ASOF, strengths:["Established, long-running module manufacturer with meaningful export relationships ahead of its planned public listing"], risks:["Unlisted as of this writing - no audited public financials; figures here are not available", "Filed for an IPO but timing and pricing remain uncertain"], notes:["Kolkata-based; one of India's longer-established solar module manufacturers","Filed draft IPO papers; not yet listed as of this writing","No public market data until listing"]},
+ insolation: {name:"Insolation Energy", listed:true, role:"Solar module manufacturing, small-cap", dataStatus:"demo", sourceDate:ASOF, strengths:["Smaller, nimbler ALMM-listed module maker that has scaled rapidly off a low base alongside the broader industry capacity build-out"], risks:["Small-cap with thin trading history and a much smaller capacity base than the market-leading integrated players", "Revenue growth off a low base can reverse quickly if industry pricing turns"], f:fin([98,221,612,null,null],[6,19,58,null,null],"Rs 3,400 Cr","Rs 2,640","INSOLATION","Small-cap, recently scaled - verify latest figures before use",[null,null,null],[1100,4200],[null,"insolation-energy-ltd"],[58.6,142,0.00,33.8,29.4,10.0])},
+ aparInds: {name:"Apar Industries", listed:true, role:"Conductors and specialty solar cabling for mounting/BOS, alongside its core transformer and conductor business", dataStatus:"demo", sourceDate:ASOF, strengths:["Established, diversified conductors and cabling manufacturer with the scale to supply BOS cabling as utility-scale solar capacity grows"], risks:["Solar BOS cabling is a small slice of a much larger diversified conductors, cables and transformer-oil business - not separately disclosed"], f:fin([10121,13165,18805,19923,21340],[283,470,760,816,860],"Rs 42,000 Cr","Rs 10,850","APARINDS",null,[27,24,14],[6500,11800],[null,"apar-industries-ltd"],[48.8,620,0.20,22.4,20.1,10.0])},
+ cgpowerSolar: {name:"CG Power and Industrial Solutions", listed:true, role:"Power electronics and transformers relevant to solar inverter/interconnect equipment", dataStatus:"demo", sourceDate:ASOF, strengths:["Post-turnaround power electronics and transformer manufacturer with the engineering base to expand into solar-specific power-conditioning equipment"], risks:["Solar-specific inverter/power-conditioning revenue is a small, undisclosed slice of a much larger diversified industrial and power-systems business"], f:fin([6519,8457,9871,10735,13420],[498,718,886,1010,1265],"Rs 1,15,000 Cr","Rs 780","CGPOWER",null,[26,17,25],[430,850],[null,"cg-power-and-industrial-solutions-ltd"],[91.2,20.5,0.19,27.0,46.2,2.00])},
+ sterlingWilson: {name:"Sterling and Wilson Renewable Energy", listed:true, role:"Pure-play solar EPC contractor", dataStatus:"demo", sourceDate:ASOF, strengths:["India's largest pure-play solar EPC contractor by track record, now past its earlier financial-stress period with a recovering order book"], risks:["History of financial stress and governance concerns a few years ago - balance sheet recovery is still relatively recent", "Project-based EPC revenue is lumpy and execution-risk-heavy"], f:fin([4910,2458,2184,2912,3840],[-873,-574,-198,64,145],"Rs 7,200 Cr","Rs 420","SWSOLAR","Recovering from a prior period of financial stress - verify latest figures before use",[-30,-12,32],[280,620],[null,"sterling-and-wilson-renewable-energy-ltd"],[49.7,18.2,0.00,8.40,12.6,2.00])},
+ kpiGreen: {name:"KPI Green Energy", listed:true, role:"Solar EPC contractor and independent power producer (IPP)", dataStatus:"demo", sourceDate:ASOF, strengths:["Dual EPC-plus-IPP model gives both project-based construction revenue and recurring contracted power-sale revenue from its own operating assets"], risks:["Smaller-cap with a concentrated Gujarat project base relative to larger national developers", "EPC revenue recognition can be lumpy quarter to quarter"], f:fin([612,891,1298,1456,null],[78,118,172,198,null],"Rs 7,800 Cr","Rs 620","KPIGREEN",null,[34,28,22],[380,920],[null,"kpi-green-energy-ltd"],[39.4,85.2,0.10,24.6,22.1,5.00])},
+ adaniGreen: {name:"Adani Green Energy", listed:true, role:"Independent power producer - one of India's largest renewable (solar + wind) generation portfolios", dataStatus:"demo", sourceDate:ASOF, strengths:["One of India's largest contracted renewable generation portfolios by operating capacity, with long-dated PPAs underpinning revenue visibility"], risks:["High leverage funding its aggressive capacity build-out", "Group-level financing/governance scrutiny has periodically pressured Adani group stock sentiment"], f:fin([7132,9123,11219,12810,null],[223,721,1260,1897,null],"Rs 1,45,000 Cr","Rs 920","ADANIGREEN",null,[28,24,18],[650,1250],[null,"adani-green-energy-ltd"],[76.4,58.0,0.00,11.2,17.8,10.0])},
+ tataPowerSolar: {name:"Tata Power", listed:true, role:"Solar EPC, rooftop (Tata Power Solar) and utility-scale generation, alongside its core T&D and conventional generation business", dataStatus:"demo", sourceDate:ASOF, strengths:["Tata Power Solar's established EPC and rooftop brand plus the parent's large power-generation balance sheet back the solar build-out"], risks:["Solar EPC/generation is one segment within a much larger diversified T&D, renewable and conventional power generation business - not separately disclosed"], f:fin([42816,55109,61449,65478,62429],[2156,3810,4280,4775,5118],"Rs 1,17,429 Cr","Rs 368","TATAPOWER",null,[15,12,9],[342,465],[1364,"tata-power-company-ltd"],[30.0,124,0.68,10.5,10.2,1.00])}
+ },
+ // Simple, legible geometric scene (not a ported hand-sculpted model like the
+ // car/data-centre builds): a fab building, deployed panel rows on racking,
+ // and a power yard - enough to anchor each zone's callout without needing
+ // bespoke per-part geometry for a brand-new sector built in one pass.
+ build: function(ctx){
+ var THREE = ctx.THREE;
+ var siteGroup = ctx.layerGroups[0], cellGroup = ctx.layerGroups[1], moduleGroup = ctx.layerGroups[2], powerGroup = ctx.layerGroups[3];
+
+ var matGround = new THREE.MeshStandardMaterial({color:0x5b6678, metalness:0.1, roughness:0.9, transparent:true, opacity:1});
+ var matFabShell = new THREE.MeshPhysicalMaterial({color:0xBFD2DE, metalness:0.1, roughness:0.3, transparent:true, opacity:0.35, side:THREE.DoubleSide, depthWrite:false});
+ var matFence = new THREE.MeshStandardMaterial({color:0x8a97a6, metalness:0.5, roughness:0.5, transparent:true, opacity:1});
+ var matWafer = new THREE.MeshStandardMaterial({color:0x9C6B30, metalness:0.3, roughness:0.6, transparent:true, opacity:1});
+ var matGlass = new THREE.MeshStandardMaterial({color:0xC99A2E, metalness:0.2, roughness:0.4, transparent:true, opacity:1});
+ var matCell = new THREE.MeshStandardMaterial({color:0x2E86AB, metalness:0.5, roughness:0.25, emissive:0x0a2a3a, emissiveIntensity:0.4, transparent:true, opacity:1});
+ var matPanel = new THREE.MeshStandardMaterial({color:0x14222e, metalness:0.6, roughness:0.2, emissive:0x1E9E76, emissiveIntensity:0.15, transparent:true, opacity:1});
+ var matFrame = new THREE.MeshStandardMaterial({color:0xcfd6dd, metalness:0.7, roughness:0.3, transparent:true, opacity:1});
+ var matRack = new THREE.MeshStandardMaterial({color:0x64748B, metalness:0.6, roughness:0.4, transparent:true, opacity:1});
+ var matInverter = new THREE.MeshStandardMaterial({color:0x7A5CC7, metalness:0.4, roughness:0.35, transparent:true, opacity:1});
+ var matGrid = new THREE.MeshStandardMaterial({color:0x3D5A80, metalness:0.5, roughness:0.4, transparent:true, opacity:1});
+
+ var ground = new THREE.Mesh(new THREE.BoxGeometry(11,0.06,8), matGround);
+ ground.position.set(0,-0.03,0); siteGroup.add(ground);
+ for (var fi=0; fi<10; fi++){
+ var post = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.4,6), matFence);
+ post.position.set(-5+fi*1.1, 0.2, -4); siteGroup.add(post);
+ }
+
+ // Fab building: a simple shell with an upstream wafer/cell "stack" and a
+ // module-output conveyor, so the Cells & Wafers / Modules layers both have
+ // something distinct to fade in independently.
+ var fabShell = new THREE.Mesh(new THREE.BoxGeometry(3,1.4,2.6), matFabShell);
+ fabShell.position.set(-3.6,0.7,1.6); siteGroup.add(fabShell);
+
+ for (var wi=0; wi<6; wi++){
+ var wafer = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.015,16), matWafer);
+ wafer.rotation.x = Math.PI/2; wafer.position.set(-4.5, 0.1+wi*0.05, 2.4); cellGroup.add(wafer);
+ }
+ for (var ci=0; ci<8; ci++){
+ var cell = new THREE.Mesh(new THREE.BoxGeometry(0.26,0.26,0.01), matCell);
+ cell.position.set(-3.9+((ci%4)*0.3), 0.3+Math.floor(ci/4)*0.3, 1.9); cellGroup.add(cell);
+ }
+
+ // Deployed panel array: rows of tilted modules on racking - the "Modules &
+ // Racking" layer, plus the frame/rack meshes also carry the BOS zones.
+ var rows = 4, perRow = 6;
+ var panelGeo = new THREE.BoxGeometry(0.9,0.02,0.55);
+ var frameGeo = new THREE.BoxGeometry(0.94,0.03,0.59);
+ var panelInstances = new THREE.InstancedMesh(panelGeo, matPanel, rows*perRow);
+ var frameInstances = new THREE.InstancedMesh(frameGeo, matFrame, rows*perRow);
+ var dummy = new THREE.Object3D(); var idx = 0;
+ for (var row=0; row<rows; row++){
+ for (var c=0; c<perRow; c++){
+ var px = -1.6 + c*0.62, pz = -2.2 + row*1.5;
+ dummy.position.set(px, 0.5, pz); dummy.rotation.set(-0.35,0,0); dummy.updateMatrix();
+ panelInstances.setMatrixAt(idx, dummy.matrix);
+ frameInstances.setMatrixAt(idx, dummy.matrix);
+ idx++;
+ var rack = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.5,0.06), matRack);
+ rack.position.set(px, 0.22, pz+0.2); moduleGroup.add(rack);
+ }
+ }
+ panelInstances.instanceMatrix.needsUpdate = true; frameInstances.instanceMatrix.needsUpdate = true;
+ moduleGroup.add(panelInstances); moduleGroup.add(frameInstances);
+ var mountRail = new THREE.Mesh(new THREE.BoxGeometry(5.0,0.04,0.08), matRack);
+ mountRail.position.set(0.5,0.15,-2.6); moduleGroup.add(mountRail);
+
+ // Power yard: inverter boxes + a small grid/substation block.
+ for (var ii=0; ii<2; ii++){
+ var inv = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.4), matInverter);
+ inv.position.set(3.6+ii*0.7, 0.25, -2.0); powerGroup.add(inv);
+ }
+ var substation = new THREE.Mesh(new THREE.BoxGeometry(0.8,0.6,0.8), matGrid);
+ substation.position.set(4.6,0.3,-0.4); powerGroup.add(substation);
+ var gridPole = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,1.3,8), matGrid);
+ gridPole.position.set(4.6,0.95,-0.4); powerGroup.add(gridPole);
+
+ var SHELL_MAX_OPACITY = this.shellMaxOpacity, EXO_BASE_OPACITY = this.exoBaseOpacity;
+ function clamp01(x){ return Math.max(0, Math.min(1,x)); }
+ function triangle(v, center){ return clamp01(1 - Math.abs(v-center)); }
+ function setOp(mat, v){ mat.opacity = v; mat.visible = v > 0.01; }
+
+ return {
+ applyLevel: function(v){
+ var shellOp = clamp01(1-v) * SHELL_MAX_OPACITY;
+ var siteOp = (v<=1) ? (EXO_BASE_OPACITY + (1-EXO_BASE_OPACITY)*v) : triangle(v,1);
+ var cellOp = triangle(v,1);
+ var moduleOp = triangle(v,2);
+ var powerOp = clamp01(v-2);
+ setOp(matFabShell, shellOp);
+ [matGround,matFence].forEach(function(m){ setOp(m, Math.max(siteOp, 0.4)); });
+ [matWafer,matCell].forEach(function(m){ setOp(m, cellOp); });
+ [matPanel,matFrame,matRack].forEach(function(m){ setOp(m, moduleOp); });
+ [matInverter,matGrid].forEach(function(m){ setOp(m, powerOp); });
+ }
+ };
+ }
+ };
+
  PRODUCTS._comingSoon = [
  {icon:"PH", name:"Smartphone", tagline:"Display, SoC, camera module & battery supply chain"},
  {icon:"LT", name:"Laptop", tagline:"Panel, battery, chipset & chassis supply chain"},
