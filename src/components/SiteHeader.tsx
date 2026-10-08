@@ -15,6 +15,12 @@ export async function SiteHeader() {
       </Link>
       <nav className="flex items-center gap-3">
         <Link
+          href="/docs"
+          className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-ink"
+        >
+          Docs
+        </Link>
+        <Link
           href="/watchlist"
           className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
           aria-label="Watchlist"
