@@ -68,7 +68,22 @@ export default function HomePage() {
           </div>
         </section>
 
-        <SectorBrowser sectors={sectors} comingSoon={comingSoon} />
+        <div id="explore-sector">
+          <SectorBrowser sectors={sectors} comingSoon={comingSoon} />
+        </div>
+
+        {/* Lands visitors on the sector grid instead of the (unclickable) intro
+            cards above it. A synchronous inline script — same trick as
+            layout.tsx's THEME_INIT_SCRIPT — runs during HTML parsing, right
+            after #explore-sector is in the DOM, so the jump happens before
+            first paint instead of waiting for React hydration. */}
+        <script
+          type={typeof window === "undefined" ? "text/javascript" : "text/plain"}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `try{var el=document.getElementById("explore-sector");if(el)window.scrollTo(0,el.getBoundingClientRect().top+window.scrollY-12)}catch(e){}`,
+          }}
+        />
       </main>
     </>
   );
