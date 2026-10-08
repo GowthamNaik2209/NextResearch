@@ -68,7 +68,24 @@ export default function HomePage() {
           </div>
         </section>
 
-        <SectorBrowser sectors={sectors} comingSoon={comingSoon} />
+        <div id="explore-sector">
+          <SectorBrowser sectors={sectors} comingSoon={comingSoon} />
+        </div>
+
+        {/* Lands visitors on the sector grid instead of leaving them stranded on
+            the (unclickable) intro cards above it — but as a visible, smooth
+            scroll (with a brief pause first) rather than an instant jump, so
+            it's clear to the visitor that the page moved and why, instead of
+            looking like a broken/confusing teleport. Still a synchronous
+            inline script (same trick as layout.tsx's THEME_INIT_SCRIPT) so it
+            fires during HTML parsing rather than waiting on React hydration. */}
+        <script
+          type={typeof window === "undefined" ? "text/javascript" : "text/plain"}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `try{setTimeout(function(){var el=document.getElementById("explore-sector");if(el)window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-12,left:0,behavior:"smooth"})},500)}catch(e){}`,
+          }}
+        />
       </main>
     </>
   );
