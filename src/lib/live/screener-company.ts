@@ -18,6 +18,8 @@ export type PeerMetrics = { pe: number | null; marketCapCr: number | null; divYi
 
 export type Series = { label: string; values: (number | null)[] };
 export type Fundamentals = {
+  // Where these figures came from: Screener.in (full set) or the Yahoo Finance fallback (partial).
+  source: "screener" | "yahoo";
   companyId: string | null;
   classification: { broadSector?: string; sector?: string; industry?: string };
   kpi: ScreenerKpi | null;
@@ -136,7 +138,7 @@ export async function getFundamentals(slug: string): Promise<Fundamentals | null
         }
       }
 
-      return { companyId, classification, kpi, industry, growth, shareholding, annual, fetchedAt: new Date().toISOString() } satisfies Fundamentals;
+      return { source: "screener", companyId, classification, kpi, industry, growth, shareholding, annual, fetchedAt: new Date().toISOString() } satisfies Fundamentals;
     } catch {
       return null;
     }

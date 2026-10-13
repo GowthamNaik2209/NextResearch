@@ -26,7 +26,8 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "tailwindcss": "^4",
-    "three": "^0.186.1"
+    "three": "^0.186.1",
+    "yahoo-finance2": "^4.0.3"
   },
   "devDependencies": {
     "@types/node": "^20",

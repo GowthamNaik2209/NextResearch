@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { lookupTicker } from "@/lib/live/allowlist";
 import { getFundamentals } from "@/lib/live/screener-company";
-import { getChart } from "@/lib/live/yahoo";
+import { getQuote, getYahooFundamentals } from "@/lib/live/yahoo";
 import { newsForTickers } from "@/lib/sector-content/insights";
 
 // GET /api/stock/VOLTAS — live quote + Screener fundamentals + industry medians +
@@ -13,12 +13,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
   const known = lookupTicker(ticker);
   if (!known) return NextResponse.json({ error: "unknown ticker" }, { status: 404 });
 
-  const fundamentals = await getFundamentals(known.slug);
-  const month = await getChart(ticker, "1M", fundamentals?.companyId);
+  // Screener has the full set (ROCE, shareholding, industry medians); if it is
+  // unreachable, fall back to Yahoo's partial fundamentals. Quote is independent.
+  const [screener, quote] = await Promise.all([getFundamentals(known.slug), getQuote(ticker)]);
+  const fundamentals = screener ?? (await getYahooFundamentals(ticker));
   const news = newsForTickers([ticker]).map(({ headline, source, url, date }) => ({ headline, source, url, date }));
 
   return NextResponse.json(
-    { ticker, quote: month?.quote ?? null, fundamentals, news },
+    { ticker, quote, fundamentals, news },
     { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=900" } }
   );
 }

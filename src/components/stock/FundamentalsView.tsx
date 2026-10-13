@@ -50,6 +50,11 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
         ) : loading ? (
           <p className="text-sm text-ink-soft">Fetching live fundamentals…</p>
         ) : null}
+        {fund?.source === "yahoo" && (
+          <p className="mt-2 rounded-lg border border-amber/40 bg-amber/10 px-3 py-2 text-xs text-ink">
+            Screener.in isn&rsquo;t reachable right now, so these figures come from Yahoo Finance. ROCE, shareholding and industry medians are unavailable until Screener.in responds.
+          </p>
+        )}
         {!fund && !loading && (
           <p className="mt-2 rounded-lg border border-amber/40 bg-amber/10 px-3 py-2 text-xs text-ink">
             Live Screener.in data isn&rsquo;t reachable right now, so company ratios below are cached figures and industry medians are unavailable. Try again shortly.
@@ -162,7 +167,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
       )}
 
       <p className="border-t border-dashed border-line pt-2 text-[10.5px] text-ink-soft">
-        Source: Screener.in (consolidated){fund ? `, fetched ${new Date(fund.fetchedAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : ", cached"}. Industry = median of the company&rsquo;s Screener industry group.
+        Source: {fund?.source === "yahoo" ? "Yahoo Finance" : "Screener.in (consolidated)"}{fund ? `, fetched ${new Date(fund.fetchedAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : ", cached"}. {fund?.source === "yahoo" ? "" : "Industry = median of the company\u2019s Screener industry group."}
       </p>
     </div>
   );

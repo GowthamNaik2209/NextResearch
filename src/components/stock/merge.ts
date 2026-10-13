@@ -15,7 +15,7 @@ export type Stats = {
   cagr3y: number | null;
   cagr5y: number | null;
   live: boolean; // true when any figure came from a live fetch
-  liveScreener: boolean; // ratios/market cap are live (else cached seed figures)
+  ratioSource: "screener" | "yahoo" | "cached"; // where P/E, market cap etc. came from
   liveQuote: boolean; // price is a live NSE quote
 };
 
@@ -49,7 +49,7 @@ export function mergeStats(f: StaticFin | undefined, api: StockApi | null): Stat
     cagr3y: cg(/^3 Year/i) ?? f?.cagr?.[1] ?? null,
     cagr5y: cg(/^5 Year/i) ?? f?.cagr?.[2] ?? null,
     live: !!(k || api?.quote),
-    liveScreener: !!k,
+    ratioSource: k ? (api?.fundamentals?.source === "yahoo" ? "yahoo" : "screener") : "cached",
     liveQuote: !!api?.quote,
   };
 }

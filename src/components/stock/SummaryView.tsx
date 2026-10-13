@@ -54,6 +54,7 @@ export function SummaryView({
 }) {
   const f = supplier.f as unknown as StaticFin | undefined;
   const s = mergeStats(f, api);
+  const quote = api?.quote;
   const rev = revenueSeries(f, api);
   const maxRev = Math.max(1, ...rev.map((r) => r.revenue ?? 0));
   const tl = f?.tl;
@@ -78,11 +79,15 @@ export function SummaryView({
       <div>
         <Label>
           Key stats —{" "}
-          {s.liveScreener ? (
+          {s.ratioSource === "screener" ? (
             <span className="text-pos">live · Screener.in{s.liveQuote ? " & Yahoo Finance" : ""}</span>
+          ) : s.ratioSource === "yahoo" ? (
+            <span>
+              <span className="text-pos">live</span> · Yahoo Finance (Screener.in unreachable; ROCE &amp; face value cached)
+            </span>
           ) : s.liveQuote ? (
             <span>
-              price <span className="text-pos">live</span> · ratios cached (Screener.in unreachable right now)
+              price <span className="text-pos">live</span> · ratios cached (data sources unreachable right now)
             </span>
           ) : loading ? (
             "fetching live data…"
@@ -191,7 +196,7 @@ export function SummaryView({
       </div>
       {f?.note && <p className="text-[11px] text-ink-soft">Note: {f.note}</p>}
       <p className="border-t border-dashed border-line pt-2 text-[10.5px] text-ink-soft">
-        Ratios: <b>Screener.in (consolidated)</b>, {s.liveScreener ? "live" : "cached"}. Price: {s.liveQuote ? "Yahoo Finance, live" : "cached"}. Not investment advice.
+        Ratios: <b>{s.ratioSource === "yahoo" ? "Yahoo Finance" : "Screener.in (consolidated)"}</b>, {s.ratioSource === "cached" ? "cached" : "live"}. Price: {s.liveQuote ? `Yahoo Finance${quote?.delayedMin ? `, ~${quote.delayedMin} min delayed` : ""}` : "cached"}. Not investment advice.
       </p>
     </div>
   );
