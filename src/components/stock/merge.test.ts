@@ -29,6 +29,7 @@ test("mergeStats prefers the live quote and live Screener ratios over the seed",
     ticker: "TEST",
     quote: { price: 1100, prevClose: 1090, change: 10, changePct: 0.9, currency: "INR", asOf: "", delayedMin: 15 },
     news: [],
+    newsLive: true,
     fundamentals: {
       source: "screener",
       companyId: "1",

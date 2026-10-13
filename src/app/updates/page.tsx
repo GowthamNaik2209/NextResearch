@@ -1,19 +1,19 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { NewsList } from "@/components/NewsList";
-import { listNews } from "@/lib/sector-content/insights";
+import { NewsFeed } from "@/components/NewsFeed";
+import { listSectors } from "@/lib/sector-content";
 
 export const metadata = { title: "Updates — NextResearch" };
 
 export default async function UpdatesPage({ searchParams }: { searchParams: Promise<{ sector?: string }> }) {
   const { sector } = await searchParams;
-  const all = listNews();
-  const sectors = [...new Map(all.map((n) => [n.sectorSlug, n.sectorName])).entries()];
-  const items = sector ? all.filter((n) => n.sectorSlug === sector) : all;
-  const chip = (active: boolean) =>
+  const sectors = listSectors().filter((s) => !s.muted);
+  // Ignore an unknown ?sector= value rather than showing an empty feed.
+  const active = sectors.find((s) => s.slug === sector)?.slug;
+  const chip = (isActive: boolean) =>
     "rounded-full border px-3.5 py-1.5 text-xs font-semibold " +
-    (active ? "border-accent bg-accent text-bg" : "border-line bg-panel text-ink-soft hover:text-ink");
+    (isActive ? "border-accent bg-accent text-bg" : "border-line bg-panel text-ink-soft hover:text-ink");
 
   return (
     <>
@@ -22,16 +22,17 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight text-ink">What&rsquo;s new</h1>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-            Recent results, deals and announcements for the companies we cover, newest first. Headlines link to the original source.
+            The latest headlines on the companies we cover, newest first. Each one links to the original source.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href="/updates" className={chip(!sector)}>All sectors</Link>
-          {sectors.map(([slug, name]) => (
-            <Link key={slug} href={`/updates?sector=${slug}`} className={chip(sector === slug)}>{name}</Link>
+          <Link href="/updates" className={chip(!active)}>All sectors</Link>
+          {sectors.map((s) => (
+            <Link key={s.slug} href={`/updates?sector=${s.slug}`} className={chip(active === s.slug)}>{s.name}</Link>
           ))}
         </div>
-        {items.length ? <NewsList items={items} /> : <p className="text-sm text-ink-soft">No updates for this sector yet.</p>}
+        {/* key: switching sector shows the skeleton again instead of the previous list */}
+        <NewsFeed key={active ?? "all"} sectorSlug={active} limit={30} />
         <p className="text-xs text-ink-soft">
           Tip: save companies to your <Link href="/watchlist" className="text-accent hover:underline">watchlist</Link> to see their news in one place.
         </p>

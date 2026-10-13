@@ -22,7 +22,12 @@ export function NewsView({ ticker, name, supplier, api }: { ticker: string; name
         </ul>
       ) : (
         <p className="rounded-2xl border border-line bg-panel px-4 py-5 text-sm text-ink-soft">
-          No curated headlines for {name} yet — use the links below for the latest coverage.
+          No recent headlines for {name} — use the links below for the latest coverage.
+        </p>
+      )}
+      {items.length > 0 && (
+        <p className="-mt-3 text-[11px] text-ink-soft">
+          {api?.newsLive ? "Live headlines via Google News, refreshed every 15 minutes." : "Live feed unavailable right now — showing curated headlines."}
         </p>
       )}
       <div>
