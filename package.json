@@ -11,7 +11,8 @@
     "validate:content": "tsx scripts/validate-sector-content.ts",
     "db:extract": "node prisma/extract-source-data.mjs",
     "db:seed": "tsx prisma/seed.ts",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "test": "tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
