@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
 import type { SectorSupplier } from "@/lib/sector-content";
-import type { StaticFin, StockApi, StockTab } from "./types";
+import type { StockApi, StockTab } from "./types";
 import { mergeStats } from "./merge";
 import { PriceTag } from "./PriceTag";
 import { SummaryView } from "./SummaryView";
@@ -40,7 +40,7 @@ type Props = {
 export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onClose }: Props) {
   const [tab, setTab] = useState<StockTab>(initialTab);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const f = supplier.f as unknown as StaticFin | undefined;
+  const f = supplier.f;
   const stats = mergeStats(f, api);
 
   useEffect(() => {
@@ -73,10 +73,11 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
               <WatchlistButton ticker={ticker} />
             </div>
             <p className="mt-0.5 truncate text-xs text-ink-soft">
-              <span className="font-mono">NSE: {ticker}</span> · {supplier.role}
+              <span className="font-mono">{supplier.listed ? `NSE: ${ticker}` : "Unlisted"}</span>
+              <span className="hidden sm:inline"> · {supplier.role}</span>
             </p>
           </div>
-          <PriceTag price={stats.price} quote={api?.quote ?? null} />
+          {supplier.listed && <PriceTag price={stats.price} quote={api?.quote ?? null} />}
           <button
             ref={closeRef}
             type="button"
@@ -90,6 +91,7 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
           </button>
         </div>
 
+        {supplier.listed && (
         <div role="tablist" aria-label="Stock details" className="flex flex-none overflow-x-auto border-b border-line bg-panel px-2 sm:px-4">
           {TABS.map((t) => (
             <button
@@ -108,15 +110,44 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
             </button>
           ))}
         </div>
+        )}
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
-          {tab === "summary" && <SummaryView ticker={ticker} supplier={supplier} api={api} loading={apiLoading} showNarrative />}
-          {tab === "chart" && <ChartView ticker={ticker} />}
-          {tab === "news" && <NewsView ticker={ticker} name={supplier.name} supplier={supplier} api={api} />}
-          {tab === "fundamentals" && <FundamentalsView supplier={supplier} api={api} loading={apiLoading} />}
+          {!supplier.listed && <UnlistedView supplier={supplier} />}
+          {supplier.listed && tab === "summary" && <SummaryView ticker={ticker} supplier={supplier} api={api} loading={apiLoading} showNarrative />}
+          {supplier.listed && tab === "chart" && <ChartView ticker={ticker} />}
+          {supplier.listed && tab === "news" && <NewsView ticker={ticker} name={supplier.name} supplier={supplier} api={api} />}
+          {supplier.listed && tab === "fundamentals" && <FundamentalsView supplier={supplier} api={api} loading={apiLoading} />}
         </div>
       </div>
     </div>,
     document.body
+  );
+}
+
+// Unlisted companies have no market data, so the pop-up is just the written profile.
+function FactList({ title, items }: { title: string; items?: string[] }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div>
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-soft">{title}</div>
+      <ul className="mt-1.5 list-disc space-y-1.5 pl-4 text-[13px] leading-relaxed text-ink">
+        {items.map((i) => (
+          <li key={i}>{i}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function UnlistedView({ supplier }: { supplier: SectorSupplier }) {
+  return (
+    <div className="flex flex-col gap-5">
+      <p className="text-sm text-ink-soft">{supplier.role}</p>
+      <FactList title="Strengths" items={supplier.strengths} />
+      <FactList title="Risks" items={supplier.risks} />
+      <FactList title="Notes" items={supplier.notes} />
+      <p className="border-t border-dashed border-line pt-2 text-[10.5px] text-ink-soft">Compiled from public reporting — not exchange-listed.</p>
+    </div>
   );
 }

@@ -1,10 +1,7 @@
-// Live-refresh KPIs from Screener.in's company page. There's no public API for
-// this — screener.in's own ToS prohibits automated/bulk access, which this
-// function does engage in (one request per stale company-detail view). This
-// was a deliberate, informed choice: keep requests to on-demand single-company
-// fetches only (never bulk/background), degrade silently to cached DB data on
-// any failure, and expect this to need maintenance whenever screener.in changes
-// its markup.
+// Parser for the "top ratios" block on a Screener.in company page (price, market cap,
+// P/E, ROCE, ...). Pure function over HTML so it is unit-testable with a saved page;
+// the fetching lives in screener-company.ts. Screener has no public API, so this
+// depends on its markup - see the structure below and expect maintenance if it changes.
 //
 // Structure this parses (confirmed against a live page, Oct 2026):
 //   <ul id="top-ratios">
@@ -39,9 +36,6 @@ const LABEL_TO_FIELD: Record<string, NumericField> = {
   ROE: "roe",
   "Face Value": "faceValue",
 };
-
-const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 
 function parseNumber(raw: string): number | null {
   const n = parseFloat(raw.replace(/,/g, ""));
@@ -92,20 +86,4 @@ export function parseTopRatios(html: string): ScreenerKpi | null {
     }
   }
   return foundAny ? result : null;
-}
-
-export async function scrapeScreenerKpi(ticker: string): Promise<ScreenerKpi | null> {
-  try {
-    const res = await fetch(`https://www.screener.in/company/${encodeURIComponent(ticker)}/consolidated/`, {
-      headers: { "User-Agent": USER_AGENT },
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!res.ok) return null;
-    return parseTopRatios(await res.text());
-  } catch {
-    // Network failure, timeout, or screener.in markup changed underneath us —
-    // callers fall back to the last cached KpiSnapshot rather than erroring
-    // the whole company-detail request over a best-effort live refresh.
-    return null;
-  }
 }

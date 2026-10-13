@@ -48,3 +48,6 @@ next-env.d.ts
 /.windsurf
 /.claude/skills
 skills-lock.json
+
+# local demo recordings (large; share out-of-band)
+/demo/

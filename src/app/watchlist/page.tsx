@@ -3,8 +3,11 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import { NewsList } from "@/components/NewsList";
 import { newsForTickers } from "@/lib/sector-content/insights";
+import { findSupplierByTicker } from "@/lib/sector-content";
+import { OpenStockCard } from "@/components/stock/OpenStockCard";
 
 export default async function WatchlistPage() {
   const user = await getCurrentUser();
@@ -45,11 +48,11 @@ export default async function WatchlistPage() {
               const priceAtAdd = row.priceAtAdd.toNumber();
               const current = row.company.kpis[0]?.price?.toNumber() ?? null;
               const change = current != null && priceAtAdd > 0 ? ((current - priceAtAdd) / priceAtAdd) * 100 : null;
-              return (
-                <div
-                  key={row.id}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-line bg-panel p-4"
-                >
+              const supplier = findSupplierByTicker(row.company.ticker);
+              const Row = supplier ? OpenStockCard : null;
+              const rowClass = "flex items-center justify-between gap-4 rounded-xl border border-line bg-panel p-4" + (supplier ? " transition hover:border-accent" : "");
+              const inner = (
+                <>
                   <div className="min-w-0">
                     <div className="truncate text-sm font-semibold text-ink">{row.company.name}</div>
                     <div className="font-mono text-xs text-ink-soft">{row.company.ticker}</div>
@@ -69,6 +72,15 @@ export default async function WatchlistPage() {
                       )}
                     </div>
                   </div>
+                </>
+              );
+              return Row && supplier ? (
+                <Row key={row.id} ticker={row.company.ticker} supplier={supplier} className={rowClass}>
+                  {inner}
+                </Row>
+              ) : (
+                <div key={row.id} className={rowClass}>
+                  {inner}
                 </div>
               );
             })}
@@ -86,6 +98,7 @@ export default async function WatchlistPage() {
           </section>
         )}
       </main>
+      <SiteFooter />
     </>
   );
 }

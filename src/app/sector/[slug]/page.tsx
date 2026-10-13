@@ -12,7 +12,9 @@ import {
   type ExposureType,
 } from "@/lib/sector-content";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
+import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
 
 export function generateStaticParams() {
@@ -212,7 +214,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                 {integratorCompanies.map(({ key, company }) => {
                   const ticker = company.listed ? tickerForSupplier(company) : null;
                   return (
-                    <div key={key} className="rounded-xl border border-line bg-panel p-4">
+                    <OpenStockCard key={key} ticker={tickerForSupplier(company)} supplier={company} className="rounded-xl border border-line bg-panel p-4 transition hover:border-accent">
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="text-sm font-semibold text-ink">
                           {company.name}
@@ -234,7 +236,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                       >
                         View in the map &rarr;
                       </Link>
-                    </div>
+                    </OpenStockCard>
                   );
                 })}
               </div>
@@ -281,7 +283,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
               const zones = zonesByCompany.get(key) ?? [];
               const ticker = company.listed ? tickerForSupplier(company) : null;
               return (
-                <div key={key} className="rounded-xl border border-line bg-panel p-4">
+                <OpenStockCard key={key} ticker={tickerForSupplier(company)} supplier={company} className="rounded-xl border border-line bg-panel p-4 transition hover:border-accent">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-sm font-semibold text-ink">
                       {company.name}
@@ -318,12 +320,13 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                       ))}
                     </div>
                   )}
-                </div>
+                </OpenStockCard>
               );
             })}
           </div>
         </section>
       </main>
+      <SiteFooter />
     </>
   );
 }

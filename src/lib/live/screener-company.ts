@@ -2,11 +2,11 @@
 // compounded growth, shareholding, annual P&L and the *industry median* from
 // the peer-comparison table (we show the median only, not the peer list).
 //
-// Same caveats as lib/scrapers/screener.ts: no public API, on-demand single
+// Same caveats as screener-ratios.ts: no public API, on-demand single
 // company fetches only (cached), degrade to nothing on any failure, expect
 // maintenance if screener.in changes its markup.
 import { cached } from "./cache";
-import { parseTopRatios, type ScreenerKpi } from "../scrapers/screener";
+import { parseTopRatios, type ScreenerKpi } from "./screener-ratios";
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 

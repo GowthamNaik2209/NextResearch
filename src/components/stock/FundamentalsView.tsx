@@ -1,5 +1,5 @@
 import type { SectorSupplier } from "@/lib/sector-content";
-import type { StaticFin, StockApi } from "./types";
+import type { StockApi } from "./types";
 import { fmtNum, mergeStats } from "./merge";
 
 type Row = { label: string; company: number | null; industry: number | null; unit: string; better: "low" | "high" | null; digits?: number };
@@ -20,7 +20,7 @@ const SH_COLORS = ["bg-accent", "bg-amber", "bg-pos", "bg-danger", "bg-ink-soft"
 
 export function FundamentalsView({ supplier, api, loading }: { supplier: SectorSupplier; api: StockApi | null; loading: boolean }) {
   const fund = api?.fundamentals ?? null;
-  const f = supplier.f as unknown as StaticFin | undefined;
+  const f = supplier.f;
   const s = mergeStats(f, api);
   const ind = fund?.industry ?? null;
   const self = ind?.self ?? null;
@@ -140,7 +140,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
       )}
 
       {fund?.annual && fund.annual.series.length > 0 && (
-        <Section title="Annual performance (₹ Cr)">
+        <div className="max-[640px]:hidden"><Section title="Annual performance (₹ Cr)">
           <div className="overflow-x-auto rounded-2xl border border-line bg-panel">
             <table className="w-full min-w-[480px] text-xs">
               <thead>
@@ -163,7 +163,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
               </tbody>
             </table>
           </div>
-        </Section>
+        </Section></div>
       )}
 
       <p className="border-t border-dashed border-line pt-2 text-[10.5px] text-ink-soft">
