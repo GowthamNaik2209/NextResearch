@@ -8,6 +8,7 @@
 // via the `callbacks` below, which owns that state and renders the panel/rail from it.
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { SectorDef, SectorZone } from "@/lib/sector-content";
 
 export type ExplorerDom = {
@@ -71,7 +72,17 @@ export function mountExplorer(
   renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.localClippingEnabled = true;
+  // Filmic tone mapping + a procedural studio environment map give the
+  // PBR materials in each sector's build() real reflections to work with —
+  // without an env map, metal/clearcoat/glass all render flat and plasticky.
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
   stage.appendChild(renderer.domElement);
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
+  scene.environment = envRT.texture;
+  scene.environmentIntensity = 0.55;
+  pmrem.dispose();
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
@@ -176,8 +187,11 @@ export function mountExplorer(
   const markerMeshes: THREE.Mesh[] = [];
 
   for (const z of sector.zones) {
-    const mat = new THREE.MeshBasicMaterial({ color: z.color, transparent: true, opacity: 1 });
+    // Markers draw over the model (depthTest off): the shells are now solid,
+    // so anchors on internal parts would otherwise be hidden at the outer layer.
+    const mat = new THREE.MeshBasicMaterial({ color: z.color, transparent: true, opacity: 1, depthTest: false });
     const marker = new THREE.Mesh(new THREE.SphereGeometry(0.055, 16, 16), mat);
+    marker.renderOrder = 10;
     marker.position.set(z.pos[0], z.pos[1], z.pos[2]);
     marker.userData.zoneId = z.id;
     markersGroup.add(marker);
@@ -185,8 +199,9 @@ export function mountExplorer(
 
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(0.075, 0.09, 24),
-      new THREE.MeshBasicMaterial({ color: z.color, side: THREE.DoubleSide, transparent: true, opacity: 0.7 })
+      new THREE.MeshBasicMaterial({ color: z.color, side: THREE.DoubleSide, transparent: true, opacity: 0.7, depthTest: false })
     );
+    ring.renderOrder = 10;
     ring.position.copy(marker.position);
     ring.lookAt(camera.position);
     ring.userData.isRing = true;
@@ -490,6 +505,7 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
         mats.forEach((m) => m.dispose());
       }
     });
+    envRT.dispose();
     renderer.dispose();
     if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
     for (const zr of zones.values()) {

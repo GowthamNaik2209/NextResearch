@@ -12,6 +12,16 @@
 // NEWS here is unused by the app (curated headlines are read from
 // prisma/seed-source/extracted.json by ./insights.ts) and kept only because `fin()` and
 // other definitions below reference module-level state that's simplest left intact.
+import { buildEv4w } from "./models/ev4w";
+import { buildNaval } from "./models/naval";
+import { buildAerospace } from "./models/aerospace";
+import { buildSemiconductors } from "./models/semiconductors";
+import { buildDatacenter } from "./models/datacenter";
+import { buildRailways } from "./models/railways";
+import { buildTelecom5g } from "./models/telecom5g";
+import { buildSolarmodules } from "./models/solarmodules";
+import { buildEnergy } from "./models/energy";
+
 var ASOF = "25 Sep 2026";
  var SRC = "Screener.in (consolidated financials)";
  function fin(rev, np, mcap, price, ticker, note, cagr, range, tl, kpi){ return {rev:rev, np:np, mcap:mcap, price:price, ticker:ticker, note:note||null, cagr:cagr||null, range:range||null, tl:tl||null, kpi:kpi||null}; }
@@ -161,7 +171,7 @@ var ASOF = "25 Sep 2026";
  dataStatus: "demo",
  integratorZoneId: "oem",
  layerNames: ["Shell","Exoskeleton","Technology","Powertrain"],
- shellMaxOpacity: 0.52, exoBaseOpacity: 0.55,
+ shellMaxOpacity: 1, exoBaseOpacity: 0.55,
  defaultView: "exterior",
  views: [
  {id:"exterior", label:"Exterior", pos:[4.6,2.4,5.2], target:[0,0.55,0]},
@@ -360,230 +370,10 @@ var ASOF = "25 Sep 2026";
  refs.moduleMeshes.forEach(function(m){ m.position.x = m.userData.baseX; });
  }
  },
- // Builds this product's own geometry into the generic groups the engine provides.
- // ctx: { THREE, layerGroups:[g0,g1,g2,g3], staticGroup }
+ // Builds this product's own geometry into the generic groups the engine provides
+ // (see ./models/ev4w.ts). ctx: { THREE, layerGroups:[g0,g1,g2,g3], staticGroup }
  // returns: { applyLevel(v), spreadMeshes:[...], deep:{...refs for deepDive...} }
- build: function(ctx){
- var THREE = ctx.THREE;
- var bodyGroup = ctx.layerGroups[0], structGroup = ctx.layerGroups[1], techGroup = ctx.layerGroups[2], powerGroup = ctx.layerGroups[3];
- var wheelsGroup = ctx.staticGroup;
-
- var matBody = new THREE.MeshPhysicalMaterial({color:0xBFD2DE, metalness:0.15, roughness:0.12, clearcoat:1, clearcoatRoughness:0.08, transparent:true, opacity:0.32, side:THREE.DoubleSide, depthWrite:false});
- var matGlass = new THREE.MeshStandardMaterial({color:0x8fd8ea, metalness:0.2, roughness:0.05, transparent:true, opacity:0.55});
- var matWheel = new THREE.MeshStandardMaterial({color:0x14181e, metalness:0.4, roughness:0.6});
- var matHub = new THREE.MeshStandardMaterial({color:0x9aa4ae, metalness:0.8, roughness:0.25});
- var matLight = new THREE.MeshStandardMaterial({color:0xffffff, emissive:0xffe9c2, emissiveIntensity:0.8, transparent:true, opacity:1});
- var matTailLight = new THREE.MeshStandardMaterial({color:0x330000, emissive:0xff2a2a, emissiveIntensity:0.7, transparent:true, opacity:1});
- var matStruct = new THREE.MeshStandardMaterial({color:0x8a97a6, metalness:0.7, roughness:0.4, transparent:true, opacity:1});
- var matStructDark = new THREE.MeshStandardMaterial({color:0x4b5563, metalness:0.6, roughness:0.5, transparent:true, opacity:1});
- var matTech = new THREE.MeshStandardMaterial({color:0x2c3648, metalness:0.3, roughness:0.5, transparent:true, opacity:1});
- var matScreen = new THREE.MeshStandardMaterial({color:0x0a0e14, emissive:0x49d4c9, emissiveIntensity:0.6, transparent:true, opacity:1});
- var matHarness = new THREE.MeshStandardMaterial({color:0xE0715F, emissive:0x4a1a12, emissiveIntensity:0.3, transparent:true, opacity:1});
- var matBattery = new THREE.MeshStandardMaterial({color:0x2E86AB, metalness:0.3, roughness:0.45, transparent:true, opacity:1});
- var matModule = new THREE.MeshStandardMaterial({color:0x3aa0c9, metalness:0.3, roughness:0.4, transparent:true, opacity:1});
- var matCell = new THREE.MeshStandardMaterial({color:0x8fd8ea, metalness:0.5, roughness:0.3, emissive:0x123844, emissiveIntensity:0.4});
- var matMotor = new THREE.MeshStandardMaterial({color:0xD96C2B, metalness:0.5, roughness:0.35, transparent:true, opacity:1});
- var matMotorInner = new THREE.MeshStandardMaterial({color:0xffb27a, metalness:0.6, roughness:0.25, transparent:true, opacity:1});
- var matMagnet = new THREE.MeshStandardMaterial({color:0x9C6B30, metalness:0.6, roughness:0.3, transparent:true, opacity:1});
-
- function shapeFromPoints(pts){
- var s = new THREE.Shape();
- s.moveTo(pts[0][0], pts[0][1]);
- for (var i=1;i<pts.length;i++) s.lineTo(pts[i][0], pts[i][1]);
- s.closePath();
- return s;
- }
-
- // Short blunt nose / long tail, raised beltline and cabin - a cab-forward EV
- // silhouette (no engine bay to package for) rather than the long-hood ICE
- // profile this used to trace. Modeled after the attached EV crossover-coupe
- // reference: short overhangs, high beltline, steeply sloped coupe roofline.
- var lowerPts = [[-2.30,0.08],[-2.26,0.30],[-1.98,0.50],[-1.55,0.62],[-0.95,0.68],[1.00,0.68],[1.55,0.58],[1.95,0.38],[2.25,0.18],[2.30,0.08]];
- var lowerGeo = new THREE.ExtrudeGeometry(shapeFromPoints(lowerPts), {depth:1.78, bevelEnabled:true, bevelThickness:0.03, bevelSize:0.03, bevelSegments:3, curveSegments:12});
- lowerGeo.translate(0,0,-0.89);
- bodyGroup.add(new THREE.Mesh(lowerGeo, matBody));
-
- // Dark rocker/cladding band along the sill, the way crossover-coupe EVs break
- // up the body color with a black lower cladding strip - cheap (2 boxes) but
- // does a lot of work reading as "SUV-shaped" rather than a plain sedan slab.
- [1,-1].forEach(function(side){
- var cladding = new THREE.Mesh(new THREE.BoxGeometry(4.3,0.16,0.04), matStructDark);
- cladding.position.set(-0.15,0.18,side*0.93);
- bodyGroup.add(cladding);
- });
-
- var glassPts = [[-0.95,0.68],[-0.72,1.00],[-0.25,1.17],[0.35,1.19],[0.68,1.05],[0.95,0.80],[1.00,0.68]];
- var glassGeo = new THREE.ExtrudeGeometry(shapeFromPoints(glassPts), {depth:1.62, bevelEnabled:true, bevelThickness:0.02, bevelSize:0.02, bevelSegments:2, curveSegments:12});
- glassGeo.translate(0,0,-0.81);
- bodyGroup.add(new THREE.Mesh(glassGeo, matGlass));
-
- [1,-1].forEach(function(side){
- var m = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.08,0.06), matBody);
- m.position.set(0.55, 0.88, side*0.95);
- bodyGroup.add(m);
- });
- [1,-1].forEach(function(side){
- var hl = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.08,0.3), matLight);
- hl.position.set(2.15,0.32,side*0.55);
- bodyGroup.add(hl);
- var tl = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.1,0.32), matTailLight);
- tl.position.set(-2.25,0.42,side*0.55);
- bodyGroup.add(tl);
- });
- var chargeFlap = new THREE.Mesh(new THREE.BoxGeometry(0.03,0.12,0.16), matStructDark);
- chargeFlap.position.set(-1.95,0.52,0.92);
- bodyGroup.add(chargeFlap);
-
- // Wheel-arch trim: a flared black cladding ring hugging the top of each tire
- // (visible in the reference's blacked-out arches) - without this the wheels
- // read as holes cut in a slab rather than fendered into the body.
- var wheelArchPositions = [[1.45,0.88],[-1.45,0.88],[1.45,-0.88],[-1.45,-0.88]];
- wheelArchPositions.forEach(function(p){
- // Default TorusGeometry's half-arc (0..PI) already sweeps +X -> +Y -> -X in
- // the local XY plane, i.e. exactly the upper semicircle - no rotation needed
- // to get an arch open at the bottom, cupping over the wheel.
- var arch = new THREE.Mesh(new THREE.TorusGeometry(0.42,0.05,8,16,Math.PI), matStructDark);
- arch.position.set(p[0],0.34,p[1]);
- bodyGroup.add(arch);
- });
-
- var wheelPos = [[1.45,0.34,0.88],[1.45,0.34,-0.88],[-1.45,0.34,0.88],[-1.45,0.34,-0.88]];
- wheelPos.forEach(function(p){
- var tire = new THREE.Mesh(new THREE.CylinderGeometry(0.34,0.34,0.22,24), matWheel);
- tire.rotation.x = Math.PI/2; tire.position.set(p[0],p[1],p[2]);
- wheelsGroup.add(tire);
- var hub = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.24,10), matHub);
- hub.rotation.x = Math.PI/2; hub.position.set(p[0],p[1],p[2]);
- wheelsGroup.add(hub);
- for (var i=0;i<6;i++){
- var a = i*Math.PI/3;
- var spoke = new THREE.Mesh(new THREE.BoxGeometry(0.02,0.26,0.02), matHub);
- spoke.position.set(p[0]+Math.cos(a)*0.13, p[1]+Math.sin(a)*0.13, p[2]);
- spoke.rotation.z = a;
- wheelsGroup.add(spoke);
- }
- });
-
- var floorPan = new THREE.Mesh(new THREE.BoxGeometry(3.9,0.05,1.55), matStruct);
- floorPan.position.set(-0.05,0.12,0); structGroup.add(floorPan);
- var frontSub = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.16,1.5), matStructDark);
- frontSub.position.set(1.5,0.2,0); structGroup.add(frontSub);
- var rearSub = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.16,1.5), matStructDark);
- rearSub.position.set(-1.5,0.2,0); structGroup.add(rearSub);
- [0.8,0.86].forEach(function(z){
- [1,-1].forEach(function(sign){
- var sill = new THREE.Mesh(new THREE.BoxGeometry(3.4,0.09,0.08), matStruct);
- sill.position.set(-0.1,0.16,sign*z); structGroup.add(sill);
- });
- });
- [1.0,0.3,-0.85].forEach(function(x){
- var pillar = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.9,0.06), matStruct);
- pillar.position.set(x,0.65,0.86); structGroup.add(pillar);
- var pillar2 = pillar.clone(); pillar2.position.z = -0.86; structGroup.add(pillar2);
- });
- wheelPos.forEach(function(p){
- var coil = new THREE.Mesh(new THREE.TorusGeometry(0.08,0.02,6,12), matStructDark);
- coil.rotation.x = Math.PI/2; coil.position.set(p[0], p[1]+0.28, p[2]*0.75);
- structGroup.add(coil);
- });
-
- var centralComputer = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.1,0.3), matTech);
- centralComputer.position.set(0.3,0.34,0); techGroup.add(centralComputer);
- var cluster = new THREE.Mesh(new THREE.BoxGeometry(0.03,0.14,0.32), matScreen);
- cluster.position.set(1.05,1.00,0); techGroup.add(cluster);
- var touchscreen = new THREE.Mesh(new THREE.BoxGeometry(0.03,0.32,0.2), matScreen);
- touchscreen.position.set(0.88,0.80,0.35); touchscreen.rotation.y = 0.5; techGroup.add(touchscreen);
- var frontCam = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.04,0.06), matTech);
- frontCam.position.set(1.28,1.18,0); techGroup.add(frontCam);
- var radar = new THREE.Mesh(new THREE.BoxGeometry(0.08,0.06,0.14), matTech);
- radar.position.set(2.25,0.3,0); techGroup.add(radar);
- [1,-1].forEach(function(side){
- var spk = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.02,12), matTech);
- spk.rotation.x = Math.PI/2; spk.position.set(0.6,0.55,side*0.85); techGroup.add(spk);
- });
- function harnessTube(points, radius){
- var curve = new THREE.CatmullRomCurve3(points.map(function(p){ return new THREE.Vector3(p[0],p[1],p[2]); }));
- return new THREE.Mesh(new THREE.TubeGeometry(curve, 24, radius, 6, false), matHarness);
- }
- techGroup.add(harnessTube([[-1.4,0.2,0],[-0.4,0.22,0.3],[0.3,0.32,0.2],[1.0,0.5,0],[1.2,0.9,0]], 0.015));
- techGroup.add(harnessTube([[0.3,0.32,0],[0.3,0.32,0.75],[1.0,0.55,0.85]], 0.012));
- techGroup.add(harnessTube([[0.3,0.32,0],[-0.8,0.3,0.6],[-1.7,0.4,0.6]], 0.012));
-
- // Thin, wide slab - the "skateboard" pack silhouette that fills the floor
- // between the axles - rather than the deeper tub this used to be.
- var batteryPack = new THREE.Mesh(new THREE.BoxGeometry(3.05,0.16,1.65), matBattery);
- batteryPack.position.set(-0.15,0.13,0); powerGroup.add(batteryPack);
-
- var modulesGroup = new THREE.Group(); modulesGroup.visible = false;
- var MODULE_COUNT = 8; var moduleMeshes = [];
- for (var i=0;i<MODULE_COUNT;i++){
- var mg = new THREE.Mesh(new THREE.BoxGeometry(0.32,0.14,1.5), matModule);
- mg.userData.baseX = -1.5 + i*0.38 + 0.19;
- mg.position.set(mg.userData.baseX, 0.13, 0);
- modulesGroup.add(mg); moduleMeshes.push(mg);
- }
- powerGroup.add(modulesGroup);
-
- var cellGeo = new THREE.CylinderGeometry(0.018,0.018,0.2,8);
- var CELLS_PER_MODULE = 12;
- var cellInstances = new THREE.InstancedMesh(cellGeo, matCell, MODULE_COUNT*CELLS_PER_MODULE);
- cellInstances.visible = false;
- var dummy = new THREE.Object3D(); var idx = 0;
- for (var mi=0; mi<MODULE_COUNT; mi++){
- for (var ci=0; ci<CELLS_PER_MODULE; ci++){
- var row = ci % 4, col = Math.floor(ci/4);
- dummy.position.set(-1.5 + mi*0.38 + 0.19, 0.13, -0.55 + row*0.37);
- dummy.rotation.set(Math.PI/2, 0, 0); dummy.updateMatrix();
- cellInstances.setMatrixAt(idx++, dummy.matrix);
- }
- }
- powerGroup.add(cellInstances);
-
- function buildMotor(x){
- var g = new THREE.Group();
- var housing = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.4,24), matMotor);
- housing.rotation.x = Math.PI/2; g.add(housing);
- var stator = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.42,20), matMotorInner);
- stator.rotation.x = Math.PI/2; g.add(stator);
- var rotor = new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,0.44,14), matMagnet);
- rotor.rotation.x = Math.PI/2; g.add(rotor);
- var shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,1.1,8), matHub);
- shaft.rotation.x = Math.PI/2; g.add(shaft);
- g.position.set(x,0.34,0);
- return g;
- }
- // Dual motor, one per axle - the AWD "skateboard" layout the reference images
- // show, not a single rear-only unit.
- powerGroup.add(buildMotor(-1.45));
- powerGroup.add(buildMotor(1.45));
- var inverter = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.18,0.24), matMotor);
- inverter.position.set(-1.05,0.62,0.45); powerGroup.add(inverter);
- var inverterFront = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.18,0.24), matMotor);
- inverterFront.position.set(1.05,0.62,0.45); powerGroup.add(inverterFront);
- var onboardCharger = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.14,0.2), matMotor);
- onboardCharger.position.set(-1.75,0.5,0.5); powerGroup.add(onboardCharger);
-
- var SHELL_MAX_OPACITY = this.shellMaxOpacity, EXO_BASE_OPACITY = this.exoBaseOpacity;
- function clamp01(x){ return Math.max(0, Math.min(1,x)); }
- function triangle(v, center){ return clamp01(1 - Math.abs(v-center)); }
- function setOp(mat, v){ mat.opacity = v; mat.visible = v > 0.01; }
-
- return {
- spreadMeshes: moduleMeshes,
- deep: { batteryPack: batteryPack, modulesGroup: modulesGroup, cellInstances: cellInstances, moduleMeshes: moduleMeshes },
- applyLevel: function(v){
- var bodyOp = clamp01(1 - v);
- var structOp = (v<=1) ? (EXO_BASE_OPACITY + (1-EXO_BASE_OPACITY)*v) : triangle(v, 1);
- var techOp = triangle(v, 2);
- var powerOp = clamp01(v - 2);
- setOp(matBody, bodyOp * SHELL_MAX_OPACITY);
- [matGlass,matLight,matTailLight].forEach(function(m){ setOp(m, bodyOp); });
- [matStruct,matStructDark].forEach(function(m){ setOp(m, Math.max(structOp, powerOp*0.15)); });
- [matTech,matScreen,matHarness].forEach(function(m){ setOp(m, techOp); });
- [matBattery,matModule,matMotor,matMotorInner,matMagnet].forEach(function(m){ setOp(m, powerOp); });
- }
- };
- }
+ build: function(ctx){ return buildEv4w(ctx, this); }
  };
 
  PRODUCTS.semiconductors = {
@@ -642,7 +432,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Plant utilization and ramp-up pace", "Order book from global fabless/IDM customers", "Segment-level disclosure where packaging sits inside a diversified parent"],
  relatedComponents:["wafer_fab","ems_downstream"],
  suppliers:[{key:"kaynes", exposureType:"operator", exposureStrength:"medium"}, {key:"cgpower", exposureType:"operator", exposureStrength:"low"}, {key:"hclfoxconn", exposureType:"operator", exposureStrength:"high"}, {key:"spelsemi", exposureType:"operator", exposureStrength:"high"}]},
- {id:"gases", color:"#1E9E76", label:"Specialty & Bulk Gases", pos:[2.55,0.55,-2.85], side:"left", desc:"Nitrogen, hydrogen and specialty process gases piped directly into the fab for deposition, etching and annealing.",
+ {id:"gases", color:"#1E9E76", label:"Specialty & Bulk Gases", pos:[2.27,1.15,-3.15], side:"left", desc:"Nitrogen, hydrogen and specialty process gases piped directly into the fab for deposition, etching and annealing.",
  domainId:"materials_inputs", displayOrder:3, dataStatus:"demo",
  roleInSystem:"Supplies the nitrogen, hydrogen and specialty process gases piped directly into the fab for deposition, etching and annealing steps.",
  whyItMatters:"Fabs cannot run without a continuous, ultra-pure gas supply - any interruption halts production immediately.",
@@ -653,7 +443,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Long-term supply-contract wins tied to specific fabs", "Segment disclosure (if any) for electronics/semiconductor gases", "Capacity utilization of on-site/dedicated gas plants"],
  relatedComponents:["wafer_fab","chemicals"],
  suppliers:[{key:"linde", exposureType:"direct_supplier", exposureStrength:"medium"}]},
- {id:"chemicals", color:"#7A5CC7", label:"Ultra-Pure & Specialty Chemicals", pos:[-1.5,0.4,-2.35], side:"left", desc:"Fluorochemicals and ultra-pure wet chemicals used in etching, cleaning and photoresist processes.",
+ {id:"chemicals", color:"#7A5CC7", label:"Ultra-Pure & Specialty Chemicals", pos:[-2.2,0.75,-3.55], side:"left", desc:"Fluorochemicals and ultra-pure wet chemicals used in etching, cleaning and photoresist processes.",
  domainId:"materials_inputs", displayOrder:4, dataStatus:"demo",
  roleInSystem:"Supplies the fluorochemicals and ultra-pure wet chemicals used in etching, cleaning and photoresist processes inside the fab.",
  whyItMatters:"Chip yield is directly sensitive to chemical purity - contamination at this layer shows up as yield loss downstream.",
@@ -686,7 +476,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Revenue growth and order book across electronics categories", "Margin trend as product mix shifts toward higher-value assembly", "Backward-integration progress into components"],
  relatedComponents:["atmp","design_services"],
  suppliers:[{key:"syrma", exposureType:"indirect_supplier", exposureStrength:"medium"}, {key:"dixon", exposureType:"emerging_entrant", exposureStrength:"medium"}]},
- {id:"design_services", color:"#E8871E", label:"Chip Design & Engineering Services", pos:[-2.8,2.0,-1.0], side:"left", desc:"Fabless design houses and engineering-services firms doing ASIC/SoC, VLSI and embedded chip design work for domestic and global clients.",
+ {id:"design_services", color:"#E8871E", label:"Chip Design & Engineering Services", pos:[-1.4,1.05,2.05], side:"left", desc:"Fabless design houses and engineering-services firms doing ASIC/SoC, VLSI and embedded chip design work for domestic and global clients.",
  domainId:"downstream_electronics_design", displayOrder:7, dataStatus:"demo",
  roleInSystem:"Fabless design houses and engineering-services firms doing ASIC/SoC, VLSI and embedded chip design work that feeds designs into fabs and OSAT plants.",
  whyItMatters:"Design is the layer where IP and differentiation live - without a domestic design base, India's fab/OSAT investment mostly serves designs created elsewhere.",
@@ -717,155 +507,8 @@ var ASOF = "25 Sep 2026";
  asmtech: {name:"ASM Technologies", listed:true, role:"Engineering & product-engineering services spanning embedded/VLSI semiconductor design alongside aerospace and industrial engineering", dataStatus:"demo", sourceDate:ASOF, strengths:["Diversification across aerospace, industrial and semiconductor design-engineering work reduces dependence on any single end-market's project cycle"], risks:["Semiconductor design work is one segment alongside aerospace and industrial engineering services","Customer and project concentration typical of engineering-services firms"], f:fin([192,220,202,289,529],[14,7,-7,25,61],"Rs 10,217 Cr","Rs 7,004","ASMTEC",null,[69,144,98],[2100,7248],[3131,"asm-technologies-ltd"],[140,210,0.24,27.0,25.5,10.0])},
  navinfluor: {name:"Navin Fluorine International", listed:true, role:"Specialty fluorochemicals incl. high-purity fluorinated/etching gases used in semiconductor fab cleaning and etch steps", dataStatus:"demo", sourceDate:ASOF, strengths:["Established high-purity fluorochemical manufacturing and specialty-gas capability position it to qualify for semiconductor-grade etching gas supply as fabs ramp"], risks:["Semiconductor-grade etching gases are a small, undisclosed slice of a broader specialty-fluorochemicals business","Exposure spans refrigerant and agrochemical end-markets beyond semiconductors"], f:fin([1453,2077,2065,2349,3314],[263,375,270,289,664],"Rs 44,051 Cr","Rs 8,584","NAVINFLUOR",null,[88,25,18],[4498,8950],[914,"navin-fluorine-international-ltd"],[55.4,775,0.18,21.0,19.6,2.0])}
  },
- build: function(ctx){
- var THREE = ctx.THREE;
- var shellGroup = ctx.layerGroups[0], utilityGroup = ctx.layerGroups[1], cleanroomGroup = ctx.layerGroups[2], processGroup = ctx.layerGroups[3];
-
- var matShell = new THREE.MeshPhysicalMaterial({color:0x9FB3C8, metalness:0.1, roughness:0.3, transparent:true, opacity:0.3, side:THREE.DoubleSide, depthWrite:false});
- var matUtility = new THREE.MeshStandardMaterial({color:0x8a97a6, metalness:0.6, roughness:0.4, transparent:true, opacity:1});
- var matGasTank = new THREE.MeshStandardMaterial({color:0x3aa0c9, metalness:0.5, roughness:0.3, transparent:true, opacity:1});
- var matChemTank = new THREE.MeshStandardMaterial({color:0x7A5CC7, metalness:0.4, roughness:0.35, transparent:true, opacity:1});
- var matPipe = new THREE.MeshStandardMaterial({color:0x6b7684, metalness:0.6, roughness:0.4, transparent:true, opacity:1});
- var matCleanroom = new THREE.MeshStandardMaterial({color:0x49D4C9, emissive:0x1c6b64, emissiveIntensity:0.5, metalness:0.1, roughness:0.3, transparent:true, opacity:1});
- var matFloor = new THREE.MeshStandardMaterial({color:0x2c3648, metalness:0.3, roughness:0.5, transparent:true, opacity:1});
- var matProcess = new THREE.MeshStandardMaterial({color:0xE3A33B, metalness:0.4, roughness:0.35, transparent:true, opacity:1});
- var matWafer = new THREE.MeshStandardMaterial({color:0xcfe6ee, metalness:0.7, roughness:0.2, transparent:true, opacity:1});
-
- var mainFab = new THREE.Mesh(new THREE.BoxGeometry(6,1.4,3.2), matShell);
- mainFab.position.set(0,0.7,0); shellGroup.add(mainFab);
- var atmpAnnex = new THREE.Mesh(new THREE.BoxGeometry(2.2,1.0,2.2), matShell);
- atmpAnnex.position.set(4.1,0.5,0); shellGroup.add(atmpAnnex);
- var emsBuilding = new THREE.Mesh(new THREE.BoxGeometry(1.8,1.1,1.6), matShell);
- emsBuilding.position.set(-4.4,0.55,0.5); shellGroup.add(emsBuilding);
- // Roof exhaust/scrubber stacks - one of the most visually distinctive fab-roof
- // features in real cutaway diagrams, cheap to add and high-recognition.
- [[-1.6,-0.9],[-0.4,-0.9],[0.9,-0.9],[2.0,-0.9]].forEach(function(p){
- var stack = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.3,6), matShell);
- stack.position.set(p[0],1.55,p[1]); shellGroup.add(stack);
- });
- // Low attached admin/entrance block - breaks up the "three separate boxes"
- // read into something closer to a real connected campus.
- var adminBlock = new THREE.Mesh(new THREE.BoxGeometry(2.0,0.6,1.8), matShell);
- adminBlock.position.set(0,0.3,2.5); shellGroup.add(adminBlock);
-
- function tube(points, radius, mat, parent){
- var curve = new THREE.CatmullRomCurve3(points.map(function(p){ return new THREE.Vector3(p[0],p[1],p[2]); }));
- var m = new THREE.Mesh(new THREE.TubeGeometry(curve, 20, radius, 6, false), mat);
- parent.add(m); return m;
- }
-
- // Bulk gas farm: a proper 2x2 cluster with real spacing (reads as a tank
- // farm) instead of 4 near-touching tubes bundled together, plus a containment pad.
- var gasPositions = [[2.2,-2.6],[2.9,-2.6],[2.2,-3.1],[2.9,-3.1]];
- gasPositions.forEach(function(p){
- var tankMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,1.1,12), matGasTank);
- tankMesh.position.set(p[0],0.55,p[1]); utilityGroup.add(tankMesh);
- });
- var gasPad = new THREE.Mesh(new THREE.BoxGeometry(1.3,0.03,1.0), matUtility);
- gasPad.position.set(2.55,0.02,-2.85); utilityGroup.add(gasPad);
- tube([[2.6,1.0,-2.4],[2.6,1.15,-1.4],[3.0,1.15,0]], 0.045, matPipe, utilityGroup);
-
- // Chemical/UPW farm: horizontal "bullet" tanks on a rack - a visually
- // distinct silhouette from the vertical gas cylinders, not more silos.
- var chemPositions = [[-1.5,-2.1],[-1.5,-2.35],[-1.5,-2.6]];
- chemPositions.forEach(function(p){
- var chemMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.9,10), matChemTank);
- chemMesh.rotation.z = Math.PI/2; chemMesh.position.set(p[0],0.35,p[1]); utilityGroup.add(chemMesh);
- });
- var chemPad = new THREE.Mesh(new THREE.BoxGeometry(1.0,0.03,1.0), matUtility);
- chemPad.position.set(-1.5,0.02,-2.35); utilityGroup.add(chemPad);
- tube([[-1.5,0.5,-2.3],[-1.5,1.1,-1.4],[-1.0,1.1,0]], 0.04, matPipe, utilityGroup);
-
- // Cooling: a wider, flatter 3-cell bank (fan-deck cells) instead of 2 tall
- // narrow drums that read as chimney-style cooling towers.
- [0.4,0.95,1.5].forEach(function(cx){
- var coolCell = new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.45,16), matUtility);
- coolCell.position.set(cx,0.3,-3.0); utilityGroup.add(coolCell);
- });
- var waterPlant = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.55,0.6), matUtility);
- waterPlant.position.set(0.9,0.3,-3.6); utilityGroup.add(waterPlant);
- tube([[0.8,0.85,-2.7],[0.8,1.1,-1.4],[1.0,1.1,0]], 0.045, matPipe, utilityGroup);
-
- var roofRack = new THREE.Mesh(new THREE.BoxGeometry(5.6,0.08,0.3), matUtility);
- roofRack.position.set(0,1.44,-1.35); utilityGroup.add(roofRack);
- [-2.6,2.6].forEach(function(rx){
- var rackLeg = new THREE.Mesh(new THREE.BoxGeometry(0.05,1.4,0.05), matUtility);
- rackLeg.position.set(rx,0.72,-1.35); utilityGroup.add(rackLeg);
- });
-
- // Sub-fab slab below the raised floor (utility floor) and an interstitial
- // FFU plenum above the cleanroom - the vertically-stacked three-tier
- // anatomy (sub-fab / cleanroom / plenum) that makes a fab recognizable in
- // cutaway diagrams. The old model had a single room with nothing below or
- // above it.
- var subFab = new THREE.Mesh(new THREE.BoxGeometry(5.6,0.4,3.0), matUtility);
- subFab.position.set(0,0.2,0); utilityGroup.add(subFab);
- var plenum = new THREE.Mesh(new THREE.BoxGeometry(5.4,0.3,2.6), matFloor);
- plenum.position.set(0,1.2,0); utilityGroup.add(plenum);
- for (var fz=-1; fz<=1; fz++){
- var ffuBar = new THREE.Mesh(new THREE.BoxGeometry(5.4,0.02,0.04), matUtility);
- ffuBar.position.set(0,1.33,fz*0.8); utilityGroup.add(ffuBar);
- }
-
- // Cleanroom sits strictly between the sub-fab and plenum now (was floating
- // with no floor/ceiling context); raised floor is the literal boundary.
- var cleanroomBox = new THREE.Mesh(new THREE.BoxGeometry(5.4,0.6,2.6), matCleanroom);
- cleanroomBox.position.set(0,0.7,0); cleanroomGroup.add(cleanroomBox);
- var raisedFloor = new THREE.Mesh(new THREE.BoxGeometry(5.2,0.05,2.4), matFloor);
- raisedFloor.position.set(0,0.4,0); cleanroomGroup.add(raisedFloor);
- // Tool-bay divider walls + an overhead AMHS rail ("silver highway") - the
- // parallel-bay-plus-transport-corridor structure every fab photo shows.
- [-1.5,0.3,2.1].forEach(function(dx){
- var bayWall = new THREE.Mesh(new THREE.BoxGeometry(0.03,0.6,2.4), matFloor);
- bayWall.position.set(dx,0.7,0); cleanroomGroup.add(bayWall);
- });
- var amhsRail = new THREE.Mesh(new THREE.BoxGeometry(5.0,0.02,0.02), matPipe);
- amhsRail.position.set(0,1.0,0); cleanroomGroup.add(amhsRail);
-
- var TOOL_COUNT = 6;
- for (var i=0;i<TOOL_COUNT;i++){
- var toolADims = (i%2===0) ? [0.55,0.5,0.42] : [0.4,0.6,0.5];
- var toolA = new THREE.Mesh(new THREE.BoxGeometry(toolADims[0],toolADims[1],toolADims[2]), matProcess);
- toolA.position.set(-2.2 + i*0.85, 0.4+toolADims[1]/2, -0.7); processGroup.add(toolA);
- var toolBDims = (i%2===0) ? [0.5,0.42,0.4] : [0.42,0.52,0.44];
- var toolB = new THREE.Mesh(new THREE.BoxGeometry(toolBDims[0],toolBDims[1],toolBDims[2]), matProcess);
- toolB.position.set(-2.2 + i*0.85, 0.4+toolBDims[1]/2, 0.7); processGroup.add(toolB);
- }
- [-2.2,2.65].forEach(function(sx){
- var stocker = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.5,0.2), matProcess);
- stocker.position.set(sx,0.65,0); processGroup.add(stocker);
- });
- for (var w=0; w<5; w++){
- var foup = new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,0.16,10), matWafer);
- foup.position.set(-1.6+w*0.5, 1.0, 0); processGroup.add(foup);
- }
- for (var a=0; a<4; a++){
- var station = new THREE.Mesh(new THREE.BoxGeometry(0.34,0.32,0.3), matProcess);
- station.position.set(3.5+a*0.42, 0.4, 0); processGroup.add(station);
- }
- for (var e=0; e<3; e++){
- var emsLine = new THREE.Mesh(new THREE.BoxGeometry(0.3,0.26,0.9), matProcess);
- emsLine.position.set(-4.4, 0.35, -0.35+e*0.35); processGroup.add(emsLine);
- }
-
- var SHELL_MAX_OPACITY = this.shellMaxOpacity, EXO_BASE_OPACITY = this.exoBaseOpacity;
- function clamp01(x){ return Math.max(0, Math.min(1,x)); }
- function triangle(v, center){ return clamp01(1 - Math.abs(v-center)); }
- function setOp(mat, v){ mat.opacity = v; mat.visible = v > 0.01; }
-
- return {
- applyLevel: function(v){
- var shellOp = clamp01(1-v) * SHELL_MAX_OPACITY;
- var utilOp = (v<=1) ? (EXO_BASE_OPACITY + (1-EXO_BASE_OPACITY)*v) : triangle(v,1);
- var cleanOp = triangle(v,2);
- var procOp = clamp01(v-2);
- setOp(matShell, shellOp);
- [matUtility,matGasTank,matChemTank,matPipe].forEach(function(m){ setOp(m, Math.max(utilOp, procOp*0.15)); });
- [matCleanroom,matFloor].forEach(function(m){ setOp(m, cleanOp); });
- [matProcess,matWafer].forEach(function(m){ setOp(m, procOp); });
- }
- };
- }
+ // Geometry lives in ./models/semiconductors.ts.
+ build: function(ctx){ return buildSemiconductors(ctx, this); }
  };
 
  PRODUCTS.datacenter = {
@@ -901,7 +544,7 @@ var ASOF = "25 Sep 2026";
  {id:"operations_ownership", title:"Operations & Ownership", shortTitle:"Operators", description:"The operators and owners who run the campus commercially and lease capacity to cloud/enterprise customers.", color:"#B5179E", relatedDomains:["site_power","compute_connectivity"]}
  ],
  zones: [
- {id:"compute", color:"#4C6EF5", label:"Servers, GPUs & Compute", pos:[0,1.0,0], side:"top", desc:"Racks of servers and GPU/accelerator nodes - the actual compute that AI and cloud workloads run on.",
+ {id:"compute", color:"#4C6EF5", label:"Servers, GPUs & Compute", pos:[1,0.45,0], side:"top", desc:"Racks of servers and GPU/accelerator nodes - the actual compute that AI and cloud workloads run on.",
  domainId:"compute_connectivity", displayOrder:1, dataStatus:"demo",
  roleInSystem:"The compute layer - racks of servers and GPU/accelerator nodes that run the AI and cloud workloads a data centre exists to serve.",
  whyItMatters:"This is where the economic value of a data centre is realized - everything else (power, cooling, building) exists to keep this layer running.",
@@ -912,7 +555,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Order book / backlog growth", "Revenue per server shipped", "Gross margin trend (distribution vs. integration mix)"],
  relatedComponents:["networking","cooling"],
  suppliers:[{key:"netweb", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"redington", exposureType:"indirect_supplier", exposureStrength:"medium"}, {key:"rashiPeripherals", exposureType:"indirect_supplier", exposureStrength:"medium"}]},
- {id:"cooling", color:"#1E9E76", label:"Cooling: CRAC, Chillers & Towers", pos:[3.4,1.0,-2.0], side:"right", desc:"Precision air conditioning, chillers and cooling towers that remove the heat dense racks generate.",
+ {id:"cooling", color:"#1E9E76", label:"Cooling: CRAC, Chillers & Towers", pos:[3.7,0.72,-2.5], side:"right", desc:"Precision air conditioning, chillers and cooling towers that remove the heat dense racks generate.",
  domainId:"cooling", displayOrder:2, dataStatus:"demo",
  roleInSystem:"Removes the heat that dense compute racks generate - without it, servers throttle or fail regardless of how much power or compute capacity exists.",
  whyItMatters:"Cooling capacity is often the binding constraint on how much compute a facility can actually run, especially as rack densities rise with AI workloads.",
@@ -923,7 +566,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Order inflow from the data-centre segment specifically, often undisclosed/blended", "Share of revenue from cooling vs. other HVAC end-markets", "Service/AMC revenue mix"],
  relatedComponents:["power_backup","compute"],
  suppliers:[{key:"voltas", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"bluestar", exposureType:"direct_supplier", exposureStrength:"medium"}]},
- {id:"power_backup", color:"#D96C2B", label:"UPS & Diesel Backup Power", pos:[-3.2,0.75,-1.8], side:"left", desc:"Battery-backed UPS systems and diesel generators that keep the facility running through grid outages.",
+ {id:"power_backup", color:"#D96C2B", label:"UPS & Diesel Backup Power", pos:[-3.73,0.4,-1.88], side:"left", desc:"Battery-backed UPS systems and diesel generators that keep the facility running through grid outages.",
  domainId:"site_power", displayOrder:3, dataStatus:"demo",
  roleInSystem:"Keeps the facility running through grid outages and power-quality events - batteries and UPS bridge the gap instantly, diesel gensets take over for extended outages.",
  whyItMatters:"Uptime is the core promise a data centre makes to its customers; backup power is what makes that promise credible.",
@@ -934,7 +577,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Genset/UPS order book", "Battery replacement-cycle revenue", "Exposure split across DC vs. telecom-tower vs. industrial backup power, often blended"],
  relatedComponents:["transformers","cooling"],
  suppliers:[{key:"cummins", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"kirloskar", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"exide", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"amararaja", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"hblEngineering", exposureType:"direct_supplier", exposureStrength:"low"}]},
- {id:"transformers", color:"#7A5CC7", label:"Transformers & Switchgear", pos:[-3.2,0.85,1.9], side:"left", desc:"Steps grid power down to usable voltages and distributes it safely across the facility.",
+ {id:"transformers", color:"#7A5CC7", label:"Transformers & Switchgear", pos:[-3.45,0.55,1.35], side:"left", desc:"Steps grid power down to usable voltages and distributes it safely across the facility.",
  domainId:"site_power", displayOrder:4, dataStatus:"demo",
  roleInSystem:"Steps grid power down to usable voltages and distributes it safely across the facility - the first stop for incoming electricity before it reaches any other system.",
  whyItMatters:"Every watt the data centre uses passes through this layer first; undersized or unreliable transformer capacity caps the whole site's growth.",
@@ -945,7 +588,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Order book growth and execution timelines", "Export mix - some names serve global hyperscaler capex, not just India", "Margin trend amid input-cost swings"],
  relatedComponents:["power_backup","networking"],
  suppliers:[{key:"cgpower", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"taril", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"voltamp", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"schneiderElec", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"hitachiEnergy", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"abbIndia", exposureType:"direct_supplier", exposureStrength:"medium"}]},
- {id:"cabling", color:"#C99A2E", label:"Structured & Power Cabling", pos:[1.6,0.4,0.6], side:"right", desc:"Power and structured data cabling that wires racks, PDUs and switches together across the white space.",
+ {id:"cabling", color:"#C99A2E", label:"Structured & Power Cabling", pos:[1.6,0.55,0.75], side:"right", desc:"Power and structured data cabling that wires racks, PDUs and switches together across the white space.",
  domainId:"building_fitout", displayOrder:5, dataStatus:"demo",
  roleInSystem:"Wires racks, PDUs and switches together across the white space - the physical layer connecting every other system inside the building.",
  whyItMatters:"Fit-out quality and cabling density determine how quickly a shell can be turned into live, revenue-generating white space.",
@@ -967,7 +610,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Contracted capacity / utilization rate", "Capacity under construction vs. operational", "Parent-level segment disclosure where available"],
  relatedComponents:["compute","networking"],
  suppliers:[{key:"bhartiairtel", exposureType:"owner", exposureStrength:"low"}, {key:"ctrls", exposureType:"operator", exposureStrength:"high"}, {key:"sttgdc", exposureType:"operator", exposureStrength:"high"}]},
- {id:"networking", color:"#2A9134", label:"Fiber Backbone & Network Interconnect", pos:[-1.8,0.25,-1.4], side:"left", desc:"Optical fiber and networking equipment connecting the campus to the fiber backbone and other data centres for low-latency interconnect.",
+ {id:"networking", color:"#2A9134", label:"Fiber Backbone & Network Interconnect", pos:[-1.6,0.45,-0.88], side:"left", desc:"Optical fiber and networking equipment connecting the campus to the fiber backbone and other data centres for low-latency interconnect.",
  domainId:"compute_connectivity", displayOrder:7, dataStatus:"demo",
  roleInSystem:"Connects the campus to the fiber backbone and other data centres for low-latency interconnect - the layer that makes a data centre useful beyond its own four walls.",
  whyItMatters:"Compute is only valuable if it can reach users and other systems quickly; interconnect quality determines latency-sensitive workload viability.",
@@ -1009,170 +652,8 @@ var ASOF = "25 Sep 2026";
  hfcl: {name:"HFCL", listed:true, role:"Optical fiber and telecom/DC networking equipment (OFC, routers)", dataStatus:"demo", sourceDate:ASOF, strengths:["Vertically integrated from fiber to telecom/networking equipment, with a growing defense-electronics and export order book that diversifies it beyond cyclical OFC pricing"], risks:["OFC pricing is cyclical - telecom capex timing drives demand more than DC capex specifically"], f:fin([4727,4743,4465,4065,4949],[326,318,338,173,329],"Rs 32,337 Cr","Rs 211","HFCL",null,[193,41,24],[59.8,257],[543,"hfcl-ltd"],[56.5,32.0,0.09,10.8,6.98,1.0])},
  sterliteTech: {name:"Sterlite Technologies", listed:true, role:"Optical fiber and OFC data networking - largest OFC maker in India", dataStatus:"demo", sourceDate:ASOF, strengths:["India's largest optical fiber maker with global-scale manufacturing and a return to profitability in FY26 as the industry pricing downcycle turned"], risks:["OFC pricing downcycles have driven net losses in recent years (FY24-25)","Telecom capex timing drives demand more than DC capex specifically"], f:fin([5437,6925,4083,3996,4745],[45,127,-57,-123,56],"Rs 43,037 Cr","Rs 837","STLTECH","FY24-25 net losses reflect OFC industry pricing downcycle; FY26 returned to profit",[615,94,32],[84.6,912],[1299,"sterlite-technologies-ltd"],[182,46.5,0.00,7.65,1.24,2.0])}
  },
- build: function(ctx){
- var THREE = ctx.THREE;
- var shellGroup = ctx.layerGroups[0], siteGroup = ctx.layerGroups[1], whiteSpaceGroup = ctx.layerGroups[2], rackGroup = ctx.layerGroups[3];
-
- var matShell = new THREE.MeshPhysicalMaterial({color:0x9FB3C8, metalness:0.1, roughness:0.35, transparent:true, opacity:0.3, side:THREE.DoubleSide, depthWrite:false});
- var matSite = new THREE.MeshStandardMaterial({color:0x8a97a6, metalness:0.6, roughness:0.4, transparent:true, opacity:1});
- var matCooling = new THREE.MeshStandardMaterial({color:0x3aa0c9, metalness:0.4, roughness:0.35, transparent:true, opacity:1});
- var matGenset = new THREE.MeshStandardMaterial({color:0xD96C2B, metalness:0.4, roughness:0.4, transparent:true, opacity:1});
- var matElectrical = new THREE.MeshStandardMaterial({color:0x7A5CC7, metalness:0.4, roughness:0.35, transparent:true, opacity:1});
- var matWhiteSpace = new THREE.MeshStandardMaterial({color:0x2c3648, metalness:0.3, roughness:0.5, transparent:true, opacity:1});
- var matRack = new THREE.MeshStandardMaterial({color:0x14181e, metalness:0.5, roughness:0.5, transparent:true, opacity:1});
- var matRackLed = new THREE.MeshStandardMaterial({color:0x49D4C9, emissive:0x49D4C9, emissiveIntensity:0.9, transparent:true, opacity:1});
- var matCable = new THREE.MeshStandardMaterial({color:0xC99A2E, metalness:0.3, roughness:0.4, transparent:true, opacity:1});
-
- var mainBldg = new THREE.Mesh(new THREE.BoxGeometry(5,1.2,3), matShell);
- mainBldg.position.set(0,0.6,0); shellGroup.add(mainBldg);
- // Parapet lip around the roof edge - a cheap 4-box addition that reads as
- // the flat-roof hyperscale silhouette instead of a bare box.
- [[5.0,3.0],[5.0,-3.0]].forEach(function(p){
- var parapetLong = new THREE.Mesh(new THREE.BoxGeometry(5.0,0.08,0.06), matShell);
- parapetLong.position.set(0,1.24,p[1]); shellGroup.add(parapetLong);
- });
- [[2.5,0],[-2.5,0]].forEach(function(p){
- var parapetShort = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.08,3.0), matShell);
- parapetShort.position.set(p[0],1.24,0); shellGroup.add(parapetShort);
- });
- // Ops/NOC annex attached to the hall via a short bridge, instead of a
- // detached satellite block floating 1.6 units clear of the main building.
- var opsBldg = new THREE.Mesh(new THREE.BoxGeometry(1.2,0.8,1.2), matShell);
- opsBldg.position.set(3.0,0.4,1.9); shellGroup.add(opsBldg);
- var opsBridge = new THREE.Mesh(new THREE.BoxGeometry(0.6,0.5,0.6), matShell);
- opsBridge.position.set(2.8,0.4,2.0); shellGroup.add(opsBridge);
-
- function tube(points, radius, mat, parent){
- var curve = new THREE.CatmullRomCurve3(points.map(function(p){ return new THREE.Vector3(p[0],p[1],p[2]); }));
- var m = new THREE.Mesh(new THREE.TubeGeometry(curve, 20, radius, 6, false), mat);
- parent.add(m); return m;
- }
-
- // Cooling/mechanical yard: a ROW of identical dry-cooler units, not one or
- // two bespoke chimney-shaped "towers" - hyperscale sites read as a yard
- // through repetition of identical rectangular modules, not unique shapes.
- for (var ci=0; ci<4; ci++){
- var dryCooler = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.85), matCooling);
- dryCooler.position.set(2.9+ci*0.55, 0.3, -2.3); siteGroup.add(dryCooler);
- var chiller = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.85), matCooling);
- chiller.position.set(2.9+ci*0.55, 0.4, -1.6); siteGroup.add(chiller);
- }
- var coolingPad = new THREE.Mesh(new THREE.BoxGeometry(2.4,0.04,1.6), matSite);
- coolingPad.position.set(3.4,0.02,-2.0); siteGroup.add(coolingPad);
- tube([[3.2,0.85,-1.9],[3.2,1.1,-1.0],[2.0,1.1,0]], 0.05, matSite, siteGroup);
-
- // Generator yard: container-style enclosures with belly fuel tanks, thicker
- // exhaust stacks and a low acoustic/security wall around the cluster.
- [-0.6,0,0.6].forEach(function(dx){
- var genset = new THREE.Mesh(new THREE.BoxGeometry(0.55,0.45,1.3), matGenset);
- genset.position.set(-3.2+dx, 0.28, -1.8); siteGroup.add(genset);
- var fuelTank = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,1.0,8), matSite);
- fuelTank.rotation.z = Math.PI/2; fuelTank.position.set(-3.2+dx, 0.1, -1.8); siteGroup.add(fuelTank);
- var exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.55,8), matSite);
- exhaust.position.set(-3.2+dx, 0.78, -1.8); siteGroup.add(exhaust);
- });
- var genYardWallZ1 = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.35,2.0), matSite);
- genYardWallZ1.position.set(-4.15,0.18,-1.9); siteGroup.add(genYardWallZ1);
- var genYardWallZ2 = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.35,2.0), matSite);
- genYardWallZ2.position.set(-2.25,0.18,-1.9); siteGroup.add(genYardWallZ2);
- var genYardWallX1 = new THREE.Mesh(new THREE.BoxGeometry(2.3,0.35,0.06), matSite);
- genYardWallX1.position.set(-3.2,0.18,-2.9); siteGroup.add(genYardWallX1);
- var genYardWallX2 = new THREE.Mesh(new THREE.BoxGeometry(2.3,0.35,0.06), matSite);
- genYardWallX2.position.set(-3.2,0.18,-0.9); siteGroup.add(genYardWallX2);
-
- // Electrical/substation yard: bushings on each transformer and a gantry
- // pole for the incoming HV line, rather than plain unadorned boxes.
- var xfmr1 = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.6,0.9), matElectrical);
- xfmr1.position.set(-3.4,0.35,1.6); siteGroup.add(xfmr1);
- var xfmr2 = new THREE.Mesh(new THREE.BoxGeometry(0.6,0.55,0.8), matElectrical);
- xfmr2.position.set(-2.6,0.32,1.9); siteGroup.add(xfmr2);
- [xfmr1,xfmr2].forEach(function(x){
- for (var bi=-1;bi<=1;bi++){
- var bushing = new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.22,6), matElectrical);
- bushing.position.set(x.position.x+bi*0.15, x.position.y+x.geometry.parameters.height/2+0.11, x.position.z); siteGroup.add(bushing);
- }
- });
- var switchgear = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.7,0.35), matElectrical);
- switchgear.position.set(-3.2,0.4,2.35); siteGroup.add(switchgear);
- var gantryPole = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,1.1,8), matSite);
- gantryPole.position.set(-4.1,0.55,1.9); siteGroup.add(gantryPole);
- tube([[-3.2,0.85,1.8],[-3.2,1.1,1.0],[-2.0,1.1,0]], 0.045, matSite, siteGroup);
- var elecPad = new THREE.Mesh(new THREE.BoxGeometry(1.6,0.04,1.2), matSite);
- elecPad.position.set(-3.2,0.02,1.9); siteGroup.add(elecPad);
-
- // Rooftop CRAC/AHU units - 5 in a tighter grid (was 3 sparse), screened
- // within the new parapet so they read as rooftop plant, not scattered clutter.
- [[-1.6,0.4],[-0.6,0.4],[0.4,0.4],[-1.1,0.9],[0.1,0.9]].forEach(function(p){
- var crac = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.22,0.42), matCooling);
- crac.position.set(p[0], 1.3, p[1]); siteGroup.add(crac);
- });
- var noc = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.1,0.7), matSite);
- noc.position.set(3.0,0.85,1.9); siteGroup.add(noc);
-
- var raisedFloor = new THREE.Mesh(new THREE.BoxGeometry(4.6,0.05,2.6), matWhiteSpace);
- raisedFloor.position.set(0,0.2,0); whiteSpaceGroup.add(raisedFloor);
- // Cable trays re-centered onto the actual aisles BETWEEN rack rows (rows sit
- // at z=-0.9/-0.3/0.3/0.9, so aisle centers are -0.6/0/0.6) rather than
- // floating at z=-0.8/0/0.8, which lined up with nothing.
- for (var tz=-1; tz<=1; tz++){
- var tray = new THREE.Mesh(new THREE.BoxGeometry(4.4,0.03,0.06), matCable);
- tray.position.set(0, 1.05, tz*0.6); whiteSpaceGroup.add(tray);
- }
- // Hot/cold aisle containment hoods over each aisle - the single most
- // recognizable interior cue in real cutaway infographics, absent before.
- for (var az=-1; az<=1; az++){
- var containment = new THREE.Mesh(new THREE.BoxGeometry(4.2,0.05,0.5), matWhiteSpace);
- containment.position.set(0, 0.92, az*0.6); whiteSpaceGroup.add(containment);
- }
- tube([[1.8,0.25,1.5],[1.8,0.4,0.9],[1.0,0.4,0]], 0.035, matCable, whiteSpaceGroup);
-
- // Racks & compute: instanced (not one Mesh per rack/LED) so the row can be
- // densified without the draw-call count growing with it - 4 rows x 9
- // columns = 36 racks via 2 InstancedMesh objects instead of 48 separate
- // Mesh/material pairs for the old 4x6 grid.
- var rows = 4, perRow = 9;
- var rackGeo = new THREE.BoxGeometry(0.22,0.85,0.55);
- var ledGeo = new THREE.BoxGeometry(0.02,0.7,0.04);
- var rackInstances = new THREE.InstancedMesh(rackGeo, matRack, rows*perRow);
- var ledInstances = new THREE.InstancedMesh(ledGeo, matRackLed, rows*perRow);
- var rackDummy = new THREE.Object3D(); var rackIdx = 0;
- var colSpan = 0.52, startX = -(perRow-1)*colSpan/2;
- for (var row=0; row<rows; row++){
- for (var c=0; c<perRow; c++){
- var rx = startX + c*colSpan, rz = -0.9 + row*0.6;
- rackDummy.position.set(rx, 0.62, rz); rackDummy.rotation.set(0,0,0); rackDummy.updateMatrix();
- rackInstances.setMatrixAt(rackIdx, rackDummy.matrix);
- rackDummy.position.set(rx+0.12, 0.62, rz+0.26); rackDummy.updateMatrix();
- ledInstances.setMatrixAt(rackIdx, rackDummy.matrix);
- rackIdx++;
- }
- }
- rackInstances.instanceMatrix.needsUpdate = true;
- ledInstances.instanceMatrix.needsUpdate = true;
- rackGroup.add(rackInstances); rackGroup.add(ledInstances);
- var pduLeft = new THREE.Mesh(new THREE.BoxGeometry(0.3,0.75,0.5), matRack);
- pduLeft.position.set(startX-0.35, 0.62, -0.9); rackGroup.add(pduLeft);
- var pduRight = new THREE.Mesh(new THREE.BoxGeometry(0.3,0.75,0.5), matRack);
- pduRight.position.set(startX+(perRow-1)*colSpan+0.35, 0.62, 0.9); rackGroup.add(pduRight);
-
- var SHELL_MAX_OPACITY = this.shellMaxOpacity, EXO_BASE_OPACITY = this.exoBaseOpacity;
- function clamp01(x){ return Math.max(0, Math.min(1,x)); }
- function triangle(v, center){ return clamp01(1 - Math.abs(v-center)); }
- function setOp(mat, v){ mat.opacity = v; mat.visible = v > 0.01; }
-
- return {
- applyLevel: function(v){
- var shellOp = clamp01(1-v) * SHELL_MAX_OPACITY;
- var siteOp = (v<=1) ? (EXO_BASE_OPACITY + (1-EXO_BASE_OPACITY)*v) : triangle(v,1);
- var wsOp = triangle(v,2);
- var rackOp = clamp01(v-2);
- setOp(matShell, shellOp);
- [matSite,matCooling,matGenset,matElectrical].forEach(function(m){ setOp(m, Math.max(siteOp, rackOp*0.15)); });
- [matWhiteSpace,matCable].forEach(function(m){ setOp(m, wsOp); });
- [matRack,matRackLed].forEach(function(m){ setOp(m, rackOp); });
- }
- };
- }
+ // Geometry lives in ./models/datacenter.ts.
+ build: function(ctx){ return buildDatacenter(ctx, this); }
  };
 
 
@@ -1191,9 +672,9 @@ var ASOF = "25 Sep 2026";
  shellMaxOpacity: 0.52, exoBaseOpacity: 0.55,
  defaultView: "trackside",
  views: [
- {id:"trackside", label:"Trackside", pos:[9.7,3.6,7.5], target:[-1.4,0.6,0]},
+ {id:"trackside", label:"Trackside", pos:[-8.8,3.2,7], target:[-0.8,0.6,0]},
  {id:"platform", label:"Platform", pos:[2.25,1.8,6.74], target:[0,0.55,0]},
- {id:"top", label:"Top", pos:[-1.4,9.5,0.1], target:[-1.4,0.5,0]},
+ {id:"top", label:"Top", pos:[0.7,10.5,0.1], target:[0.7,0.5,0]},
  {id:"cab", label:"Driver's Cab", pos:[-5.2,1.6,2.2], target:[-2.9,0.85,0]},
  {id:"underframe", label:"Underframe", pos:[-0.4,0.9,4.3], target:[-1.4,0.3,0]}
  ],
@@ -1206,7 +687,7 @@ var ASOF = "25 Sep 2026";
  {id:"psu_ecosystem", title:"Railway PSU & Digital Ecosystem", shortTitle:"PSU", description:"The PSU layer that finances rolling stock, sells tickets, runs rail-freight logistics and operates the digital/telecom backbone.", color:"#B5179E", relatedDomains:["infrastructure_epc","rolling_stock_manufacturing"]}
  ],
  zones: [
- {id:"rolling_stock", color:"#4C6EF5", label:"Rolling Stock Integration & Coach Fabrication", pos:[0,1.3,0], side:"top", desc:"Complete trainset/coach assembly - the OEMs that fabricate and integrate Vande Bharat, metro and freight rolling stock.",
+ {id:"rolling_stock", color:"#4C6EF5", label:"Rolling Stock Integration & Coach Fabrication", pos:[1.3,0.85,0.44], side:"top", desc:"Complete trainset/coach assembly - the OEMs that fabricate and integrate Vande Bharat, metro and freight rolling stock.",
  domainId:"rolling_stock_manufacturing", displayOrder:1, dataStatus:"demo",
  roleInSystem:"The OEM integration layer - takes bogies, traction equipment, signaling and braking systems from across the supply chain and assembles them into a complete, certified trainset.",
  whyItMatters:"This is the layer where India's 'Make in India' rail story becomes a finished, revenue-generating product - every other component feeds into what gets built here.",
@@ -1217,7 +698,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Order book / book-to-bill ratio", "Tender win rate versus competing OEMs", "Execution margin trends across delivery cycles"],
  relatedComponents:["bogies","traction","braking"],
  suppliers:[{key:"titagarh", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"texmaco", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"beml", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"jupiterwagons", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"stoneindia", exposureType:"indirect_supplier", exposureStrength:"low"}]},
- {id:"bogies", color:"#D96C2B", label:"Bogies, Wheels, Axles & Bearings", pos:[-1.25,0.2,0.32], side:"bottom", desc:"Forged wheelsets, axles, bogie frames and bearings that carry and guide each coach along the track.",
+ {id:"bogies", color:"#D96C2B", label:"Bogies, Wheels, Axles & Bearings", pos:[-1.5,0.3,0.33], side:"bottom", desc:"Forged wheelsets, axles, bogie frames and bearings that carry and guide each coach along the track.",
  domainId:"underframe_running_gear", displayOrder:2, dataStatus:"demo",
  roleInSystem:"Carries and guides each coach along the track - forged wheelsets, axles, bogie frames and bearings sit directly beneath the coach body, bearing the full static and dynamic load.",
  whyItMatters:"Wheel and bearing failures are safety-critical; this layer's reliability directly determines how fast and how often trains can run.",
@@ -1228,7 +709,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Rail-specific order wins and capacity utilization", "Share of revenue from rail versus auto/industrial bearings", "Wheel-plant ramp-up progress"],
  relatedComponents:["rolling_stock","braking"],
  suppliers:[{key:"ramkrishnaforgings", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"bharatforge", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"timken", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"nrbbearings", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"schaefflerindia", exposureType:"direct_supplier", exposureStrength:"low"}]},
- {id:"traction", color:"#7A5CC7", label:"Traction Propulsion, Motors & Power Electronics", pos:[0,1.55,0], side:"top", desc:"Pantograph, traction motors and power-electronic converters that draw overhead power and drive the wheels.",
+ {id:"traction", color:"#7A5CC7", label:"Traction Propulsion, Motors & Power Electronics", pos:[0.1,1.5,0], side:"top", desc:"Pantograph, traction motors and power-electronic converters that draw overhead power and drive the wheels.",
  domainId:"traction_power", displayOrder:3, dataStatus:"demo",
  roleInSystem:"Draws power from the overhead electrification and converts it into the motive force that drives the wheels - pantograph, traction motors and power-electronic converters sit on the roof and underframe of the powered coaches.",
  whyItMatters:"Traction performance determines a train's acceleration, top speed and energy efficiency - the core technical differentiator of a modern electric trainset like Vande Bharat.",
@@ -1239,7 +720,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Rail/traction segment order inflow, where disclosed", "Margin differential versus the company's non-rail businesses", "Qualification wins on new-generation trainset tenders"],
  relatedComponents:["rolling_stock","signaling"],
  suppliers:[{key:"bhel", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"siemenschain", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"abbindia", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"cgpower", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"hirect", exposureType:"direct_supplier", exposureStrength:"medium"}]},
- {id:"signaling", color:"#1E9E76", label:"Signaling, Train Control (Kavach) & Onboard Electronics", pos:[-3.0,1.0,0.35], side:"left", desc:"Kavach/ETCS train-protection electronics, interlocking and cab signaling that keep trains safely spaced.",
+ {id:"signaling", color:"#1E9E76", label:"Signaling, Train Control (Kavach) & Onboard Electronics", pos:[-3.55,0.85,0.24], side:"left", desc:"Kavach/ETCS train-protection electronics, interlocking and cab signaling that keep trains safely spaced.",
  domainId:"train_safety_control", displayOrder:4, dataStatus:"demo",
  roleInSystem:"Keeps trains safely spaced and enforces speed limits - Kavach/ETCS train-protection electronics, interlocking and cab signaling sit onboard the cab and along the trackside.",
  whyItMatters:"Kavach is the single largest near-term policy-driven demand catalyst in Indian Railways - it is being rolled out as a direct response to safety mandates, not discretionary capex.",
@@ -1250,7 +731,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Kavach order-book growth and tender win rate", "Revenue/profit inflection versus pre-Kavach baseline", "Working-capital days amid rapid order growth"],
  relatedComponents:["braking","rolling_stock"],
  suppliers:[{key:"kernex", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"quadrantfuturetek", exposureType:"emerging_entrant", exposureStrength:"high"}, {key:"hblengineering", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"micelectronics", exposureType:"indirect_supplier", exposureStrength:"medium"}]},
- {id:"braking", color:"#C9315C", label:"Braking Systems & Auxiliary Coach Systems", pos:[1.25,0.2,-0.32], side:"bottom", desc:"Air-brake systems, couplers and onboard batteries/lighting that keep the train stoppable and liveable.",
+ {id:"braking", color:"#C9315C", label:"Braking Systems & Auxiliary Coach Systems", pos:[2.27,0.31,-0.09], side:"bottom", desc:"Air-brake systems, couplers and onboard batteries/lighting that keep the train stoppable and liveable.",
  domainId:"train_safety_control", displayOrder:5, dataStatus:"demo",
  roleInSystem:"Provides the air-brake systems, couplers and onboard batteries/lighting that let a train stop safely and keep passengers comfortable between stations.",
  whyItMatters:"Braking performance is as safety-critical as signaling - it is the final, physical mechanism that actually stops the train that Kavach and signaling are designed to protect.",
@@ -1261,7 +742,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Rail Equipment segment revenue where separately disclosed", "Wagon/coach production volumes as a demand proxy"],
  relatedComponents:["bogies","signaling"],
  suppliers:[{key:"escortskubota", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"stoneindia", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"hblengineering", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"elgiequip", exposureType:"direct_supplier", exposureStrength:"low"}]},
- {id:"epc", color:"#8B5E34", label:"Railway EPC, Track & Electrification Contractors", pos:[3.6,1.0,0.9], side:"right", desc:"New lines, doubling, track-laying and overhead electrification contractors that build the corridor itself.",
+ {id:"epc", color:"#8B5E34", label:"Railway EPC, Track & Electrification Contractors", pos:[3.6,1.2,1.05], side:"right", desc:"New lines, doubling, track-laying and overhead electrification contractors that build the corridor itself.",
  domainId:"infrastructure_epc", displayOrder:6, dataStatus:"demo",
  roleInSystem:"Builds the corridor itself - new lines, doubling, track-laying and overhead electrification that every train in this sector ultimately runs on.",
  whyItMatters:"Without corridor capacity and electrification, faster rolling stock like Vande Bharat has nowhere additional to run - EPC is the physical-network constraint on the whole system's growth.",
@@ -1272,7 +753,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Order book / book-to-bill ratio", "Execution pace (revenue recognized versus order book)", "Receivable days from government clients"],
  relatedComponents:["psu","traction"],
  suppliers:[{key:"rvnl", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"ircon", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"kalpataru", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"kec", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"salasar", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"afcons", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"cemindia", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"jkil", exposureType:"direct_supplier", exposureStrength:"medium"}]},
- {id:"psu", color:"#B5179E", label:"Railway PSU Ecosystem: Financing, Ticketing & Digital Infra", pos:[4.6,0.85,-1.2], side:"right", desc:"The PSU layer that finances rolling stock, sells tickets and runs the digital/telecom backbone for Indian Railways.",
+ {id:"psu", color:"#B5179E", label:"Railway PSU Ecosystem: Financing, Ticketing & Digital Infra", pos:[4.6,1,-1.58], side:"right", desc:"The PSU layer that finances rolling stock, sells tickets and runs the digital/telecom backbone for Indian Railways.",
  domainId:"psu_ecosystem", displayOrder:7, dataStatus:"demo",
  roleInSystem:"The PSU layer that finances rolling stock, sells tickets and runs the digital/telecom backbone that keeps the rest of the system financed and connected.",
  whyItMatters:"This layer determines how rolling-stock capex actually gets funded and how the railway interacts commercially with passengers and freight customers - without it, the physical supply chain upstream has no funding mechanism or customer interface.",
@@ -1320,174 +801,8 @@ var ASOF = "25 Sep 2026";
  elgiequip: {name:"Elgi Equipments", listed:true, role:"Air compressors for railway braking and pneumatic systems", dataStatus:"demo", sourceDate:ASOF, strengths:["Established global air-compressor manufacturer with export scale, giving its railway braking/pneumatic product line engineering and manufacturing depth beyond what a rail-only vendor could sustain"], risks:["Railway braking/pneumatic systems are a narrow niche within a much larger industrial air-compressor business"], f:fin([2525,3041,3218,3510,3951],[178,371,312,350,430],"Rs 19,110 Cr","Rs 603","ELGIEQUIP",null,[24,6,24],[408,653],null,[41.2,70.4,0.45,22.1,19.0,1.00])},
  concor: {name:"Container Corporation of India", listed:true, role:"Rail freight/container logistics operator - runs container trains and ICDs under the Ministry of Railways", dataStatus:"demo", sourceDate:ASOF, strengths:["Dominant market share and first-mover scale in India's container rail-freight/ICD network, operating under the Ministry of Railways with few comparable competitors at its network size"], risks:["An operator of rail-freight logistics, not a rolling-stock or component supplier - different business/risk profile than the rest of this sector","Container/freight volumes are sensitive to broader trade and economic cycles"], f:fin([7653,8169,8653,8887,9079],[1052,1173,1262,1293,1246],"Rs 35,149 Cr","Rs 462","CONCOR","Operator, not a rolling-stock/component supplier - included here for its centrality to the rail-freight ecosystem",[-12,-7,-4],[421,558],null,[28.3,170,1.86,12.6,9.81,5.00])}
  },
- build: function(ctx){
- var THREE = ctx.THREE;
- var trackGroup = ctx.layerGroups[0], underframeGroup = ctx.layerGroups[1], tractionGroup = ctx.layerGroups[2], bodyGroup = ctx.layerGroups[3];
-
- var matTrack = new THREE.MeshPhysicalMaterial({color:0x9FB3C8, metalness:0.1, roughness:0.4, transparent:true, opacity:0.3, side:THREE.DoubleSide, depthWrite:false});
- var matBallast = new THREE.MeshStandardMaterial({color:0x6b6459, metalness:0.1, roughness:0.9, transparent:true, opacity:1});
- var matRail = new THREE.MeshStandardMaterial({color:0x8891a0, metalness:0.8, roughness:0.3, transparent:true, opacity:1});
- var matOHE = new THREE.MeshStandardMaterial({color:0x7c8794, metalness:0.7, roughness:0.4, transparent:true, opacity:1});
- var matPlatform = new THREE.MeshStandardMaterial({color:0xb8b0a2, metalness:0.1, roughness:0.8, transparent:true, opacity:1});
- var matUnderframe = new THREE.MeshStandardMaterial({color:0x4a5058, metalness:0.6, roughness:0.4, transparent:true, opacity:1});
- var matWheel = new THREE.MeshStandardMaterial({color:0x1b1e22, metalness:0.7, roughness:0.35, transparent:true, opacity:1});
- var matBrake = new THREE.MeshStandardMaterial({color:0xC9315C, metalness:0.4, roughness:0.4, transparent:true, opacity:1});
- var matTraction = new THREE.MeshStandardMaterial({color:0x7A5CC7, metalness:0.4, roughness:0.35, transparent:true, opacity:1});
- var matPantograph = new THREE.MeshStandardMaterial({color:0xc7ccd4, metalness:0.7, roughness:0.3, transparent:true, opacity:1});
- var matBody = new THREE.MeshStandardMaterial({color:0xe7e9ee, metalness:0.3, roughness:0.4, transparent:true, opacity:1});
- var matBodyAccent = new THREE.MeshStandardMaterial({color:0xD96C2B, metalness:0.3, roughness:0.4, transparent:true, opacity:1});
- var matWindow = new THREE.MeshStandardMaterial({color:0x2a3542, metalness:0.5, roughness:0.2, transparent:true, opacity:1});
- var matSignal = new THREE.MeshStandardMaterial({color:0x1E9E76, emissive:0x1E9E76, emissiveIntensity:0.6, transparent:true, opacity:1});
-
- function tube(points, radius, mat, parent){
- var curve = new THREE.CatmullRomCurve3(points.map(function(p){ return new THREE.Vector3(p[0],p[1],p[2]); }));
- var m = new THREE.Mesh(new THREE.TubeGeometry(curve, 20, radius, 6, false), mat);
- parent.add(m); return m;
- }
-
- // Track & corridor context
- var ballast = new THREE.Mesh(new THREE.BoxGeometry(9.6,0.1,1.1), matBallast);
- ballast.position.set(0.3,0.02,0); trackGroup.add(ballast);
- [-0.32,0.32].forEach(function(dz){
- var rail = new THREE.Mesh(new THREE.BoxGeometry(9.6,0.05,0.05), matRail);
- rail.position.set(0.3,0.08,dz); trackGroup.add(rail);
- });
- var oheMast = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,2.2,10), matOHE);
- oheMast.position.set(3.6,1.1,0.9); trackGroup.add(oheMast);
- var oheArm = new THREE.Mesh(new THREE.BoxGeometry(1.0,0.04,0.04), matOHE);
- oheArm.position.set(3.1,2.05,0.45); trackGroup.add(oheArm);
- tube([[3.6,2.05,0.42],[0,2.0,0],[-3.5,1.95,0]], 0.015, matOHE, trackGroup);
- var platform = new THREE.Mesh(new THREE.BoxGeometry(2.2,0.3,1.0), matPlatform);
- platform.position.set(4.6,0.15,-1.2); trackGroup.add(platform);
- var platformBoard = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.35,0.03), matPlatform);
- platformBoard.position.set(4.6,0.65,-1.55); trackGroup.add(platformBoard);
-
- // Underframe & bogies (three coaches + cab nose). coachCenters drives every
- // layer below (underframe, traction, body) so bogies/equipment/windows all
- // land under the coach they belong to - the original had a `coachXs` array
- // that was computed but never actually read by the render loop, so none of
- // this lined up; it's the single shared source of truth now.
- var COACH_LEN = 1.6, COACH_PITCH = 1.75;
- var coachCenters = [-COACH_PITCH, 0, COACH_PITCH];
- var bogieXs = [];
- coachCenters.forEach(function(cx){ bogieXs.push(cx-0.5, cx+0.5); });
- var frameSpan = COACH_PITCH*2 + COACH_LEN + 0.3;
- var underframe = new THREE.Mesh(new THREE.BoxGeometry(frameSpan,0.14,0.82), matUnderframe);
- underframe.position.set(0,0.32,0); underframeGroup.add(underframe);
- var battery = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.14,0.5), matUnderframe);
- battery.position.set(0.9,0.24,0.32); underframeGroup.add(battery);
- bogieXs.forEach(function(bx){
- [-0.34,0.34].forEach(function(bz){
- var bogie = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.18,0.7), matUnderframe);
- bogie.position.set(bx,0.2,0); underframeGroup.add(bogie);
- [-0.14,0.14].forEach(function(wx){
- [-0.36,0.36].forEach(function(wz){
- var wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.06,16), matWheel);
- wheel.rotation.z = Math.PI/2;
- wheel.position.set(bx+wx,0.18,wz); underframeGroup.add(wheel);
- });
- });
- var caliper = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.16,0.28), matBrake);
- caliper.position.set(bx,0.18,bz*1.05); underframeGroup.add(caliper);
- });
- });
- // Sleepers - cheap repetition that reinforces "railway track" under the train.
- for (var si=-4;si<=4;si++){
- var sleeper = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.03,1.0), new THREE.MeshStandardMaterial({color:0x4a4237, transparent:true, opacity:1}));
- sleeper.position.set(si*0.95,0.015,0); trackGroup.add(sleeper);
- }
-
- // Traction & braking systems - a real diamond pantograph (two scissor arms
- // meeting a horizontal collector pan, not two tubes converging to a point),
- // sized to the coach roof instead of towering almost 1.5x coach height above it.
- var ROOF_Y = 1.24;
- var pantoBase = new THREE.Mesh(new THREE.BoxGeometry(0.3,0.04,0.3), matPantograph);
- pantoBase.position.set(coachCenters[1],ROOF_Y,0); tractionGroup.add(pantoBase);
- var collectorPan = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.03,0.08), matPantograph);
- collectorPan.position.set(coachCenters[1],ROOF_Y+0.28,0); tractionGroup.add(collectorPan);
- [-1,1].forEach(function(dir){
- tube([[coachCenters[1],ROOF_Y+0.02,0],[coachCenters[1]+dir*0.12,ROOF_Y+0.16,0],[coachCenters[1]+dir*0.2,ROOF_Y+0.28,0]], 0.015, matPantograph, tractionGroup);
- });
- var converter = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.16,0.6), matTraction);
- converter.position.set(coachCenters[0],0.22,-0.32); tractionGroup.add(converter);
- var tractionMotor = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.35,14), matTraction);
- tractionMotor.rotation.z = Math.PI/2;
- tractionMotor.position.set(coachCenters[2],0.2,0.42); tractionGroup.add(tractionMotor);
- [bogieXs[2],bogieXs[3]].forEach(function(rx){
- var reservoir = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.5,10), matBrake);
- reservoir.rotation.x = Math.PI/2;
- reservoir.position.set(rx,0.34,0.2); tractionGroup.add(reservoir);
- });
-
- // Coach body & cab electronics - taller than wide (real Vande Bharat coaches
- // are ~4.14m tall x 3.24m wide), with a rounded roof cap instead of a flat lid.
- coachCenters.forEach(function(cx){
- var coach = new THREE.Mesh(new THREE.BoxGeometry(COACH_LEN,0.85,0.78), matBody);
- coach.position.set(cx,0.815,0); bodyGroup.add(coach);
- var roofCap = new THREE.Mesh(new THREE.CylinderGeometry(0.39,0.39,COACH_LEN,10,1,true,0,Math.PI), matBody);
- roofCap.rotation.z = Math.PI/2; roofCap.scale.y = 0.35;
- roofCap.position.set(cx,1.24,0); bodyGroup.add(roofCap);
- var band = new THREE.Mesh(new THREE.BoxGeometry(COACH_LEN+0.02,0.1,0.80), matBodyAccent);
- band.position.set(cx,0.46,0); bodyGroup.add(band);
- [-0.5,0,0.5].forEach(function(wx){
- var win1 = new THREE.Mesh(new THREE.BoxGeometry(0.3,0.26,0.02), matWindow);
- win1.position.set(cx+wx,0.92,0.39); bodyGroup.add(win1);
- var win2 = win1.clone(); win2.position.z = -0.39; bodyGroup.add(win2);
- });
- });
- // Coupler/gangway fairings in the inter-coach gaps so they read as a
- // connected trainset rather than three separate blocks with gaps cut in them.
- [coachCenters[0]+ (COACH_PITCH-COACH_LEN)/2 + COACH_LEN/2, coachCenters[1]+(COACH_PITCH-COACH_LEN)/2+COACH_LEN/2].forEach(function(gx){
- var gangway = new THREE.Mesh(new THREE.BoxGeometry(0.15,0.5,0.6), matWindow);
- gangway.position.set(gx,0.75,0); bodyGroup.add(gangway);
- });
-
- // Nose: an extruded shallow droop-nose profile (long, rounded taper) instead
- // of a 4-sided cone, butted flush against the lead coach's front face.
- var noseBackX = coachCenters[0] - COACH_LEN/2;
- var noseTipX = noseBackX - 0.95;
- var noseShape = new THREE.Shape();
- noseShape.moveTo(noseBackX, 0.39);
- noseShape.lineTo(noseBackX, 1.24);
- noseShape.quadraticCurveTo((noseBackX+noseTipX)/2, 1.20, noseBackX-0.65, 0.92);
- noseShape.quadraticCurveTo(noseTipX+0.1, 0.70, noseTipX, 0.55);
- noseShape.quadraticCurveTo(noseTipX+0.05, 0.42, noseBackX-0.55, 0.40);
- noseShape.lineTo(noseBackX, 0.39);
- noseShape.closePath();
- var noseGeo = new THREE.ExtrudeGeometry(noseShape, {depth:0.78, bevelEnabled:true, bevelThickness:0.015, bevelSize:0.015, bevelSegments:2, curveSegments:10});
- noseGeo.translate(0,0,-0.39);
- bodyGroup.add(new THREE.Mesh(noseGeo, matBody));
- [1,-1].forEach(function(side){
- var headlight = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.08,0.1), matSignal);
- headlight.position.set(noseTipX+0.08,0.46,side*0.16); bodyGroup.add(headlight);
- });
- var windshield = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.3,0.6), matWindow);
- windshield.position.set(noseBackX-0.45,0.95,0); windshield.rotation.y = 0.5; bodyGroup.add(windshield);
- var kavachDome = new THREE.Mesh(new THREE.SphereGeometry(0.08,12,10), matSignal);
- kavachDome.position.set(noseBackX-0.1,1.3,0); bodyGroup.add(kavachDome);
- var antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.01,0.2,6), matSignal);
- antenna.position.set(noseBackX-0.1,1.42,0); bodyGroup.add(antenna);
-
- var SHELL_MAX_OPACITY = this.shellMaxOpacity, EXO_BASE_OPACITY = this.exoBaseOpacity;
- function clamp01(x){ return Math.max(0, Math.min(1,x)); }
- function triangle(v, center){ return clamp01(1 - Math.abs(v-center)); }
- function setOp(mat, v){ mat.opacity = v; mat.visible = v > 0.01; }
-
- return {
- applyLevel: function(v){
- var shellOp = clamp01(1-v) * SHELL_MAX_OPACITY;
- var underOp = (v<=1) ? (EXO_BASE_OPACITY + (1-EXO_BASE_OPACITY)*v) : triangle(v,1);
- var tracOp = triangle(v,2);
- var bodyOp = clamp01(v-2);
- setOp(matTrack, shellOp);
- [matBallast,matRail,matOHE,matPlatform].forEach(function(m){ setOp(m, Math.max(shellOp, 0.35)); });
- [matUnderframe,matWheel,matBrake].forEach(function(m){ setOp(m, Math.max(underOp, bodyOp*0.15)); });
- [matTraction,matPantograph].forEach(function(m){ setOp(m, Math.max(tracOp, bodyOp*0.2)); });
- [matBody,matBodyAccent,matWindow].forEach(function(m){ setOp(m, Math.max(underOp, tracOp*0.15, bodyOp*0.15)); });
- setOp(matSignal, Math.max(tracOp*0.3, bodyOp));
- }
- };
- }
+ // Geometry lives in ./models/railways.ts.
+ build: function(ctx){ return buildRailways(ctx, this); }
  };
 
 
@@ -1520,7 +835,7 @@ var ASOF = "25 Sep 2026";
  {id:"marine_components", title:"Specialty Marine Components", shortTitle:"Components", description:"Pumps, valves, batteries, compressors and deck machinery that keep a ship's systems running below decks.", color:"#C99A2E", relatedDomains:["propulsion_power","shipyard_hull"]}
  ],
  zones: [
- {id:"shipyard", color:"#4C6EF5", label:"Warship & Submarine Construction (Shipyards)", pos:[0,1.1,0], side:"top", desc:"The shipyards that build and integrate complete frigates, destroyers, corvettes and submarines.",
+ {id:"shipyard", color:"#4C6EF5", label:"Warship & Submarine Construction (Shipyards)", pos:[-1.7,3.05,0], side:"top", desc:"The shipyards that build and integrate complete frigates, destroyers, corvettes and submarines.",
  domainId:"shipyard_hull", displayOrder:1, dataStatus:"demo",
  roleInSystem:"The shipyards that physically assemble hull, propulsion, weapons and electronics into a complete, commissioned warship or submarine.",
  whyItMatters:"This is the final integration point where every other layer's output becomes a deliverable platform the Navy actually accepts and commissions.",
@@ -1531,7 +846,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Order book size and book-to-bill ratio", "Execution/delivery schedule adherence vs. contracted milestones", "Margin trend across successive hulls of the same class (learning-curve effect)"],
  relatedComponents:["hull","propulsion","combat"],
  suppliers:[{key:"mazagondock", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"cochinshipyard", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"grse", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"lt_naval", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"titagarh_naval", exposureType:"owner", exposureStrength:"low"}, {key:"hsl", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"gsl", exposureType:"direct_supplier", exposureStrength:"high"}]},
- {id:"hull", color:"#8B5E34", label:"Hull, Steel Plates & Structural Metallurgy", pos:[0,0.4,0.78], side:"bottom", desc:"Warship-grade steel plate, titanium and welding consumables that form the hull and pressure structures.",
+ {id:"hull", color:"#8B5E34", label:"Hull, Steel Plates & Structural Metallurgy", pos:[0,0.47,0.55], side:"bottom", desc:"Warship-grade steel plate, titanium and welding consumables that form the hull and pressure structures.",
  domainId:"shipyard_hull", displayOrder:2, dataStatus:"demo",
  roleInSystem:"Supplies the warship-grade steel plate, titanium alloys and welding consumables that shipyards fabricate into the hull and pressure structures.",
  whyItMatters:"Hull integrity and weight directly determine a vessel's speed, range, survivability and, for submarines, dive depth - materials quality here is a hard physical constraint on ship performance.",
@@ -1542,7 +857,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Naval/defense order inflow where disclosed separately from broader steel sales", "Capacity utilization at specialty-alloy facilities", "Qualification wins for new material grades"],
  relatedComponents:["shipyard","components"],
  suppliers:[{key:"sail", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"midhani", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"adorwelding", exposureType:"direct_supplier", exposureStrength:"low"}]},
- {id:"propulsion", color:"#7A5CC7", label:"Marine Propulsion Systems & Engines", pos:[-3.0,0.6,0], side:"left", desc:"Main engines, gensets, turbines and turbine-generators that power the ship and its systems.",
+ {id:"propulsion", color:"#7A5CC7", label:"Marine Propulsion Systems & Engines", pos:[-3.65,0.19,0.3], side:"left", desc:"Main engines, gensets, turbines and turbine-generators that power the ship and its systems.",
  domainId:"propulsion_power", displayOrder:3, dataStatus:"demo",
  roleInSystem:"Supplies the main engines, gensets, turbines and turbo-alternators that power a warship's propulsion, electrical generation and onboard systems.",
  whyItMatters:"Propulsion performance sets a vessel's speed, range and endurance - the operational envelope within which the Navy can actually deploy the ship.",
@@ -1553,7 +868,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Defense/marine order wins disclosed separately from the industrial-engine segment", "Order-to-delivery lead times versus shipyard build schedules", "Margin trend in the defense/marine segment versus the core industrial business"],
  relatedComponents:["shipyard","components"],
  suppliers:[{key:"kirloskaroilengines", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"bhel_naval", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"bharatforge_naval", exposureType:"emerging_entrant", exposureStrength:"low"}, {key:"walchandnagar", exposureType:"direct_supplier", exposureStrength:"low"}]},
- {id:"combat", color:"#C9315C", label:"Combat Systems, Weapons, Explosives & Ammunition", pos:[1.0,1.3,0.4], side:"top", desc:"Missiles, torpedoes, naval guns and the warheads/explosives that arm the platform.",
+ {id:"combat", color:"#C9315C", label:"Combat Systems, Weapons, Explosives & Ammunition", pos:[2.62,0.78,0], side:"top", desc:"Missiles, torpedoes, naval guns and the warheads/explosives that arm the platform.",
  domainId:"combat_weapons", displayOrder:4, dataStatus:"demo",
  roleInSystem:"Supplies the missiles, torpedoes, naval guns and warheads/explosives that arm the platform and give it offensive and defensive capability.",
  whyItMatters:"Weapons and sensor integration is what converts a steel hull into an actual warfighting platform - this layer is the Navy's core operational requirement.",
@@ -1575,7 +890,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Order book and book-to-bill specific to naval/defense electronics where disclosed", "Margin trend at the anchor PSU versus smaller specialist suppliers", "New sensor/EW program wins and qualification milestones"],
  relatedComponents:["combat","shipyard"],
  suppliers:[{key:"bel_naval", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"datapatterns", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"astramicrowave", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"paras", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"apollomicro", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"dcxsystems", exposureType:"indirect_supplier", exposureStrength:"low"}, {key:"mtartech_naval", exposureType:"indirect_supplier", exposureStrength:"low"}, {key:"centum", exposureType:"direct_supplier", exposureStrength:"low"}]},
- {id:"components", color:"#C99A2E", label:"Specialty Marine Components", pos:[-1.0,0.35,-0.78], side:"bottom", desc:"Pumps, valves, batteries and deck machinery that keep the ship's systems running below decks.",
+ {id:"components", color:"#C99A2E", label:"Specialty Marine Components", pos:[-1.0,0.3,-0.33], side:"bottom", desc:"Pumps, valves, batteries and deck machinery that keep the ship's systems running below decks.",
  domainId:"marine_components", displayOrder:6, dataStatus:"demo",
  roleInSystem:"Supplies the pumps, valves, batteries, compressors and deck machinery that keep a ship's systems running below decks, outside the headline hull/propulsion/weapons layers.",
  whyItMatters:"These components are individually unglamorous but functionally essential - failure in pumps, batteries or deck machinery can take a vessel out of service regardless of how capable its weapons or sensors are.",
@@ -1621,162 +936,8 @@ var ASOF = "25 Sep 2026";
  kinecokaman_naval: {name:"Kineco Kaman Composites (India)", listed:false, role:"Composite structures relevant to naval/defense platforms (JV between Kineco and US-based Kaman Aerospace)", dataStatus:"unverified", sourceDate:ASOF, strengths:["JV structure brings in Kaman Aerospace's established composite-manufacturing technology and qualification pedigree, a capability base domestic-only players would need to build from scratch"], risks:["Private JV with no public financial disclosure","Composite-structures relevance to naval platforms is broad/unconfirmed rather than a specific contracted naval product line"], notes:["Private JV; no public market data - not listed"]},
  centum: {name:"Centum Electronics", listed:true, role:"ESDM - RF/microwave modules, avionics and defense electronics; supplies naval sensor/electronics subsystems", dataStatus:"demo", sourceDate:ASOF, strengths:["Established ESDM manufacturing base across RF/microwave modules and avionics gives it qualified access to multiple defense-electronics programs beyond naval sensor subsystems alone"], risks:["Chronically weak or negative net profit and ROE despite revenue growth","Naval sensor/electronics subsystem work is one of several ESDM end-markets, not separately disclosed"], f:fin([780,923,1091,740,953],[-53,7,-3,-2,-52],"Rs 7,089 Cr","Rs 4,802","CENTUM","Chronically weak/negative net profit and ROE despite revenue growth - priced on defense-electronics narrative, not current earnings",[83,52,58],[2044,5000],[251,"centum-electronics-ltd"],[81.1,233,0.10,25.5,-12.5,10.0])}
  },
- build: function(ctx){
- var THREE = ctx.THREE;
- var dockGroup = ctx.layerGroups[0], propGroup = ctx.layerGroups[1], combatGroup = ctx.layerGroups[2], superGroup = ctx.layerGroups[3];
-
- var matDock = new THREE.MeshPhysicalMaterial({color:0x9FB3C8, metalness:0.1, roughness:0.4, transparent:true, opacity:0.3, side:THREE.DoubleSide, depthWrite:false});
- var matWater = new THREE.MeshStandardMaterial({color:0x2b4a5c, metalness:0.2, roughness:0.3, transparent:true, opacity:1});
- var matKeelBlock = new THREE.MeshStandardMaterial({color:0x6b6459, metalness:0.1, roughness:0.8, transparent:true, opacity:1});
- var matHull = new THREE.MeshStandardMaterial({color:0x7d8b99, metalness:0.5, roughness:0.4, transparent:true, opacity:1});
- var matHullPlate = new THREE.MeshStandardMaterial({color:0x8B5E34, metalness:0.4, roughness:0.5, transparent:true, opacity:1});
- var matProp = new THREE.MeshStandardMaterial({color:0x7A5CC7, metalness:0.6, roughness:0.35, transparent:true, opacity:1});
- var matShaft = new THREE.MeshStandardMaterial({color:0xc7ccd4, metalness:0.7, roughness:0.3, transparent:true, opacity:1});
- var matGun = new THREE.MeshStandardMaterial({color:0xC9315C, metalness:0.4, roughness:0.4, transparent:true, opacity:1});
- var matMissile = new THREE.MeshStandardMaterial({color:0xC9315C, metalness:0.3, roughness:0.45, transparent:true, opacity:1});
- var matRadar = new THREE.MeshStandardMaterial({color:0x1E9E76, metalness:0.5, roughness:0.3, transparent:true, opacity:1});
- var matMast = new THREE.MeshStandardMaterial({color:0xc7ccd4, metalness:0.7, roughness:0.3, transparent:true, opacity:1});
- var matSuper = new THREE.MeshStandardMaterial({color:0xe7e9ee, metalness:0.3, roughness:0.4, transparent:true, opacity:1});
- var matDeck = new THREE.MeshStandardMaterial({color:0xC99A2E, metalness:0.4, roughness:0.4, transparent:true, opacity:1});
-
- function shapeFromPoints(pts){
- var s = new THREE.Shape();
- s.moveTo(pts[0][0], pts[0][1]);
- for (var i=1;i<pts.length;i++) s.lineTo(pts[i][0], pts[i][1]);
- s.closePath();
- return s;
- }
-
- // Dry dock context
- var waterline = new THREE.Mesh(new THREE.BoxGeometry(9,0.03,4), matWater);
- waterline.position.set(0,0.08,0); dockGroup.add(waterline);
- for (var kb=-2.5; kb<=2.5; kb+=1.25){
- var block = new THREE.Mesh(new THREE.BoxGeometry(0.3,0.15,0.9), matKeelBlock);
- block.position.set(kb,0.02,0); dockGroup.add(block);
- }
- var dockWall = new THREE.Mesh(new THREE.BoxGeometry(9.2,0.6,0.2), matKeelBlock);
- dockWall.position.set(0,0.25,-2.3); dockGroup.add(dockWall);
-
- // Hull - lofted side-profile with the deck line RISING toward the bow (real
- // forecastle sheer, for sea-keeping) rather than dropping to a low speedboat
- // nose, at a 9:1 length:beam ratio matching a real frigate/destroyer instead
- // of the previous stubby 6.9:1. The side extrude alone can't taper in plan
- // view though (constant depth along its whole length) - that's what the
- // separate bow wedge below is for.
- var hullPts = [
- [-3.9,0.14],[-3.9,0.50],[-2.0,0.56],[0.4,0.60],[2.2,0.64],[3.3,0.60],[4.0,0.46],[4.0,0.10],[-3.9,0.10]
- ];
- var hullGeo = new THREE.ExtrudeGeometry(shapeFromPoints(hullPts), {depth:0.92, bevelEnabled:true, bevelThickness:0.03, bevelSize:0.03, bevelSegments:3, curveSegments:10});
- hullGeo.translate(0,0,-0.46);
- var hullMesh = new THREE.Mesh(hullGeo, matHull);
- propGroup.add(hullMesh);
-
- // Bow wedge: a plan-view (X-Z) triangle extruded vertically and rotated into
- // place, flush-joined to the main hull at x=2.2 - this is what gives the hull
- // an actual pointed bow from the "top" camera view instead of a flat-ended slab.
- var bowShape = new THREE.Shape();
- bowShape.moveTo(2.2,-0.46);
- bowShape.lineTo(2.2,0.46);
- bowShape.lineTo(4.6,0.0);
- bowShape.closePath();
- var bowGeo = new THREE.ExtrudeGeometry(bowShape, {depth:0.5, bevelEnabled:false, curveSegments:4});
- bowGeo.rotateX(-Math.PI/2);
- bowGeo.translate(0,0.12,0);
- propGroup.add(new THREE.Mesh(bowGeo, matHull));
-
- var deckStripe = new THREE.Mesh(new THREE.BoxGeometry(7.9,0.04,0.94), matDeck);
- deckStripe.position.set(0.05,0.60,0); propGroup.add(deckStripe);
- [-0.44,0.44].forEach(function(dz){
- var plateSeam = new THREE.Mesh(new THREE.BoxGeometry(7.4,0.04,0.03), matHullPlate);
- plateSeam.position.set(0,0.34,dz); propGroup.add(plateSeam);
- });
- var waterlineStripe = new THREE.Mesh(new THREE.BoxGeometry(8.0,0.05,0.96), matHullPlate);
- waterlineStripe.position.set(0.05,0.15,0); propGroup.add(waterlineStripe);
-
- // Propulsion
- var shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.9,10), matShaft);
- shaft.rotation.z = Math.PI/2; shaft.position.set(-3.75,0.4,0); propGroup.add(shaft);
- var propeller = new THREE.Mesh(new THREE.TorusGeometry(0.18,0.03,8,16), matProp);
- propeller.rotation.y = Math.PI/2; propeller.position.set(-4.1,0.4,0); propGroup.add(propeller);
- var engineRoom = new THREE.Mesh(new THREE.BoxGeometry(1.0,0.4,0.8), matProp);
- engineRoom.position.set(-2.1,0.55,0); propGroup.add(engineRoom);
- var genset = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.4), matProp);
- genset.position.set(-1.1,0.55,0.3); propGroup.add(genset);
-
- // Combat systems
- var gunTurret = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.26,0.22,10), matGun);
- gunTurret.position.set(3.9,1.05,0); combatGroup.add(gunTurret);
- var gunBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.7,8), matGun);
- gunBarrel.rotation.z = Math.PI/2; gunBarrel.position.set(4.3,1.1,0); combatGroup.add(gunBarrel);
-
- // VLS: a flush deck module (hatch grid scribed on top) rather than tubes
- // poking up through a box - real vertical-launch cells sit flush with the deck.
- var missileCell = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.08,0.7), matMissile);
- missileCell.position.set(2.6,0.64,0); combatGroup.add(missileCell);
- [-0.17,0.17].forEach(function(hz){
- [-0.26,-0.09,0.09,0.26].forEach(function(hx){
- var hatchSeam = new THREE.Mesh(new THREE.BoxGeometry(0.15,0.01,0.15), matGun);
- hatchSeam.position.set(2.6+hx,0.685,hz); combatGroup.add(hatchSeam);
- });
- });
-
- // Angled anti-ship missile canisters amidships - one of the most visually
- // distinctive features of Indian frigates/destroyers, entirely absent before.
- [-0.3,0.3].forEach(function(mz){
- var canister = new THREE.Mesh(new THREE.BoxGeometry(0.55,0.22,0.3), matMissile);
- canister.position.set(-0.3,0.85,mz); canister.rotation.z = 0.3; combatGroup.add(canister);
- });
-
- // Superstructure & electronics - stepped, inward-tapering tiers (the "stealth
- // pyramid" silhouette real frigates/destroyers use) instead of one slab box.
- var tier1 = new THREE.Mesh(new THREE.BoxGeometry(1.3,0.35,0.92), matSuper);
- tier1.position.set(0.9,1.07,0); superGroup.add(tier1);
- var tier2 = new THREE.Mesh(new THREE.BoxGeometry(1.0,0.3,0.78), matSuper);
- tier2.position.set(0.95,1.35,0); superGroup.add(tier2);
- var tier3 = new THREE.Mesh(new THREE.BoxGeometry(0.75,0.3,0.6), matSuper);
- tier3.position.set(1.0,1.62,0); superGroup.add(tier3);
- var bridgeWindow = new THREE.Mesh(new THREE.BoxGeometry(0.6,0.12,0.04), matDeck);
- bridgeWindow.position.set(1.0,1.68,0.31); superGroup.add(bridgeWindow);
-
- // Tapered, integrated mast (radiusTop < radiusBottom) rather than a bare
- // uniform pole - reads as a combat-system mast, not a generic antenna.
- var mast = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.22,0.9,8), matMast);
- mast.position.set(1.0,2.2,0); superGroup.add(mast);
- var radarDome = new THREE.Mesh(new THREE.SphereGeometry(0.18,14,12), matRadar);
- radarDome.position.set(1.0,2.8,0); superGroup.add(radarDome);
- [0.82,1.18].forEach(function(rx){
- var radarPanel = new THREE.Mesh(new THREE.BoxGeometry(0.02,0.3,0.3), matRadar);
- radarPanel.position.set(rx,2.2,0); superGroup.add(radarPanel);
- });
- var funnel = new THREE.Mesh(new THREE.BoxGeometry(0.35,0.4,0.35), matSuper);
- funnel.position.set(-0.7,1.15,0); superGroup.add(funnel);
-
- // Helicopter hangar + flight deck at the stern - present on every modern
- // frigate/destroyer/carrier reference and entirely missing before.
- var hangar = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.4,0.8), matSuper);
- hangar.position.set(-3.0,0.85,0); superGroup.add(hangar);
- var flightDeck = new THREE.Mesh(new THREE.BoxGeometry(1.2,0.04,0.88), matDeck);
- flightDeck.position.set(-3.6,0.58,0); superGroup.add(flightDeck);
-
- var SHELL_MAX_OPACITY = this.shellMaxOpacity, EXO_BASE_OPACITY = this.exoBaseOpacity;
- function clamp01(x){ return Math.max(0, Math.min(1,x)); }
- function triangle(v, center){ return clamp01(1 - Math.abs(v-center)); }
- function setOp(mat, v){ mat.opacity = v; mat.visible = v > 0.01; }
-
- return {
- applyLevel: function(v){
- var shellOp = clamp01(1-v) * SHELL_MAX_OPACITY;
- var propOp = (v<=1) ? (EXO_BASE_OPACITY + (1-EXO_BASE_OPACITY)*v) : triangle(v,1);
- var combatOp = triangle(v,2);
- var superOp = clamp01(v-2);
- setOp(matDock, shellOp);
- [matWater,matKeelBlock].forEach(function(m){ setOp(m, Math.max(shellOp, 0.35)); });
- [matHull,matHullPlate,matProp,matShaft].forEach(function(m){ setOp(m, Math.max(propOp, combatOp*0.15, superOp*0.15)); });
- [matGun,matMissile].forEach(function(m){ setOp(m, Math.max(combatOp, superOp*0.2)); });
- [matSuper,matMast,matRadar,matDeck].forEach(function(m){ setOp(m, superOp); });
- }
- };
- }
+ // Geometry lives in ./models/naval.ts (layers: dock+hull, machinery, weapons, superstructure).
+ build: function(ctx){ return buildNaval(ctx); }
  };
 
 
@@ -1810,7 +971,7 @@ var ASOF = "25 Sep 2026";
  {id:"integration_primes", title:"Systems Integration & Primes", shortTitle:"Primes", description:"The primes that integrate structures, engines and electronics into a complete flying platform and deliver the finished aircraft or system.", color:"#B5179E", relatedDomains:["structures_landing","avionics_mission","mro_sustainment"]}
  ],
  zones: [
- {id:"forgings", color:"#8B5E34", label:"Forgings, Castings & Special Alloys", pos:[1.7,0.6,0], side:"top", desc:"Structural and engine-grade forgings, investment castings and titanium/superalloys that feed the rest of the value chain.",
+ {id:"forgings", color:"#8B5E34", label:"Forgings, Castings & Special Alloys", pos:[-0.08,0.48,0.57], side:"top", desc:"Structural and engine-grade forgings, investment castings and titanium/superalloys that feed the rest of the value chain.",
  domainId:"materials_forgings", displayOrder:1, dataStatus:"demo",
  roleInSystem:"The upstream materials layer - titanium, superalloy and special-alloy forgings and castings that every structural, engine and landing-gear component downstream is machined from.",
  whyItMatters:"Nothing else in the value chain can be built without certified aerospace-grade forgings and castings, so capacity and quality here gate everything downstream.",
@@ -1821,7 +982,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["New-capacity utilization and ramp-up pace", "Share of revenue from aerospace vs. other forging end-markets", "Qualification wins with new OEM programs"],
  relatedComponents:["structures","engine"],
  suppliers:[{key:"bharatforge_aero", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"azadengineering_aero", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"ptcindustries", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"midhani_aero", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"jaykay", exposureType:"emerging_entrant", exposureStrength:"low"}]},
- {id:"structures", color:"#4C6EF5", label:"Precision Machining, Composites & Aerostructures", pos:[0.1,0.55,0], side:"top", desc:"Machined structural parts, composite panels and aerostructure sub-assemblies such as doors and flap-tracks.",
+ {id:"structures", color:"#4C6EF5", label:"Precision Machining, Composites & Aerostructures", pos:[-0.3,0.55,1.6], side:"top", desc:"Machined structural parts, composite panels and aerostructure sub-assemblies such as doors and flap-tracks.",
  domainId:"structures_landing", displayOrder:2, dataStatus:"demo",
  roleInSystem:"The airframe-structure layer - machined structural parts, composite panels and aerostructure sub-assemblies such as doors and flap-tracks that form the physical aircraft.",
  whyItMatters:"This is where India's aerospace manufacturing base has scaled fastest, turning forgings and raw composite into flight-certified, OEM-delivered hardware.",
@@ -1832,7 +993,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Order-book growth and book-to-bill ratio", "Program mix - single parts vs. full sub-assemblies", "Export revenue share vs. domestic defense"],
  relatedComponents:["forgings","landing_gear","integration"],
  suppliers:[{key:"dynamatic", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"unimech", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"aequs", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"tanejaaerospace", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"sikainterplant", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"kinecokaman_aero", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"godrejaerospace", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"techeraengineering", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"apsisaerocom", exposureType:"direct_supplier", exposureStrength:"medium"}]},
- {id:"landing_gear", color:"#C99A2E", label:"Landing Gear, Undercarriage & Actuation Systems", pos:[0.15,0.13,0], side:"bottom", desc:"Undercarriage struts, wheels/brakes and actuation systems - served almost entirely by unlisted MNC facilities in India.",
+ {id:"landing_gear", color:"#C99A2E", label:"Landing Gear, Undercarriage & Actuation Systems", pos:[-0.1,0.09,0.66], side:"bottom", desc:"Undercarriage struts, wheels/brakes and actuation systems - served almost entirely by unlisted MNC facilities in India.",
  domainId:"structures_landing", displayOrder:3, dataStatus:"demo",
  roleInSystem:"The undercarriage layer - struts, wheels/brakes and actuation systems that let the aircraft take off, land and taxi, mounted beneath the airframe structure.",
  whyItMatters:"Landing gear is one of the most safety-critical, highly certified systems on an aircraft, and today is served almost entirely by unlisted MNC facilities rather than listed Indian players.",
@@ -1843,7 +1004,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Disclosed landing-gear/actuation order wins, where available", "New OEM qualification announcements", "Capacity-expansion announcements in this segment specifically"],
  relatedComponents:["structures"],
  suppliers:[{key:"dynamatic_gear", exposureType:"indirect_supplier", exposureStrength:"low"}, {key:"unimech_gear", exposureType:"indirect_supplier", exposureStrength:"low"}]},
- {id:"engine", color:"#7A5CC7", label:"Aero-Engine Components & Hot-Section Parts", pos:[0.1,0.4,1.1], side:"bottom", desc:"Turbine/compressor blades and hot-section forgings that go into jet engines and gas turbines.",
+ {id:"engine", color:"#7A5CC7", label:"Aero-Engine Components & Hot-Section Parts", pos:[0.3,0.3,1.1], side:"bottom", desc:"Turbine/compressor blades and hot-section forgings that go into jet engines and gas turbines.",
  domainId:"engine_propulsion", displayOrder:4, dataStatus:"demo",
  roleInSystem:"The hot-section layer - turbine and compressor blades and hot-section forgings that go into the jet engines and gas turbines powering the aircraft.",
  whyItMatters:"Hot-section parts carry the highest precision and metallurgical requirements in the entire aircraft, and the margin/IP moat here is the deepest in the value chain.",
@@ -1854,7 +1015,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Order-book growth from engine-OEM customers specifically", "Margin trend vs. structural-parts peers", "New program/platform wins disclosed by management"],
  relatedComponents:["forgings","mro"],
  suppliers:[{key:"mtartech_aero", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"azadengineering_aero2", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"bharatforge_aero2", exposureType:"direct_supplier", exposureStrength:"medium"}]},
- {id:"avionics", color:"#1E9E76", label:"Avionics, Electronics, RF/Microwave & Mission Systems", pos:[3.0,0.85,0], side:"right", desc:"Radar, avionics, EW and mission electronics designed into the nose, cockpit and mission bays.",
+ {id:"avionics", color:"#1E9E76", label:"Avionics, Electronics, RF/Microwave & Mission Systems", pos:[2.74,0.58,0], side:"right", desc:"Radar, avionics, EW and mission electronics designed into the nose, cockpit and mission bays.",
  domainId:"avionics_mission", displayOrder:5, dataStatus:"demo",
  roleInSystem:"The electronics layer - radar, avionics, EW and mission electronics designed into the nose, cockpit and mission bays, sitting on top of the physical airframe and engine.",
  whyItMatters:"Avionics and mission systems are where an aircraft's platform value is realized for defense customers, and this is the segment with the deepest, most diversified listed-company base in Indian aerospace.",
@@ -1865,7 +1026,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Defense order-book growth and execution timelines", "Revenue mix - hardware vs. design/engineering services", "Margin trend and R&D capitalization policy"],
  relatedComponents:["integration"],
  suppliers:[{key:"bel_aero", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"datapatterns_aero", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"astramicro_aero", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"apollomicro_aero", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"zentech_aero", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"cyientdlm", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"cyient", exposureType:"enabler", exposureStrength:"medium"}, {key:"parasdefence", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"axiscades", exposureType:"enabler", exposureStrength:"medium"}, {key:"rosselltechsys", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"dcxsystems_aero", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"avantel", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"centumelectronics_aero", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"digilogicsystems", exposureType:"direct_supplier", exposureStrength:"high"}]},
- {id:"mro", color:"#C9315C", label:"MRO Services (Airframe / Engine / Component)", pos:[-3.6,1.1,-1.8], side:"left", desc:"Hangars and repair lines that maintain, overhaul and life-extend aircraft, engines and components.",
+ {id:"mro", color:"#C9315C", label:"MRO Services (Airframe / Engine / Component)", pos:[-2.75,0.42,-2.3], side:"left", desc:"Hangars and repair lines that maintain, overhaul and life-extend aircraft, engines and components.",
  domainId:"mro_sustainment", displayOrder:6, dataStatus:"demo",
  roleInSystem:"The sustainment layer - hangars and repair lines that maintain, overhaul and life-extend aircraft, engines and components once they're already flying.",
  whyItMatters:"MRO is the recurring-revenue counterpart to the one-time manufacturing value chain - every aircraft and engine built upstream eventually flows back through this layer repeatedly over its service life.",
@@ -1934,138 +1095,8 @@ var ASOF = "25 Sep 2026";
  ideaforge: {name:"ideaForge Technology", listed:true, role:"Unmanned Aircraft Systems (UAVs/drones) for defense and civil surveillance, systems integration", dataStatus:"demo", sourceDate:ASOF, strengths:["Established market leader in Indian UAV/drone systems for defense and civil surveillance, with a brand and customer base built over a decade-plus"], risks:["Sharp FY25 revenue/profit decline followed by only partial FY26 recovery - still loss-making", "UAV/drone defense demand can be lumpy and tender-dependent"], f:fin([159,186,314,161,226],[44,32,45,-62,-17],"Rs 3,629 Cr","Rs 730","IDEAFORGE","Sharp FY25 revenue/profit decline followed by partial FY26 recovery; still loss-making",[46,-7,null],[366,997],null,[923,138,0.00,-2.81,-3.34,10.0])},
  sigmaadvanced: {name:"Sigma Advanced Systems", listed:true, role:"Claims Tier-1 integrated aerospace and defence manufacturing (UK + India)", dataStatus:"demo", sourceDate:ASOF, strengths:["UK+India dual footprint under its new aerospace/defence structure could give it export-market access that purely domestic manufacturers lack"], risks:["2026 reverse-merger conversion from a former telecom-software shell - pre-FY26 financial history is not from the aerospace business", "Tier-1 integrated-manufacturing claims are not yet backed by a multi-year organic track record"], f:fin([52,2,0,107,492],[5,9,-13,-14,268],"Rs 17,967 Cr","Rs 946","SIGMAADV","CAUTION: 2026 reverse-merger conversion of former telecom-software shell Megasoft Ltd; FY22-25 figures are the legacy shell's numbers, not the aerospace business - do not treat pre-FY26 as organic history",[500,167,119],[139,987],[854,"sigma-advanced-systems-ltd"],[108,26.6,0.00,11.7,-4.03,10.0])}
  },
- build: function(ctx){
- var THREE = ctx.THREE;
- var hangarGroup = ctx.layerGroups[0], structGroup = ctx.layerGroups[1], engineGroup = ctx.layerGroups[2], avioGroup = ctx.layerGroups[3];
-
- var matHangar = new THREE.MeshPhysicalMaterial({color:0x9FB3C8, metalness:0.1, roughness:0.4, transparent:true, opacity:0.3, side:THREE.DoubleSide, depthWrite:false});
- var matApron = new THREE.MeshStandardMaterial({color:0x6b6459, metalness:0.1, roughness:0.85, transparent:true, opacity:1});
- var matToolCart = new THREE.MeshStandardMaterial({color:0xC9315C, metalness:0.3, roughness:0.4, transparent:true, opacity:1});
- var matFuselage = new THREE.MeshStandardMaterial({color:0xe7e9ee, metalness:0.3, roughness:0.35, transparent:true, opacity:1});
- var matSpar = new THREE.MeshStandardMaterial({color:0x8B5E34, metalness:0.6, roughness:0.4, transparent:true, opacity:1});
- var matWing = new THREE.MeshStandardMaterial({color:0x4C6EF5, metalness:0.3, roughness:0.4, transparent:true, opacity:1});
- var matGear = new THREE.MeshStandardMaterial({color:0xC99A2E, metalness:0.6, roughness:0.35, transparent:true, opacity:1});
- var matWheel = new THREE.MeshStandardMaterial({color:0x1b1e22, metalness:0.5, roughness:0.5, transparent:true, opacity:1});
- var matNacelle = new THREE.MeshStandardMaterial({color:0x7A5CC7, metalness:0.5, roughness:0.35, transparent:true, opacity:1});
- var matFan = new THREE.MeshStandardMaterial({color:0xc7ccd4, metalness:0.7, roughness:0.3, transparent:true, opacity:1});
- var matAvionics = new THREE.MeshStandardMaterial({color:0x1E9E76, emissive:0x1E9E76, emissiveIntensity:0.5, transparent:true, opacity:1});
- var matWindow = new THREE.MeshStandardMaterial({color:0x2a3542, metalness:0.5, roughness:0.2, transparent:true, opacity:1});
-
- // Hangar / apron context - a true enclosure (back + side walls + an arched
- // roof) open on the apron-facing side, instead of a single flat wall slab
- // that didn't read as "hangar" from any angle but straight-on.
- var apron = new THREE.Mesh(new THREE.BoxGeometry(10,0.05,7), matApron);
- apron.position.set(0,0.02,0); hangarGroup.add(apron);
- var hangarBack = new THREE.Mesh(new THREE.BoxGeometry(0.15,2.4,6.0), matApron);
- hangarBack.position.set(-3.6,1.2,0); hangarGroup.add(hangarBack);
- [2.9,-2.9].forEach(function(wz){
- var hangarSide = new THREE.Mesh(new THREE.BoxGeometry(5.0,2.4,0.15), matApron);
- hangarSide.position.set(-1.1,1.2,wz); hangarGroup.add(hangarSide);
- });
- var archRoof = new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,5.0,16,1,true,-Math.PI/2,Math.PI), matHangar);
- archRoof.rotation.z = Math.PI/2;
- archRoof.position.set(-1.1,2.4,0); hangarGroup.add(archRoof);
- var toolCart = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.6,0.35), matToolCart);
- toolCart.position.set(-3.0,0.3,-2.5); hangarGroup.add(toolCart);
-
- // Structure & forgings: fuselage barrel + wing spars. Slimmer, longer barrel
- // (length:diameter ~9.5:1, matching a real narrow-body) with tapered-frustum
- // nose/tail instead of full-radius cones, so it reads as a slender tube with
- // a blunt nose rather than a fat pill with a pencil tip.
- var fuselage = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,3.8,16), matFuselage);
- fuselage.rotation.z = Math.PI/2; fuselage.position.set(0,0.5,0); structGroup.add(fuselage);
- var nose = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.3,0.9,16), matFuselage);
- nose.rotation.z = Math.PI/2; nose.position.set(2.35,0.5,0); structGroup.add(nose);
- var tailcone = new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.3,1.0,16), matFuselage);
- tailcone.rotation.z = -Math.PI/2; tailcone.position.set(-2.4,0.5,0); structGroup.add(tailcone);
-
- // Wing: a swept, tapered planform (root chord 0.8, tip chord 0.25, ~19deg
- // leading-edge sweep) built as two mirrored extrudes, instead of a flat
- // unswept rectangular slab - this was the single biggest "doesn't read as
- // an airliner" issue (the old wing was shorter than the fuselage and formed
- // a plus-sign silhouette rather than swept airliner wings).
- function buildWingHalf(mirror){
- var s = mirror ? -1 : 1;
- var shape = new THREE.Shape();
- shape.moveTo(0.5, s*0.3);
- shape.lineTo(-0.3, s*2.65);
- shape.lineTo(-0.55, s*2.65);
- shape.lineTo(-0.3, s*0.3);
- shape.closePath();
- var geo = new THREE.ExtrudeGeometry(shape, {depth:0.06, bevelEnabled:false, curveSegments:1});
- geo.rotateX(-Math.PI/2);
- geo.translate(0,0.55,0);
- return new THREE.Mesh(geo, matWing);
- }
- structGroup.add(buildWingHalf(false));
- structGroup.add(buildWingHalf(true));
- [-2.65,2.65].forEach(function(wz){
- var sharklet = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.3,0.15), matWing);
- sharklet.position.set(-0.4,0.68,wz); structGroup.add(sharklet);
- });
- var wingSpar = new THREE.Mesh(new THREE.BoxGeometry(0.75,0.07,5.3), matSpar);
- wingSpar.position.set(0.1,0.55,0); structGroup.add(wingSpar);
-
- var tailWing = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.05,1.85), matWing);
- tailWing.position.set(-2.5,1.0,0); structGroup.add(tailWing);
- var fin_ = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.75,0.06), matWing);
- fin_.position.set(-2.5,1.35,0); structGroup.add(fin_);
-
- // Landing gear + engine nacelle
- [-0.5,0.5].forEach(function(gz){
- var strut = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.5,8), matGear);
- strut.position.set(0.15,0.28,gz*1.2); engineGroup.add(strut);
- var wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.14,0.1,14), matWheel);
- wheel.rotation.x = Math.PI/2; wheel.position.set(0.15,0.14,gz*1.2); engineGroup.add(wheel);
- });
- var noseStrut = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.4,8), matGear);
- noseStrut.position.set(1.6,0.32,0); engineGroup.add(noseStrut);
- var noseWheel = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,0.09,14), matWheel);
- noseWheel.rotation.x = Math.PI/2; noseWheel.position.set(1.6,0.14,0); engineGroup.add(noseWheel);
-
- // Nacelles moved inboard (~40% half-span, matching a real podded turbofan)
- // instead of out near the wingtip, each bridged to the wing by a pylon so the
- // engine doesn't float disconnected from the airframe when both layers show.
- [-1.1,1.1].forEach(function(ez){
- var nacelle = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.24,0.9,16), matNacelle);
- nacelle.rotation.z = Math.PI/2; nacelle.position.set(0.05,0.32,ez); engineGroup.add(nacelle);
- var fanFace = new THREE.Mesh(new THREE.CircleGeometry(0.2,16), matFan);
- fanFace.rotation.y = Math.PI/2; fanFace.position.set(0.5,0.32,ez); engineGroup.add(fanFace);
- var pylon = new THREE.Mesh(new THREE.BoxGeometry(0.08,0.24,0.1), matNacelle);
- pylon.position.set(0.15,0.48,ez); engineGroup.add(pylon);
- });
-
- // Avionics & cabin systems
- var cockpitWindow = new THREE.Mesh(new THREE.BoxGeometry(0.35,0.14,0.5), matWindow);
- cockpitWindow.position.set(2.1,0.7,0); avioGroup.add(cockpitWindow);
- [-1.6,-1.15,-0.7,-0.25,0.2,0.65,1.1,1.55].forEach(function(cx){
- var cabinWin = new THREE.Mesh(new THREE.CircleGeometry(0.07,10), matWindow);
- cabinWin.rotation.y = Math.PI/2; cabinWin.position.set(cx,0.6,0.3); avioGroup.add(cabinWin);
- });
- var radome = new THREE.Mesh(new THREE.ConeGeometry(0.2,0.35,12), matAvionics);
- radome.rotation.z = Math.PI/2; radome.position.set(2.85,0.5,0); avioGroup.add(radome);
- var antenna = new THREE.Mesh(new THREE.BoxGeometry(0.03,0.06,0.25), matAvionics);
- antenna.position.set(0,0.82,0); avioGroup.add(antenna);
-
- var SHELL_MAX_OPACITY = this.shellMaxOpacity, EXO_BASE_OPACITY = this.exoBaseOpacity;
- function clamp01(x){ return Math.max(0, Math.min(1,x)); }
- function triangle(v, center){ return clamp01(1 - Math.abs(v-center)); }
- function setOp(mat, v){ mat.opacity = v; mat.visible = v > 0.01; }
-
- return {
- applyLevel: function(v){
- var shellOp = clamp01(1-v) * SHELL_MAX_OPACITY;
- var structOp = (v<=1) ? (EXO_BASE_OPACITY + (1-EXO_BASE_OPACITY)*v) : triangle(v,1);
- var engOp = triangle(v,2);
- var avioOp = clamp01(v-2);
- setOp(matHangar, shellOp);
- [matApron,matToolCart].forEach(function(m){ setOp(m, Math.max(shellOp, 0.35)); });
- [matFuselage,matSpar,matWing].forEach(function(m){ setOp(m, Math.max(structOp, engOp*0.15, avioOp*0.15)); });
- [matGear,matWheel,matNacelle,matFan].forEach(function(m){ setOp(m, Math.max(engOp, avioOp*0.2)); });
- [matAvionics,matWindow].forEach(function(m){ setOp(m, avioOp); });
- }
- };
- }
+ // Geometry lives in ./models/aerospace.ts (layers: hangar+airframe, structure, engines+gear, avionics+cabin).
+ build: function(ctx){ return buildAerospace(ctx); }
  };
 
 
@@ -2085,8 +1116,8 @@ var ASOF = "25 Sep 2026";
  views: [
  {id:"streetside", label:"Streetside", pos:[7.0,4.2,7.0], target:[0,1.6,0]},
  {id:"top", label:"Top", pos:[0.1,10.5,0.1], target:[0,1.6,0]},
- {id:"cabinet", label:"Equipment Cabinet", pos:[2.2,1.0,2.2], target:[1.2,0.6,1.2]},
- {id:"antennas", label:"Antenna Array", pos:[1.5,3.6,0.2], target:[0,3.0,0]},
+ {id:"cabinet", label:"Equipment Cabinet", pos:[2.7,1.1,2.8], target:[1.45,0.35,1.3]},
+ {id:"antennas", label:"Antenna Array", pos:[2.2,4.4,1.4], target:[0,3.8,0]},
  {id:"underground", label:"Fiber Duct", pos:[3.2,1.0,-2.5], target:[1.5,0.05,-1.0]}
  ],
  domains: [
@@ -2098,7 +1129,7 @@ var ASOF = "25 Sep 2026";
  {id:"carrier_demand", title:"Carrier Demand & Operations", shortTitle:"Operators", description:"The mobile and enterprise carriers whose capex and opex programs drive demand across every other domain.", color:"#B5179E", relatedDomains:["site_infra","deployment_services"]}
  ],
  zones: [
- {id:"towers", color:"#4C6EF5", label:"Telecom Towers & Passive Infrastructure", pos:[0,1.8,0], side:"top", desc:"The lattice/monopole structures and passive infrastructure (incl. tower InvITs) leased to operators.",
+ {id:"towers", color:"#4C6EF5", label:"Telecom Towers & Passive Infrastructure", pos:[0.32,1.8,0.32], side:"top", desc:"The lattice/monopole structures and passive infrastructure (incl. tower InvITs) leased to operators.",
  domainId:"site_infra", displayOrder:1, dataStatus:"demo",
  roleInSystem:"The physical lattice/monopole structures and land/rooftop sites that every other piece of active equipment is mounted on or housed within.",
  whyItMatters:"No active equipment - RAN, antennas, fiber termination - can be deployed until a tower or site exists to host it, making this the literal foundation of network densification.",
@@ -2109,7 +1140,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Tenancy ratio (tenants per tower)", "Net tower additions vs. churn", "Lease yield / rental escalation trends"],
  relatedComponents:["antennas","power","epc"],
  suppliers:[{key:"industowers", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"altiusinvit", exposureType:"owner", exposureStrength:"high"}, {key:"digifibretrust", exposureType:"owner", exposureStrength:"high"}, {key:"gtlinfra", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"suyogtelematics", exposureType:"indirect_supplier", exposureStrength:"medium"}, {key:"skipper_telecom", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"salasar_telecom", exposureType:"direct_supplier", exposureStrength:"medium"}]},
- {id:"fiber", color:"#8B5E34", label:"Optical Fiber & Cable Manufacturing", pos:[1.5,0.05,-1.0], side:"bottom", desc:"Glass fiber and OFC cables that carry backhaul and access traffic to and from the tower.",
+ {id:"fiber", color:"#8B5E34", label:"Optical Fiber & Cable Manufacturing", pos:[2.5,-0.12,-1], side:"bottom", desc:"Glass fiber and OFC cables that carry backhaul and access traffic to and from the tower.",
  domainId:"fiber_backhaul", displayOrder:2, dataStatus:"demo",
  roleInSystem:"Glass fiber and OFC cables that carry backhaul traffic from the tower back to the core network, and access traffic the last mile to enterprises and homes.",
  whyItMatters:"5G's bandwidth and latency promises depend on fiberized backhaul - towers still linked by microwave or legacy copper cap how much 5G capacity can actually be delivered.",
@@ -2120,7 +1151,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["OFC volume growth and utilization", "Pricing recovery versus the prior downcycle", "Share of revenue from telecom vs. other cable end-markets"],
  relatedComponents:["ran","epc"],
  suppliers:[{key:"sterlitetech", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"hfcl_fiber", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"vindhyatelelinks", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"birlacable", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"finolexcables_telecom", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"akshoptifibre", exposureType:"direct_supplier", exposureStrength:"high"}]},
- {id:"ran", color:"#7A5CC7", label:"RAN, Active Network Equipment & Switching", pos:[1.45,0.6,1.35], side:"right", desc:"The base-station cabinet, packet-transport and routing gear that processes traffic at the site.",
+ {id:"ran", color:"#7A5CC7", label:"RAN, Active Network Equipment & Switching", pos:[1.37,0.4,1.48], side:"right", desc:"The base-station cabinet, packet-transport and routing gear that processes traffic at the site.",
  domainId:"active_network", displayOrder:3, dataStatus:"demo",
  roleInSystem:"The base-station cabinet, packet-transport and routing gear that processes radio traffic at the site and hands it off to the core network.",
  whyItMatters:"This is the active 'brain' of each site - it determines network capacity, latency and feature support (4G vs 5G vs future 6G), independent of how good the passive infrastructure around it is.",
@@ -2142,7 +1173,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Telecom/5G order wins disclosed separately from defense contracts", "RF component content per site as massive-MIMO adoption rises", "Export orders for RF/microwave subsystems"],
  relatedComponents:["ran","towers"],
  suppliers:[{key:"astramicro_telecom", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"centumelectronics_telecom", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"bel_telecom", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"optiemus", exposureType:"indirect_supplier", exposureStrength:"low"}]},
- {id:"epc", color:"#C99A2E", label:"Telecom EPC, Installation & Infrastructure Services", pos:[-1.5,1.0,1.5], side:"left", desc:"The turnkey design-build-install contractors that erect towers and lay fiber for operators.",
+ {id:"epc", color:"#C99A2E", label:"Telecom EPC, Installation & Infrastructure Services", pos:[0.52,0.66,0.6], side:"left", desc:"The turnkey design-build-install contractors that erect towers and lay fiber for operators.",
  domainId:"deployment_services", displayOrder:5, dataStatus:"demo",
  roleInSystem:"The turnkey design-build-install contractors that physically erect towers, lay fiber and commission active equipment on behalf of operators.",
  whyItMatters:"Even fully-funded operator capex can't become live network capacity without execution capacity - EPC throughput is often the binding constraint on how fast a rollout actually happens.",
@@ -2153,7 +1184,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Order book / backlog and execution timelines", "Revenue mix between telecom and other EPC categories (solar, power)", "Working-capital days on project billing"],
  relatedComponents:["towers","fiber","operators"],
  suppliers:[{key:"lt_telecom", exposureType:"indirect_supplier", exposureStrength:"low"}, {key:"railtel_telecom", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"bondada", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"pacedigitek", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"sarteleventure", exposureType:"direct_supplier", exposureStrength:"high"}]},
- {id:"ems", color:"#C9315C", label:"Electronics Manufacturing Services (EMS)", pos:[2.0,1.3,-0.5], side:"right", desc:"Contract manufacturers assembling telecom PCBs, routers and RAN sub-assemblies for OEMs.",
+ {id:"ems", color:"#C9315C", label:"Electronics Manufacturing Services (EMS)", pos:[1.03,0.42,1.42], side:"right", desc:"Contract manufacturers assembling telecom PCBs, routers and RAN sub-assemblies for OEMs.",
  domainId:"component_manufacturing", displayOrder:6, dataStatus:"demo",
  roleInSystem:"Contract manufacturers that assemble telecom PCBs, routers and RAN sub-assemblies on behalf of OEMs, turning component designs into finished hardware.",
  whyItMatters:"PLI-driven domestic manufacturing means more of the telecom equipment bill of materials is now assembled in India rather than imported - EMS players are the physical capacity behind that shift.",
@@ -2164,7 +1195,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Segment-wise revenue disclosure (telecom/networking vs. other verticals)", "New OEM wins and capacity utilization", "Margin trend as PLI incentives phase in/out"],
  relatedComponents:["ran","antennas"],
  suppliers:[{key:"dixontech", exposureType:"indirect_supplier", exposureStrength:"low"}, {key:"kaynestech_telecom", exposureType:"indirect_supplier", exposureStrength:"medium"}, {key:"avalontech", exposureType:"indirect_supplier", exposureStrength:"medium"}, {key:"syrmasgs", exposureType:"indirect_supplier", exposureStrength:"medium"}, {key:"micelectronics_telecom", exposureType:"indirect_supplier", exposureStrength:"low"}]},
- {id:"power", color:"#D96C2B", label:"Power & Energy Systems for Towers", pos:[-0.9,0.4,0.9], side:"bottom", desc:"Backup batteries, diesel gensets and solar-hybrid power systems that keep sites running through outages.",
+ {id:"power", color:"#D96C2B", label:"Power & Energy Systems for Towers", pos:[-1.16,0.48,1.37], side:"bottom", desc:"Backup batteries, diesel gensets and solar-hybrid power systems that keep sites running through outages.",
  domainId:"site_infra", displayOrder:7, dataStatus:"demo",
  roleInSystem:"Backup batteries, diesel gensets and solar-hybrid power systems that keep a tower site's active equipment running through grid outages.",
  whyItMatters:"Rural and semi-urban India's grid reliability is inconsistent - uptime SLAs that operators promise customers are only as good as the backup power behind each site.",
@@ -2175,7 +1206,7 @@ var ASOF = "25 Sep 2026";
  investorMetrics:["Battery/genset order volumes tied to new site rollout", "Replacement-cycle (AMC/service) revenue share", "Disclosed telecom/tower-specific segment revenue where available"],
  relatedComponents:["towers","ran"],
  suppliers:[{key:"hblpower_telecom", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"amararaja_telecom", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"exide_telecom", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"cummins_telecom", exposureType:"indirect_supplier", exposureStrength:"medium"}]},
- {id:"operators", color:"#B5179E", label:"Telecom Operators (Demand Side)", pos:[-2.4,0.5,-1.2], side:"left", desc:"The carriers whose capex programs drive demand across every other zone in this value chain.",
+ {id:"operators", color:"#B5179E", label:"Telecom Operators (Demand Side)", pos:[-3.4,1.4,-2.35], side:"left", desc:"The carriers whose capex programs drive demand across every other zone in this value chain.",
  domainId:"carrier_demand", displayOrder:8, dataStatus:"demo",
  roleInSystem:"The mobile and enterprise carriers whose network capex and opex programs create the demand that every other zone in this value chain ultimately serves.",
  whyItMatters:"Every tower built, fiber route laid and antenna installed exists because an operator paid for it - operator capex guidance is the single best leading indicator for the rest of the supply chain.",
@@ -2232,160 +1263,8 @@ var ASOF = "25 Sep 2026";
  mtnl: {name:"Mahanagar Telephone Nigam (MTNL)", listed:true, role:"PSU telecom operator (Delhi & Mumbai circles) - fixed-line, mobile and broadband services", dataStatus:"demo", sourceDate:ASOF, strengths:["Captive government/PSU customer relationships and legacy fixed-line/enterprise contracts in the Delhi & Mumbai circles provide a residual, government-backed revenue base other distressed telecom assets lack"], risks:["Persistent, large annual net losses across the full reporting period with a shrinking PSU subscriber base"], f:fin([1388,1149,935,799,1130],[-2461,-2603,-2915,-3268,-3328],"Rs 1,487 Cr","Rs 23.6","MTNL",null,[-45,-10,5],[20.3,44.7],[888,"mahanagar-telephone-nigam-ltd"],[null,-476,0.00,-9.32,null,10.0])},
  rcom_legacy: {name:"Reliance Communications (RCOM)", listed:false, role:"Legacy/defunct telecom operator - historical relevance to India's pre-2019 tower/telecom ecosystem", dataStatus:"unverified", sourceDate:ASOF, strengths:["Its extensive legacy pan-India fiber and tower assets, built during India's earlier telecom boom, retain residual value that underpins acquirer interest through the IBC resolution process"], risks:["In insolvency resolution and headed toward liquidation - run by a resolution professional, not the board", "No dependable current market data; shown as a historical footnote rather than an active supply-chain entry"], notes:["In Corporate Insolvency Resolution Process (CIRP) under India's IBC since June 2019; NCLAT has since pushed the company toward liquidation","A resolution professional, not the board, runs the company; recent filings carry auditor qualifications","Trading status is unreliable/thinly-traded (reported suspensions on some platforms, sub-Re-1 trade-to-trade quotes on others) - no dependable current market data, shown here as a footnote only, not an active supply-chain entry"]}
  },
- build: function(ctx){
- var THREE = ctx.THREE;
- var groundGroup = ctx.layerGroups[0], towerGroup = ctx.layerGroups[1], activeGroup = ctx.layerGroups[2], antennaGroup = ctx.layerGroups[3];
-
- var matGroundShell = new THREE.MeshPhysicalMaterial({color:0x9FB3C8, metalness:0.1, roughness:0.4, transparent:true, opacity:0.3, side:THREE.DoubleSide, depthWrite:false});
- var matGround = new THREE.MeshStandardMaterial({color:0x6b6459, metalness:0.1, roughness:0.85, transparent:true, opacity:1});
- var matDuct = new THREE.MeshStandardMaterial({color:0x8B5E34, metalness:0.3, roughness:0.6, transparent:true, opacity:1});
- var matFiberCore = new THREE.MeshStandardMaterial({color:0xC99A2E, emissive:0xC99A2E, emissiveIntensity:0.4, transparent:true, opacity:1});
- var matTowerLeg = new THREE.MeshStandardMaterial({color:0x4C6EF5, metalness:0.6, roughness:0.35, transparent:true, opacity:1});
- var matFence = new THREE.MeshStandardMaterial({color:0x8891a0, metalness:0.4, roughness:0.6, transparent:true, opacity:1});
- var matCabinet = new THREE.MeshStandardMaterial({color:0x7A5CC7, metalness:0.4, roughness:0.4, transparent:true, opacity:1});
- var matRRU = new THREE.MeshStandardMaterial({color:0x1E9E76, metalness:0.4, roughness:0.35, transparent:true, opacity:1});
- var matAntennaPanel = new THREE.MeshStandardMaterial({color:0x1E9E76, metalness:0.5, roughness:0.3, transparent:true, opacity:1});
- var matBattery = new THREE.MeshStandardMaterial({color:0xD96C2B, metalness:0.4, roughness:0.4, transparent:true, opacity:1});
- var matSolar = new THREE.MeshStandardMaterial({color:0x2a3542, metalness:0.6, roughness:0.2, transparent:true, opacity:1});
- var matGenset = new THREE.MeshStandardMaterial({color:0x5a5f52, metalness:0.3, roughness:0.6, transparent:true, opacity:1});
-
- function tube(points, radius, mat, parent){
- var curve = new THREE.CatmullRomCurve3(points.map(function(p){ return new THREE.Vector3(p[0],p[1],p[2]); }));
- var m = new THREE.Mesh(new THREE.TubeGeometry(curve, 20, radius, 6, false), mat);
- parent.add(m); return m;
- }
-
- // Ground & fiber duct context
- var ground = new THREE.Mesh(new THREE.BoxGeometry(8,0.05,8), matGround);
- ground.position.set(0,0.02,0); groundGroup.add(ground);
- var duct = new THREE.Mesh(new THREE.BoxGeometry(3.2,0.1,0.3), matDuct);
- duct.position.set(1.5,0.05,-1.0); groundGroup.add(duct);
- tube([[3.1,0.08,-1.0],[1.5,0.08,-1.0],[0,0.08,0]], 0.02, matFiberCore, groundGroup);
- // Vertical perimeter fence (was a flat ring/plate, invisible except from
- // directly above) and a concrete pad under the cabinet row.
- [-0.9,0.9].forEach(function(fx){
- var fenceNS = new THREE.Mesh(new THREE.BoxGeometry(0.02,0.2,1.8), matFence);
- fenceNS.position.set(fx,0.1,0); groundGroup.add(fenceNS);
- });
- [-0.9,0.9].forEach(function(fz){
- var fenceEW = new THREE.Mesh(new THREE.BoxGeometry(1.8,0.2,0.02), matFence);
- fenceEW.position.set(0,0.1,fz); groundGroup.add(fenceEW);
- });
- var cabinetPad = new THREE.Mesh(new THREE.BoxGeometry(1.0,0.05,0.8), matGround);
- cabinetPad.position.set(1.45,0.03,1.2); groundGroup.add(cabinetPad);
- // Ice bridge: elevated cable tray from the cabinet compound toward the tower
- // base - one of the most recognizable "telecom site" tells, absent before.
- var iceBridge = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.03,1.3), matDuct);
- iceBridge.position.set(0.7,0.9,0.7); iceBridge.rotation.y = Math.PI/4; groundGroup.add(iceBridge);
- [0.3,1.1].forEach(function(bb){
- var bridgeLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.85,6), matDuct);
- bridgeLeg.position.set(bb,0.45,bb); groundGroup.add(bridgeLeg);
- });
-
- // Tower structure: a two-stage taper (wide lattice base narrowing to a
- // slender upper section) with diagonal cross-bracing on the lower, most
- // visible bay - the single biggest fix vs. the old straight 4-post "ladder".
- var LEG_LOWER = 0.4, LEG_UPPER = 0.15, SPLIT_Y = 2.0, TOP_Y = 3.6;
- var legCorners = [[-1,-1],[1,-1],[-1,1],[1,1]];
- legCorners.forEach(function(c){
- var legLower = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.05,SPLIT_Y,8), matTowerLeg);
- legLower.position.set(c[0]*LEG_LOWER,SPLIT_Y/2,c[1]*LEG_LOWER); towerGroup.add(legLower);
- var upperH = TOP_Y-SPLIT_Y;
- var legUpper = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.035,upperH,8), matTowerLeg);
- legUpper.position.set(c[0]*LEG_UPPER,SPLIT_Y+upperH/2,c[1]*LEG_UPPER); towerGroup.add(legUpper);
- });
- var lowerW = LEG_LOWER*2, diagLen = Math.sqrt(lowerW*lowerW+0.7*0.7), diagAngle = Math.atan2(0.7,lowerW);
- for (var lvl=0.6; lvl<SPLIT_Y; lvl+=0.7){
- var brace1 = new THREE.Mesh(new THREE.BoxGeometry(lowerW,0.02,0.02), matTowerLeg);
- brace1.position.set(0,lvl,-LEG_LOWER); towerGroup.add(brace1);
- var brace2 = brace1.clone(); brace2.position.z = LEG_LOWER; towerGroup.add(brace2);
- var brace3 = new THREE.Mesh(new THREE.BoxGeometry(0.02,0.02,lowerW), matTowerLeg);
- brace3.position.set(-LEG_LOWER,lvl,0); towerGroup.add(brace3);
- var brace4 = brace3.clone(); brace4.position.x = LEG_LOWER; towerGroup.add(brace4);
- [-1,1].forEach(function(sign){
- var diagFB = new THREE.Mesh(new THREE.BoxGeometry(diagLen,0.015,0.015), matTowerLeg);
- diagFB.position.set(0,lvl+0.35,-LEG_LOWER); diagFB.rotation.z = sign*diagAngle; towerGroup.add(diagFB);
- var diagFB2 = diagFB.clone(); diagFB2.position.z = LEG_LOWER; towerGroup.add(diagFB2);
- var diagLR = new THREE.Mesh(new THREE.BoxGeometry(0.015,0.015,diagLen), matTowerLeg);
- diagLR.position.set(-LEG_LOWER,lvl+0.35,0); diagLR.rotation.x = sign*diagAngle; towerGroup.add(diagLR);
- var diagLR2 = diagLR.clone(); diagLR2.position.x = LEG_LOWER; towerGroup.add(diagLR2);
- });
- }
- // Upper section: horizontal rings only (simpler/narrower bay, lower visual priority).
- for (var ulvl=SPLIT_Y+0.5; ulvl<TOP_Y-0.1; ulvl+=0.5){
- var upperW = LEG_UPPER*2;
- var ubrace1 = new THREE.Mesh(new THREE.BoxGeometry(upperW,0.015,0.015), matTowerLeg);
- ubrace1.position.set(0,ulvl,-LEG_UPPER); towerGroup.add(ubrace1);
- var ubrace2 = ubrace1.clone(); ubrace2.position.z = LEG_UPPER; towerGroup.add(ubrace2);
- }
- // Headframe/platform at the top - antennas mount on this, not on bare air.
- var platformRing = new THREE.Mesh(new THREE.TorusGeometry(0.45,0.015,6,16), matTowerLeg);
- platformRing.rotation.x = Math.PI/2; platformRing.position.set(0,TOP_Y-0.1,0); towerGroup.add(platformRing);
- [0,Math.PI*2/3,Math.PI*4/3].forEach(function(ang){
- var platformArm = new THREE.Mesh(new THREE.BoxGeometry(0.35,0.02,0.02), matTowerLeg);
- platformArm.position.set(Math.sin(ang)*0.2,TOP_Y-0.1,Math.cos(ang)*0.2); platformArm.rotation.y = ang;
- towerGroup.add(platformArm);
- });
-
- // Active network equipment: a row of 2 cabinets + 3 RRUs mounted directly
- // behind their matching antenna panel (not floating off to one side).
- [1.2,1.75].forEach(function(cx){
- var cabinet = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.85,0.4), matCabinet);
- cabinet.position.set(cx,0.42,1.2); activeGroup.add(cabinet);
- var cabinetVent = new THREE.Mesh(new THREE.BoxGeometry(0.52,0.1,0.42), matCabinet);
- cabinetVent.position.set(cx,0.82,1.2); activeGroup.add(cabinetVent);
- });
- [0,Math.PI*2/3,Math.PI*4/3].forEach(function(ang){
- var rru = new THREE.Mesh(new THREE.BoxGeometry(0.15,0.25,0.12), matRRU);
- rru.position.set(Math.sin(ang)*0.5,3.35,Math.cos(ang)*0.5); rru.rotation.y = ang;
- activeGroup.add(rru);
- });
- tube([[1.2,0.9,1.2],[0.4,0.1,0.4],[0.4,2.0,0.4],[0.15,3.4,0.15],[0,TOP_Y-0.1,0]], 0.02, matCabinet, activeGroup);
-
- // Antennas & power systems - panels mounted on the headframe ring, a
- // properly-dished (not flat-drum) microwave dish lower on the tower face,
- // and a genset visually distinct from the battery bank.
- [0,Math.PI*2/3,Math.PI*4/3].forEach(function(ang){
- var panel = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.6,0.22), matAntennaPanel);
- panel.position.set(Math.sin(ang)*0.5,TOP_Y,Math.cos(ang)*0.5);
- panel.rotation.y = ang;
- antennaGroup.add(panel);
- });
- var microwaveDish = new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.05,16), matAntennaPanel);
- microwaveDish.rotation.z = Math.PI/2; microwaveDish.position.set(0.25,2.3,0.25); antennaGroup.add(microwaveDish);
- var feedHorn = new THREE.Mesh(new THREE.ConeGeometry(0.02,0.08,6), matAntennaPanel);
- feedHorn.rotation.z = -Math.PI/2; feedHorn.position.set(0.3,2.3,0.25); antennaGroup.add(feedHorn);
- var gpsPuck = new THREE.Mesh(new THREE.SphereGeometry(0.03,8,8), matAntennaPanel);
- gpsPuck.position.set(0.15,TOP_Y+0.05,0.15); antennaGroup.add(gpsPuck);
- var battery = new THREE.Mesh(new THREE.BoxGeometry(0.45,0.35,0.35), matBattery);
- battery.position.set(-0.9,0.18,0.9); antennaGroup.add(battery);
- var genset = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.35), matGenset);
- genset.position.set(-0.9,0.15,1.4); antennaGroup.add(genset);
- var exhaustPipe = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.25,6), matGenset);
- exhaustPipe.position.set(-0.9,0.42,1.4); antennaGroup.add(exhaustPipe);
- var solarPanel = new THREE.Mesh(new THREE.BoxGeometry(0.6,0.03,0.4), matSolar);
- solarPanel.rotation.x = -0.3;
- solarPanel.position.set(-1.3,0.55,0.5); antennaGroup.add(solarPanel);
-
- var SHELL_MAX_OPACITY = this.shellMaxOpacity, EXO_BASE_OPACITY = this.exoBaseOpacity;
- function clamp01(x){ return Math.max(0, Math.min(1,x)); }
- function triangle(v, center){ return clamp01(1 - Math.abs(v-center)); }
- function setOp(mat, v){ mat.opacity = v; mat.visible = v > 0.01; }
-
- return {
- applyLevel: function(v){
- var shellOp = clamp01(1-v) * SHELL_MAX_OPACITY;
- var towerOp = (v<=1) ? (EXO_BASE_OPACITY + (1-EXO_BASE_OPACITY)*v) : triangle(v,1);
- var activeOp = triangle(v,2);
- var antennaOp = clamp01(v-2);
- setOp(matGroundShell, shellOp);
- [matGround,matDuct,matFiberCore,matFence].forEach(function(m){ setOp(m, Math.max(shellOp, 0.35)); });
- [matTowerLeg].forEach(function(m){ setOp(m, Math.max(towerOp, activeOp*0.15, antennaOp*0.15)); });
- [matCabinet,matRRU].forEach(function(m){ setOp(m, Math.max(activeOp, antennaOp*0.2)); });
- [matAntennaPanel,matBattery,matSolar,matGenset].forEach(function(m){ setOp(m, antennaOp); });
- }
- };
- }
+ // Geometry lives in ./models/telecom5g.ts.
+ build: function(ctx){ return buildTelecom5g(ctx, this); }
  };
 
 
@@ -2414,9 +1293,9 @@ var ASOF = "25 Sep 2026";
  defaultView: "overview",
  views: [
  {id:"overview", label:"Overview", pos:[8.5,5.5,8.5], target:[0,0.4,0], narration:"Welcome to the solar module manufacturing stack - the policy is the Approved List of Models and Manufacturers, or ALMM, and this is the physical stack of companies it runs through: raw materials, cells, modules, and the balance of system that turns a panel into a working power plant."},
- {id:"fab", label:"Fab", pos:[-5.5,2.6,4.5], target:[-3.4,0.6,0], narration:"The manufacturing building - this is where polysilicon wafers become solar cells, and cells become finished modules. ALMM's core rule applies right here: only modules made in a facility like this one, on MNRE's approved list, can supply government-linked solar tenders."},
+ {id:"fab", label:"Fab", pos:[-6.8,2.4,6.2], target:[-3.6,0.5,1.2], narration:"The manufacturing building - this is where polysilicon wafers become solar cells, and cells become finished modules. ALMM's core rule applies right here: only modules made in a facility like this one, on MNRE's approved list, can supply government-linked solar tenders."},
  {id:"array", label:"Panel Array", pos:[2.5,3.2,6.5], target:[1.2,0.3,0], narration:"Rows of deployed modules on their mounting structure - the finished product of the module layer, and the visible end of the ALMM-covered supply chain."},
- {id:"power", label:"Power Yard", pos:[6.5,2.4,-3.5], target:[4.0,0.5,-2.2], narration:"Inverters and the grid-interconnect yard - this converts the DC power the panels generate into AC power the grid can use, and it's the layer ALMM does NOT cover, so it's still mostly import-dependent."},
+ {id:"power", label:"Power Yard", pos:[7.6,3.2,-3.6], target:[4.6,0.5,-0.2], narration:"Inverters and the grid-interconnect yard - this converts the DC power the panels generate into AC power the grid can use, and it's the layer ALMM does NOT cover, so it's still mostly import-dependent."},
  {id:"top", label:"Top", pos:[0.1,11,0.1], target:[0,0.3,0], narration:"From above - the fab building, the deployed array, and the power yard that connects it all to the grid."}
  ],
  domains: [
@@ -2426,7 +1305,7 @@ var ASOF = "25 Sep 2026";
  {id:"deployment", title:"EPC & Deployment", shortTitle:"Deployment", description:"The developers and EPC contractors who build and own the plants ALMM-listed modules go into.", color:"#3D5A80", relatedDomains:["balance_of_system"]}
  ],
  zones: [
- {id:"polywafer", color:"#9C6B30", label:"Polysilicon, Ingots & Wafers", pos:[-4.6,0.3,3.6], side:"left", desc:"The upstream feedstock chain - polysilicon refined into ingots, then sliced into wafers. India has almost no domestic capacity here today.",
+ {id:"polywafer", color:"#9C6B30", label:"Polysilicon, Ingots & Wafers", pos:[-5.05,0.35,3], side:"left", desc:"The upstream feedstock chain - polysilicon refined into ingots, then sliced into wafers. India has almost no domestic capacity here today.",
  domainId:"upstream_materials", displayOrder:1, dataStatus:"demo",
  roleInSystem:"The furthest-upstream layer - metallurgical-grade silicon refined into solar-grade polysilicon, then grown into ingots and sliced into wafers that feed cell manufacturing.",
  whyItMatters:"This is the single biggest domestic capacity gap in the entire Indian solar stack - without it, every ALMM-listed cell and module maker is still importing its core raw material, mostly from China.",
@@ -2438,7 +1317,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["cells","glass_eva"],
  suppliers:[{key:"relNewEnergy", exposureType:"emerging_entrant", exposureStrength:"medium"}, {key:"adanient", exposureType:"emerging_entrant", exposureStrength:"low"}]},
 
- {id:"glass_eva", color:"#C99A2E", label:"Solar Glass, EVA & Backsheet", pos:[-3.9,0.55,2.6], side:"left", desc:"The encapsulation materials that protect cells inside a finished module - low-iron solar glass, EVA film and backsheet.",
+ {id:"glass_eva", color:"#C99A2E", label:"Solar Glass, EVA & Backsheet", pos:[-4.45,0.4,2], side:"left", desc:"The encapsulation materials that protect cells inside a finished module - low-iron solar glass, EVA film and backsheet.",
  domainId:"upstream_materials", displayOrder:2, dataStatus:"demo",
  roleInSystem:"Encapsulates and protects the delicate solar cells inside a finished module - low-iron tempered glass on the front, EVA film bonding the layers, and a backsheet sealing the rear.",
  whyItMatters:"A module is only as durable as its encapsulation - glass and EVA/backsheet quality directly determine a panel's 25-year degradation and warranty performance.",
@@ -2450,7 +1329,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["polywafer","modules"],
  suppliers:[{key:"borosilRenew", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"renewsys", exposureType:"direct_supplier", exposureStrength:"medium"}]},
 
- {id:"cells", color:"#2E86AB", label:"Solar Cell Manufacturing", pos:[-2.6,0.5,0.8], side:"left", desc:"Converts silicon wafers into photovoltaic cells - the layer ALMM is extending its domestic-sourcing mandate to on a phased timeline.",
+ {id:"cells", color:"#2E86AB", label:"Solar Cell Manufacturing", pos:[-4,0.45,-0.25], side:"left", desc:"Converts silicon wafers into photovoltaic cells - the layer ALMM is extending its domestic-sourcing mandate to on a phased timeline.",
  domainId:"cell_module_mfg", displayOrder:3, dataStatus:"demo",
  roleInSystem:"Converts silicon wafers into photovoltaic cells through diffusion, texturing and metallization - the electrical heart of a solar panel, assembled into modules in the next layer.",
  whyItMatters:"Cell manufacturing is where ALMM's domestic-sourcing mandate is being phased in alongside modules - India today assembles far more module capacity than it has matching domestic cell capacity, so most modules still use imported cells.",
@@ -2462,7 +1341,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["polywafer","modules"],
  suppliers:[{key:"premierEnergies", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"websol", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"waaree", exposureType:"direct_supplier", exposureStrength:"medium"}]},
 
- {id:"modules", color:"#1E9E76", label:"Solar Module Assembly", pos:[-1.0,0.65,-0.6], side:"top", desc:"Where cells, glass, EVA and backsheet come together into a finished, frame-and-junction-box-ready solar panel - ALMM's core, already-mandated layer.",
+ {id:"modules", color:"#1E9E76", label:"Solar Module Assembly", pos:[-3.6,0.35,1.32], side:"top", desc:"Where cells, glass, EVA and backsheet come together into a finished, frame-and-junction-box-ready solar panel - ALMM's core, already-mandated layer.",
  domainId:"cell_module_mfg", displayOrder:4, dataStatus:"demo",
  roleInSystem:"Assembles cells, glass, EVA and backsheet into a finished, framed solar panel with a junction box and connectors - the product ALMM's list is actually built around.",
  whyItMatters:"This is the direct, already-in-force beneficiary of ALMM: government-linked and most utility-scale private solar tenders in India can only use modules from this MNRE-approved list, making it the policy's clearest stock-impact layer.",
@@ -2474,7 +1353,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["cells","glass_eva","mounting"],
  suppliers:[{key:"waaree", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"premierEnergies", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"adanient", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"vikramSolar", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"insolation", exposureType:"direct_supplier", exposureStrength:"medium"}]},
 
- {id:"mounting", color:"#64748B", label:"Mounting Structures & Trackers", pos:[1.4,0.25,1.6], side:"right", desc:"The racking, fixed-tilt structures and trackers that hold modules at the right angle to the sun - mostly fragmented, local fabrication, not ALMM-covered.",
+ {id:"mounting", color:"#64748B", label:"Mounting Structures & Trackers", pos:[1.68,0.22,1.37], side:"right", desc:"The racking, fixed-tilt structures and trackers that hold modules at the right angle to the sun - mostly fragmented, local fabrication, not ALMM-covered.",
  domainId:"balance_of_system", displayOrder:5, dataStatus:"demo",
  roleInSystem:"The steel racking, fixed-tilt structures and (on larger utility sites) single-axis trackers that physically hold modules at the correct angle and, for trackers, follow the sun through the day.",
  whyItMatters:"Mounting design affects both installation cost and long-run energy yield (trackers can lift output 10-20% over fixed-tilt) - it's a smaller-ticket layer than modules but still a real EPC cost line.",
@@ -2486,7 +1365,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["modules","inverters"],
  suppliers:[{key:"aparInds", exposureType:"indirect_supplier", exposureStrength:"low"}]},
 
- {id:"inverters", color:"#7A5CC7", label:"Power Conditioning & Inverters", pos:[2.8,0.55,-1.8], side:"right", desc:"String and central inverters that convert the DC power modules generate into grid-usable AC - not ALMM-covered, and still import-heavy.",
+ {id:"inverters", color:"#7A5CC7", label:"Power Conditioning & Inverters", pos:[3.42,0.4,-2.1], side:"right", desc:"String and central inverters that convert the DC power modules generate into grid-usable AC - not ALMM-covered, and still import-heavy.",
  domainId:"balance_of_system", displayOrder:6, dataStatus:"demo",
  roleInSystem:"Converts the DC electricity solar modules generate into AC power the grid can use - string inverters for rooftop/commercial sites, central inverters for utility-scale plants.",
  whyItMatters:"Unlike modules, inverters sit entirely outside ALMM's domestic-sourcing mandate - this is the layer of the solar stack India is most structurally import-dependent on, dominated by Chinese and other foreign suppliers.",
@@ -2498,7 +1377,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["mounting","epc"],
  suppliers:[{key:"cgpowerSolar", exposureType:"indirect_supplier", exposureStrength:"low"}]},
 
- {id:"epc", color:"#3D5A80", label:"EPC & Project Developers", pos:[4.0,0.85,-2.6], side:"bottom", desc:"The engineering-procurement-construction contractors and independent power producers who build and own the solar plants ALMM-listed modules go into.",
+ {id:"epc", color:"#3D5A80", label:"EPC & Project Developers", pos:[4.4,0.55,-2.55], side:"bottom", desc:"The engineering-procurement-construction contractors and independent power producers who build and own the solar plants ALMM-listed modules go into.",
  domainId:"deployment", displayOrder:7, dataStatus:"demo",
  roleInSystem:"Designs, builds and in many cases owns/operates the finished solar plant - the commercial layer that actually purchases ALMM-listed modules at scale and turns them into contracted power.",
  whyItMatters:"EPC and developer order books are the real-world demand signal for everything upstream - their project pipeline determines how much ALMM-listed module capacity actually gets utilized.",
@@ -2531,199 +1410,8 @@ var ASOF = "25 Sep 2026";
  // car/data-centre builds): a fab building, deployed panel rows on racking,
  // and a power yard - enough to anchor each zone's callout without needing
  // bespoke per-part geometry for a brand-new sector built in one pass.
- build: function(ctx){
- var THREE = ctx.THREE;
- var siteGroup = ctx.layerGroups[0], cellGroup = ctx.layerGroups[1], moduleGroup = ctx.layerGroups[2], powerGroup = ctx.layerGroups[3];
-
- var matGround = new THREE.MeshStandardMaterial({color:0x5b6678, metalness:0.1, roughness:0.9, transparent:true, opacity:1});
- var matRoad = new THREE.MeshStandardMaterial({color:0x3a4249, metalness:0.05, roughness:0.95, transparent:true, opacity:1});
- var matFabShell = new THREE.MeshPhysicalMaterial({color:0xBFD2DE, metalness:0.1, roughness:0.3, transparent:true, opacity:0.35, side:THREE.DoubleSide, depthWrite:false});
- var matFabTrim = new THREE.MeshStandardMaterial({color:0x8a97a6, metalness:0.5, roughness:0.4, transparent:true, opacity:1});
- var matDock = new THREE.MeshStandardMaterial({color:0x4b5563, metalness:0.4, roughness:0.5, transparent:true, opacity:1});
- var matOffice = new THREE.MeshPhysicalMaterial({color:0xBFD2DE, metalness:0.1, roughness:0.25, transparent:true, opacity:0.4, side:THREE.DoubleSide, depthWrite:false});
- var matFence = new THREE.MeshStandardMaterial({color:0x8a97a6, metalness:0.5, roughness:0.5, transparent:true, opacity:1});
- var matWafer = new THREE.MeshStandardMaterial({color:0x9C6B30, metalness:0.3, roughness:0.6, transparent:true, opacity:1});
- var matCassette = new THREE.MeshStandardMaterial({color:0xcfd6dd, metalness:0.3, roughness:0.5, transparent:true, opacity:1});
- var matGlassSheet = new THREE.MeshPhysicalMaterial({color:0xC9E8EA, metalness:0.1, roughness:0.1, transparent:true, opacity:0.5, side:THREE.DoubleSide});
- var matCell = new THREE.MeshStandardMaterial({color:0x2E86AB, metalness:0.5, roughness:0.25, emissive:0x0a2a3a, emissiveIntensity:0.4, transparent:true, opacity:1});
- var matPanel = new THREE.MeshStandardMaterial({color:0x14222e, metalness:0.6, roughness:0.2, emissive:0x1E9E76, emissiveIntensity:0.15, transparent:true, opacity:1});
- var matBusbar = new THREE.MeshStandardMaterial({color:0xcfd6dd, metalness:0.7, roughness:0.2, transparent:true, opacity:1});
- var matFrame = new THREE.MeshStandardMaterial({color:0xcfd6dd, metalness:0.7, roughness:0.3, transparent:true, opacity:1});
- var matRack = new THREE.MeshStandardMaterial({color:0x64748B, metalness:0.6, roughness:0.4, transparent:true, opacity:1});
- var matPier = new THREE.MeshStandardMaterial({color:0x7c8aa0, metalness:0.1, roughness:0.85, transparent:true, opacity:1});
- var matInverter = new THREE.MeshStandardMaterial({color:0x7A5CC7, metalness:0.4, roughness:0.35, transparent:true, opacity:1});
- var matInverterFin = new THREE.MeshStandardMaterial({color:0x5a4590, metalness:0.5, roughness:0.3, transparent:true, opacity:1});
- var matLed = new THREE.MeshStandardMaterial({color:0x49D4C9, emissive:0x49D4C9, emissiveIntensity:0.9, transparent:true, opacity:1});
- var matGrid = new THREE.MeshStandardMaterial({color:0x3D5A80, metalness:0.5, roughness:0.4, transparent:true, opacity:1});
- var matInsulator = new THREE.MeshStandardMaterial({color:0xe7edf5, metalness:0.1, roughness:0.4, transparent:true, opacity:1});
-
- var ground = new THREE.Mesh(new THREE.BoxGeometry(11,0.06,8), matGround);
- ground.position.set(0,-0.03,0); siteGroup.add(ground);
- var accessRoad = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.01,7.6), matRoad);
- accessRoad.position.set(-5.1,0.005,0); siteGroup.add(accessRoad);
- for (var fi=0; fi<10; fi++){
- var post = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.4,6), matFence);
- post.position.set(-5+fi*1.1, 0.2, -4); siteGroup.add(post);
- }
- var fenceRailTop = new THREE.Mesh(new THREE.BoxGeometry(10,0.02,0.02), matFence);
- fenceRailTop.position.set(-0.05,0.37,-4); siteGroup.add(fenceRailTop);
- var fenceRailMid = new THREE.Mesh(new THREE.BoxGeometry(10,0.02,0.02), matFence);
- fenceRailMid.position.set(-0.05,0.2,-4); siteGroup.add(fenceRailMid);
-
- // Fab building: main hall + a loading-dock annex under a short awning (same
- // "attach a secondary block via a bridge" idiom as the data-centre ops annex),
- // a roof parapet lip, and a row of roof vents - reads as a real manufacturing
- // campus building rather than a bare box.
- var fabShell = new THREE.Mesh(new THREE.BoxGeometry(3,1.4,2.6), matFabShell);
- fabShell.position.set(-3.6,0.7,1.6); siteGroup.add(fabShell);
- var parapetFront = new THREE.Mesh(new THREE.BoxGeometry(3.04,0.08,0.06), matFabTrim);
- parapetFront.position.set(-3.6,1.42,2.9); siteGroup.add(parapetFront);
- var parapetBack = new THREE.Mesh(new THREE.BoxGeometry(3.04,0.08,0.06), matFabTrim);
- parapetBack.position.set(-3.6,1.42,0.3); siteGroup.add(parapetBack);
- var parapetLeft = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.08,2.64), matFabTrim);
- parapetLeft.position.set(-5.1,1.42,1.6); siteGroup.add(parapetLeft);
- var parapetRight = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.08,2.64), matFabTrim);
- parapetRight.position.set(-2.1,1.42,1.6); siteGroup.add(parapetRight);
- for (var vi=0; vi<4; vi++){
- var vent = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.18,10), matFabTrim);
- vent.position.set(-4.3+vi*0.55, 1.5, 1.6); siteGroup.add(vent);
- }
- // Loading-dock annex with an awning, facing the access road.
- var dock = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.6,1.6), matDock);
- dock.position.set(-5.0,0.3,1.6); siteGroup.add(dock);
- var awning = new THREE.Mesh(new THREE.BoxGeometry(1.0,0.04,1.7), matFabTrim);
- awning.position.set(-5.0,0.62,1.6); siteGroup.add(awning);
- for (var di=-1; di<=1; di++){
- var roller = new THREE.Mesh(new THREE.BoxGeometry(0.03,0.5,0.45), matFabTrim);
- roller.position.set(-4.56,0.28,1.1+di*0.5); siteGroup.add(roller);
- }
- // Small EPC/site office near the substation - gives the EPC & Project
- // Developers zone its own distinct geometry instead of sharing the fab.
- var office = new THREE.Mesh(new THREE.BoxGeometry(0.8,0.55,0.6), matOffice);
- office.position.set(4.0,0.28,1.4); siteGroup.add(office);
- var officeDoor = new THREE.Mesh(new THREE.BoxGeometry(0.03,0.35,0.22), matDock);
- officeDoor.position.set(3.61,0.2,1.4); siteGroup.add(officeDoor);
-
- // Upstream materials: a wafer cassette (the industry-standard FOUP-style
- // carrier, not loose floating discs), a sorted cell tray, and a stack of
- // raw glass sheets for the Glass/EVA/Backsheet zone - three distinct props
- // instead of one generic pile, so each upstream zone reads on its own.
- var cassette = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.42,0.42), matCassette);
- cassette.position.set(-4.5,0.21,2.5); cellGroup.add(cassette);
- for (var wi=0; wi<8; wi++){
- var wafer = new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.17,0.012,20), matWafer);
- wafer.rotation.x = Math.PI/2; wafer.position.set(-4.5, 0.05+wi*0.045, 2.5); cellGroup.add(wafer);
- }
- for (var ci=0; ci<9; ci++){
- var cell = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.24,0.012), matCell);
- cell.position.set(-3.95+((ci%3)*0.27), 0.22+Math.floor(ci/3)*0.27, 1.85); cellGroup.add(cell);
- var busbarH = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.012,0.014), matBusbar);
- busbarH.position.set(cell.position.x, cell.position.y, 1.86); cellGroup.add(busbarH);
- }
- for (var gi=0; gi<5; gi++){
- var glassSheet = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.012,0.4), matGlassSheet);
- glassSheet.position.set(-2.6, 0.05+gi*0.03, 2.6); cellGroup.add(glassSheet);
- }
-
- // Deployed panel array: rows of tilted modules on a proper A-frame tilt rack
- // (angled front/rear legs + a ridge purlin + concrete piers), with a thin
- // busbar instanced mesh over the panels so they read as cell grids up close,
- // not flat slabs.
- var rows = 4, perRow = 6;
- var panelGeo = new THREE.BoxGeometry(0.9,0.02,0.55);
- var frameGeo = new THREE.BoxGeometry(0.94,0.03,0.59);
- var busbarGeo = new THREE.BoxGeometry(0.9,0.022,0.012);
- var count = rows*perRow;
- var panelInstances = new THREE.InstancedMesh(panelGeo, matPanel, count);
- var frameInstances = new THREE.InstancedMesh(frameGeo, matFrame, count);
- var busbarInstances = new THREE.InstancedMesh(busbarGeo, matBusbar, count*3);
- var dummy = new THREE.Object3D(); var idx = 0; var bIdx = 0;
- for (var row=0; row<rows; row++){
- for (var c=0; c<perRow; c++){
- var px = -1.6 + c*0.62, pz = -2.2 + row*1.5;
- dummy.position.set(px, 0.5, pz); dummy.rotation.set(-0.35,0,0); dummy.updateMatrix();
- panelInstances.setMatrixAt(idx, dummy.matrix);
- frameInstances.setMatrixAt(idx, dummy.matrix);
- for (var bb=-1; bb<=1; bb++){
- dummy.position.set(px, 0.5+bb*0.09*Math.cos(0.35), pz+bb*0.09*Math.sin(0.35)*-1);
- dummy.rotation.set(-0.35,0,0); dummy.updateMatrix();
- busbarInstances.setMatrixAt(bIdx, dummy.matrix); bIdx++;
- }
- idx++;
- // A-frame tilt rack: a shorter front leg, a taller rear leg, a ridge purlin
- // along the row, and a concrete pier under each leg.
- var legFront = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.32,0.05), matRack);
- legFront.position.set(px, 0.17, pz+0.24); moduleGroup.add(legFront);
- var legRear = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.5,0.05), matRack);
- legRear.rotation.x = -0.35; legRear.position.set(px, 0.22, pz-0.22); moduleGroup.add(legRear);
- [[px,pz+0.24],[px,pz-0.22]].forEach(function(pp){
- var pier = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,0.05,8), matPier);
- pier.position.set(pp[0],0.025,pp[1]); moduleGroup.add(pier);
- });
- }
- }
- panelInstances.instanceMatrix.needsUpdate = true; frameInstances.instanceMatrix.needsUpdate = true; busbarInstances.instanceMatrix.needsUpdate = true;
- moduleGroup.add(panelInstances); moduleGroup.add(frameInstances); moduleGroup.add(busbarInstances);
- for (var rr=0; rr<rows; rr++){
- var purlin = new THREE.Mesh(new THREE.BoxGeometry(3.4,0.04,0.05), matRack);
- purlin.position.set(0.5,0.17,-2.2+rr*1.5+0.24); moduleGroup.add(purlin);
- }
- var mountRail = new THREE.Mesh(new THREE.BoxGeometry(5.0,0.04,0.08), matRack);
- mountRail.position.set(0.5,0.15,-2.6); moduleGroup.add(mountRail);
-
- // Power yard: inverter cabinets with cooling-fin ridges and a status LED,
- // a padmount transformer with bushings (same technique as the data-centre
- // substation), a chain-link enclosure, and a gantry pole with insulator
- // discs carrying the line off toward the grid edge of the site.
- for (var ii=0; ii<2; ii++){
- var inv = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.4), matInverter);
- inv.position.set(3.6+ii*0.7, 0.25, -2.0); powerGroup.add(inv);
- for (var fin=0; fin<4; fin++){
- var finMesh = new THREE.Mesh(new THREE.BoxGeometry(0.02,0.4,0.4), matInverterFin);
- finMesh.position.set(3.6+ii*0.7-0.26+fin*0.004, 0.25, -2.0); powerGroup.add(finMesh);
- }
- var invLed = new THREE.Mesh(new THREE.SphereGeometry(0.015,6,6), matLed);
- invLed.position.set(3.6+ii*0.7, 0.46, -1.81); powerGroup.add(invLed);
- }
- var substation = new THREE.Mesh(new THREE.BoxGeometry(0.8,0.6,0.8), matGrid);
- substation.position.set(4.6,0.3,-0.4); powerGroup.add(substation);
- [-1,0,1].forEach(function(bi){
- var bushing = new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.22,6), matInsulator);
- bushing.position.set(4.6+bi*0.18,0.71,-0.4); powerGroup.add(bushing);
- });
- var substationPad = new THREE.Mesh(new THREE.BoxGeometry(1.2,0.04,1.2), matPier);
- substationPad.position.set(4.6,0.02,-0.4); powerGroup.add(substationPad);
- [[4.1,-0.9],[5.1,-0.9],[4.1,0.1],[5.1,0.1]].forEach(function(p){
- var fencePost2 = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.35,6), matFence);
- fencePost2.position.set(p[0],0.175,p[1]); powerGroup.add(fencePost2);
- });
- var gridPole = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,1.3,8), matGrid);
- gridPole.position.set(4.6,0.95,-0.4); powerGroup.add(gridPole);
- for (var ins=0; ins<3; ins++){
- var insulator = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.03,0.08,8), matInsulator);
- insulator.position.set(4.6-0.15+ins*0.15,1.58,-0.4); powerGroup.add(insulator);
- }
-
- var SHELL_MAX_OPACITY = this.shellMaxOpacity, EXO_BASE_OPACITY = this.exoBaseOpacity;
- function clamp01(x){ return Math.max(0, Math.min(1,x)); }
- function triangle(v, center){ return clamp01(1 - Math.abs(v-center)); }
- function setOp(mat, v){ mat.opacity = v; mat.visible = v > 0.01; }
-
- return {
- applyLevel: function(v){
- var shellOp = clamp01(1-v) * SHELL_MAX_OPACITY;
- var siteOp = (v<=1) ? (EXO_BASE_OPACITY + (1-EXO_BASE_OPACITY)*v) : triangle(v,1);
- var cellOp = triangle(v,1);
- var moduleOp = triangle(v,2);
- var powerOp = clamp01(v-2);
- [matFabShell,matOffice].forEach(function(m){ setOp(m, shellOp); });
- [matGround,matRoad,matFabTrim,matDock,matFence].forEach(function(m){ setOp(m, Math.max(siteOp, 0.4)); });
- [matWafer,matCassette,matGlassSheet,matCell,matBusbar].forEach(function(m){ setOp(m, cellOp); });
- [matPanel,matFrame,matRack,matPier].forEach(function(m){ setOp(m, moduleOp); });
- [matInverter,matInverterFin,matLed,matGrid,matInsulator].forEach(function(m){ setOp(m, powerOp); });
- }
- };
- }
+ // Geometry lives in ./models/solarmodules.ts.
+ build: function(ctx){ return buildSolarmodules(ctx, this); }
  };
 
  PRODUCTS.energy = {
@@ -2745,8 +1433,8 @@ var ASOF = "25 Sep 2026";
  {id:"thermal", label:"Thermal", pos:[-6.5,3,5], target:[-4.5,1,2], narration:"Thermal - coal and gas-fired plants that still generate most of India's actual electricity and anchor grid stability, even as renewables add most of the new capacity."},
  {id:"solar", label:"Solar", pos:[-1,2.6,6.5], target:[-1,0.3,3], narration:"Solar - the fastest-growing source of new capacity, from utility-scale farms to rooftop installations."},
  {id:"wind", label:"Wind", pos:[3.5,3.2,6], target:[3.2,1.2,2.5], narration:"Wind - concentrated in a handful of resource-rich states, and increasingly paired with solar in hybrid projects for steadier output."},
- {id:"hydro", label:"Hydro", pos:[6.5,2.6,-2], target:[4.5,0.8,-3], narration:"Hydro - including pumped-storage plants, which act like a giant battery: pumping water uphill when power is cheap, releasing it to generate when demand peaks."},
- {id:"storage", label:"Storage", pos:[-2,2.2,-5.5], target:[-1,0.5,-3.2], narration:"Battery storage - the newest layer, stitching intermittent solar and wind into power the grid can rely on around the clock."},
+ {id:"hydro", label:"Hydro", pos:[5.4,2.2,0.6], target:[4.6,0.5,-2.4], narration:"Hydro - including pumped-storage plants, which act like a giant battery: pumping water uphill when power is cheap, releasing it to generate when demand peaks."},
+ {id:"storage", label:"Storage", pos:[0.2,2.6,-7.2], target:[-2.8,0.2,-4.5], narration:"Battery storage - the newest layer, stitching intermittent solar and wind into power the grid can rely on around the clock."},
  {id:"top", label:"Top", pos:[0.1,13,0.1], target:[0,0.5,0], narration:"From above - all five generation methods on one platform, connected to the same grid."}
  ],
  domains: [
@@ -2757,7 +1445,7 @@ var ASOF = "25 Sep 2026";
  {id:"storage_gen", title:"Storage", shortTitle:"Storage", description:"Battery (BESS) and pumped-storage capacity that banks intermittent renewable generation for use when the grid needs it.", color:"#7A5CC7", relatedDomains:["solar_gen","hydro_gen"]}
  ],
  zones: [
- {id:"thermal_equip", color:"#D96C2B", label:"Thermal Equipment & EPC", pos:[-5.2,0.5,3.0], side:"left", desc:"Boilers, turbine-generators and EPC for coal/gas-fired power plants.",
+ {id:"thermal_equip", color:"#D96C2B", label:"Thermal Equipment & EPC", pos:[-5.1,0.6,3.1], side:"left", desc:"Boilers, turbine-generators and EPC for coal/gas-fired power plants.",
  domainId:"thermal_gen", displayOrder:1, dataStatus:"demo",
  roleInSystem:"Manufactures the boiler-turbine-generator (BTG) equipment at the heart of a thermal plant and executes the EPC (engineering-procurement-construction) to build it.",
  whyItMatters:"Thermal still supplies the majority of India's actual electricity (as opposed to installed capacity), so this equipment layer underpins grid reliability even as new capacity additions shift toward renewables.",
@@ -2769,7 +1457,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["thermal_gencos"],
  suppliers:[{key:"bhel", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"siemensEnergy", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"lt", exposureType:"indirect_supplier", exposureStrength:"low"}, {key:"thermax", exposureType:"direct_supplier", exposureStrength:"medium"}]},
 
- {id:"thermal_gencos", color:"#D96C2B", label:"Thermal Gencos & IPPs", pos:[-3.8,0.9,1.4], side:"left", desc:"The operators who own and run coal/gas-fired power plants and sell the electricity they generate.",
+ {id:"thermal_gencos", color:"#D96C2B", label:"Thermal Gencos & IPPs", pos:[-4.45,1.22,2.48], side:"left", desc:"The operators who own and run coal/gas-fired power plants and sell the electricity they generate.",
  domainId:"thermal_gen", displayOrder:2, dataStatus:"demo",
  roleInSystem:"Owns and operates thermal power plants, selling electricity under long-term PPAs or on the merchant market - the commercial layer that turns thermal equipment into delivered electricity.",
  whyItMatters:"Thermal gencos still generate the largest share of India's actual electricity and are what keeps the grid stable when renewable output dips.",
@@ -2781,7 +1469,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["thermal_equip","storage_integrators"],
  suppliers:[{key:"ntpc", exposureType:"operator", exposureStrength:"high"}, {key:"adaniPower", exposureType:"operator", exposureStrength:"high"}, {key:"jswEnergy", exposureType:"operator", exposureStrength:"medium"}, {key:"tataPowerEnergy", exposureType:"operator", exposureStrength:"low"}]},
 
- {id:"solar_equip", color:"#C99A2E", label:"Solar Equipment & EPC", pos:[-1.6,0.4,4.4], side:"right", desc:"Module manufacturing and EPC for utility-scale and rooftop solar plants.",
+ {id:"solar_equip", color:"#C99A2E", label:"Solar Equipment & EPC", pos:[-1.55,0.22,4.25], side:"right", desc:"Module manufacturing and EPC for utility-scale and rooftop solar plants.",
  domainId:"solar_gen", displayOrder:3, dataStatus:"demo",
  roleInSystem:"Manufactures solar modules and executes EPC to build utility-scale and rooftop solar plants - see the dedicated Solar Module Manufacturing (ALMM) policy flow for the full upstream stack.",
  whyItMatters:"Solar is the single fastest-growing source of new generation capacity in India, and ALMM gives domestic module makers a structural procurement advantage.",
@@ -2793,7 +1481,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["solar_developers"],
  suppliers:[{key:"waareeEnergy", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"sterlingWilsonEnergy", exposureType:"operator", exposureStrength:"high"}]},
 
- {id:"solar_developers", color:"#C99A2E", label:"Solar & Renewable IPPs", pos:[-0.2,0.85,2.4], side:"right", desc:"Independent power producers who own and operate solar (and often wind) generation assets under long-term PPAs.",
+ {id:"solar_developers", color:"#C99A2E", label:"Solar & Renewable IPPs", pos:[-1.1,0.22,2.12], side:"right", desc:"Independent power producers who own and operate solar (and often wind) generation assets under long-term PPAs.",
  domainId:"solar_gen", displayOrder:4, dataStatus:"demo",
  roleInSystem:"Owns and operates utility-scale solar (and often hybrid wind+solar) generation assets, selling power under long-term PPAs to discoms, commercial and industrial customers.",
  whyItMatters:"IPP capacity growth is the real-world demand signal for the entire solar equipment stack - their project pipeline determines how much module/EPC capacity actually gets utilized.",
@@ -2805,7 +1493,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["solar_equip","storage_integrators"],
  suppliers:[{key:"adaniGreenEnergy", exposureType:"owner", exposureStrength:"high"}, {key:"tataPowerEnergy", exposureType:"operator", exposureStrength:"low"}]},
 
- {id:"wind_equip", color:"#2E86AB", label:"Wind Turbine Manufacturing", pos:[2.6,0.5,4.0], side:"right", desc:"Designs and manufactures the wind turbine generators (WTGs) that convert wind into electricity.",
+ {id:"wind_equip", color:"#2E86AB", label:"Wind Turbine Manufacturing", pos:[2.3,1.56,4.6], side:"right", desc:"Designs and manufactures the wind turbine generators (WTGs) that convert wind into electricity.",
  domainId:"wind_gen", displayOrder:5, dataStatus:"demo",
  roleInSystem:"Designs and manufactures wind turbine generators (WTGs) - the tower, nacelle and blades that convert wind into electricity - and often installs and commissions them too.",
  whyItMatters:"India has one of the few scaled domestic wind-turbine manufacturing bases globally, rather than relying entirely on imports as it does for solar cells or batteries.",
@@ -2817,7 +1505,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["wind_developers"],
  suppliers:[{key:"suzlon", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"inoxWind", exposureType:"direct_supplier", exposureStrength:"high"}]},
 
- {id:"wind_developers", color:"#2E86AB", label:"Wind & Hybrid IPPs", pos:[4.2,0.85,1.8], side:"right", desc:"Operators of wind and wind-solar hybrid generation assets under long-term PPAs.",
+ {id:"wind_developers", color:"#2E86AB", label:"Wind & Hybrid IPPs", pos:[5,0.8,2.35], side:"right", desc:"Operators of wind and wind-solar hybrid generation assets under long-term PPAs.",
  domainId:"wind_gen", displayOrder:6, dataStatus:"demo",
  roleInSystem:"Owns and operates wind and increasingly wind-solar hybrid generation assets, selling power under long-term PPAs.",
  whyItMatters:"Hybrid projects pairing wind's night/monsoon-season output with solar's daytime output deliver steadier, more grid-friendly power than either alone - a growing share of new renewable capacity.",
@@ -2829,7 +1517,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["wind_equip","solar_developers"],
  suppliers:[{key:"adaniGreenEnergy", exposureType:"owner", exposureStrength:"medium"}, {key:"orientGreen", exposureType:"operator", exposureStrength:"high"}]},
 
- {id:"hydro_equip", color:"#1E9E76", label:"Hydro & Pumped-Storage EPC", pos:[4.8,0.45,-2.6], side:"bottom", desc:"Turbines, generators and EPC for conventional hydro and pumped-storage plants (PSP).",
+ {id:"hydro_equip", color:"#1E9E76", label:"Hydro & Pumped-Storage EPC", pos:[4.7,0.3,-2.19], side:"bottom", desc:"Turbines, generators and EPC for conventional hydro and pumped-storage plants (PSP).",
  domainId:"hydro_gen", displayOrder:7, dataStatus:"demo",
  roleInSystem:"Manufactures hydro turbines and generators and executes EPC for both conventional run-of-river/reservoir hydro and pumped-storage plants (PSP), which pump water uphill to store energy and release it to generate on demand.",
  whyItMatters:"Pumped-storage hydro is one of the few proven, grid-scale ways to store renewable energy for hours at a time - a direct enabler of a higher-renewable grid.",
@@ -2841,7 +1529,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["hydro_gencos"],
  suppliers:[{key:"bhelHydro", exposureType:"direct_supplier", exposureStrength:"medium"}]},
 
- {id:"hydro_gencos", color:"#1E9E76", label:"Hydro & PSP Operators", pos:[5.6,0.9,-4.0], side:"bottom", desc:"PSU and private operators of conventional hydro and pumped-storage power plants.",
+ {id:"hydro_gencos", color:"#1E9E76", label:"Hydro & PSP Operators", pos:[4.68,0.97,-2.62], side:"bottom", desc:"PSU and private operators of conventional hydro and pumped-storage power plants.",
  domainId:"hydro_gen", displayOrder:8, dataStatus:"demo",
  roleInSystem:"Owns and operates conventional and pumped-storage hydro plants, providing flexible, fast-ramping generation that can be dispatched within minutes to balance the grid.",
  whyItMatters:"As thermal's share of generation declines and renewables' share rises, fast-ramping hydro and PSP capacity becomes more valuable for keeping the grid stable minute to minute.",
@@ -2853,7 +1541,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["hydro_equip","storage_integrators"],
  suppliers:[{key:"nhpc", exposureType:"operator", exposureStrength:"high"}, {key:"sjvn", exposureType:"operator", exposureStrength:"high"}, {key:"tataPowerEnergy", exposureType:"operator", exposureStrength:"low"}]},
 
- {id:"storage_equip", color:"#7A5CC7", label:"Battery Storage (BESS) Manufacturing", pos:[-2.8,0.4,-4.2], side:"left", desc:"Lithium-ion cell and battery energy storage system (BESS) manufacturing for grid-scale storage.",
+ {id:"storage_equip", color:"#7A5CC7", label:"Battery Storage (BESS) Manufacturing", pos:[-2.95,0.3,-4.2], side:"left", desc:"Lithium-ion cell and battery energy storage system (BESS) manufacturing for grid-scale storage.",
  domainId:"storage_gen", displayOrder:9, dataStatus:"demo",
  roleInSystem:"Manufactures the lithium-ion cells and packaged battery energy storage systems (BESS) that bank renewable generation for discharge when the grid needs it.",
  whyItMatters:"Grid-scale BESS is the newest and fastest-emerging layer of India's storage stack, needed to make a high-renewable grid reliable around the clock.",
@@ -2865,7 +1553,7 @@ var ASOF = "25 Sep 2026";
  relatedComponents:["storage_integrators"],
  suppliers:[{key:"exideEnergy", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"amararajaEnergy", exposureType:"direct_supplier", exposureStrength:"medium"}]},
 
- {id:"storage_integrators", color:"#7A5CC7", label:"Storage Integrators & PSP Developers", pos:[-4.0,0.85,-5.6], side:"left", desc:"Developers who deploy grid-scale BESS and pumped-storage projects and sell storage/flexibility capacity to the grid.",
+ {id:"storage_integrators", color:"#7A5CC7", label:"Storage Integrators & PSP Developers", pos:[-2.45,0.2,-4.61], side:"left", desc:"Developers who deploy grid-scale BESS and pumped-storage projects and sell storage/flexibility capacity to the grid.",
  domainId:"storage_gen", displayOrder:10, dataStatus:"demo",
  roleInSystem:"Develops and operates grid-scale storage projects - BESS and/or pumped-storage - selling capacity and flexibility services to discoms and the grid operator, distinct from selling raw energy.",
  whyItMatters:"Storage integrators are what actually turns intermittent solar/wind output into power the grid can rely on at any hour - the commercial layer tying the whole renewable buildout together.",
@@ -2903,94 +1591,8 @@ var ASOF = "25 Sep 2026";
  // stack, solar array, wind turbines, hydro dam, storage containers) arranged
  // around a shared grid spine - not a ported hand-sculpted model, but enough
  // to anchor each zone's callout and read clearly as five distinct systems.
- build: function(ctx){
- var THREE = ctx.THREE;
- var platformGroup = ctx.layerGroups[0], genGroup = ctx.layerGroups[1], gridGroup = ctx.layerGroups[2];
-
- var matPlatform = new THREE.MeshStandardMaterial({color:0x5b6678, metalness:0.1, roughness:0.9, transparent:true, opacity:1});
- var matThermal = new THREE.MeshStandardMaterial({color:0xD96C2B, metalness:0.4, roughness:0.5, transparent:true, opacity:1});
- var matSmoke = new THREE.MeshStandardMaterial({color:0x8a97a6, metalness:0.1, roughness:0.8, transparent:true, opacity:1});
- var matSolar = new THREE.MeshStandardMaterial({color:0x14222e, metalness:0.6, roughness:0.2, emissive:0xC99A2E, emissiveIntensity:0.15, transparent:true, opacity:1});
- var matWindTower = new THREE.MeshStandardMaterial({color:0xcfd6dd, metalness:0.5, roughness:0.3, transparent:true, opacity:1});
- var matWindBlade = new THREE.MeshStandardMaterial({color:0xe7edf5, metalness:0.3, roughness:0.4, side:THREE.DoubleSide, transparent:true, opacity:1});
- var matHydro = new THREE.MeshStandardMaterial({color:0x1E9E76, metalness:0.3, roughness:0.6, transparent:true, opacity:1});
- var matWater = new THREE.MeshStandardMaterial({color:0x2E86AB, metalness:0.1, roughness:0.2, transparent:true, opacity:0.6});
- var matStorage = new THREE.MeshStandardMaterial({color:0x7A5CC7, metalness:0.4, roughness:0.4, emissive:0x3a1a5c, emissiveIntensity:0.3, transparent:true, opacity:1});
- var matGridLine = new THREE.MeshStandardMaterial({color:0xe7edf5, metalness:0.6, roughness:0.3, transparent:true, opacity:1});
-
- var platform = new THREE.Mesh(new THREE.CylinderGeometry(9,9,0.08,48), matPlatform);
- platform.position.set(0,-0.04,0); platformGroup.add(platform);
-
- // Thermal: boiler block + two stacks with a simple smoke puff stack.
- var boiler = new THREE.Mesh(new THREE.BoxGeometry(1.3,1.0,1.0), matThermal);
- boiler.position.set(-4.5,0.5,2.6); genGroup.add(boiler);
- [[-5.0,-2.9],[-4.2,-2.9]].forEach(function(p){
- var stack = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.16,1.8,10), matSmoke);
- stack.position.set(p[0],1.0,p[1]); genGroup.add(stack);
- });
-
- // Solar: a small tilted panel array, same idiom as the dedicated solar scene.
- var solarGeo = new THREE.BoxGeometry(0.7,0.02,0.45);
- var solarRows = 2, solarPerRow = 4;
- var solarInstances = new THREE.InstancedMesh(solarGeo, matSolar, solarRows*solarPerRow);
- var sDummy = new THREE.Object3D(); var sIdx = 0;
- for (var sr=0; sr<solarRows; sr++){
- for (var sc=0; sc<solarPerRow; sc++){
- sDummy.position.set(-2.2+sc*0.5, 0.35, 2.6+sr*0.7); sDummy.rotation.set(-0.3,0,0); sDummy.updateMatrix();
- solarInstances.setMatrixAt(sIdx, sDummy.matrix); sIdx++;
- }
- }
- solarInstances.instanceMatrix.needsUpdate = true; genGroup.add(solarInstances);
-
- // Wind: two turbines - tower + nacelle + three thin blade planes each.
- [[2.6,2.2],[3.6,3.2]].forEach(function(p, wi){
- var tower = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.08,1.8,8), matWindTower);
- tower.position.set(p[0],0.9,p[1]); genGroup.add(tower);
- var nacelle = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.12,0.12), matWindTower);
- nacelle.position.set(p[0],1.8,p[1]); genGroup.add(nacelle);
- for (var bi=0; bi<3; bi++){
- var blade = new THREE.Mesh(new THREE.BoxGeometry(0.75,0.08,0.015), matWindBlade);
- blade.position.set(p[0]+0.35,1.8,p[1]);
- blade.rotation.z = (bi*Math.PI*2/3) + wi*0.4;
- genGroup.add(blade);
- }
- });
-
- // Hydro: a dam wall + water plane in front of it.
- var dam = new THREE.Mesh(new THREE.BoxGeometry(1.6,1.0,0.3), matHydro);
- dam.position.set(4.8,0.5,-2.6); genGroup.add(dam);
- var reservoir = new THREE.Mesh(new THREE.BoxGeometry(1.8,0.02,1.2), matWater);
- reservoir.position.set(4.8,0.05,-3.6); genGroup.add(reservoir);
-
- // Storage: a row of battery-container boxes.
- for (var bi2=0; bi2<3; bi2++){
- var container = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.4,0.3), matStorage);
- container.position.set(-3.4+bi2*0.6, 0.2, -4.8); genGroup.add(container);
- }
-
- // Grid spine connecting all five clusters back to a central point, so the
- // platform reads as one interconnected system rather than five islands.
- [[-4.5,2.6],[-2.0,2.9],[3.0,2.6],[4.8,-2.6],[-3.4,-4.8]].forEach(function(p){
- var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.6,6), matGridLine);
- pole.position.set(p[0]*0.5,0.3,p[1]*0.5); gridGroup.add(pole);
- });
-
- var SHELL_MAX_OPACITY = this.shellMaxOpacity, EXO_BASE_OPACITY = this.exoBaseOpacity;
- function clamp01(x){ return Math.max(0, Math.min(1,x)); }
- function triangle(v, center){ return clamp01(1 - Math.abs(v-center)); }
- function setOp(mat, v){ mat.opacity = v; mat.visible = v > 0.01; }
-
- return {
- applyLevel: function(v){
- var platformOp = (v<=1) ? (EXO_BASE_OPACITY + (1-EXO_BASE_OPACITY)*v) : triangle(v,1);
- var genOp = Math.max(triangle(v,1), clamp01(v-1)*0.85);
- var gridOp = clamp01(v-1.4);
- setOp(matPlatform, Math.max(platformOp, 0.4));
- [matThermal,matSmoke,matSolar,matWindTower,matWindBlade,matHydro,matWater,matStorage].forEach(function(m){ setOp(m, genOp); });
- setOp(matGridLine, gridOp);
- }
- };
- }
+ // Geometry lives in ./models/energy.ts.
+ build: function(ctx){ return buildEnergy(ctx, this); }
  };
 
  PRODUCTS._comingSoon = [
