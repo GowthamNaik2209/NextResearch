@@ -435,7 +435,10 @@ export function buildAerospace(ctx: Ctx) {
   // Columns + roof trusses spanning the bay.
   const trussGeos: T.BufferGeometry[] = [];
   for (let x = HX0 + 0.05; x <= HX1; x += 1.22) {
-    for (const z of [-HZ, HZ]) trussGeos.push(bar(THREE, [x, 0, z], [x, HH, z], 0.04, 6));
+    // Cutaway: the near (+z) side keeps only its back-corner column so nothing
+    // stands between the default cameras and the aircraft.
+    const backCorner = x < HX0 + 0.1;
+    for (const z of backCorner ? [-HZ, HZ] : [-HZ]) trussGeos.push(bar(THREE, [x, 0, z], [x, HH, z], 0.04, 6));
     trussGeos.push(bar(THREE, [x, HH, -HZ], [x, HH, HZ], 0.025, 6));
     trussGeos.push(bar(THREE, [x, HH + 0.35, -HZ], [x, HH + 0.35, HZ], 0.025, 6));
     for (let i = 0; i < 10; i++) {

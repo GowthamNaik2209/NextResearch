@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { logout, updateDisplayName } from "@/app/auth/actions";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -14,6 +15,9 @@ export function UserMenu({ email, displayName }: Props) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  // The name sits beside the avatar only on the landing page; everywhere else
+  // the account button is the bare avatar (the name is still in the dropdown).
+  const showName = usePathname() === "/";
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -64,18 +68,32 @@ export function UserMenu({ email, displayName }: Props) {
 
   return (
     <div className="relative" ref={rootRef}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-full border border-line bg-panel-2 py-1 pl-1 pr-3 text-sm text-ink hover:border-accent"
-        aria-haspopup="true"
-        aria-expanded={open}
-      >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-accent">
-          <UserIcon small />
-        </span>
-        <span className="max-w-[70px] truncate sm:max-w-[120px]">{label}</span>
-      </button>
+      {showName ? (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-2 rounded-full border border-line bg-panel-2 py-1 pl-1 pr-3 text-sm text-ink hover:border-accent"
+          aria-haspopup="true"
+          aria-expanded={open}
+        >
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-accent">
+            <UserIcon small />
+          </span>
+          <span className="max-w-[70px] truncate sm:max-w-[120px]">{label}</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-accent hover:border-accent"
+          aria-haspopup="true"
+          aria-expanded={open}
+          aria-label={`Account: ${label}`}
+          title={label}
+        >
+          <UserIcon />
+        </button>
+      )}
 
       {open && (
         <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-line bg-panel p-3 shadow-lg">
