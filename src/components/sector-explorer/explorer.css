@@ -464,6 +464,7 @@
    colors (teal/amber/purple per zone) with no theme awareness, so a filter on
    the canvas is what actually makes "the model" read as grey, uniformly
    across all sectors, without hand-editing nine build() functions' palettes. */
+:root[data-theme="light"] .nr-explorer .stage-grid-overlay{ opacity:.12 }
 :root[data-theme="light"] .nr-explorer .stage canvas{
  filter: grayscale(0.85) brightness(1.2) contrast(0.92);
 }
