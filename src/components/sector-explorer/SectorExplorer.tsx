@@ -310,20 +310,28 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     <div className={"nr-explorer" + (isMaximized ? " maximized" : "")}>
       <header>
         <div className="title-block">
-          <Link href="/" className="brand" style={{ textDecoration: "none" }}>
-            NextResearch
+          <Link href="/" className="brand" style={{ textDecoration: "none" }} aria-label="NextResearch home">
+            <span className="brand-full">NextResearch</span>
+            <span className="brand-mark" aria-hidden>N</span>
           </Link>
           <h1>{sector.headerTitle}</h1>
           <span className="sub">{sector.headerSub}</span>
           {sector.dataStatus && (
-            <span className={"badge " + (sector.dataStatus === "demo" ? "unlisted" : "listed")}>
-              {sector.dataStatus === "demo" ? "From publicly available information" : sector.dataStatus.replace(/_/g, " ")}
+            <span className={"badge " + (sector.dataStatus === "demo" ? "unlisted" : "listed")} title={sector.dataStatus === "demo" ? "From publicly available information" : undefined}>
+              {sector.dataStatus === "demo" ? (
+                <>
+                  <span className="full">From publicly available information</span>
+                  <span className="short" title="From publicly available information">Public data</span>
+                </>
+              ) : (
+                sector.dataStatus.replace(/_/g, " ")
+              )}
             </span>
           )}
         </div>
         <div className="right">
-          <Link href={`/sector/${sector.slug}`} className="hdr-btn">
-            &larr; Overview
+          <Link href={`/sector/${sector.slug}`} className="hdr-btn" aria-label="Back to overview" title="Back to overview">
+            &larr;<span className="lbl"> Overview</span>
           </Link>
           <div className="status">
             <i /> LIVE MODEL &middot; drag to orbit &middot; scroll to zoom

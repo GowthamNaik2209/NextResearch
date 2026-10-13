@@ -23,34 +23,28 @@
  h1,h2,h3{font-family:'Space Grotesk',Arial,sans-serif; margin:0}
  .mono{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums}
 
+ /* One thin row at every width: [brand] [title] [subtitle?] [badge]  ...  [Overview] [hint?] [watchlist] [account].
+    Lower-priority items drop out as the viewport narrows (see the media queries below)
+    instead of wrapping onto extra lines, which used to stack the header 4-5 rows tall. */
  header{
- position:relative;
- display:flex; align-items:baseline; justify-content:space-between; gap:16px;
- padding:14px 250px 14px 20px; border-bottom:1px solid var(--line); background:var(--panel);
- flex-wrap:wrap;
+ position:relative; flex:none; z-index:6;
+ display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+ height:52px; padding:0 16px; border-bottom:1px solid var(--line); background:var(--panel);
  }
- /* Pinned to the header's own top-right corner rather than flowing inline
-    after Overview/LIVE MODEL — flex-wrap on a 2-item header pushes the second
-    item to a new line flush-left once the title text wraps, not flush-right,
-    so inline placement left these stranded mid-row instead of in the corner
-    users actually expect (matching the landing/overview pages). The header's
-    right padding above reserves room so title text wraps before reaching
-    under this. */
- header .user-nav{
- position:absolute; top:14px; right:20px;
- display:flex; align-items:center; gap:10px;
- max-width:220px;
- }
+ header .user-nav{ display:flex; align-items:center; gap:8px; flex:none }
  header .user-nav > a{ flex:none }
- header .title-block{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; min-width:0}
+ header .title-block{ display:flex; align-items:center; gap:12px; min-width:0; flex:1 1 auto }
  .brand{
- font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--accent); text-transform:uppercase;
+ flex:none; font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--accent); text-transform:uppercase;
  background:color-mix(in srgb, var(--accent) 14%, transparent); border:1px solid var(--accent);
  border-radius:5px; padding:3px 7px; white-space:nowrap; font-family:'Space Grotesk',Arial,sans-serif;
  }
- header h1{font-size:18px; letter-spacing:2px}
- header .sub{font-size:12px; color:var(--ink-soft)}
- header .right{display:flex; align-items:center; gap:12px; flex-wrap:wrap; min-width:0}
+ .brand .brand-mark{ display:none }
+ header h1{ font-size:15px; letter-spacing:1.6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:0 1 auto }
+ header .sub{ font-size:12px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1 1 0 }
+ header .badge{ flex:none; white-space:nowrap }
+ header .badge .short{ display:none }
+ header .right{ display:flex; align-items:center; gap:12px; flex:none; min-width:0 }
  header .status{
  font-size:11px; color:var(--accent); display:flex; align-items:center; gap:6px;
  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;
@@ -61,6 +55,13 @@
  font-family:inherit; font-size:11.5px; font-weight:600; padding:7px 12px; cursor:pointer; white-space:nowrap;
  }
  .hdr-btn:hover{border-color:var(--accent)}
+ /* Drop the long subtitle and the usage hint first as space gets tight... */
+ @media (max-width:1280px){ header .sub, header .status{ display:none } }
+ /* ...then shorten the provenance badge and the account pill. */
+ @media (max-width:1000px){
+ header .badge .full{ display:none }
+ header .badge .short{ display:inline }
+ }
 
  .app{ flex:1; display:flex; min-height:0; position:relative }
  .rail{
@@ -369,11 +370,27 @@
     users on whatever layer/angle they'd last picked with no way to change it
     short of un-maximizing first. */
  &.maximized .app{ position:fixed; inset:0; height:100dvh; z-index:15 }
- header{ padding:10px 185px 10px 14px; gap:6px }
- header .user-nav{ top:10px; right:14px; gap:6px; max-width:170px }
- header h1{ font-size:15px; letter-spacing:1.2px }
- header .sub{ display:none }
- header .status{ font-size:9.5px }
+ /* Phone: a 46px bar - logo mark, title, short badge, and icon-only buttons. */
+ header{ height:46px; padding:0 10px; gap:8px }
+ header .title-block{ gap:8px }
+ .brand{ padding:0; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-size:14px; letter-spacing:0; border-radius:7px }
+ .brand .brand-full{ display:none }
+ .brand .brand-mark{ display:block }
+ /* Title may wrap to two lines inside the fixed-height bar instead of truncating. */
+ header h1{ font-size:11.5px; letter-spacing:.5px; line-height:1.15; white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden }
+ /* Provenance badge -> small "i" dot (full text lives in its tooltip and on the overview page). */
+ header .badge{ width:20px; height:20px; padding:0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0 }
+ header .badge .short{ display:none }
+ header .badge::after{ content:"i"; font-size:11px; font-weight:700; font-style:italic }
+ header .right{ gap:6px }
+ .hdr-btn{ padding:0; width:34px; height:34px; display:flex; align-items:center; justify-content:center; font-size:15px }
+ .hdr-btn .lbl{ display:none }
+ header .user-nav{ gap:6px }
+ header .user-nav a, header .user-nav > div > button{ height:34px }
+ header .user-nav a{ width:34px }
+ /* account pill -> avatar only */
+ header .user-nav button span.truncate{ display:none }
+ header .user-nav button{ padding-right:4px !important }
  .app{ flex-direction:column }
  .rail{
  position:static; width:100%; max-width:none; flex:none; flex-direction:row; flex-wrap:wrap;
