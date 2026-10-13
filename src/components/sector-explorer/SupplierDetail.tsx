@@ -93,7 +93,7 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
         </>
       )}
       {supplier.strengths && supplier.strengths.length > 0 && (
-        <div>
+        <div className="max-[700px]:hidden">
           <div className="chart-label">Strengths</div>
           <ul className="unlisted-facts" style={{ marginTop: 4 }}>
             {supplier.strengths.map((s) => (
@@ -103,7 +103,7 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
         </div>
       )}
       {supplier.risks && supplier.risks.length > 0 && (
-        <div>
+        <div className="max-[700px]:hidden">
           <div className="chart-label">Risks</div>
           <ul className="unlisted-facts" style={{ marginTop: 4 }}>
             {supplier.risks.map((r) => (
@@ -123,7 +123,7 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
           <p className="source-line">Compiled from public reporting — not exchange-listed.</p>
         </>
       ) : (
-        <SummaryView ticker={ticker} supplier={supplier} api={api} loading={loading} onOpenTab={setOpenTab} />
+        <SummaryView ticker={ticker} supplier={supplier} api={api} loading={loading} onOpenTab={setOpenTab} compact />
       )}
       {openTab && (
         <StockModal

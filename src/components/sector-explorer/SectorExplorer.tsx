@@ -65,6 +65,11 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   const [activeView, setActiveView] = useState<string>(sector.defaultView || sector.views[0]?.id);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isZoneMenuOpen, setIsZoneMenuOpen] = useState(false);
+  // Phone-only: the Layers / Systems / Camera controls float over the stage (instead of
+  // stacking above it and eating vertical space) and open from a button on the stage.
+  const [isControlsOpen, setIsControlsOpen] = useState(false);
+  // Phone-only: which zone's long-form write-up is expanded (collapsed by default).
+  const [moreOpenFor, setMoreOpenFor] = useState<string | null>(null);
   // Phone-only: hides the header/rail chrome so the stage fills the viewport.
   // Zone selection behaves exactly as it does normally — the panel still opens
   // as the same bottom sheet, just floating over the fullscreen canvas.
@@ -307,7 +312,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   }, [isTouring, startTour, stopTour]);
 
   return (
-    <div className={"nr-explorer" + (isMaximized ? " maximized" : "")}>
+    <div className={"nr-explorer" + (isMaximized ? " maximized" : "") + (isControlsOpen ? " controls-open" : "")}>
       <header>
         <div className="title-block">
           <Link href="/" className="brand" style={{ textDecoration: "none" }} aria-label="NextResearch home">
@@ -315,17 +320,9 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
             <span className="brand-mark" aria-hidden>N</span>
           </Link>
           <h1>{sector.headerTitle}</h1>
-          <span className="sub">{sector.headerSub}</span>
           {sector.dataStatus && (
             <span className={"badge " + (sector.dataStatus === "demo" ? "unlisted" : "listed")} title={sector.dataStatus === "demo" ? "From publicly available information" : undefined}>
-              {sector.dataStatus === "demo" ? (
-                <>
-                  <span className="full">From publicly available information</span>
-                  <span className="short" title="From publicly available information">Public data</span>
-                </>
-              ) : (
-                sector.dataStatus.replace(/_/g, " ")
-              )}
+              {sector.dataStatus === "demo" ? "Public data" : sector.dataStatus.replace(/_/g, " ")}
             </span>
           )}
         </div>
@@ -333,8 +330,8 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
           <Link href={`/sector/${sector.slug}`} className="hdr-btn" aria-label="Back to overview" title="Back to overview">
             &larr;<span className="lbl"> Overview</span>
           </Link>
-          <div className="status">
-            <i /> LIVE MODEL &middot; drag to orbit &middot; scroll to zoom
+          <div className="status" title="Drag to orbit · scroll to zoom">
+            <i /> LIVE 3D
           </div>
         </div>
         <div className="user-nav">
@@ -353,7 +350,15 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
       </header>
 
       <div className="app">
-        <div className="rail">
+        <div
+          className="rail"
+          onClick={(e) => {
+            // Picking a layer / system / camera view closes the overlay so the model is visible
+            // again; the "Systems" dropdown toggle only expands its own list.
+            const btn = (e.target as HTMLElement).closest("button");
+            if (btn && !btn.classList.contains("zone-more-btn")) setIsControlsOpen(false);
+          }}
+        >
           <div className="rail-label">Layers</div>
           <div>
             <button
@@ -441,6 +446,19 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
         </div>
 
         <div className="stage" ref={stageRef}>
+          <button
+            type="button"
+            className={"controls-btn" + (isControlsOpen ? " on" : "")}
+            onClick={() => setIsControlsOpen((o) => !o)}
+            aria-label="Layers, systems and camera"
+            aria-expanded={isControlsOpen}
+            title="Layers, systems and camera"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" />
+              <circle cx="16" cy="6" r="2" /><circle cx="10" cy="12" r="2" /><circle cx="18" cy="18" r="2" />
+            </svg>
+          </button>
           <button
             type="button"
             className="maximize-btn"
@@ -589,6 +607,15 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                   />
                 )}
 
+                <button
+                  type="button"
+                  className="more-toggle"
+                  onClick={() => setMoreOpenFor((cur) => (cur === zone.id ? null : zone.id))}
+                  aria-expanded={moreOpenFor === zone.id}
+                >
+                  {moreOpenFor === zone.id ? "Hide details" : "More about this layer"}
+                </button>
+                <div className={"more-sections" + (moreOpenFor === zone.id ? " open" : "")}>
                 {zone.roleInSystem && (
                   <div>
                     <div className="chart-label">Where it fits</div>
@@ -663,6 +690,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                     </div>
                   </div>
                 )}
+                </div>
               </>
             )}
           </div>

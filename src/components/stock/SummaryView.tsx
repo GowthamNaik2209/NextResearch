@@ -44,6 +44,7 @@ export function SummaryView({
   loading,
   showNarrative,
   onOpenTab,
+  compact,
 }: {
   ticker: string;
   supplier: SectorSupplier;
@@ -51,7 +52,10 @@ export function SummaryView({
   loading: boolean;
   showNarrative?: boolean;
   onOpenTab?: (tab: StockTab) => void;
+  // Inline side-panel use: on phones keep only the headline stats (the tabs hold the rest).
+  compact?: boolean;
 }) {
+  const phoneHide = compact ? " max-[700px]:hidden" : "";
   const f = supplier.f as unknown as StaticFin | undefined;
   const s = mergeStats(f, api);
   const quote = api?.quote;
@@ -59,16 +63,17 @@ export function SummaryView({
   const maxRev = Math.max(1, ...rev.map((r) => r.revenue ?? 0));
   const tl = f?.tl;
 
-  const chips: [string, string][] = [
+  // [label, value, optional] - optional chips are muted on phones to save space.
+  const chips: [string, string, boolean?][] = [
     ["Mkt Cap", s.marketCap?.replace("Rs ", "₹") ?? "—"],
     ["Price", s.price != null ? `₹${fmtNum(s.price)}` : "—"],
-    ["High / Low", s.high52w != null && s.low52w != null ? `${fmtNum(s.high52w, 0)} / ${fmtNum(s.low52w, 0)}` : "—"],
+    ["High / Low", s.high52w != null && s.low52w != null ? `${fmtNum(s.high52w, 0)} / ${fmtNum(s.low52w, 0)}` : "—", true],
     ["Stock P/E", fmtNum(s.pe, 1)],
-    ["Book Value", fmtNum(s.bookValue, 1)],
+    ["Book Value", fmtNum(s.bookValue, 1), true],
     ["Div Yield", s.divYield != null ? `${s.divYield}%` : "—"],
     ["ROCE", s.roce != null ? `${s.roce}%` : "—"],
     ["ROE", s.roe != null ? `${s.roe}%` : "—"],
-    ["Face Value", fmtNum(s.faceValue, 2)],
+    ["Face Value", fmtNum(s.faceValue, 2), true],
   ];
 
   return (
@@ -96,8 +101,8 @@ export function SummaryView({
           )}
         </Label>
         <div className="mt-2 grid grid-cols-3 gap-1.5 sm:grid-cols-5">
-          {chips.map(([k, v]) => (
-            <div key={k} className="rounded-lg border border-line bg-panel-2 px-2.5 py-2">
+          {chips.map(([k, v, opt]) => (
+            <div key={k} className={"rounded-lg border border-line bg-panel-2 px-2.5 py-2" + (opt ? " max-[640px]:hidden" : "")}>
               <div className="text-[9px] uppercase tracking-wide text-ink-soft">{k}</div>
               <div className="mt-0.5 font-mono text-[13px] font-semibold text-ink">{v}</div>
             </div>
@@ -106,7 +111,7 @@ export function SummaryView({
       </div>
 
       {rev.some((r) => r.revenue != null) && (
-        <div>
+        <div className={phoneHide.trim()}>
           <Label>Revenue, ₹ Cr (5-yr)</Label>
           <div className="mt-2 flex h-28 items-end gap-2">
             {rev.map((r, i) => (
@@ -124,7 +129,7 @@ export function SummaryView({
       )}
 
       {(s.cagr1y != null || s.cagr3y != null || s.cagr5y != null) && (
-        <div>
+        <div className={phoneHide.trim()}>
           <Label>Stock price CAGR</Label>
           <div className="mt-2 grid grid-cols-3 gap-2">
             {(
@@ -146,7 +151,7 @@ export function SummaryView({
       )}
 
       {s.low52w != null && s.high52w != null && s.price != null && (
-        <div>
+        <div className={phoneHide.trim()}>
           <Label>52-week range vs current price</Label>
           <div className="relative mt-3 h-2 rounded-full bg-gradient-to-r from-danger/50 via-line to-pos/50">
             <div
@@ -163,7 +168,7 @@ export function SummaryView({
       )}
 
       {(api?.news.length ?? 0) > 0 && (
-        <div>
+        <div className={phoneHide.trim()}>
           <Label>Recent news</Label>
           <ul className="mt-2 flex flex-col gap-1.5">
             {api!.news.slice(0, 3).map((n) => (
@@ -185,7 +190,7 @@ export function SummaryView({
         </div>
       )}
 
-      <div className="flex flex-col gap-1.5">
+      <div className={"flex flex-col gap-1.5" + phoneHide}>
         <ExtLink href={`https://www.screener.in/company/${encodeURIComponent(ticker)}/consolidated/`}>View on Screener.in (consolidated financials)</ExtLink>
         {tl && (
           <>
@@ -194,8 +199,8 @@ export function SummaryView({
           </>
         )}
       </div>
-      {f?.note && <p className="text-[11px] text-ink-soft">Note: {f.note}</p>}
-      <p className="border-t border-dashed border-line pt-2 text-[10.5px] text-ink-soft">
+      {f?.note && <p className={"text-[11px] text-ink-soft" + phoneHide}>Note: {f.note}</p>}
+      <p className={"border-t border-dashed border-line pt-2 text-[10.5px] text-ink-soft" + phoneHide}>
         Ratios: <b>{s.ratioSource === "yahoo" ? "Yahoo Finance" : "Screener.in (consolidated)"}</b>, {s.ratioSource === "cached" ? "cached" : "live"}. Price: {s.liveQuote ? `Yahoo Finance${quote?.delayedMin ? `, ~${quote.delayedMin} min delayed` : ""}` : "cached"}. Not investment advice.
       </p>
     </div>

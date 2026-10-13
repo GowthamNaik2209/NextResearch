@@ -140,7 +140,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
       )}
 
       {fund?.annual && fund.annual.series.length > 0 && (
-        <Section title="Annual performance (₹ Cr)">
+        <div className="max-[640px]:hidden"><Section title="Annual performance (₹ Cr)">
           <div className="overflow-x-auto rounded-2xl border border-line bg-panel">
             <table className="w-full min-w-[480px] text-xs">
               <thead>
@@ -163,7 +163,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
               </tbody>
             </table>
           </div>
-        </Section>
+        </Section></div>
       )}
 
       <p className="border-t border-dashed border-line pt-2 text-[10.5px] text-ink-soft">

@@ -223,3 +223,15 @@ export function tickersForSector(slug: string): Record<string, string> {
   }
   return map;
 }
+
+// The supplier record (plain data) for a listed ticker, from the first sector that has it —
+// used where a company is shown outside the 3D explorer (e.g. the watchlist) but should
+// open the same stock pop-up.
+export function findSupplierByTicker(ticker: string): SectorSupplier | null {
+  for (const slug of SECTOR_KEYS) {
+    for (const sup of Object.values(PRODUCTS[slug].suppliers)) {
+      if (sup.listed && tickerForSupplier(sup) === ticker) return sup;
+    }
+  }
+  return null;
+}
