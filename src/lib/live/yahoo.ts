@@ -11,7 +11,7 @@ const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"], validation: { lo
 // the fields we read are all individually optional, so don't fail the whole call.
 const LENIENT = { validateResult: false } as const;
 // ...which also makes the library return `unknown`, so type just what we read.
-type ChartRes = { quotes: { date: Date; close?: number | null }[] };
+type ChartRes = { quotes: { date: Date; close?: number | null }[]; meta?: { regularMarketPrice?: number } };
 type SummaryRes = { assetProfile?: { sector?: string; industry?: string }; financialData?: { returnOnEquity?: number } };
 
 export type ChartRange = "1M" | "6M" | "1Y" | "3Y" | "MAX";
@@ -52,13 +52,17 @@ async function yahooChart(ticker: string, range: ChartRange): Promise<ChartData 
   const p = PARAMS[range];
   const res = (await yf.chart(sym(ticker), { period1: p.days ? new Date(Date.now() - p.days * DAY) : new Date("1990-01-01"), interval: p.interval }, LENIENT)) as ChartRes;
   const points: PricePoint[] = [];
-  for (const q of res.quotes) {
-    if (q.close == null || !Number.isFinite(q.close)) continue;
+  res.quotes.forEach((q, i) => {
+    // After the close Yahoo can return the latest bar with a null close (its price
+    // only appears in meta), which would leave the chart a day behind the quote.
+    const isLast = i === res.quotes.length - 1;
+    const close = q.close ?? (isLast ? res.meta?.regularMarketPrice : null);
+    if (close == null || !Number.isFinite(close)) return;
     const t = istDay(q.date);
     // Weekly/monthly bars can repeat the in-progress period's date; keep the last.
-    if (points.length && points[points.length - 1].t === t) points[points.length - 1].c = q.close;
-    else points.push({ t, c: q.close });
-  }
+    if (points.length && points[points.length - 1].t === t) points[points.length - 1].c = close;
+    else points.push({ t, c: close });
+  });
   return points.length >= 2 ? { range, points, source: "yahoo" } : null;
 }
 
