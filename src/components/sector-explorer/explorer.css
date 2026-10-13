@@ -10,9 +10,9 @@
     those elements silently pick up the page's light/dark theme regardless of
     the canvas's own always-dark-or-grey palette. Every token below must keep
     matching its globals.css counterpart for the same reason. */
- --bg:#0A0E14; --panel:#0E141C; --panel-2:#111925; --ink:#E7EDF5; --ink-soft:#7C8AA0;
- --line:#1E2A3A; --grid:#152030; --accent:#49D4C9; --amber:#E3A33B; --danger:#E0715F;
- --chip:#141D29; --shadow:0 20px 50px -24px rgba(0,0,0,.7);
+ --bg:#0C1110; --panel:#121A17; --panel-2:#18231F; --ink:#EEF2EA; --ink-soft:#93A399;
+ --line:#25342D; --grid:#1A2721; --accent:#F0B53F; --amber:#E08A3C; --danger:#E8705E;
+ --chip:#1B2823; --callout-bg:rgba(12,17,16,.88); --callout-bg-strong:rgba(12,17,16,.92); --shadow:0 20px 50px -24px rgba(0,0,0,.7);
  color-scheme: dark;
 
  *{box-sizing:border-box}
@@ -109,7 +109,7 @@
  }
  .breadcrumb{
  position:absolute; top:12px; left:12px; display:flex; align-items:center; gap:8px;
- background:rgba(10,14,20,.8); border:1px solid var(--line); border-radius:999px; padding:6px 12px;
+ background:var(--callout-bg-strong); border:1px solid var(--line); border-radius:999px; padding:6px 12px;
  font-size:11.5px; color:var(--ink-soft); backdrop-filter:blur(6px);
  }
  /* Phone-only full-screen toggle (see the @media max-width:700px block below for
@@ -118,7 +118,7 @@
     already has room without borrowing the header/rail's space. */
  .maximize-btn{
  display:none; position:absolute; top:12px; right:12px; z-index:5;
- width:36px; height:36px; border-radius:50%; background:rgba(10,14,20,.8); border:1px solid var(--line);
+ width:36px; height:36px; border-radius:50%; background:var(--callout-bg-strong); border:1px solid var(--line);
  color:var(--ink); align-items:center; justify-content:center; cursor:pointer; padding:0; backdrop-filter:blur(6px);
  }
  .maximize-btn:hover{ border-color:var(--accent); color:var(--accent) }
@@ -129,12 +129,12 @@
  }
  .toolbar{
  position:absolute; bottom:14px; left:50%; transform:translateX(-50%); z-index:5;
- display:flex; align-items:center; gap:8px; background:rgba(10,14,20,.85); border:1px solid var(--line);
+ display:flex; align-items:center; gap:8px; background:var(--callout-bg-strong); border:1px solid var(--line);
  border-radius:14px; padding:8px 10px; backdrop-filter:blur(8px); box-shadow:var(--shadow); flex-wrap:wrap; max-width:94vw; justify-content:center;
  }
  .tour-caption{
  position:absolute; bottom:70px; left:50%; transform:translateX(-50%); z-index:6;
- max-width:min(560px,90vw); background:rgba(10,14,20,.9); border:1px solid var(--accent); border-radius:12px;
+ max-width:min(560px,90vw); background:var(--callout-bg-strong); border:1px solid var(--accent); border-radius:12px;
  padding:10px 16px; font-size:13px; line-height:1.5; color:var(--ink); text-align:center; backdrop-filter:blur(8px);
  box-shadow:var(--shadow);
  }
@@ -239,21 +239,21 @@
  .callout-rail.rail-top{ top:52px; left:12px; right:12px; flex-direction:row; flex-wrap:wrap; justify-content:center }
  .callout-rail.rail-bottom{ bottom:76px; left:12px; right:12px; flex-direction:row; flex-wrap:wrap; justify-content:center }
  .callout{
- pointer-events:auto; cursor:pointer; background:rgba(10,14,20,.88); border:1.5px solid var(--zc, var(--line));
+ pointer-events:auto; cursor:pointer; background:var(--callout-bg); border:1.5px solid var(--zc, var(--line));
  border-radius:9px; padding:8px 12px; font-family:'Space Grotesk',Arial,sans-serif; font-weight:700; font-size:13.5px;
  color:var(--ink); white-space:nowrap; backdrop-filter:blur(6px); transition:transform .15s, background .15s;
  }
- .callout:hover{ transform:scale(1.05); background:color-mix(in srgb, var(--zc) 20%, rgba(10,14,20,.9)) }
- .callout.selected{ background:color-mix(in srgb, var(--zc) 30%, rgba(10,14,20,.92)); transform:scale(1.08) }
+ .callout:hover{ transform:scale(1.05); background:color-mix(in srgb, var(--zc) 20%, var(--callout-bg-strong)) }
+ .callout.selected{ background:color-mix(in srgb, var(--zc) 30%, var(--callout-bg-strong)); transform:scale(1.08) }
  .rail-left .callout, .rail-right .callout{ max-width:200px; white-space:normal; line-height:1.25 }
  .mobile-tags{ display:none; position:absolute; inset:0; pointer-events:none; z-index:4 }
  .mtag{
  position:absolute; transform:translate(-50%,-138%); pointer-events:auto; cursor:pointer;
- background:rgba(10,14,20,.9); border:1.5px solid var(--zc, var(--line)); border-radius:7px;
+ background:var(--callout-bg-strong); border:1.5px solid var(--zc, var(--line)); border-radius:7px;
  padding:3px 8px; font-family:'Space Grotesk',Arial,sans-serif; font-weight:700; font-size:10.5px;
  color:var(--ink); white-space:nowrap; backdrop-filter:blur(4px); transition:transform .15s;
  }
- .mtag.selected{ background:color-mix(in srgb, var(--zc) 32%, rgba(10,14,20,.94)); transform:translate(-50%,-138%) scale(1.08) }
+ .mtag.selected{ background:color-mix(in srgb, var(--zc) 32%, var(--callout-bg-strong)); transform:translate(-50%,-138%) scale(1.08) }
  .deepdive-btn{
  margin-top:2px; background:color-mix(in srgb, var(--accent) 14%, var(--chip)); border:1px solid var(--accent);
  color:var(--ink); font-family:inherit; font-weight:700; font-size:12px; padding:9px 12px; border-radius:8px; cursor:pointer;
@@ -452,8 +452,8 @@
    .nr-explorer's base declaration above for why that matters for
    Tailwind-styled descendants. */
 :root[data-theme="light"] .nr-explorer {
- --bg:#F4F5F6; --panel:#E1E4E8; --panel-2:#D4D8DC; --ink:#131A24; --ink-soft:#5B6778;
- --line:#C7CBD0; --grid:#D8DBDF; --chip:#DDE1E5;
+ --bg:#F8F4EA; --panel:#EFE9D9; --panel-2:#E5DEC9; --ink:#14201A; --ink-soft:#5B6A60;
+ --line:#D4CAB0; --grid:#DDD5BD; --accent:#0F5C4A; --amber:#A8650A; --danger:#B73A2C; --chip:#E8E1CD; --callout-bg:rgba(248,244,234,.9); --callout-bg-strong:rgba(248,244,234,.95);
 }
 /* The stage viewport itself - a light grey (not white) so the greyed-out model
    still has contrast to sit against, rather than vanishing into the page. */
@@ -464,6 +464,7 @@
    colors (teal/amber/purple per zone) with no theme awareness, so a filter on
    the canvas is what actually makes "the model" read as grey, uniformly
    across all sectors, without hand-editing nine build() functions' palettes. */
+:root[data-theme="light"] .nr-explorer .stage-grid-overlay{ opacity:.12 }
 :root[data-theme="light"] .nr-explorer .stage canvas{
  filter: grayscale(0.85) brightness(1.2) contrast(0.92);
 }

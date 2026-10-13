@@ -48,6 +48,52 @@ function parseNumber(raw: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+export function parseTopRatios(html: string): ScreenerKpi | null {
+  const ratiosBlock = html.match(/<ul id="top-ratios">([\s\S]*?)<\/ul>/)?.[1];
+  if (!ratiosBlock) return null;
+
+  const result: ScreenerKpi = {
+    price: null,
+    marketCap: null,
+    pe: null,
+    bookValue: null,
+    divYield: null,
+    roce: null,
+    roe: null,
+    faceValue: null,
+    low52w: null,
+    high52w: null,
+  };
+
+  const liRegex = /<li class="flex flex-space-between"[^>]*>([\s\S]*?)<\/li>/g;
+  let match: RegExpExecArray | null;
+  let foundAny = false;
+  while ((match = liRegex.exec(ratiosBlock))) {
+    const li = match[1];
+    const name = li.match(/<span class="name">\s*([\s\S]*?)\s*<\/span>/)?.[1]?.trim();
+    if (!name) continue;
+    const numbers = [...li.matchAll(/<span class="number">([\d,.\-]+)<\/span>/g)]
+      .map((m) => parseNumber(m[1]))
+      .filter((n): n is number => n != null);
+
+    if (name === "Market Cap" && numbers[0] != null) {
+      result.marketCap = `Rs ${numbers[0].toLocaleString("en-IN")} Cr`;
+      foundAny = true;
+    } else if (name === "Current Price" && numbers[0] != null) {
+      result.price = numbers[0];
+      foundAny = true;
+    } else if (name === "High / Low" && numbers.length === 2) {
+      result.high52w = numbers[0];
+      result.low52w = numbers[1];
+      foundAny = true;
+    } else if (LABEL_TO_FIELD[name] && numbers[0] != null) {
+      result[LABEL_TO_FIELD[name]] = numbers[0];
+      foundAny = true;
+    }
+  }
+  return foundAny ? result : null;
+}
+
 export async function scrapeScreenerKpi(ticker: string): Promise<ScreenerKpi | null> {
   try {
     const res = await fetch(`https://www.screener.in/company/${encodeURIComponent(ticker)}/consolidated/`, {
@@ -55,52 +101,7 @@ export async function scrapeScreenerKpi(ticker: string): Promise<ScreenerKpi | n
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return null;
-    const html = await res.text();
-
-    const ratiosBlock = html.match(/<ul id="top-ratios">([\s\S]*?)<\/ul>/)?.[1];
-    if (!ratiosBlock) return null;
-
-    const result: ScreenerKpi = {
-      price: null,
-      marketCap: null,
-      pe: null,
-      bookValue: null,
-      divYield: null,
-      roce: null,
-      roe: null,
-      faceValue: null,
-      low52w: null,
-      high52w: null,
-    };
-
-    const liRegex = /<li class="flex flex-space-between"[^>]*>([\s\S]*?)<\/li>/g;
-    let match: RegExpExecArray | null;
-    let foundAny = false;
-    while ((match = liRegex.exec(ratiosBlock))) {
-      const li = match[1];
-      const name = li.match(/<span class="name">\s*([\s\S]*?)\s*<\/span>/)?.[1]?.trim();
-      if (!name) continue;
-      const numbers = [...li.matchAll(/<span class="number">([\d,.\-]+)<\/span>/g)]
-        .map((m) => parseNumber(m[1]))
-        .filter((n): n is number => n != null);
-
-      if (name === "Market Cap" && numbers[0] != null) {
-        result.marketCap = `Rs ${numbers[0].toLocaleString("en-IN")} Cr`;
-        foundAny = true;
-      } else if (name === "Current Price" && numbers[0] != null) {
-        result.price = numbers[0];
-        foundAny = true;
-      } else if (name === "High / Low" && numbers.length === 2) {
-        result.high52w = numbers[0];
-        result.low52w = numbers[1];
-        foundAny = true;
-      } else if (LABEL_TO_FIELD[name] && numbers[0] != null) {
-        result[LABEL_TO_FIELD[name]] = numbers[0];
-        foundAny = true;
-      }
-    }
-
-    return foundAny ? result : null;
+    return parseTopRatios(await res.text());
   } catch {
     // Network failure, timeout, or screener.in markup changed underneath us —
     // callers fall back to the last cached KpiSnapshot rather than erroring

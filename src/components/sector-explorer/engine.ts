@@ -103,6 +103,17 @@ export function mountExplorer(
   const gridHelper = new THREE.GridHelper(16, 32, 0x2a3d52, 0x1b2836);
   gridHelper.position.y = -0.001;
   scene.add(gridHelper);
+  // Light mode's canvas filter (explorer.css) brightens these dark lines into a
+  // heavy mesh against the grey stage, so fade the floor grid there. Follows the
+  // live theme toggle via the <html data-theme> attribute.
+  const gridMat = gridHelper.material as import("three").LineBasicMaterial;
+  gridMat.transparent = true;
+  const applyGridTheme = () => {
+    gridMat.opacity = document.documentElement.getAttribute("data-theme") === "light" ? 0.22 : 1;
+  };
+  applyGridTheme();
+  const themeObserver = new MutationObserver(applyGridTheme);
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
   const productRoot = new THREE.Group();
   scene.add(productRoot);
@@ -464,6 +475,7 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
   animate();
 
   function dispose() {
+    themeObserver.disconnect();
     cancelAnimationFrame(rafId);
     window.removeEventListener("resize", resize);
     renderer.domElement.removeEventListener("pointerdown", onPointerDown);
