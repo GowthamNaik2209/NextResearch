@@ -1,6 +1,6 @@
 import { listSectors, listComingSoonSectors } from "@/lib/sector-content";
 import { buildSearchIndex, buildSectorCards, getPlatformStats } from "@/lib/sector-content/stats";
-import { DATA_AS_OF, buildIdeas, listNews } from "@/lib/sector-content/insights";
+import { DATA_AS_OF, buildIdeas } from "@/lib/sector-content/insights";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SectorBrowser } from "@/components/SectorBrowser";
@@ -41,7 +41,7 @@ export default function HomePage() {
           <IdeasSection ideas={buildIdeas()} asOf={DATA_AS_OF} />
         </section>
 
-        <UpdatesSection items={listNews().slice(0, 5)} />
+        <UpdatesSection />
         <HowItWorks />
         <CompanyFeatures />
         <FaqSection />

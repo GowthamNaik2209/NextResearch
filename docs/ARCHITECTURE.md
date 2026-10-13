@@ -12,7 +12,8 @@ commands see the [README](../README.md).
    zones, suppliers, 3D scene   │          Screener.in (HTML parse)        ratios, growth,
  prisma/seed-source/            │                                          shareholding, P&L,
    extracted.json (figures,     │                                          industry medians
-   curated news)                │                         │
+   fallback news)               │          Google News RSS                 latest headlines
+                                │                         │
                                 ▼                         ▼
                   src/lib/sector-content/*        src/lib/live/*  ──►  /api/stock/[ticker][/chart]
                   (typed facade + derived         (cache, parsers)            │
@@ -51,7 +52,13 @@ Two rules shape most decisions:
 | --- | --- | --- | --- |
 | `yahoo.ts` | Yahoo Finance via `yahoo-finance2` | quote (~15 min delayed on NSE), price history, fallback fundamentals | 1 min quote, 5-60 min charts |
 | `screener-company.ts` + `screener-ratios.ts` | Screener.in HTML | ratios, growth, shareholding, annual P&L, **industry median** (peers table footer) | 6 h |
+| `news.ts` | Google News RSS | latest headlines per company, the platform/sector feed and watchlist news; curated seed headlines are the fallback | 15 min (Next data cache + in-process) |
 | `cache.ts` | - | in-memory TTL cache with in-flight de-duplication; failed (null) loads are only remembered ~1 min | - |
+
+News headlines are filtered to ones that are actually *about* the company (`isAbout`) and exclude
+price-prediction pages and "stocks to watch/buy" tip lists. Aggregated feeds query the largest
+companies per sector (bounded upstream requests); `<NewsFeed>` streams them behind a Suspense
+skeleton so pages never wait on the news fetch.
 
 Screener has no public API: we parse its HTML (one page + the peers table per company,
 cached). It rate-limits bursts and the markup can change - the parsers are covered by tests
@@ -72,10 +79,10 @@ the stock UI is DB-free by design, which is why it works with an empty database.
 | `/` | server | Landing page, composed of `components/landing/*` |
 | `/sector/[slug]` | server | Sector overview; company cards open the stock pop-up directly |
 | `/sector/[slug]/explore` | server shell + client | 3D explorer; deep links via `?zone=&company=` |
-| `/updates`, `/docs`, `/docs/[slug]` | server | News feed (filter `?sector=`), reading list |
+| `/updates`, `/docs`, `/docs/[slug]` | server | Live news feed (filter `?sector=`); reading list (muted, coming soon) |
 | `/watchlist` | server | Auth required; rows open the stock pop-up |
 | `/login`, `/signup`, `/auth/callback` | server | Supabase auth |
-| `/api/stock/[ticker]` | route | `{ quote, fundamentals, news }`, `s-maxage=300` |
+| `/api/stock/[ticker]` | route | `{ quote, fundamentals, news, newsLive }`, `s-maxage=300` |
 | `/api/stock/[ticker]/chart?range=1M\|6M\|1Y\|3Y\|MAX` | route | price history |
 | `/api/watchlist` | route | GET/POST/DELETE, Supabase session required |
 
@@ -124,7 +131,8 @@ the stock UI is DB-free by design, which is why it works with an empty database.
 - Screener scraping is fragile and sits in a legal grey area (see the note in
   `screener-company.ts`); a licensed data vendor would replace `lib/live/screener-*`.
 - Yahoo NSE quotes are ~15 minutes delayed; the UI says so. There is no streaming.
-- News is a curated static set (`extracted.json`), not a live feed.
+- News comes from Google News RSS (unofficial, headline + link only); the curated set in `extracted.json` is only the fallback. A licensed news API would be the upgrade path.
+- The reading list (`/docs`) is intentionally muted ("coming soon"); its content lives in `sector-content/docs.ts`.
 - No CI: tests/lint/types/build are run by hand (see the checklist above). A GitHub Action
   running them on PRs would be the highest-leverage next step.
 - No end-to-end tests; the interactive flows were verified manually/headlessly.

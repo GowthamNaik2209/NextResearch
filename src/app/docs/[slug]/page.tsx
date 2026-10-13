@@ -29,26 +29,24 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
             </div>
             <h1 className="font-display text-2xl font-bold text-ink">{sector.name}</h1>
           </div>
-          <p className="mt-2 text-sm text-ink-soft">Curated research and reporting on {sector.name.toLowerCase()}.</p>
+          <p className="mt-2 text-sm text-ink-soft">
+            Curated research and reporting on {sector.name.toLowerCase()}. <b className="font-semibold text-ink">Coming soon.</b>
+          </p>
         </div>
 
         {links.length === 0 ? (
           <p className="rounded-xl border border-line bg-panel p-4 text-sm text-ink-soft">
-            No curated links for this sector yet — check back soon.
+            No curated links for this sector yet — coming soon.
           </p>
         ) : (
+          // Muted until the reading list launches: shown, but not clickable.
           <ul className="flex flex-col gap-3">
             {links.map((link) => (
               <li key={link.url}>
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-col gap-1 rounded-xl border border-line bg-panel p-4 transition hover:border-accent"
-                >
+                <div aria-disabled="true" className="flex cursor-not-allowed flex-col gap-1 rounded-xl border border-line bg-panel p-4 opacity-50">
                   <span className="text-sm font-semibold text-ink">{link.title}</span>
-                  <span className="text-xs text-ink-soft">{link.source}</span>
-                </a>
+                  <span className="text-xs text-ink-soft">{link.source} · coming soon</span>
+                </div>
               </li>
             ))}
           </ul>

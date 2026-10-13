@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { NewsList } from "@/components/NewsList";
-import type { NewsItem } from "@/lib/sector-content/insights";
+import { NewsFeed } from "@/components/NewsFeed";
 
-export function UpdatesSection({ items }: { items: NewsItem[] }) {
+export function UpdatesSection() {
   return (
     <section className="border-t border-line bg-panel">
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-16 lg:grid-cols-[0.8fr_1.2fr]">
@@ -15,7 +14,7 @@ export function UpdatesSection({ items }: { items: NewsItem[] }) {
             See all updates &rarr;
           </Link>
         </div>
-        <NewsList items={items} />
+        <NewsFeed limit={5} />
       </div>
     </section>
   );
