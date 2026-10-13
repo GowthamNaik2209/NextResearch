@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
+import { NewsList } from "@/components/NewsList";
+import { newsForTickers } from "@/lib/sector-content/insights";
 
 export default async function WatchlistPage() {
   const user = await getCurrentUser();
@@ -13,6 +15,8 @@ export default async function WatchlistPage() {
     include: { company: { include: { kpis: { orderBy: { asOf: "desc" }, take: 1 } } } },
     orderBy: { addedAt: "desc" },
   });
+
+  const watchNews = newsForTickers(rows.map((r) => r.company.ticker)).slice(0, 8);
 
   return (
     <>
@@ -69,6 +73,17 @@ export default async function WatchlistPage() {
               );
             })}
           </div>
+        )}
+
+        {rows.length > 0 && (
+          <section className="mt-4">
+            <h2 className="font-display text-lg font-bold text-ink">News on your watchlist</h2>
+            {watchNews.length ? (
+              <div className="mt-3"><NewsList items={watchNews} showSector={false} /></div>
+            ) : (
+              <p className="mt-2 text-sm text-ink-soft">No recent headlines for the companies you&rsquo;ve saved yet.</p>
+            )}
+          </section>
         )}
       </main>
     </>

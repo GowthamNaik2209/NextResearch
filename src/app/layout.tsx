@@ -33,19 +33,19 @@ export const metadata: Metadata = {
 };
 
 // Applied synchronously during HTML parsing, before first paint, so a saved
-// "light" choice never flashes the server-rendered dark default (see Next's
+// "dark" choice never flashes the server-rendered light default (see Next's
 // "preventing flash before hydration" guide — useEffect runs too late). The
 // `<html>` below renders a literal data-theme="dark" default; suppressHydrationWarning
 // tells React to accept whatever this script leaves in the DOM instead of
-// treating the dark->light rewrite as a mismatch. Keep the storage key and
+// treating the light->dark rewrite as a mismatch. Keep the storage key and
 // values in sync with ThemeToggle.tsx.
-const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem("nr-theme");if(t==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}`;
+const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem("nr-theme");if(t==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      data-theme="dark"
+      data-theme="light"
       suppressHydrationWarning
       className={`${spaceGrotesk.variable} ${ibmPlexSans.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
