@@ -1,38 +1,37 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0a0e14;
-  --panel: #0e141c;
-  --panel-2: #111925;
-  --ink: #e7edf5;
-  --ink-soft: #7c8aa0;
-  --line: #1e2a3a;
-  --grid: #152030;
-  --accent: #49d4c9;
-  --amber: #e3a33b;
-  --danger: #e0715f;
+  --bg: #0c1110;
+  --panel: #121a17;
+  --panel-2: #18231f;
+  --ink: #eef2ea;
+  --ink-soft: #93a399;
+  --line: #25342d;
+  --grid: #1a2721;
+  --accent: #f0b53f;
+  --amber: #e08a3c;
+  --danger: #e8705e;
+  --pos: #5fcf8e;
   color-scheme: dark;
 }
 
-/* Light theme — toggled via a `data-theme` attribute on <html> (see ThemeToggle.tsx
-   and the inline script in layout.tsx that applies the saved choice before paint).
-   --bg is near-white; --panel/--panel-2 are a visibly deeper grey (not just a
-   faint tint) so cards/buttons read as a raised, distinct surface against the
-   page rather than blending into it. The 3D sector explorer gets the *same*
-   values here (see explorer.css's `[data-theme="light"] .nr-explorer` block) -
-   its header/rail/panel chrome is meant to look like the rest of the light
-   theme now; only the stage viewport and the 3D geometry itself go grey. */
+/* Light theme (the default) — a warm "research paper" surface with a deep
+   green accent, deliberately away from the usual cold-blue fintech look.
+   Toggled via a `data-theme` attribute on <html> (see ThemeToggle.tsx and the
+   inline script in layout.tsx). The 3D explorer mirrors these values in
+   explorer.css's `[data-theme="light"] .nr-explorer` block; keep them in sync. */
 :root[data-theme="light"] {
-  --bg: #f4f5f6;
-  --panel: #e1e4e8;
-  --panel-2: #d4d8dc;
-  --ink: #131a24;
-  --ink-soft: #5b6778;
-  --line: #c7cbd0;
-  --grid: #d8dbdf;
-  --accent: #0d9488;
-  --amber: #b9710a;
-  --danger: #c23a2c;
+  --bg: #f8f4ea;
+  --panel: #efe9d9;
+  --panel-2: #e5dec9;
+  --ink: #14201a;
+  --ink-soft: #5b6a60;
+  --line: #d4cab0;
+  --grid: #ddd5bd;
+  --accent: #0f5c4a;
+  --amber: #a8650a;
+  --danger: #b73a2c;
+  --pos: #1c7a4b;
   color-scheme: light;
 }
 
@@ -46,6 +45,7 @@
   --color-accent: var(--accent);
   --color-amber: var(--amber);
   --color-danger: var(--danger);
+  --color-pos: var(--pos);
   --font-display: var(--font-space-grotesk);
   --font-sans: var(--font-ibm-plex-sans);
   --font-mono: var(--font-ibm-plex-mono);

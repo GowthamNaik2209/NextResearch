@@ -18,7 +18,7 @@ export function ThemeToggle() {
     try {
       saved = localStorage.getItem(STORAGE_KEY);
     } catch {}
-    const resolved = saved === "light" ? "light" : "dark";
+    const resolved = saved === "dark" ? "dark" : "light";
     setTheme(resolved);
     document.documentElement.setAttribute("data-theme", resolved);
   }, []);

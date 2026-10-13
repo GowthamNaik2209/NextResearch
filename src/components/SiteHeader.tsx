@@ -5,31 +5,36 @@ import { UserMenu } from "./UserMenu";
 export async function SiteHeader() {
   const user = await getCurrentUser();
   const displayName = (user?.user_metadata?.display_name as string | undefined) ?? null;
+  const link = "hidden text-sm font-medium text-ink-soft hover:text-ink md:inline";
 
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-line bg-panel px-5 py-3">
-      <Link href="/" className="flex items-baseline gap-3">
-        <span className="rounded-md border border-accent bg-accent/10 px-2 py-0.5 font-display text-[11px] font-bold uppercase tracking-wider text-accent">
-          NextResearch
-        </span>
-      </Link>
-      <nav className="flex items-center gap-3">
-        <Link
-          href="/docs"
-          className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-ink"
-        >
-          Docs
+    <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent font-display text-sm font-bold text-bg">N</span>
+          <span className="font-display text-base font-bold tracking-tight text-ink">NextResearch</span>
         </Link>
-        <Link
-          href="/watchlist"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
-          aria-label="Watchlist"
-          title="Watchlist"
-        >
-          <HeartIcon />
-        </Link>
-        <UserMenu key={`${user?.id ?? "anon"}-${displayName}`} email={user?.email ?? null} displayName={displayName} />
-      </nav>
+        <nav className="flex items-center gap-5">
+          <Link href="/#sectors" className={link}>Sectors</Link>
+          <Link href="/updates" className={link}>Updates</Link>
+          <Link href="/#how" className={link}>How it works</Link>
+          <Link href="/docs" className={link}>Reading list</Link>
+          <Link
+            href="/watchlist"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
+            aria-label="Watchlist"
+            title="Watchlist"
+          >
+            <HeartIcon />
+          </Link>
+          {!user && (
+            <Link href="/signup" className="hidden rounded-lg bg-accent px-3.5 py-2 text-sm font-semibold text-bg hover:opacity-90 sm:inline">
+              Get started
+            </Link>
+          )}
+          <UserMenu key={`${user?.id ?? "anon"}-${displayName}`} email={user?.email ?? null} displayName={displayName} />
+        </nav>
+      </div>
     </header>
   );
 }
