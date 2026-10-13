@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import { NewsList } from "@/components/NewsList";
 import { newsForTickers } from "@/lib/sector-content/insights";
 import { findSupplierByTicker } from "@/lib/sector-content";
@@ -97,6 +98,7 @@ export default async function WatchlistPage() {
           </section>
         )}
       </main>
+      <SiteFooter />
     </>
   );
 }

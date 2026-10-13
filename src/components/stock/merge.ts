@@ -1,4 +1,5 @@
-import type { StaticFin, StockApi } from "./types";
+import type { SupplierFinancials } from "@/lib/sector-content";
+import type { StockApi } from "./types";
 
 export type Stats = {
   price: number | null;
@@ -30,7 +31,7 @@ const pctStr = (s?: string) => {
 
 // Live figures win; the seed data (as of the extract date) fills any gap, so a
 // failed/rate-limited upstream degrades to "cached" instead of an error.
-export function mergeStats(f: StaticFin | undefined, api: StockApi | null): Stats {
+export function mergeStats(f: SupplierFinancials | undefined, api: StockApi | null): Stats {
   const k = api?.fundamentals?.kpi ?? null;
   const priceCagr = api?.fundamentals?.growth.find((g) => /price/i.test(g.title))?.rows ?? [];
   const cg = (re: RegExp) => pctStr(priceCagr.find((r) => re.test(r.period))?.value);
@@ -58,7 +59,7 @@ export type RevPoint = { label: string; revenue: number | null };
 
 // Last five fiscal years of revenue: live annual P&L (Screener) when available,
 // else the seed's FY22–FY26 series.
-export function revenueSeries(f: StaticFin | undefined, api: StockApi | null): RevPoint[] {
+export function revenueSeries(f: SupplierFinancials | undefined, api: StockApi | null): RevPoint[] {
   const annual = api?.fundamentals?.annual;
   const sales = annual?.series.find((s) => s.label === "Sales");
   if (annual && sales) {
@@ -73,7 +74,5 @@ export function revenueSeries(f: StaticFin | undefined, api: StockApi | null): R
 
 export const fmtNum = (v: number | null | undefined, digits = 2) =>
   v == null ? "—" : v.toLocaleString("en-IN", { maximumFractionDigits: digits, minimumFractionDigits: 0 });
-export const fmtPct = (v: number | null | undefined, digits = 1) =>
-  v == null ? "—" : `${v > 0 ? "" : ""}${v.toLocaleString("en-IN", { maximumFractionDigits: digits })}%`;
 export const fmtSigned = (v: number | null | undefined, digits = 1) =>
   v == null ? "—" : `${v > 0 ? "+" : ""}${v.toLocaleString("en-IN", { maximumFractionDigits: digits })}%`;

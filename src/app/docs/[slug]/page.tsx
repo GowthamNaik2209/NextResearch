@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import { getSector, listSectorSlugs } from "@/lib/sector-content";
 import { getResearchForSector } from "@/lib/sector-content/docs";
 
@@ -53,6 +54,7 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
           </ul>
         )}
       </main>
+      <SiteFooter />
     </>
   );
 }

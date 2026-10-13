@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import { listSectors } from "@/lib/sector-content";
 import { getResearchForSector } from "@/lib/sector-content/docs";
 
@@ -39,6 +40,7 @@ export default function DocsPage() {
           })}
         </div>
       </main>
+      <SiteFooter />
     </>
   );
 }

@@ -6,12 +6,12 @@
 // (materials, meshes, camera rigs), not application data, and it's cheap to keep
 // byte-for-byte portable from future artifact iterations rather than retyped.
 //
-// PRODUCTS[key].suppliers[...].f (revenue/KPI/news figures baked in at authoring
-// time) is a fallback ONLY — company financials/KPIs/news are otherwise served
-// live from the database (src/lib/companies.ts) so there's a single source of
-// truth for anything that should actually refresh. NEWS here is unused by the
-// app (superseded by the NewsLink table) and kept only because `fin()` and other
-// definitions below reference module-level state that's simplest left intact.
+// PRODUCTS[key].suppliers[...].f (revenue/KPI figures baked in at authoring time, typed as
+// SupplierFinancials in ./index.ts) is the OFFLINE FALLBACK: the UI shows live Screener.in /
+// Yahoo Finance data when it can (src/lib/live/) and falls back to these figures otherwise.
+// NEWS here is unused by the app (curated headlines are read from
+// prisma/seed-source/extracted.json by ./insights.ts) and kept only because `fin()` and
+// other definitions below reference module-level state that's simplest left intact.
 var ASOF = "25 Sep 2026";
  var SRC = "Screener.in (consolidated financials)";
  function fin(rev, np, mcap, price, ticker, note, cagr, range, tl, kpi){ return {rev:rev, np:np, mcap:mcap, price:price, ticker:ticker, note:note||null, cagr:cagr||null, range:range||null, tl:tl||null, kpi:kpi||null}; }

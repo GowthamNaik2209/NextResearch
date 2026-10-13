@@ -4,15 +4,6 @@
 import extracted from "../../../prisma/seed-source/extracted.json";
 import { listSectors, tickerForSupplier } from "./index";
 
-type Fin = {
-  rev?: number[];
-  np?: number[];
-  mcap?: string;
-  price?: string;
-  cagr?: (number | null)[] | null;
-  range?: (number | null)[] | null;
-  kpi?: (number | null)[] | null; // [pe, bookValue, divYield, roce, roe, faceValue]
-};
 
 export type CompanyMetrics = {
   ticker: string;
@@ -52,7 +43,7 @@ export function listCompanyMetrics(): CompanyMetrics[] {
         if (!zoneOf.has(k)) zoneOf.set(k, z.id);
       }
     for (const [key, sup] of Object.entries(s.suppliers)) {
-      const f = sup.f as Fin | undefined;
+      const f = sup.f;
       if (!sup.listed || !f) continue;
       const ticker = tickerForSupplier(sup);
       if (seen.has(ticker)) continue;

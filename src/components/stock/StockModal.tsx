@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
 import type { SectorSupplier } from "@/lib/sector-content";
-import type { StaticFin, StockApi, StockTab } from "./types";
+import type { StockApi, StockTab } from "./types";
 import { mergeStats } from "./merge";
 import { PriceTag } from "./PriceTag";
 import { SummaryView } from "./SummaryView";
@@ -40,7 +40,7 @@ type Props = {
 export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onClose }: Props) {
   const [tab, setTab] = useState<StockTab>(initialTab);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const f = supplier.f as unknown as StaticFin | undefined;
+  const f = supplier.f;
   const stats = mergeStats(f, api);
 
   useEffect(() => {

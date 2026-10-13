@@ -98,12 +98,28 @@ export type SectorZone = {
   dataStatus?: DataStatus;
 };
 
+// Figures baked into the authored sector content at extract time (see
+// prisma/seed-source/extracted.json, "as of" date in its `asOf`). They are the offline
+// fallback behind the live Screener.in / Yahoo data (see components/stock/merge.ts).
+export type SupplierFinancials = {
+  ticker: string;
+  rev?: number[]; // 5 fiscal years FY22..FY26, Rs Cr
+  np?: number[]; // net profit, same years
+  mcap?: string; // "Rs 1,74,575 Cr"
+  price?: string; // "Rs 166"
+  note?: string | null;
+  cagr?: (number | null)[] | null; // stock price CAGR [1y, 3y, 5y], %
+  range?: (number | null)[] | null; // 52-week [low, high]
+  tl?: [number, string] | null; // Trendlyne [id, slug]
+  kpi?: (number | null)[] | null; // [pe, bookValue, divYield, roce, roe, faceValue]
+};
+
 export type SectorSupplier = {
   name: string;
   listed: boolean;
   role: string;
   notes?: string[];
-  f?: { ticker: string } & Record<string, unknown>;
+  f?: SupplierFinancials;
   strengths?: string[];
   risks?: string[];
   sourceDate?: string;
@@ -180,11 +196,14 @@ export function listSectorSlugs(): string[] {
   return [...SECTOR_KEYS];
 }
 
-export function listSectors(): (SectorDef & { slug: string })[] {
+// A sector plus the registry key it is addressed by in URLs.
+export type SectorWithSlug = SectorDef & { slug: string };
+
+export function listSectors(): SectorWithSlug[] {
   return SECTOR_KEYS.map((slug) => ({ slug, ...PRODUCTS[slug] }));
 }
 
-export function getSector(slug: string): (SectorDef & { slug: string }) | null {
+export function getSector(slug: string): SectorWithSlug | null {
   const sector = PRODUCTS[slug];
   return sector ? { slug, ...sector } : null;
 }
@@ -199,39 +218,19 @@ export function tickerForSupplier(sup: SectorSupplier): string {
   return sup.f?.ticker ?? syntheticTicker(sup.name);
 }
 
-// Every ticker referenced anywhere across all sectors — used to know which
-// companies a zone's supplier chips need to fetch from the database.
-export function listAllTickers(): string[] {
-  const set = new Set<string>();
-  for (const slug of SECTOR_KEYS) {
-    const sector = PRODUCTS[slug];
-    for (const sup of Object.values(sector.suppliers)) {
-      set.add(tickerForSupplier(sup));
-    }
-  }
-  return [...set];
-}
-
-// Ticker -> supplier key, scoped to one sector (zone.suppliers arrays store the
-// sector-local key, e.g. "motherson"; this resolves it back to a DB ticker).
-export function tickersForSector(slug: string): Record<string, string> {
-  const sector = getSector(slug);
-  if (!sector) return {};
-  const map: Record<string, string> = {};
-  for (const [key, sup] of Object.entries(sector.suppliers)) {
-    map[key] = tickerForSupplier(sup);
-  }
-  return map;
-}
-
-// The supplier record (plain data) for a listed ticker, from the first sector that has it —
-// used where a company is shown outside the 3D explorer (e.g. the watchlist) but should
-// open the same stock pop-up.
+// Listed ticker -> supplier record (plain data), first sector that has it. Used wherever a
+// company is shown outside the 3D explorer (watchlist) and as the allowlist for the live
+// stock API routes, which proxy third-party sites and so must only serve tickers we cover.
+let supplierByTicker: Map<string, SectorSupplier> | null = null;
 export function findSupplierByTicker(ticker: string): SectorSupplier | null {
-  for (const slug of SECTOR_KEYS) {
-    for (const sup of Object.values(PRODUCTS[slug].suppliers)) {
-      if (sup.listed && tickerForSupplier(sup) === ticker) return sup;
+  if (!supplierByTicker) {
+    supplierByTicker = new Map();
+    for (const slug of SECTOR_KEYS) {
+      for (const sup of Object.values(PRODUCTS[slug].suppliers)) {
+        const t = sup.f?.ticker;
+        if (sup.listed && t && !supplierByTicker.has(t)) supplierByTicker.set(t, sup);
+      }
     }
   }
-  return null;
+  return supplierByTicker.get(ticker) ?? null;
 }

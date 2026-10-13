@@ -1,5 +1,5 @@
 import type { SectorSupplier } from "@/lib/sector-content";
-import type { StaticFin, StockApi } from "./types";
+import type { StockApi } from "./types";
 import { fmtNum, mergeStats } from "./merge";
 
 type Row = { label: string; company: number | null; industry: number | null; unit: string; better: "low" | "high" | null; digits?: number };
@@ -20,7 +20,7 @@ const SH_COLORS = ["bg-accent", "bg-amber", "bg-pos", "bg-danger", "bg-ink-soft"
 
 export function FundamentalsView({ supplier, api, loading }: { supplier: SectorSupplier; api: StockApi | null; loading: boolean }) {
   const fund = api?.fundamentals ?? null;
-  const f = supplier.f as unknown as StaticFin | undefined;
+  const f = supplier.f;
   const s = mergeStats(f, api);
   const ind = fund?.industry ?? null;
   const self = ind?.self ?? null;

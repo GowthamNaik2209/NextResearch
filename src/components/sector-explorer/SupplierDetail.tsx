@@ -6,7 +6,7 @@ import { tickerForSupplier } from "@/lib/sector-content";
 import { WatchlistButton } from "./WatchlistButton";
 import { useStockData } from "@/components/stock/useStockData";
 import { mergeStats } from "@/components/stock/merge";
-import type { StaticFin, StockTab } from "@/components/stock/types";
+import type { StockTab } from "@/components/stock/types";
 import { PriceTag } from "@/components/stock/PriceTag";
 import { SummaryView } from "@/components/stock/SummaryView";
 import { StockModal } from "@/components/stock/StockModal";
@@ -33,7 +33,7 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
   // parent keys this component by supplierKey, so a supplier change remounts it.
   const { data: api, loading } = useStockData(ticker, supplier.listed);
   const [openTab, setOpenTab] = useState<StockTab | null>(null);
-  const stats = mergeStats(supplier.f as unknown as StaticFin | undefined, api);
+  const stats = mergeStats(supplier.f, api);
 
   const hasNav = zoneSuppliers.length > 1;
   const curIdx = zoneSuppliers.indexOf(supplierKey);

@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   companyLinkExposure,
   companyLinkKey,
@@ -10,7 +9,6 @@ import {
   type SectorDef,
   type SectorZone,
 } from "@/lib/sector-content";
-import type { CompanySummary } from "@/lib/companies";
 import { WatchlistButton } from "./WatchlistButton";
 
 type Props = {
@@ -23,49 +21,20 @@ type Props = {
 // i.e. how correlated its stock is likely to be with something happening to it.
 const STRENGTH_RANK = { low: 1, medium: 2, high: 3 } as const;
 
-// Spec §6.F: compare companies within a layer — company, role, exposure type, main
-// risk, a revenue snapshot where available, and data status. Role/exposure/risk
-// come straight from the static sector content (instant, no fetch); revenue is the
-// one genuinely dynamic figure, so that alone is bulk-fetched from the DB via the
-// same /api/companies?tickers= endpoint the zone chips already use.
-export function CompanyComparison({ sector, zone, onClose }: Props) {
-  const [live, setLive] = useState<Record<string, CompanySummary>>({});
-  const [loading, setLoading] = useState(true);
+// Latest fiscal year in the seed data's 5-year revenue series (see SupplierFinancials in
+// sector-content). Revenue here is company-wide, not segment-level.
+const LATEST_FY = 26;
+const latestRevenueCr = (rev: number[] | undefined) => rev?.[rev.length - 1] ?? null;
 
+// Compare the companies in one layer: role, exposure type, main risk, a revenue snapshot
+// and data status. Everything comes from the static sector content, so it renders
+// instantly and works without any network or database.
+export function CompanyComparison({ sector, zone, onClose }: Props) {
   const rows = zone.suppliers.map((link) => {
     const key = companyLinkKey(link);
-    return { key, supplier: sector.suppliers[key], exposure: companyLinkExposure(link) };
+    const supplier = sector.suppliers[key];
+    return { key, supplier, exposure: companyLinkExposure(link), revenue: supplier.listed ? latestRevenueCr(supplier.f?.rev) : null };
   });
-
-  useEffect(() => {
-    // No setLoading(true) reset here: the parent keys this component by zone.id
-    // (SectorExplorer.tsx), so a zone change remounts it fresh with the initial
-    // state above instead of reusing a stale instance — same pattern as SupplierDetail.
-    let cancelled = false;
-    const tickers = rows.filter((r) => r.supplier.listed).map((r) => tickerForSupplier(r.supplier));
-    // No-tickers case folded into the same promise chain (rather than an early
-    // return) so there's exactly one setLoading(false), inside .finally() below.
-    const request: Promise<{ companies?: CompanySummary[] }> =
-      tickers.length > 0
-        ? fetch(`/api/companies?tickers=${encodeURIComponent(tickers.join(","))}`).then((r) => r.json())
-        : Promise.resolve({ companies: [] });
-    request
-      .then((data) => {
-        if (cancelled) return;
-        const map: Record<string, CompanySummary> = {};
-        for (const c of data.companies ?? []) map[c.ticker] = c;
-        setLive(map);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-    // Re-fetch when the zone itself changes, not on every re-derivation of `rows`.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zone.id]);
 
   // Ordered by exposure/impact correlation, not cumulative company revenue —
   // a company's total top-line says little about this one segment (most of
@@ -78,14 +47,10 @@ export function CompanyComparison({ sector, zone, onClose }: Props) {
     const ra = a.exposure.exposureStrength ? STRENGTH_RANK[a.exposure.exposureStrength] : 0;
     const rb = b.exposure.exposureStrength ? STRENGTH_RANK[b.exposure.exposureStrength] : 0;
     if (ra !== rb) return ra - rb;
-    const ta = a.supplier.listed ? tickerForSupplier(a.supplier) : null;
-    const tb = b.supplier.listed ? tickerForSupplier(b.supplier) : null;
-    const va = (ta ? live[ta]?.latestRevenueCr : null) ?? null;
-    const vb = (tb ? live[tb]?.latestRevenueCr : null) ?? null;
-    if (va == null && vb == null) return 0;
-    if (va == null) return 1;
-    if (vb == null) return -1;
-    return va - vb;
+    if (a.revenue == null && b.revenue == null) return 0;
+    if (a.revenue == null) return 1;
+    if (b.revenue == null) return -1;
+    return a.revenue - b.revenue;
   });
 
   return (
@@ -117,10 +82,8 @@ export function CompanyComparison({ sector, zone, onClose }: Props) {
               </tr>
             </thead>
             <tbody>
-              {sortedRows.map(({ key, supplier, exposure }) => {
+              {sortedRows.map(({ key, supplier, exposure, revenue }) => {
                 const ticker = supplier.listed ? tickerForSupplier(supplier) : null;
-                const liveCompany = ticker ? live[ticker] : undefined;
-                const revenue = liveCompany?.latestRevenueCr ?? null;
                 return (
                   <tr key={key}>
                     <td>
@@ -138,14 +101,7 @@ export function CompanyComparison({ sector, zone, onClose }: Props) {
                     </td>
                     <td className="fine">{supplier.role}</td>
                     <td>
-                      {!supplier.listed
-                        ? "—"
-                        : loading
-                          ? "…"
-                          : revenue != null
-                            ? revenue.toLocaleString("en-IN") +
-                              (liveCompany?.latestRevenueYear ? ` (FY${String(liveCompany.latestRevenueYear).slice(2)})` : "")
-                            : "n/a"}
+                      {!supplier.listed ? "—" : revenue != null ? `${revenue.toLocaleString("en-IN")} (FY${LATEST_FY})` : "n/a"}
                     </td>
                     <td className="fine">{supplier.risks?.[0] ?? "—"}</td>
                     <td>

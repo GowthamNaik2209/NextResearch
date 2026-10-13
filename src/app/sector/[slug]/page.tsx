@@ -12,6 +12,7 @@ import {
   type ExposureType,
 } from "@/lib/sector-content";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
@@ -325,6 +326,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
           </div>
         </section>
       </main>
+      <SiteFooter />
     </>
   );
 }

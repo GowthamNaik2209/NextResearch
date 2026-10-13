@@ -1,10 +1,10 @@
 import type { SectorSupplier } from "@/lib/sector-content";
-import type { StaticFin, StockApi } from "./types";
+import type { StockApi } from "./types";
 import { ExtLink } from "./SummaryView";
 
 export function NewsView({ ticker, name, supplier, api }: { ticker: string; name: string; supplier: SectorSupplier; api: StockApi | null }) {
   const items = api?.news ?? [];
-  const tl = (supplier.f as unknown as StaticFin | undefined)?.tl;
+  const tl = supplier.f?.tl;
   return (
     <div className="flex flex-col gap-5">
       {items.length > 0 ? (

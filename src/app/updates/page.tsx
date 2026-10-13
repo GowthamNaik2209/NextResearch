@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import { NewsList } from "@/components/NewsList";
 import { listNews } from "@/lib/sector-content/insights";
 
@@ -35,6 +36,7 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
           Tip: save companies to your <Link href="/watchlist" className="text-accent hover:underline">watchlist</Link> to see their news in one place.
         </p>
       </main>
+      <SiteFooter />
     </>
   );
 }

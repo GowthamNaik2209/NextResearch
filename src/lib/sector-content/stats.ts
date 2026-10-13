@@ -2,6 +2,7 @@
 // the hero stats and search index can never drift from what the product
 // actually contains (no hand-typed counts).
 import { listSectors, tickerForSupplier } from "./index";
+import { sectorNumbers } from "./insights";
 
 export function getPlatformStats() {
   const sectors = listSectors().filter((s) => !s.muted);
@@ -49,4 +50,25 @@ export function buildSearchIndex(): SearchEntry[] {
     }
   }
   return out;
+}
+
+// One card per sector for the landing grid. SectorBrowser is a Client Component, so only plain
+// serializable fields cross the boundary - notably not `build`, each sector's three.js
+// geometry function (see explore/page.tsx for the same constraint).
+export function buildSectorCards() {
+  return listSectors().map((s) => {
+    const sups = Object.values(s.suppliers);
+    return {
+      slug: s.slug,
+      icon: s.icon,
+      name: s.name,
+      tagline: s.tagline,
+      category: s.category,
+      muted: s.muted,
+      zones: s.zones.length,
+      companies: new Set(sups.map(tickerForSupplier)).size,
+      listed: new Set(sups.filter((x) => x.listed).map(tickerForSupplier)).size,
+      ...sectorNumbers(s.slug),
+    };
+  });
 }

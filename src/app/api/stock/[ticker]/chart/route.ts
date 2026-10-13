@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { lookupTicker } from "@/lib/live/allowlist";
+import { findSupplierByTicker } from "@/lib/sector-content";
 import { getChart, isChartRange } from "@/lib/live/yahoo";
 import { getFundamentals } from "@/lib/live/screener-company";
 
@@ -7,7 +7,7 @@ import { getFundamentals } from "@/lib/live/screener-company";
 export async function GET(req: Request, { params }: { params: Promise<{ ticker: string }> }) {
   const { ticker } = await params;
   const range = new URL(req.url).searchParams.get("range");
-  if (!lookupTicker(ticker)) return NextResponse.json({ error: "unknown ticker" }, { status: 404 });
+  if (!findSupplierByTicker(ticker)) return NextResponse.json({ error: "unknown ticker" }, { status: 404 });
   if (!isChartRange(range)) return NextResponse.json({ error: "bad range" }, { status: 400 });
 
   let data = await getChart(ticker, range);

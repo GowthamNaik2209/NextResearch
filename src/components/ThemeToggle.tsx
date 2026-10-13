@@ -1,31 +1,35 @@
 "use client";
 
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "nr-theme";
 
-export function ThemeToggle() {
-  // Starts null (matches server render, avoids hydration mismatch) and reads the
-  // saved choice directly from localStorage on mount — not from the DOM attribute,
-  // because React's Strict Mode remount in dev resets <html> to only the
-  // attributes it manages from JSX (clearing what layout.tsx's inline script set),
-  // so this doubles as the re-apply step the attribute needs in dev too (a no-op
-  // in production, where the inline script's value already stuck).
-  const [theme, setTheme] = useState<"light" | "dark" | null>(null);
+// The theme lives on <html data-theme="light|dark"> (the inline script in layout.tsx sets
+// the saved choice before first paint). This component just mirrors that attribute, so it
+// subscribes to attribute changes instead of keeping its own copy in state.
+function subscribe(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  return () => observer.disconnect();
+}
+const getTheme = (): "light" | "dark" => (document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
+// null on the server / first hydration pass so the markup matches before the attribute is read.
+const getServerTheme = () => null;
 
-  useLayoutEffect(() => {
-    let saved: string | null = null;
+export function ThemeToggle() {
+  const theme = useSyncExternalStore(subscribe, getTheme, getServerTheme);
+
+  // React Strict Mode's dev remount resets <html> to the attributes JSX manages, wiping what
+  // the inline script applied - re-apply the saved choice (a no-op in production).
+  useEffect(() => {
     try {
-      saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved === "dark" || saved === "light") document.documentElement.setAttribute("data-theme", saved);
     } catch {}
-    const resolved = saved === "dark" ? "dark" : "light";
-    setTheme(resolved);
-    document.documentElement.setAttribute("data-theme", resolved);
   }, []);
 
   function toggle() {
-    const next = theme === "light" ? "dark" : "light";
-    setTheme(next);
+    const next = theme === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
     try {
       localStorage.setItem(STORAGE_KEY, next);

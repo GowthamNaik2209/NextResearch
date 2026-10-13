@@ -1,5 +1,5 @@
 import type { SectorSupplier } from "@/lib/sector-content";
-import type { StaticFin, StockApi, StockTab } from "./types";
+import type { StockApi, StockTab } from "./types";
 import { fmtNum, fmtSigned, mergeStats, revenueSeries } from "./merge";
 
 const Label = ({ children }: { children: React.ReactNode }) => (
@@ -56,7 +56,7 @@ export function SummaryView({
   compact?: boolean;
 }) {
   const phoneHide = compact ? " max-[700px]:hidden" : "";
-  const f = supplier.f as unknown as StaticFin | undefined;
+  const f = supplier.f;
   const s = mergeStats(f, api);
   const quote = api?.quote;
   const rev = revenueSeries(f, api);
