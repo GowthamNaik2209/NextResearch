@@ -68,8 +68,6 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   // Phone-only: the Layers / Systems / Camera controls float over the stage (instead of
   // stacking above it and eating vertical space) and open from a button on the stage.
   const [isControlsOpen, setIsControlsOpen] = useState(false);
-  // Phone-only: which zone's long-form write-up is expanded (collapsed by default).
-  const [moreOpenFor, setMoreOpenFor] = useState<string | null>(null);
   // Phone-only: hides the header/rail chrome so the stage fills the viewport.
   // Zone selection behaves exactly as it does normally — the panel still opens
   // as the same bottom sheet, just floating over the fullscreen canvas.
@@ -607,15 +605,6 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                   />
                 )}
 
-                <button
-                  type="button"
-                  className="more-toggle"
-                  onClick={() => setMoreOpenFor((cur) => (cur === zone.id ? null : zone.id))}
-                  aria-expanded={moreOpenFor === zone.id}
-                >
-                  {moreOpenFor === zone.id ? "Hide details" : "More about this layer"}
-                </button>
-                <div className={"more-sections" + (moreOpenFor === zone.id ? " open" : "")}>
                 {zone.roleInSystem && (
                   <div>
                     <div className="chart-label">Where it fits</div>
@@ -690,7 +679,6 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                     </div>
                   </div>
                 )}
-                </div>
               </>
             )}
           </div>

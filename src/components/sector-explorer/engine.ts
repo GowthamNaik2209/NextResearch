@@ -91,15 +91,41 @@ export function mountExplorer(
   controls.maxDistance = 17;
   controls.maxPolarAngle = Math.PI * 0.495;
   controls.target.set(0, 0.55, 0);
+  controls.addEventListener("start", () => {
+    shot = null;
+    camAnim = null;
+  });
 
+  // How far to pull preset views back on a portrait (phone) stage, where the
+  // narrow horizontal field of view would otherwise crop the model's sides.
+  // Fog and the zoom-out limit scale with it so the farther camera isn't
+  // looking at a washed-out model.
+  const aspectFit = () => (camera.aspect < 1 ? Math.min(2.1, Math.pow(1 / camera.aspect, 0.75)) : 1);
   function resize() {
     const w = stage.clientWidth,
       h = stage.clientHeight;
     camera.aspect = w / Math.max(h, 1);
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
+    const k = aspectFit();
+    const fog = scene.fog as THREE.Fog;
+    fog.near = 10 * k;
+    fog.far = 23 * k;
+    controls.maxDistance = 17 * k;
   }
   window.addEventListener("resize", resize);
+  // The stage can change size without a window resize (phone layout settling,
+  // panel/maximize toggles), so watch the element itself as well.
+  const stageObserver = new ResizeObserver(() => {
+    resize();
+    // Re-fit the current preset view to the new aspect unless the user has
+    // orbited away from it (an in-flight animation re-fits every frame anyway).
+    if (shot && !camAnim) {
+      camera.position.copy(fitToAspect(shot.pos, shot.target));
+      controls.target.set(shot.target[0], shot.target[1], shot.target[2]);
+    }
+  });
+  stageObserver.observe(stage);
 
   scene.add(new THREE.HemisphereLight(0x8fa8bf, 0x0a0e14, 0.55));
   const key = new THREE.DirectionalLight(0xffffff, 1.05);
@@ -114,13 +140,20 @@ export function mountExplorer(
   const gridHelper = new THREE.GridHelper(16, 32, 0x2a3d52, 0x1b2836);
   gridHelper.position.y = -0.001;
   scene.add(gridHelper);
-  // Light mode's canvas filter (explorer.css) brightens these dark lines into a
-  // heavy mesh against the grey stage, so fade the floor grid there. Follows the
-  // live theme toggle via the <html data-theme> attribute.
+  // Light mode renders the models in full colour on a pale studio-grey stage
+  // (explorer.css), so the scene follows the live theme toggle (<html
+  // data-theme>): fog fades distance toward that backdrop instead of navy, the
+  // floor grid is softened, and the env map is lifted a touch for the brighter
+  // surroundings.
   const gridMat = gridHelper.material as import("three").LineBasicMaterial;
   gridMat.transparent = true;
+  const fog = scene.fog as THREE.Fog;
   const applyGridTheme = () => {
-    gridMat.opacity = document.documentElement.getAttribute("data-theme") === "light" ? 0.22 : 1;
+    const light = document.documentElement.getAttribute("data-theme") === "light";
+    gridMat.opacity = light ? 0.16 : 1;
+    fog.color.setHex(light ? 0xd3d9e0 : 0x141c28);
+    scene.environmentIntensity = light ? 0.7 : 0.55;
+    renderer.toneMappingExposure = light ? 1.0 : 1.05;
   };
   applyGridTheme();
   const themeObserver = new MutationObserver(applyGridTheme);
@@ -149,6 +182,8 @@ export function mountExplorer(
   const labelsVisible = true;
   let deepDiveActive = false;
   let deepStage = 0;
+  // The preset view the camera is parked on (null once the user orbits).
+  let shot: { pos: number[]; target: number[] } | null = null;
   let camAnim: {
     startPos: THREE.Vector3;
     endPos: THREE.Vector3;
@@ -258,12 +293,22 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
     callbacks.onZoneChange(id);
   }
 
+  // Views are authored for a landscape stage; on a portrait (phone) stage the
+  // same camera crops the model's sides, so back the camera off along its
+  // view direction in proportion to how narrow the stage is.
+  function fitToAspect(pos: number[], target: number[]) {
+    const k = aspectFit();
+    const t = new THREE.Vector3(target[0], target[1], target[2]);
+    return new THREE.Vector3(pos[0], pos[1], pos[2]).sub(t).multiplyScalar(k).add(t);
+  }
+
   function flyTo(viewId: string) {
     const v = sector.views.find((x) => x.id === viewId);
     if (!v) return;
+    shot = { pos: v.pos, target: v.target };
     camAnim = {
       startPos: camera.position.clone(),
-      endPos: new THREE.Vector3(v.pos[0], v.pos[1], v.pos[2]),
+      endPos: fitToAspect(v.pos, v.target),
       startTarget: controls.target.clone(),
       endTarget: new THREE.Vector3(v.target[0], v.target[1], v.target[2]),
       t0: performance.now(),
@@ -298,9 +343,10 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
     currentLevel = targetLevel;
     applyLevel(currentLevel);
     const c = deepDiveDef.entryCamera;
+    shot = { pos: c.pos, target: c.target };
     camAnim = {
       startPos: camera.position.clone(),
-      endPos: new THREE.Vector3(c.pos[0], c.pos[1], c.pos[2]),
+      endPos: fitToAspect(c.pos, c.target),
       startTarget: controls.target.clone(),
       endTarget: new THREE.Vector3(c.target[0], c.target[1], c.target[2]),
       t0: performance.now(),
@@ -475,6 +521,7 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
     if (camAnim) {
       const t = Math.min(1, (performance.now() - camAnim.t0) / camAnim.dur);
       const ease = 1 - Math.pow(1 - t, 3);
+      if (shot) camAnim.endPos.copy(fitToAspect(shot.pos, shot.target)); // aspect may still be settling
       camera.position.lerpVectors(camAnim.startPos, camAnim.endPos, ease);
       controls.target.lerpVectors(camAnim.startTarget, camAnim.endTarget, ease);
       if (t >= 1) camAnim = null;
@@ -485,14 +532,15 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
   }
 
   applyLevel(0);
-  flyTo(sector.defaultView || sector.views[0]?.id);
   resize();
+  flyTo(sector.defaultView || sector.views[0]?.id);
   animate();
 
   function dispose() {
     themeObserver.disconnect();
     cancelAnimationFrame(rafId);
     window.removeEventListener("resize", resize);
+    stageObserver.disconnect();
     renderer.domElement.removeEventListener("pointerdown", onPointerDown);
     renderer.domElement.removeEventListener("pointerup", onPointerUp);
     renderer.domElement.removeEventListener("pointermove", onPointerMove);
