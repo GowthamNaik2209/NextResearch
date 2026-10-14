@@ -10,12 +10,14 @@ export async function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-5">
         <Link href="/" className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent font-display text-sm font-bold text-bg">N</span>
           <span className="font-display text-base font-bold tracking-tight text-ink">NextResearch</span>
         </Link>
-        <nav className="flex items-center gap-5">
+        {/* Tighter spacing on phones so menu + watchlist + account (with the name chip on the
+            landing page) still fit beside the logo at 375px. */}
+        <nav className="flex items-center gap-2 sm:gap-5">
           <Link href="/#sectors" className={link}>Sectors</Link>
           <Link href="/connections" className={link}>Connections</Link>
           <Link href="/updates" className={link}>Updates</Link>
@@ -24,7 +26,7 @@ export async function SiteHeader() {
           <MobileMenu />
           <Link
             href="/watchlist"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
+            className="flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
             aria-label="Watchlist"
             title="Watchlist"
           >

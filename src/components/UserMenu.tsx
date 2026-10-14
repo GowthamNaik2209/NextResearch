@@ -36,7 +36,7 @@ export function UserMenu({ email, displayName }: Props) {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink"
+          className="flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink"
           aria-haspopup="true"
           aria-expanded={open}
           aria-label="Account"
@@ -72,20 +72,23 @@ export function UserMenu({ email, displayName }: Props) {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-2 rounded-full border border-line bg-panel-2 py-1 pl-1 pr-3 text-sm text-ink hover:border-accent"
+          className="flex items-center gap-1.5 rounded-full border border-line bg-panel-2 py-1 pl-1 pr-2.5 text-[13px] text-ink hover:border-accent sm:gap-2 sm:pr-3 sm:text-sm"
           aria-haspopup="true"
           aria-expanded={open}
+          aria-label={`Account: ${label}`}
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-accent">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/15 text-accent sm:h-7 sm:w-7">
             <UserIcon small />
           </span>
-          <span className="max-w-[70px] truncate sm:max-w-[120px]">{label}</span>
+          {/* Phones show just the first name so the chip fits beside the menu and watchlist icons. */}
+          <span className="max-w-[60px] truncate sm:hidden">{label.split(" ")[0]}</span>
+          <span className="hidden max-w-[120px] truncate sm:inline">{label}</span>
         </button>
       ) : (
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-accent hover:border-accent"
+          className="flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-accent hover:border-accent"
           aria-haspopup="true"
           aria-expanded={open}
           aria-label={`Account: ${label}`}
