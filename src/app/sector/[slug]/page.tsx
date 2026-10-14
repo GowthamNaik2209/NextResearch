@@ -131,7 +131,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
           )}
           {deck && (
             <OpenReportButton deck={deck} className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink">
-              Read the {sector.category === "policy" ? "policy" : "industry"} report
+              Read curated report
             </OpenReportButton>
           )}
           <a href="#companies" className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink">

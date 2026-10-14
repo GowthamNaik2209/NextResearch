@@ -97,7 +97,7 @@ function ReportCard({ deck, onOpen }: { deck: Deck; onOpen: () => void }) {
         </span>
         <span className="mt-auto flex items-center justify-between pt-1 text-xs">
           <span className="text-ink-soft">10 slides · {deck.companies.length} beneficiaries</span>
-          <span className="font-semibold text-accent group-hover:underline">Open report &rarr;</span>
+          <span className="font-semibold text-accent group-hover:underline">Read curated report &rarr;</span>
         </span>
       </span>
     </button>
