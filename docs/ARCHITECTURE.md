@@ -115,9 +115,20 @@ the stock UI is DB-free by design, which is why it works with an empty database.
 ## Conventions
 
 - **Comments explain *why*** (constraints, gotchas, trade-offs) - the code shows what.
-- **Add a sector:** author it in `products.ts` following an existing one, run
-  `npm run validate:content`, add reading links in `docs.ts`; it appears on the landing page
-  automatically.
+- **Add or unlock a sector / policy - complete the whole loop.** A sector is only done when every
+  surface that lists companies knows about it. Checklist:
+  1. Author it in `products.ts` (zones, suppliers with `f` figures, domains, `whyNow`,
+     `thesisSummary`, `integratorZoneId`, exposure links, 3D model) and leave `muted` off.
+  2. `scenarios.ts`: 3-4 "what if" shocks; `docs.ts`: reading links.
+  3. `extracted.json` / `npm run db:extract` + `db:seed`, so every listed company has a `Company`
+     row (the watchlist heart needs it) - and run the seed against staging/prod.
+  4. Run `npm run validate:content` - it fails a live sector that lacks scenarios, reading links,
+     an integrator zone or a thesis.
+  5. Check by eye: landing card + stats, search, `/updates` chips, `/connections` (a company shared
+     with another sector must show both), idea screens, `/docs`, the stock pop-up footprint, and the
+     explorer on desktop *and* phone.
+  Landing stats, search, news feed, ideas, connections and footprint all derive from the content
+  (`!muted`), so nothing else should need a hand edit - if something does, that is a bug to fix.
 - **Add a stock-pop-up tab:** add a view in `components/stock/`, register it in `StockModal`'s
   `TABS`, extend `StockTab` in `types.ts`.
 - **Touching live data:** keep it behind `lib/live/` and the API routes; add/adjust a fixture

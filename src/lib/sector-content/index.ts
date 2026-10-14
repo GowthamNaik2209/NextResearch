@@ -180,6 +180,10 @@ export type SectorDef = {
   // section on the sector overview page rather than left buried one click
   // inside the 3D explorer like every other zone.
   integratorZoneId?: string;
+  // Overrides for the overview's integrator section when "assemble the finished product" does not fit
+  // the sector (e.g. power generation, where the end players are plant operators).
+  integratorHeading?: string;
+  integratorBlurb?: string;
 };
 
 type ComingSoonSector = { icon: string; name: string; tagline: string; category?: "sector" | "policy" };

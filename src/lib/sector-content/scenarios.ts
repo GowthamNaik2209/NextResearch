@@ -345,6 +345,68 @@ export const SCENARIOS: Record<string, Scenario[]> = {
       ],
     },
   ],
+  energy: [
+    {
+      id: "coal-supply-squeeze",
+      title: "Coal supply tightens",
+      blurb: "Stock shortages and rake delays hit plants",
+      story:
+        "Thermal plants run only as well as their coal supply. A squeeze cuts plant load factors for gencos first, shifts some demand onto renewables and hydro, and leaves equipment makers' order books mostly untouched in the near term.",
+      effect: "headwind",
+      impacts: [
+        S("thermal_gencos", 3, "Plant load factors and merchant margins fall directly"),
+        S("thermal_equip", 1, "Order books are slower-moving; effect is on sentiment and future ordering"),
+        S("hydro_gencos", 2, "Flexible hydro is dispatched harder and earns more", "tailwind"),
+        S("solar_developers", 1, "More generation demand shifts to them", "tailwind"),
+      ],
+    },
+    {
+      id: "evening-peak-record",
+      title: "Evening peak demand hits a record",
+      blurb: "Peak load outruns solar-heavy supply",
+      story:
+        "Solar fades just as demand peaks. Dispatchable sources and storage are what close the gap, so the layers that can deliver power after sunset become the scarce ones.",
+      effect: "tailwind",
+      impacts: [
+        S("thermal_gencos", 3, "Dispatchable coal and gas fill the evening gap"),
+        S("storage_integrators", 3, "Storage that shifts solar into the evening is the scarce asset"),
+        S("hydro_gencos", 2, "Peaking and pumped-storage capacity"),
+        S("storage_equip", 2, "Cell and pack demand pulls through"),
+        S("solar_developers", 1, "Strong demand but their output is mid-day"),
+      ],
+    },
+    {
+      id: "renewable-auction-surge",
+      title: "Renewable auctions accelerate",
+      blurb: "Tender volumes jump to record levels",
+      story:
+        "More awarded capacity flows first to developers, then to the equipment and EPC suppliers who build it over the next 12-24 months, with storage-linked hybrids pulling in the storage layer. New thermal ordering loses relative share.",
+      effect: "tailwind",
+      impacts: [
+        S("solar_developers", 3, "Win and finance the capacity"),
+        S("wind_developers", 3, "Win and finance the capacity"),
+        S("solar_equip", 3, "Module, inverter and EPC orders follow"),
+        S("wind_equip", 2, "Turbine orders follow"),
+        S("storage_equip", 2, "Hybrid and firm-power tenders require storage"),
+        S("thermal_equip", 1, "Relative share of new capacity falls", "headwind"),
+      ],
+    },
+    {
+      id: "grid-curtailment",
+      title: "Transmission lags renewable build",
+      blurb: "Projects wait for grid connectivity; output is curtailed",
+      story:
+        "Capacity that cannot reach the grid earns nothing. Developers face delayed revenue and curtailment, equipment suppliers see billing slip, and storage placed near the bottleneck becomes more valuable.",
+      effect: "headwind",
+      impacts: [
+        S("solar_developers", 3, "Stranded or curtailed output hits revenue"),
+        S("wind_developers", 3, "Same exposure"),
+        S("solar_equip", 2, "Commissioning and billing milestones slip"),
+        S("wind_equip", 1, "Commissioning milestones slip"),
+        S("storage_integrators", 2, "Co-located storage can absorb curtailed output", "tailwind"),
+      ],
+    },
+  ],
   solarmodules: [
     {
       id: "almm-cells",

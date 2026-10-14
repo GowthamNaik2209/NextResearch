@@ -70,10 +70,6 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   // Phone-only: the Layers / Systems / Camera controls float over the stage (instead of
   // stacking above it and eating vertical space) and open from a button on the stage.
   const [isControlsOpen, setIsControlsOpen] = useState(false);
-  // Phone-only: hides the header/rail chrome so the stage fills the viewport.
-  // Zone selection behaves exactly as it does normally — the panel still opens
-  // as the same bottom sheet, just floating over the fullscreen canvas.
-  const [isMaximized, setIsMaximized] = useState(false);
   const [deepStage, setDeepStage] = useState<number | null>(null);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
   const scenarios = listScenarios(slug);
@@ -268,16 +264,6 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentZoneId, currentSupplier, scenarioId]);
 
-  // Toggling maximize hides/shows the header+rail via CSS, which changes the
-  // stage's actual size without ever firing a window "resize" event — the
-  // engine's resize() only listens for that, so it has no other way to know
-  // the canvas should grow/shrink. One rAF (so the browser has reflowed the
-  // new layout first) then a synthetic resize event covers it.
-  useEffect(() => {
-    const id = requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
-    return () => cancelAnimationFrame(id);
-  }, [isMaximized]);
-
   const zone = currentZoneId ? sector.zones.find((z) => z.id === currentZoneId) ?? null : null;
   // Normalized to plain keys once here — a zone's suppliers may be bare keys or
   // {key, exposureType, exposureStrength} objects (see SectorCompanyLink) — so
@@ -307,6 +293,14 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     },
     [stopTour]
   );
+
+  // Back to the sector's opening camera: for anyone who has orbited or zoomed deep into the model.
+  const handleResetView = useCallback(() => {
+    stopTour();
+    const id = sector.defaultView || sector.views[0]?.id;
+    controllerRef.current?.flyTo(id);
+    setActiveView(id);
+  }, [stopTour, sector.defaultView, sector.views]);
 
   const handleShellClick = useCallback(() => {
     stopTour();
@@ -344,7 +338,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   }, [isTouring, startTour, stopTour]);
 
   return (
-    <div className={"nr-explorer" + (isMaximized ? " maximized" : "") + (isControlsOpen ? " controls-open" : "")}>
+    <div className={"nr-explorer" + (isControlsOpen ? " controls-open" : "")}>
       <header>
         <div className="title-block">
           <Link href="/" className="brand" style={{ textDecoration: "none" }} aria-label="NextResearch home">
@@ -426,9 +420,36 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
               max={sector.layerNames.length - 1}
               step={0.01}
               defaultValue={0}
+              aria-label="Open up the model, layer by layer"
+              title="Open up the model, layer by layer"
               onChange={handleSliderChange}
             />
           </div>
+
+          {scenarios.length > 0 && (
+            <>
+              <div className="rail-label scn-label" style={{ marginTop: 6 }}>
+                What if…
+              </div>
+              <div className="scn-list">
+                {scenarios.map((sc) => (
+                  <button
+                    key={sc.id}
+                    className={"scn-btn" + (scenarioId === sc.id ? " active" : "")}
+                    title={sc.blurb}
+                    onClick={() => handlePickScenario(scenarioId === sc.id ? null : sc.id)}
+                  >
+                    {sc.title}
+                  </button>
+                ))}
+              </div>
+              {scenario && (
+                <button className="scn-clear" onClick={() => handlePickScenario(null)}>
+                  Clear scenario
+                </button>
+              )}
+            </>
+          )}
 
           <div className="rail-label" style={{ marginTop: 6 }}>
             Systems
@@ -460,31 +481,6 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
               );
             })}
           </div>
-
-          {scenarios.length > 0 && (
-            <>
-              <div className="rail-label" style={{ marginTop: 6 }}>
-                What if…
-              </div>
-              <div className="scn-list">
-                {scenarios.map((sc) => (
-                  <button
-                    key={sc.id}
-                    className={"scn-btn" + (scenarioId === sc.id ? " active" : "")}
-                    onClick={() => handlePickScenario(scenarioId === sc.id ? null : sc.id)}
-                  >
-                    {sc.title}
-                    <small>{sc.blurb}</small>
-                  </button>
-                ))}
-              </div>
-              {scenario && (
-                <button className="scn-clear" onClick={() => handlePickScenario(null)}>
-                  Clear scenario
-                </button>
-              )}
-            </>
-          )}
 
           <div className="rail-label" style={{ marginTop: 6 }}>
             Camera view
@@ -518,21 +514,23 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
           </button>
           <button
             type="button"
-            className="maximize-btn"
-            onClick={() => setIsMaximized((m) => !m)}
-            aria-label={isMaximized ? "Exit full screen" : "Full screen"}
-            title={isMaximized ? "Exit full screen" : "Full screen"}
+            className="reset-btn"
+            onClick={handleResetView}
+            aria-label="Reset to the starting view"
+            title="Reset to the starting view"
           >
-            {isMaximized ? (
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 3v4a2 2 0 0 1-2 2H3M15 3v4a2 2 0 0 0 2 2h4M3 15h4a2 2 0 0 1 2 2v4M15 21v-4a2 2 0 0 1 2-2h4" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9V5a2 2 0 0 1 2-2h4M15 3h4a2 2 0 0 1 2 2v4M21 15v4a2 2 0 0 1-2 2h-4M9 21H5a2 2 0 0 1-2-2v-4" />
-              </svg>
-            )}
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M21 21l-4.3-4.3M8 11h6" />
+            </svg>
           </button>
+          {scenario && (
+            <button type="button" className="scn-pill" onClick={() => handlePickScenario(null)} title="Clear scenario">
+              <span>What if: {scenario.title}</span>
+              <b aria-hidden>&times;</b>
+              <span className="sr-only">Clear scenario</span>
+            </button>
+          )}
           <div className="stage-grid-overlay" />
           <svg className="leader-svg" ref={leaderSvgRef} />
           <div className="callout-rail rail-left" ref={railLeftRef} />
@@ -597,6 +595,9 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
             {!zone && scenario ? (
               <>
                 <h2>{scenario.title}</h2>
+                <button className="scn-clear" onClick={() => handlePickScenario(null)}>
+                  &times; Clear scenario
+                </button>
                 <p className="zdesc">{scenario.story}</p>
                 <div>
                   <div className="chart-label">Layers touched</div>

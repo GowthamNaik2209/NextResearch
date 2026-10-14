@@ -86,8 +86,16 @@
  .view-btn:hover{border-color:var(--accent); color:var(--ink)}
  .view-btn.active{background:color-mix(in srgb, var(--accent) 18%, var(--chip)); border-color:var(--accent); color:var(--ink)}
  .view-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px}
- .zone-more-btn{ display:none }
- .zone-btns{ display:flex; flex-direction:column; gap:5px }
+ .zone-more-btn{
+ display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;
+ background:var(--chip); border:1px solid var(--line); border-radius:7px; padding:7px 10px;
+ color:var(--ink); font-family:inherit; font-size:11.5px; font-weight:600; cursor:pointer; text-align:left;
+ }
+ .zone-more-btn:hover{ border-color:var(--accent) }
+ .zone-more-btn .chev{ color:var(--ink-soft); transition:transform .15s; flex:none }
+ .zone-more-btn.open .chev{ transform:rotate(180deg) }
+ .zone-btns{ display:none; flex-direction:column; gap:5px }
+ .zone-btns.expanded{ display:flex }
  .zone-btn{
  display:flex; align-items:center; gap:8px; width:100%; text-align:left;
  background:var(--chip); border:1px solid var(--line); border-radius:7px; padding:7px 9px;
@@ -113,16 +121,14 @@
  background:var(--callout-bg-strong); border:1px solid var(--line); border-radius:999px; padding:6px 12px;
  font-size:11.5px; color:var(--ink-soft); backdrop-filter:blur(6px);
  }
- /* Phone-only full-screen toggle (see the @media max-width:700px block below for
-    its visibility + the .maximized header/.rail hide it pairs with) - hidden
-    here by default so it never shows on tablet/desktop, where the stage
-    already has room without borrowing the header/rail's space. */
- .maximize-btn{
+ /* Phone-only "zoom out to the starting view" button - hidden by default so it never shows on
+    tablet/desktop, where the Camera view buttons already cover it. */
+ .reset-btn{
  display:none; position:absolute; top:12px; right:12px; z-index:5;
  width:36px; height:36px; border-radius:50%; background:var(--callout-bg-strong); border:1px solid var(--line);
  color:var(--ink); align-items:center; justify-content:center; cursor:pointer; padding:0; backdrop-filter:blur(6px);
  }
- .maximize-btn:hover{ border-color:var(--accent); color:var(--accent) }
+ .reset-btn:hover{ border-color:var(--accent); color:var(--accent) }
  .controls-btn{
  display:none; position:absolute; top:56px; right:12px; z-index:7;
  width:36px; height:36px; border-radius:50%; background:var(--callout-bg-strong); border:1px solid var(--line);
@@ -281,29 +287,7 @@
 
  /* ===== Phone: stack the app vertically, dock the panel as a collapsible sheet ===== */
  @media (max-width: 700px){
- .maximize-btn{ display:flex }
- /* .app becomes a fixed overlay pinned to the actual visible viewport, rather
-    than just hiding header/rail and letting flex:1 expand to fill it - on
-    real mobile Safari that flex-only approach left .app sized against the
-    *document's* height, which can momentarily disagree with the visible
-    screen as the address-bar chrome collapses/expands, so the page itself
-    became scrollable and the bottom sheet drifted away from the true bottom
-    edge. `dvh` (not `vh`/`%`) tracks the *current* visible viewport through
-    that chrome animation instead of the largest-possible one. Taking .app out
-    of flow this way also means it no longer depends on header/rail actually
-    being hidden/zero-height to get full space - belt and suspenders. */
- /* `&` (not a bare `.maximized ...`) because this whole stylesheet nests under
-    one top-level `.nr-explorer{...}` rule, which prepends the parent selector
-    as a DESCENDANT combinator by default - `.maximized header` would compile
-    to `.nr-explorer .maximized header` (a separate .maximized descendant),
-    not `.nr-explorer.maximized header` (this same element carrying both
-    classes, which is what the JSX actually renders). */
- &.maximized header{ display:none }
- /* .rail (Layers + Systems/Camera View) stays visible while maximized - only
-    the header goes away. Without layer/camera controls, maximizing stranded
-    users on whatever layer/angle they'd last picked with no way to change it
-    short of un-maximizing first. */
- &.maximized .app{ position:fixed; inset:0; height:100dvh; z-index:15 }
+ .reset-btn{ display:flex }
  /* Phone: a 46px bar - logo mark, title, short badge, and icon-only buttons. */
  header{ height:46px; padding:0 10px; gap:8px }
  header .title-block{ gap:8px }
@@ -312,10 +296,8 @@
  .brand .brand-mark{ display:block }
  /* Title may wrap to two lines inside the fixed-height bar instead of truncating. */
  header h1{ font-size:11.5px; letter-spacing:.5px; line-height:1.15; white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden }
- /* Provenance badge -> small "i" dot (full text lives in its tooltip and on the overview page). */
- header .badge{ width:20px; height:20px; padding:0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0 }
- header .badge .short{ display:none }
- header .badge::after{ content:"i"; font-size:13px; font-weight:800; font-style:normal; font-family:-apple-system,"Segoe UI",Arial,sans-serif }
+ /* Provenance badge is dropped on phones (the overview page carries the full data-status note). */
+ header .badge{ display:none }
  header .right{ gap:6px }
  .hdr-btn{ padding:0; width:34px; height:34px; display:flex; align-items:center; justify-content:center; font-size:15px }
  .hdr-btn .lbl{ display:none }
@@ -335,6 +317,11 @@
  }
  &.controls-open .rail{ display:flex }
  .rail-label{ display:none }
+ .rail-label.scn-label{ display:block; flex:1 1 100% }
+ .scn-list{ flex-direction:row; flex-wrap:wrap; flex:1 1 100% }
+ .scn-btn{ flex:none; padding:6px 8px; font-size:10.5px }
+ .scn-btn small{ display:none }
+ .scn-clear{ flex:1 1 100% }
  .layer-slider-wrap{ display:none }
  #layerBtns{ display:flex; flex-wrap:wrap; flex:1 1 100%; gap:6px }
  .layer-btn{ flex:none; width:auto; white-space:nowrap; padding:6px 8px; font-size:11.5px; gap:6px }
@@ -428,6 +415,13 @@
  .scn-btn:hover{ border-color:var(--accent); color:var(--ink) }
  .scn-btn.active{ background:color-mix(in srgb, var(--accent) 18%, var(--chip)); border-color:var(--accent); color:var(--ink) }
  .scn-btn small{ display:block; font-weight:400; font-size:10.5px; color:var(--ink-soft) }
+ .scn-pill{
+  position:absolute; top:52px; left:12px; z-index:6; display:flex; align-items:center; gap:8px; max-width:calc(100% - 70px);
+  background:var(--callout-bg-strong); border:1px solid var(--accent); border-radius:999px; padding:5px 10px;
+  color:var(--ink); font:inherit; font-size:11px; font-weight:600; cursor:pointer; backdrop-filter:blur(6px);
+ }
+ .scn-pill span:first-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+ .scn-pill b{ color:var(--accent); font-size:14px; line-height:1 }
  .scn-clear{ margin-top:2px; background:none; border:none; color:var(--accent); font:inherit; font-size:11px; font-weight:600; cursor:pointer; text-align:left; padding:2px 0 }
  .scn-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; text-align:left;
   background:var(--chip); border:1px solid var(--line); border-radius:7px; padding:7px 9px; color:var(--ink); font-family:inherit; font-size:12px; cursor:pointer }
