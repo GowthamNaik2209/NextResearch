@@ -39,7 +39,7 @@ export function MobileMenu() {
         aria-label="Menu"
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink"
+        className="flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink"
       >
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M4 7h16M4 12h16M4 17h16" />
