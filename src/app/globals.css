@@ -191,3 +191,19 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .nr-pop-backdrop, .nr-pop-card { animation: none; }
 }
+
+/* Research deck slides (components/research/ResearchDeck.tsx): each slide slides in
+   from the side it came from. */
+.nr-slide-next { animation: nr-slide-in-next 0.32s cubic-bezier(0.2, 0.8, 0.3, 1); }
+.nr-slide-prev { animation: nr-slide-in-prev 0.32s cubic-bezier(0.2, 0.8, 0.3, 1); }
+@keyframes nr-slide-in-next {
+  from { opacity: 0; transform: translateX(28px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes nr-slide-in-prev {
+  from { opacity: 0; transform: translateX(-28px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nr-slide-next, .nr-slide-prev { animation: none; }
+}

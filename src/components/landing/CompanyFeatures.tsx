@@ -4,7 +4,7 @@ const FEATURES: [title: string, body: string][] = [
   ["Segment exposure", "How directly a company is tied to each layer — direct supplier, enabler, operator — and how strongly."],
   ["Peer comparison", "Line up every company in a layer side by side on the metrics that matter for that segment."],
   ["Bottlenecks & drivers", "Industry-level choke points and demand drivers, each linked back to the layer they come from."],
-  ["Reading list", "Curated research from McKinsey, the IEA and trade bodies, to go deeper on any sector. Coming soon."],
+  ["Reading list", "A 10-slide industry report per sector: thesis, PESTLE, value chain, beneficiaries, plus links to McKinsey, IEA and government research."],
 ];
 
 export function CompanyFeatures() {
