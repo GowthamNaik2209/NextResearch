@@ -15,6 +15,8 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
+import { OpenReportButton } from "@/components/research/OpenReport";
+import { buildDeck } from "@/lib/sector-content/reports";
 import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
 
 export function generateStaticParams() {
@@ -79,6 +81,8 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
     return { key, company: sector.suppliers[key] };
   });
 
+  const deck = buildDeck(sector.slug);
+
   return (
     <>
       <SiteHeader />
@@ -124,6 +128,11 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
             >
               Start guided tour
             </Link>
+          )}
+          {deck && (
+            <OpenReportButton deck={deck} className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink">
+              Read curated report
+            </OpenReportButton>
           )}
           <a href="#companies" className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink">
             Find companies
@@ -249,7 +258,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
         </section>
 
         {hasBottlenecks && (
-          <section id="bottlenecks">
+          <section id="bottlenecks" className="scroll-mt-20">
             <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Potential bottlenecks</h2>
             <ul className="mt-3 flex flex-col gap-2">
               {bottlenecks.map((item) => (
@@ -280,7 +289,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
           </section>
         )}
 
-        <section id="companies">
+        <section id="companies" className="scroll-mt-20">
           <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Companies in this sector</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {companies.map(([key, company]) => {

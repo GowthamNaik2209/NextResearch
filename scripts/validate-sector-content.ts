@@ -9,6 +9,8 @@
 import { companyLinkKey, listSectors } from "../src/lib/sector-content/index.js";
 import { getResearchForSector } from "../src/lib/sector-content/docs.js";
 import { listScenarios } from "../src/lib/sector-content/scenarios.js";
+import { getReport } from "../src/lib/sector-content/reports/index.js";
+import { validateReport } from "../src/lib/sector-content/reports/validate.js";
 
 let problems = 0;
 
@@ -33,6 +35,9 @@ for (const sector of listSectors()) {
     if (getResearchForSector(sector.slug).length === 0) fail(`[${sector.slug}] live sector has no reading-list links (src/lib/sector-content/docs.ts)`);
     if (!sector.integratorZoneId) fail(`[${sector.slug}] live sector has no integratorZoneId`);
     if (!sector.whyNow || !sector.thesisSummary) fail(`[${sector.slug}] live sector is missing whyNow/thesisSummary`);
+    const report = getReport(sector.slug);
+    if (!report) fail(`[${sector.slug}] live sector has no research deck (src/lib/sector-content/reports/)`);
+    else validateReport(report, sector).forEach(fail);
   }
 
   const scenarioIds = new Set<string>();

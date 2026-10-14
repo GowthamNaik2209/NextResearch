@@ -80,7 +80,7 @@ the stock UI is DB-free by design, which is why it works with an empty database.
 | `/` | server | Landing page, composed of `components/landing/*` |
 | `/sector/[slug]` | server | Sector overview; company cards open the stock pop-up directly |
 | `/sector/[slug]/explore` | server shell + client | 3D explorer; deep links via `?zone=&company=` |
-| `/updates`, `/docs`, `/docs/[slug]` | server | Live news feed (filter `?sector=`); reading list (muted, coming soon) |
+| `/updates`, `/docs`, `/docs/[slug]` | server | Live news feed (filter `?sector=`); reading list: 10-slide research deck per sector in a pop-up (`?report=<slug>` opens one) |
 | `/connections` | server | Companies present in 2+ supply chains, ranked by footprint (`sector-content/exposure.ts`) |
 | `/watchlist` | server | Auth required; rows open the stock pop-up |
 | `/login`, `/signup`, `/auth/callback` | server | Supabase auth |
@@ -119,7 +119,8 @@ the stock UI is DB-free by design, which is why it works with an empty database.
   surface that lists companies knows about it. Checklist:
   1. Author it in `products.ts` (zones, suppliers with `f` figures, domains, `whyNow`,
      `thesisSummary`, `integratorZoneId`, exposure links, 3D model) and leave `muted` off.
-  2. `scenarios.ts`: 3-4 "what if" shocks; `docs.ts`: reading links.
+  2. `scenarios.ts`: 3-4 "what if" shocks; `docs.ts`: reading links; `reports/<slug>.ts`: the research deck
+     (register it in `reports/index.ts`; `npx tsx scripts/check-report.ts <slug>` checks one while authoring).
   3. `extracted.json` / `npm run db:extract` + `db:seed`, so every listed company has a `Company`
      row (the watchlist heart needs it) - and run the seed against staging/prod.
   4. Run `npm run validate:content` - it fails a live sector that lacks scenarios, reading links,
@@ -145,7 +146,8 @@ the stock UI is DB-free by design, which is why it works with an empty database.
   `screener-company.ts`); a licensed data vendor would replace `lib/live/screener-*`.
 - Yahoo NSE quotes are ~15 minutes delayed; the UI says so. There is no streaming.
 - News comes from Google News RSS (unofficial, headline + link only); the curated set in `extracted.json` is only the fallback. A licensed news API would be the upgrade path.
-- The reading list (`/docs`) is intentionally muted ("coming soon"); its content lives in `sector-content/docs.ts`.
+- The reading list (`/docs`) shows research decks from `sector-content/reports/` (authored industry text; company
+  figures pulled from the supplier seed data) viewed in `components/research/ResearchDeck.tsx`.
 - No CI: tests/lint/types/build are run by hand (see the checklist above). A GitHub Action
   running them on PRs would be the highest-leverage next step.
 - No end-to-end tests; the interactive flows were verified manually/headlessly.
