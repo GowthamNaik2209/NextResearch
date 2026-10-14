@@ -195,8 +195,8 @@
               913,
               1089
             ],
-            "mcap": "Rs 97,925 Cr",
-            "price": "Rs 2,005",
+            "mcap": "Rs 98,125 Cr",
+            "price": "Rs 2,008",
             "ticker": "BHARATFORG",
             "note": null,
             "cagr": [
@@ -341,32 +341,31 @@
             "Established lead-acid battery manufacturing and distribution base to lean on while scaling the Advanced Cell Technologies Li-ion business"
           ],
           "risks": [
-            "Li-ion EV cell business runs through a separate subsidiary (Amara Raja ACT), still small relative to the core lead-acid business",
-            "FY25-FY26 financials not yet reflected in the source data at fetch time"
+            "Li-ion EV cell business runs through a separate subsidiary (Amara Raja ACT), still small relative to the core lead-acid business"
           ],
           "f": {
             "rev": [
-              8696,
-              10390,
-              11260,
-              null,
-              null
+              8697,
+              10392,
+              11708,
+              12846,
+              13814
             ],
             "np": [
-              511,
+              513,
               731,
-              906,
-              null,
-              null
+              934,
+              945,
+              896
             ],
-            "mcap": "Rs 18,568 Cr",
-            "price": "Rs 1,014",
+            "mcap": "Rs 13,558 Cr",
+            "price": "Rs 740",
             "ticker": "ARE&M",
-            "note": "FY25-FY26 not yet reflected in the source at fetch time",
+            "note": "Price/valuation as of 14 Oct 2026",
             "cagr": [
-              -19,
-              7,
-              1
+              -26,
+              5,
+              -1
             ],
             "range": [
               670,
@@ -377,11 +376,11 @@
               "amara-raja-energy-mobility-ltd"
             ],
             "kpi": [
-              18.5,
-              446,
-              1.34,
-              13.4,
-              8.26,
+              18.6,
+              442,
+              1.43,
+              12.2,
+              7.18,
               1
             ]
           }
@@ -1001,7 +1000,7 @@
             "mcap": "Rs 1,06,973 Cr",
             "price": "Rs 290",
             "ticker": "TMPV",
-            "note": "Post-Oct2025 demerger from Tata Motors Ltd; retains JLR+India PV/EV business; FY26 PAT includes a large exceptional/demerger-related gain, not run-rate",
+            "note": "Post-Oct 2025 demerger from Tata Motors Ltd; retains JLR + India PV/EV. FY26 net profit (Rs 82,645 Cr) is dominated by a one-off demerger-related gain booked in other income (~Rs 86,300 Cr) - the 24.6% FY26 net margin is not run-rate",
             "cagr": null,
             "range": [
               288,
@@ -1302,7 +1301,11 @@
             "price": "Rs 368",
             "ticker": "TATAPOWER",
             "note": null,
-            "cagr": null,
+            "cagr": [
+              15,
+              12,
+              9
+            ],
             "range": [
               342,
               465
@@ -2408,7 +2411,11 @@
             "price": "Rs 424",
             "ticker": "EXIDEIND",
             "note": "FY22 profit includes a one-time gain",
-            "cagr": null,
+            "cagr": [
+              8,
+              18,
+              19
+            ],
             "range": [
               287,
               496
@@ -2441,24 +2448,28 @@
           ],
           "f": {
             "rev": [
-              8696,
-              10390,
-              11260,
-              null,
-              null
+              8697,
+              10392,
+              11708,
+              12846,
+              13814
             ],
             "np": [
-              511,
+              513,
               731,
-              906,
-              null,
-              null
+              934,
+              945,
+              896
             ],
-            "mcap": "Rs 18,568 Cr",
-            "price": "Rs 1,014",
+            "mcap": "Rs 13,558 Cr",
+            "price": "Rs 740",
             "ticker": "ARE&M",
-            "note": "FY25-FY26 not yet reflected in the source at fetch time",
-            "cagr": null,
+            "note": "Price/valuation as of 14 Oct 2026",
+            "cagr": [
+              -26,
+              5,
+              -1
+            ],
             "range": [
               670,
               1023
@@ -2468,11 +2479,11 @@
               "amara-raja-energy-mobility-ltd"
             ],
             "kpi": [
-              18.5,
-              446,
-              1.34,
-              13.4,
-              8.26,
+              18.6,
+              442,
+              1.43,
+              12.2,
+              7.18,
               1
             ]
           }
@@ -2811,7 +2822,7 @@
             "mcap": "Rs 11,14,378 Cr",
             "price": "Rs 1,785",
             "ticker": "BHARTIARTL",
-            "note": "Diversified telecom group; Nxtra Data (its DC arm) is not separately listed, so figures are consolidated group-wide",
+            "note": "FY25's profit jump reflects a large one-off/deferred-tax-related gain, not run-rate; Diversified telecom group; Nxtra Data (its DC arm) is not separately listed, so figures are consolidated group-wide",
             "cagr": null,
             "range": [
               1740,
@@ -3005,7 +3016,7 @@
             "mcap": "Rs 1,49,448 Cr",
             "price": "Rs 7,052",
             "ticker": "ABB",
-            "note": "Reports Jan-Dec fiscal year",
+            "note": "Reports Jan-Dec fiscal year: the FY22-FY26 columns hold CY2021-CY2025",
             "cagr": [
               36,
               19,
@@ -3113,7 +3124,7 @@
             "mcap": "Rs 22,342 Cr",
             "price": "Rs 806",
             "ticker": "HBLENGINE",
-            "note": "Renamed from HBL Power Systems (ticker HBLPOWER -> HBLENGINE); also has rail-signalling and defense-electronics segments beyond batteries/UPS",
+            "note": "Renamed from HBL Power Systems (ticker HBLPOWER -> HBLENGINE); Also has rail-signalling and defense-electronics segments beyond batteries/UPS",
             "cagr": [
               -4,
               48,
@@ -3331,7 +3342,7 @@
             "mcap": "Rs 43,037 Cr",
             "price": "Rs 837",
             "ticker": "STLTECH",
-            "note": "FY24-25 net losses reflect OFC industry pricing downcycle; FY26 returned to profit",
+            "note": "P/E (~180x) sits on a thin FY26 profit after the stock re-rated ~8x in a year (52W low Rs 84.6); market cap re-checked against Screener on 14 Oct 2026 (~Rs 47,500 Cr); FY24-25 net losses reflect OFC industry pricing downcycle; FY26 returned to profit",
             "cagr": [
               615,
               94,
@@ -3503,9 +3514,9 @@
             "ticker": "BEML",
             "note": "Govt Mini-Ratna PSU; Rail & Metro is one of three verticals alongside Defence and Mining",
             "cagr": [
-              -3.2,
-              null,
-              null
+              -3,
+              21,
+              29
             ],
             "range": [
               1355,
@@ -3649,14 +3660,14 @@
               415,
               72
             ],
-            "mcap": "Rs 13,073 Cr",
+            "mcap": "Rs 12,814 Cr",
             "price": "Rs 704",
             "ticker": "RKFORGE",
-            "note": null,
+            "note": "FY26 profit fell sharply on one-off items - verify before use",
             "cagr": [
-              32,
+              31,
               3,
-              27
+              28
             ],
             "range": [
               460,
@@ -3698,7 +3709,7 @@
               16812
             ],
             "np": [
-              -127,
+              1077,
               508,
               910,
               913,
@@ -3708,12 +3719,19 @@
             "price": "Rs 2,008",
             "ticker": "BHARATFORG",
             "note": "Kalyani Group flagship; rail-specific revenue not separately disclosed from consolidated figures",
-            "cagr": null,
+            "cagr": [
+              70,
+              23,
+              21
+            ],
             "range": [
               1179,
               2295
             ],
-            "tl": null,
+            "tl": [
+              184,
+              "bharat-forge-ltd"
+            ],
             "kpi": [
               97.2,
               200,
@@ -3903,14 +3921,14 @@
           ],
           "f": {
             "rev": [
-              null,
+              21211,
               23365,
               23893,
               28339,
               33782
             ],
             "np": [
-              null,
+              445,
               654,
               282,
               534,
@@ -3974,7 +3992,7 @@
             "mcap": "Rs 1,38,068 Cr",
             "price": "Rs 3,877",
             "ticker": "SIEMENS",
-            "note": "Fiscal year ends September; Mobility is one of several segments alongside Energy and Digital Industries",
+            "note": "Fiscal year ends September: the FY22-FY25 columns hold Sep 2021-Sep 2024, and the 18-month period to Mar 2026 (after the Energy demerger) is left out; Mobility is one of several segments alongside Energy and Digital Industries",
             "cagr": [
               25,
               22,
@@ -4013,25 +4031,25 @@
           ],
           "f": {
             "rev": [
-              null,
-              null,
-              null,
+              6934,
+              8568,
+              10447,
               12188,
               13203
             ],
             "np": [
-              null,
-              null,
-              null,
+              520,
+              1016,
+              1242,
               1872,
               1668
             ],
             "mcap": "Rs 1,49,448 Cr",
             "price": "Rs 7,052",
             "ticker": "ABB",
-            "note": null,
+            "note": "Reports Jan-Dec fiscal year: the FY22-FY26 columns hold CY2021-CY2025",
             "cagr": [
-              36.3,
+              36,
               19,
               31
             ],
@@ -4049,7 +4067,7 @@
               0.56,
               29.9,
               22.4,
-              17
+              2
             ]
           }
         },
@@ -4296,9 +4314,9 @@
             "mcap": "Rs 22,342 Cr",
             "price": "Rs 806",
             "ticker": "HBLENGINE",
-            "note": "Renamed from HBL Power Systems, reflecting pivot toward Kavach/defence electronics",
+            "note": "Renamed from HBL Power Systems (ticker HBLPOWER -> HBLENGINE); Renamed from HBL Power Systems, reflecting pivot toward Kavach/defence electronics",
             "cagr": [
-              -3.55,
+              -4,
               48,
               76
             ],
@@ -4335,23 +4353,23 @@
           ],
           "f": {
             "rev": [
-              null,
+              45,
               23,
               55,
               95,
               191
             ],
             "np": [
-              null,
+              3,
               0,
               62,
               10,
               -13
             ],
             "mcap": "Rs 1,071 Cr",
-            "price": "Rs 36.1",
+            "price": "Rs 36.10",
             "ticker": "MICEL",
-            "note": "Small-cap, volatile earnings; on BSE's Long-Term ASM surveillance stage as of Dec 2024",
+            "note": "Extremely volatile earnings; FY24's profit spike on modest revenue looks like a one-off gain; Small-cap, volatile earnings; on BSE's Long-Term ASM surveillance stage as of Dec 2024",
             "cagr": null,
             "range": [
               30,
@@ -4645,14 +4663,14 @@
           ],
           "f": {
             "rev": [
-              null,
+              719,
               1005,
               1208,
               1447,
               1503
             ],
             "np": [
-              null,
+              31,
               40,
               53,
               19,
@@ -4662,7 +4680,11 @@
             "price": "Rs 4.70",
             "ticker": "SALASAR",
             "note": "Small-cap; rail structures are one product line within a broader towers/EPC business",
-            "cagr": null,
+            "cagr": [
+              -48,
+              -23,
+              -4
+            ],
             "range": [
               4.66,
               11.5
@@ -5489,20 +5511,24 @@
               872,
               1073,
               1074,
-              null
+              1209
             ],
             "np": [
               177,
               156,
               92,
               111,
-              null
+              131
             ],
             "mcap": "Rs 7,588 Cr",
             "price": "Rs 405",
             "ticker": "MIDHANI",
             "note": "Government-owned specialty metallurgy PSU, dedicated to defense/aerospace alloys",
-            "cagr": null,
+            "cagr": [
+              5,
+              0,
+              17
+            ],
             "range": [
               267,
               482
@@ -5709,7 +5735,11 @@
             "price": "Rs 2,008",
             "ticker": "BHARATFORG",
             "note": "Automotive forgings dominate revenue; naval turbine-generator order is a recent, small-scale entry point",
-            "cagr": null,
+            "cagr": [
+              70,
+              23,
+              21
+            ],
             "range": [
               1179,
               2295
@@ -5807,20 +5837,31 @@
               550,
               420
             ],
-            "mcap": "Rs 43,600 Cr",
-            "price": "Rs 1,270",
+            "mcap": "Rs 41,788 Cr",
+            "price": "Rs 1,140",
             "ticker": "BDL",
-            "note": "Screener.in was gated for this name this session; figures cross-verified via stockanalysis.com - re-verify before publishing",
-            "cagr": null,
+            "note": null,
+            "cagr": [
+              -24,
+              31,
+              43
+            ],
             "range": [
               1086,
-              1654
+              1633
             ],
             "tl": [
               80210,
               "bharat-dynamics-ltd"
             ],
-            "kpi": null
+            "kpi": [
+              80.2,
+              116,
+              0.43,
+              13.9,
+              10.2,
+              5
+            ]
           }
         },
         "solarindustries": {
@@ -5956,7 +5997,11 @@
             "price": "Rs 1,682",
             "ticker": "ZENTEC",
             "note": "Not a naval pure-play (spans all three services); revenue fell ~29% FY25-FY26 after a spike year",
-            "cagr": null,
+            "cagr": [
+              12,
+              30,
+              52
+            ],
             "range": [
               1223,
               2044
@@ -6045,24 +6090,28 @@
           ],
           "f": {
             "rev": [
-              310.9,
-              null,
-              null,
-              708.4,
-              924.8
+              311,
+              453,
+              520,
+              708,
+              925
             ],
             "np": [
               94,
-              null,
-              null,
-              221.8,
-              271.4
+              124,
+              182,
+              222,
+              271
             ],
-            "mcap": "Rs 24,606 Cr",
-            "price": "Rs 4,418.80",
+            "mcap": "Rs 24,738 Cr",
+            "price": "Rs 4,419",
             "ticker": "DATAPATTNS",
-            "note": "Screener.in was gated this session; FY23/FY24 actuals cross-verified via press releases/Groww and should be re-checked",
-            "cagr": null,
+            "note": null,
+            "cagr": [
+              66,
+              28,
+              null
+            ],
             "range": [
               2131,
               5000
@@ -6072,11 +6121,11 @@
               "data-patterns-india-ltd"
             ],
             "kpi": [
-              91.83,
-              310.08,
+              91.5,
+              310,
               0.23,
-              null,
-              15.63,
+              21.9,
+              15.2,
               2
             ]
           }
@@ -6112,7 +6161,11 @@
             "price": "Rs 1,622",
             "ticker": "ASTRAMICRO",
             "note": null,
-            "cagr": null,
+            "cagr": [
+              55,
+              57,
+              53
+            ],
             "range": [
               836,
               1960
@@ -6162,7 +6215,11 @@
             "price": "Rs 1,321",
             "ticker": "PARAS",
             "note": null,
-            "cagr": null,
+            "cagr": [
+              90,
+              53,
+              null
+            ],
             "range": [
               580,
               1585
@@ -6191,7 +6248,6 @@
             "Established embedded-electronics qualification across aerospace and multiple defense platforms gives it a diversified base of recurring defense-program demand beyond any single naval contract"
           ],
           "risks": [
-            "FY26 figures not yet reflected in the source data at fetch time",
             "Embedded-electronics revenue spans aerospace and multiple defense platforms, not naval-specific"
           ],
           "f": {
@@ -6200,19 +6256,19 @@
               298,
               372,
               562,
-              null
+              904
             ],
             "np": [
               15,
               19,
               31,
               56,
-              null
+              107
             ],
             "mcap": "Rs 14,700 Cr",
             "price": "Rs 396",
             "ticker": "APOLLO",
-            "note": "FY26 figure not yet reflected in the pulled table - refresh before publishing",
+            "note": null,
             "cagr": [
               22,
               90,
@@ -6322,7 +6378,11 @@
             "price": "Rs 6,900",
             "ticker": "MTARTECH",
             "note": "More a space/nuclear/clean-energy precision-components story than a naval one specifically",
-            "cagr": null,
+            "cagr": [
+              267,
+              39,
+              37
+            ],
             "range": [
               1824,
               8715
@@ -6473,9 +6533,9 @@
             "mcap": "Rs 22,342 Cr",
             "price": "Rs 806",
             "ticker": "HBLENGINE",
-            "note": "Naval batteries are now a minority of a business increasingly driven by railway Kavach signalling",
+            "note": "Renamed from HBL Power Systems (ticker HBLPOWER -> HBLENGINE); Naval batteries are now a minority of a business increasingly driven by railway Kavach signalling",
             "cagr": [
-              -3.55,
+              -4,
               48,
               76
             ],
@@ -6529,7 +6589,11 @@
             "price": "Rs 2,728",
             "ticker": "AZAD",
             "note": "Recent IPO (2024); primarily aerospace-engine and energy-turbine forgings - the weakest-evidenced naval linkage here",
-            "cagr": null,
+            "cagr": [
+              75,
+              null,
+              null
+            ],
             "range": [
               1359,
               2987
@@ -6715,7 +6779,7 @@
             "cagr": [
               70,
               23,
-              22
+              21
             ],
             "range": [
               1179,
@@ -7473,7 +7537,7 @@
             "cagr": [
               70,
               23,
-              22
+              21
             ],
             "range": [
               1179,
@@ -9204,8 +9268,12 @@
             "mcap": "Rs 43,037 Cr",
             "price": "Rs 837",
             "ticker": "STLTECH",
-            "note": "Demerged its Global Services Business into STL Networks (effective 31-Mar-2025); 52W range and P/E reflect a large re-rating, likely AI-datacenter fiber demand speculation - flag as a volatility outlier",
-            "cagr": null,
+            "note": "P/E (~180x) sits on a thin FY26 profit after the stock re-rated ~8x in a year (52W low Rs 84.6); market cap re-checked against Screener on 14 Oct 2026 (~Rs 47,500 Cr); Demerged its Global Services Business into STL Networks (effective 31-Mar-2025); 52W range and P/E reflect a large re-rating, likely AI-datacenter fiber demand speculation - flag as a volatility outlier",
+            "cagr": [
+              615,
+              94,
+              32
+            ],
             "range": [
               84.6,
               912
@@ -9252,10 +9320,14 @@
               329
             ],
             "mcap": "Rs 32,337 Cr",
-            "price": "Rs 211.27",
+            "price": "Rs 211",
             "ticker": "HFCL",
             "note": null,
-            "cagr": null,
+            "cagr": [
+              193,
+              41,
+              24
+            ],
             "range": [
               59.8,
               257
@@ -9756,7 +9828,10 @@
               2044,
               5000
             ],
-            "tl": null,
+            "tl": [
+              251,
+              "centum-electronics-ltd"
+            ],
             "kpi": [
               81.1,
               233,
@@ -9932,28 +10007,32 @@
             "Navratna PSU status and a unique pan-India fiber network built along railway right-of-way give it a largely unreplicable infrastructure moat and steady government/B2B telecom revenue"
           ],
           "risks": [
-            "FY24-FY26 figures need direct re-verification against annual reports - only FY22/FY23 and TTM were confirmed"
+            "Revenue leans on government and PSU project awards, which can be lumpy from year to year"
           ],
           "f": {
             "rev": [
-              1548,
-              1964,
-              null,
-              null,
-              null
+              1522,
+              1957,
+              2568,
+              3478,
+              4277
             ],
             "np": [
-              209,
-              189,
-              null,
-              null,
-              null
+              208,
+              188,
+              246,
+              300,
+              346
             ],
             "mcap": "Rs 8,349 Cr",
-            "price": "Rs 260.15",
+            "price": "Rs 260",
             "ticker": "RAILTEL",
-            "note": "FY24-FY26 figures should be re-verified directly against annual reports - only FY22/FY23 and TTM (~Rs 2,225 Cr/Rs 215 Cr) were confirmed",
-            "cagr": null,
+            "note": null,
+            "cagr": [
+              -31,
+              6,
+              15
+            ],
             "range": [
               245,
               401
@@ -9961,10 +10040,10 @@
             "tl": null,
             "kpi": [
               22.5,
-              53.7,
+              70.5,
               1.25,
-              16.2,
-              12,
+              22.8,
+              17.1,
               10
             ]
           }
@@ -10294,7 +10373,10 @@
               634,
               1804
             ],
-            "tl": null,
+            "tl": [
+              995074,
+              "syrma-sgs-technology-ltd"
+            ],
             "kpi": [
               90,
               148,
@@ -10356,7 +10438,7 @@
           }
         },
         "hblpower_telecom": {
-          "name": "HBL Power Systems",
+          "name": "HBL Engineering",
           "listed": true,
           "role": "Telecom/industrial batteries, including 20,000+ installations for the BharatNet Wi-Fi project",
           "dataStatus": "demo",
@@ -10365,42 +10447,46 @@
             "Over 20,000 installations for the BharatNet Wi-Fi project demonstrate a proven, large-scale track record supplying telecom/industrial backup power that few peers can match"
           ],
           "risks": [
-            "FY24-FY26 figures need direct re-verification from company filings - only FY22/FY23 figures and a TTM estimate are confirmed"
+            "Telecom/industrial batteries are now a minority of a business increasingly driven by railway Kavach signalling and defence electronics"
           ],
           "f": {
             "rev": [
               1236,
               1369,
-              null,
-              null,
-              null
+              2233,
+              1967,
+              3303
             ],
             "np": [
               94,
               98,
-              null,
-              null,
-              null
+              280,
+              276,
+              814
             ],
-            "mcap": "Rs 12,984 Cr",
-            "price": "Rs 468",
-            "ticker": "HBLPOWER",
-            "note": "FY24-FY26 figures need direct re-verification from company filings; TTM (~Rs 2,026 Cr/Rs 234 Cr) implies a strong recent ramp",
-            "cagr": null,
+            "mcap": "Rs 22,342 Cr",
+            "price": "Rs 806",
+            "ticker": "HBLENGINE",
+            "note": "Renamed from HBL Power Systems (ticker HBLPOWER -> HBLENGINE)",
+            "cagr": [
+              -4,
+              48,
+              76
+            ],
             "range": [
-              99.8,
-              612
+              603,
+              1122
             ],
             "tl": [
               526,
-              "hbl-power-systems-ltd"
+              "hbl-engineering-ltd"
             ],
             "kpi": [
-              54.8,
-              38.2,
-              0.1,
-              13.7,
-              10.7,
+              27.9,
+              79.9,
+              0.37,
+              59.3,
+              45.3,
               1
             ]
           }
@@ -10432,20 +10518,27 @@
               945,
               896
             ],
-            "mcap": "Rs 14,495 Cr",
-            "price": "Rs 792",
+            "mcap": "Rs 13,558 Cr",
+            "price": "Rs 740",
             "ticker": "ARE&M",
-            "note": "Partial exposure - automotive batteries dominate group revenue",
-            "cagr": null,
+            "note": "Price/valuation as of 14 Oct 2026; Partial exposure - automotive batteries dominate group revenue",
+            "cagr": [
+              -26,
+              5,
+              -1
+            ],
             "range": [
               670,
               1023
             ],
-            "tl": null,
+            "tl": [
+              68,
+              "amara-raja-energy-mobility-ltd"
+            ],
             "kpi": [
-              19.8,
+              18.6,
               442,
-              1.34,
+              1.43,
               12.2,
               7.18,
               1
@@ -10480,11 +10573,15 @@
               800,
               860
             ],
-            "mcap": "Rs 36,010 Cr",
+            "mcap": "Rs 36,023 Cr",
             "price": "Rs 424",
             "ticker": "EXIDEIND",
-            "note": "FY22 profit includes a one-time gain; partial exposure - automotive dominates",
-            "cagr": null,
+            "note": "FY22 profit includes a one-time gain; Partial exposure - automotive dominates",
+            "cagr": [
+              8,
+              18,
+              19
+            ],
             "range": [
               287,
               496
@@ -10584,7 +10681,7 @@
             "mcap": "Rs 11,14,378 Cr",
             "price": "Rs 1,785",
             "ticker": "BHARTIARTL",
-            "note": "FY25's profit jump reflects a large one-off/deferred-tax-related gain, per common analyst commentary",
+            "note": "FY25's profit jump reflects a large one-off/deferred-tax-related gain, not run-rate",
             "cagr": null,
             "range": [
               1740,
@@ -11046,42 +11143,42 @@
           ],
           "f": {
             "rev": [
-              96387,
-              118962,
-              144646,
-              165730,
-              100932
+              69420,
+              127540,
+              96421,
+              97895,
+              100469
             ],
             "np": [
-              1375,
-              2792,
-              1731,
-              2558,
-              4620
+              788,
+              2422,
+              3335,
+              8005,
+              9951
             ],
-            "mcap": "Rs 2,63,000 Cr",
-            "price": "Rs 2,297",
+            "mcap": "Rs 3,68,622 Cr",
+            "price": "Rs 2,723",
             "ticker": "ADANIENT",
-            "note": "Diversified incubator entity - solar manufacturing is a sub-segment, not separately reported revenue",
+            "note": "Diversified incubator entity - solar manufacturing is a sub-segment, not separately reported revenue; FY25-FY26 profit includes large exceptional gains (e.g. Adani Wilmar stake sales), not run-rate; price/valuation as of 14 Oct 2026",
             "cagr": [
-              22,
-              27,
-              -19
+              12,
+              5,
+              11
             ],
             "range": [
-              1860,
-              3200
+              1753,
+              3245
             ],
             "tl": [
               null,
               "adani-enterprises-ltd"
             ],
             "kpi": [
-              56.9,
-              420,
-              0.04,
-              13.1,
-              15.8,
+              155,
+              627,
+              0.05,
+              5.8,
+              4.48,
               1
             ]
           }
@@ -11101,42 +11198,42 @@
           ],
           "f": {
             "rev": [
-              1098,
-              1301,
-              1058,
-              953,
-              null
+              null,
+              891,
+              1371,
+              1476,
+              1556
             ],
             "np": [
-              134,
-              98,
-              -45,
-              -112,
-              null
+              null,
+              71,
+              -50,
+              -87,
+              127
             ],
-            "mcap": "Rs 4,100 Cr",
-            "price": "Rs 420",
+            "mcap": "Rs 6,427 Cr",
+            "price": "Rs 436",
             "ticker": "BORORENEW",
-            "note": "Margins highly sensitive to anti-dumping duty status and Chinese import pricing",
+            "note": "Consolidated history starts FY23; margins highly sensitive to anti-dumping duty status and Chinese import pricing; price/valuation as of 14 Oct 2026",
             "cagr": [
-              8,
-              -9,
-              null
+              -30,
+              1,
+              -1
             ],
             "range": [
-              320,
-              620
+              374,
+              721
             ],
             "tl": [
               null,
               "borosil-renewables-ltd"
             ],
             "kpi": [
-              null,
-              88.4,
+              17.3,
+              108,
               0,
-              -2.1,
-              -5.3,
+              25.3,
+              25.7,
               1
             ]
           }
@@ -11175,42 +11272,42 @@
           ],
           "f": {
             "rev": [
-              1536,
-              3143,
-              6896,
-              null,
-              null
+              743,
+              1429,
+              3144,
+              6519,
+              7824
             ],
             "np": [
-              -9,
-              232,
-              517,
-              null,
-              null
+              -14,
+              -13,
+              231,
+              937,
+              1510
             ],
-            "mcap": "Rs 32,500 Cr",
-            "price": "Rs 950",
+            "mcap": "Rs 42,179 Cr",
+            "price": "Rs 923",
             "ticker": "PREMIERENE",
-            "note": "Listed Sep 2024 - limited financial history available",
+            "note": "Listed Sep 2024; price/valuation as of 14 Oct 2026",
             "cagr": [
-              null,
+              -13,
               null,
               null
             ],
             "range": [
-              650,
-              1180
+              660,
+              1134
             ],
             "tl": [
               null,
               "premier-energies-ltd"
             ],
             "kpi": [
-              62.8,
-              95,
-              0,
-              27.4,
-              24.9,
+              25.3,
+              95.1,
+              0.11,
+              32.7,
+              41,
               1
             ]
           }
@@ -11230,43 +11327,43 @@
           ],
           "f": {
             "rev": [
-              64,
-              112,
-              398,
-              612,
-              null
+              213,
+              17,
+              26,
+              521,
+              974
             ],
             "np": [
-              -18,
-              9,
-              87,
-              142,
-              null
+              10,
+              -24,
+              -121,
+              155,
+              303
             ],
-            "mcap": "Rs 5,200 Cr",
-            "price": "Rs 1,480",
+            "mcap": "Rs 3,000 Cr",
+            "price": "Rs 69.1",
             "ticker": "WEBELSOLAR",
-            "note": "Small-cap - verify latest figures before use",
+            "note": "Standalone figures (no consolidated history before FY25); FY23-FY24 revenue collapsed while the cell lines were shut for an upgrade, so growth runs off a near-zero base; price/valuation as of 14 Oct 2026",
             "cagr": [
-              null,
-              null,
-              null
+              -46,
+              51,
+              53
             ],
             "range": [
-              780,
-              2150
+              50.4,
+              138
             ],
             "tl": [
               null,
               "websol-energy-system-ltd"
             ],
             "kpi": [
-              36.6,
-              142,
-              0,
-              38.2,
-              33.5,
-              10
+              9.55,
+              14.5,
+              0.36,
+              63.2,
+              66.9,
+              1
             ]
           }
         },
@@ -11285,42 +11382,42 @@
           ],
           "f": {
             "rev": [
-              2947,
-              6677,
+              2854,
+              6751,
               11398,
-              null,
-              null
+              14444,
+              26537
             ],
             "np": [
-              94,
-              414,
+              80,
+              500,
               1274,
-              null,
-              null
+              1928,
+              3884
             ],
-            "mcap": "Rs 76,000 Cr",
-            "price": "Rs 2,850",
+            "mcap": "Rs 72,551 Cr",
+            "price": "Rs 2,516",
             "ticker": "WAAREEENER",
-            "note": "Listed Oct 2024 - limited financial history available",
+            "note": "Listed Oct 2024; price/valuation as of 14 Oct 2026",
             "cagr": [
-              null,
+              -28,
               null,
               null
             ],
             "range": [
-              1700,
-              3650
+              2282,
+              3720
             ],
             "tl": [
               null,
               "waaree-energies-ltd"
             ],
             "kpi": [
-              59.6,
-              310,
-              0,
-              30.1,
-              27.2,
+              18,
+              502,
+              0.16,
+              38.4,
+              32.5,
               10
             ]
           }
@@ -11359,43 +11456,43 @@
           ],
           "f": {
             "rev": [
-              98,
-              221,
-              612,
-              null,
-              null
+              215,
+              279,
+              737,
+              1334,
+              2146
             ],
             "np": [
-              6,
-              19,
-              58,
-              null,
-              null
+              7,
+              11,
+              55,
+              126,
+              201
             ],
-            "mcap": "Rs 3,400 Cr",
-            "price": "Rs 2,640",
-            "ticker": "INSOLATION",
-            "note": "Small-cap, recently scaled - verify latest figures before use",
+            "mcap": "Rs 1,678 Cr",
+            "price": "Rs 76.2",
+            "ticker": "INA",
+            "note": "Migrated from the BSE SME platform to the NSE/BSE main board in Mar 2026; price/valuation as of 14 Oct 2026",
             "cagr": [
-              null,
-              null,
+              -56,
+              21,
               null
             ],
             "range": [
-              1100,
-              4200
+              74,
+              198
             ],
             "tl": [
               null,
               "insolation-energy-ltd"
             ],
             "kpi": [
-              58.6,
-              142,
+              8.61,
+              36.6,
               0,
-              33.8,
-              29.4,
-              10
+              22.4,
+              28.4,
+              1
             ]
           }
         },
@@ -11413,42 +11510,42 @@
           ],
           "f": {
             "rev": [
-              10121,
-              13165,
-              18805,
-              19923,
-              21340
+              9317,
+              14336,
+              16153,
+              18581,
+              22902
             ],
             "np": [
-              283,
-              470,
-              760,
-              816,
-              860
+              257,
+              638,
+              825,
+              821,
+              977
             ],
-            "mcap": "Rs 42,000 Cr",
-            "price": "Rs 10,850",
+            "mcap": "Rs 74,432 Cr",
+            "price": "Rs 17,776",
             "ticker": "APARINDS",
             "note": null,
             "cagr": [
-              27,
-              24,
-              14
+              113,
+              48,
+              94
             ],
             "range": [
-              6500,
-              11800
+              6800,
+              19269
             ],
             "tl": [
-              null,
+              88,
               "apar-industries-ltd"
             ],
             "kpi": [
-              48.8,
-              620,
-              0.2,
-              22.4,
-              20.1,
+              61.8,
+              1343,
+              0.34,
+              31.8,
+              20.3,
               10
             ]
           }
@@ -11467,42 +11564,38 @@
           ],
           "f": {
             "rev": [
-              6519,
-              8457,
-              9871,
-              10735,
-              13420
+              5484,
+              6973,
+              8046,
+              9909,
+              12418
             ],
             "np": [
-              498,
-              718,
-              886,
-              1010,
-              1265
+              913,
+              963,
+              1428,
+              973,
+              1199
             ],
-            "mcap": "Rs 1,15,000 Cr",
-            "price": "Rs 780",
+            "mcap": "Rs 1,39,586 Cr",
+            "price": "Rs 886",
             "ticker": "CGPOWER",
             "note": null,
-            "cagr": [
-              26,
-              17,
-              25
-            ],
+            "cagr": null,
             "range": [
-              430,
-              850
+              526,
+              981
             ],
             "tl": [
-              null,
+              293,
               "cg-power-and-industrial-solutions-ltd"
             ],
             "kpi": [
-              91.2,
+              110,
+              50.6,
+              0.15,
+              26.7,
               20.5,
-              0.19,
-              27,
-              46.2,
               2
             ]
           }
@@ -11522,43 +11615,43 @@
           ],
           "f": {
             "rev": [
-              4910,
-              2458,
-              2184,
-              2912,
-              3840
+              5199,
+              2015,
+              3035,
+              6302,
+              7548
             ],
             "np": [
-              -873,
-              -574,
-              -198,
-              64,
-              145
+              -916,
+              -1175,
+              -211,
+              86,
+              -296
             ],
-            "mcap": "Rs 7,200 Cr",
-            "price": "Rs 420",
+            "mcap": "Rs 4,015 Cr",
+            "price": "Rs 172",
             "ticker": "SWSOLAR",
-            "note": "Recovering from a prior period of financial stress - verify latest figures before use",
+            "note": "Price/valuation as of 14 Oct 2026; Recovering from a prior period of financial stress; FY26 slipped back to a net loss",
             "cagr": [
               -30,
-              -12,
-              32
+              -18,
+              -17
             ],
             "range": [
-              280,
-              620
+              148,
+              261
             ],
             "tl": [
               null,
               "sterling-and-wilson-renewable-energy-ltd"
             ],
             "kpi": [
-              49.7,
-              18.2,
+              12.9,
+              27.8,
               0,
-              8.4,
-              12.6,
-              2
+              26.8,
+              40.1,
+              1
             ]
           }
         },
@@ -11577,42 +11670,42 @@
           ],
           "f": {
             "rev": [
-              612,
-              891,
-              1298,
-              1456,
-              null
+              230,
+              644,
+              1024,
+              1735,
+              2696
             ],
             "np": [
-              78,
-              118,
-              172,
-              198,
-              null
+              43,
+              110,
+              162,
+              325,
+              509
             ],
-            "mcap": "Rs 7,800 Cr",
-            "price": "Rs 620",
+            "mcap": "Rs 6,427 Cr",
+            "price": "Rs 325",
             "ticker": "KPIGREEN",
-            "note": null,
+            "note": "Price/valuation as of 14 Oct 2026",
             "cagr": [
-              34,
-              28,
-              22
+              -28,
+              18,
+              83
             ],
             "range": [
-              380,
-              920
+              272,
+              542
             ],
             "tl": [
               null,
               "kpi-green-energy-ltd"
             ],
             "kpi": [
-              39.4,
-              85.2,
-              0.1,
-              24.6,
-              22.1,
+              14.1,
+              154,
+              0.28,
+              13.7,
+              16.9,
               5
             ]
           }
@@ -11632,42 +11725,42 @@
           ],
           "f": {
             "rev": [
-              7132,
-              9123,
-              11219,
-              12810,
-              null
+              5133,
+              7792,
+              9220,
+              11212,
+              12928
             ],
             "np": [
-              223,
-              721,
+              489,
+              973,
               1260,
-              1897,
-              null
+              2001,
+              1987
             ],
-            "mcap": "Rs 1,45,000 Cr",
-            "price": "Rs 920",
+            "mcap": "Rs 2,17,510 Cr",
+            "price": "Rs 1,318",
             "ticker": "ADANIGREEN",
-            "note": null,
+            "note": "Price/valuation as of 14 Oct 2026",
             "cagr": [
-              28,
-              24,
-              18
+              27,
+              12,
+              2
             ],
             "range": [
-              650,
-              1250
+              765,
+              1632
             ],
             "tl": [
               null,
               "adani-green-energy-ltd"
             ],
             "kpi": [
-              76.4,
-              58,
+              112,
+              121,
               0,
-              11.2,
-              17.8,
+              7.39,
+              11.4,
               10
             ]
           }
@@ -11746,43 +11839,43 @@
           ],
           "f": {
             "rev": [
-              8520,
-              9988,
-              10971,
-              12187,
-              13850
+              21211,
+              23365,
+              23893,
+              28339,
+              33782
             ],
             "np": [
-              -21,
-              243,
-              412,
-              587,
-              720
+              445,
+              654,
+              282,
+              534,
+              1600
             ],
-            "mcap": "Rs 1,05,000 Cr",
-            "price": "Rs 290",
+            "mcap": "Rs 1,45,881 Cr",
+            "price": "Rs 419",
             "ticker": "BHEL",
             "note": null,
             "cagr": [
-              14,
-              16,
-              13
+              81.4,
+              49,
+              47
             ],
             "range": [
-              180,
-              340
+              230,
+              447
             ],
             "tl": [
-              null,
-              "bhel-ltd"
+              189,
+              "bharat-heavy-electricals-ltd"
             ],
             "kpi": [
-              146,
-              38.2,
-              0,
-              6.8,
-              4.9,
-              10
+              60,
+              75.1,
+              0.33,
+              9.14,
+              6.23,
+              2
             ]
           }
         },
@@ -11800,42 +11893,42 @@
           ],
           "f": {
             "rev": [
-              18234,
-              20897,
-              23654,
-              19877,
+              13198,
+              16138,
+              19554,
+              15146,
               null
             ],
             "np": [
-              1465,
-              1842,
-              2231,
-              1298,
+              1089,
+              1543,
+              1962,
+              2718,
               null
             ],
-            "mcap": "Rs 95,000 Cr",
-            "price": "Rs 2,680",
+            "mcap": "Rs 1,38,068 Cr",
+            "price": "Rs 3,877",
             "ticker": "SIEMENS",
-            "note": "Post FY24 demerger of Energy business into Siemens Energy India - figures reflect the transition",
+            "note": "Fiscal year ends September: the FY22-FY25 columns hold Sep 2021-Sep 2024, and the 18-month period to Mar 2026 (after the Energy demerger) is left out; Post FY24 demerger of Energy business into Siemens Energy India - figures reflect the transition",
             "cagr": [
-              12,
-              15,
-              8
+              25,
+              22,
+              26
             ],
             "range": [
-              2100,
-              3800
+              2826,
+              4149
             ],
             "tl": [
-              null,
+              1237,
               "siemens-ltd"
             ],
             "kpi": [
-              73.2,
-              312,
-              0.3,
-              22.4,
-              17.8,
+              91.8,
+              389,
+              0.46,
+              21.4,
+              19.2,
               2
             ]
           }
@@ -11854,42 +11947,42 @@
           ],
           "f": {
             "rev": [
+              156521,
               183341,
-              203706,
-              225613,
-              255086,
-              291382
+              221113,
+              255734,
+              285874
             ],
             "np": [
-              10471,
-              13060,
-              13626,
-              17238,
-              19845
+              10419,
+              12531,
+              15547,
+              17673,
+              18954
             ],
-            "mcap": "Rs 4,80,000 Cr",
-            "price": "Rs 3,420",
+            "mcap": "Rs 5,33,324 Cr",
+            "price": "Rs 3,876",
             "ticker": "LT",
             "note": null,
             "cagr": [
-              11,
-              12,
-              15
+              4,
+              9,
+              17
             ],
             "range": [
-              2900,
-              3980
+              3288,
+              4440
             ],
             "tl": [
-              null,
+              800,
               "larsen-toubro-ltd"
             ],
             "kpi": [
-              24.2,
-              870,
-              0.8,
-              14.5,
-              15.6,
+              30.3,
+              794,
+              0.98,
+              14.6,
+              15.9,
               2
             ]
           }
@@ -11908,42 +12001,38 @@
           ],
           "f": {
             "rev": [
-              7236,
-              8142,
-              8954,
-              9512,
-              null
+              6128,
+              8090,
+              9323,
+              10387,
+              10774
             ],
             "np": [
-              352,
-              418,
-              467,
-              512,
-              null
+              312,
+              451,
+              643,
+              627,
+              720
             ],
-            "mcap": "Rs 38,500 Cr",
-            "price": "Rs 3,420",
+            "mcap": "Rs 41,076 Cr",
+            "price": "Rs 3,447",
             "ticker": "THERMAX",
             "note": null,
-            "cagr": [
-              9,
-              10,
-              6
-            ],
+            "cagr": null,
             "range": [
-              2600,
-              4200
+              2743,
+              5278
             ],
             "tl": [
-              null,
+              1387,
               "thermax-ltd"
             ],
             "kpi": [
-              75.2,
-              420,
-              0.4,
-              18.6,
-              15.1,
+              74.6,
+              466,
+              0.41,
+              13.9,
+              10.6,
               2
             ]
           }
@@ -11963,42 +12052,42 @@
           ],
           "f": {
             "rev": [
-              158922,
-              176873,
-              183421,
-              179104,
-              192677
+              132669,
+              176207,
+              178525,
+              188138,
+              187385
             ],
             "np": [
-              16626,
-              17596,
-              18799,
-              17539,
-              19450
+              16960,
+              17121,
+              21332,
+              23953,
+              27546
             ],
-            "mcap": "Rs 3,30,000 Cr",
-            "price": "Rs 340",
+            "mcap": "Rs 3,03,891 Cr",
+            "price": "Rs 314",
             "ticker": "NTPC",
-            "note": null,
+            "note": "Price/valuation as of 14 Oct 2026",
             "cagr": [
-              6,
-              5,
-              7
+              -7,
+              9,
+              16
             ],
             "range": [
-              295,
-              445
+              306,
+              414
             ],
             "tl": [
               null,
               "ntpc-ltd"
             ],
             "kpi": [
-              17,
-              142,
-              2.6,
-              10.8,
-              12.4,
+              11,
+              210,
+              2.87,
+              8.92,
+              15.1,
               10
             ]
           }
@@ -12018,43 +12107,43 @@
           ],
           "f": {
             "rev": [
-              34223,
-              41251,
-              50435,
-              54483,
-              null
+              27711,
+              38773,
+              50351,
+              56203,
+              54241
             ],
             "np": [
-              4780,
-              10560,
-              8140,
-              12240,
-              null
+              4912,
+              10727,
+              20829,
+              12750,
+              12971
             ],
-            "mcap": "Rs 2,10,000 Cr",
-            "price": "Rs 540",
+            "mcap": "Rs 3,76,361 Cr",
+            "price": "Rs 195",
             "ticker": "ADANIPOWER",
-            "note": null,
+            "note": "FY24 profit includes one-off prior-period income and a deferred-tax credit, not run-rate; price/valuation as of 14 Oct 2026",
             "cagr": [
-              18,
-              22,
-              14
+              26,
+              42,
+              54
             ],
             "range": [
-              420,
-              780
+              128,
+              254
             ],
             "tl": [
               null,
               "adani-power-ltd"
             ],
             "kpi": [
-              17.2,
-              105,
+              26.4,
+              33.7,
               0,
-              19.8,
-              36.4,
-              10
+              17.2,
+              21.1,
+              2
             ]
           }
         },
@@ -12072,42 +12161,42 @@
           ],
           "f": {
             "rev": [
-              8912,
-              10234,
-              11567,
-              12890,
-              null
+              8167,
+              10332,
+              11486,
+              11745,
+              18901
             ],
             "np": [
-              1456,
-              1823,
-              2140,
-              2410,
-              null
+              1743,
+              1480,
+              1725,
+              1983,
+              2762
             ],
-            "mcap": "Rs 95,000 Cr",
-            "price": "Rs 560",
+            "mcap": "Rs 89,993 Cr",
+            "price": "Rs 490",
             "ticker": "JSWENERGY",
-            "note": null,
+            "note": "Price/valuation as of 14 Oct 2026",
             "cagr": [
-              14,
-              16,
-              12
+              -9,
+              8,
+              4
             ],
             "range": [
-              420,
-              780
+              428,
+              617
             ],
             "tl": [
               null,
               "jsw-energy-ltd"
             ],
             "kpi": [
-              39.4,
-              142,
-              0.3,
-              16.2,
-              18.4,
+              44.9,
+              175,
+              0.41,
+              8.16,
+              7.51,
               10
             ]
           }
@@ -12126,42 +12215,42 @@
           ],
           "f": {
             "rev": [
-              2947,
-              6677,
+              2854,
+              6751,
               11398,
-              null,
-              null
+              14444,
+              26537
             ],
             "np": [
-              94,
-              414,
+              80,
+              500,
               1274,
-              null,
-              null
+              1928,
+              3884
             ],
-            "mcap": "Rs 76,000 Cr",
-            "price": "Rs 2,850",
+            "mcap": "Rs 72,551 Cr",
+            "price": "Rs 2,516",
             "ticker": "WAAREEENER",
-            "note": "Listed Oct 2024 - limited financial history available",
+            "note": "Listed Oct 2024; price/valuation as of 14 Oct 2026",
             "cagr": [
-              null,
+              -28,
               null,
               null
             ],
             "range": [
-              1700,
-              3650
+              2282,
+              3720
             ],
             "tl": [
               null,
               "waaree-energies-ltd"
             ],
             "kpi": [
-              59.6,
-              310,
-              0,
-              30.1,
-              27.2,
+              18,
+              502,
+              0.16,
+              38.4,
+              32.5,
               10
             ]
           }
@@ -12180,43 +12269,43 @@
           ],
           "f": {
             "rev": [
-              4910,
-              2458,
-              2184,
-              2912,
-              3840
+              5199,
+              2015,
+              3035,
+              6302,
+              7548
             ],
             "np": [
-              -873,
-              -574,
-              -198,
-              64,
-              145
+              -916,
+              -1175,
+              -211,
+              86,
+              -296
             ],
-            "mcap": "Rs 7,200 Cr",
-            "price": "Rs 420",
+            "mcap": "Rs 4,015 Cr",
+            "price": "Rs 172",
             "ticker": "SWSOLAR",
-            "note": "Recovering from a prior period of financial stress - verify latest figures before use",
+            "note": "Price/valuation as of 14 Oct 2026; Recovering from a prior period of financial stress; FY26 slipped back to a net loss",
             "cagr": [
               -30,
-              -12,
-              32
+              -18,
+              -17
             ],
             "range": [
-              280,
-              620
+              148,
+              261
             ],
             "tl": [
               null,
               "sterling-and-wilson-renewable-energy-ltd"
             ],
             "kpi": [
-              49.7,
-              18.2,
+              12.9,
+              27.8,
               0,
-              8.4,
-              12.6,
-              2
+              26.8,
+              40.1,
+              1
             ]
           }
         },
@@ -12235,42 +12324,42 @@
           ],
           "f": {
             "rev": [
-              7132,
-              9123,
-              11219,
-              12810,
-              null
+              5133,
+              7792,
+              9220,
+              11212,
+              12928
             ],
             "np": [
-              223,
-              721,
+              489,
+              973,
               1260,
-              1897,
-              null
+              2001,
+              1987
             ],
-            "mcap": "Rs 1,45,000 Cr",
-            "price": "Rs 920",
+            "mcap": "Rs 2,17,510 Cr",
+            "price": "Rs 1,318",
             "ticker": "ADANIGREEN",
-            "note": null,
+            "note": "Price/valuation as of 14 Oct 2026",
             "cagr": [
-              28,
-              24,
-              18
+              27,
+              12,
+              2
             ],
             "range": [
-              650,
-              1250
+              765,
+              1632
             ],
             "tl": [
               null,
               "adani-green-energy-ltd"
             ],
             "kpi": [
-              76.4,
-              58,
+              112,
+              121,
               0,
-              11.2,
-              17.8,
+              7.39,
+              11.4,
               10
             ]
           }
@@ -12289,42 +12378,42 @@
           ],
           "f": {
             "rev": [
-              4287,
-              6066,
-              6861,
-              10371,
-              null
+              6582,
+              5971,
+              6529,
+              10890,
+              16732
             ],
             "np": [
-              -649,
-              302,
-              713,
-              1328,
-              null
+              -177,
+              2887,
+              660,
+              2072,
+              3163
             ],
-            "mcap": "Rs 89,000 Cr",
-            "price": "Rs 65.4",
+            "mcap": "Rs 55,649 Cr",
+            "price": "Rs 40.8",
             "ticker": "SUZLON",
-            "note": "Post-restructuring - verify latest figures before use",
+            "note": "FY23 profit includes a one-off gain on debt restructuring and FY25 a deferred-tax credit, not run-rate; price/valuation as of 14 Oct 2026",
             "cagr": [
-              41,
-              38,
-              52
+              -24,
+              15,
+              45
             ],
             "range": [
-              38,
-              86
+              36.3,
+              61.5
             ],
             "tl": [
               null,
               "suzlon-energy-ltd"
             ],
             "kpi": [
-              67,
-              5.8,
+              17.7,
+              6.96,
               0,
-              22.4,
-              38.6,
+              34.2,
+              39.7,
               2
             ]
           }
@@ -12344,42 +12433,42 @@
           ],
           "f": {
             "rev": [
-              1134,
-              1456,
-              2187,
-              2890,
-              null
+              625,
+              737,
+              1746,
+              3557,
+              4397
             ],
             "np": [
-              -187,
-              34,
-              298,
-              456,
-              null
+              -483,
+              -671,
+              -48,
+              438,
+              449
             ],
-            "mcap": "Rs 22,000 Cr",
-            "price": "Rs 185",
+            "mcap": "Rs 12,065 Cr",
+            "price": "Rs 69.9",
             "ticker": "INOXWIND",
-            "note": "Recovering balance sheet - verify latest figures before use",
+            "note": "Price/valuation as of 14 Oct 2026",
             "cagr": [
-              null,
-              38,
-              32
+              -53,
+              12,
+              17
             ],
             "range": [
-              110,
-              245
+              62.4,
+              159
             ],
             "tl": [
               null,
               "inox-wind-ltd"
             ],
             "kpi": [
-              48.2,
-              22.4,
+              35,
+              36.9,
               0,
-              24.6,
-              28.9,
+              10.6,
+              7.5,
               10
             ]
           }
@@ -12398,42 +12487,42 @@
           ],
           "f": {
             "rev": [
-              312,
-              298,
-              276,
-              342,
-              null
+              311,
+              258,
+              271,
+              260,
+              293
             ],
             "np": [
-              18,
-              -24,
-              -42,
-              12,
-              null
+              36,
+              33,
+              38,
+              42,
+              72
             ],
-            "mcap": "Rs 2,100 Cr",
-            "price": "Rs 10.2",
-            "ticker": "ORIENTGREEN",
-            "note": "Small-cap - verify latest figures before use",
+            "mcap": "Rs 1,010 Cr",
+            "price": "Rs 8.61",
+            "ticker": "GREENPOWER",
+            "note": "Small-cap; price/valuation as of 14 Oct 2026",
             "cagr": [
-              null,
-              null,
-              null
+              -32,
+              -12,
+              17
             ],
             "range": [
-              6.8,
-              14.2
+              7.98,
+              14.9
             ],
             "tl": [
               null,
               "orient-green-power-company-ltd"
             ],
             "kpi": [
-              null,
-              2.1,
+              18.9,
+              9.82,
               0,
-              4.2,
-              5.8,
+              7.19,
+              5.27,
               10
             ]
           }
@@ -12452,43 +12541,43 @@
           ],
           "f": {
             "rev": [
-              8520,
-              9988,
-              10971,
-              12187,
-              13850
+              21211,
+              23365,
+              23893,
+              28339,
+              33782
             ],
             "np": [
-              -21,
-              243,
-              412,
-              587,
-              720
+              445,
+              654,
+              282,
+              534,
+              1600
             ],
-            "mcap": "Rs 1,05,000 Cr",
-            "price": "Rs 290",
+            "mcap": "Rs 1,45,881 Cr",
+            "price": "Rs 419",
             "ticker": "BHEL",
             "note": null,
             "cagr": [
-              14,
-              16,
-              13
+              81.4,
+              49,
+              47
             ],
             "range": [
-              180,
-              340
+              230,
+              447
             ],
             "tl": [
-              null,
-              "bhel-ltd"
+              189,
+              "bharat-heavy-electricals-ltd"
             ],
             "kpi": [
-              146,
-              38.2,
-              0,
-              6.8,
-              4.9,
-              10
+              60,
+              75.1,
+              0.33,
+              9.14,
+              6.23,
+              2
             ]
           }
         },
@@ -12507,42 +12596,42 @@
           ],
           "f": {
             "rev": [
-              9892,
-              10234,
-              9876,
-              10543,
-              null
+              9144,
+              10607,
+              9631,
+              10380,
+              11615
             ],
             "np": [
-              3421,
-              3678,
-              3245,
-              3890,
-              null
+              3774,
+              4261,
+              4000,
+              3412,
+              4220
             ],
-            "mcap": "Rs 1,00,000 Cr",
-            "price": "Rs 98.5",
+            "mcap": "Rs 74,042 Cr",
+            "price": "Rs 73.7",
             "ticker": "NHPC",
-            "note": null,
+            "note": "Price/valuation as of 14 Oct 2026",
             "cagr": [
-              4,
-              3,
-              5
+              -14,
+              12,
+              19
             ],
             "range": [
-              72,
-              118
+              68.7,
+              87.8
             ],
             "tl": [
               null,
               "nhpc-ltd"
             ],
             "kpi": [
-              26.1,
-              25.4,
-              2.2,
-              10.8,
-              14.2,
+              19.5,
+              41.2,
+              2.18,
+              5.75,
+              9.32,
               10
             ]
           }
@@ -12562,42 +12651,42 @@
           ],
           "f": {
             "rev": [
-              2341,
-              2567,
-              2789,
-              3012,
-              null
+              2417,
+              2938,
+              2579,
+              3072,
+              4528
             ],
             "np": [
-              1123,
-              1245,
-              1189,
-              1356,
-              null
+              990,
+              1359,
+              911,
+              818,
+              642
             ],
-            "mcap": "Rs 38,000 Cr",
-            "price": "Rs 97.2",
+            "mcap": "Rs 22,329 Cr",
+            "price": "Rs 56.8",
             "ticker": "SJVN",
-            "note": null,
+            "note": "Price/valuation as of 14 Oct 2026",
             "cagr": [
-              6,
-              5,
-              8
+              -36,
+              -8,
+              15
             ],
             "range": [
-              68,
-              145
+              53.7,
+              91.2
             ],
             "tl": [
               null,
               "sjvn-ltd"
             ],
             "kpi": [
-              28,
-              38.6,
-              2,
-              9.4,
-              11.6,
+              34.9,
+              36.2,
+              2.64,
+              5.73,
+              4.58,
               10
             ]
           }
@@ -12670,27 +12759,27 @@
           ],
           "f": {
             "rev": [
-              8696,
-              10390,
-              11260,
-              null,
-              null
+              8697,
+              10392,
+              11708,
+              12846,
+              13814
             ],
             "np": [
-              511,
+              513,
               731,
-              906,
-              null,
-              null
+              934,
+              945,
+              896
             ],
-            "mcap": "Rs 18,568 Cr",
-            "price": "Rs 1,014",
+            "mcap": "Rs 13,558 Cr",
+            "price": "Rs 740",
             "ticker": "ARE&M",
-            "note": "FY25-FY26 not yet reflected in the source data at fetch time",
+            "note": "Price/valuation as of 14 Oct 2026",
             "cagr": [
-              -19,
-              7,
-              1
+              -26,
+              5,
+              -1
             ],
             "range": [
               670,
@@ -12701,11 +12790,11 @@
               "amara-raja-energy-mobility-ltd"
             ],
             "kpi": [
-              18.5,
-              446,
-              1.34,
-              13.4,
-              8.26,
+              18.6,
+              442,
+              1.43,
+              12.2,
+              7.18,
               1
             ]
           }
