@@ -115,7 +115,7 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
           {!supplier.listed && <UnlistedView supplier={supplier} />}
           {supplier.listed && tab === "summary" && <SummaryView ticker={ticker} supplier={supplier} api={api} loading={apiLoading} showNarrative />}
-          {supplier.listed && tab === "chart" && <ChartView ticker={ticker} />}
+          {supplier.listed && tab === "chart" && <ChartView ticker={ticker} quote={api?.quote ?? null} />}
           {supplier.listed && tab === "news" && <NewsView ticker={ticker} name={supplier.name} supplier={supplier} api={api} />}
           {supplier.listed && tab === "fundamentals" && <FundamentalsView supplier={supplier} api={api} loading={apiLoading} />}
         </div>

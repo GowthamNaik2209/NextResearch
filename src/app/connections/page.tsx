@@ -10,7 +10,6 @@ export const metadata = { title: "Connected companies — NextResearch" };
 
 export default function ConnectionsPage() {
   const companies = listConnectedCompanies();
-  const widest = companies[0]?.sectors.length ?? 0;
 
   return (
     <>
@@ -19,9 +18,9 @@ export default function ConnectionsPage() {
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight text-ink">Connected companies</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            {companies.length} listed companies sit in more than one supply chain we map (up to {widest}). A shock in one
-            industry can reach their numbers through another, so they are worth reading across sectors, not inside one.
-            Ranked by number of chains, then by how strongly they are exposed in each layer.
+            Some listed companies sit in more than one supply chain we map. A shock in one industry can reach their numbers
+            through another, so they are worth reading across sectors, not inside one. Ranked by number of chains, then by
+            how strongly they are exposed in each layer.
           </p>
         </div>
 

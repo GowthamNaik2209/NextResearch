@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { SupplierFinancials } from "@/lib/sector-content";
-import { mergeStats, revenueSeries } from "./merge";
+import { mergeStats, revenueSeries, withLiveQuote } from "./merge";
 import type { StockApi } from "./types";
 
 const seed: SupplierFinancials = {
@@ -55,4 +55,18 @@ test("revenueSeries uses the seed's FY22-FY26 series when there is no live annua
   const r = revenueSeries(seed, null);
   assert.deepEqual(r.map((p) => p.label), ["FY22", "FY23", "FY24", "FY25", "FY26"]);
   assert.equal(r.at(-1)?.revenue, 180);
+});
+
+test("withLiveQuote closes the series on the live price so chart and header agree", () => {
+  const pts = [{ t: "2026-09-16", c: 400 }, { t: "2026-09-17", c: 429 }];
+  const q = (asOf: string) => ({ price: 464, prevClose: 440, change: 24, changePct: 5.4, currency: "INR", asOf, delayedMin: 15 });
+  // later day than the last bar: appended
+  assert.deepEqual(withLiveQuote(pts, q("2026-10-14T09:30:00.000Z")).at(-1), { t: "2026-10-14", c: 464 });
+  // same IST day as the last bar: that bar's close is replaced, not duplicated
+  const same = withLiveQuote(pts, q("2026-09-17T09:30:00.000Z"));
+  assert.equal(same.length, 2);
+  assert.equal(same.at(-1)!.c, 464);
+  // a quote older than the history, or no quote: untouched
+  assert.equal(withLiveQuote(pts, q("2026-09-01T09:30:00.000Z")), pts);
+  assert.equal(withLiveQuote(pts, null), pts);
 });

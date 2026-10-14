@@ -67,6 +67,8 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   const [activeView, setActiveView] = useState<string>(sector.defaultView || sector.views[0]?.id);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isZoneMenuOpen, setIsZoneMenuOpen] = useState(false);
+  // Phone: the scenario list collapses behind a dropdown button, like Systems.
+  const [isScenarioMenuOpen, setIsScenarioMenuOpen] = useState(false);
   // Phone-only: the Layers / Systems / Camera controls float over the stage (instead of
   // stacking above it and eating vertical space) and open from a button on the stage.
   const [isControlsOpen, setIsControlsOpen] = useState(false);
@@ -428,10 +430,18 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
 
           {scenarios.length > 0 && (
             <>
-              <div className="rail-label scn-label" style={{ marginTop: 6 }}>
+              <div className="rail-label" style={{ marginTop: 6 }}>
                 What if…
               </div>
-              <div className="scn-list">
+              <button
+                type="button"
+                className={"zone-more-btn scn-more" + (isScenarioMenuOpen ? " open" : "")}
+                onClick={() => setIsScenarioMenuOpen((o) => !o)}
+              >
+                <span>{scenario ? `What if: ${scenario.title}` : "What if…"}</span>
+                <span className="chev">&#9662;</span>
+              </button>
+              <div className={"scn-list" + (isScenarioMenuOpen ? " expanded" : "")}>
                 {scenarios.map((sc) => (
                   <button
                     key={sc.id}
@@ -543,7 +553,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
           </div>
 
           {deepStage !== null && deepDive && (
-            <div style={{ position: "absolute", top: 12, right: 12, display: "flex", gap: 8, zIndex: 5 }}>
+            <div style={{ position: "absolute", top: 12, right: 56, display: "flex", gap: 8, zIndex: 5 }}>
               <button className="tbtn active" onClick={() => controllerRef.current?.cycleDeepStage()}>
                 {deepDive.buttonLabel}
               </button>
