@@ -1,5 +1,6 @@
 import type { SupplierFinancials } from "@/lib/sector-content";
 import type { StockApi } from "./types";
+import type { PricePoint, Quote } from "@/lib/live/yahoo";
 
 export type Stats = {
   price: number | null;
@@ -76,3 +77,14 @@ export const fmtNum = (v: number | null | undefined, digits = 2) =>
   v == null ? "—" : v.toLocaleString("en-IN", { maximumFractionDigits: digits, minimumFractionDigits: 0 });
 export const fmtSigned = (v: number | null | undefined, digits = 1) =>
   v == null ? "—" : `${v > 0 ? "+" : ""}${v.toLocaleString("en-IN", { maximumFractionDigits: digits })}%`;
+
+// The chart's history is cached and ends at the last closed bar, so on its own it can show an older
+// price than the live quote in the pop-up header. Close the series on the live quote (same IST
+// date: replace that bar's close; later date: append) so the headline price and the line agree.
+export function withLiveQuote(points: PricePoint[], quote: Quote | null | undefined): PricePoint[] {
+  const last = points[points.length - 1];
+  if (!last || !quote || !Number.isFinite(quote.price) || quote.price <= 0) return points;
+  const t = new Date(new Date(quote.asOf).getTime() + 5.5 * 3_600_000).toISOString().slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(t) || t < last.t) return points;
+  return t === last.t ? [...points.slice(0, -1), { t, c: quote.price }] : [...points, { t, c: quote.price }];
+}

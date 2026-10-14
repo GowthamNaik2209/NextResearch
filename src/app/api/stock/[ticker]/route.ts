@@ -3,6 +3,7 @@ import { findSupplierByTicker } from "@/lib/sector-content";
 import { getFundamentals } from "@/lib/live/screener-company";
 import { getQuote, getYahooFundamentals } from "@/lib/live/yahoo";
 import { getCompanyNews } from "@/lib/live/news";
+import { getCompanyFootprint } from "@/lib/sector-content/exposure";
 
 // GET /api/stock/VOLTAS — live quote + Screener fundamentals + industry medians +
 // latest headlines (curated fallback), with no database dependency. Every part is best-effort: a null
@@ -19,7 +20,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
   const news = newsResult.items.map(({ headline, source, url, date }) => ({ headline, source, url, date }));
 
   return NextResponse.json(
-    { ticker, quote, fundamentals, news, newsLive: newsResult.live },
+    { ticker, quote, fundamentals, news, newsLive: newsResult.live, footprint: getCompanyFootprint(ticker) },
     { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=900" } }
   );
 }

@@ -41,6 +41,7 @@ Two rules shape most decisions:
   data. **Do not import it from client components** (it is large); import *types* only.
 - `index.ts` - the typed facade (`SectorDef`, `SectorZone`, `SectorSupplier`,
   `SupplierFinancials`) and lookups (`getSector`, `listSectors`, `findSupplierByTicker`).
+- `exposure.ts` - cross-sector footprint (same ticker joined across sectors; also returned by `/api/stock/[ticker]` as `footprint`). `scenarios.ts` - authored "what if" shocks per sector (zone severity + headwind/tailwind) and the ranking of exposed companies; the explorer lights the zones via `controller.setImpact`. Zone ids are checked by `validate:content`.
 - `stats.ts` - landing numbers and the search index; `insights.ts` - per-sector medians, the
   rule-based "idea" screens, and the news feed; `docs.ts` - the curated reading list.
 - `SupplierFinancials` (`supplier.f`) holds the seed figures (5-year revenue, KPIs, price CAGR,
@@ -80,6 +81,7 @@ the stock UI is DB-free by design, which is why it works with an empty database.
 | `/sector/[slug]` | server | Sector overview; company cards open the stock pop-up directly |
 | `/sector/[slug]/explore` | server shell + client | 3D explorer; deep links via `?zone=&company=` |
 | `/updates`, `/docs`, `/docs/[slug]` | server | Live news feed (filter `?sector=`); reading list (muted, coming soon) |
+| `/connections` | server | Companies present in 2+ supply chains, ranked by footprint (`sector-content/exposure.ts`) |
 | `/watchlist` | server | Auth required; rows open the stock pop-up |
 | `/login`, `/signup`, `/auth/callback` | server | Supabase auth |
 | `/api/stock/[ticker]` | route | `{ quote, fundamentals, news, newsLive }`, `s-maxage=300` |
@@ -113,9 +115,20 @@ the stock UI is DB-free by design, which is why it works with an empty database.
 ## Conventions
 
 - **Comments explain *why*** (constraints, gotchas, trade-offs) - the code shows what.
-- **Add a sector:** author it in `products.ts` following an existing one, run
-  `npm run validate:content`, add reading links in `docs.ts`; it appears on the landing page
-  automatically.
+- **Add or unlock a sector / policy - complete the whole loop.** A sector is only done when every
+  surface that lists companies knows about it. Checklist:
+  1. Author it in `products.ts` (zones, suppliers with `f` figures, domains, `whyNow`,
+     `thesisSummary`, `integratorZoneId`, exposure links, 3D model) and leave `muted` off.
+  2. `scenarios.ts`: 3-4 "what if" shocks; `docs.ts`: reading links.
+  3. `extracted.json` / `npm run db:extract` + `db:seed`, so every listed company has a `Company`
+     row (the watchlist heart needs it) - and run the seed against staging/prod.
+  4. Run `npm run validate:content` - it fails a live sector that lacks scenarios, reading links,
+     an integrator zone or a thesis.
+  5. Check by eye: landing card + stats, search, `/updates` chips, `/connections` (a company shared
+     with another sector must show both), idea screens, `/docs`, the stock pop-up footprint, and the
+     explorer on desktop *and* phone.
+  Landing stats, search, news feed, ideas, connections and footprint all derive from the content
+  (`!muted`), so nothing else should need a hand edit - if something does, that is a bug to fix.
 - **Add a stock-pop-up tab:** add a view in `components/stock/`, register it in `StockModal`'s
   `TABS`, extend `StockTab` in `types.ts`.
 - **Touching live data:** keep it behind `lib/live/` and the API routes; add/adjust a fixture

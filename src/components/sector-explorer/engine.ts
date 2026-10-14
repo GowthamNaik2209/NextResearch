@@ -29,7 +29,11 @@ export type ExplorerCallbacks = {
   onDeepDiveStageChange: (stage: number | null) => void;
 };
 
+// Scenario overlay: zone id -> how hard it is hit (1-3) and whether it helps or hurts.
+export type ImpactMap = Record<string, { severity: 1 | 2 | 3; effect: "headwind" | "tailwind" }>;
+
 export type ExplorerController = {
+  setImpact: (impact: ImpactMap | null) => void;
   selectZone: (zoneId: string | null) => void;
   // Hover only ever drives the 3D marker's scale/opacity (see the animation loop
   // below) — it never needs to reach React, so the rail's zone buttons (rendered
@@ -179,6 +183,9 @@ export function mountExplorer(
   let targetLevel = 0;
   let currentZoneId: string | null = null;
   let hoveredZoneId: string | null = null;
+  let impact: ImpactMap | null = null;
+  // With a scenario on (and no zone picked) the untouched layers fade back so the hit ones stand out.
+  const isDimmedZone = (id: string) => (currentZoneId ? id !== currentZoneId : impact ? !impact[id] : false);
   const labelsVisible = true;
   let deepDiveActive = false;
   let deepStage = 0;
@@ -281,6 +288,21 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
   function toggleShell() {
     exitDeepDive();
     targetLevel = Math.round(currentLevel) <= 0 ? 1 : 0;
+  }
+
+  const IMPACT_COLOR = { headwind: 0xe8705e, tailwind: 0x3fbf8a };
+  function setImpact(next: ImpactMap | null) {
+    impact = next && Object.keys(next).length ? next : null;
+    for (const [zid, zr] of zones) {
+      const hit = impact?.[zid];
+      const mats = [zr.marker.material, zr.ring.material] as THREE.MeshBasicMaterial[];
+      mats.forEach((m) => m.color.set(hit ? IMPACT_COLOR[hit.effect] : zr.def.color));
+      zr.marker.userData.impactSeverity = hit?.severity ?? 0;
+      zr.tag.dataset.impact = hit ? hit.effect : "";
+      zr.box.dataset.impact = hit ? hit.effect : "";
+      zr.tag.dataset.severity = hit ? String(hit.severity) : "";
+      zr.box.dataset.severity = hit ? String(hit.severity) : "";
+    }
   }
 
   function selectZone(id: string | null) {
@@ -416,7 +438,14 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
       h = stageRect.height;
     leaderSvg.setAttribute("viewBox", `0 0 ${w} ${h}`);
 
-    for (const zr of zones.values()) {
+    // Phone tags are anchored to their 3D markers, which often sit close together; stack them
+    // so none overlaps. Most important first (selected, then scenario-hit) so they keep their spot.
+    const phoneTags = mobileTags.offsetParent !== null;
+    const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
+    const rank = (zr: ZoneRuntime) => (currentZoneId === zr.def.id ? 0 : impact?.[zr.def.id] ? 1 : 2);
+    const ordered = phoneTags ? [...zones.values()].sort((a, b) => rank(a) - rank(b)) : [...zones.values()];
+
+    for (const zr of ordered) {
       const z = zr.def;
       const v = new THREE.Vector3(z.pos[0], z.pos[1], z.pos[2]);
       v.project(camera);
@@ -426,7 +455,7 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
       py = Math.max(4, Math.min(h - 4, py));
 
       const isSelected = currentZoneId === z.id;
-      const isDimmed = !!currentZoneId && !isSelected;
+      const isDimmed = isDimmedZone(z.id);
 
       const tagScale = isSelected ? 1.08 : 1;
       const halfTagW = ((zr.tag.offsetWidth || 0) * tagScale) / 2;
@@ -434,12 +463,37 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
       const pxMin = Math.min(w / 2, 4 + halfTagW);
       px = Math.max(pxMin, Math.min(pxMax, px));
 
+      let tagHidden = false;
+      if (phoneTags) {
+        // .mtag is drawn at translate(-50%, -138%) of its left/top point.
+        const tw = zr.tag.offsetWidth * tagScale;
+        const th = zr.tag.offsetHeight * tagScale;
+        const rectAt = (y: number) => ({ x0: px - tw / 2 - 2, x1: px + tw / 2 + 2, y0: y - 1.38 * th - 2, y1: y - 0.38 * th + 2 });
+        let chosen: ReturnType<typeof rectAt> | null = null;
+        let chosenY = py;
+        for (const k of [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8]) {
+          const y = py + k * (th + 3);
+          const r = rectAt(y);
+          if (r.y0 < 2 || r.y1 > h - 2) continue;
+          if (placed.some((p) => r.x0 < p.x1 && r.x1 > p.x0 && r.y0 < p.y1 && r.y1 > p.y0)) continue;
+          chosen = r;
+          chosenY = y;
+          break;
+        }
+        if (chosen) {
+          placed.push(chosen);
+          py = chosenY;
+        } else {
+          // No free slot nearby: hide the tag (its marker is still tappable; Systems lists every layer).
+          tagHidden = !isSelected;
+        }
+      }
       zr.tag.style.left = px + "px";
       zr.tag.style.top = py + "px";
       zr.tag.classList.toggle("selected", isSelected);
       zr.tag.classList.toggle("dimmed", isDimmed);
-      zr.tag.style.opacity = labelsVisible ? (isSelected ? "1" : isDimmed ? "0.28" : behind ? "0.35" : "1") : "0";
-      zr.tag.style.pointerEvents = labelsVisible ? "auto" : "none";
+      zr.tag.style.opacity = labelsVisible && !tagHidden ? (isSelected ? "1" : isDimmed ? "0.28" : behind ? "0.35" : "1") : "0";
+      zr.tag.style.pointerEvents = labelsVisible && !tagHidden ? "auto" : "none";
 
       const boxRect = zr.box.getBoundingClientRect();
       let anchorX: number, anchorY: number;
@@ -498,8 +552,9 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
     }
     markerMeshes.forEach((m) => {
       const selected = !!m.userData.selected;
-      const isDimmed = !!currentZoneId && !selected;
-      const s = selected ? 1.6 : m.userData.zoneId === hoveredZoneId ? 1.3 : 1.0;
+      const isDimmed = isDimmedZone(m.userData.zoneId as string);
+      const sev = (m.userData.impactSeverity as number) || 0;
+      const s = selected ? 1.6 : m.userData.zoneId === hoveredZoneId ? 1.3 : 1.0 + sev * 0.25;
       m.scale.lerp(new THREE.Vector3(s, s, s), 0.2);
       const mat = m.material as THREE.MeshBasicMaterial;
       const targetOp = isDimmed ? 0.22 : 1;
@@ -510,7 +565,7 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
         c.lookAt(camera.position);
         const parent = c.userData.parent as THREE.Mesh;
         c.scale.copy(parent.scale);
-        const ringDimmed = !!currentZoneId && !parent.userData.selected;
+        const ringDimmed = isDimmedZone(parent.userData.zoneId as string);
         const targetRingOp = ringDimmed ? 0.15 : 0.7;
         const mat = (c as THREE.Mesh).material as THREE.MeshBasicMaterial;
         mat.opacity += (targetRingOp - mat.opacity) * 0.2;
@@ -564,6 +619,7 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
   }
 
   return {
+    setImpact,
     selectZone,
     setHover,
     flyTo,

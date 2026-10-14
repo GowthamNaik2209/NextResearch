@@ -204,11 +204,15 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
           {integratorZone && integratorCompanies.length > 0 && (
             <div className="mt-6 rounded-2xl border border-line bg-panel-2 p-5">
               <h3 className="text-xs font-bold uppercase tracking-widest text-ink-soft">
-                End manufacturers &amp; integrators
+                {sector.integratorHeading ?? <>End manufacturers &amp; integrators</>}
               </h3>
               <p className="mt-1 text-xs text-ink-soft">
-                The companies that assemble the finished product from everything else in this sector &mdash;{" "}
-                {integratorZone.label.toLowerCase()}.
+                {sector.integratorBlurb ?? (
+                  <>
+                    The companies that assemble the finished product from everything else in this sector &mdash;{" "}
+                    {integratorZone.label.toLowerCase()}.
+                  </>
+                )}
               </p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {integratorCompanies.map(({ key, company }) => {

@@ -11,7 +11,8 @@ import {
   EXPOSURE_TYPE_LABEL,
   EXPOSURE_STRENGTH_LABEL,
 } from "@/lib/sector-content";
-import { mountExplorer, type ExplorerController, type ExplorerDom } from "./engine";
+import { listScenarios, scenarioCompanies, scenarioZoneImpacts } from "@/lib/sector-content/scenarios";
+import { mountExplorer, type ExplorerController, type ExplorerDom, type ImpactMap } from "./engine";
 import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
 import { SupplierDetail } from "./SupplierDetail";
 import { CompanyComparison } from "./CompanyComparison";
@@ -42,6 +43,7 @@ type Props = {
 };
 
 export function SectorExplorer({ slug, userEmail = null, displayName = null }: Props) {
+  const searchParams0 = useSearchParams();
   // Looked up here (client bundle) rather than passed as a prop from the server
   // page — the sector object carries three.js geometry-building functions, which
   // can't cross the server/client boundary as React props. The page's own
@@ -65,15 +67,19 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   const [activeView, setActiveView] = useState<string>(sector.defaultView || sector.views[0]?.id);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isZoneMenuOpen, setIsZoneMenuOpen] = useState(false);
+  // Phone: the scenario list collapses behind a dropdown button, like Systems.
+  const [isScenarioMenuOpen, setIsScenarioMenuOpen] = useState(false);
   // Phone-only: the Layers / Systems / Camera controls float over the stage (instead of
   // stacking above it and eating vertical space) and open from a button on the stage.
   const [isControlsOpen, setIsControlsOpen] = useState(false);
-  // Phone-only: hides the header/rail chrome so the stage fills the viewport.
-  // Zone selection behaves exactly as it does normally — the panel still opens
-  // as the same bottom sheet, just floating over the fullscreen canvas.
-  const [isMaximized, setIsMaximized] = useState(false);
   const [deepStage, setDeepStage] = useState<number | null>(null);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
+  const scenarios = listScenarios(slug);
+  // Deep link: ?scenario=<id>; an unknown id is ignored.
+  const [scenarioId, setScenarioId] = useState<string | null>(() => {
+    const id = searchParams0.get("scenario");
+    return id && scenarios.some((x) => x.id === id) ? id : null;
+  });
   const [isTouring, setIsTouring] = useState(false);
   const [isMuted, setIsMutedState] = useState(false);
   const [tourCaption, setTourCaption] = useState<string | null>(null);
@@ -219,6 +225,30 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sector.slug]);
 
+  const scenario = scenarioId ? scenarios.find((x) => x.id === scenarioId) ?? null : null;
+  const scenarioZones = scenario ? scenarioZoneImpacts(sector, scenario) : [];
+  const scenarioCos = scenario ? scenarioCompanies(sector, scenario) : [];
+
+  // Pushes the active scenario into the 3D scene. Runs after the mount effect above (declaration
+  // order), so the controller exists on first load too.
+  useEffect(() => {
+    const map: ImpactMap | null = scenario
+      ? Object.fromEntries(scenarioZones.map((z) => [z.zone, { severity: z.severity, effect: z.effect }]))
+      : null;
+    controllerRef.current?.setImpact(map);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scenarioId, sector.slug]);
+
+  const handlePickScenario = useCallback(
+    (id: string | null) => {
+      stopTour();
+      controllerRef.current?.selectZone(null);
+      setScenarioId(id);
+      setIsPanelOpen(!!id);
+    },
+    [stopTour]
+  );
+
   // One-way sync: selection state -> URL. Never reads searchParams back into state
   // here (that's the effect above, once, on mount) — doing so would turn this into
   // a loop, each URL update re-triggering a read that triggers another update.
@@ -228,21 +258,13 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     else params.delete("zone");
     if (currentSupplier) params.set("company", currentSupplier);
     else params.delete("company");
+    if (scenarioId) params.set("scenario", scenarioId);
+    else params.delete("scenario");
     params.delete("tour");
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentZoneId, currentSupplier]);
-
-  // Toggling maximize hides/shows the header+rail via CSS, which changes the
-  // stage's actual size without ever firing a window "resize" event — the
-  // engine's resize() only listens for that, so it has no other way to know
-  // the canvas should grow/shrink. One rAF (so the browser has reflowed the
-  // new layout first) then a synthetic resize event covers it.
-  useEffect(() => {
-    const id = requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
-    return () => cancelAnimationFrame(id);
-  }, [isMaximized]);
+  }, [currentZoneId, currentSupplier, scenarioId]);
 
   const zone = currentZoneId ? sector.zones.find((z) => z.id === currentZoneId) ?? null : null;
   // Normalized to plain keys once here — a zone's suppliers may be bare keys or
@@ -273,6 +295,14 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     },
     [stopTour]
   );
+
+  // Back to the sector's opening camera: for anyone who has orbited or zoomed deep into the model.
+  const handleResetView = useCallback(() => {
+    stopTour();
+    const id = sector.defaultView || sector.views[0]?.id;
+    controllerRef.current?.flyTo(id);
+    setActiveView(id);
+  }, [stopTour, sector.defaultView, sector.views]);
 
   const handleShellClick = useCallback(() => {
     stopTour();
@@ -310,7 +340,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   }, [isTouring, startTour, stopTour]);
 
   return (
-    <div className={"nr-explorer" + (isMaximized ? " maximized" : "") + (isControlsOpen ? " controls-open" : "")}>
+    <div className={"nr-explorer" + (isControlsOpen ? " controls-open" : "")}>
       <header>
         <div className="title-block">
           <Link href="/" className="brand" style={{ textDecoration: "none" }} aria-label="NextResearch home">
@@ -392,9 +422,44 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
               max={sector.layerNames.length - 1}
               step={0.01}
               defaultValue={0}
+              aria-label="Open up the model, layer by layer"
+              title="Open up the model, layer by layer"
               onChange={handleSliderChange}
             />
           </div>
+
+          {scenarios.length > 0 && (
+            <>
+              <div className="rail-label" style={{ marginTop: 6 }}>
+                What if…
+              </div>
+              <button
+                type="button"
+                className={"zone-more-btn scn-more" + (isScenarioMenuOpen ? " open" : "")}
+                onClick={() => setIsScenarioMenuOpen((o) => !o)}
+              >
+                <span>{scenario ? `What if: ${scenario.title}` : "What if…"}</span>
+                <span className="chev">&#9662;</span>
+              </button>
+              <div className={"scn-list" + (isScenarioMenuOpen ? " expanded" : "")}>
+                {scenarios.map((sc) => (
+                  <button
+                    key={sc.id}
+                    className={"scn-btn" + (scenarioId === sc.id ? " active" : "")}
+                    title={sc.blurb}
+                    onClick={() => handlePickScenario(scenarioId === sc.id ? null : sc.id)}
+                  >
+                    {sc.title}
+                  </button>
+                ))}
+              </div>
+              {scenario && (
+                <button className="scn-clear" onClick={() => handlePickScenario(null)}>
+                  Clear scenario
+                </button>
+              )}
+            </>
+          )}
 
           <div className="rail-label" style={{ marginTop: 6 }}>
             Systems
@@ -459,21 +524,23 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
           </button>
           <button
             type="button"
-            className="maximize-btn"
-            onClick={() => setIsMaximized((m) => !m)}
-            aria-label={isMaximized ? "Exit full screen" : "Full screen"}
-            title={isMaximized ? "Exit full screen" : "Full screen"}
+            className="reset-btn"
+            onClick={handleResetView}
+            aria-label="Reset to the starting view"
+            title="Reset to the starting view"
           >
-            {isMaximized ? (
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 3v4a2 2 0 0 1-2 2H3M15 3v4a2 2 0 0 0 2 2h4M3 15h4a2 2 0 0 1 2 2v4M15 21v-4a2 2 0 0 1 2-2h4" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9V5a2 2 0 0 1 2-2h4M15 3h4a2 2 0 0 1 2 2v4M21 15v4a2 2 0 0 1-2 2h-4M9 21H5a2 2 0 0 1-2-2v-4" />
-              </svg>
-            )}
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M21 21l-4.3-4.3M8 11h6" />
+            </svg>
           </button>
+          {scenario && (
+            <button type="button" className="scn-pill" onClick={() => handlePickScenario(null)} title="Clear scenario">
+              <span>What if: {scenario.title}</span>
+              <b aria-hidden>&times;</b>
+              <span className="sr-only">Clear scenario</span>
+            </button>
+          )}
           <div className="stage-grid-overlay" />
           <svg className="leader-svg" ref={leaderSvgRef} />
           <div className="callout-rail rail-left" ref={railLeftRef} />
@@ -486,7 +553,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
           </div>
 
           {deepStage !== null && deepDive && (
-            <div style={{ position: "absolute", top: 12, right: 12, display: "flex", gap: 8, zIndex: 5 }}>
+            <div style={{ position: "absolute", top: 12, right: 56, display: "flex", gap: 8, zIndex: 5 }}>
               <button className="tbtn active" onClick={() => controllerRef.current?.cycleDeepStage()}>
                 {deepDive.buttonLabel}
               </button>
@@ -535,7 +602,59 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
             </button>
           </div>
           <div className="panel">
-            {!zone ? (
+            {!zone && scenario ? (
+              <>
+                <h2>{scenario.title}</h2>
+                <button className="scn-clear" onClick={() => handlePickScenario(null)}>
+                  &times; Clear scenario
+                </button>
+                <p className="zdesc">{scenario.story}</p>
+                <div>
+                  <div className="chart-label">Layers touched</div>
+                  <div className="chips" style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 5 }}>
+                    {scenarioZones.map((z) => (
+                      <button key={z.zone} className="scn-row" onClick={() => handleSelectZone(z.zone)}>
+                        <span>
+                          {z.label}
+                          <small>{z.why}</small>
+                        </span>
+                        <span className={"scn-tag " + z.effect}>
+                          {z.effect === "headwind" ? "Headwind" : "Tailwind"} · {["", "Low", "Medium", "High"][z.severity]}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="chart-label">Listed companies most exposed</div>
+                  <div style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 5 }}>
+                    {scenarioCos.slice(0, 10).map((c) => (
+                      <button
+                        key={c.key}
+                        className="scn-row"
+                        onClick={() => {
+                          handleSelectZone(c.zoneId);
+                          setCurrentSupplier(c.key);
+                        }}
+                      >
+                        <span>
+                          {c.name}
+                          <small>
+                            {c.zoneLabel}
+                            {c.strength ? ` · ${EXPOSURE_STRENGTH_LABEL[c.strength].toLowerCase()} exposure` : ""}
+                          </small>
+                        </span>
+                        <span className={"scn-tag " + c.effect}>{c.effect === "headwind" ? "Headwind" : "Tailwind"}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <p className="fine">
+                  An illustrative reading of the supply chain, not a forecast. Layers are rated by how directly they are exposed; companies
+                  rank on that times their authored exposure to the layer. Information only, not investment advice.
+                </p>
+              </>
+            ) : !zone ? (
               <p className="panel-empty">
                 Click a highlighted component to see its function and suppliers — or use Layers / Systems to look
                 inside first.
@@ -546,6 +665,20 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                   <span className="zc-tag" style={{ background: zone.color }} />
                   {zone.label}
                 </h2>
+                {scenario && (
+                  <div className="scn-banner">
+                    <b>{scenario.title}:</b>{" "}
+                    {(() => {
+                      const hit = scenarioZones.find((z) => z.zone === zone.id);
+                      return hit
+                        ? `${hit.effect === "headwind" ? "headwind" : "tailwind"}, ${["", "low", "medium", "high"][hit.severity]} impact. ${hit.why}.`
+                        : "this layer is not directly touched.";
+                    })()}{" "}
+                    <button className="scn-clear" onClick={() => handleSelectZone(null)}>
+                      Back to scenario
+                    </button>
+                  </div>
+                )}
                 <p className="zdesc">{zone.desc}</p>
 
                 {/* Clickable buttons (deep dive, compare, supplier chips) come

@@ -1,4 +1,5 @@
-import type { SectorSupplier } from "@/lib/sector-content";
+import Link from "next/link";
+import { EXPOSURE_STRENGTH_LABEL, EXPOSURE_TYPE_LABEL, type SectorSupplier } from "@/lib/sector-content";
 import type { StockApi, StockTab } from "./types";
 import { fmtNum, fmtSigned, mergeStats, revenueSeries } from "./merge";
 
@@ -109,6 +110,30 @@ export function SummaryView({
           ))}
         </div>
       </div>
+
+      {(api?.footprint?.sectors.length ?? 0) > 1 && (
+        <div>
+          <Label>Also appears in {api!.footprint!.sectors.length - 1} other supply chain{api!.footprint!.sectors.length > 2 ? "s" : ""}</Label>
+          <ul className="mt-2 flex flex-col gap-1.5">
+            {api!.footprint!.sectors.map((fs) => (
+              <li key={fs.sectorSlug}>
+                <Link href={fs.href} className="block rounded-lg border border-line bg-panel-2 px-3 py-2 transition-colors hover:border-accent">
+                  <div className="text-[12.5px] font-semibold text-ink">{fs.sectorName}</div>
+                  <div className="mt-0.5 text-[11px] leading-snug text-ink-soft">
+                    {fs.zones
+                      .map((z) => {
+                        const t = z.exposureType ? EXPOSURE_TYPE_LABEL[z.exposureType] : null;
+                        const st = z.exposureStrength ? EXPOSURE_STRENGTH_LABEL[z.exposureStrength].toLowerCase() : null;
+                        return `${z.label}${t || st ? ` (${[t, st && `${st} exposure`].filter(Boolean).join(", ")})` : ""}`;
+                      })
+                      .join(" · ")}
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {rev.some((r) => r.revenue != null) && (
         <div className={phoneHide.trim()}>

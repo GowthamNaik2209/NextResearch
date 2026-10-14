@@ -10,8 +10,9 @@ export function SiteFooter() {
             <span className="font-display text-base font-bold text-ink">NextResearch</span>
             <p className="mt-1 text-xs text-ink-soft">Supply-chain research for India&rsquo;s public markets.</p>
           </div>
-          <nav className="flex gap-6 text-sm text-ink-soft">
+          <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-soft">
             <Link href="/#sectors" className="hover:text-ink">Industries</Link>
+            <Link href="/connections" className="hover:text-ink">Connected companies</Link>
             <Link href="/docs" className="hover:text-ink">Reading list</Link>
             <Link href="/watchlist" className="hover:text-ink">Watchlist</Link>
             <Link href="/login" className="hover:text-ink">Log in</Link>

@@ -18,8 +18,11 @@ export default async function SectorExplorePage({ params }: { params: Promise<{ 
   const user = await getCurrentUser();
   const displayName = (user?.user_metadata?.display_name as string | undefined) ?? null;
 
+  // dvh, not vh: on phones 100vh is the viewport *without* the browser's address bar, so the page was
+  // taller than the screen and scrolled a little, dragging the top bar around. Fixed + overflow-hidden
+  // keeps the explorer pinned to the visible screen; it scrolls its own panels.
   return (
-    <div className="flex h-screen flex-col">
+    <div className="fixed inset-x-0 top-0 flex h-dvh flex-col overflow-hidden">
       {/* SectorExplorer reads ?zone=/&company=/&tour= via useSearchParams for deep
           linking and the guided tour — Next requires a Suspense boundary around any
           client component that does, even one rendered from a static page like this. */}

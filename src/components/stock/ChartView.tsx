@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AreaSeries, ColorType, CrosshairMode, createChart, type IChartApi, type ISeriesApi, type Time } from "lightweight-charts";
-import type { ChartData, ChartRange } from "@/lib/live/yahoo";
-import { fmtNum, fmtSigned } from "./merge";
+import type { ChartData, ChartRange, Quote } from "@/lib/live/yahoo";
+import { fmtNum, fmtSigned, withLiveQuote } from "./merge";
 
 const RANGES: { id: ChartRange; label: string; long: string }[] = [
   { id: "1M", label: "1M", long: "1 month" },
@@ -26,7 +26,7 @@ function withAlpha(hex: string, a: number) {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 }
 
-export function ChartView({ ticker }: { ticker: string }) {
+export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | null }) {
   const [range, setRange] = useState<ChartRange>("1Y");
   const [data, setData] = useState<ChartData | null>(null);
   const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
@@ -67,8 +67,9 @@ export function ChartView({ ticker }: { ticker: string }) {
     };
   }, [ticker, range, attempt]);
 
-  const first = data?.points[0];
-  const last = data?.points[data.points.length - 1];
+  const points = useMemo(() => (data ? withLiveQuote(data.points, quote) : []), [data, quote]);
+  const first = points[0];
+  const last = points[points.length - 1];
   const change = first && last ? last.c - first.c : null;
   const changePct = first && last ? (change! / first.c) * 100 : null;
   const up = (change ?? 0) >= 0;
@@ -114,14 +115,14 @@ export function ChartView({ ticker }: { ticker: string }) {
         grid: { horzLines: { color: withAlpha(cssVar("--line", "#444444"), 0.6) } },
       });
     };
-    series.setData(data.points.map((p) => ({ time: p.t as Time, value: p.c })));
+    series.setData(points.map((p) => ({ time: p.t as Time, value: p.c })));
     paint();
     chart.timeScale().fitContent();
     // Follow a live light/dark toggle while the pop-up is open.
     const mo = new MutationObserver(paint);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     return () => mo.disconnect();
-  }, [data, status, up]);
+  }, [data, points, status, up]);
 
   const shown = hover ?? last ?? null;
 

@@ -7,6 +7,8 @@
 //
 // Run: npm run validate:content
 import { companyLinkKey, listSectors } from "../src/lib/sector-content/index.js";
+import { getResearchForSector } from "../src/lib/sector-content/docs.js";
+import { listScenarios } from "../src/lib/sector-content/scenarios.js";
 
 let problems = 0;
 
@@ -22,6 +24,24 @@ for (const sector of listSectors()) {
 
   if (sector.integratorZoneId !== undefined && !zoneIds.has(sector.integratorZoneId)) {
     fail(`[${sector.slug}] integratorZoneId "${sector.integratorZoneId}" has no matching zone`);
+  }
+
+  // Completeness gate: a sector shown on the site (not muted) must be wired into every
+  // feature that has per-sector content, or it silently shows up half-built there.
+  if (!sector.muted) {
+    if (listScenarios(sector.slug).length === 0) fail(`[${sector.slug}] live sector has no scenarios (src/lib/sector-content/scenarios.ts)`);
+    if (getResearchForSector(sector.slug).length === 0) fail(`[${sector.slug}] live sector has no reading-list links (src/lib/sector-content/docs.ts)`);
+    if (!sector.integratorZoneId) fail(`[${sector.slug}] live sector has no integratorZoneId`);
+    if (!sector.whyNow || !sector.thesisSummary) fail(`[${sector.slug}] live sector is missing whyNow/thesisSummary`);
+  }
+
+  const scenarioIds = new Set<string>();
+  for (const sc of listScenarios(sector.slug)) {
+    if (scenarioIds.has(sc.id)) fail(`[${sector.slug}] duplicate scenario id "${sc.id}"`);
+    scenarioIds.add(sc.id);
+    for (const imp of sc.impacts) {
+      if (!zoneIds.has(imp.zone)) fail(`[${sector.slug}] scenario "${sc.id}" touches unknown zone "${imp.zone}"`);
+    }
   }
 
   for (const zone of sector.zones) {

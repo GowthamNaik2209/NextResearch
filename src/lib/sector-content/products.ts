@@ -1417,7 +1417,6 @@ var ASOF = "25 Sep 2026";
  PRODUCTS.energy = {
  id: "energy", icon: "EN", name: "Energy Generation",
  tagline: "Thermal, solar, wind, hydro & storage - India's power generation mix",
- muted: true,
  headerTitle: "ENERGY ANATOMY",
  headerSub: "India's generation mix as a single platform - pick a generation method to see its equipment makers and operators",
  whyNow: "India's power demand is growing faster than at any point in two decades, driven by electrification, data-centre/AI load and summer peak-demand records - and the generation mix meeting that demand is shifting fast, from a thermal-dominated base toward a thermal-plus-renewables-plus-storage system where every generation method is adding capacity simultaneously rather than one replacing another.",
@@ -1425,6 +1424,8 @@ var ASOF = "25 Sep 2026";
  featuredSignals: ["Monthly power demand/peak-demand records", "Renewable capacity additions (GW) by source vs. targets", "Thermal PLF (plant load factor) trend", "Battery storage (BESS) and pumped-storage project awards", "Merchant power price trends"],
  dataStatus: "demo",
  integratorZoneId: "thermal_gencos",
+ integratorHeading: "Generators & operators",
+ integratorBlurb: "The listed companies that own and run thermal power plants and sell the electricity \u2014 the largest source of actual generation today.",
  layerNames: ["Platform","Generation","Grid & Storage"],
  shellMaxOpacity: 0.45, exoBaseOpacity: 0.55,
  defaultView: "overview",
@@ -1479,7 +1480,7 @@ var ASOF = "25 Sep 2026";
  keyRisks:["Industry-wide module capacity additions running ahead of demand", "EPC revenue is lumpy and execution-dependent", "Policy-dependent moat for ALMM-protected manufacturers"],
  investorMetrics:["Module capacity utilization", "EPC order book / commissioned capacity", "ALMM-listed share of total industry capacity"],
  relatedComponents:["solar_developers"],
- suppliers:[{key:"waareeEnergy", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"sterlingWilsonEnergy", exposureType:"operator", exposureStrength:"high"}]},
+ suppliers:[{key:"waareeEnergy", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"sterlingWilsonEnergy", exposureType:"direct_supplier", exposureStrength:"high"}]},
 
  {id:"solar_developers", color:"#C99A2E", label:"Solar & Renewable IPPs", pos:[-1.1,0.22,2.12], side:"right", desc:"Independent power producers who own and operate solar (and often wind) generation assets under long-term PPAs.",
  domainId:"solar_gen", displayOrder:4, dataStatus:"demo",
