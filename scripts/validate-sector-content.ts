@@ -7,6 +7,7 @@
 //
 // Run: npm run validate:content
 import { companyLinkKey, listSectors } from "../src/lib/sector-content/index.js";
+import { listScenarios } from "../src/lib/sector-content/scenarios.js";
 
 let problems = 0;
 
@@ -22,6 +23,15 @@ for (const sector of listSectors()) {
 
   if (sector.integratorZoneId !== undefined && !zoneIds.has(sector.integratorZoneId)) {
     fail(`[${sector.slug}] integratorZoneId "${sector.integratorZoneId}" has no matching zone`);
+  }
+
+  const scenarioIds = new Set<string>();
+  for (const sc of listScenarios(sector.slug)) {
+    if (scenarioIds.has(sc.id)) fail(`[${sector.slug}] duplicate scenario id "${sc.id}"`);
+    scenarioIds.add(sc.id);
+    for (const imp of sc.impacts) {
+      if (!zoneIds.has(imp.zone)) fail(`[${sector.slug}] scenario "${sc.id}" touches unknown zone "${imp.zone}"`);
+    }
   }
 
   for (const zone of sector.zones) {

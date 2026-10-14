@@ -16,6 +16,7 @@ export async function SiteHeader() {
         </Link>
         <nav className="flex items-center gap-5">
           <Link href="/#sectors" className={link}>Sectors</Link>
+          <Link href="/connections" className={link}>Connections</Link>
           <Link href="/updates" className={link}>Updates</Link>
           <Link href="/#how" className={link}>How it works</Link>
           <Link href="/docs" className={link}>Reading list</Link>

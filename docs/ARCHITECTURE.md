@@ -41,6 +41,7 @@ Two rules shape most decisions:
   data. **Do not import it from client components** (it is large); import *types* only.
 - `index.ts` - the typed facade (`SectorDef`, `SectorZone`, `SectorSupplier`,
   `SupplierFinancials`) and lookups (`getSector`, `listSectors`, `findSupplierByTicker`).
+- `exposure.ts` - cross-sector footprint (same ticker joined across sectors; also returned by `/api/stock/[ticker]` as `footprint`). `scenarios.ts` - authored "what if" shocks per sector (zone severity + headwind/tailwind) and the ranking of exposed companies; the explorer lights the zones via `controller.setImpact`. Zone ids are checked by `validate:content`.
 - `stats.ts` - landing numbers and the search index; `insights.ts` - per-sector medians, the
   rule-based "idea" screens, and the news feed; `docs.ts` - the curated reading list.
 - `SupplierFinancials` (`supplier.f`) holds the seed figures (5-year revenue, KPIs, price CAGR,
@@ -80,6 +81,7 @@ the stock UI is DB-free by design, which is why it works with an empty database.
 | `/sector/[slug]` | server | Sector overview; company cards open the stock pop-up directly |
 | `/sector/[slug]/explore` | server shell + client | 3D explorer; deep links via `?zone=&company=` |
 | `/updates`, `/docs`, `/docs/[slug]` | server | Live news feed (filter `?sector=`); reading list (muted, coming soon) |
+| `/connections` | server | Companies present in 2+ supply chains, ranked by footprint (`sector-content/exposure.ts`) |
 | `/watchlist` | server | Auth required; rows open the stock pop-up |
 | `/login`, `/signup`, `/auth/callback` | server | Supabase auth |
 | `/api/stock/[ticker]` | route | `{ quote, fundamentals, news, newsLive }`, `s-maxage=300` |
