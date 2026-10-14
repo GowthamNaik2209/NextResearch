@@ -240,8 +240,6 @@ function growthLine(points: SeriesPoint[]) {
 function BarChart({ points, unit }: { points: SeriesPoint[]; unit: string }) {
   const max = Math.max(...points.map((p) => p.value), 1);
   const hasProj = points.some((p) => p.projected);
-  const years = points.map((p) => yearOf(p.label));
-  const uneven = years.every((y) => y != null) && years.slice(1).some((y, i) => y! - years[i]! !== 1);
   return (
     <figure>
       <div className="flex h-44 items-end gap-1.5 sm:h-52 sm:gap-2.5" role="img" aria-label={points.map((p) => `${p.label}: ${p.value} ${unit}`).join(", ")}>
@@ -279,7 +277,6 @@ function BarChart({ points, unit }: { points: SeriesPoint[]; unit: string }) {
           </span>
         </figcaption>
       )}
-      {uneven && <p className="mt-1 text-[10.5px] text-ink-soft">Years are not evenly spaced; bars are equal width.</p>}
     </figure>
   );
 }
