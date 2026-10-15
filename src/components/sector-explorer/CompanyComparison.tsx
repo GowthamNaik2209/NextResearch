@@ -91,7 +91,7 @@ export function CompanyComparison({ sector, zone, onClose }: Props) {
                       {supplier.listed && ticker && (
                         <>
                           <span className="fine"> ({ticker})</span>
-                          <WatchlistButton ticker={ticker} />
+                          <WatchlistButton ticker={ticker} name={supplier.name} />
                         </>
                       )}
                     </td>

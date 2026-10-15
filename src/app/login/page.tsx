@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { login, loginWithGoogle } from "@/app/auth/actions";
 import { SiteHeader } from "@/components/SiteHeader";
+import { safeNext } from "@/lib/safe-next";
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string; next?: string }>;
 }) {
-  const { error, next = "/" } = await searchParams;
+  const { error, next: rawNext } = await searchParams;
+  const next = safeNext(rawNext);
+  const signupHref = next === "/" ? "/signup" : `/signup?next=${encodeURIComponent(next)}`;
 
   return (
     <>
@@ -69,7 +72,7 @@ export default async function LoginPage({
 
         <p className="mt-6 text-sm text-ink-soft">
           No account?{" "}
-          <Link href="/signup" className="text-accent hover:underline">
+          <Link href={signupHref} className="text-accent hover:underline">
             Sign up
           </Link>
         </p>

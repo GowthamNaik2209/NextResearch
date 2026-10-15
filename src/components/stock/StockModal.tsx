@@ -70,7 +70,7 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h2 className="truncate font-display text-lg font-bold sm:text-xl">{supplier.name}</h2>
-              <WatchlistButton ticker={ticker} />
+              <WatchlistButton ticker={ticker} name={supplier.name} />
             </div>
             <p className="mt-0.5 truncate text-xs text-ink-soft">
               <span className="font-mono">{supplier.listed ? `NSE: ${ticker}` : "Unlisted"}</span>

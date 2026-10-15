@@ -32,9 +32,12 @@ export async function SiteHeader() {
           >
             <HeartIcon />
           </Link>
+          {/* Signed-out only, so it never shares the row with the landing-page name chip. Phones
+              get a compact "Sign up" to fit beside the logo and three icons at 375px. */}
           {!user && (
-            <Link href="/signup" className="hidden rounded-lg bg-accent px-3.5 py-2 text-sm font-semibold text-bg hover:opacity-90 sm:inline">
-              Get started
+            <Link href="/signup" className="whitespace-nowrap rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-bg hover:opacity-90 sm:px-3.5 sm:py-2 sm:text-sm">
+              <span className="sm:hidden">Sign up</span>
+              <span className="hidden sm:inline">Get started</span>
             </Link>
           )}
           <UserMenu key={`${user?.id ?? "anon"}-${displayName}`} email={user?.email ?? null} displayName={displayName} />

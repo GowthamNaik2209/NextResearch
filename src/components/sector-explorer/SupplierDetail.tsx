@@ -57,7 +57,7 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
                   {" "}
                   ({ticker})
                 </span>
-                <WatchlistButton ticker={ticker} />
+                <WatchlistButton ticker={ticker} name={supplier.name} />
               </>
             )}
           </h3>

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/profile";
+import { safeNext } from "@/lib/safe-next";
 
 // Used to build the absolute redirect URLs Supabase needs for OAuth and
 // email-confirmation links (signUp's emailRedirectTo, signInWithOAuth's
@@ -34,7 +35,7 @@ async function siteUrl() {
 export async function login(formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
-  const next = String(formData.get("next") ?? "/");
+  const next = safeNext(formData.get("next"));
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -51,16 +52,20 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+  // Carried through the confirmation email too, so confirming lands back where they signed up
+  // from (e.g. the stock they wanted to save) rather than on the home page.
+  const next = safeNext(formData.get("next"));
+  const nextQuery = next === "/" ? "" : `?next=${encodeURIComponent(next)}`;
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: `${await siteUrl()}/auth/callback` },
+    options: { emailRedirectTo: `${await siteUrl()}/auth/callback${nextQuery}` },
   });
 
   if (error) {
-    redirect(`/signup?error=${encodeURIComponent(error.message)}`);
+    redirect(`/signup?error=${encodeURIComponent(error.message)}${next === "/" ? "" : `&next=${encodeURIComponent(next)}`}`);
   }
 
   if (data.user?.email && data.session) {
@@ -69,14 +74,14 @@ export async function signup(formData: FormData) {
     // we fall through to the checkEmail branch below instead.
     await ensureProfile(data.user.id, data.user.email);
     revalidatePath("/", "layout");
-    redirect("/");
+    redirect(next);
   }
 
   redirect("/signup?checkEmail=1");
 }
 
 export async function loginWithGoogle(formData: FormData) {
-  const next = String(formData.get("next") ?? "/");
+  const next = safeNext(formData.get("next"));
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -84,7 +89,7 @@ export async function loginWithGoogle(formData: FormData) {
   });
 
   if (error || !data.url) {
-    redirect(`/login?error=${encodeURIComponent(error?.message ?? "Google sign-in failed")}`);
+    redirect(`/login?error=${encodeURIComponent(error?.message ?? "Google sign-in failed")}&next=${encodeURIComponent(next)}`);
   }
   redirect(data.url);
 }

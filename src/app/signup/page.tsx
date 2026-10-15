@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { signup, loginWithGoogle } from "@/app/auth/actions";
 import { SiteHeader } from "@/components/SiteHeader";
+import { safeNext } from "@/lib/safe-next";
 
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; checkEmail?: string }>;
+  searchParams: Promise<{ error?: string; checkEmail?: string; next?: string }>;
 }) {
-  const { error, checkEmail } = await searchParams;
+  const { error, checkEmail, next: rawNext } = await searchParams;
+  const next = safeNext(rawNext);
+  const loginHref = next === "/" ? "/login" : `/login?next=${encodeURIComponent(next)}`;
 
   return (
     <>
@@ -29,6 +32,7 @@ export default async function SignupPage({
         ) : null}
 
         <form action={signup} className="mt-6 flex flex-col gap-3">
+          <input type="hidden" name="next" value={next} />
           <label className="flex flex-col gap-1 text-sm text-ink-soft">
             Email
             <input
@@ -63,7 +67,7 @@ export default async function SignupPage({
         </div>
 
         <form action={loginWithGoogle}>
-          <input type="hidden" name="next" value="/" />
+          <input type="hidden" name="next" value={next} />
           <button
             type="submit"
             className="w-full rounded-lg border border-line bg-panel-2 px-3 py-2 text-sm font-semibold text-ink hover:border-accent"
@@ -74,7 +78,7 @@ export default async function SignupPage({
 
         <p className="mt-6 text-sm text-ink-soft">
           Already have an account?{" "}
-          <Link href="/login" className="text-accent hover:underline">
+          <Link href={loginHref} className="text-accent hover:underline">
             Log in
           </Link>
         </p>

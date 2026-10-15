@@ -713,7 +713,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                       >
                         <span>
                           {s.name}
-                          {s.listed && <WatchlistButton ticker={tickerForSupplier(s)} />}
+                          {s.listed && <WatchlistButton ticker={tickerForSupplier(s)} name={s.name} />}
                           {exposure?.exposureType && (
                             <span className="fine" style={{ marginLeft: 6 }}>
                               {EXPOSURE_TYPE_LABEL[exposure.exposureType]}
