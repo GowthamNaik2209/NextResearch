@@ -84,3 +84,66 @@ test("isAbout keeps headlines about the company and drops market wraps that mere
   assert.ok(!isAbout("Bharat Heavy Electricals bags order", bf), "'Bharat' alone does not identify Bharat Forge");
   assert.ok(isAbout("Bharat Forge shares gain 4% as Rs 2,000 crore QIP opens", bf));
 });
+
+test("isAbout does not credit a group's flagship with its siblings' news", () => {
+  const mm = { name: "Mahindra & Mahindra", ticker: "M&M" };
+  assert.ok(!isAbout("Mahindra Holidays accepts Rohit Malik resignation effective Oct 31", mm));
+  assert.ok(!isAbout("Mahindra Lifespace Developers shares jump on new project launch", mm));
+  assert.ok(!isAbout("Tech Mahindra Q2 results: net profit rises 12%", mm));
+  assert.ok(!isAbout("Mahindra & Mahindra Financial Services disbursements grow 8%", mm));
+  assert.ok(!isAbout("M&M Financial Services Q2 profit up", mm));
+  assert.ok(isAbout("Mahindra & Mahindra Q2 results: profit beats estimates", mm));
+  assert.ok(isAbout("M&M shares hit record high on strong SUV sales", mm));
+  assert.ok(isAbout("Mahindra launches XUV 7XO at Rs 13.66 lakh", mm), "'Mahindra' alone still means M&M");
+  assert.ok(isAbout("Tech Mahindra and M&M lead Nifty gainers", mm), "a sibling elsewhere in the headline does not hide M&M");
+});
+
+test("isAbout tells apart companies that share a group or a word in their names", () => {
+  const motherson = { name: "Samvardhana Motherson International", ticker: "MOTHERSON" };
+  assert.ok(!isAbout("Motherson Sumi Wiring India Q2 profit rises 10%", motherson));
+  const msumi = { name: "Motherson Sumi Wiring India", ticker: "MSUMI" };
+  assert.ok(isAbout("Motherson Sumi Wiring India Q2 profit rises 10%", msumi));
+
+  const kirlosEng = { name: "Kirloskar Oil Engines", ticker: "KIRLOSENG" };
+  assert.ok(!isAbout("Kirloskar Brothers bags Rs 300 crore pump order", kirlosEng));
+  assert.ok(!isAbout("Kirloskar Ferrous shares rally", kirlosEng));
+  assert.ok(isAbout("Kirloskar Oil Engines Q2 net profit up 18%", kirlosEng));
+
+  const rk = { name: "Ramkrishna Forgings", ticker: "RKFORGE" };
+  const sona = { name: "Sona BLW Precision Forgings", ticker: "SONACOMS" };
+  assert.ok(isAbout("Ramkrishna Forgings wins export order", rk));
+  assert.ok(!isAbout("Ramkrishna Forgings wins export order", sona), "a shared 'Forgings' is not enough");
+
+  const tataPower = { name: "Tata Power", ticker: "TATAPOWER" };
+  assert.ok(!isAbout("Tata Steel output rises 6% in Q2", tataPower));
+  assert.ok(isAbout("Tata Power commissions 300 MW solar plant", tataPower));
+  const tmpv = { name: "Tata Motors Passenger Vehicles", ticker: "TMPV" };
+  assert.ok(isAbout("Tata Motors PV sales rise 12% in September", tmpv));
+  assert.ok(!isAbout("Tata Motors Commercial Vehicles Q2 volumes dip", tmpv));
+
+  const adaniEnt = { name: "Adani Enterprises", ticker: "ADANIENT" };
+  assert.ok(!isAbout("Adani Ports cargo volumes hit record", adaniEnt));
+  assert.ok(!isAbout("Adani Green Energy commissions Khavda capacity", adaniEnt));
+  assert.ok(isAbout("Adani Enterprises QIP opens today", adaniEnt));
+
+  const bajajAuto = { name: "Bajaj Auto", ticker: "BAJAJ-AUTO" };
+  assert.ok(!isAbout("Bajaj Finance AUM grows 25%", bajajAuto));
+  assert.ok(isAbout("Bajaj Auto sales up 8% in September", bajajAuto));
+
+  const hal = { name: "Hindustan Aeronautics", ticker: "HAL" };
+  assert.ok(!isAbout("Hindustan Unilever Q2 volume growth at 4%", hal));
+  assert.ok(isAbout("HAL bags Rs 62,000 crore order for 97 Tejas jets", hal));
+
+  const siemens = { name: "Siemens Ltd", ticker: "SIEMENS" };
+  assert.ok(!isAbout("Siemens Energy India shares surge on debut", siemens));
+  assert.ok(isAbout("Siemens shares fall after Q2 miss", siemens));
+});
+
+test("isAbout matches the short names and spellings headlines actually use", () => {
+  const taril = { name: "Transformers & Rectifiers (India)", ticker: "TARIL" };
+  assert.ok(isAbout("Transformers and Rectifiers share price jumps 14% after Q2 profit surges", taril));
+  assert.ok(!isAbout("Power transformers demand to double by 2030", taril));
+  const stl = { name: "Sterlite Technologies", ticker: "STLTECH" };
+  assert.ok(isAbout("Sterlite Tech shares gain 5% as arm wins $1.2 billion supply agreement", stl));
+  assert.ok(!isAbout("Sterlite Power wins transmission project", stl));
+});

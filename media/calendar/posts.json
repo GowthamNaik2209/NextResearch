@@ -1,0 +1,1937 @@
+{
+ "meta": {
+  "title": "NextResearch media engine - fortnight 1",
+  "start": "2026-10-19",
+  "end": "2026-11-01",
+  "tz": "IST",
+  "themes": {
+   "1": "Week 1 - Launch: AI, EVs and power. 'See the supply chain'",
+   "2": "Week 2 - Make-in-India hardware: ships, jets, trains, chips, towers"
+  },
+  "slots": {
+   "instagram": [
+    "09:00",
+    "19:30"
+   ],
+   "linkedin": [
+    "08:45"
+   ],
+   "substack": [
+    "10:00"
+   ]
+  }
+ },
+ "disclaimer": "For information and education only. Not investment advice.",
+ "generated": "2026-10-15T15:22:45.829Z",
+ "posts": [
+  {
+   "previews": [
+    "assets/ig01/ig01-01.jpg",
+    "assets/ig01/ig01-02.jpg",
+    "assets/ig01/ig01-03.jpg",
+    "assets/ig01/ig01-04.jpg",
+    "assets/ig01/ig01-05.jpg",
+    "assets/ig01/ig01-06.jpg"
+   ],
+   "id": "ig01",
+   "platform": "instagram",
+   "date": "2026-10-19",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Product",
+   "sector": "all",
+   "title": "Launch - every listed company has a place in a supply chain",
+   "hook": "Stop asking 'which stock?'. Start asking 'which layer?'",
+   "caption": "Stop asking \"which stock?\" Start asking \"which layer?\"\n\nA theme like AI or EVs isn't one trade. It's dozens of companies doing very different jobs - with very different margins and risks.\n\nNextResearch maps India's listed companies by where they actually sit in a supply chain: data centres, EVs, semiconductors, railways, naval shipbuilding, aerospace, 5G, solar and power.\n\nSwipe to see how it works, then explore it yourself - link in bio.\n\nSave this for your next research session.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#InvestingEducation",
+    "#FinancialLiteracy",
+    "#Research",
+    "#StockMarketIndia"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig01",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Platform stats: 9 sectors / 70 layers / 166 listed / 189 companies"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig01-01.png",
+    "ig01-02.png",
+    "ig01-03.png",
+    "ig01-04.png",
+    "ig01-05.png",
+    "ig01-06.png"
+   ],
+   "slideCount": 6,
+   "thumb": "thumbs/ig01.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig02/ig02-cover-01.jpg"
+   ],
+   "id": "ig02",
+   "platform": "instagram",
+   "date": "2026-10-19",
+   "time": "19:30",
+   "format": "reel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "datacenter",
+   "title": "Reel - inside an AI data centre",
+   "hook": "What's actually inside an AI data centre? (It's not just GPUs)",
+   "caption": "Everyone talks about GPUs. But the money in India's data-centre buildout starts with power, backup and cooling - years before any AI app earns a rupee.\n\nHere's the whole campus, layer by layer. Which layer would you research first?\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#DataCenters",
+    "#AIInfrastructure",
+    "#India",
+    "#Reels"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/datacenter?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig02",
+   "onScreen": [
+    "What's inside an AI data centre?",
+    "Power: transformers & switchgear",
+    "Backup: UPS + diesel gensets",
+    "Cooling: chillers & towers",
+    "Tap a layer → see who supplies it",
+    "Explore it free - link in bio"
+   ],
+   "audio": "Trending instrumental, low-key tech beat (pick in-app)",
+   "sources": [
+    "Data Center deck: value chain"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig02-cover-01.png",
+    "ig02.mp4"
+   ],
+   "slideCount": "video",
+   "thumb": "thumbs/ig02.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig03/ig03-01.jpg",
+    "assets/ig03/ig03-02.jpg",
+    "assets/ig03/ig03-03.jpg",
+    "assets/ig03/ig03-04.jpg",
+    "assets/ig03/ig03-05.jpg",
+    "assets/ig03/ig03-06.jpg"
+   ],
+   "id": "ig03",
+   "platform": "instagram",
+   "date": "2026-10-20",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "datacenter",
+   "title": "AI's picks & shovels - the data-centre value chain",
+   "hook": "India's data-centre capacity is set to roughly triple by 2030. Here's who builds it.",
+   "caption": "India had ~1.4 GW of data-centre IT capacity in 2025. Industry estimates put it at ~4-5 GW by 2030.\n\nBut \"AI stocks\" isn't one bucket. Look at the margins across the chain: operators earn 40-50% EBITDA, cooling 8-12%, cabling 10-14%.\n\nSame theme, very different businesses. Swipe for the full chain.\n\nSave this. Share it with the friend who keeps saying \"AI stocks\".\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#DataCenters",
+    "#AIInfrastructure",
+    "#India",
+    "#AI"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/datacenter?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig03",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Data Center deck: overview chart, value chain, constraints"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig03-01.png",
+    "ig03-02.png",
+    "ig03-03.png",
+    "ig03-04.png",
+    "ig03-05.png",
+    "ig03-06.png"
+   ],
+   "slideCount": 6,
+   "thumb": "thumbs/ig03.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig04/ig04-01.jpg"
+   ],
+   "id": "ig04",
+   "platform": "instagram",
+   "date": "2026-10-20",
+   "time": "19:30",
+   "format": "single",
+   "pillar": "Numbers that Matter",
+   "sector": "datacenter",
+   "title": "Stat - ₹45-60 Cr per MW",
+   "hook": "₹45-60 Cr. That's roughly what one megawatt of data centre costs to build in India.",
+   "caption": "₹45-60 Cr per megawatt. Multiply that by the 3+ GW India is expected to add by 2030 and you get a sense of the capex wave behind the AI headlines.\n\nMost of that money goes to shells, electricals and cooling - not chips.\n\nWhich surprised you more: the cost, or that half of it sits in Mumbai?\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#DataCenters",
+    "#AIInfrastructure",
+    "#India"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/datacenter?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig04",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Data Center deck keyStats: build cost per MW, share in Mumbai"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig04-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/ig04.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig05/ig05-01.jpg",
+    "assets/ig05/ig05-02.jpg",
+    "assets/ig05/ig05-03.jpg",
+    "assets/ig05/ig05-04.jpg",
+    "assets/ig05/ig05-05.jpg",
+    "assets/ig05/ig05-06.jpg"
+   ],
+   "id": "ig05",
+   "platform": "instagram",
+   "date": "2026-10-21",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "ev4w",
+   "title": "EVs - the battery is the car",
+   "hook": "35-40% of an EV's cost is the battery. Over 90% of cells are still imported.",
+   "caption": "EV share of India's car sales: ~1% in FY23 → ~4.5% today. Small, but compounding.\n\nThe twist: the carmakers aren't where the margin is (yet). Drivetrain and power electronics run 15-25% EBITDA, while OEM EV margins are thin or negative.\n\nThe localization race - cells, magnets, power electronics - is the story to watch.\n\nSwipe through, then save for later.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#ElectricVehicles",
+    "#EVIndia",
+    "#SupplyChain"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/ev4w?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig05",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "EV deck: keyStats, sales chart, value chain"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig05-01.png",
+    "ig05-02.png",
+    "ig05-03.png",
+    "ig05-04.png",
+    "ig05-05.png",
+    "ig05-06.png"
+   ],
+   "slideCount": 6,
+   "thumb": "thumbs/ig05.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig06/ig06-cover-01.jpg"
+   ],
+   "id": "ig06",
+   "platform": "instagram",
+   "date": "2026-10-21",
+   "time": "19:30",
+   "format": "reel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "ev4w",
+   "title": "Reel - an EV, taken apart",
+   "hook": "An electric car, taken apart layer by layer",
+   "caption": "Battery, motor, power electronics, BMS, wiring, thermal, castings, charging, magnets. Eleven layers - and a different set of Indian suppliers in each.\n\nWhich layer do you think India localizes first?\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#ElectricVehicles",
+    "#EVIndia",
+    "#SupplyChain",
+    "#Reels"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/ev4w?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig06",
+   "onScreen": [
+    "An EV, taken apart",
+    "Battery: 35-40% of the cost",
+    "Motor, power electronics, BMS",
+    "Harness, thermal, precision parts",
+    "Who makes each part in India?",
+    "Map's free - link in bio"
+   ],
+   "audio": "Trending upbeat electronic (pick in-app)",
+   "sources": [
+    "EV sector map: 11 zones"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig06-cover-01.png",
+    "ig06.mp4"
+   ],
+   "slideCount": "video",
+   "thumb": "thumbs/ig06.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig07/ig07-01.jpg",
+    "assets/ig07/ig07-02.jpg",
+    "assets/ig07/ig07-03.jpg",
+    "assets/ig07/ig07-04.jpg",
+    "assets/ig07/ig07-05.jpg",
+    "assets/ig07/ig07-06.jpg"
+   ],
+   "id": "ig07",
+   "platform": "instagram",
+   "date": "2026-10-22",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Policy Explained",
+   "sector": "solarmodules",
+   "title": "ALMM explained - a list, not a subsidy",
+   "hook": "ALMM doesn't create solar demand. It decides who gets to supply it.",
+   "caption": "ALMM is one of the most important solar policies most investors have never read.\n\nIt doesn't subsidise anything. It's a list. If you're not on it, government-linked projects can't buy from you.\n\nList-I covered modules. List-II (cells) took effect June 2026. That shifts the scarce, higher-margin part of the chain upstream.\n\nSwipe for the 6-slide explainer. Save it.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#SolarEnergy",
+    "#ALMM",
+    "#MakeInIndia",
+    "#SolarIndia"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/solarmodules?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig07",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Solar deck: keyStats, value chain, developments"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig07-01.png",
+    "ig07-02.png",
+    "ig07-03.png",
+    "ig07-04.png",
+    "ig07-05.png",
+    "ig07-06.png"
+   ],
+   "slideCount": 6,
+   "thumb": "thumbs/ig07.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig08/ig08-01.jpg"
+   ],
+   "id": "ig08",
+   "platform": "instagram",
+   "date": "2026-10-22",
+   "time": "19:30",
+   "format": "single",
+   "pillar": "Numbers that Matter",
+   "sector": "solarmodules",
+   "title": "Chart - solar additions FY21-FY26",
+   "hook": "India added ~36 GW of solar in FY26. Five years ago it was 5.5.",
+   "caption": "5.5 GW → ~36 GW of solar added in a single year. A record.\n\nThe demand side is solved. The open question is who supplies it - which is exactly what ALMM decides (see this morning's post).\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#SolarEnergy",
+    "#ALMM",
+    "#MakeInIndia"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/solarmodules?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig08",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Solar deck: overview chart"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig08-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/ig08.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig09/ig09-01.jpg",
+    "assets/ig09/ig09-02.jpg",
+    "assets/ig09/ig09-03.jpg",
+    "assets/ig09/ig09-04.jpg",
+    "assets/ig09/ig09-05.jpg",
+    "assets/ig09/ig09-06.jpg"
+   ],
+   "id": "ig09",
+   "platform": "instagram",
+   "date": "2026-10-23",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Numbers that Matter",
+   "sector": "all",
+   "title": "Screens - highest ROCE & fastest growth (rule-based)",
+   "hook": "Two simple screens across 166 listed companies. Rules on the slide - not recommendations.",
+   "caption": "Two screens, one rule each, across the 166 listed companies we map.\n\nNotice HBL Engineering shows up in both - high return on capital and fast growth. Interesting starting point for a research question, not a conclusion.\n\nWhat screen should we run next? Comment below.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#InvestingEducation",
+    "#FinancialLiteracy",
+    "#Research",
+    "#StockScreener"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig09",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Platform 'Ideas' screens (insights.ts), seed data 25 Sep 2026"
+   ],
+   "compliance": "Rule-based screen. Keep the 'not recommendations' line on the cover and caption.",
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig09-01.png",
+    "ig09-02.png",
+    "ig09-03.png",
+    "ig09-04.png",
+    "ig09-05.png",
+    "ig09-06.png"
+   ],
+   "slideCount": 6,
+   "thumb": "thumbs/ig09.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig10/ig10-cover-01.jpg"
+   ],
+   "id": "ig10",
+   "platform": "instagram",
+   "date": "2026-10-23",
+   "time": "19:30",
+   "format": "reel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "solarmodules",
+   "title": "Reel - polysilicon to panel",
+   "hook": "Polysilicon to panel in 20 seconds",
+   "caption": "Seven layers between sand and a solar panel on your roof. India is strong in the last few and still import-dependent in the first few.\n\nWhich gap closes first - wafers or glass?\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#SolarEnergy",
+    "#ALMM",
+    "#MakeInIndia",
+    "#Reels"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/solarmodules?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig10",
+   "onScreen": [
+    "Polysilicon → panel",
+    "Wafers: >90% imported",
+    "Cells: the scarce layer",
+    "Modules: >100 GW listed",
+    "Who makes each layer?",
+    "Link in bio"
+   ],
+   "audio": "Trending calm/ambient (pick in-app)",
+   "sources": [
+    "Solar deck: keyStats; sector map 7 zones"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig10-cover-01.png",
+    "ig10.mp4"
+   ],
+   "slideCount": "video",
+   "thumb": "thumbs/ig10.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig11/ig11-01.jpg",
+    "assets/ig11/ig11-02.jpg",
+    "assets/ig11/ig11-03.jpg",
+    "assets/ig11/ig11-04.jpg",
+    "assets/ig11/ig11-05.jpg",
+    "assets/ig11/ig11-06.jpg"
+   ],
+   "id": "ig11",
+   "platform": "instagram",
+   "date": "2026-10-24",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Myth vs Data",
+   "sector": "energy",
+   "title": "Energy - myth vs data",
+   "hook": "Over half of India's power capacity is non-fossil. So why does coal still make ~3/4 of the electricity?",
+   "caption": "Capacity and generation are not the same thing.\n\n>50% of India's capacity is non-fossil. But coal still generates ~73-75% of the electricity, because a solar plant only produces for part of the day.\n\nThe bridge between the two is storage - the newest layer in the power supply chain.\n\nSave + share with someone who mixes up GW and GWh.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#PowerSector",
+    "#RenewableEnergy",
+    "#EnergyTransition"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/energy?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig11",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Power deck: keyStats, capacity mix, thesis"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig11-01.png",
+    "ig11-02.png",
+    "ig11-03.png",
+    "ig11-04.png",
+    "ig11-05.png",
+    "ig11-06.png"
+   ],
+   "slideCount": 6,
+   "thumb": "thumbs/ig11.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig12/ig12-01.jpg"
+   ],
+   "id": "ig12",
+   "platform": "instagram",
+   "date": "2026-10-24",
+   "time": "19:30",
+   "format": "single",
+   "pillar": "Engagement",
+   "sector": "solarmodules",
+   "title": "Quiz - which solar layer earns 25-30%?",
+   "hook": "Quiz: which layer of the solar chain earns 25-30%+ EBITDA?",
+   "caption": "Answer: B - solar cells (25-30%+ EBITDA), vs ~10-15% for module assembly.\n\nWhy: India has >100 GW of module capacity but far less cell capacity, and ALMM List-II now requires domestic cells.\n\nDid you get it? Drop your letter before reading this caption next time 👀\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#SolarEnergy",
+    "#ALMM",
+    "#MakeInIndia",
+    "#Quiz"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/solarmodules?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig12",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Solar deck: value chain margins"
+   ],
+   "compliance": null,
+   "storyFollowUp": "Story poll with the same 4 options at 20:30; reveal at 22:00.",
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig12-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/ig12.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig13/ig13-01.jpg",
+    "assets/ig13/ig13-02.jpg",
+    "assets/ig13/ig13-03.jpg",
+    "assets/ig13/ig13-04.jpg",
+    "assets/ig13/ig13-05.jpg",
+    "assets/ig13/ig13-06.jpg",
+    "assets/ig13/ig13-07.jpg"
+   ],
+   "id": "ig13",
+   "platform": "instagram",
+   "date": "2026-10-25",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Numbers that Matter",
+   "sector": "all",
+   "title": "Week 1 recap - 5 charts",
+   "hook": "5 charts from week 1 you should save",
+   "caption": "Week 1 in five charts: data centres, EVs, solar and power - all physical buildouts, all compounding.\n\nOur first newsletter goes out today with the full data-centre deep dive. Link in bio to subscribe.\n\nWhich chart surprised you most?\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#InvestingEducation",
+    "#FinancialLiteracy",
+    "#Research"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig13",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "DC, EV, Solar, Power decks: overview charts"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig13-01.png",
+    "ig13-02.png",
+    "ig13-03.png",
+    "ig13-04.png",
+    "ig13-05.png",
+    "ig13-06.png",
+    "ig13-07.png"
+   ],
+   "slideCount": 7,
+   "thumb": "thumbs/ig13.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig14/ig14-cover-01.jpg"
+   ],
+   "id": "ig14",
+   "platform": "instagram",
+   "date": "2026-10-25",
+   "time": "19:30",
+   "format": "reel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "energy",
+   "title": "Reel - India's power mix in 3D",
+   "hook": "Thermal, solar, wind, hydro, storage - India's grid in one map",
+   "caption": "Ten layers, five ways of making electricity, one grid. Every one of them is adding capacity at the same time.\n\nWhere would you start your research?\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#PowerSector",
+    "#RenewableEnergy",
+    "#EnergyTransition",
+    "#Reels"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/energy?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig14",
+   "onScreen": [
+    "India's power system",
+    "Coal: still ~3/4 of generation",
+    "Solar + wind: fastest growing",
+    "Storage: the newest layer",
+    "Who builds each one?",
+    "Link in bio"
+   ],
+   "audio": "Trending cinematic build (pick in-app)",
+   "sources": [
+    "Power sector map: 10 zones"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig14-cover-01.png",
+    "ig14.mp4"
+   ],
+   "slideCount": "video",
+   "thumb": "thumbs/ig14.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig15/ig15-01.jpg",
+    "assets/ig15/ig15-02.jpg",
+    "assets/ig15/ig15-03.jpg",
+    "assets/ig15/ig15-04.jpg",
+    "assets/ig15/ig15-05.jpg",
+    "assets/ig15/ig15-06.jpg"
+   ],
+   "id": "ig15",
+   "platform": "instagram",
+   "date": "2026-10-26",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "naval",
+   "title": "Naval - ~60 warships under construction",
+   "hook": "~60 warships are being built in Indian yards right now. Who supplies the parts?",
+   "caption": "~60 ships are under construction in Indian yards. The Navy wants 175-200 by ~2035.\n\nA warship is a supply chain: special steel (SAIL is the sole domestic maker of DMR-249 warship steel), propulsion, weapons, radar and sonar - each with its own suppliers and margins.\n\nSwipe for the full chain. Save it.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#Defence",
+    "#Shipbuilding",
+    "#Atmanirbhar"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/naval?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig15",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Naval deck: keyStats, value chain, risks; sector map supplier roles"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig15-01.png",
+    "ig15-02.png",
+    "ig15-03.png",
+    "ig15-04.png",
+    "ig15-05.png",
+    "ig15-06.png"
+   ],
+   "slideCount": 6,
+   "thumb": "thumbs/ig15.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig16/ig16-cover-01.jpg"
+   ],
+   "id": "ig16",
+   "platform": "instagram",
+   "date": "2026-10-26",
+   "time": "19:30",
+   "format": "reel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "naval",
+   "title": "Reel - a warship, layer by layer",
+   "hook": "Who builds an Indian warship? Tap the layer.",
+   "caption": "Hull steel, propulsion, combat systems, sensors - and the yards that put it all together. Tap a layer to see the listed suppliers.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#Defence",
+    "#Shipbuilding",
+    "#Atmanirbhar",
+    "#Reels"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/naval?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig16",
+   "onScreen": [
+    "Who builds a warship?",
+    "Hull & steel",
+    "Propulsion",
+    "Weapons & sensors",
+    "Tap → the shipyards",
+    "Link in bio"
+   ],
+   "audio": "Trending cinematic/orchestral (pick in-app)",
+   "sources": [
+    "Naval sector map"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig16-cover-01.png",
+    "ig16.mp4"
+   ],
+   "slideCount": "video",
+   "thumb": "thumbs/ig16.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig17/ig17-01.jpg",
+    "assets/ig17/ig17-02.jpg",
+    "assets/ig17/ig17-03.jpg",
+    "assets/ig17/ig17-04.jpg",
+    "assets/ig17/ig17-05.jpg"
+   ],
+   "id": "ig17",
+   "platform": "instagram",
+   "date": "2026-10-27",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Numbers that Matter",
+   "sector": "aerospace",
+   "title": "Defence exports ₹9k → ₹23.6k Cr",
+   "hook": "India's defence exports went from ₹9,115 Cr to ₹23,622 Cr in five years.",
+   "caption": "Two engines are running at once in Indian aerospace: defence indigenization at home, and global OEMs adding India to their supplier lists (China+1).\n\nThe highest-margin layer? Engine components - 25-35% EBITDA - because getting qualified takes years.\n\nSwipe through. Save for later.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#Aerospace",
+    "#DefenceManufacturing",
+    "#MRO"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/aerospace?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig17",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Aerospace deck: exports chart, value chain, thesis"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig17-01.png",
+    "ig17-02.png",
+    "ig17-03.png",
+    "ig17-04.png",
+    "ig17-05.png"
+   ],
+   "slideCount": 5,
+   "thumb": "thumbs/ig17.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig18/ig18-01.jpg"
+   ],
+   "id": "ig18",
+   "platform": "instagram",
+   "date": "2026-10-27",
+   "time": "19:30",
+   "format": "single",
+   "pillar": "Numbers that Matter",
+   "sector": "aerospace",
+   "title": "Stat - ~85% of MRO spend goes abroad",
+   "hook": "~85% of India's aircraft maintenance spend leaves the country.",
+   "caption": "Indian airlines have ~1,700+ aircraft on order. Yet ~85% of maintenance, repair and overhaul (MRO) spend - mostly engines - happens outside India.\n\nThat's the under-built profit pool. Safran opening a LEAP engine MRO in Hyderabad (Nov 2025) is the kind of move to watch.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#Aerospace",
+    "#DefenceManufacturing",
+    "#MRO",
+    "#Aviation"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/aerospace?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig18",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Aerospace deck: keyStats, developments"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig18-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/ig18.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig19/ig19-01.jpg",
+    "assets/ig19/ig19-02.jpg",
+    "assets/ig19/ig19-03.jpg",
+    "assets/ig19/ig19-04.jpg",
+    "assets/ig19/ig19-05.jpg",
+    "assets/ig19/ig19-06.jpg"
+   ],
+   "id": "ig19",
+   "platform": "instagram",
+   "date": "2026-10-28",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "railways",
+   "title": "Railways - the money is moving to trains & Kavach",
+   "hook": "Railway capex is ~4x FY14. But where it's going is changing.",
+   "caption": "Railway capex: ~₹2.65 lakh Cr budgeted for FY26 - about 4x FY14.\n\nBut the electrification job is ~99% done. The next leg is trains (Vande Bharat, sleeper) and safety (Kavach - under 5% of route km covered).\n\nSignaling earns 20-30% EBITDA. Civil EPC earns 5-10%. Same budget, very different businesses.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#IndianRailways",
+    "#VandeBharat",
+    "#Infrastructure"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/railways?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig19",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Railways deck: capex chart, keyStats, value chain"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig19-01.png",
+    "ig19-02.png",
+    "ig19-03.png",
+    "ig19-04.png",
+    "ig19-05.png",
+    "ig19-06.png"
+   ],
+   "slideCount": 6,
+   "thumb": "thumbs/ig19.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig20/ig20-cover-01.jpg"
+   ],
+   "id": "ig20",
+   "platform": "instagram",
+   "date": "2026-10-28",
+   "time": "19:30",
+   "format": "reel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "railways",
+   "title": "Reel - a Vande Bharat, layer by layer",
+   "hook": "What goes into a Vande Bharat?",
+   "caption": "Bogies, traction, braking, signaling, coach fabrication - and the PSUs that finance and run it all. 34 companies on one map.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#IndianRailways",
+    "#VandeBharat",
+    "#Infrastructure",
+    "#Reels"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/railways?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig20",
+   "onScreen": [
+    "What's inside a Vande Bharat?",
+    "Bogies, wheels, axles",
+    "Traction & braking",
+    "Kavach signaling",
+    "Tap → who supplies it",
+    "Link in bio"
+   ],
+   "audio": "Trending train/rhythmic beat (pick in-app)",
+   "sources": [
+    "Railways sector map: 7 zones, 34 companies"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig20-cover-01.png",
+    "ig20.mp4"
+   ],
+   "slideCount": "video",
+   "thumb": "thumbs/ig20.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig21/ig21-01.jpg",
+    "assets/ig21/ig21-02.jpg",
+    "assets/ig21/ig21-03.jpg",
+    "assets/ig21/ig21-04.jpg",
+    "assets/ig21/ig21-05.jpg",
+    "assets/ig21/ig21-06.jpg"
+   ],
+   "id": "ig21",
+   "platform": "instagram",
+   "date": "2026-10-29",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "semiconductors",
+   "title": "Semis - packaging comes before wafers",
+   "hook": "India's chip story starts with packaging, not wafers.",
+   "caption": "India's chip demand: ~$45-50 bn a year. Share made in India: tiny.\n\nThe build-out is starting from the back end - packaging and testing (OSAT/ATMP) - because it's faster and less capital-intensive than a fab.\n\nThe early earners are the picks and shovels: gases, chemicals, cleanrooms, design services.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#Semiconductors",
+    "#ISM",
+    "#Electronics"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/semiconductors?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig21",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Semis deck: keyStats, value chain, thesis"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig21-01.png",
+    "ig21-02.png",
+    "ig21-03.png",
+    "ig21-04.png",
+    "ig21-05.png",
+    "ig21-06.png"
+   ],
+   "slideCount": 6,
+   "thumb": "thumbs/ig21.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig22/ig22-cover-01.jpg"
+   ],
+   "id": "ig22",
+   "platform": "instagram",
+   "date": "2026-10-29",
+   "time": "19:30",
+   "format": "reel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "semiconductors",
+   "title": "Reel - inside a chip fab campus",
+   "hook": "A chip fab campus, from gases to packaging",
+   "caption": "Fab, packaging, gases, chemicals, cleanroom utilities, EMS, design. Seven layers being built at once in Gujarat, Assam and UP.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#Semiconductors",
+    "#ISM",
+    "#Electronics",
+    "#Reels"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/semiconductors?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig22",
+   "onScreen": [
+    "Inside a chip campus",
+    "Wafer fab",
+    "Gases & chemicals",
+    "Cleanroom & ultra-pure water",
+    "OSAT: packaging",
+    "Link in bio"
+   ],
+   "audio": "Trending synth/tech (pick in-app)",
+   "sources": [
+    "Semis sector map: 7 zones"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig22-cover-01.png",
+    "ig22.mp4"
+   ],
+   "slideCount": "video",
+   "thumb": "thumbs/ig22.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig23/ig23-01.jpg",
+    "assets/ig23/ig23-02.jpg",
+    "assets/ig23/ig23-03.jpg",
+    "assets/ig23/ig23-04.jpg",
+    "assets/ig23/ig23-05.jpg",
+    "assets/ig23/ig23-06.jpg"
+   ],
+   "id": "ig23",
+   "platform": "instagram",
+   "date": "2026-10-30",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "telecom5g",
+   "title": "5G - capex peaked. Where does the money go now?",
+   "hook": "5G capex has peaked. That doesn't mean the money stopped.",
+   "caption": "India rolled out ~5 lakh 5G base stations - one of the fastest rollouts anywhere. That build phase has peaked.\n\nWhat's next: operators raising ARPU, and towers + fiber that densification keeps pulling. Towers run ~50% EBITDA; EPC installers ~8-12%.\n\nSave this one.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#5G",
+    "#Telecom",
+    "#DigitalIndia"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/telecom5g?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig23",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Telecom deck: chart, keyStats, value chain, stance"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig23-01.png",
+    "ig23-02.png",
+    "ig23-03.png",
+    "ig23-04.png",
+    "ig23-05.png",
+    "ig23-06.png"
+   ],
+   "slideCount": 6,
+   "thumb": "thumbs/ig23.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig24/ig24-01.jpg",
+    "assets/ig24/ig24-02.jpg",
+    "assets/ig24/ig24-03.jpg",
+    "assets/ig24/ig24-04.jpg",
+    "assets/ig24/ig24-05.jpg"
+   ],
+   "id": "ig24",
+   "platform": "instagram",
+   "date": "2026-10-30",
+   "time": "19:30",
+   "format": "carousel",
+   "pillar": "Hidden Connections",
+   "sector": "all",
+   "title": "Companies that sit in 4 supply chains at once",
+   "hook": "These companies show up in 4 different supply chains.",
+   "caption": "Batteries for EVs, data-centre UPS, telecom towers and grid storage? That's Exide and Amara Raja - four supply chains each.\n\nForgings for EVs, trains, warships and jet engines? Bharat Forge.\n\nOne theme can be a small slice of a big company. Always check the segment mix.\n\nWhich connection surprised you?\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#InvestingEducation",
+    "#FinancialLiteracy",
+    "#Research",
+    "#SupplyChain"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/companies?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig24",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "companies.ts appearances count"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig24-01.png",
+    "ig24-02.png",
+    "ig24-03.png",
+    "ig24-04.png",
+    "ig24-05.png"
+   ],
+   "slideCount": 5,
+   "thumb": "thumbs/ig24.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig25/ig25-01.jpg",
+    "assets/ig25/ig25-02.jpg",
+    "assets/ig25/ig25-03.jpg",
+    "assets/ig25/ig25-04.jpg",
+    "assets/ig25/ig25-05.jpg",
+    "assets/ig25/ig25-06.jpg",
+    "assets/ig25/ig25-07.jpg",
+    "assets/ig25/ig25-08.jpg"
+   ],
+   "id": "ig25",
+   "platform": "instagram",
+   "date": "2026-10-31",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Bottleneck Watch",
+   "sector": "all",
+   "title": "Bottleneck Watch - 6 constraints",
+   "hook": "6 bottlenecks that could slow India's capex story",
+   "caption": "Most of India's capex themes don't have a demand problem. They have a bottleneck problem.\n\nThe companies that solve a bottleneck often capture the most value - and the ones stuck behind one face delays.\n\nWhich bottleneck do you think breaks first?\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#InvestingEducation",
+    "#FinancialLiteracy",
+    "#Research",
+    "#MakeInIndia"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig25",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Sector maps: zone bottlenecks (DC, EV, Solar, Naval, Aero, Semis)"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig25-01.png",
+    "ig25-02.png",
+    "ig25-03.png",
+    "ig25-04.png",
+    "ig25-05.png",
+    "ig25-06.png",
+    "ig25-07.png",
+    "ig25-08.png"
+   ],
+   "slideCount": 8,
+   "thumb": "thumbs/ig25.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig26/ig26-cover-01.jpg"
+   ],
+   "id": "ig26",
+   "platform": "instagram",
+   "date": "2026-10-31",
+   "time": "19:30",
+   "format": "reel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "aerospace",
+   "title": "Reel - a fighter jet's supply chain",
+   "hook": "From forgings to final assembly",
+   "caption": "Forgings, aerostructures, landing gear, engine parts, avionics, MRO and the primes that integrate it all. 44 companies on one map.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#Aerospace",
+    "#DefenceManufacturing",
+    "#MRO",
+    "#Reels"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/aerospace?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig26",
+   "onScreen": [
+    "Who builds an aircraft?",
+    "Forgings & alloys",
+    "Engine parts",
+    "Avionics",
+    "MRO hangars",
+    "Link in bio"
+   ],
+   "audio": "Trending cinematic (pick in-app)",
+   "sources": [
+    "Aerospace sector map: 7 zones, 44 companies"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig26-cover-01.png",
+    "ig26.mp4"
+   ],
+   "slideCount": "video",
+   "thumb": "thumbs/ig26.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig27/ig27-01.jpg",
+    "assets/ig27/ig27-02.jpg",
+    "assets/ig27/ig27-03.jpg",
+    "assets/ig27/ig27-04.jpg",
+    "assets/ig27/ig27-05.jpg",
+    "assets/ig27/ig27-06.jpg"
+   ],
+   "id": "ig27",
+   "platform": "instagram",
+   "date": "2026-11-01",
+   "time": "09:00",
+   "format": "carousel",
+   "pillar": "Product",
+   "sector": "all",
+   "title": "How to research a sector in 4 steps",
+   "hook": "How to research a sector in 4 steps (free)",
+   "caption": "A simple, repeatable way to research any theme:\n\n1. Pick the sector\n2. Read the thesis and what to watch\n3. Find the layer of the supply chain that captures value\n4. Only then compare the companies in that layer\n\nSave this for your next research session.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#InvestingEducation",
+    "#FinancialLiteracy",
+    "#Research"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig27",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Product walkthrough"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig27-01.png",
+    "ig27-02.png",
+    "ig27-03.png",
+    "ig27-04.png",
+    "ig27-05.png",
+    "ig27-06.png"
+   ],
+   "slideCount": 6,
+   "thumb": "thumbs/ig27.jpg"
+  },
+  {
+   "previews": [
+    "assets/ig28/ig28-cover-01.jpg"
+   ],
+   "id": "ig28",
+   "platform": "instagram",
+   "date": "2026-11-01",
+   "time": "19:30",
+   "format": "reel",
+   "pillar": "Supply Chain Decoded",
+   "sector": "telecom5g",
+   "title": "Reel - a 5G network, layer by layer",
+   "hook": "What's behind your 5G signal?",
+   "caption": "Towers, fiber, radios, antennas, power systems, installers and the operators paying for it. 43 companies behind every bar of signal.\n\nData: NextResearch, as of Oct 2026. Not investment advice - do your own research.",
+   "hashtags": [
+    "#IndianStockMarket",
+    "#NextResearch",
+    "#5G",
+    "#Telecom",
+    "#DigitalIndia",
+    "#Reels"
+   ],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/telecom5g?utm_source=instagram&utm_medium=social&utm_campaign=fortnight1&utm_content=ig28",
+   "onScreen": [
+    "What's behind your 5G bar?",
+    "Towers",
+    "Fiber",
+    "Radios & antennas",
+    "Power backup",
+    "Link in bio"
+   ],
+   "audio": "Trending upbeat (pick in-app)",
+   "sources": [
+    "Telecom sector map: 8 zones, 43 companies"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "ig28-cover-01.png",
+    "ig28.mp4"
+   ],
+   "slideCount": "video",
+   "thumb": "thumbs/ig28.jpg"
+  },
+  {
+   "previews": [
+    "assets/li01/li01-01.jpg"
+   ],
+   "id": "li01",
+   "platform": "linkedin",
+   "date": "2026-10-19",
+   "time": "08:45",
+   "format": "text+image",
+   "pillar": "Founder story",
+   "sector": "all",
+   "title": "Why I built NextResearch",
+   "hook": "",
+   "caption": "Every time a theme gets hot in Indian markets - AI, EVs, defence - the same thing happens.\n\nA list of 'beneficiary stocks' goes viral. Half of them barely touch the theme. The other half do very different jobs in the supply chain, with very different economics.\n\nA data centre isn't one business. It's transformers, diesel gensets, chillers, cables, fiber and landlords. Operators earn 40-50% EBITDA. Cooling suppliers earn 8-12%. Same theme.\n\nSo we built NextResearch: a map of India's listed companies by where they actually sit in a supply chain.\n\n→ 9 sectors\n→ 70 supply-chain layers\n→ 166 listed companies, each with financials and peers\n→ a 3D map you can walk through, layer by layer\n\nIt's live today, and free to explore. Link in the first comment.\n\nI'd love your honest feedback - especially from people who research sectors for a living. What would make this genuinely useful to you?\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#IndianMarkets",
+    "#EquityResearch",
+    "#BuildInPublic"
+   ],
+   "firstComment": "Explore it here: {{SITE}}/?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li01",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Platform stats",
+    "DC deck value chain margins"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li01-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/li01.jpg"
+  },
+  {
+   "previews": [
+    "assets/li02/li02-01.jpg",
+    "assets/li02/li02-02.jpg",
+    "assets/li02/li02-03.jpg",
+    "assets/li02/li02-04.jpg",
+    "assets/li02/li02-05.jpg",
+    "assets/li02/li02-06.jpg"
+   ],
+   "id": "li02",
+   "platform": "linkedin",
+   "date": "2026-10-20",
+   "time": "08:45",
+   "format": "document",
+   "pillar": "Sector deep dive",
+   "sector": "datacenter",
+   "title": "Doc carousel - India's AI buildout is a capex story first",
+   "hook": "",
+   "caption": "India's AI story is a capex story before it is a software story.\n\n~1.4 GW of data-centre IT capacity in 2025. Industry estimates: ~4-5 GW by 2030. At ₹45-60 Cr per MW, that's a very physical wave of spending.\n\nWhat's interesting is where the money lands first:\n\n• Grid, transformers and switchgear - orders placed before construction\n• Backup power - UPS and diesel gensets\n• Cooling - chillers, CRAC units, towers\n• Cabling and fiber\n\nAnd the binding constraint isn't demand. It's reliable power, grid connections, water for cooling and access to imported GPUs.\n\nI put the full value chain, with typical margins at each layer, into the document above.\n\nWhich layer do you think is most underappreciated?\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#DataCenters",
+    "#AIInfrastructure",
+    "#India"
+   ],
+   "firstComment": "Interactive map + the full 10-slide report: {{SITE}}/sector/datacenter?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li02",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "DC deck"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li02-01.png",
+    "li02-02.png",
+    "li02-03.png",
+    "li02-04.png",
+    "li02-05.png",
+    "li02-06.png",
+    "li02.pdf"
+   ],
+   "slideCount": "reuses ig03",
+   "thumb": "thumbs/li02.jpg"
+  },
+  {
+   "previews": [
+    "assets/li03/li03-01.jpg"
+   ],
+   "id": "li03",
+   "platform": "linkedin",
+   "date": "2026-10-21",
+   "time": "08:45",
+   "format": "text+image",
+   "pillar": "Sector insight",
+   "sector": "ev4w",
+   "title": "The EV profit pool isn't at the OEM",
+   "hook": "",
+   "caption": "The most visible companies in a theme are rarely where the margin is.\n\nIndia's electric car market:\n• ~2 lakh units in FY26, ~4.5% of car sales (from ~1% in FY23)\n• The battery is 35-40% of an EV's cost\n• >90% of cells are still imported\n\nNow look at margins along the chain. Drivetrain and power electronics: 15-25% EBITDA. Vehicle OEMs on their EV lines: thin to negative.\n\nThe value is accruing first to suppliers localizing what's imported today - cells, motors, power electronics - and to incumbent auto-component makers retooling machining, wiring and thermal lines for EV platforms.\n\nIncumbents retool; they don't get replaced. That's the part most 'EV stock' lists miss.\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#ElectricVehicles",
+    "#AutoComponents",
+    "#SupplyChain"
+   ],
+   "firstComment": "EV supply chain map: {{SITE}}/sector/ev4w?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li03",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "EV deck"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li03-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/li03.jpg"
+  },
+  {
+   "previews": [
+    "assets/li04/li04-01.jpg"
+   ],
+   "id": "li04",
+   "platform": "linkedin",
+   "date": "2026-10-22",
+   "time": "08:45",
+   "format": "text+image",
+   "pillar": "Policy explained",
+   "sector": "solarmodules",
+   "title": "ALMM - a list, not a subsidy",
+   "hook": "",
+   "caption": "One of the most effective industrial policies in India right now isn't a subsidy. It's a list.\n\nALMM - the Approved List of Models and Manufacturers - says government-linked solar projects can only buy from MNRE-approved domestic makers.\n\n• List-I: modules. >100 GW is now enlisted - more than enough.\n• List-II: cells, from June 2026. Domestic cell capacity is the scarce part.\n• List-III (proposed): wafers.\n\nThe effect: the profit pool moves upstream in phases. Cells earn 25-30%+ EBITDA today; module assembly earns 10-15%.\n\nDemand was never the question - India added a record ~36 GW of solar in FY26. ALMM decides who supplies it.\n\nPolicy that redirects demand rather than subsidizing it is worth studying closely.\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#SolarEnergy",
+    "#IndustrialPolicy",
+    "#MakeInIndia"
+   ],
+   "firstComment": "ALMM supply-chain map: {{SITE}}/sector/solarmodules?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li04",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Solar deck"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li04-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/li04.jpg"
+  },
+  {
+   "previews": [
+    "assets/li05/li05-01.jpg"
+   ],
+   "id": "li05",
+   "platform": "linkedin",
+   "date": "2026-10-23",
+   "time": "08:45",
+   "format": "text+image",
+   "pillar": "Build in public",
+   "sector": "all",
+   "title": "What we learned mapping 189 companies",
+   "hook": "",
+   "caption": "We mapped 189 Indian companies across 70 supply-chain layers. Five things I didn't expect:\n\n1. The same names keep showing up. Bharat Forge sits in EVs, railways, naval and aerospace. Exide and Amara Raja in EVs, data centres, telecom and power.\n\n2. 'Pure plays' are rare. Most listed exposure to a hot theme is a segment inside a much larger business.\n\n3. Bottlenecks beat demand. Almost every sector has more demand than capacity - grid connections, cell supply, dry docks, aerospace alloys.\n\n4. Margins vary 5x within one theme. Rail signaling earns 20-30% EBITDA; civil EPC earns 5-10%.\n\n5. Data provenance matters. Every layer and company carries a data-status label, because not every figure is equally verified.\n\nNext up: one public page per company, so you can see every layer it sits in. Shipping this week.\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#BuildInPublic",
+    "#EquityResearch",
+    "#Startups"
+   ],
+   "firstComment": "Explore the map: {{SITE}}/?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li05",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "companies.ts",
+    "Railways deck value chain"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li05-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/li05.jpg"
+  },
+  {
+   "previews": [
+    "assets/li06/li06-01.jpg"
+   ],
+   "id": "li06",
+   "platform": "linkedin",
+   "date": "2026-10-24",
+   "time": "08:45",
+   "format": "text+image",
+   "pillar": "Myth vs data",
+   "sector": "energy",
+   "title": "Capacity vs generation",
+   "hook": "",
+   "caption": "Two true statements about India's power sector:\n\n1. Over 50% of installed capacity is now non-fossil - crossed in mid-2025, about five years early.\n2. Coal still generates ~73-75% of the electricity.\n\nThe gap is capacity vs generation. A solar plant produces for part of the day; a coal plant runs round the clock.\n\nWhich is why the layer to watch is storage - batteries and pumped hydro. It's what lets renewables keep scaling without leaning on coal for every evening peak. Peak demand is already 250 GW+, and CEA expects ~366 GW by FY32.\n\nEvery generation method is adding capacity at once. That's rare - and it shows up across every equipment supplier in the chain.\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#PowerSector",
+    "#EnergyTransition",
+    "#India"
+   ],
+   "firstComment": "Power sector map: {{SITE}}/sector/energy?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li06",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Power deck"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li06-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/li06.jpg"
+  },
+  {
+   "previews": [
+    "assets/li07/li07-01.jpg"
+   ],
+   "id": "li07",
+   "platform": "linkedin",
+   "date": "2026-10-25",
+   "time": "08:45",
+   "format": "text+image",
+   "pillar": "Newsletter",
+   "sector": "datacenter",
+   "title": "Newsletter #1 is out",
+   "hook": "",
+   "caption": "Issue #1 of The Map - our fortnightly newsletter on India's supply chains - goes out today.\n\nThis issue: AI's physical supply chain in India.\n• Why data-centre capacity is set to roughly triple by 2030\n• The value chain, layer by layer, with typical margins\n• The constraint nobody prices in: power and grid connections\n• 3 companies, and the layer each one sits in\n• What to watch as Q2 FY27 results come in\n\nNo stock tips. Just the map, the numbers and the questions worth asking.\n\nSubscribe free - link in the first comment.\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#Newsletter",
+    "#DataCenters",
+    "#IndianMarkets"
+   ],
+   "firstComment": "Read + subscribe: {{SUBSTACK}}?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li07",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Substack issue #1"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li07-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/li07.jpg"
+  },
+  {
+   "previews": [
+    "assets/li08/li08-01.jpg",
+    "assets/li08/li08-02.jpg",
+    "assets/li08/li08-03.jpg",
+    "assets/li08/li08-04.jpg",
+    "assets/li08/li08-05.jpg",
+    "assets/li08/li08-06.jpg"
+   ],
+   "id": "li08",
+   "platform": "linkedin",
+   "date": "2026-10-26",
+   "time": "08:45",
+   "format": "document",
+   "pillar": "Sector deep dive",
+   "sector": "naval",
+   "title": "Doc carousel - who builds India's warships",
+   "hook": "",
+   "caption": "~60 warships are under construction in Indian yards right now. The Navy's goal is 175-200 ships by ~2035, up from ~140.\n\nA warship is a supply chain:\n• Hull steel - SAIL is the sole domestic producer of DMR-249 warship-grade steel\n• Propulsion and machinery\n• Weapons and ammunition\n• Sensors and electronics - the highest-margin layer (20-30% EBITDA)\n• Shipyards that integrate it all\n\nThe constraint isn't demand. It's execution: a handful of qualified yards, limited dry docks, and multi-year build cycles that tie up capacity per vessel.\n\nThe document above walks through each layer.\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#Defence",
+    "#Shipbuilding",
+    "#Atmanirbhar"
+   ],
+   "firstComment": "Naval shipbuilding map: {{SITE}}/sector/naval?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li08",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Naval deck"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li08-01.png",
+    "li08-02.png",
+    "li08-03.png",
+    "li08-04.png",
+    "li08-05.png",
+    "li08-06.png",
+    "li08.pdf"
+   ],
+   "slideCount": "reuses ig15",
+   "thumb": "thumbs/li08.jpg"
+  },
+  {
+   "previews": [
+    "assets/li09/li09-01.jpg"
+   ],
+   "id": "li09",
+   "platform": "linkedin",
+   "date": "2026-10-27",
+   "time": "08:45",
+   "format": "text+image",
+   "pillar": "Sector insight",
+   "sector": "aerospace",
+   "title": "MRO - the under-built profit pool",
+   "hook": "",
+   "caption": "Indian airlines have ~1,700+ aircraft on order - one of the largest order books in the world.\n\nYet ~85% of India's aircraft maintenance, repair and overhaul (MRO) spend goes abroad, mostly for engines and components.\n\nThat's a profit pool that should be onshore and largely isn't yet. Engine MRO alone is ~45% of civil MRO spend.\n\nSafran opening a LEAP engine MRO facility in Hyderabad (Nov 2025) is the kind of signal to watch: global OEMs building sustainment capacity where the fleet is growing.\n\nMeanwhile defence exports went from ₹9,115 Cr (FY20) to ₹23,622 Cr (FY25), with a ₹50,000 Cr target for FY29. Two demand engines, one supply chain.\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#Aerospace",
+    "#Aviation",
+    "#MRO"
+   ],
+   "firstComment": "Aerospace & MRO map: {{SITE}}/sector/aerospace?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li09",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Aerospace deck"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li09-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/li09.jpg"
+  },
+  {
+   "previews": [
+    "assets/li10/li10-01.jpg"
+   ],
+   "id": "li10",
+   "platform": "linkedin",
+   "date": "2026-10-28",
+   "time": "08:45",
+   "format": "text+image",
+   "pillar": "Sector insight",
+   "sector": "railways",
+   "title": "Railways - execution, not demand, sets returns",
+   "hook": "",
+   "caption": "Indian Railways capex: ~₹2.65 lakh Cr budgeted for FY26 - roughly 4x FY14.\n\nBut the composition is changing:\n• ~99% of broad gauge is already electrified\n• Wagon and EPC order inflow slowed through 2025-26\n• Kavach covers under 5% of ~69,000 route km\n• The first Vande Bharat sleeper entered service in Jan 2026\n\nSo the money is moving from civil works toward trainsets, signaling and components. And the margin spread is wide: signaling 20-30% EBITDA vs track & electrification EPC at 5-10%.\n\nIn a sector where the budget is large and sticky, execution and order flow - not demand - decide returns.\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#IndianRailways",
+    "#Infrastructure",
+    "#VandeBharat"
+   ],
+   "firstComment": "Railways supply-chain map: {{SITE}}/sector/railways?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li10",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Railways deck"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li10-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/li10.jpg"
+  },
+  {
+   "previews": [
+    "assets/li11/li11-01.jpg",
+    "assets/li11/li11-02.jpg",
+    "assets/li11/li11-03.jpg",
+    "assets/li11/li11-04.jpg",
+    "assets/li11/li11-05.jpg",
+    "assets/li11/li11-06.jpg"
+   ],
+   "id": "li11",
+   "platform": "linkedin",
+   "date": "2026-10-29",
+   "time": "08:45",
+   "format": "document",
+   "pillar": "Sector deep dive",
+   "sector": "semiconductors",
+   "title": "Doc carousel - packaging before wafers",
+   "hook": "",
+   "caption": "India's semiconductor build-out is happening in the opposite order to what most people expect.\n\nNot wafers first. Packaging first.\n\n• Chip demand: ~$45-50 bn (2024), >90% imported\n• ISM first phase: ₹76,000 Cr; 10 fab/OSAT projects approved (~₹1.6 lakh Cr)\n• Incentives cover ~70-75% of capex\n\nOSAT/ATMP (assembly, testing, packaging) plants ramp faster and need less capital than a fab. The first India-made chips were showcased at Semicon India in Sep 2025.\n\nAnd while fabs take years to reach yield, the picks and shovels get paid during construction: specialty gases and chemicals (20-30% EBITDA), cleanroom HVAC, ultra-pure water, design services.\n\nFull breakdown in the document.\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#Semiconductors",
+    "#Electronics",
+    "#MakeInIndia"
+   ],
+   "firstComment": "Semiconductor supply-chain map: {{SITE}}/sector/semiconductors?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li11",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Semis deck"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li11-01.png",
+    "li11-02.png",
+    "li11-03.png",
+    "li11-04.png",
+    "li11-05.png",
+    "li11-06.png",
+    "li11.pdf"
+   ],
+   "slideCount": "reuses ig21",
+   "thumb": "thumbs/li11.jpg"
+  },
+  {
+   "previews": [
+    "assets/li12/li12-01.jpg"
+   ],
+   "id": "li12",
+   "platform": "linkedin",
+   "date": "2026-10-30",
+   "time": "08:45",
+   "format": "text+image",
+   "pillar": "Hidden connections",
+   "sector": "all",
+   "title": "The companies in 4 supply chains at once",
+   "hook": "",
+   "caption": "When you map supply chains instead of themes, some companies keep showing up.\n\nBharat Forge: EVs, railways, naval and aerospace - forgings for all four.\nHBL Engineering: data centres, railways, naval and telecom.\nCG Power: semiconductors, data centres, railways and solar.\nExide and Amara Raja: batteries for EVs, data-centre UPS, telecom towers and grid storage.\n\nTwo ways to read that:\n• Diversified exposure to several capex cycles at once, or\n• A hot theme that's actually a small slice of a much bigger business\n\nBoth can be true. The segment mix tells you which one dominates.\n\nWe just shipped a public page for every company showing each layer it sits in and its peers there.\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#SupplyChain",
+    "#EquityResearch",
+    "#IndianMarkets"
+   ],
+   "firstComment": "All companies, A-Z: {{SITE}}/companies?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li12",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "companies.ts"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li12-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/li12.jpg"
+  },
+  {
+   "previews": [
+    "assets/li13/li13-01.jpg"
+   ],
+   "id": "li13",
+   "platform": "linkedin",
+   "date": "2026-10-31",
+   "time": "08:45",
+   "format": "text+image",
+   "pillar": "Sector insight",
+   "sector": "telecom5g",
+   "title": "Telecom - monetize > build",
+   "hook": "",
+   "caption": "India built ~5 lakh 5G base stations in roughly three years - one of the fastest rollouts globally. ~39 Cr 5G subscribers by 2025.\n\nThat build phase has peaked. The next phase is different:\n\n• Operators: ARPU repair (the industry talks about ₹300) in a market that's now a profitable duopoly-plus\n• Towers & passive infra: ~50% EBITDA, pulled by densification\n• Fiber: needed for every new small cell and FWA home\n• EPC installers: 8-12% EBITDA, more exposed to falling capex\n\nSame sector, two very different cycles depending on which layer you look at.\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#5G",
+    "#Telecom",
+    "#DigitalIndia"
+   ],
+   "firstComment": "5G supply-chain map: {{SITE}}/sector/telecom5g?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li13",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Telecom deck"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li13-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/li13.jpg"
+  },
+  {
+   "previews": [
+    "assets/li14/li14-01.jpg"
+   ],
+   "id": "li14",
+   "platform": "linkedin",
+   "date": "2026-11-01",
+   "time": "08:45",
+   "format": "text+image",
+   "pillar": "Build in public",
+   "sector": "all",
+   "title": "Two weeks in - what's next",
+   "hook": "",
+   "caption": "Two weeks since we opened NextResearch to the public. What shipped, and what's next.\n\nShipped:\n→ 9 sector maps, 70 layers, 166 listed companies\n→ A curated 10-slide report per sector\n→ A public page for every company: each layer it sits in, its peers there, and its financials\n→ Issue #1 of The Map, our fortnightly newsletter\n\nNext:\n→ More sectors (battery storage, green hydrogen, critical minerals and electronics PLI are on the board)\n→ A subscribe button on the site, so The Map lands in your inbox\n→ [EDIT: one more roadmap item you're comfortable announcing]\n\nIf you research Indian equities - professionally or seriously - I'd value 15 minutes of your feedback. Comment or DM.\n\n(For information only - not investment advice.)",
+   "hashtags": [
+    "#BuildInPublic",
+    "#Startups",
+    "#IndianMarkets"
+   ],
+   "firstComment": "Explore: {{SITE}}/?utm_source=linkedin&utm_medium=social&utm_campaign=fortnight1&utm_content=li14",
+   "link": "",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Platform roadmap (coming-soon sectors list)"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "caption.txt",
+    "li14-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/li14.jpg"
+  },
+  {
+   "previews": [
+    "assets/ss01/ss01-01.jpg"
+   ],
+   "id": "ss01",
+   "platform": "substack",
+   "date": "2026-10-25",
+   "time": "10:00",
+   "format": "newsletter",
+   "pillar": "Newsletter",
+   "sector": "datacenter",
+   "title": "The Map #1 - AI's physical supply chain in India",
+   "hook": "Data-centre capacity is set to roughly triple by 2030. The first rupees go to transformers, gensets and chillers - not chips.",
+   "caption": "",
+   "hashtags": [],
+   "firstComment": "",
+   "link": "{{SITE}}/sector/datacenter?utm_source=substack&utm_medium=social&utm_campaign=fortnight1&utm_content=ss01",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "DC deck (all slides)",
+    "Seed financials 25 Sep 2026"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": null,
+   "assets": [
+    "issue-01.md",
+    "ss01-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/ss01.jpg"
+  },
+  {
+   "previews": [
+    "assets/ss02/ss02-01.jpg"
+   ],
+   "id": "ss02",
+   "platform": "substack",
+   "date": "2026-11-08",
+   "time": "10:00",
+   "format": "newsletter-outline",
+   "pillar": "Newsletter",
+   "sector": "naval",
+   "title": "The Map #2 - Make-in-India hardware: ships, jets, trains",
+   "hook": "Diwali edition: three defence and rail supply chains where execution, not demand, sets the pace.",
+   "caption": "",
+   "hashtags": [],
+   "firstComment": "",
+   "link": "{{SITE}}/?utm_source=substack&utm_medium=social&utm_campaign=fortnight1&utm_content=ss02",
+   "onScreen": null,
+   "audio": null,
+   "sources": [
+    "Naval, Aerospace, Railways decks"
+   ],
+   "compliance": null,
+   "storyFollowUp": null,
+   "note": "Outside this fortnight - outline only, draft in fortnight 2.",
+   "assets": [
+    "issue-02-outline.md",
+    "ss02-01.png"
+   ],
+   "slideCount": 1,
+   "thumb": "thumbs/ss02.jpg"
+  }
+ ]
+}

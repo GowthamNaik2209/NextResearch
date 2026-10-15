@@ -65,26 +65,90 @@ async function fetchHeadlines(companyName: string): Promise<Headline[] | null> {
   }
 }
 
-// Words too common in company names to identify one on their own ("Bharat", "Industries", ...).
+// Words too common in company names to identify one on their own ("Bharat", "Industries",
+// "Forgings", "Motors", ...).
 const GENERIC = new Set(
   ("industries industrial solutions technologies technology engineering systems international infrastructure limited energy power electric " +
     "electronics services enterprises corporation company holdings global india indian private research equipment components products " +
-    "manufacturing auto bharat national micro precision advanced").split(" ")
+    "manufacturing auto bharat national micro precision advanced of " +
+    "forgings mobility automation fasteners motors passenger vehicles wiring exchange semiconductor fluorine fluorochemicals engines " +
+    "transformers cables bearings peripherals wagons microsystems future finance railway projects techno equipments container " +
+    "shipbuilders shipyard engineers authority welding dynamics premier explosives patterns microwave defence brothers aerospace aviation " +
+    "aeronautics telecom digital telematics networks innovations communications teleservices telephone renewable renewables energies " +
+    "system orient sterling garden hindustan gujarat mahanagar cochin mishra towers").split(" ")
 );
-const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+// "&" and "and" are dropped so "Transformers and Rectifiers" matches "Transformers & Rectifiers".
+const normalize = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/\band\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+// Business-group (family) names: several listed companies share them, so on their own they don't
+// say which one ("Mahindra Holidays" is not M&M, "Kirloskar Brothers" is not Kirloskar Oil Engines).
+const GROUP = new Set(
+  ("mahindra tata adani bajaj birla kirloskar motherson minda bharti jsw reliance godrej jindal vedanta sterlite apollo kalpataru " +
+    "texmaco waaree borosil cyient hinduja piramal torrent").split(" ")
+);
+// Short names headlines use, including a group name that alone conventionally means one company
+// here ("Mahindra" = M&M).
+const ALIASES: Record<string, string[]> = {
+  "M&M": ["mahindra"],
+  MOTHERSON: ["motherson"],
+  CYIENT: ["cyient"],
+  WAAREEENER: ["waaree"],
+  STLTECH: ["sterlite tech"],
+  FLUOROCHEM: ["gujarat fluoro"],
+};
+// Separately listed companies, outside our coverage, whose names contain one of ours. A match
+// that sits inside one of these (or inside another covered company's name) doesn't count.
+const OTHER_COMPANIES = [
+  "Tech Mahindra", "Mahindra Holidays", "Club Mahindra", "Mahindra Lifespace", "Mahindra Logistics", "Mahindra Finance",
+  "Mahindra & Mahindra Financial", "M&M Financial", "M&M Finance", "Mahindra Susten", "Mahindra CIE", "Mahindra EPC",
+  "Tata Motors Commercial", "Tata Motors CV", "Siemens Energy", "Waaree Renewable", "Borosil Ltd", "Kirloskar Ferrous",
+  "Kirloskar Industries", "Motherson Sumi Systems", "Indian Railway Catering", "Mahanagar Gas",
+].map(normalize);
+
+const nameWords = (name: string) => normalize(name.replace(/\(.*?\)/g, "")).split(" ").filter(Boolean);
+// The company's opening words: the first two, extended while they are all generic ("Indian
+// Railway Finance ..." is not identified by "Indian Railway").
+function openingOf(words: string[]): string {
+  let n = Math.min(2, words.length);
+  while (n < words.length && words.slice(0, n).every((w) => GENERIC.has(w))) n++;
+  return words.slice(0, n).join(" ");
+}
+
+let rivalCache: { ticker: string; name: string; phrases: string[] }[] | null = null;
+const rivals = () =>
+  (rivalCache ??= listCompanyMetrics().map((c) => {
+    const words = nameWords(c.name);
+    return { ticker: c.ticker, name: words.join(" "), phrases: [words.join(" "), openingOf(words)] };
+  }));
+
+/** Every [start, end) span in `h` where the phrase occurs as whole words. */
+function spans(h: string, phrase: string): [number, number][] {
+  const out: [number, number][] = [];
+  for (let i = h.indexOf(` ${phrase} `); i >= 0; i = h.indexOf(` ${phrase} `, i + 1)) out.push([i, i + phrase.length + 2]);
+  return out;
+}
 
 /**
  * Is this headline actually about the company? Google News matches the body text too, so a
  * market wrap that merely lists the stock would otherwise show up. The headline itself must
  * contain the company's opening words ("CG Power"), a distinctive word from its name
- * ("Motherson"), or its ticker.
+ * ("Ramkrishna"), its ticker, or an alias ("Mahindra" for M&M) - and that mention must not be
+ * part of a longer company name ("Tech Mahindra", "Mahindra Holidays", "Motherson Sumi Wiring").
  */
 export function isAbout(headline: string, company: { name: string; ticker: string }): boolean {
   const h = ` ${normalize(headline)} `;
-  const words = normalize(company.name.replace(/\(.*?\)/g, "")).split(" ").filter(Boolean);
-  const opening = words.slice(0, 2).join(" ");
-  const distinctive = words.filter((w) => w.length >= 6 && !GENERIC.has(w));
-  return [opening, company.ticker.toLowerCase(), ...distinctive].some((k) => k.length >= 3 && h.includes(` ${k} `));
+  const words = nameWords(company.name);
+  const own = words.join(" ");
+  const distinctive = words.filter((w) => w.length >= 6 && !GENERIC.has(w) && !GROUP.has(w));
+  const keys = [openingOf(words), normalize(company.ticker), ...distinctive, ...(ALIASES[company.ticker] ?? [])].filter((k) => k.length >= 3);
+  const otherNames = [...rivals().filter((r) => r.ticker !== company.ticker && r.name !== own).flatMap((r) => r.phrases), ...OTHER_COMPANIES];
+  const covering = otherNames.filter((p) => !` ${own} `.includes(` ${p} `)).flatMap((p) => spans(h, p));
+  return keys.some((k) => spans(h, k).some(([s, e]) => !covering.some(([cs, ce]) => cs <= s && ce >= e && ce - cs > e - s)));
 }
 
 const toItem = (h: Headline, c: CompanyMetrics): NewsItem => ({

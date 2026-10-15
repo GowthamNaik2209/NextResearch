@@ -4,6 +4,12 @@ import { ReadingList } from "@/components/research/ReadingList";
 import { listSectors } from "@/lib/sector-content";
 import { buildDeck, type Deck } from "@/lib/sector-content/reports";
 
+export const metadata = {
+  title: "Reading list: curated research reports on Indian sectors",
+  description: "Curated 10-slide research reports and primary sources for every sector NextResearch maps - data centres, EVs, semiconductors, railways, defence, solar and more.",
+  alternates: { canonical: "/docs" },
+};
+
 export default async function DocsPage({ searchParams }: { searchParams: Promise<{ report?: string }> }) {
   const { report } = await searchParams;
   const decks = listSectors()

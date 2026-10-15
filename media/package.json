@@ -1,0 +1,17 @@
+{
+  "name": "nextresearch-media",
+  "private": true,
+  "type": "module",
+  "description": "Media engine: captures the platform and renders branded social/newsletter assets. Self-contained so the app's dependencies stay untouched.",
+  "scripts": {
+    "capture": "node scripts/capture.mjs",
+    "record": "node scripts/record.mjs",
+    "compose": "node scripts/compose.mjs",
+    "calendar": "node scripts/build-calendar.mjs",
+    "all": "npm run capture && npm run record && npm run compose && npm run calendar"
+  },
+  "devDependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "playwright-core": "^1.56.1"
+  }
+}

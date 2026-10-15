@@ -9,6 +9,7 @@ import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { Suspense } from "react";
 import { ReturnToStock } from "@/components/stock/ReturnToStock";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL, jsonLd } from "@/lib/site";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -30,8 +31,51 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NextResearch",
-  description: "Fund-level research for India's public markets — explore a sector's supply chain in 3D, then deep-dive into any company's financials.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    template: `%s · ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: [
+    "Indian stock market research",
+    "supply chain stocks India",
+    "sector analysis India",
+    "data centre stocks India",
+    "EV supply chain India",
+    "semiconductor stocks India",
+    "railway stocks",
+    "defence shipbuilding stocks",
+    "ALMM solar stocks",
+    "NSE BSE company research",
+  ],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "en_IN",
+    url: "/",
+    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: { card: "summary_large_image" },
+  robots: { index: true, follow: true, googleBot: { "max-image-preview": "large", "max-snippet": -1 } },
+};
+
+const SITE_JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "Organization", "@id": `${SITE_URL}/#org`, name: SITE_NAME, url: SITE_URL, description: SITE_DESCRIPTION },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      publisher: { "@id": `${SITE_URL}/#org` },
+      inLanguage: "en-IN",
+    },
+  ],
 };
 
 // Applied synchronously during HTML parsing, before first paint, so a saved
@@ -61,6 +105,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
         />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(SITE_JSON_LD) }} />
       </head>
       <body className="min-h-full flex flex-col bg-bg text-ink">
         {children}

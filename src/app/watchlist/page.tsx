@@ -8,6 +8,8 @@ import { NewsFeed } from "@/components/NewsFeed";
 import { findSupplierByTicker } from "@/lib/sector-content";
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
 
+export const metadata = { title: "Watchlist", robots: { index: false, follow: false } };
+
 export default async function WatchlistPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/watchlist");

@@ -18,9 +18,27 @@ import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { OpenReportButton } from "@/components/research/OpenReport";
 import { buildDeck } from "@/lib/sector-content/reports";
 import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
+import { companySlug } from "@/lib/sector-content/companies";
+import { SITE_URL, jsonLd } from "@/lib/site";
+import type { Metadata } from "next";
 
 export function generateStaticParams() {
   return listSectorSlugs().map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const sector = getSector(slug);
+  if (!sector) return {};
+  const listed = Object.values(sector.suppliers).filter((s) => s.listed).length;
+  const title = `${sector.name} stocks in India: supply chain map & ${listed} listed companies`;
+  const description = `${sector.tagline}. ${sector.thesisSummary ?? ""}`.slice(0, 300);
+  return {
+    title,
+    description,
+    alternates: { canonical: `/sector/${slug}` },
+    openGraph: { title, description, url: `/sector/${slug}`, type: "article" },
+  };
 }
 
 export default async function SectorOverviewPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -299,7 +317,13 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                 <OpenStockCard key={key} ticker={tickerForSupplier(company)} supplier={company} className="rounded-xl border border-line bg-panel p-4 transition hover:border-accent">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-sm font-semibold text-ink">
-                      {company.name}
+                      {ticker ? (
+                        <Link href={`/company/${companySlug(ticker)}`} className="hover:text-accent hover:underline">
+                          {company.name}
+                        </Link>
+                      ) : (
+                        company.name
+                      )}
                       {ticker && <WatchlistButton ticker={ticker} name={company.name} />}
                     </h3>
                     <span
@@ -338,6 +362,35 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
             })}
           </div>
         </section>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: jsonLd({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "BreadcrumbList",
+                  itemListElement: [
+                    { "@type": "ListItem", position: 1, name: "Sectors", item: `${SITE_URL}/#sectors` },
+                    { "@type": "ListItem", position: 2, name: sector.name, item: `${SITE_URL}/sector/${sector.slug}` },
+                  ],
+                },
+                {
+                  "@type": "ItemList",
+                  name: `Listed companies in India's ${sector.name} supply chain`,
+                  itemListElement: companies
+                    .filter(([, c]) => c.listed && c.f?.ticker)
+                    .map(([, c], i) => ({
+                      "@type": "ListItem",
+                      position: i + 1,
+                      name: c.name,
+                      url: `${SITE_URL}/company/${companySlug(c.f!.ticker)}`,
+                    })),
+                },
+              ],
+            }),
+          }}
+        />
       </main>
       <SiteFooter />
     </>

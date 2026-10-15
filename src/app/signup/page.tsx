@@ -3,6 +3,8 @@ import { signup, loginWithGoogle } from "@/app/auth/actions";
 import { SiteHeader } from "@/components/SiteHeader";
 import { safeNext } from "@/lib/safe-next";
 
+export const metadata = { title: "Create an account", robots: { index: false, follow: true } };
+
 export default async function SignupPage({
   searchParams,
 }: {

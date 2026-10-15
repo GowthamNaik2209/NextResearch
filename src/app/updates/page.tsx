@@ -4,7 +4,11 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { NewsFeed } from "@/components/NewsFeed";
 import { listSectors } from "@/lib/sector-content";
 
-export const metadata = { title: "Updates — NextResearch" };
+export const metadata = {
+  title: "Updates: sector and company news",
+  description: "Latest news across the sectors and listed companies NextResearch covers.",
+  alternates: { canonical: "/updates" },
+};
 
 export default async function UpdatesPage({ searchParams }: { searchParams: Promise<{ sector?: string }> }) {
   const { sector } = await searchParams;

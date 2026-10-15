@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -9,6 +10,20 @@ import { buildDeck } from "@/lib/sector-content/reports";
 
 export function generateStaticParams() {
   return listSectorSlugs().map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const sector = getSector(slug);
+  if (!sector) return {};
+  const deck = buildDeck(slug);
+  const title = `${deck?.report.title ?? sector.name} — research report & reading list`;
+  return {
+    title,
+    description: `Curated research on India's ${sector.name.toLowerCase()} sector: a 10-slide report plus the primary sources behind it. ${sector.tagline}.`,
+    alternates: { canonical: `/docs/${slug}` },
+    openGraph: { title, url: `/docs/${slug}`, type: "article" },
+  };
 }
 
 export default async function SectorDocsPage({ params }: { params: Promise<{ slug: string }> }) {

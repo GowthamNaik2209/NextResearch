@@ -12,6 +12,7 @@ export function SiteFooter() {
           </div>
           <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-soft">
             <Link href="/#sectors" className="hover:text-ink">Industries</Link>
+            <Link href="/companies" className="hover:text-ink">Companies A-Z</Link>
             <Link href="/connections" className="hover:text-ink">Connected companies</Link>
             <Link href="/docs" className="hover:text-ink">Reading list</Link>
             <Link href="/watchlist" className="hover:text-ink">Watchlist</Link>
