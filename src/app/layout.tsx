@@ -7,6 +7,8 @@ import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 // client-side navigations) is handled by Vercel's injected script patching
 // the History API globally, not by this wrapper, so nothing is lost.
 import { Analytics } from "@vercel/analytics/react";
+import { Suspense } from "react";
+import { ReturnToStock } from "@/components/stock/ReturnToStock";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -62,6 +64,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full flex flex-col bg-bg text-ink">
         {children}
+        {/* Reads ?stock= (useSearchParams), so it needs its own Suspense boundary to keep
+            the rest of every page prerenderable. */}
+        <Suspense fallback={null}>
+          <ReturnToStock />
+        </Suspense>
         <Analytics />
       </body>
     </html>

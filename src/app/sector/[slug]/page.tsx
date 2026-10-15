@@ -231,7 +231,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="text-sm font-semibold text-ink">
                           {company.name}
-                          {ticker && <WatchlistButton ticker={ticker} />}
+                          {ticker && <WatchlistButton ticker={ticker} name={company.name} />}
                         </h4>
                         <span
                           className={
@@ -300,7 +300,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-sm font-semibold text-ink">
                       {company.name}
-                      {ticker && <WatchlistButton ticker={ticker} />}
+                      {ticker && <WatchlistButton ticker={ticker} name={company.name} />}
                     </h3>
                     <span
                       className={
