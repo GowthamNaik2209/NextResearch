@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getSector, listSectorSlugs } from "@/lib/sector-content";
@@ -6,6 +7,18 @@ import { getCurrentUser } from "@/lib/auth";
 
 export function generateStaticParams() {
   return listSectorSlugs().map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const sector = getSector(slug);
+  if (!sector) return {};
+  return {
+    title: `${sector.name} — interactive 3D supply-chain explorer`,
+    description: `Walk through India's ${sector.name.toLowerCase()} supply chain layer by layer in 3D and open any listed company's financials.`,
+    // The overview page is the indexable version of this content; the explorer is a WebGL canvas.
+    alternates: { canonical: `/sector/${slug}` },
+  };
 }
 
 export default async function SectorExplorePage({ params }: { params: Promise<{ slug: string }> }) {

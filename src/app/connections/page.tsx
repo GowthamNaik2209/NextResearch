@@ -6,7 +6,11 @@ import { footprintScore, listConnectedCompanies } from "@/lib/sector-content/exp
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { findSupplierByTicker } from "@/lib/sector-content";
 
-export const metadata = { title: "Connected companies — NextResearch" };
+export const metadata = {
+  title: "Connected companies: Indian stocks that span several supply chains",
+  description: "Listed Indian companies that show up in more than one sector supply chain - see every layer each one supplies.",
+  alternates: { canonical: "/connections" },
+};
 
 export default function ConnectionsPage() {
   const companies = listConnectedCompanies();

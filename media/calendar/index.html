@@ -1,0 +1,316 @@
+<title>NextResearch Content Calendar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: a planner's ledger - one row per day, posts as cards in platform lanes; a side sheet opens each post for review. */
+:root {
+  --bg: #f8f4ea; --panel: #efe9d9; --panel-2: #e5dec9; --ink: #14201a; --soft: #5b6a60; --line: #d4cab0;
+  --accent: #0f5c4a; --on-accent: #f8f4ea; --amber: #a8650a; --pos: #1c7a4b; --danger: #b73a2c;
+  --ig: #a8650a; --li: #0f5c4a; --ss: #7a4b8c;
+  --display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0c1110; --panel: #121a17; --panel-2: #18231f; --ink: #eef2ea; --soft: #93a399; --line: #25342d;
+  --accent: #f0b53f; --on-accent: #0c1110; --amber: #e08a3c; --pos: #5fcf8e; --danger: #e8705e;
+  --ig: #e08a3c; --li: #5fcf8e; --ss: #c79be0; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0c1110; --panel: #121a17; --panel-2: #18231f; --ink: #eef2ea; --soft: #93a399; --line: #25342d;
+  --accent: #f0b53f; --on-accent: #0c1110; --amber: #e08a3c; --pos: #5fcf8e; --danger: #e8705e;
+  --ig: #e08a3c; --li: #5fcf8e; --ss: #c79be0; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; margin: 0 }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; display: flex; flex-direction: column; gap: 28px }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; letter-spacing: -0.01em }
+h1 { font-size: clamp(28px, 4vw, 40px) }
+h2 { font-size: 20px }
+.eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--soft) }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums }
+p { margin: 0 }
+
+header.top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px }
+header.top .lede { color: var(--soft); max-width: 62ch; margin-top: 6px }
+.tally { display: flex; gap: 10px; flex-wrap: wrap }
+.tally div { border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; background: var(--panel); min-width: 92px }
+.tally b { display: block; font-family: var(--mono); font-size: 20px }
+.tally span { font-size: 11px; color: var(--soft); text-transform: uppercase; letter-spacing: .08em }
+
+details.strategy { border: 1px solid var(--line); border-radius: 14px; background: var(--panel) }
+details.strategy summary { cursor: pointer; padding: 14px 18px; font-family: var(--display); font-weight: 600; list-style: none; display: flex; justify-content: space-between }
+details.strategy summary::after { content: "+"; color: var(--accent) }
+details.strategy[open] summary::after { content: "–" }
+.strat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px; padding: 4px 18px 20px }
+.strat-grid section { min-width: 0 }
+.strat-grid h3 { font-size: 14px; margin-bottom: 8px; color: var(--accent) }
+.strat-grid ul { margin: 0; padding-left: 18px; color: var(--ink); font-size: 14px; display: flex; flex-direction: column; gap: 4px }
+
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between }
+.filters { display: flex; gap: 6px; flex-wrap: wrap }
+.filters button, .chip-btn { font: inherit; font-size: 13px; border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 6px 14px; cursor: pointer }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink) }
+.status-line { font-size: 13px; color: var(--soft) }
+
+.week h2 { margin-bottom: 4px }
+.week .theme { color: var(--soft); font-size: 14px; margin-bottom: 12px }
+.day { display: grid; grid-template-columns: 92px 1fr; gap: 14px; padding-block: 14px; border-top: 1px solid var(--line) }
+.day .date b { font-family: var(--display); font-size: 22px; display: block; line-height: 1 }
+.day .date span { font-size: 12px; color: var(--soft); text-transform: uppercase; letter-spacing: .08em }
+.posts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; min-width: 0 }
+.card { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--panel); transition: border-color .15s, transform .15s }
+.card:hover { border-color: var(--accent); transform: translateY(-1px) }
+.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.card img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; background: var(--panel-2) }
+.card .meta { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px }
+.card .row { display: flex; justify-content: space-between; gap: 8px; align-items: center; font-size: 12px }
+.card .ttl { font-size: 13.5px; font-weight: 600; line-height: 1.3 }
+.plat { font-weight: 600; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px }
+.plat::before { content: ""; width: 8px; height: 8px; border-radius: 50% ; background: currentColor }
+.plat.instagram { color: var(--ig) } .plat.linkedin { color: var(--li) } .plat.substack { color: var(--ss) }
+.pill { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; border-radius: 999px; padding: 2px 8px; border: 1px solid var(--line); color: var(--soft) }
+.pill.approved { color: var(--pos); border-color: var(--pos) }
+.pill.changes { color: var(--danger); border-color: var(--danger) }
+.pill.scheduled { color: var(--accent); border-color: var(--accent) }
+
+.sheet-back { position: fixed; inset: 0; background: rgba(12, 17, 16, .45); z-index: 10 }
+.sheet { position: fixed; top: 0; right: 0; bottom: 0; width: min(640px, 100%); background: var(--bg); border-left: 1px solid var(--line); z-index: 11; overflow-y: auto; padding: calc(20px + env(safe-area-inset-top, 0px)) 22px calc(28px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 18px }
+.sheet header { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start }
+.sheet .close { font: inherit; font-size: 22px; border: 0; background: none; color: var(--soft); cursor: pointer; padding: 0 4px }
+.strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px }
+.strip img { height: 220px; border-radius: 8px; border: 1px solid var(--line) }
+.block { display: flex; flex-direction: column; gap: 8px }
+.block pre { white-space: pre-wrap; word-break: break-word; margin: 0; font-family: var(--body); font-size: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px }
+.block .head { display: flex; justify-content: space-between; align-items: center }
+.kv { display: grid; grid-template-columns: 110px 1fr; gap: 6px 12px; font-size: 13.5px }
+.kv dt { color: var(--soft) } .kv dd { margin: 0; min-width: 0; word-break: break-word }
+.review { border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: var(--panel) }
+.review .opts { display: flex; gap: 8px; flex-wrap: wrap }
+.review .opts button { font: inherit; font-size: 13px; border-radius: 8px; padding: 7px 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer }
+.review .opts button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent) }
+.review textarea { font: inherit; font-size: 14px; width: 100%; min-height: 70px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); padding: 10px }
+.review .save { align-self: flex-start; font: inherit; font-weight: 600; font-size: 13px; border: 0; border-radius: 8px; padding: 8px 16px; background: var(--accent); color: var(--on-accent); cursor: pointer }
+.note { font-size: 12.5px; color: var(--soft) }
+.warn { color: var(--amber); font-size: 13px }
+button:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+@media (max-width: 560px) { .day { grid-template-columns: 1fr } .posts { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+@media (prefers-reduced-motion: reduce) { .card { transition: none } .card:hover { transform: none } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">NextResearch media engine · Fortnight 1</div>
+      <h1>19 Oct – 1 Nov content plan</h1>
+      <p class="lede">43 pieces across Instagram, LinkedIn and Substack, each composed from screenshots and data on the platform. Open any post to read the copy, check its sources and mark it approved.</p>
+    </div>
+    <div class="tally" id="tally"></div>
+  </header>
+
+  <details class="strategy">
+    <summary>Strategy, cadence and guardrails</summary>
+    <div class="strat-grid">
+      <section><h3>Positioning</h3><ul>
+        <li>"See the supply chain." Map the layer, then the company.</li>
+        <li>Audience: serious retail investors, finance students, analysts and operators.</li>
+        <li>Voice: plain, data-first, never hype. Every number carries a source.</li></ul></section>
+      <section><h3>Content pillars</h3><ul>
+        <li>Supply Chain Decoded: one sector, layer by layer</li>
+        <li>Numbers that Matter: charts, stats, rule-based screens</li>
+        <li>Policy Explained · Myth vs Data · Bottleneck Watch</li>
+        <li>Hidden Connections: one company, many chains</li>
+        <li>Product and build-in-public</li></ul></section>
+      <section><h3>Cadence (IST)</h3><ul>
+        <li>Instagram: 09:00 carousel (saves) + 19:30 Reel or quick-hit</li>
+        <li>LinkedIn (founder profile): 08:45 daily, link in first comment</li>
+        <li>Substack "The Map": alternate Sundays, 10:00</li>
+        <li>Week 1: AI, EVs, solar, power. Week 2: ships, jets, trains, chips, 5G</li></ul></section>
+      <section><h3>Compliance guardrails</h3><ul>
+        <li>Education only. No buy/sell/hold, targets or return claims (SEBI finfluencer rules).</li>
+        <li>Screens always state their rule and "not recommendations".</li>
+        <li>Seed figures are as of 25 Sep 2026. Re-check against the live card before posting.</li>
+        <li>Disclaimer on every post and email.</li></ul></section>
+      <section><h3>What to measure</h3><ul>
+        <li>Instagram: saves and shares per reach; profile → link taps</li>
+        <li>LinkedIn: comments, reposts, profile visits</li>
+        <li>Substack: open rate, new subscribers per issue</li>
+        <li>Site: UTM sessions and sign-ups by post (utm_content = post id)</li></ul></section>
+    </div>
+  </details>
+
+  <div class="bar">
+    <div class="filters" role="group" aria-label="Platform filter" id="filters">
+      <button type="button" data-f="all" aria-pressed="true">All</button>
+      <button type="button" data-f="instagram" aria-pressed="false">Instagram</button>
+      <button type="button" data-f="linkedin" aria-pressed="false">LinkedIn</button>
+      <button type="button" data-f="substack" aria-pressed="false">Substack</button>
+      <button type="button" data-f="open" aria-pressed="false">Needs review</button>
+    </div>
+    <div class="status-line" id="syncState">Loading review status…</div>
+  </div>
+
+  <main id="cal"><p class="note">Loading the plan…</p></main>
+</div>
+
+<div class="sheet-back" id="back" hidden></div>
+<aside class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></aside>
+
+<script>
+(() => {
+  const STATUS = { draft: "Draft", approved: "Approved", changes: "Needs changes", scheduled: "Scheduled" };
+  const PLAT = { instagram: "Instagram", linkedin: "LinkedIn", substack: "Substack" };
+  let data = null, reviews = {}, filter = "all", db = null, canWrite = true, openId = null;
+  try { filter = localStorage.getItem("nr-cal-filter") || "all"; } catch {}
+
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v);
+    }
+    kids.flat().forEach((k) => k != null && n.append(k));
+    return n;
+  };
+  const statusOf = (id) => (reviews[id] && reviews[id].status) || "draft";
+  const fmtDay = (iso) => { const d = new Date(iso + "T00:00:00"); return { day: d.getDate(), label: d.toLocaleDateString("en-IN", { weekday: "short", month: "short" }) }; };
+
+  function renderTally() {
+    const t = document.getElementById("tally");
+    const posts = data.posts.filter((p) => p.date <= data.meta.end);
+    const count = (f) => posts.filter(f).length;
+    t.replaceChildren(
+      ...[["Instagram", count((p) => p.platform === "instagram")], ["LinkedIn", count((p) => p.platform === "linkedin")], ["Substack", count((p) => p.platform === "substack")], ["Approved", count((p) => statusOf(p.id) === "approved" || statusOf(p.id) === "scheduled")]]
+        .map(([k, v]) => el("div", {}, el("b", { text: String(v) }), el("span", { text: k })))
+    );
+  }
+
+  function visible(p) {
+    if (filter === "all") return true;
+    if (filter === "open") return statusOf(p.id) === "draft" || statusOf(p.id) === "changes";
+    return p.platform === filter;
+  }
+
+  function card(p) {
+    const st = statusOf(p.id);
+    return el("button", { class: "card", type: "button", onclick: () => openSheet(p.id), "aria-label": `${PLAT[p.platform]} ${p.time}: ${p.title}` },
+      p.thumb ? el("img", { src: p.thumb, alt: "", loading: "lazy" }) : el("img", { alt: "" }),
+      el("div", { class: "meta" },
+        el("div", { class: "row" }, el("span", { class: `plat ${p.platform}`, text: PLAT[p.platform] }), el("span", { class: "mono", text: p.time })),
+        el("div", { class: "ttl", text: p.title }),
+        el("div", { class: "row" }, el("span", { class: "note", text: p.format }), el("span", { class: `pill ${st}`, text: STATUS[st] }))));
+  }
+
+  function render() {
+    renderTally();
+    document.querySelectorAll("#filters button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.f === filter)));
+    const cal = document.getElementById("cal");
+    const days = [...new Set(data.posts.map((p) => p.date))].sort();
+    const weeks = {};
+    const start = new Date(data.meta.start + "T00:00:00");
+    days.forEach((d) => {
+      const diff = Math.floor((new Date(d + "T00:00:00") - start) / 864e5);
+      const w = diff < 7 ? 1 : diff < 14 ? 2 : 3;
+      (weeks[w] = weeks[w] || []).push(d);
+    });
+    const order = { linkedin: 0, instagram: 1, substack: 2 };
+    cal.replaceChildren(...Object.entries(weeks).map(([w, ds]) => {
+      const rows = ds.map((d) => {
+        const ps = data.posts.filter((p) => p.date === d && visible(p)).sort((a, b) => a.time.localeCompare(b.time) || order[a.platform] - order[b.platform]);
+        if (!ps.length) return null;
+        const f = fmtDay(d);
+        return el("div", { class: "day" }, el("div", { class: "date" }, el("b", { text: String(f.day) }), el("span", { text: f.label })), el("div", { class: "posts" }, ps.map(card)));
+      }).filter(Boolean);
+      return el("section", { class: "week" },
+        el("h2", { text: w === "3" ? "Next fortnight (preview)" : `Week ${w}` }),
+        el("p", { class: "theme", text: data.meta.themes[w] || "Outlined now, drafted in fortnight 2." }),
+        rows.length ? rows : el("p", { class: "note", text: "Nothing matches this filter." }));
+    }));
+    if (openId) openSheet(openId, true);
+  }
+
+  async function copy(text, btn) {
+    try { await navigator.clipboard.writeText(text); btn.textContent = "Copied"; }
+    catch { const r = document.createRange(); const pre = btn.closest(".block").querySelector("pre"); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = "Selected - press Ctrl/Cmd+C"; }
+    setTimeout(() => (btn.textContent = "Copy"), 2200);
+  }
+
+  function block(label, text) {
+    const b = el("button", { class: "chip-btn", type: "button", text: "Copy" });
+    b.addEventListener("click", () => copy(text, b));
+    return el("div", { class: "block" }, el("div", { class: "head" }, el("span", { class: "eyebrow", text: label }), b), el("pre", { text }));
+  }
+
+  function openSheet(id, refresh = false) {
+    const p = data.posts.find((x) => x.id === id); if (!p) return;
+    openId = id;
+    const sheet = document.getElementById("sheet");
+    const r = reviews[id] || {};
+    const imgs = p.previews || [];
+    const caption = [p.caption, p.hashtags.join(" ")].filter(Boolean).join("\n\n");
+    let pick = r.status || "draft";
+    const opts = el("div", { class: "opts" }, Object.entries(STATUS).map(([k, v]) => {
+      const b = el("button", { type: "button", text: v, "aria-pressed": String(k === pick), id: `st-${k}` });
+      b.addEventListener("click", () => { pick = k; opts.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); });
+      return b;
+    }));
+    const note = el("textarea", { id: "review-note", placeholder: "What should change? (optional)" }); note.value = r.note || "";
+    const msg = el("p", { class: "note", text: r.updatedAt ? `Last updated ${new Date(r.updatedAt).toLocaleString("en-IN")}` : "Not reviewed yet." });
+    const save = el("button", { class: "save", type: "button", text: "Save review" });
+    save.addEventListener("click", async () => {
+      if (!db) return;
+      save.disabled = true; msg.textContent = "Saving…";
+      try { await db.collection("reviews").doc(id).set({ status: pick, note: note.value.trim(), updatedAt: new Date().toISOString() }); msg.textContent = "Saved."; }
+      catch (e) { msg.textContent = e && e.code === "invalid_argument" ? "You can view this plan but not change reviews." : "Couldn't save. Try again in a moment."; if (e && e.code === "invalid_argument") canWrite = false; }
+      save.disabled = false;
+    });
+    const reviewBox = el("div", { class: "review" }, el("span", { class: "eyebrow", text: "Review" }),
+      db && canWrite ? [opts, note, save, msg] : [el("p", { class: "note", text: db ? "Read-only: ask the owner for Contributor access to review." : "Review status is shared through this page's store, which isn't available in this view." }), r.status ? el("p", {}, el("span", { class: `pill ${r.status}`, text: STATUS[r.status] }), " ", r.note || "") : null]);
+
+    sheet.replaceChildren(
+      el("header", {}, el("div", {}, el("div", { class: "eyebrow", text: `${PLAT[p.platform]} · ${p.date} · ${p.time} IST · ${p.id}` }), el("h2", { id: "sheetTitle", text: p.title })),
+        el("button", { class: "close", type: "button", "aria-label": "Close", text: "×", onclick: closeSheet })),
+      imgs.length ? el("div", { class: "strip" }, imgs.map((a) => el("img", { src: a, alt: "", loading: "lazy", onerror: (e) => { e.target.hidden = true; } }))) : null,
+      p.hook ? el("p", { style: "font-size:16px;font-weight:600" , text: p.hook }) : null,
+      el("dl", { class: "kv" },
+        el("dt", { text: "Format" }), el("dd", { text: `${p.format}${typeof p.slideCount === "number" ? ` · ${p.slideCount} slide${p.slideCount > 1 ? "s" : ""}` : ` · ${p.slideCount}`}` }),
+        el("dt", { text: "Pillar" }), el("dd", { text: p.pillar }),
+        el("dt", { text: "Files" }), el("dd", { class: "mono", text: `media/out/posts/${p.id}/` }),
+        p.link ? [el("dt", { text: "Tracked link" }), el("dd", { class: "mono", text: p.link })] : null,
+        el("dt", { text: "Sources" }), el("dd", { text: p.sources.join("; ") })),
+      p.compliance ? el("p", { class: "warn", text: `Compliance: ${p.compliance}` }) : null,
+      p.note ? el("p", { class: "warn", text: p.note }) : null,
+      caption ? block(p.platform === "substack" ? "Summary" : "Caption", caption) : el("p", { class: "note", text: `Full draft: media/content/substack/${p.id === "ss01" ? "issue-01.md" : "issue-02-outline.md"}` }),
+      p.firstComment ? block("First comment", p.firstComment) : null,
+      p.onScreen ? block("On-screen text (one line per beat)", p.onScreen.join("\n")) : null,
+      p.audio ? el("p", { class: "note", text: `Audio: ${p.audio}` }) : null,
+      p.storyFollowUp ? el("p", { class: "note", text: `Story follow-up: ${p.storyFollowUp}` }) : null,
+      reviewBox);
+    if (!refresh) {
+      sheet.hidden = false; document.getElementById("back").hidden = false;
+      sheet.scrollTop = 0; sheet.querySelector(".close").focus();
+    }
+  }
+  function closeSheet() { openId = null; document.getElementById("sheet").hidden = true; document.getElementById("back").hidden = true; }
+  document.getElementById("back").addEventListener("click", closeSheet);
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && openId) closeSheet(); });
+  document.getElementById("filters").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    filter = b.dataset.f; try { localStorage.setItem("nr-cal-filter", filter); } catch {}
+    if (data) render();
+  });
+
+  fetch("posts.json").then((r) => r.json()).then((j) => { data = j; render(); })
+    .catch(() => { document.getElementById("cal").replaceChildren(el("p", { class: "warn", text: "The plan's data file didn't load. Reload the page." })); });
+
+  (async () => {
+    const sync = document.getElementById("syncState");
+    try { db = window.claude ? await window.claude.use("db") : null; } catch { db = null; }
+    if (!db) { sync.textContent = "Review status unavailable in this view (read-only plan)."; return; }
+    try { const u = await window.claude.use("user"); const w = u && u.can ? await u.can("data.write") : null; if (w === false) canWrite = false; } catch {}
+    db.collection("reviews").onSnapshot((snap) => {
+      reviews = {}; snap.docs.forEach((d) => { if (d.exists) reviews[d.id] = d.data(); });
+      sync.textContent = canWrite ? "Review status syncs live for everyone on this page." : "Read-only: review status from the team.";
+      if (data) render();
+    }, () => { sync.textContent = "Review status stopped syncing. Reload to reconnect."; });
+  })();
+})();
+</script>
