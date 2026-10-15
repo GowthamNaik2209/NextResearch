@@ -32,6 +32,11 @@ export function ReturnToStock() {
   // Stable, since StockModal re-runs its focus / scroll-lock effect whenever onClose changes.
   const close = useCallback(() => {
     setOpen(null);
+    // Opened by a StockLink click (its own history entry): step back, so Back/close agree.
+    if ((window.history.state as { nrStock?: boolean } | null)?.nrStock) {
+      window.history.back();
+      return;
+    }
     const url = new URL(window.location.href);
     url.searchParams.delete("stock");
     window.history.replaceState(null, "", url.pathname + url.search + url.hash);
