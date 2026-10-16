@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { formatNewsDate, getCompanyNews, getLatestNews, isAbout, parseGoogleNewsRss } from "./news";
+import { cleanSource, feedCompanies, formatNewsDate, getCompanyNews, getLatestNews, isAbout, isListHeadline, parseGoogleNewsRss } from "./news";
+import { newsAgeLabel } from "./news-date";
+import { listCompanyMetrics } from "@/lib/sector-content/insights";
 
 const NOW = Date.parse("2026-10-13T12:00:00Z");
 const item = (title: string, source: string, pub: string, link = "https://news.google.com/rss/articles/X") =>
@@ -146,4 +148,116 @@ test("isAbout matches the short names and spellings headlines actually use", () 
   const stl = { name: "Sterlite Technologies", ticker: "STLTECH" };
   assert.ok(isAbout("Sterlite Tech shares gain 5% as arm wins $1.2 billion supply agreement", stl));
   assert.ok(!isAbout("Sterlite Power wins transmission project", stl));
+});
+
+test("isAbout handles pharma names: short forms, group siblings and the Sun/SPARC overlap", () => {
+  const sun = { name: "Sun Pharmaceutical Industries", ticker: "SUNPHARMA" };
+  const sparc = { name: "SPARC (Sun Pharma Advanced Research Company)", ticker: "SPARC" };
+  assert.ok(isAbout("Sun Pharma Q2 results: profit rises 12% on specialty sales", sun));
+  assert.ok(!isAbout("Sun Pharma Q2 results: profit rises 12% on specialty sales", sparc), "Sun's news is not SPARC's");
+  assert.ok(!isAbout("Sun Pharma Advanced Research shares surge on licensing deal", sun));
+  assert.ok(isAbout("SPARC shares surge on licensing deal", sparc));
+  const torrent = { name: "Torrent Pharmaceuticals", ticker: "TORNTPHARM" };
+  assert.ok(isAbout("Torrent Pharma completes JB Chemicals merger", torrent));
+  assert.ok(!isAbout("Torrent Power wins 1 GW pumped storage contract", torrent));
+  const zydus = { name: "Zydus Lifesciences", ticker: "ZYDUSLIFE" };
+  assert.ok(isAbout("Zydus gets USFDA nod for generic drug", zydus));
+  assert.ok(!isAbout("Zydus Wellness Q2 volumes rise", zydus));
+  const drl = { name: "Dr Reddy's Laboratories", ticker: "DRREDDY" };
+  assert.ok(isAbout("Dr. Reddy's Q1 profit beats estimates", drl));
+  assert.ok(isAbout("Dr Reddys launches semaglutide in Canada", drl));
+  const aartiDrugs = { name: "Aarti Drugs", ticker: "AARTIDRUGS" };
+  assert.ok(!isAbout("Aarti Industries shares fall 5%", aartiDrugs));
+  assert.ok(!isAbout("Aarti Pharmalabs commissions new API block", aartiDrugs));
+});
+
+test("isAbout handles real estate names: REITs, short forms and look-alike words", () => {
+  const lodha = { name: "Lodha Developers (Macrotech)", ticker: "LODHA" };
+  assert.ok(isAbout("Lodha pre-sales rise 14% in Q2", lodha));
+  assert.ok(isAbout("Macrotech Developers raises Rs 3,000 crore via QIP", lodha));
+  const embassy = { name: "Embassy Office Parks REIT", ticker: "EMBASSY" };
+  assert.ok(isAbout("Embassy REIT leases 1 msf in Bengaluru", embassy));
+  assert.ok(!isAbout("US Embassy issues visa advisory", embassy));
+  assert.ok(!isAbout("Embassy Developments shares jump 8%", embassy));
+  const supreme = { name: "Supreme Industries", ticker: "SUPREMEIND" };
+  assert.ok(!isAbout("Supreme Court reserves verdict on builder insolvency case", supreme));
+  assert.ok(isAbout("Supreme Industries Q2 pipe volumes up 9%", supreme));
+  const sbi = { name: "State Bank of India", ticker: "SBIN" };
+  assert.ok(isAbout("SBI cuts home loan rates by 25 bps", sbi));
+  assert.ok(!isAbout("SBI Life Q2 VNB margin expands", sbi));
+  const finpipe = { name: "Finolex Industries", ticker: "FINPIPE" };
+  assert.ok(!isAbout("Finolex Cables wins telecom order", finpipe));
+  const mm = { name: "Mahindra & Mahindra", ticker: "M&M" };
+  assert.ok(!isAbout("Mahindra Lifespace launches Rs 1,200 crore project in Pune", mm));
+});
+
+test("cleanSource shows a bare domain when Google gives a URL as the publisher", () => {
+  assert.equal(cleanSource("https://www.siam.in/"), "siam.in");
+  assert.equal(cleanSource("www.nseindia.com"), "nseindia.com");
+  assert.equal(cleanSource("Business Standard"), "Business Standard");
+  assert.equal(cleanSource("Moneycontrol.com"), "moneycontrol.com");
+  const xml = rss(`<item><title>SIAM data: PV sales up 4% - https://www.siam.in/</title><link>https://x.test/a</link><pubDate>Mon, 12 Oct 2026 09:00:00 GMT</pubDate><source url="https://www.siam.in/">https://www.siam.in/</source></item>`);
+  const [h] = parseGoogleNewsRss(xml, NOW);
+  assert.equal(h.source, "siam.in");
+  assert.equal(h.headline, "SIAM data: PV sales up 4%");
+});
+
+test("quote/profile pages and multi-company round-ups are dropped as noise", () => {
+  const pub = "Mon, 12 Oct 2026 09:00:00 GMT";
+  const xml = rss(
+    item("Tata Motors Limited (TMCV.NS) Stock Price, News, Quote & History - Yahoo Finance", "Yahoo Finance", pub),
+    item("NHPC Share Price Live Today - Economic Times", "Economic Times", pub),
+    item("Q2 results today: DLF, Tata Elxsi, Indus Towers and more - Mint", "Mint", pub),
+    item("Stocks in news: Lodha, Embassy REIT, Havells - Moneycontrol", "Moneycontrol", pub),
+    item("DLF share price jumps 5% after strong Q2 bookings - Mint", "Mint", pub),
+  );
+  assert.deepEqual(parseGoogleNewsRss(xml, NOW).map((h) => h.headline), ["DLF share price jumps 5% after strong Q2 bookings"]);
+  assert.ok(!isListHeadline("Lodha Q2: pre-sales up 14%, collections rise, debt falls"), "a story with commas is not a list");
+  assert.ok(!isListHeadline("Voltas, Blue Star, Havells shares rally as heatwave lifts AC demand"));
+  assert.ok(isListHeadline("Q2 results: DLF, Havells, KEI Industries, Polycab"));
+  assert.ok(isListHeadline("Q2 results, October 16: DLF, PNB, LTM, Bajaj Housing Finance, Federal Bank, Urban Company, others to post earnings"));
+  assert.ok(isListHeadline("Stocks Under F&O Ban: Ambuja Cements, and Others"));
+  const spam = rss(item("Bagmane Prime Office REIT Dividend 2026: ₹1.50 & History - INDmoney", "INDmoney", pub), item("DLF Ltd. is Rated Sell by MarketsMOJO - MarketsMojo", "MarketsMojo", pub));
+  assert.deepEqual(parseGoogleNewsRss(spam, NOW), []);
+});
+
+test("Tata Motors commercial-vehicle news is not credited to TMPV", () => {
+  const tmpv = { name: "Tata Motors Passenger Vehicles", ticker: "TMPV" };
+  assert.ok(!isAbout("Tata Motors Limited (TMCV.NS) shares rise on truck demand", tmpv));
+  assert.ok(!isAbout("Tata Motors commercial vehicle sales rise 9% in September", tmpv));
+  assert.ok(!isAbout("TMCV Q2 results: profit up 12%", tmpv));
+  assert.ok(isAbout("Tata Motors PV sales rise 12% in September", tmpv));
+  assert.ok(isAbout("TMPV launches Sierra EV", tmpv));
+});
+
+test("a sector feed is led by the sector's own players (developers/REITs for real estate)", () => {
+  const re = listCompanyMetrics().filter((c) => c.sectorSlug === "realestate");
+  const picked = feedCompanies("realestate", re, 12).map((c) => c.ticker);
+  assert.equal(picked.length, 12);
+  const lead = picked.slice(0, 9);
+  for (const t of ["DLF", "LODHA", "PHOENIXLTD", "PRESTIGE", "OBEROIRLTY"]) assert.ok(lead.includes(t), `${t} leads the feed`);
+  for (const t of ["ULTRACEMCO", "ASIANPAINT", "HAVELLS", "JSWSTEEL", "AMBUJACEM"]) assert.ok(!lead.includes(t), `${t} is not in the core slots`);
+  // Sectors without owner/operator data still get their biggest central names.
+  const pharma = listCompanyMetrics().filter((c) => c.sectorSlug === "pharma");
+  assert.equal(feedCompanies("pharma", pharma, 5).length, 5);
+});
+
+test("headline ages are recomputed on the viewer's clock, curated month-only dates are kept", () => {
+  const ts = NOW - 30 * 60_000;
+  assert.equal(newsAgeLabel("3h ago", ts, NOW), "Just now", "a stale cached label is replaced");
+  assert.equal(newsAgeLabel("Just now", NOW - 5 * 3_600_000, NOW), "5h ago");
+  assert.equal(newsAgeLabel("Mar 2026", Date.parse("2026-03-01"), NOW), "Mar 2026");
+  assert.equal(newsAgeLabel("5h ago", NOW - 30 * 3_600_000, NOW), formatNewsDate(NOW - 30 * 3_600_000, NOW));
+});
+
+test("one story from several outlets counts once; Iveco/target-price items are not TMPV or company news", async () => {
+  const { sameStory, isAbout: about, parseGoogleNewsRss: parse } = await import("./news");
+  const t = Date.parse("2026-10-15T10:00:00Z");
+  assert.ok(sameStory({ ticker: "DLF", headline: "DLF Q2 profit rises 15% on strong bookings", ts: t }, { ticker: "DLF", headline: "DLF Q2 Results: net profit up 15% YoY", ts: t + 3_600_000 }));
+  assert.ok(!sameStory({ ticker: "DLF", headline: "DLF Q2 profit rises 15%", ts: t }, { ticker: "OBEROIRLTY", headline: "Oberoi Realty Q2 profit rises", ts: t }));
+  assert.ok(!sameStory({ ticker: "DLF", headline: "DLF launches luxury project in Gurugram", ts: t }, { ticker: "DLF", headline: "DLF Q2 profit rises 15%", ts: t }));
+  const tmpv = { name: "Tata Motors Passenger Vehicles", ticker: "TMPV" };
+  assert.ok(!about("Iveco Group shareholders approve Tata Motors' takeover proposals", tmpv));
+  const rss = `<rss><channel><item><title>Asian Paints target price raised by brokerage - X</title><link>https://x</link><pubDate>Wed, 14 Oct 2026 10:00:00 GMT</pubDate><source>X</source></item><item><title>Tata Motors stock rises 3.08 percent at a 36.64 price-to-earnings ratio - Y</title><link>https://y</link><pubDate>Wed, 14 Oct 2026 10:00:00 GMT</pubDate><source>Y</source></item></channel></rss>`;
+  assert.equal(parse(rss, Date.parse("2026-10-16T00:00:00Z")).length, 0);
 });

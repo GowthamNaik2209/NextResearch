@@ -40,8 +40,12 @@ export default async function SignupPage({
             <input
               type="email"
               name="email"
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="none"
+              spellCheck={false}
               required
-              className="rounded-lg border border-line bg-panel-2 px-3 py-2 text-ink outline-none focus:border-accent"
+              className="rounded-lg border border-line bg-panel-2 px-3 py-2 text-base text-ink outline-none focus:border-accent sm:text-sm"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm text-ink-soft">
@@ -49,9 +53,10 @@ export default async function SignupPage({
             <input
               type="password"
               name="password"
+              autoComplete="new-password"
               required
               minLength={6}
-              className="rounded-lg border border-line bg-panel-2 px-3 py-2 text-ink outline-none focus:border-accent"
+              className="rounded-lg border border-line bg-panel-2 px-3 py-2 text-base text-ink outline-none focus:border-accent sm:text-sm"
             />
           </label>
           <button

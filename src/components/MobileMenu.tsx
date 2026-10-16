@@ -13,7 +13,9 @@ const ITEMS: [string, string][] = [
   ["Reading list", "/docs"],
 ];
 
-export function MobileMenu() {
+// `hideFrom` is the class that hides the menu once the page shows its own nav links: the site
+// header shows them from md (768px); the explorer header never does, so it keeps the menu longer.
+export function MobileMenu({ hideFrom = "md:hidden" }: { hideFrom?: string } = {}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -32,14 +34,14 @@ export function MobileMenu() {
   }, [open]);
 
   return (
-    <div ref={ref} className="relative md:hidden">
+    <div ref={ref} className={`relative ${hideFrom}`}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-label="Menu"
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink"
+        className="tap-target flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink"
       >
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M4 7h16M4 12h16M4 17h16" />

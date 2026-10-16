@@ -22,6 +22,10 @@ type ComingSoonSector = { icon: string; name: string; tagline: string; category?
 const fmtCr = (cr: number | null) =>
   cr == null ? "–" : cr >= 100000 ? `₹${(cr / 100000).toFixed(1)}L Cr` : `₹${Math.round(cr).toLocaleString("en-IN")} Cr`;
 
+// Shown as the Revenue stat's tooltip: what the sum does and does not include (insights.ts).
+const REVENUE_NOTE =
+  "Combined latest-year revenue of listed companies with a medium or high exposure to this sector (company-wide figures). Lenders, enablers and low-exposure names are left out.";
+
 type Props = {
   sectors: SectorCard[];
   comingSoon: ComingSoonSector[];
@@ -56,7 +60,7 @@ export function SectorBrowser({ sectors, comingSoon }: Props) {
               aria-selected={tab === t}
               onClick={() => setTab(t)}
               className={
-                "rounded-full px-5 py-1.5 text-xs font-semibold transition-colors " +
+                "tap-target rounded-full px-5 py-1.5 text-xs font-semibold transition-colors " +
                 (tab === t ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")
               }
             >
@@ -83,11 +87,11 @@ export function SectorBrowser({ sectors, comingSoon }: Props) {
             <p className="text-sm leading-relaxed text-ink-soft">{s.tagline}</p>
             <dl className="mt-auto grid grid-cols-3 gap-2 border-t border-line pt-3">
               {[
-                ["Revenue", fmtCr(s.combinedRevenueCr)],
+                ["Revenue", fmtCr(s.combinedRevenueCr), REVENUE_NOTE],
                 ["Median P/E", s.medianPe != null ? `${s.medianPe.toFixed(1)}x` : "–"],
                 ["Median ROCE", s.medianRoce != null ? `${s.medianRoce.toFixed(1)}%` : "–"],
-              ].map(([k, v]) => (
-                <div key={k}>
+              ].map(([k, v, note]) => (
+                <div key={k} title={note}>
                   <dt className="text-[10px] uppercase tracking-wide text-ink-soft">{k}</dt>
                   <dd className="font-mono text-sm font-semibold text-ink">{v}</dd>
                 </div>

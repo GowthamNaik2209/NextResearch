@@ -13,6 +13,8 @@ import { aerospace } from "./aerospace";
 import { telecom5g } from "./telecom5g";
 import { solarmodules } from "./solarmodules";
 import { energy } from "./energy";
+import { realestate } from "./realestate";
+import { pharma } from "./pharma";
 
 export type { SectorReport, Tone } from "./types";
 
@@ -26,6 +28,8 @@ const REPORTS: Record<string, SectorReport> = {
   telecom5g,
   solarmodules,
   energy,
+  realestate,
+  pharma,
 };
 
 export function getReport(slug: string): SectorReport | null {
@@ -47,6 +51,7 @@ export type DeckCompany = {
   revCagr: number | null; // % a year, first to latest reported year
   revStart: number | null; // revenue in the CAGR's first year (flags small-base effects)
   cagrSpan: string | null; // e.g. "FY22-26"
+  cagrNote: string | null; // why revCagr is missing despite reported revenue (history under 3 years)
   npMargin: number | null; // %, latest year
   pe: number | null;
   roce: number | null;
@@ -67,6 +72,7 @@ export type Deck = {
 
 // Seed financials hold five fiscal years, FY22..FY26 (see SupplierFinancials).
 const FIRST_FY = 22;
+const MIN_CAGR_YEARS = 3;
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
 const parseRs = (s?: string) => {
   const n = s ? parseFloat(s.replace(/[^0-9.]/g, "")) : NaN;
@@ -81,6 +87,9 @@ function toCompany(key: string, sup: SectorSupplier): DeckCompany {
   const first = reported[0];
   const last = reported[reported.length - 1];
   const span = first != null && last != null ? last - first : 0;
+  // A growth rate over one or two years (e.g. a 2024 listing) is not comparable with the
+  // four-year CAGRs beside it on the scorecard, so it is left out and the row says why.
+  const cagrOk = span >= MIN_CAGR_YEARS;
   const revLast = last != null ? rev[last] : null;
   const npLast = last != null ? np[last] : null;
   return {
@@ -93,9 +102,10 @@ function toCompany(key: string, sup: SectorSupplier): DeckCompany {
     mcapCr: parseRs(f?.mcap),
     revCr: revLast,
     revYear: last != null ? `FY${FIRST_FY + last}` : null,
-    revCagr: span > 0 ? (Math.pow(revLast! / rev[first]!, 1 / span) - 1) * 100 : null,
-    revStart: span > 0 ? rev[first]! : null,
+    revCagr: cagrOk ? (Math.pow(revLast! / rev[first]!, 1 / span) - 1) * 100 : null,
+    revStart: cagrOk ? rev[first]! : null,
     cagrSpan: span > 0 ? `FY${FIRST_FY + first}-${FIRST_FY + last}` : null,
+    cagrNote: span > 0 && !cagrOk ? `only ${span + 1} years reported` : null,
     npMargin: revLast && npLast != null ? (npLast / revLast) * 100 : null,
     pe: num(f?.kpi?.[0]),
     roce: num(f?.kpi?.[3]),

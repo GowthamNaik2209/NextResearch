@@ -11,7 +11,7 @@ export default function Image() {
   return renderOgCard({
     kicker: "India · Equity research",
     title: "See where every listed company sits in the supply chain",
-    subtitle: "Data centres, EVs, semiconductors, railways, defence and solar - mapped layer by layer, with the financials behind each company.",
+    subtitle: "Data centres, EVs, semiconductors, railways, defence, solar, real estate and pharma - mapped layer by layer, with the financials behind each company.",
     stats: [
       { label: "Sectors", value: String(s.sectors) },
       { label: "Supply-chain layers", value: String(s.zones) },

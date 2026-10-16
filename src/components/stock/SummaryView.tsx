@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { EXPOSURE_STRENGTH_LABEL, EXPOSURE_TYPE_LABEL, type SectorSupplier } from "@/lib/sector-content";
 import type { StockApi, StockTab } from "./types";
-import { fmtNum, fmtSigned, mergeStats, revenueSeries } from "./merge";
+import { fmtNum, fmtSigned, freshQuote, mergeStats, REIT_NOTE, revenueSeries } from "./merge";
+import { NewsTime } from "./NewsTime";
 
 const Label = ({ children }: { children: React.ReactNode }) => (
   <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-soft">{children}</div>
@@ -18,6 +19,17 @@ function BulletList({ title, items }: { title: string; items: string[] }) {
       </ul>
     </div>
   );
+}
+
+// Where each CAGR figure comes from, so a 1Y that differs from Screener's rounded figure, or a
+// cached one, is never mistaken for the Chart tab's live number.
+function cagrSourceLabel(one: string | null, long: string | null, seedAsOf?: string): string {
+  const seed = `cached${seedAsOf ? ` as of ${seedAsOf}` : ""}`;
+  const name = (src: string | null) => (src === "chart" ? "live price history (as on the Chart tab)" : src === "screener" ? "Screener.in" : src === "seed" ? seed : null);
+  const a = name(one);
+  const b = name(long);
+  if (a && b && a !== b) return `1Y: ${a}; 3Y/5Y: ${b}`;
+  return a ?? b ?? "";
 }
 
 export function ExtLink({ href, children }: { href: string; children: React.ReactNode }) {
@@ -59,7 +71,9 @@ export function SummaryView({
   const phoneHide = compact ? " max-[700px]:hidden" : "";
   const f = supplier.f;
   const s = mergeStats(f, api);
-  const quote = api?.quote;
+  const quote = freshQuote(api?.quote);
+  // REITs: P/E, ROE and dividend yield are shown as "n/m" (not meaningful) with REIT_NOTE below.
+  const nm = (v: string) => (s.reit ? "n/m" : v);
   const rev = revenueSeries(f, api);
   const maxRev = Math.max(1, ...rev.map((r) => r.revenue ?? 0));
   const tl = f?.tl;
@@ -69,11 +83,11 @@ export function SummaryView({
     ["Mkt Cap", s.marketCap?.replace("Rs ", "₹") ?? "—"],
     ["Price", s.price != null ? `₹${fmtNum(s.price)}` : "—"],
     ["High / Low", s.high52w != null && s.low52w != null ? `${fmtNum(s.high52w, 0)} / ${fmtNum(s.low52w, 0)}` : "—", true],
-    ["Stock P/E", fmtNum(s.pe, 1)],
+    ["Stock P/E", nm(fmtNum(s.pe, 1))],
     ["Book Value", fmtNum(s.bookValue, 1), true],
-    ["Div Yield", s.divYield != null ? `${s.divYield}%` : "—"],
+    ["Div Yield", nm(s.divYield != null ? `${s.divYield}%` : "—")],
     ["ROCE", s.roce != null ? `${s.roce}%` : "—"],
-    ["ROE", s.roe != null ? `${s.roe}%` : "—"],
+    ["ROE", nm(s.roe != null ? `${s.roe}%` : "—")],
     ["Face Value", fmtNum(s.faceValue, 2), true],
   ];
 
@@ -105,15 +119,20 @@ export function SummaryView({
           {chips.map(([k, v, opt]) => (
             <div key={k} className={"rounded-lg border border-line bg-panel-2 px-2.5 py-2" + (opt ? " max-[640px]:hidden" : "")}>
               <div className="text-[9px] uppercase tracking-wide text-ink-soft">{k}</div>
-              <div className="mt-0.5 font-mono text-[13px] font-semibold text-ink">{v}</div>
+              <div className={"mt-0.5 font-mono text-[13px] font-semibold " + (v === "n/m" ? "text-ink-soft" : "text-ink")} title={v === "n/m" ? "Not meaningful for a REIT" : undefined}>
+                {v}
+              </div>
             </div>
           ))}
         </div>
+        {s.reit && <p className="mt-2 text-[11px] leading-snug text-ink-soft">n/m = not meaningful for a REIT. {REIT_NOTE}</p>}
       </div>
 
       {(api?.footprint?.sectors.length ?? 0) > 1 && (
         <div>
-          <Label>Also appears in {api!.footprint!.sectors.length - 1} other supply chain{api!.footprint!.sectors.length > 2 ? "s" : ""}</Label>
+          {/* The pop-up doesn't know which sector page opened it, so count and list all of them
+              (an "N other" heading over a list that included the current sector disagreed). */}
+          <Label>Appears in {api!.footprint!.sectors.length} supply chains</Label>
           <ul className="mt-2 flex flex-col gap-1.5">
             {api!.footprint!.sectors.map((fs) => (
               <li key={fs.sectorSlug}>
@@ -155,7 +174,12 @@ export function SummaryView({
 
       {(s.cagr1y != null || s.cagr3y != null || s.cagr5y != null) && (
         <div className={phoneHide.trim()}>
-          <Label>Stock price CAGR</Label>
+          <Label>
+            Stock price CAGR{" "}
+            <span className="font-normal normal-case tracking-normal">
+              — {cagrSourceLabel(s.cagr1ySource, s.cagrLongSource, api?.seedAsOf)}
+            </span>
+          </Label>
           <div className="mt-2 grid grid-cols-3 gap-2">
             {(
               [
@@ -192,6 +216,17 @@ export function SummaryView({
         </div>
       )}
 
+      {loading && !api && (
+        <div className={phoneHide.trim()} aria-busy="true">
+          <Label>Recent news</Label>
+          <div className="mt-2 flex flex-col gap-1.5">
+            {[0, 1].map((i) => (
+              <div key={i} className="h-12 animate-pulse rounded-lg border border-line bg-panel-2" />
+            ))}
+          </div>
+        </div>
+      )}
+
       {(api?.news.length ?? 0) > 0 && (
         <div className={phoneHide.trim()}>
           <Label>Recent news</Label>
@@ -202,7 +237,7 @@ export function SummaryView({
                   {n.headline}
                 </a>
                 <div className="mt-0.5 font-mono text-[10.5px] text-ink-soft">
-                  {n.source} · {n.date}
+                  {n.source} · <NewsTime label={n.date} ts={n.ts} />
                 </div>
               </li>
             ))}
@@ -216,7 +251,11 @@ export function SummaryView({
       )}
 
       <div className={"flex flex-col gap-1.5" + phoneHide}>
-        <ExtLink href={`https://www.screener.in/company/${encodeURIComponent(ticker)}/consolidated/`}>View on Screener.in (consolidated financials)</ExtLink>
+        {api?.fundamentals?.basis === "standalone" ? (
+          <ExtLink href={`https://www.screener.in/company/${encodeURIComponent(ticker)}/`}>View on Screener.in (standalone financials)</ExtLink>
+        ) : (
+          <ExtLink href={`https://www.screener.in/company/${encodeURIComponent(ticker)}/consolidated/`}>View on Screener.in (consolidated financials)</ExtLink>
+        )}
         {tl && (
           <>
             <ExtLink href={`https://trendlyne.com/research-reports/stock/${tl[0]}/${encodeURIComponent(ticker)}/${tl[1]}/`}>All broker / research reports (Trendlyne)</ExtLink>
@@ -226,7 +265,9 @@ export function SummaryView({
       </div>
       {f?.note && <p className={"text-[11px] text-ink-soft" + phoneHide}>Note: {f.note}</p>}
       <p className={"border-t border-dashed border-line pt-2 text-[10.5px] text-ink-soft" + phoneHide}>
-        Ratios: <b>{s.ratioSource === "yahoo" ? "Yahoo Finance" : "Screener.in (consolidated)"}</b>, {s.ratioSource === "cached" ? "cached" : "live"}. Price: {s.liveQuote ? `Yahoo Finance${quote?.delayedMin ? `, ~${quote.delayedMin} min delayed` : ""}` : "cached"}. Not investment advice.
+        Ratios: <b>{s.ratioSource === "yahoo" ? "Yahoo Finance" : `Screener.in (${api?.fundamentals?.basis ?? "consolidated"})`}</b>,{" "}
+        {s.ratioSource === "cached" ? `cached${api?.seedAsOf ? ` as of ${api.seedAsOf}` : ""}` : "live"}. Price:{" "}
+        {quote ? `Yahoo Finance (${quote.exchange})${quote.delayedMin ? `, ~${quote.delayedMin} min delayed` : ""}` : `cached${api?.seedAsOf ? ` as of ${api.seedAsOf}` : ""}`}. Not investment advice.
       </p>
     </div>
   );

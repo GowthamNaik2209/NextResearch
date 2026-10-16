@@ -49,6 +49,18 @@ export const SECTOR_DOCS: Record<string, ResearchLink[]> = {
     { title: "Electric Power & Natural Gas insights", source: "McKinsey & Company", url: "https://www.mckinsey.com/industries/electric-power-and-natural-gas/our-insights" },
     { title: "Reports & analysis", source: "International Energy Agency (IEA)", url: "https://www.iea.org" },
   ],
+  realestate: [
+    { title: "Residential, office, warehousing & investment research", source: "Knight Frank India", url: "https://www.knightfrank.co.in/research" },
+    { title: "Research reports (housing sales, city viewpoints, homebuyer surveys)", source: "ANAROCK Research", url: "https://www.anarock.com/research/research-reports" },
+    { title: "REIT distributions, AUM and investor data", source: "Indian REITs Association", url: "https://indianreitsassociation.com/" },
+    { title: "RESIDEX housing price index", source: "National Housing Bank", url: "https://residex.nhbonline.org.in/" },
+  ],
+  pharma: [
+    { title: "Annual reports", source: "Department of Pharmaceuticals, Government of India", url: "https://pharma-dept.gov.in/annual-report" },
+    { title: "Indian Pharmaceutical Alliance", source: "IPA", url: "https://www.ipa-india.org/" },
+    { title: "Export data and publications", source: "Pharmexcil", url: "https://pharmexcil.com/" },
+    { title: "Reports and publications", source: "IQVIA Institute for Human Data Science", url: "https://www.iqvia.com/insights/the-iqvia-institute/reports-and-publications" },
+  ],
 };
 
 export function getResearchForSector(slug: string): ResearchLink[] {

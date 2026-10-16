@@ -1,7 +1,8 @@
 # Architecture
 
 A map of how NextResearch fits together, so you can change it without surprises. For setup and
-commands see the [README](../README.md).
+commands see the [README](../README.md); for step-by-step recipes (adding a sector, building a
+3D model, the QA and release routine, and lessons learned) see the [Playbook](PLAYBOOK.md).
 
 ## The big picture
 
@@ -41,9 +42,27 @@ Two rules shape most decisions:
   data. **Do not import it from client components** (it is large); import *types* only.
 - `index.ts` - the typed facade (`SectorDef`, `SectorZone`, `SectorSupplier`,
   `SupplierFinancials`) and lookups (`getSector`, `listSectors`, `findSupplierByTicker`).
+  A company in several sectors has one supplier record *per sector*; `findSupplierByTicker` (and
+  `companies.ts` `primaryAppearance`) pick the record from its **strongest link** (`linkWeight`:
+  high > medium > low, enablers/indirect lower), so the pop-up and company page describe it alike.
+- **Financials live in one place per ticker:** the `FIN` table near the top of `products.ts`.
+  Supplier rows use `f: co("TICKER", "optional sector note")`; never inline `fin(...)` for a
+  ticker another sector also lists (`financials.test.ts` fails if the figures diverge). `fin()`
+  derives a per-company `asOf` from an "as of DD Mon YYYY" phrase in the note (default: the file's
+  `ASOF`), shown on company pages and the pop-up. `FIN["X"].screenOut = true` keeps a company whose
+  latest year is dominated by a one-off (SPARC's FY26 voucher sale) out of the idea screens.
+- **Zones carry `layer`** (index into `layerNames`): picking the zone peels the 3D model to the
+  layer where that part is visible. Views may carry `layer` too ("Underground" -> Land & Capital).
+  `validate:content` requires a valid `layer` on every zone of a live sector.
 - `exposure.ts` - cross-sector footprint (same ticker joined across sectors; also returned by `/api/stock/[ticker]` as `footprint`). `scenarios.ts` - authored "what if" shocks per sector (zone severity + headwind/tailwind) and the ranking of exposed companies; the explorer lights the zones via `controller.setImpact`. Zone ids are checked by `validate:content`.
 - `stats.ts` - landing numbers and the search index; `insights.ts` - per-sector medians, the
-  rule-based "idea" screens, and the news feed; `docs.ts` - the curated reading list.
+  rule-based "idea" screens, and the news feed; `docs.ts` - the curated reading list;
+  `companies.ts` - company pages and `sectorCompanies()` (one card per *ticker* on a sector page:
+  two supplier keys can share a ticker, e.g. BHEL thermal + hydro, so always count/list by ticker).
+- **Centrality.** `CompanyMetrics.centrality` (0-1) is how central a sector is to a company (its
+  strongest exposure there; enablers such as lenders are discounted). Sector revenue totals skip
+  companies below `CORE_CENTRALITY`, and sector news feeds lead with core players - otherwise
+  HDFC Bank/SBI dominate Real Estate's revenue and headlines.
 - `SupplierFinancials` (`supplier.f`) holds the seed figures (5-year revenue, KPIs, price CAGR,
   52-week range). They are an *as of* snapshot (`DATA_AS_OF`) - the offline fallback.
 
@@ -52,14 +71,35 @@ Two rules shape most decisions:
 | File | Source | Used for | Cache |
 | --- | --- | --- | --- |
 | `yahoo.ts` | Yahoo Finance via `yahoo-finance2` | quote (~15 min delayed on NSE), price history, fallback fundamentals | 1 min quote, 5-60 min charts |
+| `freshness.ts` | - | `isFreshQuote`: a quote older than `MAX_QUOTE_AGE_DAYS` (6) is rejected, here and in the client | - |
 | `screener-company.ts` + `screener-ratios.ts` | Screener.in HTML | ratios, growth, shareholding, annual P&L, **industry median** (peers table footer) | 6 h |
 | `news.ts` | Google News RSS | latest headlines per company, the platform/sector feed and watchlist news; curated seed headlines are the fallback | 15 min (Next data cache + in-process) |
 | `cache.ts` | - | in-memory TTL cache with in-flight de-duplication; failed (null) loads are only remembered ~1 min | - |
 
+**Yahoo symbols.** Plain `<T>.NS` can answer with a *frozen* price (REITs moved to NSE's RR
+series in 2024; SME stocks trade in the SM series). Quotes therefore try `.NS`, `-RR.NS`,
+`-SM.NS`, then `.BO` and accept the first *fresh* one; charts try `.NS`, `-SM.NS`, `.BO`. A few
+tickers need an alias (e.g. KRONECOMM -> ADCINDIA.BO). Every call has a timeout, and the cache
+never shares an in-flight load older than 30 s (a hung call once stalled a route for 100 s+).
+
+**Screener basis.** Companies without consolidated accounts (Abbott India, Netweb) have an
+*empty template* consolidated page; `isUsablePage` detects it and the standalone page is used,
+labelled as such. Empty growth rows/tables are dropped; an industry median of 0 means "n/a".
+REITs (`isReit`): P/E, ROE and dividend yield are shown as "n/m" with an explanation.
+
 News headlines are filtered to ones that are actually *about* the company (`isAbout`) and exclude
-price-prediction pages and "stocks to watch/buy" tip lists. Aggregated feeds query the largest
-companies per sector (bounded upstream requests); `<NewsFeed>` streams them behind a Suspense
-skeleton so pages never wait on the news fetch.
+price-prediction pages, "stocks to watch/buy" tip lists, quote/profile pages, multi-company
+round-ups, target-price and auto-generated P/E blurbs, and entertainment that shares a name
+(Netflix's "Lupin"). When adding companies, extend the matcher's word lists in `news.ts`:
+`GENERIC` (words that don't identify a company: "pharma", "realty"), `GROUP` (family names
+several listed companies share: "aarti", "finolex"), `ALIASES` (short names headlines use:
+"Sun Pharma", "Lodha"), `OTHER_COMPANIES` (uncovered look-alikes: "SBI Life"), `WORD_TICKERS`
+(tickers that are ordinary words: EMBASSY) and `NOT_ABOUT` (TMPV vs Tata Motors CV) - each with a
+test in `news.test.ts`. Feeds keep one copy per story (`sameStory`: same company within ~36 h,
+both earnings headlines or mostly the same words). Relative ages ("3h ago") are computed on the
+client from `ts`, because the server responses are cached. Aggregated feeds query each sector's
+core players first (`feedCompanies`, bounded upstream requests); `<NewsFeed>` streams them behind
+a Suspense skeleton so pages never wait on the news fetch.
 
 Screener has no public API: we parse its HTML (one page + the peers table per company,
 cached). It rate-limits bursts and the markup can change - the parsers are covered by tests
@@ -73,20 +113,26 @@ Used for **users and the watchlist** (`Profile`, `Watchlist`). The `Company`, `F
 last price from them (`priceAtAdd`), but **no page reads company data from the DB any more** -
 the stock UI is DB-free by design, which is why it works with an empty database.
 
+There is **one Supabase project** (`DATABASE_URL` in `.env`), shared by staging and production, so
+`npm run db:seed` writes to live data - ask before running it. The seed is idempotent (upserts by
+ticker) and retries dropped connections. A ticker rename (HBLPOWER -> HBLENGINE) leaves an orphaned
+row behind; delete it only after checking no watchlist references it (children cascade).
+
 ## Routes
 
 | Route | Type | Notes |
 | --- | --- | --- |
 | `/` | server | Landing page, composed of `components/landing/*` |
 | `/sector/[slug]` | server | Sector overview; company cards open the stock pop-up directly |
-| `/sector/[slug]/explore` | server shell + client | 3D explorer; deep links via `?zone=&company=` |
+| `/sector/[slug]/explore` | server shell + client | 3D explorer; deep links via `?zone=&company=&scenario=` |
+| `/company/[slug]`, `/companies` | server | One indexable page per listed company; A-Z list |
 | `/updates`, `/docs`, `/docs/[slug]` | server | Live news feed (filter `?sector=`); reading list: 10-slide research deck per sector in a pop-up (`?report=<slug>` opens one) |
 | `/connections` | server | Companies present in 2+ supply chains, ranked by footprint (`sector-content/exposure.ts`) |
 | `/watchlist` | server | Auth required; rows open the stock pop-up |
 | `/login`, `/signup`, `/auth/callback` | server | Supabase auth |
-| `/api/stock/[ticker]` | route | `{ quote, fundamentals, news, newsLive }`, `s-maxage=300` |
+| `/api/stock/[ticker]` | route | `{ quote, fundamentals, news, newsLive, footprint, return1y, seedAsOf }`, `s-maxage=300` |
 | `/api/stock/[ticker]/chart?range=1M\|6M\|1Y\|3Y\|MAX` | route | price history |
-| `/api/watchlist` | route | GET/POST/DELETE, Supabase session required |
+| `/api/watchlist` | route | GET (returns `signedIn`, always 200) / POST / DELETE; the heart checks GET first so signed-out taps show the prompt without a 401 |
 
 ## Frontend structure
 
@@ -103,6 +149,20 @@ the stock UI is DB-free by design, which is why it works with an empty database.
   `engine.ts` the imperative three.js engine it drives. `explorer.css` is **nested under
   `.nr-explorer`** (CSS nesting), so classes there only apply inside the explorer - code
   rendered through a portal (the stock pop-up) therefore uses Tailwind, not these classes.
+  Behaviour to preserve:
+  - One button per layer (`layerNames`); breadcrumb, active button and slider (`dom.slider`) stay
+    in sync through `applyLevel`. Picking a zone sets `targetLevel = zone.layer`; moving to a
+    layer where the selected zone isn't visible deselects it.
+  - Up to 1000 px the explorer uses the phone layout: floating controls, a bottom sheet with
+    peek/full heights, and phone tags (only the current layer's systems, max ~150 px, 8 px off
+    the edges). The engine measures the sheet and shifts the projection (`setViewOffset`) so the
+    picked system sits in the strip above it; it pans sideways only when needed so the model
+    isn't cropped, judging from where the camera is *heading* (deep links select mid-animation).
+  - Default and "top" views are pulled back until the whole model fits (`fit`); close-ups keep
+    their authored framing. Callouts whose marker is off-screen are hidden.
+  - Each model file (`sector-content/models/<slug>.ts`) owns its geometry, `applyLevel` crossfade
+    (`layerMats()` buckets) and, for new sectors, exported `ANCHORS`/`VIEWS` that products.ts
+    references - so content and geometry can be authored in parallel.
 - **Theming.** Colour tokens are CSS variables in `globals.css` (light is the default; dark via
   `data-theme="dark"` on `<html>`, set before paint by the inline script in `layout.tsx`).
   `explorer.css` mirrors the tokens because the explorer scopes its own copy - **change both
@@ -110,21 +170,32 @@ the stock UI is DB-free by design, which is why it works with an empty database.
   hex values.
 - **Responsive.** Mobile-first breakpoints at 640 / 700 / 1000 / 1280 px. In the explorer on
   phones the Layers/Systems/Camera controls float over the stage and long write-ups collapse
-  (see the phone block at the end of `explorer.css`).
+  (see the phone block at the end of `explorer.css`). Site-wide: inputs are 16 px on phones (iOS
+  zooms smaller ones), touch targets get a 40 px hit area via the `tap-target` utility in
+  `globals.css`, and the header must fit at 360-390 px. The account button shows the user's name
+  **only on the landing page** (bare avatar elsewhere).
+- **Generated deck headlines** live in `components/research/headlines.ts` (pure functions, so all
+  11 decks can be printed and read in one go): pluralise counts, never "and one other", describe
+  balances accurately.
+- **Inline scripts** (the pre-paint theme script) go through `components/InlineScript.tsx`; a raw
+  `<script>` inside a server-rendered component logs a React warning on not-found routes.
 
 ## Conventions
 
 - **Comments explain *why*** (constraints, gotchas, trade-offs) - the code shows what.
 - **Add or unlock a sector / policy - complete the whole loop.** A sector is only done when every
   surface that lists companies knows about it. Checklist:
-  1. Author it in `products.ts` (zones, suppliers with `f` figures, domains, `whyNow`,
-     `thesisSummary`, `integratorZoneId`, exposure links, 3D model) and leave `muted` off.
+  1. Author it in `products.ts` (zones with `layer`, suppliers with `f: co(...)` figures from `FIN`,
+     domains, `whyNow`, `thesisSummary`, `integratorZoneId`, exposure links, 3D model) and leave
+     `muted` off. The full recipe is in the [Playbook](PLAYBOOK.md).
   2. `scenarios.ts`: 3-4 "what if" shocks; `docs.ts`: reading links; `reports/<slug>.ts`: the research deck
      (register it in `reports/index.ts`; `npx tsx scripts/check-report.ts <slug>` checks one while authoring).
-  3. `extracted.json` / `npm run db:extract` + `db:seed`, so every listed company has a `Company`
-     row (the watchlist heart needs it) - and run the seed against staging/prod.
+  3. `npx tsx prisma/extract-source-data.ts` (regenerates `extracted.json`; `npm run db:extract`
+     points at a stale .mjs) + `npm run db:seed`, so every listed company has a `Company` row (the
+     watchlist heart needs it). The seed hits the shared live DB - get a go-ahead first.
   4. Run `npm run validate:content` - it fails a live sector that lacks scenarios, reading links,
-     an integrator zone or a thesis.
+     an integrator zone, a thesis, or a valid `layer` on any zone/view.
+  4b. Extend the news matcher for the new company names (see "Live data" above).
   5. Check by eye: landing card + stats, search, `/updates` chips, `/connections` (a company shared
      with another sector must show both), idea screens, `/docs`, the stock pop-up footprint, and the
      explorer on desktop *and* phone.
@@ -134,13 +205,17 @@ the stock UI is DB-free by design, which is why it works with an empty database.
   `TABS`, extend `StockTab` in `types.ts`.
 - **Touching live data:** keep it behind `lib/live/` and the API routes; add/adjust a fixture
   test when a parser changes.
-- **Before merging:** `npx tsc --noEmit && npm run lint && npm test && npm run validate:content`.
-  Work lands on `staging` first, then `main` via PR.
+- **Before merging:** `npx tsc --noEmit && npx eslint src scripts && npm test && npm run validate:content`,
+  `npx tsx scripts/check-report.ts <slug>` for touched decks, and `next build` (stop the dev
+  server first - see the Playbook). Then the QA routine in the Playbook. Work lands on `staging`
+  first, then `main` via PR.
 
 ## Known gaps / tech debt
 
-- `SectorExplorer.tsx` (~700 lines) mixes layout, state and the zone panel - a candidate to
-  split (rail / panel / header) next.
+- `SectorExplorer.tsx` (~1,000 lines) and `engine.ts` mix layout, state and the zone panel - a
+  candidate to split (rail / panel / header / camera framing) next.
+- Energy's opening "Platform" layer has no systems of its own, so phones show all its tags there.
+- DIGIFIBRE and STONEINDIA have no live quote source; they always show cached seed figures.
 - `products.ts` is untyped (`@ts-nocheck`) authored content; `validate:content` is the only guard.
 - Screener scraping is fragile and sits in a legal grey area (see the note in
   `screener-company.ts`); a licensed data vendor would replace `lib/live/screener-*`.

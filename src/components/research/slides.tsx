@@ -3,6 +3,17 @@
 import type { ReactNode } from "react";
 import type { Deck, DeckCompany, Tone } from "@/lib/sector-content/reports";
 import type { PestleKey, SeriesPoint } from "@/lib/sector-content/reports/types";
+import {
+  beneficiariesTitle,
+  companyNewsTitle,
+  developmentsTitle,
+  driversTitle,
+  outlookTitle,
+  overviewTitle,
+  pestleTitle,
+  scorecardTitle,
+  valueChainTitle,
+} from "./headlines";
 
 // The ten slides of a research deck, in order. Each slide leads with an "action
 // title" — the one-sentence takeaway — derived from the deck's data where it
@@ -103,19 +114,6 @@ function Panel({ className = "", children }: { className?: string; children: Rea
   return <div className={"rounded-2xl border border-line bg-panel " + className}>{children}</div>;
 }
 
-// Lower-cases a leading capital for mid-sentence use, but leaves acronyms and proper nouns
-// that carry further capitals ("AI workloads", "PLI-ACC", "Vodafone Idea") alone.
-const lcFirst = (t: string) => (/^[A-Z][a-z]/.test(t) && !/^[A-Z][a-z]+ [A-Z]/.test(t) ? t[0].toLowerCase() + t.slice(1) : t);
-const listJoin = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
-const plural = (n: number, one: string, many = one + "s") => `${n} ${n === 1 ? one : many}`;
-// Fiscal/calendar year from a chart label ("FY26", "FY26BE", "2030P") for growth maths and spacing.
-const yearOf = (label: string) => {
-  const m = label.match(/(\d{4}|\d{2})/);
-  if (!m) return null;
-  const n = parseInt(m[1], 10);
-  return n < 100 ? 2000 + n : n;
-};
-
 const inr = (n: number, digits = 0) => n.toLocaleString("en-IN", { maximumFractionDigits: digits, minimumFractionDigits: digits });
 const fmtCr = (n: number | null) => (n == null ? "—" : n >= 100000 ? `Rs ${inr(n / 100000, 2)} L Cr` : `Rs ${inr(n)} Cr`);
 const fmtPct = (n: number | null) => (n == null ? "—" : `${n.toFixed(1)}%`);
@@ -187,17 +185,9 @@ function SummarySlide({ deck }: SlideProps) {
 
 function DevelopmentsSlide({ deck }: SlideProps) {
   const devs = deck.report.developments;
-  const pos = devs.filter((d) => d.impact === "pos").length;
-  const neg = devs.filter((d) => d.impact === "neg").length;
   return (
     <>
-      <SlideHead
-        n={2}
-        eyebrow="Latest developments"
-        title={`${devs.length} recent moves are reshaping the industry: ${listJoin(
-          [pos && plural(pos, "tailwind"), neg && plural(neg, "headwind"), devs.length - pos - neg && `${devs.length - pos - neg} neutral`].filter((x): x is string => !!x)
-        )}`}
-      />
+      <SlideHead n={2} eyebrow="Latest developments" title={developmentsTitle(deck)} />
       <ol className="relative grid gap-3 md:grid-cols-2">
         {devs.map((d) => (
           <li key={d.title} className="flex gap-3 rounded-xl border border-line bg-panel p-4">
@@ -222,20 +212,6 @@ function DevelopmentsSlide({ deck }: SlideProps) {
 }
 
 // ---------- 3. Industry overview ----------
-
-function growthLine(points: SeriesPoint[]) {
-  const actual = points.filter((p) => !p.projected && p.value > 0);
-  const proj = points.filter((p) => p.projected);
-  if (actual.length < 2) return null;
-  const a = actual[0];
-  const b = actual[actual.length - 1];
-  const ya = yearOf(a.label);
-  const yb = yearOf(b.label);
-  const years = ya != null && yb != null && yb > ya ? yb - ya : Math.max(1, actual.length - 1);
-  const cagr = (Math.pow(b.value / a.value, 1 / years) - 1) * 100;
-  const end = proj[proj.length - 1];
-  return { a, b, cagr, end, multiple: b.value / a.value };
-}
 
 function BarChart({ points, unit }: { points: SeriesPoint[]; unit: string }) {
   const max = Math.max(...points.map((p) => p.value), 1);
@@ -283,12 +259,7 @@ function BarChart({ points, unit }: { points: SeriesPoint[]; unit: string }) {
 
 function OverviewSlide({ deck }: SlideProps) {
   const o = deck.report.overview;
-  const g = growthLine(o.chart.points);
-  // Very high CAGRs come from launch-year bases and read better as a multiple.
-  const growth = g ? (g.cagr > 100 ? `~${Math.round(g.multiple)}x` : `~${Math.round(g.cagr)}% a year`) : "";
-  const title = g
-    ? `${o.chart.title}: ${growth} from ${g.a.label} to ${g.b.label}${g.end ? `, with ${g.end.label} projected at ~${(g.end.value / g.b.value).toFixed(1)}x the ${g.b.label} level` : ""}`
-    : o.chart.title;
+  const title = overviewTitle(deck);
   return (
     <>
       <SlideHead n={3} eyebrow="Industry overview" title={title} />
@@ -341,20 +312,17 @@ const MOAT_PIPS = { low: 1, medium: 2, high: 3 } as const;
 
 function ValueChainSlide({ deck }: SlideProps) {
   const chain = deck.report.valueChain;
-  const high = chain.filter((s) => s.moat === "high").map((s) => lcFirst(s.stage));
-  const title =
-    high.length === 0
-      ? `${chain.length} stages from inputs to end market, each with a distinct margin profile`
-      : high.length <= 2
-        ? `The strongest moats sit in ${listJoin(high)}, across ${chain.length} stages from inputs to end market`
-        : `${high.length} of ${chain.length} stages carry high moats, led by ${listJoin(high.slice(0, 2))}`;
+  const title = valueChainTitle(deck);
+  const cols = chain.length <= 4 ? chain.length : Math.ceil(chain.length / 2);
   return (
     <>
       <SlideHead n={4} eyebrow="Value chain & profit pools" title={title} />
-      <ol className="grid gap-2.5 lg:grid-cols-[repeat(var(--n),minmax(0,1fr))]" style={{ ["--n" as string]: chain.length }}>
+      {/* Up to 4 stages fit one row; 5-6 go two rows of 3, which keeps each card wide enough
+          for its chips and the margin line (six columns squeezed them at 1280px). */}
+      <ol className="grid gap-2.5 lg:grid-cols-[repeat(var(--n),minmax(0,1fr))]" style={{ ["--n" as string]: cols }}>
         {chain.map((s, i) => (
           <li key={s.stage} className="relative flex flex-col rounded-xl border border-line bg-panel p-3.5">
-            {i < chain.length - 1 && (
+            {i < chain.length - 1 && i % cols !== cols - 1 && (
               <span aria-hidden className="absolute -right-[11px] top-1/2 z-[1] hidden h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-bg text-[10px] text-accent lg:flex">
                 ›
               </span>
@@ -363,9 +331,10 @@ function ValueChainSlide({ deck }: SlideProps) {
             <h4 className="mt-1 font-display text-sm font-semibold leading-snug text-ink">{s.stage}</h4>
             <div className="mt-2 flex flex-wrap gap-1">
               {s.zoneIds.map((z) => (
-                <span key={z} className="rounded-md bg-panel-2 px-1.5 py-0.5 text-[10px] leading-tight text-ink-soft">
-                  {deck.zoneLabels[z]?.label ?? z}
-                  {deck.zoneLabels[z] ? <span className="font-mono text-ink"> · {deck.zoneLabels[z].companies}</span> : null}
+                <span key={z} className="inline-flex max-w-full items-baseline gap-1 rounded-md bg-panel-2 px-1.5 py-0.5 text-[10px] leading-tight text-ink-soft">
+                  <span className="min-w-0">{deck.zoneLabels[z]?.label ?? z}</span>
+                  {/* The count stays glued to its label instead of wrapping onto its own line. */}
+                  {deck.zoneLabels[z] ? <span className="flex-none whitespace-nowrap font-mono text-ink">· {deck.zoneLabels[z].companies}</span> : null}
                 </span>
               ))}
             </div>
@@ -433,7 +402,7 @@ function DriversSlide({ deck }: SlideProps) {
   const r = deck.report;
   return (
     <>
-      <SlideHead n={5} eyebrow="Growth drivers" title={`Four structural drivers underpin growth, starting with ${lcFirst(r.drivers[0].title)}`} />
+      <SlideHead n={5} eyebrow="Growth drivers" title={driversTitle(deck)} />
       <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
         <div className="grid gap-2.5 sm:grid-cols-2">
           {r.drivers.map((d, i) => (
@@ -468,13 +437,9 @@ const PESTLE: { key: PestleKey; label: string }[] = [
 ];
 
 function PestleSlide({ deck }: SlideProps) {
-  const all = PESTLE.flatMap((f) => deck.report.pestle[f.key]);
-  const pos = all.filter((p) => p.impact === "pos").length;
-  const neg = all.filter((p) => p.impact === "neg").length;
-  const net = pos > neg + 2 ? "a supportive" : neg > pos + 2 ? "a challenging" : "a balanced";
   return (
     <>
-      <SlideHead n={6} eyebrow="PESTLE analysis" title={`${pos} tailwinds against ${neg} headwinds make for ${net} external backdrop`} />
+      <SlideHead n={6} eyebrow="PESTLE analysis" title={pestleTitle(deck)} />
       <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
         {PESTLE.map((f) => (
           <div key={f.key} className="overflow-hidden rounded-xl border border-line bg-panel">
@@ -512,10 +477,7 @@ const TIERS = [
 ] as const;
 
 function BeneficiariesSlide({ deck, openCompany }: SlideProps) {
-  const core = deck.companies.filter((c) => c.tier === "core").map((c) => c.name);
-  const title = core.length
-    ? `${listJoin(core.slice(0, 3))} ${core.length === 1 ? "is" : "are"} the most direct way to own the theme among ${deck.companies.length} listed beneficiaries`
-    : `${deck.companies.length} listed companies stand to benefit, ranked by how directly`;
+  const title = beneficiariesTitle(deck);
   return (
     <>
       <SlideHead n={7} eyebrow="Key beneficiaries" title={title} />
@@ -584,17 +546,16 @@ function MiniBar({ value, max, tone }: { value: number | null; max: number; tone
   );
 }
 
+// P/E is on trailing-twelve-month earnings, net margin on the latest fiscal year: a recovery quarter
+// can make the first positive while the second is negative, which needs flagging, not hiding.
+const ttmMismatch = (c: DeckCompany) => (c.npMargin ?? 0) < 0 && (c.pe ?? 0) > 0;
+
 function ScorecardSlide({ deck, openCompany }: SlideProps) {
   const rows = [...deck.companies].sort((a, b) => (b.revCagr ?? -999) - (a.revCagr ?? -999));
   // Bars are capped so one small-base outlier (e.g. 7 -> 430 Cr) does not flatten the rest.
   const maxCagr = Math.min(60, Math.max(...rows.map((r) => Math.abs(r.revCagr ?? 0)), 1));
   const maxMargin = Math.max(...rows.map((r) => Math.abs(r.npMargin ?? 0)), 1);
-  // Headline ignores small-base growth (starting revenue under Rs 100 Cr), which reads as a percentage artefact.
-  const top = rows.find((r) => r.revCagr != null && (r.revStart ?? 0) >= 100) ?? rows.find((r) => r.revCagr != null);
-  const best = [...rows].filter((r) => r.roce != null).sort((a, b) => b.roce! - a.roce!)[0];
-  const title = top
-    ? `${(top.revStart ?? 0) >= 100 && rows[0].key !== top.key ? "Among companies with a Rs 100 Cr+ revenue base, " : ""}${top.name} has grown revenue fastest (~${Math.round(top.revCagr!)}% a year)${best && best.key !== top.key ? `; ${best.name} earns the highest return on capital (${best.roce!.toFixed(0)}% ROCE)` : ""}`
-    : "How the beneficiaries compare on growth, margins and valuation";
+  const title = scorecardTitle(deck, rows);
   return (
     <>
       <SlideHead n={8} eyebrow="Financial scorecard" title={title} />
@@ -608,11 +569,11 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
             </div>
             <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-2 text-[11px]">
               <div className="col-span-2">
-                <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">Revenue CAGR {c.cagrSpan ? `(${c.cagrSpan})` : ""}{c.revStart != null && c.revStart < 100 ? " · small base" : ""}</dt>
+                <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">Revenue CAGR {c.cagrSpan ? `(${c.cagrSpan})` : ""}{c.revStart != null && c.revStart < 100 ? " · small base" : ""}{c.cagrNote ? ` · ${c.cagrNote}` : ""}</dt>
                 <dd className="mt-0.5"><MiniBar value={c.revCagr} max={maxCagr} tone="accent" /></dd>
               </div>
               <div className="col-span-2">
-                <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">Net margin</dt>
+                <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">Net margin {c.revYear ?? ""}</dt>
                 <dd className="mt-0.5"><MiniBar value={c.npMargin} max={maxMargin} tone="amber" /></dd>
               </div>
               <div>
@@ -620,8 +581,8 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
                 <dd className="font-mono text-ink">{fmtCr(c.revCr)}</dd>
               </div>
               <div>
-                <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">P/E · ROCE</dt>
-                <dd className="font-mono text-ink">{c.pe != null ? c.pe.toFixed(1) : "—"} · {fmtPct(c.roce)}</dd>
+                <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">P/E (TTM) · ROCE</dt>
+                <dd className="font-mono text-ink">{c.pe != null ? c.pe.toFixed(1) : "—"}{ttmMismatch(c) ? "*" : ""} · {fmtPct(c.roce)}</dd>
               </div>
             </dl>
           </li>
@@ -636,7 +597,7 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
               <th className="px-3 py-2.5 text-right font-semibold">Revenue</th>
               <th className="px-3 py-2.5 font-semibold">Revenue CAGR</th>
               <th className="px-3 py-2.5 font-semibold">Net margin</th>
-              <th className="px-3 py-2.5 text-right font-semibold">P/E</th>
+              <th className="px-3 py-2.5 text-right font-semibold">P/E (TTM)</th>
               <th className="px-4 py-2.5 text-right font-semibold">ROCE</th>
             </tr>
           </thead>
@@ -657,13 +618,17 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
                     <span className="text-[9.5px] text-ink-soft">
                       {c.cagrSpan}
                       {c.revStart != null && c.revStart < 100 ? " · small base" : ""}
+                      {c.cagrNote ? ` · ${c.cagrNote}` : ""}
                     </span>
                   )}
                 </td>
                 <td className="px-3 py-2">
                   <MiniBar value={c.npMargin} max={maxMargin} tone="amber" />
                 </td>
-                <td className="px-3 py-2 text-right font-mono tabular-nums text-ink">{c.pe != null ? c.pe.toFixed(1) : "—"}</td>
+                <td className="px-3 py-2 text-right font-mono tabular-nums text-ink">
+                  {c.pe != null ? c.pe.toFixed(1) : "—"}
+                  {ttmMismatch(c) ? "*" : ""}
+                </td>
                 <td className="px-4 py-2 text-right font-mono tabular-nums text-ink">{fmtPct(c.roce)}</td>
               </tr>
             ))}
@@ -671,7 +636,7 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
         </table>
       </Panel>
       <p className="mt-3 text-[10.5px] text-ink-soft">
-        Sorted by revenue growth; rows marked &ldquo;small base&rdquo; started under Rs 100 Cr, which inflates percentage growth. Growth windows differ where a company lacks five reported years. Net margin can include one-offs (e.g. demerger gains). Revenue and net profit are company-wide (not only this segment), from the seed financials behind each stock pop-up; tap a name for live figures.
+        Sorted by revenue growth; rows marked &ldquo;small base&rdquo; started under Rs 100 Cr, which inflates percentage growth. Growth windows differ where a company lacks five reported years; under three years of history no CAGR is shown. Net margin is for the latest fiscal year, while P/E is on trailing-twelve-month profit{rows.some(ttmMismatch) ? " (* marks a company whose TTM profit is positive although its latest fiscal year was a loss)" : ""}. Net margin can include one-offs (e.g. demerger gains). Revenue and net profit are company-wide (not only this segment), from the seed financials behind each stock pop-up; tap a name for live figures.
       </p>
       <SlideFoot deck={deck} source="Company filings via Screener.in seed data" />
     </>
@@ -681,9 +646,7 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
 // ---------- 9. Company developments ----------
 
 function CompanyNewsSlide({ deck, openCompany }: SlideProps) {
-  const pos = deck.news.filter((n) => n.tone === "pos").length;
-  const neg = deck.news.filter((n) => n.tone === "neg").length;
-  const title = `${pos} of ${deck.news.length} recent company moves strengthen the industry${neg ? `; ${neg} flag${neg === 1 ? "s" : ""} a risk` : ""}`;
+  const title = companyNewsTitle(deck);
   return (
     <>
       <SlideHead n={9} eyebrow="Company developments" title={title} />
@@ -728,7 +691,7 @@ function OutlookSlide({ deck }: SlideProps) {
       <SlideHead
         n={10}
         eyebrow="Risks, outlook & further reading"
-        title={`The base case holds unless the biggest risk bites: ${lcFirst((r.risks.find((k) => k.severity === "high") ?? r.risks[0]).risk)}`}
+        title={outlookTitle(deck)}
       />
       <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         <section>

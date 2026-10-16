@@ -1,7 +1,18 @@
 // Company-level view of the authored sector content: one entry per listed ticker, with every
 // sector/zone it appears in. Backs the public /company/[slug] pages (one indexable page per
 // listed company - the "who supplies X" / "X supply chain" search surface) and the sitemap.
-import { companyLinkExposure, companyLinkKey, listSectors, EXPOSURE_TYPE_LABEL, type SectorSupplier } from "./index";
+import {
+  companyLinkExposure,
+  companyLinkKey,
+  linkWeight,
+  listSectors,
+  tickerForSupplier,
+  EXPOSURE_TYPE_LABEL,
+  type ExposureStrength,
+  type ExposureType,
+  type SectorSupplier,
+  type SectorWithSlug,
+} from "./index";
 import { slugify } from "@/lib/slugify";
 
 export type CompanyAppearance = {
@@ -12,6 +23,10 @@ export type CompanyAppearance = {
   companyKey: string;
   role: string;
   exposure?: string;
+  // How central this layer is to the company: high > medium > low strength, and side links
+  // (enablers, indirect suppliers) rank below direct ones. Picks the company's primary role.
+  weight: number;
+  supplier: SectorSupplier; // this sector's record (role, strengths, risks)
   peers: { name: string; slug: string | null }[];
 };
 
@@ -46,6 +61,7 @@ function build(): Map<string, CompanyPage> {
         }
         if (page.appearances.some((a) => a.sectorSlug === s.slug && a.zoneId === z.id)) continue;
         const { exposureType } = companyLinkExposure(link);
+        const weight = linkWeight(link);
         const peers = z.suppliers
           .map((l) => s.suppliers[companyLinkKey(l)])
           .filter((p): p is SectorSupplier => !!p && p.name !== sup.name)
@@ -58,14 +74,25 @@ function build(): Map<string, CompanyPage> {
           companyKey: key,
           role: sup.role,
           exposure: exposureType ? EXPOSURE_TYPE_LABEL[exposureType] : undefined,
+          weight,
           peers,
+          supplier: sup,
         });
       }
     }
   }
   const bySlug = new Map<string, CompanyPage>();
-  for (const p of byTicker.values()) bySlug.set(p.slug, p);
+  for (const p of byTicker.values()) {
+    // Describe the company by its strongest link, not whichever sector was authored first.
+    p.supplier = primaryAppearance(p).supplier;
+    bySlug.set(p.slug, p);
+  }
   return bySlug;
+}
+
+// The appearance that best describes the company: its strongest link (first one on ties).
+export function primaryAppearance(p: CompanyPage): CompanyAppearance {
+  return p.appearances.reduce((best, a) => (a.weight > best.weight ? a : best), p.appearances[0]);
 }
 
 export function listCompanyPages(): CompanyPage[] {
@@ -76,4 +103,52 @@ export function listCompanyPages(): CompanyPage[] {
 export function getCompanyPage(slug: string): CompanyPage | null {
   if (!cache) cache = build();
   return cache.get(slug) ?? null;
+}
+
+// ---- One card per company on a sector page ----
+
+export type SectorCompanyZone = {
+  zoneId: string;
+  zoneLabel: string;
+  zoneColor: string;
+  companyKey: string;
+  exposureType?: ExposureType;
+  exposureStrength?: ExposureStrength;
+};
+
+export type SectorCompany = {
+  key: string; // first supplier key: used for deep links that need just one
+  ticker: string;
+  supplier: SectorSupplier;
+  roles: string[];
+  zones: SectorCompanyZone[];
+};
+
+// A sector can list one company under two supplier keys for two roles (aerospace has HAL as the
+// prime and as the MRO shop; energy has BHEL for thermal and for hydro). Pages and counts group
+// them by ticker so the company shows once, with every role and layer it plays in that sector.
+export function sectorCompanies(sector: SectorWithSlug): SectorCompany[] {
+  const byTicker = new Map<string, SectorCompany>();
+  for (const [key, sup] of Object.entries(sector.suppliers)) {
+    const ticker = tickerForSupplier(sup);
+    const g = byTicker.get(ticker);
+    if (g) {
+      if (!g.roles.includes(sup.role)) g.roles.push(sup.role);
+    } else byTicker.set(ticker, { key, ticker, supplier: sup, roles: [sup.role], zones: [] });
+  }
+  for (const z of sector.zones)
+    for (const link of z.suppliers) {
+      const key = companyLinkKey(link);
+      const sup = sector.suppliers[key];
+      if (!sup) continue;
+      const g = byTicker.get(tickerForSupplier(sup))!;
+      if (g.zones.some((x) => x.zoneId === z.id)) continue;
+      g.zones.push({ zoneId: z.id, zoneLabel: z.label, zoneColor: z.color, companyKey: key, ...companyLinkExposure(link) });
+    }
+  return [...byTicker.values()];
+}
+
+export function sectorCompanyCounts(sector: SectorWithSlug) {
+  const cs = sectorCompanies(sector);
+  return { companies: cs.length, listed: cs.filter((c) => c.supplier.listed).length };
 }

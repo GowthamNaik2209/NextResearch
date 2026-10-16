@@ -1,46 +1,125 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { SearchEntry } from "@/lib/sector-content/stats";
 
+// Match on the label, the short-name aliases (ticker, "l&t") and the sub-line, in that order.
+// Aliases count only as a whole match or, from three letters on, a prefix: "be" should not
+// surface every company whose initials happen to start with B-E.
+function score(e: SearchEntry, term: string): number {
+  const l = e.label.toLowerCase();
+  if (l.startsWith(term) || e.aliases?.includes(term)) return 0;
+  if (l.includes(term) || (term.length >= 3 && e.aliases?.some((a) => a.startsWith(term)))) return 1;
+  if (e.sub.toLowerCase().includes(term)) return 2;
+  return 9;
+}
+
 export function HeroSearch({ index }: { index: SearchEntry[] }) {
+  const router = useRouter();
   const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(-1);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
+
+  const term = q.trim().toLowerCase();
   const results = useMemo(() => {
-    const term = q.trim().toLowerCase();
     if (term.length < 2) return [];
-    const scored = index
-      .map((e) => {
-        const l = e.label.toLowerCase();
-        const score = l.startsWith(term) ? 0 : l.includes(term) ? 1 : e.sub.toLowerCase().includes(term) ? 2 : 9;
-        return { e, score };
-      })
+    return index
+      .map((e) => ({ e, score: score(e, term) }))
       .filter((x) => x.score < 9)
-      .sort((a, b) => a.score - b.score || (a.e.kind === "sector" ? -1 : 1));
-    return scored.slice(0, 7).map((x) => x.e);
-  }, [q, index]);
+      .sort((a, b) => a.score - b.score || (a.e.kind === "sector" ? -1 : 1))
+      .slice(0, 7)
+      .map((x) => x.e);
+  }, [term, index]);
+  const showList = open && term.length >= 2;
+
+  // Close on a click or tap anywhere outside the box and its results.
+  useEffect(() => {
+    if (!showList) return;
+    const onDown = (e: PointerEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [showList]);
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      if (showList) {
+        e.preventDefault();
+        setOpen(false);
+        setActive(-1);
+      }
+      return;
+    }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!showList) setOpen(true);
+      if (!results.length) return;
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      setActive((i) => (i + step + results.length) % results.length);
+      return;
+    }
+    if (e.key === "Enter" && showList && results.length) {
+      e.preventDefault();
+      const pick = results[active >= 0 ? active : 0];
+      setOpen(false);
+      router.push(pick.href);
+    }
+  };
+
+  const optionId = (i: number) => `${listId}-opt-${i}`;
 
   return (
-    <div className="relative w-full max-w-xl">
+    <div ref={rootRef} className="relative w-full max-w-xl">
       <div className="flex items-center gap-3 rounded-xl border border-line bg-panel px-4 py-3 shadow-sm focus-within:border-accent">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="flex-none text-ink-soft">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="flex-none text-ink-soft" aria-hidden>
           <circle cx="11" cy="11" r="7" />
           <path d="M20 20l-3.5-3.5" />
         </svg>
+        {/* 16px on phones so iOS Safari does not zoom the page on focus; the placeholder is
+            short enough to fit a 360px screen at that size. */}
         <input
           value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search a company, sector or policy — e.g. Kaynes, railways, ALMM"
+          onChange={(e) => {
+            setQ(e.target.value);
+            setOpen(true);
+            setActive(-1);
+          }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={onKeyDown}
+          type="search"
+          enterKeyHint="go"
+          autoComplete="off"
+          placeholder="Company, sector or policy, e.g. L&T"
+          role="combobox"
           aria-label="Search companies, sectors and policies"
-          className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-soft"
+          aria-expanded={showList}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          aria-activedescendant={showList && active >= 0 ? optionId(active) : undefined}
+          className="w-full min-w-0 bg-transparent text-base text-ink outline-none placeholder:text-ink-soft sm:text-sm [&::-webkit-search-cancel-button]:hidden"
         />
       </div>
-      {q.trim().length >= 2 && (
-        <ul className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-line bg-panel shadow-xl">
-          {results.length === 0 && <li className="px-4 py-3 text-sm text-ink-soft">No match — try a sector name or part of a company name.</li>}
-          {results.map((r) => (
-            <li key={r.href + r.label}>
-              <Link href={r.href} className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-panel-2">
+      {showList && (
+        <ul id={listId} role="listbox" aria-label="Search results" className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-line bg-panel shadow-xl">
+          {results.length === 0 && (
+            <li role="presentation" className="px-4 py-3 text-sm text-ink-soft">
+              No match — try a sector name, a ticker or part of a company name.
+            </li>
+          )}
+          {results.map((r, i) => (
+            <li key={r.href} id={optionId(i)} role="option" aria-selected={i === active}>
+              <Link
+                href={r.href}
+                tabIndex={-1}
+                onClick={() => setOpen(false)}
+                onMouseEnter={() => setActive(i)}
+                className={"flex items-center justify-between gap-3 px-4 py-2.5 " + (i === active ? "bg-panel-2" : "hover:bg-panel-2")}
+              >
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-semibold text-ink">{r.label}</span>
                   <span className="block truncate text-xs text-ink-soft">{r.sub}</span>

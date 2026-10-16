@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth";
 
-export function ClosingCta() {
+// Sign-up pitch at the foot of the landing page - only for visitors without an account.
+export async function ClosingCta() {
+  if (await getCurrentUser()) return null;
   return (
     <section className="mx-auto max-w-6xl px-5 py-20">
       <div className="rounded-3xl bg-accent px-8 py-12 text-center">

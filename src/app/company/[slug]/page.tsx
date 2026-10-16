@@ -5,8 +5,9 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
-import { getCompanyPage, listCompanyPages } from "@/lib/sector-content/companies";
-import { SITE_URL, jsonLd } from "@/lib/site";
+import { getCompanyPage, listCompanyPages, primaryAppearance } from "@/lib/sector-content/companies";
+import { NOT_FOUND_METADATA, SITE_URL, jsonLd } from "@/lib/site";
+import { DATA_AS_OF } from "@/lib/sector-content/insights";
 
 // One indexable, server-rendered page per listed company: where it sits in each sector's
 // supply chain, who it sits next to, and the seed financials. The live numbers stay in the
@@ -14,6 +15,9 @@ import { SITE_URL, jsonLd } from "@/lib/site";
 
 const FISCAL_YEARS = ["FY22", "FY23", "FY24", "FY25", "FY26"];
 const inr = (v: number) => `₹${v.toLocaleString("en-IN")} Cr`;
+const listJoin = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
+// Phones show the latest three years so the table never needs a sideways swipe.
+const PHONE_YEARS = 3;
 
 export function generateStaticParams() {
   return listCompanyPages().map((c) => ({ slug: c.slug }));
@@ -22,13 +26,13 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const c = getCompanyPage(slug);
-  if (!c) return {};
+  if (!c) return NOT_FOUND_METADATA;
   const sectors = [...new Set(c.appearances.map((a) => a.sectorName))];
   const layers = [...new Set(c.appearances.map((a) => a.zoneLabel))];
   const title = `${c.name} (${c.ticker}): supply chain role, peers & financials`;
-  const description = `Where ${c.name} sits in India's ${sectors.join(", ")} supply chain${sectors.length > 1 ? "s" : ""} - ${layers
+  const description = `Where ${c.name} sits in India's ${listJoin(sectors)} supply chain${sectors.length > 1 ? "s" : ""} - ${layers
     .slice(0, 3)
-    .join(", ")}. ${c.supplier.role}. Peers, revenue and profit trend.`.slice(0, 300);
+    .join(", ")}. ${primaryAppearance(c).role}. Peers, revenue and profit trend.`.slice(0, 300);
   return {
     title,
     description,
@@ -45,6 +49,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const f = supplier.f;
   const kpi = f?.kpi ?? [];
   const sectorNames = [...new Set(appearances.map((a) => a.sectorName))];
+  const multiSector = sectorNames.length > 1;
+  // The supplier record (role, strengths, risks) is the one from the company's strongest link
+  // (companies.ts), and multi-sector companies get a line naming every sector they appear in.
+  const primary = primaryAppearance(c);
+  const asOf = f?.asOf ?? supplier.sourceDate ?? DATA_AS_OF;
 
   const stats = [
     { label: "Market cap", value: f?.mcap?.replace("Rs ", "₹") },
@@ -67,10 +76,14 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             <Link href="/companies" className="hover:text-accent">
               Companies
             </Link>{" "}
-            /{" "}
-            <Link href={`/sector/${appearances[0].sectorSlug}`} className="hover:text-accent">
-              {appearances[0].sectorName}
-            </Link>
+            {!multiSector && (
+              <>
+                /{" "}
+                <Link href={`/sector/${appearances[0].sectorSlug}`} className="hover:text-accent">
+                  {appearances[0].sectorName}
+                </Link>
+              </>
+            )}
           </nav>
           <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -78,7 +91,14 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                 {c.name} <span className="font-mono text-lg font-semibold text-ink-soft">{c.ticker}</span>
                 <WatchlistButton ticker={c.ticker} name={c.name} />
               </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">{supplier.role}</p>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
+                {multiSector ? `${primary.sectorName}: ${primary.role}` : primary.role}
+              </p>
+              {multiSector && (
+                <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">
+                  Mapped in {sectorNames.length} sectors: {listJoin(sectorNames)}.
+                </p>
+              )}
             </div>
             {supplier.dataStatus && (
               <span className="rounded-full border border-amber/40 bg-amber/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-amber">
@@ -100,7 +120,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             </div>
             {/* These are the seed snapshot, not live - say so, since the live card one click below will differ. */}
             <p className="mt-2 text-xs text-ink-soft">
-              Snapshot{supplier.sourceDate ? ` as of ${supplier.sourceDate}` : ""}. Open the live card below for current figures.
+              Snapshot as of {asOf}. Open the live card below for current figures.
             </p>
           </section>
         )}
@@ -120,8 +140,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         <section>
           <h2 className="font-display text-xl font-bold text-ink">Where {c.name} sits in the supply chain</h2>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-            {c.name} appears in {appearances.length} supply-chain layer{appearances.length > 1 ? "s" : ""} across{" "}
-            {sectorNames.length} of the sectors NextResearch maps: {sectorNames.join(", ")}.
+            {c.name} appears in {appearances.length} supply-chain layer{appearances.length > 1 ? "s" : ""}{" "}
+            {multiSector ? `across ${sectorNames.length} sectors: ${listJoin(sectorNames)}` : `in one sector, ${sectorNames[0]}`}.
           </p>
           <div className="mt-5 flex flex-col gap-4">
             {appearances.map((a) => (
@@ -139,7 +159,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                     </span>
                   )}
                 </div>
-                {a.role !== supplier.role && <p className="mt-2 text-sm text-ink-soft">{a.role}</p>}
+                {(a.role !== primary.role || multiSector) && <p className="mt-2 text-sm text-ink-soft">{a.role}</p>}
                 {a.peers.length > 0 && (
                   <div className="mt-3">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">Other companies in this layer</p>
@@ -177,12 +197,12 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           <section>
             <h2 className="font-display text-xl font-bold text-ink">Revenue and profit</h2>
             <div className="mt-4 overflow-x-auto rounded-2xl border border-line">
-              <table className="w-full min-w-[480px] text-sm">
+              <table className="w-full text-sm">
                 <thead className="bg-panel-2 text-[10px] uppercase tracking-widest text-ink-soft">
                   <tr>
-                    <th className="px-4 py-2 text-left">₹ Cr</th>
-                    {FISCAL_YEARS.map((y) => (
-                      <th key={y} className="px-4 py-2 text-right">
+                    <th className="px-3 py-2 text-left sm:px-4">₹ Cr</th>
+                    {FISCAL_YEARS.map((y, i) => (
+                      <th key={y} className={"px-3 py-2 text-right sm:px-4 " + (i < FISCAL_YEARS.length - PHONE_YEARS ? "hidden sm:table-cell" : "")}>
                         {y}
                       </th>
                     ))}
@@ -194,9 +214,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                     { label: "Net profit", vals: np },
                   ].map((row) => (
                     <tr key={row.label} className="border-t border-line">
-                      <td className="px-4 py-2 font-sans text-ink-soft">{row.label}</td>
+                      <td className="px-3 py-2 font-sans text-ink-soft sm:px-4">{row.label}</td>
                       {FISCAL_YEARS.map((y, i) => (
-                        <td key={y} className="px-4 py-2 text-right text-ink">
+                        <td key={y} className={"px-3 py-2 text-right text-ink sm:px-4 " + (i < FISCAL_YEARS.length - PHONE_YEARS ? "hidden sm:table-cell" : "")}>
                           {row.vals[i] != null ? row.vals[i]!.toLocaleString("en-IN") : "—"}
                         </td>
                       ))}
@@ -207,8 +227,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             </div>
             {rev[rev.length - 1] != null && (
               <p className="mt-2 text-xs text-ink-soft">
-                Latest-year revenue {inr(rev[rev.length - 1]!)}
-                {supplier.sourceDate ? ` · figures as of ${supplier.sourceDate}` : ""}.
+                Latest-year revenue {inr(rev[rev.length - 1]!)} ({FISCAL_YEARS[FISCAL_YEARS.length - 1]}, company-wide).
+                <span className="sm:hidden"> Wider screens show FY22 onwards.</span>
               </p>
             )}
           </section>
@@ -218,7 +238,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           <section className="grid gap-4 sm:grid-cols-2">
             {supplier.strengths && supplier.strengths.length > 0 && (
               <div className="rounded-2xl border border-line bg-panel p-5">
-                <h2 className="text-xs font-bold uppercase tracking-widest text-pos">Strengths</h2>
+                <h2 className="text-xs font-bold uppercase tracking-widest text-pos">Strengths{multiSector ? ` · in ${primary.sectorName}` : ""}</h2>
                 <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-ink">
                   {supplier.strengths.map((s) => (
                     <li key={s}>{s}</li>
@@ -228,7 +248,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             )}
             {supplier.risks && supplier.risks.length > 0 && (
               <div className="rounded-2xl border border-line bg-panel p-5">
-                <h2 className="text-xs font-bold uppercase tracking-widest text-danger">Risks</h2>
+                <h2 className="text-xs font-bold uppercase tracking-widest text-danger">Risks{multiSector ? ` · in ${primary.sectorName}` : ""}</h2>
                 <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-ink">
                   {supplier.risks.map((s) => (
                     <li key={s}>{s}</li>
@@ -249,20 +269,17 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                   "@type": "Corporation",
                   name: c.name,
                   tickerSymbol: c.ticker,
-                  description: supplier.role,
+                  description: primary.role,
                   url: `${SITE_URL}/company/${slug}`,
                 },
                 {
                   "@type": "BreadcrumbList",
                   itemListElement: [
                     { "@type": "ListItem", position: 1, name: "Companies", item: `${SITE_URL}/companies` },
-                    {
-                      "@type": "ListItem",
-                      position: 2,
-                      name: appearances[0].sectorName,
-                      item: `${SITE_URL}/sector/${appearances[0].sectorSlug}`,
-                    },
-                    { "@type": "ListItem", position: 3, name: c.name, item: `${SITE_URL}/company/${slug}` },
+                    ...(multiSector
+                      ? []
+                      : [{ "@type": "ListItem", position: 2, name: appearances[0].sectorName, item: `${SITE_URL}/sector/${appearances[0].sectorSlug}` }]),
+                    { "@type": "ListItem", position: multiSector ? 2 : 3, name: c.name, item: `${SITE_URL}/company/${slug}` },
                   ],
                 },
               ],

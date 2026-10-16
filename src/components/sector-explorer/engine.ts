@@ -19,13 +19,19 @@ export type ExplorerDom = {
   railTop: HTMLDivElement;
   railBottom: HTMLDivElement;
   mobileTags: HTMLDivElement;
-  layerButtons: Map<number, HTMLButtonElement>; // level index -> button (0 = shell)
-  shellLabel: HTMLSpanElement; // shell button's label swaps between layerNames[0]/[1]
+  layerButtons: Map<number, HTMLButtonElement>; // level index -> that layer's button
   breadcrumb: HTMLDivElement;
+  // The Layers slider; kept in step with the level when buttons or a system pick move it.
+  slider?: HTMLInputElement | null;
+  // The details panel. On phones/tablets it is a bottom sheet over the stage, so the engine
+  // measures how much of the stage it covers and frames the scene in the strip above it.
+  sheet?: HTMLElement | null;
 };
 
 export type ExplorerCallbacks = {
-  onZoneChange: (zoneId: string | null) => void;
+  // `reset` is true when closing the system also put the model back to its opening state
+  // (layer 0, default camera view), so the shell can mark that view active again.
+  onZoneChange: (zoneId: string | null, reset?: boolean) => void;
   onDeepDiveStageChange: (stage: number | null) => void;
 };
 
@@ -41,9 +47,10 @@ export type ExplorerController = {
   // going through a callback + re-render.
   setHover: (zoneId: string | null) => void;
   flyTo: (viewId: string) => void;
+  // Both are user-driven layer moves (buttons / slider): leaving the selected system's
+  // layer deselects it, so the panel and leader line never point at a peeled-away part.
   setTargetLevel: (level: number) => void;
   setLevelImmediate: (level: number) => void;
-  toggleShell: () => void;
   enterDeepDive: () => void;
   exitDeepDive: () => void;
   cycleDeepStage: () => void;
@@ -54,8 +61,8 @@ type ZoneRuntime = {
   def: SectorZone;
   marker: THREE.Mesh;
   ring: THREE.Mesh;
-  box: HTMLDivElement;
-  tag: HTMLDivElement;
+  box: HTMLButtonElement;
+  tag: HTMLButtonElement;
   line: SVGLineElement;
 };
 
@@ -98,24 +105,106 @@ export function mountExplorer(
   controls.addEventListener("start", () => {
     shot = null;
     camAnim = null;
+    focusReturn = null;
   });
+
+  // Labels (phone tags, callouts) sit over the canvas, so a pinch or drag whose fingers land
+  // on them never reached OrbitControls and the model wouldn't zoom or turn - on a phone the
+  // labels cover much of the model, so people's fingers land on them all the time. Touches that
+  // start on a label are driven here with the same maths OrbitControls uses; a plain tap still
+  // falls through to the label's click (opening that system). OrbitControls is paused while
+  // such a gesture runs so a second finger on the canvas doesn't also rotate.
+  let suppressLabelClickUntil = 0;
+  let labelGesture: { dist: number; x: number; y: number; moved: boolean } | null = null;
+  const onLabel = (t: EventTarget | null) => !!(t as Element | null)?.closest?.(".mtag, .callout");
+  const touchDist = (a: Touch, b: Touch) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  const touchMid = (ts: TouchList) => {
+    let x = 0,
+      y = 0;
+    for (let i = 0; i < ts.length; i++) {
+      x += ts[i].clientX;
+      y += ts[i].clientY;
+    }
+    return { x: x / ts.length, y: y / ts.length };
+  };
+  const startLabelGesture = (e: TouchEvent) => {
+    const ts = e.touches;
+    if (!Array.from(ts).some((t) => onLabel(t.target))) return;
+    const m = touchMid(ts);
+    labelGesture = { dist: ts.length >= 2 ? touchDist(ts[0], ts[1]) : 0, x: m.x, y: m.y, moved: labelGesture?.moved ?? false };
+    if (ts.length >= 2) controls.enabled = false;
+  };
+  const onGestureStart = (e: TouchEvent) => startLabelGesture(e);
+  const onGestureMove = (e: TouchEvent) => {
+    if (!labelGesture) return;
+    const ts = e.touches;
+    const m = touchMid(ts);
+    if (!labelGesture.moved && ts.length < 2 && Math.hypot(m.x - labelGesture.x, m.y - labelGesture.y) < 8) return;
+    e.preventDefault();
+    if (!labelGesture.moved) {
+      labelGesture.moved = true;
+      controls.enabled = false;
+      shot = null;
+      camAnim = null;
+      focusReturn = null;
+    }
+    if (ts.length >= 2) {
+      const d = touchDist(ts[0], ts[1]);
+      if (labelGesture.dist > 0 && d > 0) controls.dollyOut(Math.pow(d / labelGesture.dist, controls.zoomSpeed));
+      labelGesture.dist = d;
+    } else {
+      const h = renderer.domElement.clientHeight || 1;
+      controls.rotateLeft(((2 * Math.PI * (m.x - labelGesture.x)) / h) * controls.rotateSpeed);
+      controls.rotateUp(((2 * Math.PI * (m.y - labelGesture.y)) / h) * controls.rotateSpeed);
+    }
+    labelGesture.x = m.x;
+    labelGesture.y = m.y;
+  };
+  const onGestureEnd = (e: TouchEvent) => {
+    if (!labelGesture) return;
+    if (labelGesture.moved) suppressLabelClickUntil = performance.now() + 400;
+    if (e.touches.length === 0) {
+      labelGesture = null;
+      controls.enabled = true;
+    } else startLabelGesture(e); // a finger lifted: continue with the ones still down
+  };
+  stage.addEventListener("touchstart", onGestureStart, { passive: true });
+  stage.addEventListener("touchmove", onGestureMove, { passive: false });
+  stage.addEventListener("touchend", onGestureEnd);
+  stage.addEventListener("touchcancel", onGestureEnd);
 
   // How far to pull preset views back on a portrait (phone) stage, where the
   // narrow horizontal field of view would otherwise crop the model's sides.
   // Fog and the zoom-out limit scale with it so the farther camera isn't
   // looking at a washed-out model.
   const aspectFit = () => (camera.aspect < 1 ? Math.min(2.1, Math.pow(1 / camera.aspect, 0.75)) : 1);
+  // Pixels of the stage's bottom edge hidden under the bottom-sheet panel (phones/tablets).
+  // The projection centre is shifted up by half of it (setViewOffset), so whatever the
+  // camera looks at sits in the middle of the strip that is actually visible.
+  let sheetInset = 0;
+  function applyViewOffset() {
+    const w = stage.clientWidth,
+      h = Math.max(stage.clientHeight, 1);
+    if (sheetInset > 0.5) camera.setViewOffset(w, h, 0, sheetInset / 2, w, h);
+    else camera.clearViewOffset();
+  }
+  function measureSheetInset(stageRect: DOMRect) {
+    const el = dom.sheet;
+    if (!el) return 0;
+    const r = el.getBoundingClientRect();
+    // The desktop side panel sits beside the stage, not over it.
+    if (r.left > stageRect.left + 8 || r.right < stageRect.right - 8) return 0;
+    return Math.max(0, Math.min(stageRect.height * 0.8, stageRect.bottom - r.top));
+  }
+  let fitMaxDistance = 0;
   function resize() {
     const w = stage.clientWidth,
       h = stage.clientHeight;
     camera.aspect = w / Math.max(h, 1);
+    applyViewOffset();
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
-    const k = aspectFit();
-    const fog = scene.fog as THREE.Fog;
-    fog.near = 10 * k;
-    fog.far = 23 * k;
-    controls.maxDistance = 17 * k;
+    controls.maxDistance = Math.max(17 * aspectFit(), fitMaxDistance * 1.3);
   }
   window.addEventListener("resize", resize);
   // The stage can change size without a window resize (phone layout settling,
@@ -125,7 +214,7 @@ export function mountExplorer(
     // Re-fit the current preset view to the new aspect unless the user has
     // orbited away from it (an in-flight animation re-fits every frame anyway).
     if (shot && !camAnim) {
-      camera.position.copy(fitToAspect(shot.pos, shot.target));
+      camera.position.copy(fitView(shot));
       controls.target.set(shot.target[0], shot.target[1], shot.target[2]);
     }
   });
@@ -189,8 +278,13 @@ export function mountExplorer(
   const labelsVisible = true;
   let deepDiveActive = false;
   let deepStage = 0;
-  // The preset view the camera is parked on (null once the user orbits).
-  let shot: { pos: number[]; target: number[] } | null = null;
+  // The preset view the camera is parked on (null once the user orbits). `fit` views are
+  // pulled back until the whole model fits the stage (see fitView).
+  type Shot = { pos: number[]; target: number[]; fit: boolean };
+  let shot: Shot | null = null;
+  // While a system is selected the camera eases over to centre it; this is the framing to
+  // go back to on deselect (dropped as soon as the user orbits, since they've moved on).
+  let focusReturn: { pos: THREE.Vector3; target: THREE.Vector3; shot: Shot | null } | null = null;
   let camAnim: {
     startPos: THREE.Vector3;
     endPos: THREE.Vector3;
@@ -204,25 +298,44 @@ export function mountExplorer(
     if (productState?.applyLevel) productState.applyLevel(v);
     const roundedIdx = Math.round(v);
     const onStop = Math.abs(v - roundedIdx) < 0.05;
+    // One button per layer: the button for the layer we're settled on is lit.
     dom.layerButtons.forEach((btn, level) => {
-      const isShellBtn = level === 0;
-      const active = isShellBtn ? (roundedIdx === 0 || roundedIdx === 1) && onStop : roundedIdx === level && onStop;
+      const active = roundedIdx === level && onStop;
       btn.classList.toggle("active", active);
+      btn.setAttribute("aria-pressed", String(active));
     });
-    dom.shellLabel.textContent = roundedIdx === 1 && onStop ? sector.layerNames[1] : sector.layerNames[0];
+    // Not while the user is dragging it (it has focus then), or it would fight their finger.
+    if (dom.slider && document.activeElement !== dom.slider) dom.slider.value = String(v);
     if (!deepDiveActive) updateBreadcrumb();
   }
 
+  // Each part is its own element so CSS can keep the crumb on one line and truncate only
+  // the system's name (labels are authored text, so they go in as textContent, not HTML).
+  let crumbKey = "";
   function updateBreadcrumb() {
     const idx = Math.round(currentLevel);
-    let html = `<b>Product</b> &rsaquo; ${sector.layerNames[idx] ?? sector.layerNames[0]}`;
+    const layerName = sector.layerNames[idx] ?? sector.layerNames[0];
+    const z = currentZoneId ? sector.zones.find((zz) => zz.id === currentZoneId) : null;
+    const key = `${layerName}|${currentZoneId ?? ""}`;
+    if (key === crumbKey) return; // applyLevel runs every frame of a layer tween
+    crumbKey = key;
+    const el = (tag: string, cls: string, text: string) => {
+      const n = document.createElement(tag);
+      n.className = cls;
+      n.textContent = text;
+      return n;
+    };
+    const parts: HTMLElement[] = [el("b", "bc-root", "Product"), el("span", "bc-sep bc-root", "\u203a"), el("span", "bc-layer", layerName)];
     if (currentZoneId) {
-      const z = sector.zones.find((zz) => zz.id === currentZoneId);
-      html += ` &rsaquo; <b>${z ? z.label : currentZoneId}</b><button id="nrBreadcrumbBack" title="Back to product">&#10005;</button>`;
+      parts.push(el("span", "bc-sep", "\u203a"), el("b", "bc-zone", z ? z.label : currentZoneId));
+      const back = el("button", "bc-back", "\u2715") as HTMLButtonElement;
+      back.type = "button";
+      back.title = "Back to product";
+      back.setAttribute("aria-label", "Clear selection");
+      back.addEventListener("click", () => selectZone(null));
+      parts.push(back);
     }
-    dom.breadcrumb.innerHTML = html;
-    const backBtn = dom.breadcrumb.querySelector("#nrBreadcrumbBack");
-    backBtn?.addEventListener("click", () => selectZone(null));
+    dom.breadcrumb.replaceChildren(...parts);
   }
 
   const zones = new Map<string, ZoneRuntime>();
@@ -250,11 +363,18 @@ export function mountExplorer(
     ring.userData.parent = marker;
     markersGroup.add(ring);
 
-    const box = document.createElement("div");
+    // Callouts and phone tags are real buttons, so they're reachable and operable by
+    // keyboard and announced as interactive.
+    const box = document.createElement("button");
+    box.type = "button";
     box.className = "callout";
     box.textContent = z.label;
+    box.setAttribute("aria-pressed", "false");
     box.style.setProperty("--zc", z.color);
-    box.addEventListener("click", () => selectZone(z.id));
+    box.addEventListener("click", () => {
+      if (performance.now() < suppressLabelClickUntil) return;
+      selectZone(z.id);
+    });
     box.addEventListener("pointerenter", () => setHoverGuarded(z.id));
     box.addEventListener("pointerleave", () => setHoverGuarded(null, z.id));
     const railEl = { left: railLeft, right: railRight, top: railTop, bottom: railBottom }[z.side];
@@ -267,17 +387,25 @@ export function mountExplorer(
     line.setAttribute("opacity", "0.5");
     leaderSvg.appendChild(line);
 
-    const tag = document.createElement("div");
+    const tag = document.createElement("button");
+    tag.type = "button";
     tag.className = "mtag";
     tag.textContent = z.label;
+    // Phone tags are truncated to keep the model visible; the full name stays accessible.
+    tag.setAttribute("aria-label", z.label);
+    tag.title = z.label;
+    tag.setAttribute("aria-pressed", "false");
     tag.style.setProperty("--zc", z.color);
-    tag.addEventListener("click", () => selectZone(z.id));
+    tag.addEventListener("click", () => {
+      if (performance.now() < suppressLabelClickUntil) return; // that touch was a pinch/drag
+      selectZone(z.id);
+    });
     mobileTags.appendChild(tag);
 
     zones.set(z.id, { def: z, marker, ring, box, tag, line });
   }
 
-function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
+  function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
     if (onlyIfCurrent !== undefined && hoveredZoneId !== onlyIfCurrent) return;
     hoveredZoneId = id;
   }
@@ -285,9 +413,21 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
     hoveredZoneId = id;
   }
 
-  function toggleShell() {
-    exitDeepDive();
-    targetLevel = Math.round(currentLevel) <= 0 ? 1 : 0;
+  // A manual layer move (button, slider, layer-specific camera view) away from the
+  // selected system's own layer clears the selection: otherwise the panel stays open with
+  // a leader line pointing at a part that has just been peeled away or covered up.
+  function leaveLayer(level: number) {
+    if (!currentZoneId) return;
+    const zl = zones.get(currentZoneId)?.def.layer;
+    if (zl != null && Math.round(level) !== zl) selectZone(null, { keepLayer: true });
+  }
+  function setUserLevel(level: number, immediate: boolean) {
+    targetLevel = level;
+    if (immediate) {
+      currentLevel = level;
+      applyLevel(currentLevel);
+    }
+    leaveLayer(level);
   }
 
   const IMPACT_COLOR = { headwind: 0xe8705e, tailwind: 0x3fbf8a };
@@ -305,32 +445,168 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
     }
   }
 
-  function selectZone(id: string | null) {
+  // Closing a system (✕, closing the panel, tapping away) returns to the whole model: layer 0
+  // and the opening camera view. Only an explicit layer change by the user keeps the layer
+  // (keepLayer), since that deselect is a side effect of them choosing where to look.
+  function selectZone(id: string | null, opts: { keepLayer?: boolean } = {}) {
+    const closing = id == null && currentZoneId != null && !opts.keepLayer;
     currentZoneId = id;
+    // Peel the model to the layer where the picked system is actually visible, so
+    // choosing "e-axle" from any entry point (marker, callout, Systems list, deep
+    // link) shows the drive unit rather than a marker floating over the paint.
+    const layer = id ? zones.get(id)?.def.layer : undefined;
+    if (layer != null && !deepDiveActive && layer >= 0 && layer < sector.layerNames.length) targetLevel = layer;
     for (const [zid, zr] of zones) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (zr.marker.userData as any).selected = zid === id;
+      zr.box.setAttribute("aria-pressed", String(zid === id));
+      zr.tag.setAttribute("aria-pressed", String(zid === id));
     }
-    if (!deepDiveActive) updateBreadcrumb();
-    callbacks.onZoneChange(id);
+    if (!deepDiveActive) {
+      if (closing) {
+        targetLevel = 0;
+        flyTo(defaultViewId);
+      }
+      updateBreadcrumb();
+      if (id) focusZone(id);
+      else if (!closing) unfocus();
+    }
+    callbacks.onZoneChange(id, closing && !deepDiveActive);
   }
 
-  // Views are authored for a landscape stage; on a portrait (phone) stage the
-  // same camera crops the model's sides, so back the camera off along its
-  // view direction in proportion to how narrow the stage is.
-  function fitToAspect(pos: number[], target: number[]) {
-    const k = aspectFit();
-    const t = new THREE.Vector3(target[0], target[1], target[2]);
-    return new THREE.Vector3(pos[0], pos[1], pos[2]).sub(t).multiplyScalar(k).add(t);
+  // Bring the picked system into view. With a bottom sheet (phones/tablets) the panel is
+  // about to cover the lower part of the stage, so always bring the marker to the middle
+  // of the strip above the sheet (the view offset does the vertical part) - but pan
+  // sideways only when it would sit near a side edge, so the rest of the model stays in
+  // frame instead of being cropped to centre a system near one end. Beside a side panel
+  // only move when the marker would otherwise be off-stage or squeezed against an edge.
+  function focusZone(id: string) {
+    const z = zones.get(id)?.def;
+    if (!z) return;
+    const p = new THREE.Vector3(z.pos[0], z.pos[1], z.pos[2]);
+    const sheetMode = !!dom.sheet && getComputedStyle(dom.sheet).position === "fixed";
+    // Judge framing from where the camera is heading, not where it is mid-flight (a deep link
+    // selects the system while the opening shot is still animating in).
+    const from = camAnim ? camAnim.endTarget : controls.target;
+    const fromPos = camAnim ? camAnim.endPos : camera.position;
+    const cam = camera.clone();
+    cam.position.copy(fromPos);
+    cam.lookAt(from);
+    cam.updateMatrixWorld();
+    const v = p.clone().project(cam);
+    const w = stage.clientWidth,
+      h = stage.clientHeight;
+    const sx = (v.x * 0.5 + 0.5) * w,
+      sy = (-v.y * 0.5 + 0.5) * h;
+    const m = Math.min(90, w * 0.15);
+    const xInFrame = v.z <= 1 && sx > m && sx < w - m;
+    if (!sheetMode && xInFrame && sy > 60 && sy < h - 60) return;
+    if (!focusReturn) focusReturn = { pos: fromPos.clone(), target: from.clone(), shot };
+    const shift = p.clone().sub(from);
+    if (sheetMode && xInFrame) {
+      // Drop the screen-horizontal part of the move: centre vertically, keep the sideways framing.
+      const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0).normalize();
+      shift.addScaledVector(right, -shift.dot(right));
+    }
+    const target = from.clone().add(shift);
+    const endPos = fromPos.clone().add(shift);
+    shot = null;
+    camAnim = { startPos: camera.position.clone(), endPos, startTarget: controls.target.clone(), endTarget: target, t0: performance.now(), dur: 700 };
   }
-
-  function flyTo(viewId: string) {
-    const v = sector.views.find((x) => x.id === viewId);
-    if (!v) return;
-    shot = { pos: v.pos, target: v.target };
+  function unfocus() {
+    if (!focusReturn) return;
+    const back = focusReturn;
+    focusReturn = null;
+    shot = back.shot;
     camAnim = {
       startPos: camera.position.clone(),
-      endPos: fitToAspect(v.pos, v.target),
+      endPos: back.shot ? fitView(back.shot) : back.pos,
+      startTarget: controls.target.clone(),
+      endTarget: back.target,
+      t0: performance.now(),
+      dur: 700,
+    };
+  }
+
+  // The whole model's extent, for framing the overview shots. Measured once at level 0 and
+  // clamped to the floor grid so a stray far-off prop can't push the camera out.
+  // Uses each mesh's own box corners rather than the whole model's box: a crane on one
+  // corner would otherwise put a phantom point high above every other corner too.
+  const modelCorners: THREE.Vector3[] = [];
+  {
+    const clampBox = new THREE.Box3(new THREE.Vector3(-8, -2, -8), new THREE.Vector3(8, 12, 8));
+    const b = new THREE.Box3();
+    const seen = new Set<string>();
+    productRoot.updateMatrixWorld(true);
+    productRoot.traverse((o) => {
+      if (!(o as THREE.Mesh).isMesh) return;
+      b.setFromObject(o).intersect(clampBox);
+      if (b.isEmpty()) return;
+      for (let i = 0; i < 8; i++) {
+        const c = new THREE.Vector3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z);
+        const key = `${c.x.toFixed(1)},${c.y.toFixed(1)},${c.z.toFixed(1)}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        modelCorners.push(c);
+      }
+    });
+  }
+  // Smallest camera distance (along the view's direction) at which the whole model fits
+  // the visible part of the stage with a small margin, for the current aspect.
+  function fitDistance(dir: THREE.Vector3, t: THREE.Vector3) {
+    if (!modelCorners.length) return 0;
+    const f = dir.clone().negate();
+    const right = new THREE.Vector3().crossVectors(f, camera.up);
+    if (right.lengthSq() < 1e-6) right.set(1, 0, 0);
+    right.normalize();
+    const up = new THREE.Vector3().crossVectors(right, f).normalize();
+    const h = Math.max(stage.clientHeight, 1);
+    const fill = 0.9;
+    const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * fill * Math.max(0.3, (h - sheetInset) / h);
+    const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * fill * camera.aspect;
+    let need = 0;
+    for (const c of modelCorners) {
+      const q = c.clone().sub(t);
+      const along = q.dot(dir);
+      need = Math.max(need, along + Math.abs(q.dot(right)) / tanH, along + Math.abs(q.dot(up)) / tanV);
+    }
+    return need;
+  }
+  // Views are authored for a landscape stage. Overview shots (`fit`) back off until the
+  // whole model fits - narrow phone stages and the desktop stage squeezed between the
+  // rail and the panel both cropped wide plinths otherwise. Close-ups keep their framing
+  // and are only pulled back in proportion to how portrait the stage is.
+  function fitView(s: Shot) {
+    const t = new THREE.Vector3(s.target[0], s.target[1], s.target[2]);
+    const dir = new THREE.Vector3(s.pos[0], s.pos[1], s.pos[2]).sub(t);
+    const authored = dir.length();
+    dir.normalize();
+    let dist = authored * aspectFit();
+    if (s.fit) {
+      dist = Math.max(authored, fitDistance(dir, t));
+      if (dist > fitMaxDistance) {
+        fitMaxDistance = dist;
+        controls.maxDistance = Math.max(controls.maxDistance, dist * 1.3);
+      }
+    }
+    return t.addScaledVector(dir, dist);
+  }
+  const defaultViewId = sector.defaultView || sector.views[0]?.id;
+  const isFitView = (id: string) => id === defaultViewId || id === "top";
+
+  function flyTo(viewId: string) {
+    const v = sector.views.find((x) => x.id === viewId) as (SectorDef["views"][number] & { layer?: number }) | undefined;
+    if (!v) return;
+    focusReturn = null;
+    shot = { pos: v.pos, target: v.target, fit: isFitView(v.id) };
+    // A view about one layer (e.g. "Underground") also peels the model to that layer.
+    if (v.layer != null && v.layer >= 0 && v.layer < sector.layerNames.length) {
+      exitDeepDive();
+      setUserLevel(v.layer, false);
+    }
+    camAnim = {
+      startPos: camera.position.clone(),
+      endPos: fitView(shot),
       startTarget: controls.target.clone(),
       endTarget: new THREE.Vector3(v.target[0], v.target[1], v.target[2]),
       t0: performance.now(),
@@ -354,6 +630,7 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
   function updateDeepBreadcrumb() {
     if (!deepDiveDef) return;
     const trail = deepDiveDef.breadcrumbTrail(deepStage);
+    crumbKey = "";
     dom.breadcrumb.innerHTML = trail.map((t, i) => (i === trail.length - 1 ? `<b>${t}</b>` : t)).join(" &rsaquo; ");
   }
 
@@ -365,10 +642,11 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
     currentLevel = targetLevel;
     applyLevel(currentLevel);
     const c = deepDiveDef.entryCamera;
-    shot = { pos: c.pos, target: c.target };
+    focusReturn = null;
+    shot = { pos: c.pos, target: c.target, fit: false };
     camAnim = {
       startPos: camera.position.clone(),
-      endPos: fitToAspect(c.pos, c.target),
+      endPos: fitView(shot),
       startTarget: controls.target.clone(),
       endTarget: new THREE.Vector3(c.target[0], c.target[1], c.target[2]),
       t0: performance.now(),
@@ -416,6 +694,8 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
     raycaster.setFromCamera(pointer, camera);
     const hits = raycaster.intersectObjects(markerMeshes);
     if (hits.length) selectZone(hits[0].object.userData.zoneId as string);
+    // A tap on empty stage (not a drag - those return above) closes the open system.
+    else if (currentZoneId) selectZone(null);
   };
   const onPointerMove = (e: PointerEvent) => {
     setPointer(e);
@@ -438,12 +718,29 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
       h = stageRect.height;
     leaderSvg.setAttribute("viewBox", `0 0 ${w} ${h}`);
 
+    const inset = measureSheetInset(stageRect);
+    if (Math.abs(inset - sheetInset) > 0.5) {
+      sheetInset = inset;
+      applyViewOffset();
+    }
+    const visibleH = h - sheetInset;
+
     // Phone tags are anchored to their 3D markers, which often sit close together; stack them
     // so none overlaps. Most important first (selected, then scenario-hit) so they keep their spot.
     const phoneTags = mobileTags.offsetParent !== null;
     const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
+    if (phoneTags) {
+      // Keep tags out from under the stage's own floating chrome (breadcrumb, buttons, pill).
+      stage.querySelectorAll<HTMLElement>(".breadcrumb, .reset-btn, .controls-btn, .scn-pill").forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.width) placed.push({ x0: r.left - stageRect.left, x1: r.right - stageRect.left, y0: r.top - stageRect.top, y1: r.bottom - stageRect.top });
+      });
+    }
     const rank = (zr: ZoneRuntime) => (currentZoneId === zr.def.id ? 0 : impact?.[zr.def.id] ? 1 : 2);
     const ordered = phoneTags ? [...zones.values()].sort((a, b) => rank(a) - rank(b)) : [...zones.values()];
+    // Phones label every system (the user wants the whole map visible); with one selected the
+    // others stay readable but lighter (isDimmed). Tags are stacked so none overlap.
+    const EDGE = 8;
 
     for (const zr of ordered) {
       const z = zr.def;
@@ -452,29 +749,32 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
       const behind = v.z > 1;
       let px = (v.x * 0.5 + 0.5) * w;
       let py = (-v.y * 0.5 + 0.5) * h;
-      py = Math.max(4, Math.min(h - 4, py));
+      // Marker outside the visible stage (or behind the camera): its callout/tag would
+      // otherwise be clamped to an edge and appear to label some unrelated part.
+      const offscreen = behind || px < 0 || px > w || py < 0 || py > visibleH;
+      py = Math.max(EDGE, Math.min(h - EDGE, py));
 
       const isSelected = currentZoneId === z.id;
       const isDimmed = isDimmedZone(z.id);
 
-      const tagScale = isSelected ? 1.08 : 1;
-      const halfTagW = ((zr.tag.offsetWidth || 0) * tagScale) / 2;
-      const pxMax = Math.max(w / 2, w - 4 - halfTagW);
-      const pxMin = Math.min(w / 2, 4 + halfTagW);
-      px = Math.max(pxMin, Math.min(pxMax, px));
-
-      let tagHidden = false;
-      if (phoneTags) {
+      const tagHidden = offscreen;
+      let crowded = false;
+      if (phoneTags && !tagHidden) {
+        const tagScale = isSelected ? 1.08 : 1;
         // .mtag is drawn at translate(-50%, -138%) of its left/top point.
         const tw = zr.tag.offsetWidth * tagScale;
         const th = zr.tag.offsetHeight * tagScale;
+        // At least EDGE px from the stage's sides.
+        px = Math.max(Math.min(w / 2, EDGE + tw / 2), Math.min(Math.max(w / 2, w - EDGE - tw / 2), px));
         const rectAt = (y: number) => ({ x0: px - tw / 2 - 2, x1: px + tw / 2 + 2, y0: y - 1.38 * th - 2, y1: y - 0.38 * th + 2 });
         let chosen: ReturnType<typeof rectAt> | null = null;
         let chosenY = py;
-        for (const k of [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8]) {
+        // Search a few rows either way for a free slot so every tag finds a place; the
+        // most important ones (selected, scenario-hit) were placed first.
+        for (const k of [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6]) {
           const y = py + k * (th + 3);
           const r = rectAt(y);
-          if (r.y0 < 2 || r.y1 > h - 2) continue;
+          if (r.y0 < EDGE || r.y1 > visibleH - EDGE) continue;
           if (placed.some((p) => r.x0 < p.x1 && r.x1 > p.x0 && r.y0 < p.y1 && r.y1 > p.y0)) continue;
           chosen = r;
           chosenY = y;
@@ -484,16 +784,23 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
           placed.push(chosen);
           py = chosenY;
         } else {
-          // No free slot nearby: hide the tag (its marker is still tappable; Systems lists every layer).
-          tagHidden = !isSelected;
+          // No free slot nearby: keep it on its marker but faded, so every system stays
+          // labelled (the user wants the whole map readable) without fighting the placed ones.
+          crowded = !isSelected;
         }
       }
+      // Hidden tags still sit inside the stage, so they never widen its scrollable area.
+      px = Math.max(0, Math.min(w, px));
       zr.tag.style.left = px + "px";
       zr.tag.style.top = py + "px";
       zr.tag.classList.toggle("selected", isSelected);
       zr.tag.classList.toggle("dimmed", isDimmed);
-      zr.tag.style.opacity = labelsVisible && !tagHidden ? (isSelected ? "1" : isDimmed ? "0.28" : behind ? "0.35" : "1") : "0";
-      zr.tag.style.pointerEvents = labelsVisible && !tagHidden ? "auto" : "none";
+      const tagShown = labelsVisible && !tagHidden;
+      zr.tag.style.opacity = tagShown ? (isSelected ? "1" : isDimmed || crowded ? "0.28" : "1") : "0";
+      zr.tag.style.zIndex = isSelected ? "3" : crowded ? "1" : "2";
+      zr.tag.style.pointerEvents = tagShown ? "auto" : "none";
+      zr.tag.tabIndex = tagShown ? 0 : -1;
+      zr.tag.setAttribute("aria-hidden", String(!tagShown));
 
       const boxRect = zr.box.getBoundingClientRect();
       let anchorX: number, anchorY: number;
@@ -517,12 +824,16 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
       zr.line.setAttribute("y2", String(py));
       const active = isSelected || hoveredZoneId === z.id;
       zr.line.setAttribute("stroke-width", active ? "2.5" : "1.5");
-      zr.line.setAttribute("opacity", String(behind ? 0.15 : active ? 0.95 : isDimmed ? 0.12 : 0.45));
+      zr.line.setAttribute("opacity", String(offscreen ? 0 : active ? 0.95 : isDimmed ? 0.12 : 0.45));
       zr.line.setAttribute("stroke-dasharray", active ? "none" : "3 3");
       zr.box.classList.toggle("selected", isSelected);
       zr.box.classList.toggle("dimmed", isDimmed);
-      zr.box.style.opacity = labelsVisible ? (isDimmed ? "0.32" : "1") : "0";
-      zr.box.style.pointerEvents = labelsVisible ? "auto" : "none";
+      zr.box.classList.toggle("off", offscreen);
+      const boxShown = labelsVisible && !offscreen;
+      zr.box.style.opacity = boxShown ? (isDimmed ? "0.32" : "1") : "0";
+      zr.box.style.pointerEvents = boxShown ? "auto" : "none";
+      zr.box.tabIndex = boxShown ? 0 : -1;
+      zr.box.setAttribute("aria-hidden", String(!boxShown));
     }
     leaderSvg.style.opacity = labelsVisible ? "1" : "0";
   }
@@ -576,13 +887,19 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
     if (camAnim) {
       const t = Math.min(1, (performance.now() - camAnim.t0) / camAnim.dur);
       const ease = 1 - Math.pow(1 - t, 3);
-      if (shot) camAnim.endPos.copy(fitToAspect(shot.pos, shot.target)); // aspect may still be settling
+      if (shot) camAnim.endPos.copy(fitView(shot)); // aspect may still be settling
       camera.position.lerpVectors(camAnim.startPos, camAnim.endPos, ease);
       controls.target.lerpVectors(camAnim.startTarget, camAnim.endTarget, ease);
       if (t >= 1) camAnim = null;
     }
 
     controls.update();
+    // Fog is tuned for the authored distances; keep it behind the model when an overview
+    // has been pulled further back to fit a narrow stage.
+    const camDist = camera.position.distanceTo(controls.target);
+    const k = aspectFit();
+    fog.near = Math.max(10 * k, camDist - 3);
+    fog.far = Math.max(23 * k, camDist + 12);
     renderer.render(scene, camera);
   }
 
@@ -593,6 +910,10 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
 
   function dispose() {
     themeObserver.disconnect();
+    stage.removeEventListener("touchstart", onGestureStart);
+    stage.removeEventListener("touchmove", onGestureMove);
+    stage.removeEventListener("touchend", onGestureEnd);
+    stage.removeEventListener("touchcancel", onGestureEnd);
     cancelAnimationFrame(rafId);
     window.removeEventListener("resize", resize);
     stageObserver.disconnect();
@@ -623,13 +944,8 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
     selectZone,
     setHover,
     flyTo,
-    setTargetLevel: (n: number) => (targetLevel = n),
-    setLevelImmediate: (n: number) => {
-      targetLevel = n;
-      currentLevel = n;
-      applyLevel(currentLevel);
-    },
-    toggleShell,
+    setTargetLevel: (n: number) => setUserLevel(n, false),
+    setLevelImmediate: (n: number) => setUserLevel(n, true),
     enterDeepDive,
     exitDeepDive,
     cycleDeepStage,

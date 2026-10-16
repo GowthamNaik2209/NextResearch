@@ -6,7 +6,7 @@ import { buildDeck, type Deck } from "@/lib/sector-content/reports";
 
 export const metadata = {
   title: "Reading list: curated research reports on Indian sectors",
-  description: "Curated 10-slide research reports and primary sources for every sector NextResearch maps - data centres, EVs, semiconductors, railways, defence, solar and more.",
+  description: "Curated 10-slide research reports and primary sources for every sector NextResearch maps - data centres, EVs, semiconductors, railways, defence, solar, real estate, pharma and more.",
   alternates: { canonical: "/docs" },
 };
 

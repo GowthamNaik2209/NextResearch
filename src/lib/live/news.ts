@@ -6,7 +6,11 @@
 // Caching: the fetch itself is cached by Next's data cache for 15 minutes (shared across
 // serverless instances), and parsed per-company results are also memoised in-process.
 import { cached } from "./cache";
+import { formatNewsDate } from "./news-date";
+
+export { formatNewsDate };
 import { listCompanyMetrics, listNews, newsForTickers, type CompanyMetrics, type NewsItem } from "@/lib/sector-content/insights";
+import { companyLinkExposure, companyLinkKey, listSectors, tickerForSupplier } from "@/lib/sector-content";
 
 const REVALIDATE_S = 15 * 60;
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
@@ -14,7 +18,34 @@ const MAX_AGE_DAYS = 30;
 // Not company news: price-prediction pages, "stock analysis" boilerplate, and multi-stock
 // tip lists ("Stocks to watch", "top 3 stocks to buy") - the latter also read as advice.
 const NOISE_TITLE =
-  /\b(price target|forecast|prediction|stock analysis|share price (today|live|history)|stocks? to (watch|buy|sell)|top \d+ stocks|stock picks?|buy or sell)\b/i;
+  /\b(price target|forecast|prediction|stock analysis|share price (today|live|history)|stocks? to (watch|buy|sell)|top \d+ stocks|stock picks?|buy or sell|target price|price-to-earnings ratio)\b/i;
+// Quote / profile pages that Google News indexes as articles: "Tata Motors Limited (TMCV.NS)
+// Stock Price, News, Quote & History", "... Share Price Live Today", "Live Stock Price | NSE/BSE".
+const QUOTE_PAGE =
+  /\((?:NSE|BSE)?:?\s*[A-Z0-9&-]+\.(?:NS|BO)\)|\b(stock|share) price,? (news|quote|chart|live|today)\b|\bquote (&|and) history\b|\b(live|real[- ]time) (stock|share) price\b|\bstock quote\b|\bshare price (&|and) (chart|news)\b|(&|and) history$|\bis rated (strong )?(buy|sell|hold)\b/i;
+// Multi-company round-ups: "Q2 results today: DLF, Tata Elxsi, Indus Towers and more",
+// "Stocks in news: ...", "Earnings calendar ...". They mention the company in passing.
+const ROUNDUP =
+  /\b(results|earnings) (today|tomorrow|this week|calendar)\b|\bstocks? in (focus|news)\b|\b(earnings|results) (calendar|preview)\b|\bbuzzing stocks\b|\bf&o ban\b|\bothers to (post|report|announce)\b/i;
+/** A headline whose tail (after ":" or "-") is a list of 3+ names: "Q2 results: DLF, Havells, KEI, ..." */
+export function isListHeadline(headline: string): boolean {
+  if (ROUNDUP.test(headline)) return true;
+  const tail = headline.split(/[:|]\s+/).slice(1).join(" ") || headline;
+  if (!/,/.test(tail)) return false;
+  const parts = tail
+    .split(/\s*,\s*|\s+(?:and|&)\s+/)
+    .map((p) => p.replace(/[.…]+$/, "").trim())
+    .filter((p) => p && !/^(more|others?|many more|other stocks)$/i.test(p));
+  // Three or more short, capitalised, figure-free parts = names, not clauses
+  // ("pre-sales up 14%, collections rise, debt falls" is a story, not a list).
+  const nameLike = (p: string) => p.split(/\s+/).length <= 4 && /^[A-Z0-9]/.test(p) && !/%|\d{2,}/.test(p);
+  // The last part may carry the verb ("..., Urban Company to post earnings").
+  const names = nameLike(parts[parts.length - 1] ?? "") ? parts : parts.slice(0, -1);
+  return names.length >= 3 && names.every(nameLike);
+}
+// Entertainment that shares a company's name (Netflix's "Lupin").
+const NOT_BUSINESS = /\b(netflix|season \d+|episode|web series|trailer|box office)\b/i;
+const NOT_BUSINESS_SOURCES = new Set(["IMDb"]);
 
 export type Headline = { headline: string; source: string; url: string; ts: number };
 
@@ -31,25 +62,32 @@ const tag = (item: string, name: string) => decode(item.match(new RegExp(`<${nam
 export function parseGoogleNewsRss(xml: string, now = Date.now()): Headline[] {
   const out: Headline[] = [];
   for (const [, item] of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
-    const source = tag(item, "source") || "News";
+    const rawSource = tag(item, "source");
+    const source = cleanSource(rawSource) || "News";
     // Google appends " - Source" to every title; our UI shows the source separately.
     let headline = tag(item, "title");
-    if (headline.endsWith(` - ${source}`)) headline = headline.slice(0, -(source.length + 3));
+    for (const suffix of [rawSource, source]) if (suffix && headline.endsWith(` - ${suffix}`)) headline = headline.slice(0, -(suffix.length + 3));
     const url = tag(item, "link");
     const ts = Date.parse(tag(item, "pubDate"));
     if (!headline || !url || !Number.isFinite(ts) || ts > now + 3_600_000) continue;
-    if (NOISE_TITLE.test(headline)) continue;
+    if (NOISE_TITLE.test(headline) || QUOTE_PAGE.test(headline) || isListHeadline(headline) || NOT_BUSINESS.test(headline) || NOT_BUSINESS_SOURCES.has(source)) continue;
     out.push({ headline, source, url, ts });
   }
   return out.sort((a, b) => b.ts - a.ts);
 }
 
-/** "3h ago" for today's items, "12 Oct 2026" for older ones. */
-export function formatNewsDate(ts: number, now = Date.now()): string {
-  const hours = (now - ts) / 3_600_000;
-  if (hours < 1) return "Just now";
-  if (hours < 24) return `${Math.floor(hours)}h ago`;
-  return new Date(ts).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+/**
+ * A publisher name for display. Google sometimes gives the site URL as the source name
+ * ("https://www.siam.in/"); show its bare domain ("siam.in") instead.
+ */
+export function cleanSource(source: string): string {
+  const s = source.trim();
+  if (!/^(https?:\/\/|www\.)/i.test(s) && !/^[a-z0-9-]+(\.[a-z0-9-]+)+\/?$/i.test(s)) return s;
+  try {
+    return new URL(/^https?:/i.test(s) ? s : `https://${s}`).hostname.replace(/^www\./i, "");
+  } catch {
+    return s;
+  }
 }
 
 // null = the request failed (so the cache only remembers it briefly); [] = it worked but found nothing.
@@ -75,7 +113,11 @@ const GENERIC = new Set(
     "transformers cables bearings peripherals wagons microsystems future finance railway projects techno equipments container " +
     "shipbuilders shipyard engineers authority welding dynamics premier explosives patterns microwave defence brothers aerospace aviation " +
     "aeronautics telecom digital telematics networks innovations communications teleservices telephone renewable renewables energies " +
-    "system orient sterling garden hindustan gujarat mahanagar cochin mishra towers").split(" ")
+    "system orient sterling garden hindustan gujarat mahanagar cochin mishra towers " +
+    "pharmaceutical pharmaceuticals pharma laboratories labs lifesciences life sciences healthcare health biotech biosciences " +
+    "hospitals scientific chemicals drugs active organics worldwide institute biological " +
+    "realty trust reit estates developers properties parks business office mills cement cements steel tubes paints ceramics " +
+    "plyboards panels glass pipes fittings financiers housing contracts infraprojects knowledge").split(" ")
 );
 // "&" and "and" are dropped so "Transformers and Rectifiers" matches "Transformers & Rectifiers".
 const normalize = (s: string) =>
@@ -89,7 +131,7 @@ const normalize = (s: string) =>
 // say which one ("Mahindra Holidays" is not M&M, "Kirloskar Brothers" is not Kirloskar Oil Engines).
 const GROUP = new Set(
   ("mahindra tata adani bajaj birla kirloskar motherson minda bharti jsw reliance godrej jindal vedanta sterlite apollo kalpataru " +
-    "texmaco waaree borosil cyient hinduja piramal torrent").split(" ")
+    "texmaco waaree borosil cyient hinduja piramal torrent aarti finolex bosch embassy brookfield supreme").split(" ")
 );
 // Short names headlines use, including a group name that alone conventionally means one company
 // here ("Mahindra" = M&M).
@@ -100,7 +142,28 @@ const ALIASES: Record<string, string[]> = {
   WAAREEENER: ["waaree"],
   STLTECH: ["sterlite tech"],
   FLUOROCHEM: ["gujarat fluoro"],
+  SUNPHARMA: ["sun pharma"],
+  TORNTPHARM: ["torrent pharma"],
+  ZYDUSLIFE: ["zydus"],
+  IPCALAB: ["ipca"],
+  ALKEM: ["alkem"],
+  DRREDDY: ["dr reddys"],
+  DIVISLAB: ["divis"],
+  LODHA: ["lodha", "macrotech"],
+  EMBASSY: ["embassy reit"],
+  BIRET: ["brookfield reit", "brookfield india reit"],
+  PHOENIXLTD: ["phoenix mills"],
+  SBIN: ["sbi"],
+  AAVAS: ["aavas"],
 };
+// Headlines that name the company but are about a sibling it no longer owns. Tata Motors
+// demerged in Oct 2025: the commercial-vehicle business kept the "Tata Motors Ltd" name (TMCV),
+// so "Tata Motors" + CV/truck wording is TMCV's news, not TMPV's.
+const NOT_ABOUT: Record<string, RegExp> = {
+  TMPV: /\b(tmcv|commercial vehicles?|cvs?|trucks?|buses|iveco|tata motors (ltd|limited) \(tmcv)/i,
+};
+// Tickers that are ordinary words ("US Embassy ..."), so they don't identify the company on their own.
+const WORD_TICKERS = new Set(["EMBASSY"]);
 // Separately listed companies, outside our coverage, whose names contain one of ours. A match
 // that sits inside one of these (or inside another covered company's name) doesn't count.
 const OTHER_COMPANIES = [
@@ -108,6 +171,9 @@ const OTHER_COMPANIES = [
   "Mahindra & Mahindra Financial", "M&M Financial", "M&M Finance", "Mahindra Susten", "Mahindra CIE", "Mahindra EPC",
   "Tata Motors Commercial", "Tata Motors CV", "Siemens Energy", "Waaree Renewable", "Borosil Ltd", "Kirloskar Ferrous",
   "Kirloskar Industries", "Motherson Sumi Systems", "Indian Railway Catering", "Mahanagar Gas",
+  "Sun Pharma Advanced Research", "Torrent Power", "Zydus Wellness", "Apollo Tyres", "Piramal Enterprises", "Piramal Finance",
+  "Aarti Industries", "Abbott Laboratories", "Embassy Developments", "Bosch Ltd", "SBI Life", "SBI Cards", "SBI Card",
+  "SBI Funds", "SBI Mutual Fund", "SBI General", "HDFC Life", "HDFC AMC", "Brookfield Asset Management",
 ].map(normalize);
 
 const nameWords = (name: string) => normalize(name.replace(/\(.*?\)/g, "")).split(" ").filter(Boolean);
@@ -141,11 +207,13 @@ function spans(h: string, phrase: string): [number, number][] {
  * part of a longer company name ("Tech Mahindra", "Mahindra Holidays", "Motherson Sumi Wiring").
  */
 export function isAbout(headline: string, company: { name: string; ticker: string }): boolean {
+  if (NOT_ABOUT[company.ticker]?.test(headline)) return false;
   const h = ` ${normalize(headline)} `;
   const words = nameWords(company.name);
   const own = words.join(" ");
   const distinctive = words.filter((w) => w.length >= 6 && !GENERIC.has(w) && !GROUP.has(w));
-  const keys = [openingOf(words), normalize(company.ticker), ...distinctive, ...(ALIASES[company.ticker] ?? [])].filter((k) => k.length >= 3);
+  const ticker = WORD_TICKERS.has(company.ticker) ? "" : normalize(company.ticker);
+  const keys = [openingOf(words), ticker, ...distinctive, ...(ALIASES[company.ticker] ?? [])].filter((k) => k.length >= 3);
   const otherNames = [...rivals().filter((r) => r.ticker !== company.ticker && r.name !== own).flatMap((r) => r.phrases), ...OTHER_COMPANIES];
   const covering = otherNames.filter((p) => !` ${own} `.includes(` ${p} `)).flatMap((p) => spans(h, p));
   return keys.some((k) => spans(h, k).some(([s, e]) => !covering.some(([cs, ce]) => cs <= s && ce >= e && ce - cs > e - s)));
@@ -180,14 +248,34 @@ async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise
   return results;
 }
 
+// One story, many outlets: "DLF Q2 profit rises 15%" and "DLF Q2 Results: net profit up 15%"
+// are the same news. Within a company and ~1.5 days, two results headlines (or two headlines
+// sharing most of their words) count as one, so a feed isn't five copies of one earnings release.
+const EARNINGS = /\b(q[1-4]|quarter(ly)?|results?|net profit|earnings|pat)\b/i;
+const STOP = new Set("the a an of to in on for and with at as by from its is are was rs crore cr per cent percent".split(" "));
+const words = (h: string) => new Set(h.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(" ").filter((w) => w && !STOP.has(w)));
+const overlap = (a: Set<string>, b: Set<string>) => {
+  let n = 0;
+  for (const w of a) if (b.has(w)) n++;
+  return n / Math.max(1, Math.min(a.size, b.size));
+};
+const SAME_STORY_MS = 36 * 3_600_000;
+export function sameStory(a: { ticker: string; headline: string; ts: number }, b: { ticker: string; headline: string; ts: number }) {
+  if (a.ticker !== b.ticker || Math.abs(a.ts - b.ts) > SAME_STORY_MS) return false;
+  if (EARNINGS.test(a.headline) && EARNINGS.test(b.headline)) return true;
+  return overlap(words(a.headline), words(b.headline)) >= 0.6;
+}
+
 const dedupe = (items: NewsItem[]) => {
   const seen = new Set<string>();
-  return items.filter((n) => {
+  const kept: NewsItem[] = [];
+  for (const n of items) {
     const key = n.headline.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 70);
-    if (seen.has(key)) return false;
+    if (seen.has(key) || kept.some((k) => sameStory(k, n))) continue;
     seen.add(key);
-    return true;
-  });
+    kept.push(n);
+  }
+  return kept;
 };
 
 async function liveForCompany(c: CompanyMetrics): Promise<NewsItem[]> {
@@ -215,9 +303,48 @@ export async function getNewsForTickers(tickers: string[], limit = 8): Promise<N
 }
 
 // Which companies stand in for a sector when building a feed: the biggest by market cap
-// (their news is what investors follow, and it bounds the number of upstream requests).
+// (their news is what investors follow, and it bounds the number of upstream requests),
+// discounted by how central the sector is to them - otherwise a mega-cap lender or steel
+// maker with a side exposure fills a sector's feed with news about its own business.
 const PER_SECTOR_ALL = 5;
 const PER_SECTOR_SINGLE = 12;
+const feedWeight = (c: CompanyMetrics) => (c.mcapCr ?? 0) * c.centrality;
+
+// Centrality alone isn't enough: a cement or paint maker is a *high-strength* supplier to real
+// estate (centrality 1) and dwarfs most developers by market cap, so the real estate feed came
+// out as cement/paints/steel news. The companies that *are* the sector - owners and operators
+// (developers, REITs, hospital chains), or anyone in its integrator zone (EV OEMs, shipyards) -
+// get most of the slots; suppliers fill the rest by weight.
+const CORE_SHARE = 0.75;
+const CORE_TYPES = new Set(["owner", "operator"]);
+let coreCache: Map<string, Set<string>> | null = null;
+function coreTickers(sectorSlug: string): Set<string> {
+  if (!coreCache) {
+    coreCache = new Map();
+    for (const s of listSectors().filter((x) => !x.muted)) {
+      const core = new Set<string>();
+      for (const z of s.zones)
+        for (const link of z.suppliers) {
+          const sup = s.suppliers[companyLinkKey(link)];
+          if (!sup?.listed) continue;
+          const { exposureType, exposureStrength } = companyLinkExposure(link);
+          const central = exposureStrength !== "low" && exposureStrength !== "medium";
+          if (central && (z.id === s.integratorZoneId || (exposureType && CORE_TYPES.has(exposureType)))) core.add(tickerForSupplier(sup));
+        }
+      coreCache.set(s.slug, core);
+    }
+  }
+  return coreCache.get(sectorSlug) ?? new Set();
+}
+
+/** The companies whose headlines make up a sector's feed (exported for tests). */
+export function feedCompanies(sectorSlug: string, companies: CompanyMetrics[], n: number): CompanyMetrics[] {
+  const core = coreTickers(sectorSlug);
+  const ranked = [...companies].sort((a, b) => feedWeight(b) - feedWeight(a));
+  const lead = ranked.filter((c) => core.has(c.ticker)).slice(0, Math.ceil(n * CORE_SHARE));
+  const rest = ranked.filter((c) => !lead.includes(c)).slice(0, n - lead.length);
+  return [...lead, ...rest];
+}
 
 /** Latest headlines for the whole platform, or one sector, newest first. */
 export async function getLatestNews({ sectorSlug, limit = 20 }: { sectorSlug?: string; limit?: number } = {}): Promise<NewsResult> {
@@ -227,7 +354,7 @@ export async function getLatestNews({ sectorSlug, limit = 20 }: { sectorSlug?: s
     bySector.set(c.sectorSlug, [...(bySector.get(c.sectorSlug) ?? []), c]);
   }
   const perSector = sectorSlug ? PER_SECTOR_SINGLE : PER_SECTOR_ALL;
-  const companies = [...bySector.values()].flatMap((cs) => cs.sort((a, b) => (b.mcapCr ?? 0) - (a.mcapCr ?? 0)).slice(0, perSector));
+  const companies = [...bySector.entries()].flatMap(([slug, cs]) => feedCompanies(slug, cs, perSector));
   const live = dedupe((await mapPool(companies, 6, liveForCompany)).flat()).sort((a, b) => b.ts - a.ts).slice(0, limit);
   if (live.length >= 3) return { items: live, live: true };
   const curated = listNews().filter((n) => !sectorSlug || n.sectorSlug === sectorSlug);

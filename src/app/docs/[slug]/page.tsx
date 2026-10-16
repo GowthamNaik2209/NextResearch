@@ -7,6 +7,7 @@ import { OpenReportButton } from "@/components/research/OpenReport";
 import { getSector, listSectorSlugs } from "@/lib/sector-content";
 import { getResearchForSector } from "@/lib/sector-content/docs";
 import { buildDeck } from "@/lib/sector-content/reports";
+import { NOT_FOUND_METADATA, midSentence } from "@/lib/site";
 
 export function generateStaticParams() {
   return listSectorSlugs().map((slug) => ({ slug }));
@@ -15,12 +16,12 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const sector = getSector(slug);
-  if (!sector) return {};
+  if (!sector) return NOT_FOUND_METADATA;
   const deck = buildDeck(slug);
   const title = `${deck?.report.title ?? sector.name} — research report & reading list`;
   return {
     title,
-    description: `Curated research on India's ${sector.name.toLowerCase()} sector: a 10-slide report plus the primary sources behind it. ${sector.tagline}.`,
+    description: `Curated research on India's ${midSentence(sector.name)} sector: a 10-slide report plus the primary sources behind it. ${sector.tagline}.`,
     alternates: { canonical: `/docs/${slug}` },
     openGraph: { title, url: `/docs/${slug}`, type: "article" },
   };
@@ -53,17 +54,18 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
               <h1 className="font-display text-2xl font-bold text-ink">{deck?.report.title ?? sector.name}</h1>
             </div>
           </div>
-          <p className="mt-2 text-sm text-ink-soft">{deck ? deck.report.subtitle : `Curated research and reporting on ${sector.name.toLowerCase()}.`}</p>
+          <p className="mt-2 text-sm text-ink-soft">{deck ? deck.report.subtitle : `Curated research and reporting on ${midSentence(sector.name)}.`}</p>
         </div>
 
         {deck && (
-          <section className="flex flex-wrap items-center gap-4 rounded-2xl border border-line bg-panel p-5">
+          <section className="flex flex-col items-start gap-4 rounded-2xl border border-line bg-panel p-5 sm:flex-row sm:items-center">
+            {/* Stacked on phones: side by side, the button squeezed the summary into a ~90px column. */}
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-bold uppercase tracking-wider text-accent">{isPolicy ? "Policy report" : "Industry report"} · {deck.report.asOf}</p>
               <h2 className="mt-1 font-display text-lg font-bold text-ink">{deck.report.title}</h2>
               <p className="mt-1 text-sm text-ink-soft">{deck.report.stance.line}</p>
             </div>
-            <OpenReportButton deck={deck} className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90">
+            <OpenReportButton deck={deck} className="flex-none whitespace-nowrap rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90">
               Read curated report &rarr;
             </OpenReportButton>
           </section>

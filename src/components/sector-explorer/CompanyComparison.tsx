@@ -55,9 +55,9 @@ export function CompanyComparison({ sector, zone, onClose }: Props) {
 
   return (
     <div className="compare-overlay" onClick={onClose}>
-      <div className="compare-box" onClick={(e) => e.stopPropagation()}>
+      <div className="compare-box" role="dialog" aria-modal="true" aria-labelledby="nrCompareTitle" onClick={(e) => e.stopPropagation()}>
         <div className="compare-head">
-          <h2>
+          <h2 id="nrCompareTitle">
             <span className="zc-tag" style={{ background: zone.color }} />
             Compare companies &mdash; {zone.label}
           </h2>

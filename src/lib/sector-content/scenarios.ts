@@ -451,6 +451,140 @@ export const SCENARIOS: Record<string, Scenario[]> = {
       ],
     },
   ],
+  realestate: [
+    {
+      id: "rate-tightening",
+      title: "Rates keep rising",
+      blurb: "RBI hikes again; home-loan rates up ~50 bp",
+      story:
+        "The RBI raised the repo rate to 5.50% in October 2026 and shifted to 'calibrated tightening'. Further hikes pass through to repo-linked home loans within a quarter, raising EMIs and cutting what buyers can borrow. Mid-income and affordable housing feel it first; luxury buyers less so. Lenders reprice loans faster than deposits at first, but growth and asset quality soften. Landlords see cap rates and REIT yields drift up.",
+      effect: "headwind",
+      impacts: [
+        S("residential", 3, "Higher EMIs slow bookings, especially in the sub-Rs 1 Cr segment"),
+        S("finance", 2, "Slower disbursements and more stress in affordable loans; repo-linked loans reprice up quickly"),
+        S("sales", 2, "Fewer transactions mean less brokerage and fewer portal leads"),
+        S("land", 2, "Developers slow land buying and new joint-development deals"),
+        S("office", 1, "Higher bond yields make REIT units less attractive and lift cap rates"),
+        S("retail", 1, "Same valuation pressure on mall REITs; footfall barely affected"),
+        S("finishes", 1, "Fewer handovers and home upgrades two to three years out"),
+      ],
+    },
+    {
+      id: "inventory-overhang",
+      title: "Unsold homes pile up",
+      blurb: "Launches keep outrunning sales for a year",
+      story:
+        "In Q3 2026 launches across the top seven cities rose 18% while sales grew 3%, and unsold stock rose to about 6.3 lakh homes (ANAROCK). If that continues, developers cut launches and offer discounts or easy payment plans. Construction and material orders follow with a lag, and lenders slow construction finance. Big branded developers with low debt can keep selling; smaller, leveraged ones get squeezed.",
+      effect: "headwind",
+      impacts: [
+        S("residential", 3, "Price cuts, slower collections and deferred launches"),
+        S("land", 2, "Land deals and approvals for new phases are pushed back"),
+        S("epc", 2, "Fewer new residential contracts; slower billing on running ones"),
+        S("cement", 2, "Housing is the largest end-use of cement"),
+        S("steel", 1, "Less rebar and structural tube demand from new towers"),
+        S("finance", 2, "Construction-finance books shrink; developer loans need closer watching"),
+        S("sales", 1, "Brokers get more mandates but lower conversion"),
+      ],
+    },
+    {
+      id: "gcc-office-boom",
+      title: "GCC office leasing keeps booming",
+      blurb: "Global capability centres take 30+ msf a year",
+      story:
+        "Global capability centres (GCCs) took about 42% of India's office leasing in Jan-Sep 2026 (CBRE). If that pace holds, office vacancy falls, rents and re-leasing spreads rise, and REITs and developers start new office towers. Fit-outs pull in HVAC, lifts, cabling and electrical work, and new office jobs support housing and mall demand in the same areas.",
+      effect: "tailwind",
+      impacts: [
+        S("office", 3, "Higher occupancy, rent growth and new building for office REITs and landlords"),
+        S("epc", 2, "More commercial tower and fit-out contracts"),
+        S("hvac_lifts", 2, "Central air-conditioning, chillers and high-speed lifts for Grade A offices"),
+        S("electricals", 2, "Cabling, switchgear and data cabling for fit-outs"),
+        S("residential", 1, "Office hiring supports mid-to-premium home demand nearby"),
+        S("retail", 1, "More office workers lift mall footfall and spending"),
+        S("land", 1, "Commercial land near IT corridors gains value"),
+      ],
+    },
+    {
+      id: "input-cost-spike",
+      title: "Fuel and building-material costs spike",
+      blurb: "Petcoke, coking coal, copper and PVC jump 20%",
+      story:
+        "West Asia conflict keeps oil, petcoke and coal prices high. Cement and steel makers face higher fuel and power costs and cannot pass them all on while demand is soft. Fixed-price builders absorb the hit until escalation clauses kick in. Pipe and wire makers usually pass on resin and copper costs, but dealers destock while prices are volatile. Developers' construction costs rise by a few percent, which hurts mid-income projects most.",
+      effect: "headwind",
+      impacts: [
+        S("cement", 3, "Fuel and power are a large share of cement cost; EBITDA per tonne falls"),
+        S("epc", 3, "Fixed-price contracts absorb cost increases until escalation applies"),
+        S("steel", 2, "Coking-coal costs squeeze margins unless rebar prices follow"),
+        S("residential", 2, "Construction cost per sq ft rises; mid-income margins narrow"),
+        S("plumbing", 1, "PVC resin swings cause dealer destocking and inventory losses"),
+        S("electricals", 1, "Copper pass-through holds margins but slows volumes"),
+        S("finishes", 1, "Gas-fired tile kilns and crude-linked paint inputs cost more"),
+      ],
+    },
+  ],
+  pharma: [
+    {
+      id: "us-generic-tariffs",
+      title: "US tariffs hit generic imports",
+      blurb: "The 100% generic tariff from Aug 2028 is applied with no India carve-out",
+      story:
+        "Generic medicines are exempt today, but the US has set a clock: 0% until July 2028, then 100%, then 200% for companies that do not make in the US. Indian generic exporters cannot pass a tariff that size through on low-margin pills, so US profits shrink or move to US plants. India-focused branded companies and domestic chains are insulated, and API makers face weaker captive demand from their US-exposed customers.",
+      effect: "headwind",
+      impacts: [
+        S("generics", 3, "US oral-solid and complex generics made in India lose their cost edge"),
+        S("injectables", 3, "US sterile products made in India face the same duty"),
+        S("api", 2, "Indian formulators cut volumes or move sourcing closer to US plants"),
+        S("ksm", 1, "Second-order: lower API volumes"),
+        S("specialty", 1, "Patented imports already face Section 232 duties unless onshored"),
+        S("domestic", 1, "Exporters may push harder into India, raising competition", "headwind"),
+        S("cdmo", 1, "Some innovator supply chains shift to the US; India CDMOs with US sites gain", "tailwind"),
+      ],
+    },
+    {
+      id: "usfda-inspection-wave",
+      title: "USFDA inspection wave",
+      blurb: "A run of OAIs and warning letters across Indian plants",
+      story:
+        "A surge of unannounced USFDA inspections ends in several Official Action Indicated classifications and warning letters. Affected sites cannot win new approvals, launches slip and remediation costs rise - sterile injectable plants are hit hardest. Compliant peers and contract manufacturers with clean records pick up share and transfer work.",
+      effect: "headwind",
+      impacts: [
+        S("injectables", 3, "Sterile sites carry the most observations (aseptic, data integrity)"),
+        S("generics", 3, "OAI/WL plants cannot get new ANDA approvals"),
+        S("api", 2, "API sites inspected alongside; DMF reviews delayed"),
+        S("cdmo", 1, "Innovators audit Indian vendors harder"),
+        S("domestic", 1, "India branded sales unaffected; exporters may divert supply home", "tailwind"),
+      ],
+    },
+    {
+      id: "china-ksm-curbs",
+      title: "China curbs KSM and API exports",
+      blurb: "Supply of key starting materials from China is disrupted",
+      story:
+        "Most of India's imports of many critical KSMs and intermediates come from China. An export curb, plant shutdowns or a price spike there squeezes Indian API makers first, then formulators with thin margins and price-controlled products. Indian KSM makers and PLI plants suddenly have pricing power.",
+      effect: "headwind",
+      impacts: [
+        S("api", 3, "Input shortages and margin squeeze for non-integrated API makers"),
+        S("ksm", 3, "Domestic KSM and PLI plants gain volumes and pricing", "tailwind"),
+        S("generics", 2, "Formulation costs rise; supply disruptions for some molecules"),
+        S("domestic", 2, "NLEM price caps stop cost pass-through on essential drugs"),
+        S("packaging", 1, "Some excipient and chemical inputs are also China-sourced"),
+      ],
+    },
+    {
+      id: "biosecure-shift",
+      title: "BIOSECURE moves work to India",
+      blurb: "US innovators move CDMO and research work away from Chinese vendors",
+      story:
+        "The BIOSECURE Act (Dec 2025) restricts US federal contracting with 'biotechnology companies of concern'. As implementing rules land, Western pharma and biotech move discovery, development and commercial manufacturing to non-Chinese vendors. Indian CRDMOs with compliant capacity win new molecules; peptide, ADC and biologics capacity is in shortest supply.",
+      effect: "tailwind",
+      impacts: [
+        S("cdmo", 3, "New RFPs and multi-year supply contracts"),
+        S("api", 2, "Innovator intermediates and complex APIs sourced from India"),
+        S("biologics", 2, "Biologics and ADC manufacturing demand"),
+        S("injectables", 1, "Fill-finish work follows drug-substance moves"),
+        S("ksm", 1, "Upstream intermediates follow"),
+      ],
+    },
+  ],
 };
 
 export function listScenarios(slug: string): Scenario[] {

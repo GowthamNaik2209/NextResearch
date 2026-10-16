@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import type { Metadata } from "next";
+import { NOT_FOUND_METADATA } from "@/lib/site";
+
+// Applies to URLs no route matches; dynamic routes return NOT_FOUND_METADATA themselves.
+export const metadata: Metadata = NOT_FOUND_METADATA;
 
 export default function NotFound() {
   return (

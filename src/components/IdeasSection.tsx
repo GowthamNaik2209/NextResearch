@@ -14,7 +14,7 @@ export function IdeasSection({ ideas, asOf }: { ideas: Idea[]; asOf: string }) {
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink-soft">
         Rule-based screens across every company we profile. Each shows its rule, so you can see exactly why a name is on the list.
       </p>
-      <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label="Idea screens">
+      <div className="mt-6 flex flex-wrap gap-x-2 gap-y-3" role="tablist" aria-label="Idea screens">
         {ideas.map((i) => (
           <button
             key={i.id}
@@ -23,7 +23,7 @@ export function IdeasSection({ ideas, asOf }: { ideas: Idea[]; asOf: string }) {
             aria-selected={i.id === idea.id}
             onClick={() => setId(i.id)}
             className={
-              "rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors " +
+              "tap-target rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors " +
               (i.id === idea.id ? "border-accent bg-accent text-bg" : "border-line bg-panel text-ink-soft hover:text-ink")
             }
           >

@@ -18,6 +18,7 @@ import { SupplierDetail } from "./SupplierDetail";
 import { CompanyComparison } from "./CompanyComparison";
 import { WatchlistButton } from "./WatchlistButton";
 import { UserMenu } from "@/components/UserMenu";
+import { MobileMenu } from "@/components/MobileMenu";
 import "./explorer.css";
 
 const TOUR_STEP_MS = 3400;
@@ -57,8 +58,10 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   const railTopRef = useRef<HTMLDivElement>(null);
   const railBottomRef = useRef<HTMLDivElement>(null);
   const mobileTagsRef = useRef<HTMLDivElement>(null);
-  const shellLabelRef = useRef<HTMLSpanElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const breadcrumbRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLInputElement>(null);
   const layerButtonRefs = useRef(new Map<number, HTMLButtonElement>());
   const controllerRef = useRef<ExplorerController | null>(null);
 
@@ -66,6 +69,10 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   const [currentSupplier, setCurrentSupplier] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<string>(sector.defaultView || sector.views[0]?.id);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  // Phones/tablets: the open sheet starts at a "peek" height so the picked part stays in
+  // view above it; it expands to full height on a tap/drag of the handle, on scrolling
+  // the panel, or when a company is picked (its details run long).
+  const [isSheetFull, setIsSheetFull] = useState(false);
   const [isZoneMenuOpen, setIsZoneMenuOpen] = useState(false);
   // Phone: the scenario list collapses behind a dropdown button, like Systems.
   const [isScenarioMenuOpen, setIsScenarioMenuOpen] = useState(false);
@@ -74,6 +81,50 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   const [isControlsOpen, setIsControlsOpen] = useState(false);
   const [deepStage, setDeepStage] = useState<number | null>(null);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
+  // Phone/tablet controls overlay: a tap anywhere outside it closes it (not just its own
+  // button). When that tap lands on the 3D stage or the bottom sheet it is used up by the
+  // close - the rest of that same press (its pointerup/click, or a touch gesture it starts)
+  // doesn't also pick a system or step the sheet - however long it's held. Taps elsewhere
+  // (header buttons) still go through.
+  useEffect(() => {
+    if (!isControlsOpen) return;
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Element | null;
+      if (!t || t.closest(".rail, .controls-btn")) return;
+      setIsControlsOpen(false);
+      if (!t.closest(".stage, .panel-wrap")) return;
+      e.stopPropagation();
+      const id = e.pointerId;
+      const stop = (ev: Event) => {
+        ev.stopPropagation();
+        ev.preventDefault();
+      };
+      const opts = { capture: true } as const;
+      const onTouch = (ev: TouchEvent) => ev.stopPropagation(); // label gestures listen to touch events
+      const onUp = (ev: PointerEvent) => {
+        if (ev.pointerId !== id) return;
+        stop(ev);
+        window.removeEventListener("pointerup", onUp, opts);
+        window.removeEventListener("pointercancel", onUp, opts);
+        window.removeEventListener("touchstart", onTouch, opts);
+        window.removeEventListener("touchmove", onTouch, opts);
+        // The press's click follows its pointerup straight away; drop just that one.
+        window.addEventListener("click", stop, { capture: true, once: true });
+        setTimeout(() => window.removeEventListener("click", stop, opts), 50);
+      };
+      window.addEventListener("pointerup", onUp, opts);
+      window.addEventListener("pointercancel", onUp, opts);
+      window.addEventListener("touchstart", onTouch, opts);
+      window.addEventListener("touchmove", onTouch, opts);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setIsControlsOpen(false);
+    window.addEventListener("pointerdown", onDown, { capture: true });
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("pointerdown", onDown, { capture: true });
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [isControlsOpen]);
   const scenarios = listScenarios(slug);
   // Deep link: ?scenario=<id>; an unknown id is ignored.
   const [scenarioId, setScenarioId] = useState<string | null>(() => {
@@ -158,7 +209,6 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
       !railTopRef.current ||
       !railBottomRef.current ||
       !mobileTagsRef.current ||
-      !shellLabelRef.current ||
       !breadcrumbRef.current
     ) {
       return;
@@ -172,14 +222,17 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
       railBottom: railBottomRef.current,
       mobileTags: mobileTagsRef.current,
       layerButtons: layerButtonRefs.current,
-      shellLabel: shellLabelRef.current,
       breadcrumb: breadcrumbRef.current,
+      slider: sliderRef.current,
+      sheet: sheetRef.current,
     };
     const controller = mountExplorer(dom, sector, {
-      onZoneChange: (zoneId) => {
+      onZoneChange: (zoneId, reset) => {
+        if (reset) setActiveView(sector.defaultView || sector.views[0]?.id);
         setCurrentZoneId(zoneId);
         setCurrentSupplier(null);
         setIsPanelOpen(!!zoneId);
+        setIsSheetFull(false);
         setIsZoneMenuOpen(false);
         setIsComparisonOpen(false);
       },
@@ -204,6 +257,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     setCurrentZoneId(validZone);
     setCurrentSupplier(validCompany);
     setIsPanelOpen(!!validZone);
+    setIsSheetFull(!!validCompany);
 
     // ?tour=1 (from the overview page's "Start guided tour" action) auto-starts
     // the camera cycle once the scene has had a moment to settle into its default
@@ -245,6 +299,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
       controllerRef.current?.selectZone(null);
       setScenarioId(id);
       setIsPanelOpen(!!id);
+      setIsSheetFull(false);
     },
     [stopTour]
   );
@@ -304,11 +359,6 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     setActiveView(id);
   }, [stopTour, sector.defaultView, sector.views]);
 
-  const handleShellClick = useCallback(() => {
-    stopTour();
-    controllerRef.current?.toggleShell();
-  }, [stopTour]);
-
   const handleLayerClick = useCallback(
     (level: number) => {
       stopTour();
@@ -325,6 +375,12 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     },
     [stopTour]
   );
+  // On release the slider settles on the nearest layer, so a layer is always named and lit
+  // (dragging still scrubs smoothly through the crossfade in between).
+  const handleSliderRelease = useCallback((e: React.SyntheticEvent<HTMLInputElement>) => {
+    const v = parseFloat(e.currentTarget.value);
+    if (Number.isFinite(v)) controllerRef.current?.setTargetLevel(Math.round(v));
+  }, []);
 
   const handleSelectZone = useCallback(
     (id: string | null) => {
@@ -332,6 +388,54 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
       controllerRef.current?.selectZone(id);
     },
     [stopTour]
+  );
+
+  // A company pick (chip, prev/next arrows, scenario list) opens the sheet fully; the
+  // effect below then brings its details into view.
+  const handlePickSupplier = useCallback((key: string) => {
+    setCurrentSupplier(key);
+    setIsSheetFull(true);
+  }, []);
+
+  // The company details render below the chips and write-up, often well under the
+  // fold of the panel, so scroll the panel (not the page) to them on every pick -
+  // including a ?company= deep link. Waits a frame so the new details have laid out.
+  useEffect(() => {
+    if (!currentSupplier) return;
+    const raf = requestAnimationFrame(() => {
+      const panel = panelRef.current;
+      const detail = panel?.querySelector<HTMLElement>(".supplier-detail");
+      if (!panel || !detail) return;
+      const top = panel.scrollTop + detail.getBoundingClientRect().top - panel.getBoundingClientRect().top - 8;
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      panel.scrollTo({ top, behavior: reduce ? "auto" : "smooth" });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [currentSupplier, currentZoneId]);
+
+  // Sheet handle: a tap steps closed -> peek -> full -> peek; a drag moves it a step up or
+  // down (dragging down from peek closes it). Pointer events so it works for touch and mouse.
+  const handleDrag = useRef<{ y: number } | null>(null);
+  // Closing the panel while a system is open also closes the system, which puts the model back
+  // to its opening state (engine selectZone(null)); a scenario-only panel just closes.
+  const closePanel = useCallback(() => {
+    if (currentZoneId) controllerRef.current?.selectZone(null);
+    // Closing a scenario's sheet ends the scenario too, back to the plain model.
+    else if (scenarioId) handlePickScenario(null);
+    else setIsPanelOpen(false);
+  }, [currentZoneId, scenarioId, handlePickScenario]);
+  const stepSheet = useCallback(
+    (dir: "up" | "down" | "tap") => {
+      if (dir === "tap") {
+        if (!isPanelOpen) setIsPanelOpen(true);
+        else setIsSheetFull((f) => !f);
+      } else if (dir === "up") {
+        if (!isPanelOpen) setIsPanelOpen(true);
+        else setIsSheetFull(true);
+      } else if (isSheetFull) setIsSheetFull(false);
+      else closePanel();
+    },
+    [isPanelOpen, isSheetFull, closePanel]
   );
 
   const handleToggleTour = useCallback(() => {
@@ -363,6 +467,8 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
           </div>
         </div>
         <div className="user-nav">
+          {/* Same phone-only site menu as the rest of the site (it hides itself from md up). */}
+          <MobileMenu hideFrom="min-[1001px]:hidden" />
           <Link
             href="/watchlist"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
@@ -387,45 +493,51 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
             if (btn && !btn.classList.contains("zone-more-btn")) setIsControlsOpen(false);
           }}
         >
-          <div className="rail-label">Layers</div>
-          <div>
-            <button
-              ref={(el) => {
-                if (el) layerButtonRefs.current.set(0, el);
-              }}
-              className="layer-btn"
-              onClick={handleShellClick}
-            >
-              <span className="n">01</span> <span ref={shellLabelRef}>{sector.layerNames[0]}</span>
-            </button>
-            {sector.layerNames.slice(2).map((name, i) => {
-              const level = i + 2;
-              return (
-                <button
-                  key={level}
-                  ref={(el) => {
-                    if (el) layerButtonRefs.current.set(level, el);
-                  }}
-                  className="layer-btn"
-                  data-level={level}
-                  onClick={() => handleLayerClick(level)}
-                >
-                  <span className="n">0{level}</span> {name}
-                </button>
-              );
-            })}
+          <div className="rail-label" id="nrLayersLabel">Layers</div>
+          {/* One button per layer, numbered from the outside in; the engine lights the one the
+              model has settled on (applyLevel) and keeps the slider below in step. */}
+          <div className="layer-btns" role="group" aria-labelledby="nrLayersLabel">
+            {sector.layerNames.map((name, level) => (
+              <button
+                key={level}
+                type="button"
+                ref={(el) => {
+                  if (el) layerButtonRefs.current.set(level, el);
+                  else layerButtonRefs.current.delete(level);
+                }}
+                className="layer-btn"
+                data-level={level}
+                aria-pressed={level === 0}
+                onClick={() => handleLayerClick(level)}
+              >
+                <span className="n" aria-hidden>
+                  {String(level + 1).padStart(2, "0")}
+                </span>
+                <span>{name}</span>
+              </button>
+            ))}
           </div>
           <div className="layer-slider-wrap">
             <input
+              ref={sliderRef}
               type="range"
               min={0}
               max={sector.layerNames.length - 1}
               step={0.01}
               defaultValue={0}
+              list="nrLayerStops"
               aria-label="Open up the model, layer by layer"
               title="Open up the model, layer by layer"
               onChange={handleSliderChange}
+              onPointerUp={handleSliderRelease}
+              onKeyUp={handleSliderRelease}
             />
+            {/* Tick marks: one stop per layer button. */}
+            <datalist id="nrLayerStops">
+              {sector.layerNames.map((name, level) => (
+                <option key={level} value={level} label={name} />
+              ))}
+            </datalist>
           </div>
 
           {scenarios.length > 0 && (
@@ -437,14 +549,21 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                 type="button"
                 className={"zone-more-btn scn-more" + (isScenarioMenuOpen ? " open" : "")}
                 onClick={() => setIsScenarioMenuOpen((o) => !o)}
+                aria-expanded={isScenarioMenuOpen}
+                aria-controls="nrScenarioList"
+                aria-label={scenario ? `What if scenarios (showing: ${scenario.title})` : "What if scenarios"}
               >
                 <span>{scenario ? `What if: ${scenario.title}` : "What if…"}</span>
-                <span className="chev">&#9662;</span>
+                <span className="chev" aria-hidden>
+                  &#9662;
+                </span>
               </button>
-              <div className={"scn-list" + (isScenarioMenuOpen ? " expanded" : "")}>
+              <div id="nrScenarioList" className={"scn-list" + (isScenarioMenuOpen ? " expanded" : "")}>
                 {scenarios.map((sc) => (
                   <button
                     key={sc.id}
+                    type="button"
+                    aria-pressed={scenarioId === sc.id}
                     className={"scn-btn" + (scenarioId === sc.id ? " active" : "")}
                     title={sc.blurb}
                     onClick={() => handlePickScenario(scenarioId === sc.id ? null : sc.id)}
@@ -468,17 +587,25 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
             type="button"
             className={"zone-more-btn" + (isZoneMenuOpen ? " open" : "")}
             onClick={() => setIsZoneMenuOpen((o) => !o)}
+            aria-expanded={isZoneMenuOpen}
+            aria-controls="nrSystemsList"
+            aria-label={zone ? `Systems (selected: ${zone.label})` : "Systems"}
           >
             <span>{zone ? zone.label : "Systems"}</span>
-            <span className="chev">&#9662;</span>
+            <span className="chev" aria-hidden>
+              &#9662;
+            </span>
           </button>
-          <div className={"zone-btns" + (isZoneMenuOpen ? " expanded" : "")}>
+          <div id="nrSystemsList" className={"zone-btns" + (isZoneMenuOpen ? " expanded" : "")}>
             {sector.zones.map((z) => {
               const isSelected = currentZoneId === z.id;
               const isDimmed = !!currentZoneId && !isSelected;
               return (
                 <button
                   key={z.id}
+                  type="button"
+                  aria-pressed={isSelected}
+                  title={z.label}
                   className={"zone-btn" + (isSelected ? " active" : "") + (isDimmed ? " dimmed" : "")}
                   style={{ ["--zc" as string]: z.color } as React.CSSProperties}
                   onClick={() => handleSelectZone(z.id)}
@@ -499,6 +626,8 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
             {sector.views.map((v) => (
               <button
                 key={v.id}
+                type="button"
+                aria-pressed={activeView === v.id}
                 className={"view-btn" + (activeView === v.id ? " active" : "")}
                 onClick={() => handleFlyTo(v.id)}
               >
@@ -585,23 +714,69 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
           )}
         </div>
 
-        <div className={"panel-wrap" + (isPanelOpen ? "" : " collapsed")}>
-          <div className="panel-handle" onClick={() => setIsPanelOpen((o) => !o)}>
+        <div
+          ref={sheetRef}
+          className={"panel-wrap" + (isPanelOpen ? (isSheetFull ? " full" : " peek") : " collapsed")}
+        >
+          <div
+            className="panel-handle"
+            role="button"
+            tabIndex={0}
+            aria-expanded={isPanelOpen}
+            aria-label={isPanelOpen ? (isSheetFull ? "Shrink details panel" : "Expand details panel") : "Open details panel"}
+            onPointerDown={(e) => {
+              handleDrag.current = { y: e.clientY };
+              // Keep receiving the pointer when a drag leaves the handle.
+              e.currentTarget.setPointerCapture?.(e.pointerId);
+            }}
+            onPointerUp={(e) => {
+              const start = handleDrag.current;
+              handleDrag.current = null;
+              if (!start || (e.target as HTMLElement).closest(".panel-close-btn")) return;
+              const dy = e.clientY - start.y;
+              stepSheet(dy < -30 ? "up" : dy > 30 ? "down" : "tap");
+            }}
+            onPointerCancel={() => (handleDrag.current = null)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                stepSheet("tap");
+              }
+            }}
+          >
             <span className="grip" />
-            <span>{zone ? zone.label : "Tap a part for supplier & financial details"}</span>
+            <span className="panel-handle-text">
+              {zone ? zone.label : scenario ? `What if: ${scenario.title}` : "Tap a part for supplier & financial details"}
+            </span>
             <button
               className="panel-close-btn"
               type="button"
               aria-label="Close"
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
-                setIsPanelOpen(false);
+                closePanel();
               }}
             >
               &times;
             </button>
           </div>
-          <div className="panel">
+          {/* Side-panel close (wider screens; phones close from the sheet handle). Closing the
+              system returns the model to its opening state, like the breadcrumb's ✕. */}
+          {zone && (
+            <button className="panel-close-btn panel-close-side" type="button" aria-label={`Close ${zone.label}`} onClick={closePanel}>
+              &times;
+            </button>
+          )}
+          <div
+            className="panel"
+            ref={panelRef}
+            onScroll={(e) => {
+              // Scrolling a peeking sheet means the reader wants more: open it fully.
+              if (isPanelOpen && !isSheetFull && e.currentTarget.scrollTop > 24 && getComputedStyle(e.currentTarget.parentElement!).position === "fixed")
+                setIsSheetFull(true);
+            }}
+          >
             {!zone && scenario ? (
               <>
                 <h2>{scenario.title}</h2>
@@ -634,7 +809,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                         className="scn-row"
                         onClick={() => {
                           handleSelectZone(c.zoneId);
-                          setCurrentSupplier(c.key);
+                          handlePickSupplier(c.key);
                         }}
                       >
                         <span>
@@ -706,10 +881,20 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                     const s = sector.suppliers[key];
                     const exposure = zoneExposure.get(key);
                     return (
+                      // A div with button semantics, not a <button>: it contains the watchlist button.
                       <div
                         key={key}
+                        role="button"
+                        tabIndex={0}
+                        aria-pressed={effectiveSupplier === key}
                         className={"chip" + (effectiveSupplier === key ? " active" : "")}
-                        onClick={() => setCurrentSupplier(key)}
+                        onClick={() => handlePickSupplier(key)}
+                        onKeyDown={(e) => {
+                          if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
+                            e.preventDefault();
+                            handlePickSupplier(key);
+                          }
+                        }}
                       >
                         <span>
                           {s.name}
@@ -734,7 +919,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                     sector={sector}
                     supplierKey={effectiveSupplier}
                     zoneSuppliers={zoneSupplierKeys}
-                    onSelectSupplier={setCurrentSupplier}
+                    onSelectSupplier={handlePickSupplier}
                   />
                 )}
 
@@ -801,7 +986,19 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                         const related = sector.zones.find((z) => z.id === relatedId);
                         if (!related) return null;
                         return (
-                          <div key={relatedId} className="chip" onClick={() => handleSelectZone(related.id)}>
+                          <div
+                            key={relatedId}
+                            className="chip"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => handleSelectZone(related.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                handleSelectZone(related.id);
+                              }
+                            }}
+                          >
                             <span>
                               <span className="zc-tag" style={{ background: related.color }} />
                               {related.label}

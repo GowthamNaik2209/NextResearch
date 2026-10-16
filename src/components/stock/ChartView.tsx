@@ -184,7 +184,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
           ))}
         </div>
         <p className="text-[11px] text-ink-soft">
-          {data?.source === "screener" ? "Screener.in" : "Yahoo Finance"} · closing prices{range === "3Y" ? " (weekly)" : range === "MAX" ? " (monthly, split-adjusted by the data vendor)" : ""} · NSE
+          {data?.source === "screener" ? "Screener.in" : "Yahoo Finance"} · closing prices{range === "3Y" ? " (weekly)" : range === "MAX" ? " (monthly, split-adjusted by the data vendor)" : ""} · {data?.exchange ?? "NSE"}
         </p>
       </div>
     </div>

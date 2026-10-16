@@ -1,6 +1,6 @@
 import type { SectorSupplier } from "@/lib/sector-content";
 import type { StockApi } from "./types";
-import { fmtNum, mergeStats } from "./merge";
+import { fmtNum, mergeStats, REIT_NOTE } from "./merge";
 
 type Row = { label: string; company: number | null; industry: number | null; unit: string; better: "low" | "high" | null; digits?: number };
 
@@ -38,7 +38,19 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
     { label: "Qtr profit growth (YoY)", company: self?.qtrProfitVarPct ?? null, industry: med?.qtrProfitVarPct ?? null, unit: "%", better: "high", digits: 1 },
     { label: "Market cap (₹ Cr)", company: self?.marketCapCr ?? null, industry: med?.marketCapCr ?? null, unit: "", better: null, digits: 0 },
   ];
-  const shown = rows.filter((r) => r.company != null || r.industry != null);
+  // REITs: P/E, ROE and dividend yield are equity-company ratios that misread a trust (see
+  // REIT_NOTE) - drop them rather than print a "0.05% yield" or a 168x P/E.
+  const REIT_HIDDEN = new Set(["P/E (TTM)", "ROE", "Dividend yield"]);
+  const shown = rows.filter((r) => (r.company != null || r.industry != null) && !(s.reit && REIT_HIDDEN.has(r.label)));
+  const hasIndustry = shown.some((r) => r.industry != null);
+  // Belt and braces over the parser: never render a growth row without a number ("10 Years: %"),
+  // a growth card with no rows, or an annual table with no years / all-blank rows.
+  const growth = (fund?.growth ?? [])
+    .filter((g) => !(s.reit && /return on equity/i.test(g.title)))
+    .map((g) => ({ ...g, rows: g.rows.filter((r) => /\d/.test(r.value)) }))
+    .filter((g) => g.rows.length > 0);
+  const annualSeries = fund?.annual?.years.length ? fund.annual.series.filter((r) => r.values.some((v) => v != null)) : [];
+  const basis = fund?.basis ?? "consolidated";
 
   return (
     <div className="flex flex-col gap-6">
@@ -62,14 +74,21 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
         )}
       </div>
 
-      <Section title={ind ? `Key ratios — company vs industry median (${ind.peerCount ?? "—"} companies)` : "Key ratios"}>
+      {s.reit && (
+        <p className="-mt-3 rounded-lg border border-line bg-panel-2 px-3 py-2 text-xs leading-relaxed text-ink">
+          <b>REIT:</b> P/E, ROE and dividend yield are left out. {REIT_NOTE}
+        </p>
+      )}
+
+      {shown.length > 0 && (
+      <Section title={ind && hasIndustry ? `Key ratios — company vs industry median (${ind.peerCount ?? "—"} companies)` : "Key ratios"}>
         <div className="overflow-hidden rounded-2xl border border-line bg-panel">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-panel-2 text-[11px] uppercase tracking-wide text-ink-soft">
                 <th className="px-3 py-2.5 text-left font-semibold">Ratio</th>
                 <th className="px-3 py-2.5 text-right font-semibold">Company</th>
-                <th className="px-3 py-2.5 text-right font-semibold">Industry</th>
+                {hasIndustry && <th className="px-3 py-2.5 text-right font-semibold">Industry</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -84,24 +103,33 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
                       </span>
                       {v && <span className={"ml-1.5 text-[10px] " + (v === "better" ? "text-pos" : "text-danger")}>{v === "better" ? "▲" : "▼"}</span>}
                     </td>
-                    <td className="px-3 py-3 text-right font-mono text-ink-soft">{r.industry == null ? "—" : `${fmtNum(r.industry, r.digits ?? 1)}${r.unit}`}</td>
+                    {hasIndustry && (
+                      <td className="px-3 py-3 text-right font-mono text-ink-soft" title={r.industry == null ? "No industry median available" : undefined}>
+                        {r.industry == null ? "n/a" : `${fmtNum(r.industry, r.digits ?? 1)}${r.unit}`}
+                      </td>
+                    )}
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
-        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-soft">
-          <span><span className="text-pos">▲</span> better than industry median</span>
-          <span><span className="text-danger">▼</span> worse than industry median</span>
-          <span>Lower is better for P/E and P/B.</span>
-        </p>
+        {hasIndustry ? (
+          <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-soft">
+            <span><span className="text-pos">▲</span> better than industry median</span>
+            <span><span className="text-danger">▼</span> worse than industry median</span>
+            <span>Lower is better for P/E and P/B. n/a = no industry median.</span>
+          </p>
+        ) : (
+          fund && <p className="mt-2 text-[11px] text-ink-soft">Industry medians aren&rsquo;t available for this company right now.</p>
+        )}
       </Section>
+      )}
 
-      {fund && fund.growth.length > 0 && (
+      {growth.length > 0 && (
         <Section title="Compounded growth">
           <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-            {fund.growth.map((g) => (
+            {growth.map((g) => (
               <div key={g.title} className="rounded-xl border border-line bg-panel p-3">
                 <div className="mb-1.5 text-[11px] font-semibold text-ink">{g.title.replace(/^Compounded /, "")}</div>
                 {g.rows.map((r) => (
@@ -139,7 +167,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
         </Section>
       )}
 
-      {fund?.annual && fund.annual.series.length > 0 && (
+      {fund?.annual && annualSeries.length > 0 && (
         <div className="max-[640px]:hidden"><Section title="Annual performance (₹ Cr)">
           <div className="overflow-x-auto rounded-2xl border border-line bg-panel">
             <table className="w-full min-w-[480px] text-xs">
@@ -152,7 +180,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {fund.annual.series.map((r) => (
+                {annualSeries.map((r) => (
                   <tr key={r.label}>
                     <td className="px-3 py-2.5 text-ink">{r.label}</td>
                     {r.values.map((v, i) => (
@@ -167,7 +195,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
       )}
 
       <p className="border-t border-dashed border-line pt-2 text-[10.5px] text-ink-soft">
-        Source: {fund?.source === "yahoo" ? "Yahoo Finance" : "Screener.in (consolidated)"}{fund ? `, fetched ${new Date(fund.fetchedAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : ", cached"}. {fund?.source === "yahoo" ? "" : "Industry = median of the company\u2019s Screener industry group."}
+        Source: {fund?.source === "yahoo" ? "Yahoo Finance" : `Screener.in (${basis}${basis === "standalone" ? " — the company reports no consolidated accounts" : ""})`}{fund ? `, fetched ${new Date(fund.fetchedAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : `, cached${api?.seedAsOf ? ` as of ${api.seedAsOf}` : ""}`}. {fund?.source === "yahoo" ? "" : "Industry = median of the company\u2019s Screener industry group."}
       </p>
     </div>
   );

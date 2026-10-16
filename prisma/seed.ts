@@ -14,8 +14,28 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL, keepAlive: true });
+// The seed is thousands of sequential round trips to a remote pooler; one dropped
+// connection used to abort the whole run. Every write here is an idempotent upsert
+// (or a delete-then-create per company), so retrying a query on a connection error is safe.
+const RETRYABLE = /P1001|P1002|P1008|P1017|ECONNRESET|EHOSTUNREACH|ETIMEDOUT|ENETUNREACH|SocketTimeout|Connection terminated/;
+const prisma = new PrismaClient({ adapter }).$extends({
+  query: {
+    async $allOperations({ args, query }) {
+      for (let attempt = 1; ; attempt++) {
+        try {
+          return await query(args);
+        } catch (e) {
+          const msg = `${(e as { code?: string }).code ?? ""} ${String(e)}`;
+          if (attempt >= 6 || !RETRYABLE.test(msg)) throw e;
+          const wait = 1000 * 2 ** (attempt - 1);
+          console.warn(`  connection error (${msg.trim().slice(0, 60)}), retry ${attempt}/5 in ${wait / 1000}s`);
+          await new Promise((r) => setTimeout(r, wait));
+        }
+      }
+    },
+  },
+});
 
 type Extracted = {
   asOf: string;
