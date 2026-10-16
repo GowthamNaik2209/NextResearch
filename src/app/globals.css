@@ -12,6 +12,8 @@
   --amber: #e08a3c;
   --danger: #e8705e;
   --pos: #5fcf8e;
+  /* Third chart series (IPO profit bars): must stay distinct from --accent in each theme. */
+  --series-3: var(--pos);
   color-scheme: dark;
 }
 
@@ -32,6 +34,7 @@
   --amber: #a8650a;
   --danger: #b73a2c;
   --pos: #1c7a4b;
+  --series-3: var(--amber);
   color-scheme: light;
 }
 

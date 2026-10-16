@@ -66,6 +66,20 @@ Two rules shape most decisions:
 - `SupplierFinancials` (`supplier.f`) holds the seed figures (5-year revenue, KPIs, price CAGR,
   52-week range). They are an *as of* snapshot (`DATA_AS_OF`) - the offline fallback.
 
+### Upcoming IPOs - `src/lib/ipo-content/`
+
+- One authored `IpoReport` per IPO (`<slug>.ts`, shape and field rules in `types.ts`): the DRHP/RHP
+  summarised - issue split and timeline, business mix, restated financials, KPIs, use of
+  proceeds, shareholding, peers, strengths/risks, sources (offer document first).
+- `index.ts` registers them (`IPOS`), sorts by stage (open > upcoming > approved > filed) and
+  builds the serializable `IpoDeck`; a peer whose NSE ticker we cover gets its supplier record,
+  so the peer row opens the stock pop-up. `validate.ts` holds the shape rules
+  (`npx tsx scripts/check-ipo.ts [slug]`, also run by `ipo-content.test.ts`).
+- Shown by `components/ipo/*` (cards, `IpoSlides` - ten slides, `IpoDeckView`) inside the shared
+  pop-up shell `components/research/Presentation.tsx`, which the sector decks use too. They
+  appear in the landing page's third tab (Industries / Policies / IPOs), the reading list's IPOs
+  tab, `/ipos`, and search.
+
 ### Live data - `src/lib/live/`
 
 | File | Source | Used for | Cache |
@@ -127,6 +141,7 @@ row behind; delete it only after checking no watchlist references it (children c
 | `/sector/[slug]/explore` | server shell + client | 3D explorer; deep links via `?zone=&company=&scenario=` |
 | `/company/[slug]`, `/companies` | server | One indexable page per listed company; A-Z list |
 | `/updates`, `/docs`, `/docs/[slug]` | server | Live news feed (filter `?sector=`); reading list: 10-slide research deck per sector in a pop-up (`?report=<slug>` opens one) |
+| `/ipos` | server | Upcoming-IPO decks (`?ipo=<slug>` opens one; also works on `/` and `/docs`) |
 | `/connections` | server | Companies present in 2+ supply chains, ranked by footprint (`sector-content/exposure.ts`) |
 | `/watchlist` | server | Auth required; rows open the stock pop-up |
 | `/login`, `/signup`, `/auth/callback` | server | Supabase auth |

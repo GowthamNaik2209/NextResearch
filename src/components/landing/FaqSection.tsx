@@ -7,7 +7,7 @@ const FAQ = [
   },
   {
     q: "Where does the data come from?",
-    a: "Supply-chain maps and company exposure are authored from publicly available information; company financials and ratios are drawn from public filings and market data pages. Each sector and company shows a data-status label, so you can tell what is verified and what is not.",
+    a: "Supply-chain maps and company exposure are authored from publicly available information; company financials and ratios are drawn from public filings and market data pages. Each industry, policy and company shows a data-status label, so you can tell what is verified and what is not.",
   },
   {
     q: "How is this different from a screener?",
@@ -15,7 +15,7 @@ const FAQ = [
   },
   {
     q: "Do I need an account?",
-    a: "You can browse every sector and company without one. An account is only needed to save companies to a watchlist.",
+    a: "You can browse every theme and company without one. An account is only needed to save companies to a watchlist.",
   },
 ];
 

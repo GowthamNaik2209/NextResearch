@@ -6,7 +6,7 @@ import Link from "next/link";
 // Phone-only navigation: the header's text links are hidden below `md`, so this hamburger
 // opens the same destinations as a dropdown. Closes on a pick, outside tap or Escape.
 const ITEMS: [string, string][] = [
-  ["Sectors", "/#sectors"],
+  ["Themes", "/#themes"],
   ["Connections", "/connections"],
   ["Updates", "/updates"],
   ["How it works", "/#how"],

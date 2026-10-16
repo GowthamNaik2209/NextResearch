@@ -4,6 +4,7 @@ import { buildIdeas, dataAsOfRange } from "@/lib/sector-content/insights";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SectorBrowser } from "@/components/SectorBrowser";
+import { listIpoDecks } from "@/lib/ipo-content";
 import { IdeasSection } from "@/components/IdeasSection";
 import { Hero } from "@/components/landing/Hero";
 import { StatsStrip } from "@/components/landing/StatsStrip";
@@ -33,8 +34,10 @@ export default function HomePage() {
 
         {featured && <FeaturedThesis sector={featured} />}
 
-        <section id="sectors" className="mx-auto max-w-6xl scroll-mt-20 px-5 pb-20">
-          <SectorBrowser sectors={buildSectorCards()} comingSoon={listComingSoonSectors()} />
+        <section id="themes" className="mx-auto max-w-6xl scroll-mt-20 px-5 pb-20">
+          {/* Old shared links point at #sectors. */}
+          <span id="sectors" aria-hidden className="block scroll-mt-20" />
+          <SectorBrowser sectors={buildSectorCards()} comingSoon={listComingSoonSectors()} ipos={listIpoDecks()} />
         </section>
 
         <section className="mx-auto max-w-6xl px-5 pb-20">

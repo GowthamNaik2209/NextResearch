@@ -16,6 +16,10 @@ function score(e: SearchEntry, term: string): number {
   return 9;
 }
 
+// Themes (industries and policies) first, then IPOs, then companies.
+const KIND_ORDER: Record<SearchEntry["kind"], number> = { sector: 0, ipo: 1, company: 2 };
+const KIND_LABEL: Record<SearchEntry["kind"], string> = { sector: "Theme", ipo: "IPO", company: "Company" };
+
 export function HeroSearch({ index }: { index: SearchEntry[] }) {
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -30,8 +34,8 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
     return index
       .map((e) => ({ e, score: score(e, term) }))
       .filter((x) => x.score < 9)
-      .sort((a, b) => a.score - b.score || (a.e.kind === "sector" ? -1 : 1))
-      .slice(0, 7)
+      .sort((a, b) => a.score - b.score || KIND_ORDER[a.e.kind] - KIND_ORDER[b.e.kind])
+      .slice(0, 8)
       .map((x) => x.e);
   }, [term, index]);
   const showList = open && term.length >= 2;
@@ -94,9 +98,9 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
           type="search"
           enterKeyHint="go"
           autoComplete="off"
-          placeholder="Company, sector or policy, e.g. L&T"
+          placeholder="Company, theme or IPO, e.g. L&T"
           role="combobox"
-          aria-label="Search companies, sectors and policies"
+          aria-label="Search companies, industries, policies and IPOs"
           aria-expanded={showList}
           aria-controls={listId}
           aria-autocomplete="list"
@@ -125,7 +129,7 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
                   <span className="block truncate text-xs text-ink-soft">{r.sub}</span>
                 </span>
                 <span className="flex-none rounded-full border border-line px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
-                  {r.kind}
+                  {KIND_LABEL[r.kind]}
                 </span>
               </Link>
             </li>

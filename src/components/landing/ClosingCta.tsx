@@ -8,10 +8,10 @@ export async function ClosingCta() {
     <section className="mx-auto max-w-6xl px-5 py-20">
       <div className="rounded-3xl bg-accent px-8 py-12 text-center">
         <h2 className="font-display text-3xl font-bold tracking-tight text-bg">Build your watchlist around a theme, not a tip.</h2>
-        <p className="mx-auto mt-3 max-w-lg text-sm text-bg/80">Create an account to save the companies you want to follow across every sector.</p>
+        <p className="mx-auto mt-3 max-w-lg text-sm text-bg/80">Create an account to save the companies you want to follow across every theme.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link href="/signup" className="rounded-lg bg-bg px-6 py-2.5 text-sm font-semibold text-ink hover:opacity-90">Create an account</Link>
-          <Link href="#sectors" className="rounded-lg border border-bg/40 px-6 py-2.5 text-sm font-semibold text-bg hover:bg-bg/10">Keep browsing</Link>
+          <Link href="#themes" className="rounded-lg border border-bg/40 px-6 py-2.5 text-sm font-semibold text-bg hover:bg-bg/10">Keep browsing</Link>
         </div>
       </div>
     </section>

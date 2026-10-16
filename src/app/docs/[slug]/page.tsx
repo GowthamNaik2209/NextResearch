@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = `${deck?.report.title ?? sector.name} — research report & reading list`;
   return {
     title,
-    description: `Curated research on India's ${midSentence(sector.name)} sector: a 10-slide report plus the primary sources behind it. ${sector.tagline}.`,
+    description: `Curated research on ${midSentence(sector.name)} in India: a 10-slide report plus the primary sources behind it. ${sector.tagline}.`,
     alternates: { canonical: `/docs/${slug}` },
     openGraph: { title, url: `/docs/${slug}`, type: "article" },
   };
@@ -74,7 +74,7 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
         <section>
           <h2 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-ink-soft">Further reading</h2>
           {links.length === 0 ? (
-            <p className="rounded-xl border border-line bg-panel p-4 text-sm text-ink-soft">No curated links for this sector yet.</p>
+            <p className="rounded-xl border border-line bg-panel p-4 text-sm text-ink-soft">No curated links for this theme yet.</p>
           ) : (
             <ul className="flex flex-col gap-3">
               {links.map((link) => (
