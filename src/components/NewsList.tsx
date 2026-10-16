@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { NewsItem } from "@/lib/sector-content/insights";
 import { findSupplierByTicker } from "@/lib/sector-content";
 import { StockLink } from "@/components/stock/StockLink";
+import { NewsTime } from "@/components/stock/NewsTime";
+import { cleanSource } from "@/lib/live/news";
 
 export function NewsList({ items, showSector = true }: { items: NewsItem[]; showSector?: boolean }) {
   return (
@@ -16,12 +18,12 @@ export function NewsList({ items, showSector = true }: { items: NewsItem[]; show
               <Link href={`/sector/${n.sectorSlug}`} className="font-semibold text-accent hover:underline">{n.company}</Link>
             )}
             {showSector && <Link href={`/sector/${n.sectorSlug}`} className="-my-1 py-1 underline decoration-line underline-offset-2 hover:text-ink">{n.sectorName}</Link>}
-            <span className="font-mono">{n.date}</span>
+            <NewsTime className="font-mono" label={n.date} ts={n.ts} />
           </div>
           <a href={n.url} target="_blank" rel="noopener noreferrer" className="mt-1.5 block text-sm font-medium leading-snug text-ink hover:text-accent">
             {n.headline}
           </a>
-          <div className="mt-1 text-xs text-ink-soft">{n.source}</div>
+          <div className="mt-1 text-xs text-ink-soft">{cleanSource(n.source)}</div>
         </li>
       ))}
     </ul>

@@ -35,3 +35,13 @@ export const BRAND = {
 export function jsonLd(data: unknown): string {
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
+
+// What a dynamic route's generateMetadata returns for an unknown slug. The page then calls
+// notFound(), but the head comes from generateMetadata, so `{}` would leave the home page title.
+export const NOT_FOUND_METADATA = { title: "Page not found", robots: { index: false } } as const;
+
+// Title Case names ("Vehicle OEMs & Assembly", "Semiconductors (Fab + ATMP)") used mid-sentence:
+// only plain capitalised words drop to lower case, so acronyms (OEMs, DC, REIT, EPC, ATMP) and
+// India stay as written - a blanket toLowerCase() gave "dc operators & reit layer".
+const KEEP_CASE = new Set(["India", "Indian"]);
+export const midSentence = (label: string) => label.replace(/\b[A-Z][a-z]+\b/g, (w) => (KEEP_CASE.has(w) ? w : w.toLowerCase()));

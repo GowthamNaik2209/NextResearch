@@ -35,6 +35,30 @@
   color-scheme: light;
 }
 
+/* Grows a small control's hit area to at least 40x40px (centred, invisible) without changing
+   how it looks: header icons, the compact "Sign up" button and pill tabs. Keep at least 8px
+   between neighbours so the enlarged areas do not overlap. */
+@utility tap-target {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 40px);
+    height: max(100%, 40px);
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Phones: a row of filter chips scrolls sideways instead of wrapping into a wall of rows. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-panel: var(--panel);

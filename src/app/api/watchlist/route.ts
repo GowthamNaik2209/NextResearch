@@ -4,18 +4,20 @@ import { prisma } from "@/lib/prisma";
 
 // GET: the current user's watchlisted tickers (empty array if signed out —
 // "nothing liked yet" and "not logged in" render the same way: an empty heart).
+// `signedIn` lets the heart show the sign-up prompt straight away for a signed-out visitor
+// instead of first POSTing and getting a 401 (which also logged a console error).
 export async function GET() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ tickers: [] });
+  if (!user) return NextResponse.json({ tickers: [], signedIn: false });
 
   const rows = await prisma.watchlist.findMany({
     where: { userId: user.id },
     include: { company: { select: { ticker: true } } },
   });
-  return NextResponse.json({ tickers: rows.map((r) => r.company.ticker) });
+  return NextResponse.json({ tickers: rows.map((r) => r.company.ticker), signedIn: true });
 }
 
 // POST { ticker } — add to watchlist, capturing the latest known price as

@@ -59,6 +59,8 @@ export const PHARMA_ANCHORS: Record<string, { pos: Vec3; side: Side }> = {
   cdmo: { pos: [-2.3, 0.42, -0.2], side: "left" }, // custom-synthesis suite
 };
 
+// `layer` (optional): a view about one layer also peels the model to it (engine.ts flyTo),
+// so e.g. the Reactor Bay shot opens the chemistry layer instead of looking at a roof.
 export const PHARMA_VIEWS = [
   {
     id: "overview",
@@ -78,6 +80,7 @@ export const PHARMA_VIEWS = [
   },
   {
     id: "tablets",
+    layer: 1,
     label: "Tablet Line",
     pos: [1.6, 3.3, 4.6],
     target: [0.9, 0.15, 0.95],
@@ -86,6 +89,7 @@ export const PHARMA_VIEWS = [
   },
   {
     id: "sterile",
+    layer: 2,
     label: "Sterile Suite",
     pos: [2.6, 3.4, 1.4],
     target: [0.55, 0.25, -1.9],
@@ -94,6 +98,7 @@ export const PHARMA_VIEWS = [
   },
   {
     id: "reactors",
+    layer: 3,
     label: "Reactor Bay",
     pos: [-0.4, 3.0, 3.6],
     target: [-3.0, 0.45, -0.4],

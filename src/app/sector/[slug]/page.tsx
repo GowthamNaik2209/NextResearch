@@ -1,15 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  companyLinkExposure,
   companyLinkKey,
   getSector,
   listSectorSlugs,
   tickerForSupplier,
   EXPOSURE_TYPE_LABEL,
   EXPOSURE_STRENGTH_LABEL,
-  type ExposureStrength,
-  type ExposureType,
 } from "@/lib/sector-content";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -18,8 +15,8 @@ import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { OpenReportButton } from "@/components/research/OpenReport";
 import { buildDeck } from "@/lib/sector-content/reports";
 import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
-import { companySlug } from "@/lib/sector-content/companies";
-import { SITE_URL, jsonLd } from "@/lib/site";
+import { companySlug, sectorCompanies, sectorCompanyCounts } from "@/lib/sector-content/companies";
+import { NOT_FOUND_METADATA, SITE_URL, jsonLd, midSentence } from "@/lib/site";
 import type { Metadata } from "next";
 
 export function generateStaticParams() {
@@ -29,8 +26,8 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const sector = getSector(slug);
-  if (!sector) return {};
-  const listed = Object.values(sector.suppliers).filter((s) => s.listed).length;
+  if (!sector) return NOT_FOUND_METADATA;
+  const { listed } = sectorCompanyCounts(sector);
   const title = `${sector.name} stocks in India: supply chain map & ${listed} listed companies`;
   const description = `${sector.tagline}. ${sector.thesisSummary ?? ""}`.slice(0, 300);
   return {
@@ -69,24 +66,10 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
   }
   const hasBottlenecks = bottlenecks.length > 0;
 
-  // One company can sit in several zones (e.g. a conglomerate's DC arm vs. its
-  // unrelated core business) with a different exposure each time — this builds
-  // the company -> zones index the "Find companies" section needs, the inverse
-  // of the zone -> companies link zones already carry.
-  const zonesByCompany = new Map<
-    string,
-    { zoneId: string; zoneLabel: string; zoneColor: string; exposureType?: ExposureType; exposureStrength?: ExposureStrength }[]
-  >();
-  for (const zone of sector.zones) {
-    for (const link of zone.suppliers) {
-      const key = companyLinkKey(link);
-      const exposure = companyLinkExposure(link);
-      const list = zonesByCompany.get(key) ?? [];
-      list.push({ zoneId: zone.id, zoneLabel: zone.label, zoneColor: zone.color, ...exposure });
-      zonesByCompany.set(key, list);
-    }
-  }
-  const companies = Object.entries(sector.suppliers);
+  // One card per company: a company listed under two keys for two roles in this sector (HAL as
+  // prime and as MRO shop) is merged, with every layer it sits in as a chip.
+  const companies = sectorCompanies(sector);
+  const listedCompanies = companies.filter((c) => c.supplier.listed && c.supplier.f?.ticker);
 
   // The zone representing final assembly/integration (e.g. ev4w's "oem" zone
   // is Mahindra/Tata Motors) — surfaced as its own section instead of being
@@ -94,10 +77,12 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
   const integratorZone = sector.integratorZoneId
     ? sector.zones.find((z) => z.id === sector.integratorZoneId)
     : undefined;
-  const integratorCompanies = (integratorZone?.suppliers ?? []).map((link) => {
-    const key = companyLinkKey(link);
-    return { key, company: sector.suppliers[key] };
-  });
+  const integratorCompanies = (integratorZone?.suppliers ?? [])
+    .map((link) => {
+      const key = companyLinkKey(link);
+      return { key, company: sector.suppliers[key] };
+    })
+    .filter((x, i, all) => x.company && all.findIndex((y) => tickerForSupplier(y.company) === tickerForSupplier(x.company)) === i);
 
   const deck = buildDeck(sector.slug);
 
@@ -237,7 +222,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                 {sector.integratorBlurb ?? (
                   <>
                     The companies that assemble the finished product from everything else in this sector &mdash;{" "}
-                    {integratorZone.label.toLowerCase()}.
+                    {midSentence(integratorZone.label)}.
                   </>
                 )}
               </p>
@@ -309,12 +294,14 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
 
         <section id="companies" className="scroll-mt-20">
           <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Companies in this sector</h2>
+          <p className="mt-1 text-xs text-ink-soft">
+            {companies.length} companies, {listedCompanies.length} listed.
+          </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {companies.map(([key, company]) => {
-              const zones = zonesByCompany.get(key) ?? [];
-              const ticker = company.listed ? tickerForSupplier(company) : null;
+            {companies.map(({ key, ticker: cardTicker, supplier: company, roles, zones }) => {
+              const ticker = company.listed ? cardTicker : null;
               return (
-                <OpenStockCard key={key} ticker={tickerForSupplier(company)} supplier={company} className="rounded-xl border border-line bg-panel p-4 transition hover:border-accent">
+                <OpenStockCard key={key} ticker={cardTicker} supplier={company} className="rounded-xl border border-line bg-panel p-4 transition hover:border-accent">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-sm font-semibold text-ink">
                       {ticker ? (
@@ -335,13 +322,17 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                       {company.listed ? "Listed" : "Unlisted"}
                     </span>
                   </div>
-                  <p className="mt-1 text-xs leading-relaxed text-ink-soft">{company.role}</p>
+                  {roles.map((role) => (
+                    <p key={role} className="mt-1 text-xs leading-relaxed text-ink-soft">
+                      {role}
+                    </p>
+                  ))}
                   {zones.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {zones.map((z) => (
                         <Link
                           key={z.zoneId}
-                          href={`/sector/${sector.slug}/explore?zone=${encodeURIComponent(z.zoneId)}&company=${encodeURIComponent(key)}`}
+                          href={`/sector/${sector.slug}/explore?zone=${encodeURIComponent(z.zoneId)}&company=${encodeURIComponent(z.companyKey)}`}
                           className="flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[10px] text-ink-soft hover:border-accent hover:text-ink"
                           title={z.exposureType ? EXPOSURE_TYPE_LABEL[z.exposureType] : undefined}
                         >
@@ -378,14 +369,12 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                 {
                   "@type": "ItemList",
                   name: `Listed companies in India's ${sector.name} supply chain`,
-                  itemListElement: companies
-                    .filter(([, c]) => c.listed && c.f?.ticker)
-                    .map(([, c], i) => ({
-                      "@type": "ListItem",
-                      position: i + 1,
-                      name: c.name,
-                      url: `${SITE_URL}/company/${companySlug(c.f!.ticker)}`,
-                    })),
+                  itemListElement: listedCompanies.map((c, i) => ({
+                    "@type": "ListItem",
+                    position: i + 1,
+                    name: c.supplier.name,
+                    url: `${SITE_URL}/company/${companySlug(c.ticker)}`,
+                  })),
                 },
               ],
             }),

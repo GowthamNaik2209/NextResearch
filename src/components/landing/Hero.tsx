@@ -43,32 +43,37 @@ export function Hero({ featured, searchIndex }: Props) {
   );
 }
 
-/** Decorative preview: a stylised stack of the featured sector's value-chain layers. */
+/** A stylised stack of the featured sector's value-chain layers; each layer opens it in the 3D map. */
 function ChainPreview({ featured }: Pick<Props, "featured">) {
+  const slug = featured?.slug ?? "datacenter";
   return (
-    <div aria-hidden className="relative">
+    <nav aria-label={`${featured?.name ?? "Industry"} layers`} className="relative">
       <div className="rounded-2xl border border-line bg-panel p-5 shadow-xl">
         <div className="mb-4 flex items-center justify-between text-xs">
           <span className="font-mono font-semibold text-ink">{featured?.name ?? "Industry map"}</span>
           <span className="text-ink-soft">value chain</span>
         </div>
         {(featured?.zones.slice(0, 5) ?? []).map((z, i) => (
-          <div
+          <Link
             key={z.id}
-            className="mb-2 flex items-center justify-between gap-3 rounded-lg border border-line bg-panel-2 px-3.5 py-2.5"
+            href={`/sector/${slug}/explore?zone=${encodeURIComponent(z.id)}`}
+            className="mb-2 flex items-center justify-between gap-3 rounded-lg border border-line bg-panel-2 px-3.5 py-2.5 transition hover:border-accent"
             style={{ marginLeft: i * 10, marginRight: (4 - i) * 10 }}
           >
             <span className="flex items-center gap-2.5 text-sm font-medium text-ink">
               <span className="h-2.5 w-2.5 rounded-sm" style={{ background: z.color }} />
               {z.label}
             </span>
-            <span className="shrink-0 font-mono text-xs text-ink-soft">{z.suppliers.length} cos</span>
-          </div>
+            <span className="shrink-0 font-mono text-xs text-ink-soft">
+              {z.suppliers.length} <span aria-hidden>cos</span>
+              <span className="sr-only">companies</span>
+            </span>
+          </Link>
         ))}
         <div className="mt-4 rounded-lg bg-accent/10 px-3.5 py-3 text-xs leading-relaxed text-ink-soft">
-          <b className="text-accent">Tap a layer</b> to see who supplies it, how exposed each company is, and compare them side by side.
+          <b className="text-accent">Tap a layer</b> to open it in the 3D map: who supplies it, how exposed each company is, and how they compare.
         </div>
       </div>
-    </div>
+    </nav>
   );
 }

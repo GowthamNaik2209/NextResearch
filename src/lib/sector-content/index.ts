@@ -14,6 +14,8 @@ export type SectorView = {
   // site (SectorExplorer.tsx), so sectors that haven't been scripted yet still
   // get a working (if plainer) tour.
   narration?: string;
+  // A view about one layer (e.g. "Cooling Yard", "Underground") also peels the model to it.
+  layer?: number;
 };
 
 // Provenance of a piece of *static* authored content (industry/domain/component
@@ -115,6 +117,7 @@ export type SupplierFinancials = {
   range?: (number | null)[] | null; // 52-week [low, high]
   tl?: [number, string] | null; // Trendlyne [id, slug]
   kpi?: (number | null)[] | null; // [pe, bookValue, divYield, roce, roe, faceValue]
+  asOf?: string; // date of the price/valuation figures, e.g. "16 Oct 2026" (set by products.ts fin())
   // Latest-year profit/revenue dominated by a one-off (e.g. SPARC's FY26 priority-review
   // voucher sale): kept out of the landing page's rule-based idea screens.
   screenOut?: boolean;
@@ -231,16 +234,40 @@ export function tickerForSupplier(sup: SectorSupplier): string {
 // Listed ticker -> supplier record (plain data), first sector that has it. Used wherever a
 // company is shown outside the 3D explorer (watchlist) and as the allowlist for the live
 // stock API routes, which proxy third-party sites and so must only serve tickers we cover.
+// A company in several sectors (L&T: naval, aerospace, real estate…) has one supplier record per
+// sector, each with that sector's role/strengths/risks. Pick the record from its strongest link
+// (high > medium > low; side links like lenders rank lower), so the stock pop-up and the
+// company page describe it the same way. Same weighting as companies.ts primaryAppearance().
+export function linkWeight(link: SectorCompanyLink): number {
+  const { exposureType, exposureStrength } = companyLinkExposure(link);
+  return (
+    (exposureStrength ? { high: 3, medium: 2, low: 1 }[exposureStrength] : 3) -
+    (exposureType === "enabler" || exposureType === "indirect_supplier" ? 0.5 : 0)
+  );
+}
+
 let supplierByTicker: Map<string, SectorSupplier> | null = null;
 export function findSupplierByTicker(ticker: string): SectorSupplier | null {
   if (!supplierByTicker) {
-    supplierByTicker = new Map();
+    const best = new Map<string, { sup: SectorSupplier; w: number }>();
     for (const slug of SECTOR_KEYS) {
-      for (const sup of Object.values(PRODUCTS[slug].suppliers)) {
+      const sector = PRODUCTS[slug];
+      for (const z of sector.zones) {
+        for (const link of z.suppliers) {
+          const sup = sector.suppliers[companyLinkKey(link)];
+          const t = sup?.f?.ticker;
+          if (!sup?.listed || !t) continue;
+          const w = linkWeight(link);
+          if (!best.has(t) || w > best.get(t)!.w) best.set(t, { sup, w });
+        }
+      }
+      // Listed suppliers not linked from any zone still resolve (first one wins).
+      for (const sup of Object.values(sector.suppliers)) {
         const t = sup.f?.ticker;
-        if (sup.listed && t && !supplierByTicker.has(t)) supplierByTicker.set(t, sup);
+        if (sup.listed && t && !best.has(t)) best.set(t, { sup, w: -1 });
       }
     }
+    supplierByTicker = new Map([...best].map(([t, b]) => [t, b.sup]));
   }
   return supplierByTicker.get(ticker) ?? null;
 }

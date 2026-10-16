@@ -14,6 +14,9 @@ type Props = { ticker: string; name?: string };
 // page load total, and a toggle in any one button updates every other
 // instance showing the same ticker without a refetch.
 let tickersCache: Set<string> | null = null;
+// From the same GET: false = signed out, so a heart tap goes straight to the sign-up prompt
+// without a request that is bound to 401. null = unknown (load failed) - then we just try.
+let signedIn: boolean | null = null;
 let inFlight: Promise<Set<string>> | null = null;
 const listeners = new Set<() => void>();
 
@@ -22,12 +25,14 @@ function loadTickers(): Promise<Set<string>> {
   if (!inFlight) {
     inFlight = fetch("/api/watchlist")
       .then((r) => r.json())
-      .then((data: { tickers?: string[] }) => {
+      .then((data: { tickers?: string[]; signedIn?: boolean }) => {
         tickersCache = new Set(data.tickers ?? []);
+        signedIn = typeof data.signedIn === "boolean" ? data.signedIn : null;
         return tickersCache;
       })
       .catch(() => {
         tickersCache = new Set();
+        signedIn = null;
         return tickersCache;
       });
   }
@@ -115,8 +120,21 @@ export function WatchlistButton({ ticker, name }: Props) {
       e.stopPropagation();
       if (loading) return;
       setLoading(true);
-      const wasLiked = tickersCache?.has(ticker) ?? false;
       try {
+        // Usually already loaded on mount; awaiting covers a tap before that finished. A cached
+        // "signed out" may predate a login finished by client-side navigation (module state
+        // survives it), so re-check that case - a GET, which answers 200 either way.
+        if (signedIn !== true) {
+          tickersCache = null;
+          inFlight = null;
+        }
+        await loadTickers();
+        listeners.forEach((notify) => notify());
+        if (signedIn === false) {
+          setNeedsAuth(true);
+          return;
+        }
+        const wasLiked = tickersCache?.has(ticker) ?? false;
         const res = wasLiked
           ? await fetch(`/api/watchlist?ticker=${encodeURIComponent(ticker)}`, { method: "DELETE" })
           : await fetch("/api/watchlist", {
@@ -125,6 +143,8 @@ export function WatchlistButton({ ticker, name }: Props) {
               body: JSON.stringify({ ticker }),
             });
         if (res.status === 401) {
+          // Session expired since the page loaded.
+          signedIn = false;
           setNeedsAuth(true);
         } else if (res.ok) {
           setNeedsAuth(false);
@@ -147,6 +167,8 @@ export function WatchlistButton({ ticker, name }: Props) {
     <span className="watch-wrap">
       <button
         type="button"
+        // tap-target (globals.css): an invisible 40x40 hit area around the 23x23 heart, so
+        // the rows it sits in keep their height but a thumb still reliably hits it.
         className={"watch-btn" + (liked ? " active" : "") + (justLiked ? " pop" : "")}
         onClick={toggle}
         disabled={loading}

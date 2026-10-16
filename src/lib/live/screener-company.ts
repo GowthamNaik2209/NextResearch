@@ -20,6 +20,9 @@ export type Series = { label: string; values: (number | null)[] };
 export type Fundamentals = {
   // Where these figures came from: Screener.in (full set) or the Yahoo Finance fallback (partial).
   source: "screener" | "yahoo";
+  // Which Screener statements: consolidated by default, standalone for companies that file only
+  // standalone (their consolidated page is empty). null for the Yahoo fallback.
+  basis: "consolidated" | "standalone" | null;
   companyId: string | null;
   classification: { broadSector?: string; sector?: string; industry?: string };
   kpi: ScreenerKpi | null;
@@ -61,84 +64,120 @@ async function fetchText(url: string): Promise<string | null> {
   return res.ok ? res.text() : null;
 }
 
+// Screener serves a page at /consolidated/ for every company, but for one that only files
+// standalone statements (Abbott India, Netweb, Bosch Home Comfort) that page is an empty
+// template: blank ratios, "10 Years: %" growth rows, a P&L with no columns and no warehouse id
+// (so no peers table either). Such a page is "unusable" and we read the standalone page instead.
+export function isUsablePage(html: string): boolean {
+  return parseTopRatios(html)?.price != null && /data-warehouse-id="\d+"/.test(html);
+}
+
+// A growth value is shown only when it holds a number ("12%", "-3%"); blank cells read "%".
+const hasNumber = (v: string) => /\d/.test(v);
+
+/** Parse one Screener company page (everything except the peers table, which is a second request). */
+export function parseCompanyPage(html: string): Omit<Fundamentals, "source" | "basis" | "industry" | "fetchedAt"> & { warehouseId: string | null } {
+  const companyId = html.match(/data-company-id="(\d+)"/)?.[1] ?? null;
+  const warehouseId = html.match(/data-warehouse-id="(\d+)"/)?.[1] ?? null;
+
+  const cls = (title: string) => {
+    const m = html.match(new RegExp(`<a [^>]*title="${title}"[^>]*>([\\s\\S]*?)</a>`));
+    return m ? strip(m[1]) || undefined : undefined;
+  };
+  const classification = { broadSector: cls("Broad Sector"), sector: cls("Sector"), industry: cls("Industry") };
+
+  const kpi = parseTopRatios(html);
+
+  const growth = [...html.matchAll(/<table class="ranges-table">([\s\S]*?)<\/table>/g)]
+    .map((m) => ({
+      title: strip(m[1].match(/<th[^>]*>([\s\S]*?)<\/th>/)?.[1] ?? ""),
+      rows: [...m[1].matchAll(/<tr>\s*<td>([\s\S]*?)<\/td>\s*<td>([\s\S]*?)<\/td>/g)]
+        .map((r) => ({ period: strip(r[1]).replace(/:$/, ""), value: strip(r[2]) }))
+        .filter((r) => hasNumber(r.value)),
+    }))
+    .filter((g) => g.title && g.rows.length > 0);
+
+  let shareholding: Fundamentals["shareholding"] = null;
+  const sh = sectionTable(html, "shareholding");
+  if (sh) {
+    const t = parseDataTable(sh);
+    const last = t.cols.length - 1;
+    const rows = t.rows.filter((r) => r.label && !/No\. of/i.test(r.label)).map((r) => ({ label: r.label, value: r.values[last] ?? null }));
+    if (last >= 0 && rows.some((r) => r.value != null)) shareholding = { period: t.cols[last], rows };
+  }
+
+  let annual: Fundamentals["annual"] = null;
+  const pl = sectionTable(html, "profit-loss");
+  if (pl) {
+    const t = parseDataTable(pl);
+    const keep = ["Sales", "Operating Profit", "OPM %", "Net Profit", "EPS in Rs"];
+    const n = 6; // most recent six columns (incl. TTM when present)
+    const series = t.rows
+      .filter((r) => keep.includes(r.label))
+      .map((r) => ({ label: r.label, values: r.values.slice(-n) }))
+      .filter((r) => r.values.some((v) => v != null));
+    if (t.cols.length > 0 && series.length > 0) annual = { years: t.cols.slice(-n), series };
+  }
+
+  return { companyId, warehouseId, classification, kpi, growth, shareholding, annual };
+}
+
+// numeric columns start at index 2 in body rows ([#, name, CMP, P/E, ...]) and in the footer.
+const peerMetrics = (c: string[]): PeerMetrics => ({
+  pe: num(c[3] ?? ""),
+  marketCapCr: num(c[4] ?? ""),
+  divYield: num(c[5] ?? ""),
+  qtrProfitVarPct: num(c[7] ?? ""),
+  qtrSalesVarPct: num(c[9] ?? ""),
+  roce: num(c[10] ?? ""),
+});
+// A median of exactly 0 for these means "most peers have no value" (e.g. NHPC's power-generation
+// group: most peers pay no dividend, or report no P/E), not a meaningful benchmark - comparing a
+// 2.2% yield against "0%" reads as a data error, so it is shown as unavailable instead.
+const ZERO_IS_MISSING: (keyof PeerMetrics)[] = ["pe", "marketCapCr", "divYield", "roce"];
+
+/** Parse Screener's peers table (HTML fragment): the industry-median footer and the company's own row. */
+export function parsePeers(peers: string, companyId: string | null): Fundamentals["industry"] {
+  const foot = peers.match(/<tfoot>([\s\S]*?)<\/tfoot>/)?.[1];
+  if (!foot) return null;
+  const cellsOf = (tr: string) => [...tr.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((c) => strip(c[1]));
+  const fc = cellsOf(foot);
+  const median = peerMetrics(fc);
+  for (const k of ZERO_IS_MISSING) if (median[k] === 0) median[k] = null;
+  const count = parseInt(fc[1]?.match(/(\d+)/)?.[1] ?? "", 10);
+  const selfRow = companyId ? peers.match(new RegExp(`<tr data-row-company-id="${companyId}"[^>]*>([\\s\\S]*?)</tr>`))?.[1] : undefined;
+  return { peerCount: Number.isFinite(count) ? count : null, median, self: selfRow ? peerMetrics(cellsOf(selfRow)) : null };
+}
+
 export async function getFundamentals(slug: string): Promise<Fundamentals | null> {
-  return cached(`fund:${slug}`, 6 * 60 * 60 * 1000, async () => {
+  // Key carries a shape version so a deploy never serves objects cached by older code.
+  return cached(`fund:v2:${slug}`, 6 * 60 * 60 * 1000, async () => {
     try {
-      // Consolidated first (matches the rest of the app), standalone as fallback.
+      // Consolidated first (matches the rest of the app); standalone when the consolidated
+      // page is missing or an empty template (see isUsablePage).
       const base = `https://www.screener.in/company/${encodeURIComponent(slug)}`;
-      const html = (await fetchText(`${base}/consolidated/`)) ?? (await fetchText(`${base}/`));
+      let basis: "consolidated" | "standalone" = "consolidated";
+      let html = await fetchText(`${base}/consolidated/`);
+      if (!html || !isUsablePage(html)) {
+        const standalone = await fetchText(`${base}/`);
+        if (standalone) {
+          html = standalone;
+          basis = "standalone";
+        }
+      }
       if (!html) return null;
 
-      const companyId = html.match(/data-company-id="(\d+)"/)?.[1] ?? null;
-      const warehouseId = html.match(/data-warehouse-id="(\d+)"/)?.[1] ?? null;
-
-      const cls = (title: string) => {
-        const m = html.match(new RegExp(`<a [^>]*title="${title}"[^>]*>([\\s\\S]*?)</a>`));
-        return m ? strip(m[1]) : undefined;
-      };
-      const classification = { broadSector: cls("Broad Sector"), sector: cls("Sector"), industry: cls("Industry") };
-
-      const kpi = parseTopRatios(html);
-
-      const growth = [...html.matchAll(/<table class="ranges-table">([\s\S]*?)<\/table>/g)].map((m) => ({
-        title: strip(m[1].match(/<th[^>]*>([\s\S]*?)<\/th>/)?.[1] ?? ""),
-        rows: [...m[1].matchAll(/<tr>\s*<td>([\s\S]*?)<\/td>\s*<td>([\s\S]*?)<\/td>/g)].map((r) => ({
-          period: strip(r[1]).replace(/:$/, ""),
-          value: strip(r[2]),
-        })),
-      }));
-
-      let shareholding: Fundamentals["shareholding"] = null;
-      const sh = sectionTable(html, "shareholding");
-      if (sh) {
-        const t = parseDataTable(sh);
-        const last = t.cols.length - 1;
-        if (last >= 0)
-          shareholding = {
-            period: t.cols[last],
-            rows: t.rows.filter((r) => r.label && !/No\. of/i.test(r.label)).map((r) => ({ label: r.label, value: r.values[last] ?? null })),
-          };
-      }
-
-      let annual: Fundamentals["annual"] = null;
-      const pl = sectionTable(html, "profit-loss");
-      if (pl) {
-        const t = parseDataTable(pl);
-        const keep = ["Sales", "Operating Profit", "OPM %", "Net Profit", "EPS in Rs"];
-        const n = 6; // most recent six columns (incl. TTM when present)
-        annual = {
-          years: t.cols.slice(-n),
-          series: t.rows.filter((r) => keep.includes(r.label)).map((r) => ({ label: r.label, values: r.values.slice(-n) })),
-        };
-      }
+      const { warehouseId, ...page } = parseCompanyPage(html);
+      // Neither page had ratios: report "unreachable" so the route falls back to Yahoo.
+      if (!page.kpi && !page.annual) return null;
 
       let industry: Fundamentals["industry"] = null;
       if (warehouseId) {
         const peers = await fetchText(`https://www.screener.in/api/company/${warehouseId}/peers/`).catch(() => null);
-        const foot = peers?.match(/<tfoot>([\s\S]*?)<\/tfoot>/)?.[1];
-        if (foot) {
-          const cellsOf = (tr: string) => [...tr.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((c) => strip(c[1]));
-          // numeric columns start at index 2 in body rows ([#, name, CMP, P/E, ...]) and in the footer.
-          const metrics = (c: string[]): PeerMetrics => ({
-            pe: num(c[3] ?? ""),
-            marketCapCr: num(c[4] ?? ""),
-            divYield: num(c[5] ?? ""),
-            qtrProfitVarPct: num(c[7] ?? ""),
-            qtrSalesVarPct: num(c[9] ?? ""),
-            roce: num(c[10] ?? ""),
-          });
-          const fc = cellsOf(foot);
-          const count = parseInt(fc[1]?.match(/(\d+)/)?.[1] ?? "", 10);
-          const selfRow = companyId ? peers?.match(new RegExp(`<tr data-row-company-id="${companyId}"[^>]*>([\\s\\S]*?)</tr>`))?.[1] : undefined;
-          industry = {
-            peerCount: Number.isFinite(count) ? count : null,
-            median: metrics(fc),
-            self: selfRow ? metrics(cellsOf(selfRow)) : null,
-          };
-        }
+        if (peers) industry = parsePeers(peers, page.companyId);
       }
 
-      return { source: "screener", companyId, classification, kpi, industry, growth, shareholding, annual, fetchedAt: new Date().toISOString() } satisfies Fundamentals;
+      return { source: "screener", basis, ...page, industry, fetchedAt: new Date().toISOString() } satisfies Fundamentals;
     } catch {
       return null;
     }

@@ -2,11 +2,13 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { UserMenu } from "./UserMenu";
 import { MobileMenu } from "./MobileMenu";
+import { ThemeToggle } from "./ThemeToggle";
 
 export async function SiteHeader() {
   const user = await getCurrentUser();
   const displayName = (user?.user_metadata?.display_name as string | undefined) ?? null;
-  const link = "hidden text-sm font-medium text-ink-soft hover:text-ink md:inline";
+  // nowrap: at 768px "How it works" and "Reading list" used to break onto two lines.
+  const link = "hidden whitespace-nowrap text-sm font-medium text-ink-soft hover:text-ink md:inline";
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">
@@ -16,28 +18,33 @@ export async function SiteHeader() {
           <span className="font-display text-base font-bold tracking-tight text-ink">NextResearch</span>
         </Link>
         {/* Tighter spacing on phones so menu + watchlist + account (with the name chip on the
-            landing page) still fit beside the logo at 375px. */}
-        <nav className="flex items-center gap-2 sm:gap-5">
+            landing page) still fit beside the logo at 375px; tablets keep the text links on one
+            row by tightening the gaps until lg. */}
+        <nav className="flex items-center gap-2 sm:gap-3 lg:gap-5">
           <Link href="/#sectors" className={link}>Sectors</Link>
           <Link href="/connections" className={link}>Connections</Link>
           <Link href="/updates" className={link}>Updates</Link>
           <Link href="/#how" className={link}>How it works</Link>
           <Link href="/docs" className={link}>Reading list</Link>
           <MobileMenu />
+          {/* Not on phones (logo + menu + heart + Sign up + account already fill 375px) nor at
+              md, where the five text links take the room; the account menu still has it there. */}
+          <span className="hidden sm:contents md:hidden lg:contents">
+            <ThemeToggle variant="icon" />
+          </span>
           <Link
             href="/watchlist"
-            className="flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
+            className="tap-target flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
             aria-label="Watchlist"
             title="Watchlist"
           >
             <HeartIcon />
           </Link>
-          {/* Signed-out only, so it never shares the row with the landing-page name chip. Phones
-              get a compact "Sign up" to fit beside the logo and three icons at 375px. */}
+          {/* Signed-out only, so it never shares the row with the landing-page name chip. All widths
+              see the same "Sign up" label everywhere (it fits beside the logo and icons at 375px). */}
           {!user && (
-            <Link href="/signup" className="whitespace-nowrap rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-bg hover:opacity-90 sm:px-3.5 sm:py-2 sm:text-sm">
-              <span className="sm:hidden">Sign up</span>
-              <span className="hidden sm:inline">Get started</span>
+            <Link href="/signup" className="tap-target whitespace-nowrap rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-bg hover:opacity-90 sm:px-3.5 sm:py-2 sm:text-sm">
+              Sign up
             </Link>
           )}
           <UserMenu key={`${user?.id ?? "anon"}-${displayName}`} email={user?.email ?? null} displayName={displayName} />

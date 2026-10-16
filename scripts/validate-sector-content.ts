@@ -49,6 +49,11 @@ for (const sector of listSectors()) {
     }
   }
 
+  for (const v of sector.views) {
+    if (v.layer !== undefined && (!Number.isInteger(v.layer) || v.layer < 0 || v.layer >= sector.layerNames.length))
+      fail(`[${sector.slug}] view "${v.id}" layer ${v.layer} is outside layerNames`);
+  }
+
   for (const zone of sector.zones) {
     // Picking a system peels the 3D model to this layer (engine.ts selectZone).
     if (zone.layer === undefined) {

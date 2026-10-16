@@ -14,7 +14,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ ticker: 
   if (!data) {
     // Yahoo unreachable: retry with Screener's chart as a fallback (needs its company id).
     const f = await getFundamentals(ticker);
-    data = await getChart(ticker, range, f?.companyId);
+    if (f?.companyId) data = await getChart(ticker, range, f.companyId);
   }
   if (!data) return NextResponse.json({ error: "unavailable" }, { status: 502 });
   return NextResponse.json(data, { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=900" } });

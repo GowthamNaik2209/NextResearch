@@ -1,6 +1,7 @@
 import type { SectorSupplier } from "@/lib/sector-content";
 import type { StockApi } from "./types";
 import { ExtLink } from "./SummaryView";
+import { NewsTime } from "./NewsTime";
 
 export function NewsView({ ticker, name, supplier, api }: { ticker: string; name: string; supplier: SectorSupplier; api: StockApi | null }) {
   const items = api?.news ?? [];
@@ -15,7 +16,7 @@ export function NewsView({ ticker, name, supplier, api }: { ticker: string; name
                 {n.headline}
               </a>
               <div className="mt-1 font-mono text-[11px] text-ink-soft">
-                {n.source} · {n.date}
+                {n.source} · <NewsTime label={n.date} ts={n.ts} />
               </div>
             </li>
           ))}

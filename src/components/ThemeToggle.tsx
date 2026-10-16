@@ -16,7 +16,9 @@ const getTheme = (): "light" | "dark" => (document.documentElement.getAttribute(
 // null on the server / first hydration pass so the markup matches before the attribute is read.
 const getServerTheme = () => null;
 
-export function ThemeToggle() {
+// "switch" is the labelled pill inside the account menu; "icon" is the compact round button
+// in the header bar (sized like the watchlist and account icons beside it).
+export function ThemeToggle({ variant = "switch" }: { variant?: "switch" | "icon" }) {
   const theme = useSyncExternalStore(subscribe, getTheme, getServerTheme);
 
   // React Strict Mode's dev remount resets <html> to the attributes JSX manages, wiping what
@@ -37,6 +39,20 @@ export function ThemeToggle() {
   }
 
   const isLight = theme === "light";
+
+  if (variant === "icon")
+    return (
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
+        title={isLight ? "Switch to dark mode" : "Switch to light mode"}
+        className="tap-target flex h-8 w-8 flex-none items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink sm:h-9 sm:w-9"
+      >
+        {/* Before hydration the theme is unknown (null): show the moon, the light default's action. */}
+        {theme === "dark" ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-3.5 w-3.5" />}
+      </button>
+    );
 
   return (
     <button

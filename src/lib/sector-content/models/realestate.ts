@@ -74,6 +74,8 @@ export const REALESTATE_ANCHORS: Record<string, { pos: Vec3; side: Side }> = {
   finance: { pos: A(0.5, 0.36, 2.94), side: "bottom" },
 };
 
+// `layer` (optional): a view about one layer also peels the model to it (engine.ts flyTo),
+// so e.g. the underground shot shows the foundations instead of the skyline from below.
 export const REALESTATE_VIEWS = [
   {
     id: "overview",
@@ -93,6 +95,7 @@ export const REALESTATE_VIEWS = [
   },
   {
     id: "construction",
+    layer: 1,
     label: "Construction site",
     pos: [3.3, 4.3, 2.4],
     target: [-0.9, 1.75, -1.9],
@@ -101,6 +104,7 @@ export const REALESTATE_VIEWS = [
   },
   {
     id: "systems",
+    layer: 2,
     label: "Rooftop & systems",
     pos: [6.6, 7.2, 4.8],
     target: [-0.5, 2.4, -2.1],
@@ -117,6 +121,7 @@ export const REALESTATE_VIEWS = [
   },
   {
     id: "foundations",
+    layer: 3,
     label: "Underground",
     pos: [7.0, 3.4, 7.6],
     target: [0.2, 0.3, -0.2],

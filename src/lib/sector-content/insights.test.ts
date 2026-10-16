@@ -34,10 +34,12 @@ test("platform stats and per-sector numbers are derived from the content", () =>
   assert.ok(n.medianPe != null && n.medianRoce != null && n.combinedRevenueCr != null);
 });
 
-test("the search index has one row per company per sector (no duplicates)", () => {
+test("the search index has one row per company, with short-name aliases", () => {
   const rows = buildSearchIndex().filter((r) => r.kind === "company");
-  const keys = rows.map((r) => `${r.href.split("?")[0]}|${r.label}`);
-  assert.equal(new Set(keys).size, keys.length);
+  const hrefs = rows.map((r) => r.href);
+  assert.equal(new Set(hrefs).size, hrefs.length);
+  const lt = rows.find((r) => r.label === "Larsen & Toubro");
+  assert.ok(lt?.aliases?.includes("l&t"));
 });
 
 test("findSupplierByTicker is the allowlist for the live API: known listed tickers only", () => {

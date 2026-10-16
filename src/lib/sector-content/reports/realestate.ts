@@ -64,7 +64,7 @@ export const realestate: SectorReport = {
     {
       date: "May 2026",
       title: "Bagmane Prime Office REIT lists",
-      body: "A Bengaluru office REIT listed, the sixth listed REIT after Knowledge Realty Trust in August 2025, India's largest office REIT by asset value.",
+      body: "A Bengaluru office REIT listed, becoming India's sixth listed REIT. It followed Knowledge Realty Trust (listed August 2025), which is India's largest office REIT by asset value.",
       impact: "pos",
       tag: "REITs",
     },

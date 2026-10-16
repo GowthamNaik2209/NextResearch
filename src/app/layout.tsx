@@ -9,6 +9,7 @@ import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { Suspense } from "react";
 import { ReturnToStock } from "@/components/stock/ReturnToStock";
+import { InlineScript } from "@/components/InlineScript";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL, jsonLd } from "@/lib/site";
 import "./globals.css";
 
@@ -96,15 +97,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${spaceGrotesk.variable} ${ibmPlexSans.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
       <head>
-        {/* type flips client-side so React doesn't warn about rendering a live
-            <script> tag (it never executes it on the client either way — this
-            element's only job is to run once, synchronously, during the
-            server HTML's initial parse). */}
-        <script
-          type={typeof window === "undefined" ? "text/javascript" : "text/plain"}
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
-        />
+        {/* Runs once, synchronously, during the server HTML's parse; InlineScript flips its
+            type to text/plain on the client so React never renders a live <script>. */}
+        <InlineScript html={THEME_INIT_SCRIPT} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(SITE_JSON_LD) }} />
       </head>
       <body className="min-h-full flex flex-col bg-bg text-ink">

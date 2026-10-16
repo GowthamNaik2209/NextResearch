@@ -1,4 +1,4 @@
-import { getCompanyPage, listCompanyPages } from "@/lib/sector-content/companies";
+import { getCompanyPage, listCompanyPages, primaryAppearance } from "@/lib/sector-content/companies";
 import { OG_CONTENT_TYPE, OG_SIZE, renderOgCard } from "@/lib/og";
 
 export const alt = "Company supply-chain profile on NextResearch";
@@ -21,7 +21,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   return renderOgCard({
     kicker: `NSE: ${c.ticker}`,
     title: c.name,
-    subtitle: c.appearances[0]?.role,
+    subtitle: primaryAppearance(c).role,
     chips: [...new Set(c.appearances.map((a) => a.zoneLabel))],
     stats,
   });

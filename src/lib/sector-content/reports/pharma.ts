@@ -99,7 +99,7 @@ export const pharma: SectorReport = {
     },
     snapshot: [
       { label: "IPM size, CY2025 (Pharmarack)", value: "Rs 2,40,672 Cr", tone: "pos" },
-      { label: "IPM growth, Aug 2026: value / units", value: "10.7% / 0.0%", tone: "neutral" },
+      { label: "IPM growth, Aug 2026 (Pharmarack)", value: "+10.7% value, units flat", tone: "neutral" },
       { label: "China share of imports, many critical APIs", value: "70%+ (PIB, FY25)", tone: "neg" },
       { label: "PLI bulk-drug scheme outlay", value: "Rs 6,940 Cr; 48 projects", tone: "pos" },
       { label: "US tariff on generics", value: "0% to Jul 2028, then 100%", tone: "neg" },

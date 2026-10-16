@@ -19,16 +19,32 @@ export function UserMenu({ email, displayName }: Props) {
   // the account button is the bare avatar (the name is still in the dropdown).
   const showName = usePathname() === "/";
 
+  // Close on an outside click/tap, Escape, or page scroll (the dropdown hangs off a sticky
+  // header, so scrolling the page under it left it floating over unrelated content).
   useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
-        setOpen(false);
-        setEditing(false);
-      }
-    }
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
+    if (!open) return;
+    const close = () => {
+      setOpen(false);
+      setEditing(false);
+    };
+    const onDown = (e: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) close();
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    // Typing in the name field can scroll the page on phones (keyboard opening); keep it open then.
+    const onScroll = () => {
+      const el = document.activeElement;
+      if (!(el instanceof HTMLInputElement && rootRef.current?.contains(el))) close();
+    };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [open]);
 
   if (!email) {
     return (
@@ -36,7 +52,7 @@ export function UserMenu({ email, displayName }: Props) {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink"
+          className="tap-target flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink"
           aria-haspopup="true"
           aria-expanded={open}
           aria-label="Account"
@@ -88,7 +104,7 @@ export function UserMenu({ email, displayName }: Props) {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-accent hover:border-accent"
+          className="tap-target flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-accent hover:border-accent"
           aria-haspopup="true"
           aria-expanded={open}
           aria-label={`Account: ${label}`}
@@ -104,9 +120,11 @@ export function UserMenu({ email, displayName }: Props) {
             <form action={updateDisplayName} onSubmit={() => setEditing(false)} className="flex flex-col gap-2">
               <input
                 name="name"
+                autoComplete="name"
+                aria-label="Display name"
                 defaultValue={label}
                 autoFocus
-                className="rounded-lg border border-line bg-panel-2 px-2 py-1.5 text-sm text-ink outline-none focus:border-accent"
+                className="rounded-lg border border-line bg-panel-2 px-2 py-1.5 text-base text-ink outline-none focus:border-accent sm:text-sm"
               />
               <div className="flex gap-2">
                 <button type="submit" className="flex-1 rounded-lg bg-accent px-2 py-1.5 text-xs font-semibold text-bg hover:opacity-90">

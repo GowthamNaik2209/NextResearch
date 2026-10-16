@@ -66,8 +66,11 @@
  .app{ flex:1; display:flex; min-height:0; position:relative }
  .rail{
  width:180px; flex:none; background:var(--panel); border-right:1px solid var(--line);
- padding:14px 10px; display:flex; flex-direction:column; gap:14px; overflow-y:auto;
+ padding:14px 10px; display:flex; flex-direction:column; gap:14px; overflow-y:auto; min-height:0;
  }
+ /* Children must keep their natural height so a long rail scrolls instead of squashing
+    (the Camera view buttons at the bottom were being clipped on 800px-tall screens). */
+ .rail > *{ flex:none }
  .rail-label{font-size:10.5px; letter-spacing:1.4px; text-transform:uppercase; color:var(--ink-soft); padding:0 6px}
  .layer-btn{
  display:flex; align-items:center; gap:10px; width:100%; text-align:left;
@@ -77,6 +80,8 @@
  .layer-btn .n{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); border:1px solid var(--line); border-radius:4px; width:20px; height:20px; display:flex; align-items:center; justify-content:center; flex:none}
  .layer-btn.active{ background:var(--chip); border-color:var(--accent); color:var(--ink) }
  .layer-btn.active .n{ border-color:var(--accent); color:var(--accent) }
+ .layer-btns{ display:flex; flex-direction:column; gap:2px }
+ .layer-btn > span:last-child{ min-width:0; line-height:1.25 }
  .layer-slider-wrap{padding:4px 6px 0}
  input[type="range"]{ width:100%; accent-color:var(--accent) }
  .view-btn{
@@ -86,6 +91,14 @@
  .view-btn:hover{border-color:var(--accent); color:var(--ink)}
  .view-btn.active{background:color-mix(in srgb, var(--accent) 18%, var(--chip)); border-color:var(--accent); color:var(--ink)}
  .view-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px}
+ /* Short desktop screens: tighten the rail so Layers, Systems and Camera view fit. */
+ @media (max-height:860px) and (min-width:1001px){
+ .rail{ gap:9px; padding:10px 10px }
+ .layer-btn{ padding:5px 10px }
+ .view-btn{ padding:5px 6px }
+ .zone-more-btn{ padding:6px 10px }
+ .view-grid{ gap:5px }
+ }
  .zone-more-btn{
  display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;
  background:var(--chip); border:1px solid var(--line); border-radius:7px; padding:7px 10px;
@@ -103,12 +116,16 @@
  transition:opacity .15s, border-color .15s, background .15s;
  }
  .zone-btn .dot{ width:8px; height:8px; border-radius:50%; background:var(--zc, var(--accent)); flex:none; box-shadow:0 0 6px var(--zc, var(--accent)) }
- .zone-btn span:last-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+ /* Long system names wrap to a second line rather than being cut mid-word. */
+ .zone-btn span:last-child{ overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-height:1.3 }
  .zone-btn:hover{ border-color:var(--zc, var(--accent)); color:var(--ink) }
  .zone-btn.active{ background:color-mix(in srgb, var(--zc, var(--accent)) 20%, var(--chip)); border-color:var(--zc, var(--accent)); color:var(--ink) }
- .zone-btn.dimmed{ opacity:0.4 }
+ /* Others fade back while one system is picked, but stay readable. */
+ .zone-btn.dimmed{ opacity:0.72 }
 
- .stage{ flex:1; position:relative; min-width:0; overflow:hidden; background:radial-gradient(circle at 50% 38%, #223142 0%, #172231 42%, #0A121B 82%) }
+ /* clip, not hidden: a hidden overflow can still be scrolled by focus/scrollIntoView,
+    which shifted the whole stage sideways on phones. */
+ .stage{ flex:1; position:relative; min-width:0; overflow:hidden; overflow:clip; background:radial-gradient(circle at 50% 38%, #223142 0%, #172231 42%, #0A121B 82%) }
  .stage canvas{ display:block; width:100%; height:100%; touch-action:none }
  .stage-grid-overlay{
  position:absolute; inset:0; pointer-events:none; opacity:.35;
@@ -116,11 +133,16 @@
  background-size: 40px 40px;
  mask-image: radial-gradient(ellipse at center, black 55%, transparent 90%);
  }
+ /* Always one line: the layer name keeps its width and only the system's name truncates.
+    The right-hand 60px stays clear for the reset/controls buttons. */
  .breadcrumb{
- position:absolute; top:12px; left:12px; z-index:5; display:flex; align-items:center; gap:8px;
+ position:absolute; top:12px; left:12px; z-index:5; display:flex; align-items:center; gap:6px;
+ max-width:calc(100% - 72px); white-space:nowrap;
  background:var(--callout-bg-strong); border:1px solid var(--line); border-radius:999px; padding:6px 12px;
  font-size:11.5px; color:var(--ink-soft); backdrop-filter:blur(6px);
  }
+ .breadcrumb > *{ flex:none }
+ .breadcrumb .bc-zone{ flex:0 1 auto; min-width:2.5em; overflow:hidden; text-overflow:ellipsis }
  /* "Zoom out to the starting view" - for anyone who has orbited or zoomed deep into the model. */
  .reset-btn{
  display:flex; position:absolute; top:12px; right:12px; z-index:5;
@@ -135,7 +157,7 @@
  }
  .controls-btn.on{ background:var(--accent); border-color:var(--accent); color:var(--bg) }
  .breadcrumb b{color:var(--accent); font-weight:600}
- .breadcrumb button{
+ .breadcrumb button{ flex:none;
  background:none; border:none; color:var(--ink); font-size:11px; font-weight:600; cursor:pointer;
  display:flex; align-items:center; justify-content:center; gap:4px; font-family:inherit; padding:0 0 0 8px; border-left:1px solid var(--line);
  position:relative;
@@ -167,7 +189,7 @@
  }
  .panel-handle{ display:none }
  /* Base look for the "x" close button shared by the mobile panel sheet (see the
-    @media max-width:700px block below, which only overrides position to pin it
+    @media max-width:1000px block below, which only overrides position to pin it
     inside the handle) and CompanyComparison's modal header, which renders this
     button in normal flow at every width — without a base rule here it fell back
     to an unstyled native <button> (no size, no background) above 700px. */
@@ -221,19 +243,27 @@
  .callout{
  pointer-events:auto; cursor:pointer; background:var(--callout-bg); border:1.5px solid var(--zc, var(--line));
  border-radius:9px; padding:8px 12px; font-family:'Space Grotesk',Arial,sans-serif; font-weight:700; font-size:13.5px;
- color:var(--ink); white-space:nowrap; backdrop-filter:blur(6px); transition:transform .15s, background .15s;
+ color:var(--ink); white-space:nowrap; backdrop-filter:blur(6px); transition:transform .15s, background .15s, opacity .2s;
+ text-align:left; line-height:1.25; margin:0;
  }
+ .callout:focus-visible, .mtag:focus-visible, .chip:focus-visible, .panel-handle:focus-visible{ outline:2px solid var(--accent); outline-offset:2px }
  .callout:hover{ transform:scale(1.05); background:color-mix(in srgb, var(--zc) 20%, var(--callout-bg-strong)) }
  .callout.selected{ background:color-mix(in srgb, var(--zc) 30%, var(--callout-bg-strong)); transform:scale(1.08) }
  .rail-left .callout, .rail-right .callout{ max-width:200px; white-space:normal; line-height:1.25 }
- .mobile-tags{ display:none; position:absolute; inset:0; pointer-events:none; z-index:4 }
+ .mobile-tags{ display:none; position:absolute; inset:0; pointer-events:none; z-index:4; overflow:clip }
+ /* Compact: long names truncate (full name in the title/aria-label and the Systems list);
+    the selected tag shows its full name. */
  .mtag{
  position:absolute; transform:translate(-50%,-138%); pointer-events:auto; cursor:pointer;
  background:var(--callout-bg-strong); border:1.5px solid var(--zc, var(--line)); border-radius:7px;
- padding:3px 8px; font-family:'Space Grotesk',Arial,sans-serif; font-weight:700; font-size:10.5px;
- color:var(--ink); white-space:nowrap; backdrop-filter:blur(4px); transition:transform .15s;
+ padding:3px 8px; font-family:'Space Grotesk',Arial,sans-serif; font-weight:700; font-size:10.5px; line-height:1.3;
+ color:var(--ink); white-space:nowrap; backdrop-filter:blur(4px); transition:transform .15s, opacity .2s;
+ max-width:min(150px, 40vw); overflow:hidden; text-overflow:ellipsis; margin:0;
+ /* Hidden until the engine's first frame decides which tags show (it sets opacity inline every
+    frame), so the full set doesn't flash on load before the current-layer filter applies. */
+ opacity:0;
  }
- .mtag.selected{ background:color-mix(in srgb, var(--zc) 32%, var(--callout-bg-strong)); transform:translate(-50%,-138%) scale(1.08) }
+ .mtag.selected{ background:color-mix(in srgb, var(--zc) 32%, var(--callout-bg-strong)); transform:translate(-50%,-138%) scale(1.08); max-width:calc(100% - 24px) }
  .deepdive-btn{
  margin-top:2px; background:color-mix(in srgb, var(--accent) 14%, var(--chip)); border:1px solid var(--accent);
  color:var(--ink); font-family:inherit; font-weight:700; font-size:12px; padding:9px 12px; border-radius:8px; cursor:pointer;
@@ -277,14 +307,12 @@
  .compare-table td, .compare-table th{ padding:7px 8px }
  }
 
- /* ===== Tablet: keep the side layout, just narrow the panel and drop the fixed callouts ===== */
- @media (max-width: 880px){
- .callout-rail.rail-left, .callout-rail.rail-right, .callout-rail.rail-top, .callout-rail.rail-bottom, .leader-svg{ display:none }
- .mobile-tags{ display:block }
- .panel-wrap{ width:340px }
+ /* Small laptops: a narrower panel leaves the stage room for the model. */
+ @media (max-width: 1280px) and (min-width: 1001px){
+ .panel-wrap{ width:380px }
  }
 
- /* ===== Phone: stack the app vertically, dock the panel as a collapsible sheet ===== */
+ /* ===== Phone header (the stage/panel layout for phones and tablets follows) ===== */
  @media (max-width: 700px){
  /* Phone: a 46px bar - logo mark, title, short badge, and icon-only buttons. */
  header{ height:46px; padding:0 10px; gap:8px }
@@ -303,12 +331,23 @@
  /* Direct children only - a bare `.user-nav a` also caught the "My watchlist"
     link inside the account dropdown and squeezed it into a 34px box. */
  header .user-nav > a, header .user-nav > div > button{ width:34px; height:34px }
+ .breadcrumb{ font-size:10px; padding:5px 8px; gap:5px }
+ /* "Product ›" is implied on a phone; the room goes to the system's name. */
+ .breadcrumb .bc-root{ display:none }
+ }
+
+ /* ===== Phones and tablets (up to 1000px): controls float over the stage and the panel
+    is a bottom sheet, so the model gets the full width. At 768px the side-by-side layout
+    left the canvas ~250px wide next to an empty panel. ===== */
+ @media (max-width: 1000px){
+ .callout-rail.rail-left, .callout-rail.rail-right, .callout-rail.rail-top, .callout-rail.rail-bottom, .leader-svg{ display:none }
+ .mobile-tags{ display:block }
  .app{ flex-direction:column; position:relative }
  .controls-btn{ display:flex }
  /* Layers / Systems / Camera float over the stage (opened from .controls-btn) instead of
     stacking above it - the stage keeps the whole screen under the thin header. */
  .rail{
- display:none; position:absolute; top:52px; left:8px; right:56px; z-index:8; width:auto; max-width:none;
+ display:none; position:absolute; top:52px; left:8px; right:56px; z-index:8; width:auto; max-width:560px;
  flex-direction:row; flex-wrap:wrap; align-items:center; overflow-x:hidden; overflow-y:auto;
  max-height:calc(100% - 130px); border:1px solid var(--line); border-radius:14px; padding:10px; gap:6px;
  background:var(--callout-bg-strong); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); box-shadow:var(--shadow);
@@ -316,7 +355,7 @@
  &.controls-open .rail{ display:flex }
  .rail-label{ display:none }
  .layer-slider-wrap{ display:none }
- #layerBtns{ display:flex; flex-wrap:wrap; flex:1 1 100%; gap:6px }
+ .layer-btns{ display:flex; flex-direction:row; flex-wrap:wrap; flex:1 1 100%; gap:6px }
  .layer-btn{ flex:none; width:auto; white-space:nowrap; padding:6px 8px; font-size:11.5px; gap:6px }
  .layer-btn .n{ width:16px; height:16px; font-size:9.5px }
  .zone-more-btn{
@@ -331,16 +370,15 @@
  padding:6px 0 0; margin:2px 0 0; border-top:1px solid var(--line);
  }
  .zone-btns.expanded{ display:flex }
- .zone-btn{ flex:none; width:auto; white-space:nowrap; padding:6px 8px; font-size:10.5px }
- .zone-btn span:last-child{ max-width:38vw }
+ /* Chips wrap their own label (up to 2 lines, base rule) rather than clipping it mid-word. */
+ .zone-btn{ flex:0 1 auto; width:auto; max-width:100%; white-space:normal; padding:6px 8px; font-size:10.5px }
+ .zone-btn span:last-child{ max-width:none }
  .view-grid{
  display:flex; flex-wrap:wrap; flex:1 1 100%; gap:6px;
  padding:6px 0 0; margin:2px 0 0; border-left:none; border-top:1px solid var(--line);
  }
  .view-btn{ flex:none; white-space:nowrap; padding:6px 8px; font-size:10.5px }
  .stage{ flex:1; min-height:0 }
- .breadcrumb{ font-size:10px; padding:5px 8px; max-width:82vw }
- .breadcrumb span, .breadcrumb b{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:36vw }
  .toolbar{
  bottom:60px; left:8px; right:8px; transform:none; max-width:none; justify-content:center;
  flex-wrap:wrap; row-gap:6px;
@@ -353,11 +391,15 @@
  box-shadow:var(--shadow); transition:transform .28s cubic-bezier(.22,.7,.32,1); transform:translateY(0);
  }
  .panel-wrap.collapsed{ transform:translateY(calc(100% - 52px)) }
+ /* Opened by a pick: only the top ~40% of the screen's height shows, so the selected part
+    stays visible above it (the engine frames the camera on that strip). */
+ .panel-wrap.peek{ transform:translateY(max(0px, calc(100% - 40vh))) }
  .panel-handle{
  display:flex; align-items:center; justify-content:center; gap:8px; position:relative; flex:none;
- padding:14px 44px 10px; cursor:pointer; border-bottom:1px solid var(--line);
- font-size:11.5px; color:var(--ink-soft); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+ padding:14px 52px 10px; cursor:pointer; border-bottom:1px solid var(--line); touch-action:none; user-select:none;
+ font-size:11.5px; color:var(--ink-soft); text-align:center; white-space:nowrap; overflow:hidden;
  }
+ .panel-handle-text{ min-width:0; overflow:hidden; text-overflow:ellipsis }
  .panel-handle .grip{ position:absolute; top:6px; left:50%; transform:translateX(-50%); width:36px; height:4px; border-radius:2px; background:var(--line) }
  /* Position only here — size/background/border come from the base .panel-close-btn
     rule above. Bumped to 40x40 (from 30x30) to clear the ~40x40 touch-target floor;
@@ -367,6 +409,9 @@
  width:40px; height:40px;
  }
  .panel-wrap.collapsed .panel-close-btn{ display:none }
+ /* The rule above pins the panel sheet's close button inside its handle; the Compare
+    modal reuses the same button class and must keep it in its own header row. */
+ .compare-head .panel-close-btn{ position:static; transform:none }
  .panel{ padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px)) }
  }
 
@@ -409,8 +454,10 @@
  .scn-btn:hover{ border-color:var(--accent); color:var(--ink) }
  .scn-btn.active{ background:color-mix(in srgb, var(--accent) 18%, var(--chip)); border-color:var(--accent); color:var(--ink) }
  .scn-btn small{ display:block; font-weight:400; font-size:10.5px; color:var(--ink-soft) }
+ /* Desktop: bottom-centre of the stage, clear of the callout rails (top-left, it sat on the
+    first top callout). Phones/tablets put it under the breadcrumb, where tags are kept off. */
  .scn-pill{
-  position:absolute; top:52px; left:12px; z-index:6; display:flex; align-items:center; gap:8px; max-width:calc(100% - 70px);
+  position:absolute; bottom:16px; left:50%; transform:translateX(-50%); z-index:6; display:flex; align-items:center; gap:8px; max-width:calc(100% - 70px);
   background:var(--callout-bg-strong); border:1px solid var(--accent); border-radius:999px; padding:5px 10px;
   color:var(--ink); font:inherit; font-size:11px; font-weight:600; cursor:pointer; backdrop-filter:blur(6px);
  }
@@ -427,12 +474,13 @@
  .scn-banner{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:11.5px; line-height:1.5; color:var(--ink-soft); background:var(--panel-2) }
  .scn-banner b{ color:var(--ink) }
 
- /* Phone: scenarios collapse behind one dropdown button, like Systems. */
- @media (max-width: 700px){
+ /* Phones/tablets: scenarios collapse behind one dropdown button, like Systems. */
+ @media (max-width: 1000px){
   .scn-more{ display:flex }
   .scn-list{ display:none; flex-direction:row; flex-wrap:wrap; flex:1 1 100%; padding:6px 0 0; border-top:1px solid var(--line) }
   .scn-list.expanded{ display:flex }
   .scn-btn{ flex:none; padding:6px 8px; font-size:10.5px }
   .scn-clear{ flex:1 1 100% }
+  .scn-pill{ bottom:auto; top:52px; left:12px; transform:none }
  }
 }

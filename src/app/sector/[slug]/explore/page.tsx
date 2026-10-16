@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getSector, listSectorSlugs } from "@/lib/sector-content";
 import { SectorExplorer } from "@/components/sector-explorer/SectorExplorer";
 import { getCurrentUser } from "@/lib/auth";
+import { NOT_FOUND_METADATA, midSentence } from "@/lib/site";
 
 export function generateStaticParams() {
   return listSectorSlugs().map((slug) => ({ slug }));
@@ -12,10 +13,10 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const sector = getSector(slug);
-  if (!sector) return {};
+  if (!sector) return NOT_FOUND_METADATA;
   return {
     title: `${sector.name} — interactive 3D supply-chain explorer`,
-    description: `Walk through India's ${sector.name.toLowerCase()} supply chain layer by layer in 3D and open any listed company's financials.`,
+    description: `Walk through India's ${midSentence(sector.name)} supply chain layer by layer in 3D and open any listed company's financials.`,
     // The overview page is the indexable version of this content; the explorer is a WebGL canvas.
     alternates: { canonical: `/sector/${slug}` },
   };
