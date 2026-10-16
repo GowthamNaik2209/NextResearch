@@ -34,12 +34,15 @@ npx prisma migrate dev && npm run db:seed
 | Command | What it does |
 | --- | --- |
 | `npm run dev` / `build` / `start` | Next.js dev server / production build / serve the build |
-| `npm run lint` | ESLint (must be clean) |
+| `npx eslint src scripts` | ESLint over the app (must be clean; `npm run lint` also scans the git-ignored `media/` folder) |
 | `npm test` | Unit tests (Node's built-in runner via `tsx`) - parsers, merge rules, idea screens |
 | `npm run validate:content` | Integrity checks over the authored sector content |
-| `npm run db:migrate` / `db:seed` / `db:extract` | Prisma migration / seed / re-extract seed JSON |
+| `npm run db:migrate` / `db:seed` | Prisma migration / seed (writes to the shared live database - ask first) |
+| `npx tsx prisma/extract-source-data.ts` | Regenerate `extracted.json` from `products.ts` |
+| `npx tsx scripts/check-report.ts <slug>` | Check one research deck |
 
-Before opening a PR: `npx tsc --noEmit && npm run lint && npm test && npm run validate:content`.
+Before opening a PR: `npx tsc --noEmit && npx eslint src scripts && npm test && npm run validate:content`,
+then `next build` and the QA routine in [docs/PLAYBOOK.md](docs/PLAYBOOK.md).
 
 ## Where things live
 
@@ -56,6 +59,7 @@ src/lib/
   live/                     Server-side live data: Yahoo, Screener, cache
 prisma/                     Schema, migrations, seed
 docs/ARCHITECTURE.md        How the pieces fit - start here before a big change
+docs/PLAYBOOK.md            Recipes: add a sector, build a 3D model, QA + release, lessons learned
 ```
 
 **Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the data flow (what is live, what is
@@ -67,8 +71,10 @@ cached, what falls back to what), conventions, and known gaps.
 read directly by the app (fallback figures, news feed) and loaded into Postgres by the seed:
 
 ```bash
-npm run db:extract   # artifact-data-slice.js -> extracted.json
-npm run db:seed
+npx tsx prisma/extract-source-data.ts   # products.ts -> extracted.json
+npm run db:seed                         # shared live DB: get a go-ahead first
 ```
+
+(`npm run db:extract` still points at the original one-off artifact extractor; don't use it.)
 
 Deployment notes live in `vercel.json` / `SETUP.md`.
