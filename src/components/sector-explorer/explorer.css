@@ -188,6 +188,9 @@
  display:flex; flex-direction:column; min-height:0;
  }
  .panel-handle{ display:none }
+ .panel-wrap{ position:relative }
+ .panel-close-side{ position:absolute; top:12px; right:12px; z-index:2 }
+ .panel-close-side + .panel h2{ padding-right:44px }
  /* Base look for the "x" close button shared by the mobile panel sheet (see the
     @media max-width:1000px block below, which only overrides position to pin it
     inside the handle) and CompanyComparison's modal header, which renders this
@@ -339,6 +342,10 @@
  /* ===== Phones and tablets (up to 1000px): controls float over the stage and the panel
     is a bottom sheet, so the model gets the full width. At 768px the side-by-side layout
     left the canvas ~250px wide next to an empty panel. ===== */
+ /* With the phone controls menu open, labels on the model would show through its glass. */
+ &.controls-open .mobile-tags{ opacity:0; pointer-events:none }
+ /* Phones/tablets close from the bottom sheet's handle instead. */
+ @media (max-width: 1000px){ .panel-close-side{ display:none } }
  @media (max-width: 1000px){
  .callout-rail.rail-left, .callout-rail.rail-right, .callout-rail.rail-top, .callout-rail.rail-bottom, .leader-svg{ display:none }
  .mobile-tags{ display:block }

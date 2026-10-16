@@ -29,7 +29,9 @@ export type ExplorerDom = {
 };
 
 export type ExplorerCallbacks = {
-  onZoneChange: (zoneId: string | null) => void;
+  // `reset` is true when closing the system also put the model back to its opening state
+  // (layer 0, default camera view), so the shell can mark that view active again.
+  onZoneChange: (zoneId: string | null, reset?: boolean) => void;
   onDeepDiveStageChange: (stage: number | null) => void;
 };
 
@@ -346,7 +348,7 @@ export function mountExplorer(
   function leaveLayer(level: number) {
     if (!currentZoneId) return;
     const zl = zones.get(currentZoneId)?.def.layer;
-    if (zl != null && Math.round(level) !== zl) selectZone(null);
+    if (zl != null && Math.round(level) !== zl) selectZone(null, { keepLayer: true });
   }
   function setUserLevel(level: number, immediate: boolean) {
     targetLevel = level;
@@ -372,7 +374,11 @@ export function mountExplorer(
     }
   }
 
-  function selectZone(id: string | null) {
+  // Closing a system (✕, closing the panel, tapping away) returns to the whole model: layer 0
+  // and the opening camera view. Only an explicit layer change by the user keeps the layer
+  // (keepLayer), since that deselect is a side effect of them choosing where to look.
+  function selectZone(id: string | null, opts: { keepLayer?: boolean } = {}) {
+    const closing = id == null && currentZoneId != null && !opts.keepLayer;
     currentZoneId = id;
     // Peel the model to the layer where the picked system is actually visible, so
     // choosing "e-axle" from any entry point (marker, callout, Systems list, deep
@@ -386,11 +392,15 @@ export function mountExplorer(
       zr.tag.setAttribute("aria-pressed", String(zid === id));
     }
     if (!deepDiveActive) {
+      if (closing) {
+        targetLevel = 0;
+        flyTo(defaultViewId);
+      }
       updateBreadcrumb();
       if (id) focusZone(id);
-      else unfocus();
+      else if (!closing) unfocus();
     }
-    callbacks.onZoneChange(id);
+    callbacks.onZoneChange(id, closing && !deepDiveActive);
   }
 
   // Bring the picked system into view. With a bottom sheet (phones/tablets) the panel is
@@ -613,6 +623,8 @@ export function mountExplorer(
     raycaster.setFromCamera(pointer, camera);
     const hits = raycaster.intersectObjects(markerMeshes);
     if (hits.length) selectZone(hits[0].object.userData.zoneId as string);
+    // A tap on empty stage (not a drag - those return above) closes the open system.
+    else if (currentZoneId) selectZone(null);
   };
   const onPointerMove = (e: PointerEvent) => {
     setPointer(e);
@@ -655,11 +667,8 @@ export function mountExplorer(
     }
     const rank = (zr: ZoneRuntime) => (currentZoneId === zr.def.id ? 0 : impact?.[zr.def.id] ? 1 : 2);
     const ordered = phoneTags ? [...zones.values()].sort((a, b) => rank(a) - rank(b)) : [...zones.values()];
-    // Phones label only the systems on the layer being looked at (plus the selected,
-    // hovered and scenario-hit ones); every marker stays tappable and the Systems list
-    // names them all. A layer with no systems of its own (energy's "Platform") shows all.
-    const lvl = Math.round(currentLevel);
-    const layerHasZones = sector.zones.some((zz) => zz.layer === lvl);
+    // Phones label every system (the user wants the whole map visible); with one selected the
+    // others stay readable but lighter (isDimmed). Tags are stacked so none overlap.
     const EDGE = 8;
 
     for (const zr of ordered) {
@@ -677,11 +686,8 @@ export function mountExplorer(
       const isSelected = currentZoneId === z.id;
       const isDimmed = isDimmedZone(z.id);
 
-      let tagHidden = offscreen;
-      if (phoneTags && !tagHidden) {
-        const relevant = isSelected || hoveredZoneId === z.id || !!impact?.[z.id] || z.layer == null || !layerHasZones || z.layer === lvl;
-        tagHidden = !relevant;
-      }
+      const tagHidden = offscreen;
+      let crowded = false;
       if (phoneTags && !tagHidden) {
         const tagScale = isSelected ? 1.08 : 1;
         // .mtag is drawn at translate(-50%, -138%) of its left/top point.
@@ -692,9 +698,9 @@ export function mountExplorer(
         const rectAt = (y: number) => ({ x0: px - tw / 2 - 2, x1: px + tw / 2 + 2, y0: y - 1.38 * th - 2, y1: y - 0.38 * th + 2 });
         let chosen: ReturnType<typeof rectAt> | null = null;
         let chosenY = py;
-        // Only a couple of rows either way: a tag stacked further off its marker reads as
-        // labelling some other part, and the clutter hid the model on dense sectors.
-        for (const k of [0, 1, -1, 2, -2]) {
+        // Search a few rows either way for a free slot so every tag finds a place; the
+        // most important ones (selected, scenario-hit) were placed first.
+        for (const k of [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6]) {
           const y = py + k * (th + 3);
           const r = rectAt(y);
           if (r.y0 < EDGE || r.y1 > visibleH - EDGE) continue;
@@ -707,8 +713,9 @@ export function mountExplorer(
           placed.push(chosen);
           py = chosenY;
         } else {
-          // No free slot nearby: hide the tag (its marker is still tappable; Systems lists every layer).
-          tagHidden = !isSelected;
+          // No free slot nearby: keep it on its marker but faded, so every system stays
+          // labelled (the user wants the whole map readable) without fighting the placed ones.
+          crowded = !isSelected;
         }
       }
       // Hidden tags still sit inside the stage, so they never widen its scrollable area.
@@ -718,7 +725,8 @@ export function mountExplorer(
       zr.tag.classList.toggle("selected", isSelected);
       zr.tag.classList.toggle("dimmed", isDimmed);
       const tagShown = labelsVisible && !tagHidden;
-      zr.tag.style.opacity = tagShown ? (isSelected ? "1" : isDimmed ? "0.28" : "1") : "0";
+      zr.tag.style.opacity = tagShown ? (isSelected ? "1" : isDimmed || crowded ? "0.28" : "1") : "0";
+      zr.tag.style.zIndex = isSelected ? "3" : crowded ? "1" : "2";
       zr.tag.style.pointerEvents = tagShown ? "auto" : "none";
       zr.tag.tabIndex = tagShown ? 0 : -1;
       zr.tag.setAttribute("aria-hidden", String(!tagShown));

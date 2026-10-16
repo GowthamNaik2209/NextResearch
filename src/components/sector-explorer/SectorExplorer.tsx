@@ -183,7 +183,8 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
       sheet: sheetRef.current,
     };
     const controller = mountExplorer(dom, sector, {
-      onZoneChange: (zoneId) => {
+      onZoneChange: (zoneId, reset) => {
+        if (reset) setActiveView(sector.defaultView || sector.views[0]?.id);
         setCurrentZoneId(zoneId);
         setCurrentSupplier(null);
         setIsPanelOpen(!!zoneId);
@@ -330,6 +331,12 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     },
     [stopTour]
   );
+  // On release the slider settles on the nearest layer, so a layer is always named and lit
+  // (dragging still scrubs smoothly through the crossfade in between).
+  const handleSliderRelease = useCallback((e: React.SyntheticEvent<HTMLInputElement>) => {
+    const v = parseFloat(e.currentTarget.value);
+    if (Number.isFinite(v)) controllerRef.current?.setTargetLevel(Math.round(v));
+  }, []);
 
   const handleSelectZone = useCallback(
     (id: string | null) => {
@@ -365,6 +372,14 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   // Sheet handle: a tap steps closed -> peek -> full -> peek; a drag moves it a step up or
   // down (dragging down from peek closes it). Pointer events so it works for touch and mouse.
   const handleDrag = useRef<{ y: number } | null>(null);
+  // Closing the panel while a system is open also closes the system, which puts the model back
+  // to its opening state (engine selectZone(null)); a scenario-only panel just closes.
+  const closePanel = useCallback(() => {
+    if (currentZoneId) controllerRef.current?.selectZone(null);
+    // Closing a scenario's sheet ends the scenario too, back to the plain model.
+    else if (scenarioId) handlePickScenario(null);
+    else setIsPanelOpen(false);
+  }, [currentZoneId, scenarioId, handlePickScenario]);
   const stepSheet = useCallback(
     (dir: "up" | "down" | "tap") => {
       if (dir === "tap") {
@@ -374,9 +389,9 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
         if (!isPanelOpen) setIsPanelOpen(true);
         else setIsSheetFull(true);
       } else if (isSheetFull) setIsSheetFull(false);
-      else setIsPanelOpen(false);
+      else closePanel();
     },
-    [isPanelOpen, isSheetFull]
+    [isPanelOpen, isSheetFull, closePanel]
   );
 
   const handleToggleTour = useCallback(() => {
@@ -470,6 +485,8 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
               aria-label="Open up the model, layer by layer"
               title="Open up the model, layer by layer"
               onChange={handleSliderChange}
+              onPointerUp={handleSliderRelease}
+              onKeyUp={handleSliderRelease}
             />
             {/* Tick marks: one stop per layer button. */}
             <datalist id="nrLayerStops">
@@ -694,12 +711,19 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
-                setIsPanelOpen(false);
+                closePanel();
               }}
             >
               &times;
             </button>
           </div>
+          {/* Side-panel close (wider screens; phones close from the sheet handle). Closing the
+              system returns the model to its opening state, like the breadcrumb's ✕. */}
+          {zone && (
+            <button className="panel-close-btn panel-close-side" type="button" aria-label={`Close ${zone.label}`} onClick={closePanel}>
+              &times;
+            </button>
+          )}
           <div
             className="panel"
             ref={panelRef}
