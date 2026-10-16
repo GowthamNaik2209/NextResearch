@@ -83,6 +83,9 @@ export type SectorZone = {
   desc: string;
   suppliers: SectorCompanyLink[];
   deepDive?: boolean;
+  // Index into the sector's `layerNames` of the layer that visibly shows this system
+  // (e.g. ev4w's e-axle sits in "Powertrain"). Picking the zone peels the model to it.
+  layer?: number;
   // --- richer "Component" fields (optional: populated for `datacenter` so far,
   // left unset for sectors still on the original artifact's flat shape) ---
   domainId?: string;
@@ -112,6 +115,9 @@ export type SupplierFinancials = {
   range?: (number | null)[] | null; // 52-week [low, high]
   tl?: [number, string] | null; // Trendlyne [id, slug]
   kpi?: (number | null)[] | null; // [pe, bookValue, divYield, roce, roe, faceValue]
+  // Latest-year profit/revenue dominated by a one-off (e.g. SPARC's FY26 priority-review
+  // voucher sale): kept out of the landing page's rule-based idea screens.
+  screenOut?: boolean;
 };
 
 export type SectorSupplier = {

@@ -287,7 +287,7 @@ function OverviewSlide({ deck }: SlideProps) {
   // Very high CAGRs come from launch-year bases and read better as a multiple.
   const growth = g ? (g.cagr > 100 ? `~${Math.round(g.multiple)}x` : `~${Math.round(g.cagr)}% a year`) : "";
   const title = g
-    ? `${o.chart.title}: ${growth} from ${g.a.label} to ${g.b.label}${g.end ? `, with ${g.end.label} projected at ~${(g.end.value / g.b.value).toFixed(1)}x the ${g.b.label} level` : ""}`
+    ? `${o.chart.title}: ${growth} from ${g.a.label} to ${g.b.label}${g.end && Math.abs(g.end.value / g.b.value - 1) >= 0.15 ? `, with ${g.end.label} projected at ~${(g.end.value / g.b.value).toFixed(1)}x the ${g.b.label} level` : ""}`
     : o.chart.title;
   return (
     <>
@@ -347,7 +347,9 @@ function ValueChainSlide({ deck }: SlideProps) {
       ? `${chain.length} stages from inputs to end market, each with a distinct margin profile`
       : high.length <= 2
         ? `The strongest moats sit in ${listJoin(high)}, across ${chain.length} stages from inputs to end market`
-        : `${high.length} of ${chain.length} stages carry high moats, led by ${listJoin(high.slice(0, 2))}`;
+        : high.slice(0, 2).some((s) => s.includes(","))
+          ? `${high.length} of ${chain.length} stages carry high moats` // comma-laden stage names don't list cleanly
+          : `${high.length} of ${chain.length} stages carry high moats, led by ${listJoin(high.slice(0, 2))}`;
   return (
     <>
       <SlideHead n={4} eyebrow="Value chain & profit pools" title={title} />

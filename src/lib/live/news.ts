@@ -15,6 +15,9 @@ const MAX_AGE_DAYS = 30;
 // tip lists ("Stocks to watch", "top 3 stocks to buy") - the latter also read as advice.
 const NOISE_TITLE =
   /\b(price target|forecast|prediction|stock analysis|share price (today|live|history)|stocks? to (watch|buy|sell)|top \d+ stocks|stock picks?|buy or sell)\b/i;
+// Entertainment that shares a company's name (Netflix's "Lupin").
+const NOT_BUSINESS = /\b(netflix|season \d+|episode|web series|trailer|box office)\b/i;
+const NOT_BUSINESS_SOURCES = new Set(["IMDb"]);
 
 export type Headline = { headline: string; source: string; url: string; ts: number };
 
@@ -38,7 +41,7 @@ export function parseGoogleNewsRss(xml: string, now = Date.now()): Headline[] {
     const url = tag(item, "link");
     const ts = Date.parse(tag(item, "pubDate"));
     if (!headline || !url || !Number.isFinite(ts) || ts > now + 3_600_000) continue;
-    if (NOISE_TITLE.test(headline)) continue;
+    if (NOISE_TITLE.test(headline) || NOT_BUSINESS.test(headline) || NOT_BUSINESS_SOURCES.has(source)) continue;
     out.push({ headline, source, url, ts });
   }
   return out.sort((a, b) => b.ts - a.ts);
@@ -75,7 +78,11 @@ const GENERIC = new Set(
     "transformers cables bearings peripherals wagons microsystems future finance railway projects techno equipments container " +
     "shipbuilders shipyard engineers authority welding dynamics premier explosives patterns microwave defence brothers aerospace aviation " +
     "aeronautics telecom digital telematics networks innovations communications teleservices telephone renewable renewables energies " +
-    "system orient sterling garden hindustan gujarat mahanagar cochin mishra towers").split(" ")
+    "system orient sterling garden hindustan gujarat mahanagar cochin mishra towers " +
+    "pharmaceutical pharmaceuticals pharma laboratories labs lifesciences life sciences healthcare health biotech biosciences " +
+    "hospitals scientific chemicals drugs active organics worldwide institute biological " +
+    "realty trust reit estates developers properties parks business office mills cement cements steel tubes paints ceramics " +
+    "plyboards panels glass pipes fittings financiers housing contracts infraprojects knowledge").split(" ")
 );
 // "&" and "and" are dropped so "Transformers and Rectifiers" matches "Transformers & Rectifiers".
 const normalize = (s: string) =>
@@ -89,7 +96,7 @@ const normalize = (s: string) =>
 // say which one ("Mahindra Holidays" is not M&M, "Kirloskar Brothers" is not Kirloskar Oil Engines).
 const GROUP = new Set(
   ("mahindra tata adani bajaj birla kirloskar motherson minda bharti jsw reliance godrej jindal vedanta sterlite apollo kalpataru " +
-    "texmaco waaree borosil cyient hinduja piramal torrent").split(" ")
+    "texmaco waaree borosil cyient hinduja piramal torrent aarti finolex bosch embassy brookfield supreme").split(" ")
 );
 // Short names headlines use, including a group name that alone conventionally means one company
 // here ("Mahindra" = M&M).
@@ -100,7 +107,22 @@ const ALIASES: Record<string, string[]> = {
   WAAREEENER: ["waaree"],
   STLTECH: ["sterlite tech"],
   FLUOROCHEM: ["gujarat fluoro"],
+  SUNPHARMA: ["sun pharma"],
+  TORNTPHARM: ["torrent pharma"],
+  ZYDUSLIFE: ["zydus"],
+  IPCALAB: ["ipca"],
+  ALKEM: ["alkem"],
+  DRREDDY: ["dr reddys"],
+  DIVISLAB: ["divis"],
+  LODHA: ["lodha", "macrotech"],
+  EMBASSY: ["embassy reit"],
+  BIRET: ["brookfield reit", "brookfield india reit"],
+  PHOENIXLTD: ["phoenix mills"],
+  SBIN: ["sbi"],
+  AAVAS: ["aavas"],
 };
+// Tickers that are ordinary words ("US Embassy ..."), so they don't identify the company on their own.
+const WORD_TICKERS = new Set(["EMBASSY"]);
 // Separately listed companies, outside our coverage, whose names contain one of ours. A match
 // that sits inside one of these (or inside another covered company's name) doesn't count.
 const OTHER_COMPANIES = [
@@ -108,6 +130,9 @@ const OTHER_COMPANIES = [
   "Mahindra & Mahindra Financial", "M&M Financial", "M&M Finance", "Mahindra Susten", "Mahindra CIE", "Mahindra EPC",
   "Tata Motors Commercial", "Tata Motors CV", "Siemens Energy", "Waaree Renewable", "Borosil Ltd", "Kirloskar Ferrous",
   "Kirloskar Industries", "Motherson Sumi Systems", "Indian Railway Catering", "Mahanagar Gas",
+  "Sun Pharma Advanced Research", "Torrent Power", "Zydus Wellness", "Apollo Tyres", "Piramal Enterprises", "Piramal Finance",
+  "Aarti Industries", "Abbott Laboratories", "Embassy Developments", "Bosch Ltd", "SBI Life", "SBI Cards", "SBI Card",
+  "SBI Funds", "SBI Mutual Fund", "SBI General", "HDFC Life", "HDFC AMC", "Brookfield Asset Management",
 ].map(normalize);
 
 const nameWords = (name: string) => normalize(name.replace(/\(.*?\)/g, "")).split(" ").filter(Boolean);
@@ -145,7 +170,8 @@ export function isAbout(headline: string, company: { name: string; ticker: strin
   const words = nameWords(company.name);
   const own = words.join(" ");
   const distinctive = words.filter((w) => w.length >= 6 && !GENERIC.has(w) && !GROUP.has(w));
-  const keys = [openingOf(words), normalize(company.ticker), ...distinctive, ...(ALIASES[company.ticker] ?? [])].filter((k) => k.length >= 3);
+  const ticker = WORD_TICKERS.has(company.ticker) ? "" : normalize(company.ticker);
+  const keys = [openingOf(words), ticker, ...distinctive, ...(ALIASES[company.ticker] ?? [])].filter((k) => k.length >= 3);
   const otherNames = [...rivals().filter((r) => r.ticker !== company.ticker && r.name !== own).flatMap((r) => r.phrases), ...OTHER_COMPANIES];
   const covering = otherNames.filter((p) => !` ${own} `.includes(` ${p} `)).flatMap((p) => spans(h, p));
   return keys.some((k) => spans(h, k).some(([s, e]) => !covering.some(([cs, ce]) => cs <= s && ce >= e && ce - cs > e - s)));
@@ -215,9 +241,12 @@ export async function getNewsForTickers(tickers: string[], limit = 8): Promise<N
 }
 
 // Which companies stand in for a sector when building a feed: the biggest by market cap
-// (their news is what investors follow, and it bounds the number of upstream requests).
+// (their news is what investors follow, and it bounds the number of upstream requests),
+// discounted by how central the sector is to them - otherwise a mega-cap lender or steel
+// maker with a side exposure fills a sector's feed with news about its own business.
 const PER_SECTOR_ALL = 5;
 const PER_SECTOR_SINGLE = 12;
+const feedWeight = (c: CompanyMetrics) => (c.mcapCr ?? 0) * c.centrality;
 
 /** Latest headlines for the whole platform, or one sector, newest first. */
 export async function getLatestNews({ sectorSlug, limit = 20 }: { sectorSlug?: string; limit?: number } = {}): Promise<NewsResult> {
@@ -227,7 +256,7 @@ export async function getLatestNews({ sectorSlug, limit = 20 }: { sectorSlug?: s
     bySector.set(c.sectorSlug, [...(bySector.get(c.sectorSlug) ?? []), c]);
   }
   const perSector = sectorSlug ? PER_SECTOR_SINGLE : PER_SECTOR_ALL;
-  const companies = [...bySector.values()].flatMap((cs) => cs.sort((a, b) => (b.mcapCr ?? 0) - (a.mcapCr ?? 0)).slice(0, perSector));
+  const companies = [...bySector.values()].flatMap((cs) => cs.sort((a, b) => feedWeight(b) - feedWeight(a)).slice(0, perSector));
   const live = dedupe((await mapPool(companies, 6, liveForCompany)).flat()).sort((a, b) => b.ts - a.ts).slice(0, limit);
   if (live.length >= 3) return { items: live, live: true };
   const curated = listNews().filter((n) => !sectorSlug || n.sectorSlug === sectorSlug);

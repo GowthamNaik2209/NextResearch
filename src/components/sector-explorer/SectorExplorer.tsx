@@ -59,6 +59,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   const mobileTagsRef = useRef<HTMLDivElement>(null);
   const shellLabelRef = useRef<HTMLSpanElement>(null);
   const breadcrumbRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLInputElement>(null);
   const layerButtonRefs = useRef(new Map<number, HTMLButtonElement>());
   const controllerRef = useRef<ExplorerController | null>(null);
 
@@ -174,6 +175,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
       layerButtons: layerButtonRefs.current,
       shellLabel: shellLabelRef.current,
       breadcrumb: breadcrumbRef.current,
+      slider: sliderRef.current,
     };
     const controller = mountExplorer(dom, sector, {
       onZoneChange: (zoneId) => {
@@ -417,6 +419,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
           </div>
           <div className="layer-slider-wrap">
             <input
+              ref={sliderRef}
               type="range"
               min={0}
               max={sector.layerNames.length - 1}

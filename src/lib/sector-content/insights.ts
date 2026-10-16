@@ -20,7 +20,16 @@ export type CompanyMetrics = {
   revGrowthPct: number | null; // latest year vs previous
   pctFrom52wHigh: number | null; // negative = below the high
   mcapCr: number | null;
+  // 0-1: how central this sector is to the company (its strongest exposure here), used to
+  // keep side-exposed mega-caps from crowding a sector's news feed.
+  centrality: number;
+  // Latest-year figures distorted by a one-off (see SupplierFinancials.screenOut).
+  screenOut: boolean;
 };
+
+const STRENGTH_WEIGHT = { high: 1, medium: 0.2, low: 0.03 } as const;
+// Lenders, software and other enablers sit beside the chain rather than in it.
+const SIDE_TYPES = new Set(["enabler", "indirect_supplier"]);
 
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
 const parseRs = (s?: string) => {
@@ -37,10 +46,17 @@ export function listCompanyMetrics(): CompanyMetrics[] {
   for (const s of listSectors().filter((x) => !x.muted)) {
     // First zone each supplier sits in, so the link lands on a real layer.
     const zoneOf = new Map<string, string>();
+    const centralityOf = new Map<string, number>();
     for (const z of s.zones)
       for (const l of z.suppliers) {
         const k = typeof l === "string" ? l : l.key;
         if (!zoneOf.has(k)) zoneOf.set(k, z.id);
+        // Bare-key links (sectors not yet carrying exposure data) count as central.
+        const w =
+          typeof l === "string" || !l.exposureStrength
+            ? 1
+            : STRENGTH_WEIGHT[l.exposureStrength] * (l.exposureType && SIDE_TYPES.has(l.exposureType) ? 0.1 : 1);
+        centralityOf.set(k, Math.max(centralityOf.get(k) ?? 0, w));
       }
     for (const [key, sup] of Object.entries(s.suppliers)) {
       const f = sup.f;
@@ -69,6 +85,8 @@ export function listCompanyMetrics(): CompanyMetrics[] {
         revGrowthPct: last != null && prev ? ((last - prev) / prev) * 100 : null,
         pctFrom52wHigh: price != null && hi ? ((price - hi) / hi) * 100 : null,
         mcapCr: parseRs(f.mcap),
+        centrality: centralityOf.get(key) ?? 1,
+        screenOut: !!f.screenOut,
       });
     }
   }
@@ -113,7 +131,7 @@ const pct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}%`;
 // Rule-based screens, not recommendations: each states its rule so the list is
 // reproducible, and ranks purely on one reported number.
 export function buildIdeas(): Idea[] {
-  const cs = listCompanyMetrics();
+  const cs = listCompanyMetrics().filter((c) => !c.screenOut);
   const row = (c: CompanyMetrics, value: string) => ({ name: c.name, sector: c.sectorName, href: c.href, value });
   const sorted = (f: (c: CompanyMetrics) => number | null, dir: 1 | -1, filter: (c: CompanyMetrics) => boolean = () => true) =>
     cs.filter((c) => f(c) != null && filter(c)).sort((a, b) => dir * ((f(a) as number) - (f(b) as number)));
@@ -128,9 +146,9 @@ export function buildIdeas(): Idea[] {
     {
       id: "growth",
       title: "Fastest revenue growth",
-      rule: "Latest-year revenue growth, among companies with revenue above ₹1,000 Cr",
+      rule: "Latest-year revenue growth, among companies with revenue above ₹1,000 Cr in both years",
       metricLabel: "Revenue YoY",
-      rows: top(sorted((c) => c.revGrowthPct, -1, (c) => (c.revenueCr ?? 0) > 1000)).map((c) => row(c, pct(c.revGrowthPct!))),
+      rows: top(sorted((c) => c.revGrowthPct, -1, (c) => (c.revenueCr ?? 0) > 1000 && c.revenueCr! / (1 + c.revGrowthPct! / 100) > 1000)).map((c) => row(c, pct(c.revGrowthPct!))),
     },
     {
       id: "value",

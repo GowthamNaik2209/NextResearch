@@ -147,3 +147,44 @@ test("isAbout matches the short names and spellings headlines actually use", () 
   assert.ok(isAbout("Sterlite Tech shares gain 5% as arm wins $1.2 billion supply agreement", stl));
   assert.ok(!isAbout("Sterlite Power wins transmission project", stl));
 });
+
+test("isAbout handles pharma names: short forms, group siblings and the Sun/SPARC overlap", () => {
+  const sun = { name: "Sun Pharmaceutical Industries", ticker: "SUNPHARMA" };
+  const sparc = { name: "SPARC (Sun Pharma Advanced Research Company)", ticker: "SPARC" };
+  assert.ok(isAbout("Sun Pharma Q2 results: profit rises 12% on specialty sales", sun));
+  assert.ok(!isAbout("Sun Pharma Q2 results: profit rises 12% on specialty sales", sparc), "Sun's news is not SPARC's");
+  assert.ok(!isAbout("Sun Pharma Advanced Research shares surge on licensing deal", sun));
+  assert.ok(isAbout("SPARC shares surge on licensing deal", sparc));
+  const torrent = { name: "Torrent Pharmaceuticals", ticker: "TORNTPHARM" };
+  assert.ok(isAbout("Torrent Pharma completes JB Chemicals merger", torrent));
+  assert.ok(!isAbout("Torrent Power wins 1 GW pumped storage contract", torrent));
+  const zydus = { name: "Zydus Lifesciences", ticker: "ZYDUSLIFE" };
+  assert.ok(isAbout("Zydus gets USFDA nod for generic drug", zydus));
+  assert.ok(!isAbout("Zydus Wellness Q2 volumes rise", zydus));
+  const drl = { name: "Dr Reddy's Laboratories", ticker: "DRREDDY" };
+  assert.ok(isAbout("Dr. Reddy's Q1 profit beats estimates", drl));
+  assert.ok(isAbout("Dr Reddys launches semaglutide in Canada", drl));
+  const aartiDrugs = { name: "Aarti Drugs", ticker: "AARTIDRUGS" };
+  assert.ok(!isAbout("Aarti Industries shares fall 5%", aartiDrugs));
+  assert.ok(!isAbout("Aarti Pharmalabs commissions new API block", aartiDrugs));
+});
+
+test("isAbout handles real estate names: REITs, short forms and look-alike words", () => {
+  const lodha = { name: "Lodha Developers (Macrotech)", ticker: "LODHA" };
+  assert.ok(isAbout("Lodha pre-sales rise 14% in Q2", lodha));
+  assert.ok(isAbout("Macrotech Developers raises Rs 3,000 crore via QIP", lodha));
+  const embassy = { name: "Embassy Office Parks REIT", ticker: "EMBASSY" };
+  assert.ok(isAbout("Embassy REIT leases 1 msf in Bengaluru", embassy));
+  assert.ok(!isAbout("US Embassy issues visa advisory", embassy));
+  assert.ok(!isAbout("Embassy Developments shares jump 8%", embassy));
+  const supreme = { name: "Supreme Industries", ticker: "SUPREMEIND" };
+  assert.ok(!isAbout("Supreme Court reserves verdict on builder insolvency case", supreme));
+  assert.ok(isAbout("Supreme Industries Q2 pipe volumes up 9%", supreme));
+  const sbi = { name: "State Bank of India", ticker: "SBIN" };
+  assert.ok(isAbout("SBI cuts home loan rates by 25 bps", sbi));
+  assert.ok(!isAbout("SBI Life Q2 VNB margin expands", sbi));
+  const finpipe = { name: "Finolex Industries", ticker: "FINPIPE" };
+  assert.ok(!isAbout("Finolex Cables wins telecom order", finpipe));
+  const mm = { name: "Mahindra & Mahindra", ticker: "M&M" };
+  assert.ok(!isAbout("Mahindra Lifespace launches Rs 1,200 crore project in Pune", mm));
+});

@@ -22,6 +22,8 @@ export type ExplorerDom = {
   layerButtons: Map<number, HTMLButtonElement>; // level index -> button (0 = shell)
   shellLabel: HTMLSpanElement; // shell button's label swaps between layerNames[0]/[1]
   breadcrumb: HTMLDivElement;
+  // The Layers slider; kept in step with the level when buttons or a system pick move it.
+  slider?: HTMLInputElement | null;
 };
 
 export type ExplorerCallbacks = {
@@ -209,6 +211,8 @@ export function mountExplorer(
       const active = isShellBtn ? (roundedIdx === 0 || roundedIdx === 1) && onStop : roundedIdx === level && onStop;
       btn.classList.toggle("active", active);
     });
+    // Not while the user is dragging it (it has focus then), or it would fight their finger.
+    if (dom.slider && document.activeElement !== dom.slider) dom.slider.value = String(v);
     dom.shellLabel.textContent = roundedIdx === 1 && onStop ? sector.layerNames[1] : sector.layerNames[0];
     if (!deepDiveActive) updateBreadcrumb();
   }
@@ -307,6 +311,11 @@ function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
 
   function selectZone(id: string | null) {
     currentZoneId = id;
+    // Peel the model to the layer where the picked system is actually visible, so
+    // choosing "e-axle" from any entry point (marker, callout, Systems list, deep
+    // link) shows the drive unit rather than a marker floating over the paint.
+    const layer = id ? zones.get(id)?.def.layer : undefined;
+    if (layer != null && !deepDiveActive && layer >= 0 && layer < sector.layerNames.length) targetLevel = layer;
     for (const [zid, zr] of zones) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (zr.marker.userData as any).selected = zid === id;

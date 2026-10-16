@@ -50,6 +50,12 @@ for (const sector of listSectors()) {
   }
 
   for (const zone of sector.zones) {
+    // Picking a system peels the 3D model to this layer (engine.ts selectZone).
+    if (zone.layer === undefined) {
+      if (!sector.muted) fail(`[${sector.slug}] zone "${zone.id}" has no layer (index into layerNames that shows it)`);
+    } else if (!Number.isInteger(zone.layer) || zone.layer < 0 || zone.layer >= sector.layerNames.length) {
+      fail(`[${sector.slug}] zone "${zone.id}" layer ${zone.layer} is outside layerNames (0-${sector.layerNames.length - 1})`);
+    }
     if (zone.domainId !== undefined && !domainIds.has(zone.domainId)) {
       fail(`[${sector.slug}] zone "${zone.id}" has domainId "${zone.domainId}" with no matching domain`);
     }

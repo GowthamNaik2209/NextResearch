@@ -104,6 +104,9 @@ export function buildAerospace(ctx: Ctx) {
   const coreMat = L.add("core", std(0x7a5cc7, 0.7, 0.3));
   const hotMat = L.add("core", std(0xd9622b, 0.6, 0.35, { emissive: 0x5a1a00, emissiveIntensity: 0.6 }));
   const compMat = L.add("core", std(0xb8c0c8, 0.9, 0.25));
+  // The spare engine on its stand is part of the MRO shop, so its bare casing
+  // lives with the hangar (the "core" bucket is hidden at levels 0-1).
+  const spareCase = L.add("hangar", std(0xb8c0c8, 0.9, 0.25));
 
   const gearMat = L.add("gear", std(0xc7cdd3, 0.9, 0.25));
   const tyreMat = L.add("gear", std(0x161719, 0.1, 0.9));
@@ -281,12 +284,12 @@ export function buildAerospace(ctx: Ctx) {
   // ---------------------------------------------------------------- engines (LEAP-1A style)
   const ENG_Z = 1.1;
   const engY = wingY(ENG_Z) - 0.2;
-  const buildEngine = (parent: T.Object3D, withCowlBucket: boolean) => {
+  const buildEngine = (parent: T.Object3D, withCowlBucket: boolean, bareMat: T.Material = compMat) => {
     const g = new THREE.Group();
     const along = (geo: T.BufferGeometry) => geo.rotateZ(Math.PI / 2); // lathe axis Y -> -X
-    g.add(new THREE.Mesh(along(lathe(THREE, [[0.165, 0.12], [0.17, 0.03], [0.181, 0.0], [0.193, 0.018], [0.2, 0.12], [0.198, 0.3], [0.18, 0.48], [0.142, 0.62]], 48)), withCowlBucket ? cowl : compMat));
+    g.add(new THREE.Mesh(along(lathe(THREE, [[0.165, 0.12], [0.17, 0.03], [0.181, 0.0], [0.193, 0.018], [0.2, 0.12], [0.198, 0.3], [0.18, 0.48], [0.142, 0.62]], 48)), withCowlBucket ? cowl : bareMat));
     g.add(new THREE.Mesh(along(lathe(THREE, [[0.168, -0.004], [0.183, -0.002], [0.192, 0.016]], 48)), lipMat));
-    g.add(new THREE.Mesh(along(lathe(THREE, [[0.115, 0.58], [0.112, 0.7], [0.085, 0.8], [0.05, 0.82]], 32)), withCowlBucket ? cowl : compMat));
+    g.add(new THREE.Mesh(along(lathe(THREE, [[0.115, 0.58], [0.112, 0.7], [0.085, 0.8], [0.05, 0.82]], 32)), withCowlBucket ? cowl : bareMat));
     g.add(new THREE.Mesh(along(lathe(THREE, [[0.05, 0.8], [0.04, 0.86], [0.0, 0.92]], 24)), lipMat));
     // Fan: spinner + 18 wide-chord blades.
     g.add(new THREE.Mesh(along(lathe(THREE, [[0.0, 0.04], [0.035, 0.08], [0.055, 0.13], [0.058, 0.15]], 24)), spinner));
@@ -467,7 +470,7 @@ export function buildAerospace(ctx: Ctx) {
   mesh(hangarG, railing(THREE, [[2.92, 0.45, 0.45], [3.38, 0.45, 0.45], [3.38, 0.45, -0.45], [2.92, 0.45, -0.45]], 0.14, 0.006, 0.18), dockYellow);
   // Spare engine on its transport stand by the back wall (the engine shop).
   {
-    const spare = buildEngine(hangarG, false);
+    const spare = buildEngine(hangarG, false, spareCase);
     spare.position.set(-2.75, 0.42, -2.3);
     spare.rotation.y = 0.35;
     hangarG.add(spare);

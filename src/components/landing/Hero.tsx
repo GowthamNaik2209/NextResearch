@@ -55,14 +55,14 @@ function ChainPreview({ featured }: Pick<Props, "featured">) {
         {(featured?.zones.slice(0, 5) ?? []).map((z, i) => (
           <div
             key={z.id}
-            className="mb-2 flex items-center justify-between rounded-lg border border-line bg-panel-2 px-3.5 py-2.5"
+            className="mb-2 flex items-center justify-between gap-3 rounded-lg border border-line bg-panel-2 px-3.5 py-2.5"
             style={{ marginLeft: i * 10, marginRight: (4 - i) * 10 }}
           >
             <span className="flex items-center gap-2.5 text-sm font-medium text-ink">
               <span className="h-2.5 w-2.5 rounded-sm" style={{ background: z.color }} />
               {z.label}
             </span>
-            <span className="font-mono text-xs text-ink-soft">{z.suppliers.length} cos</span>
+            <span className="shrink-0 font-mono text-xs text-ink-soft">{z.suppliers.length} cos</span>
           </div>
         ))}
         <div className="mt-4 rounded-lg bg-accent/10 px-3.5 py-3 text-xs leading-relaxed text-ink-soft">

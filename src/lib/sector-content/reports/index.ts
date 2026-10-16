@@ -13,6 +13,8 @@ import { aerospace } from "./aerospace";
 import { telecom5g } from "./telecom5g";
 import { solarmodules } from "./solarmodules";
 import { energy } from "./energy";
+import { realestate } from "./realestate";
+import { pharma } from "./pharma";
 
 export type { SectorReport, Tone } from "./types";
 
@@ -26,6 +28,8 @@ const REPORTS: Record<string, SectorReport> = {
   telecom5g,
   solarmodules,
   energy,
+  realestate,
+  pharma,
 };
 
 export function getReport(slug: string): SectorReport | null {
