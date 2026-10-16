@@ -81,6 +81,50 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   const [isControlsOpen, setIsControlsOpen] = useState(false);
   const [deepStage, setDeepStage] = useState<number | null>(null);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
+  // Phone/tablet controls overlay: a tap anywhere outside it closes it (not just its own
+  // button). When that tap lands on the 3D stage or the bottom sheet it is used up by the
+  // close - the rest of that same press (its pointerup/click, or a touch gesture it starts)
+  // doesn't also pick a system or step the sheet - however long it's held. Taps elsewhere
+  // (header buttons) still go through.
+  useEffect(() => {
+    if (!isControlsOpen) return;
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Element | null;
+      if (!t || t.closest(".rail, .controls-btn")) return;
+      setIsControlsOpen(false);
+      if (!t.closest(".stage, .panel-wrap")) return;
+      e.stopPropagation();
+      const id = e.pointerId;
+      const stop = (ev: Event) => {
+        ev.stopPropagation();
+        ev.preventDefault();
+      };
+      const opts = { capture: true } as const;
+      const onTouch = (ev: TouchEvent) => ev.stopPropagation(); // label gestures listen to touch events
+      const onUp = (ev: PointerEvent) => {
+        if (ev.pointerId !== id) return;
+        stop(ev);
+        window.removeEventListener("pointerup", onUp, opts);
+        window.removeEventListener("pointercancel", onUp, opts);
+        window.removeEventListener("touchstart", onTouch, opts);
+        window.removeEventListener("touchmove", onTouch, opts);
+        // The press's click follows its pointerup straight away; drop just that one.
+        window.addEventListener("click", stop, { capture: true, once: true });
+        setTimeout(() => window.removeEventListener("click", stop, opts), 50);
+      };
+      window.addEventListener("pointerup", onUp, opts);
+      window.addEventListener("pointercancel", onUp, opts);
+      window.addEventListener("touchstart", onTouch, opts);
+      window.addEventListener("touchmove", onTouch, opts);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setIsControlsOpen(false);
+    window.addEventListener("pointerdown", onDown, { capture: true });
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("pointerdown", onDown, { capture: true });
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [isControlsOpen]);
   const scenarios = listScenarios(slug);
   // Deep link: ?scenario=<id>; an unknown id is ignored.
   const [scenarioId, setScenarioId] = useState<string | null>(() => {

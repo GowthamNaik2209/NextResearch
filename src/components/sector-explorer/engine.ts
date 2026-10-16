@@ -108,6 +108,71 @@ export function mountExplorer(
     focusReturn = null;
   });
 
+  // Labels (phone tags, callouts) sit over the canvas, so a pinch or drag whose fingers land
+  // on them never reached OrbitControls and the model wouldn't zoom or turn - on a phone the
+  // labels cover much of the model, so people's fingers land on them all the time. Touches that
+  // start on a label are driven here with the same maths OrbitControls uses; a plain tap still
+  // falls through to the label's click (opening that system). OrbitControls is paused while
+  // such a gesture runs so a second finger on the canvas doesn't also rotate.
+  let suppressLabelClickUntil = 0;
+  let labelGesture: { dist: number; x: number; y: number; moved: boolean } | null = null;
+  const onLabel = (t: EventTarget | null) => !!(t as Element | null)?.closest?.(".mtag, .callout");
+  const touchDist = (a: Touch, b: Touch) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  const touchMid = (ts: TouchList) => {
+    let x = 0,
+      y = 0;
+    for (let i = 0; i < ts.length; i++) {
+      x += ts[i].clientX;
+      y += ts[i].clientY;
+    }
+    return { x: x / ts.length, y: y / ts.length };
+  };
+  const startLabelGesture = (e: TouchEvent) => {
+    const ts = e.touches;
+    if (!Array.from(ts).some((t) => onLabel(t.target))) return;
+    const m = touchMid(ts);
+    labelGesture = { dist: ts.length >= 2 ? touchDist(ts[0], ts[1]) : 0, x: m.x, y: m.y, moved: labelGesture?.moved ?? false };
+    if (ts.length >= 2) controls.enabled = false;
+  };
+  const onGestureStart = (e: TouchEvent) => startLabelGesture(e);
+  const onGestureMove = (e: TouchEvent) => {
+    if (!labelGesture) return;
+    const ts = e.touches;
+    const m = touchMid(ts);
+    if (!labelGesture.moved && ts.length < 2 && Math.hypot(m.x - labelGesture.x, m.y - labelGesture.y) < 8) return;
+    e.preventDefault();
+    if (!labelGesture.moved) {
+      labelGesture.moved = true;
+      controls.enabled = false;
+      shot = null;
+      camAnim = null;
+      focusReturn = null;
+    }
+    if (ts.length >= 2) {
+      const d = touchDist(ts[0], ts[1]);
+      if (labelGesture.dist > 0 && d > 0) controls.dollyOut(Math.pow(d / labelGesture.dist, controls.zoomSpeed));
+      labelGesture.dist = d;
+    } else {
+      const h = renderer.domElement.clientHeight || 1;
+      controls.rotateLeft(((2 * Math.PI * (m.x - labelGesture.x)) / h) * controls.rotateSpeed);
+      controls.rotateUp(((2 * Math.PI * (m.y - labelGesture.y)) / h) * controls.rotateSpeed);
+    }
+    labelGesture.x = m.x;
+    labelGesture.y = m.y;
+  };
+  const onGestureEnd = (e: TouchEvent) => {
+    if (!labelGesture) return;
+    if (labelGesture.moved) suppressLabelClickUntil = performance.now() + 400;
+    if (e.touches.length === 0) {
+      labelGesture = null;
+      controls.enabled = true;
+    } else startLabelGesture(e); // a finger lifted: continue with the ones still down
+  };
+  stage.addEventListener("touchstart", onGestureStart, { passive: true });
+  stage.addEventListener("touchmove", onGestureMove, { passive: false });
+  stage.addEventListener("touchend", onGestureEnd);
+  stage.addEventListener("touchcancel", onGestureEnd);
+
   // How far to pull preset views back on a portrait (phone) stage, where the
   // narrow horizontal field of view would otherwise crop the model's sides.
   // Fog and the zoom-out limit scale with it so the farther camera isn't
@@ -306,7 +371,10 @@ export function mountExplorer(
     box.textContent = z.label;
     box.setAttribute("aria-pressed", "false");
     box.style.setProperty("--zc", z.color);
-    box.addEventListener("click", () => selectZone(z.id));
+    box.addEventListener("click", () => {
+      if (performance.now() < suppressLabelClickUntil) return;
+      selectZone(z.id);
+    });
     box.addEventListener("pointerenter", () => setHoverGuarded(z.id));
     box.addEventListener("pointerleave", () => setHoverGuarded(null, z.id));
     const railEl = { left: railLeft, right: railRight, top: railTop, bottom: railBottom }[z.side];
@@ -328,7 +396,10 @@ export function mountExplorer(
     tag.title = z.label;
     tag.setAttribute("aria-pressed", "false");
     tag.style.setProperty("--zc", z.color);
-    tag.addEventListener("click", () => selectZone(z.id));
+    tag.addEventListener("click", () => {
+      if (performance.now() < suppressLabelClickUntil) return; // that touch was a pinch/drag
+      selectZone(z.id);
+    });
     mobileTags.appendChild(tag);
 
     zones.set(z.id, { def: z, marker, ring, box, tag, line });
@@ -839,6 +910,10 @@ export function mountExplorer(
 
   function dispose() {
     themeObserver.disconnect();
+    stage.removeEventListener("touchstart", onGestureStart);
+    stage.removeEventListener("touchmove", onGestureMove);
+    stage.removeEventListener("touchend", onGestureEnd);
+    stage.removeEventListener("touchcancel", onGestureEnd);
     cancelAnimationFrame(rafId);
     window.removeEventListener("resize", resize);
     stageObserver.disconnect();
