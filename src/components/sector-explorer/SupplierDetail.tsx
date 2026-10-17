@@ -77,14 +77,14 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
             <span className="text-[11px] text-ink-soft">{api?.quote ? `NSE${api.quote.delayedMin ? ` · ~${api.quote.delayedMin} min delayed` : ""}` : loading ? "Fetching live price…" : "Last known price"}</span>
             <PriceTag price={stats.price} quote={api?.quote ?? null} size="sm" />
           </div>
-          <div role="group" aria-label="Open stock details" className="grid grid-cols-4 gap-1 rounded-xl border border-line bg-panel-2 p-1">
+          <div role="group" aria-label="Open stock details" className="grid grid-cols-4 gap-1.5">
             {TABS.map((t) => (
               <button
                 key={t.id}
                 type="button"
                 aria-haspopup="dialog"
                 onClick={() => setOpenTab(t.id)}
-                className="rounded-lg px-1 py-2 text-[11px] font-semibold text-ink-soft transition-colors hover:bg-panel hover:text-ink sm:text-xs"
+                className="rounded-lg bg-accent px-1 py-2 text-[11px] font-semibold text-bg transition hover:opacity-90 sm:text-xs"
               >
                 {t.label}
               </button>
