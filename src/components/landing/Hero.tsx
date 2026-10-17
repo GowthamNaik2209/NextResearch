@@ -27,7 +27,7 @@ export function Hero({ featured, searchIndex }: Props) {
           <HeroSearch index={searchIndex} />
         </div>
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <Link href="#sectors" className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90">
+          <Link href="#themes" className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90">
             Browse industries
           </Link>
           <Link

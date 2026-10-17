@@ -10,7 +10,7 @@ import { listCompanyPages } from "@/lib/sector-content/companies";
 export const metadata: Metadata = {
   title: "Indian listed companies by supply chain: A-Z",
   description:
-    "Every listed Indian company NextResearch maps, A-Z, with the sectors and supply-chain layers each one sits in - data centres, EVs, semiconductors, railways, defence, aerospace, telecom, solar, power, real estate and pharma.",
+    "Every listed Indian company NextResearch maps, A-Z, with the industries, policies and supply-chain layers each one sits in - data centres, EVs, semiconductors, railways, defence, aerospace, telecom, solar, power, real estate and pharma.",
   alternates: { canonical: "/companies" },
 };
 

@@ -11,7 +11,7 @@ export function SiteFooter() {
             <p className="mt-1 text-xs text-ink-soft">Supply-chain research for India&rsquo;s public markets.</p>
           </div>
           <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-soft">
-            <Link href="/#sectors" className="hover:text-ink">Industries</Link>
+            <Link href="/#themes" className="hover:text-ink">Themes</Link>
             <Link href="/companies" className="hover:text-ink">Companies A-Z</Link>
             <Link href="/connections" className="hover:text-ink">Connected companies</Link>
             <Link href="/docs" className="hover:text-ink">Reading list</Link>

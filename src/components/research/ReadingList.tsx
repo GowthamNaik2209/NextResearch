@@ -2,19 +2,23 @@
 
 import { useEffect, useState } from "react";
 import type { Deck } from "@/lib/sector-content/reports";
+import type { IpoDeck } from "@/lib/ipo-content";
+import { IpoGrid } from "@/components/ipo/IpoGrid";
 import { ResearchDeck } from "./ResearchDeck";
 
 const TABS = [
   { id: "all", label: "All" },
   { id: "sector", label: "Industries" },
   { id: "policy", label: "Policies" },
+  { id: "ipo", label: "IPOs" },
 ] as const;
 
 // The /docs grid: one card per research deck; a click opens the deck as a pop-up.
-// `?report=<slug>` opens one directly (shareable), kept in sync while it is open.
-export function ReadingList({ decks, initial }: { decks: Deck[]; initial?: string }) {
+// `?report=<slug>` opens one directly (shareable), kept in sync while it is open. The IPOs tab
+// holds the upcoming-IPO decks (`?ipo=<slug>` lands on it with that deck open).
+export function ReadingList({ decks, ipos, initial, initialIpo }: { decks: Deck[]; ipos: IpoDeck[]; initial?: string; initialIpo?: string }) {
   const [openSlug, setOpenSlug] = useState<string | null>(null);
-  const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("all");
+  const [tab, setTab] = useState<(typeof TABS)[number]["id"]>(initialIpo ? "ipo" : "all");
   const open = decks.find((d) => d.slug === openSlug) ?? null;
   const shown = decks.filter((d) => tab === "all" || d.category === tab);
 
@@ -47,11 +51,15 @@ export function ReadingList({ decks, initial }: { decks: Deck[]; initial?: strin
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {shown.map((d) => (
-          <ReportCard key={d.slug} deck={d} onOpen={() => setOpenSlug(d.slug)} />
-        ))}
-      </div>
+      {tab === "ipo" ? (
+        <IpoGrid ipos={ipos} initial={initialIpo} />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {shown.map((d) => (
+            <ReportCard key={d.slug} deck={d} onOpen={() => setOpenSlug(d.slug)} />
+          ))}
+        </div>
+      )}
       {open && <ResearchDeck deck={open} onClose={() => setOpenSlug(null)} />}
     </>
   );

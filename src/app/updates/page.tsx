@@ -5,8 +5,8 @@ import { NewsFeed } from "@/components/NewsFeed";
 import { listSectors } from "@/lib/sector-content";
 
 export const metadata = {
-  title: "Updates: sector and company news",
-  description: "Latest news across the sectors and listed companies NextResearch covers.",
+  title: "Updates: industry, policy and company news",
+  description: "Latest news across the industries, policies and listed companies NextResearch covers.",
   alternates: { canonical: "/updates" },
 };
 
@@ -33,8 +33,8 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
         </div>
         {/* Phones: one sideways-scrolling row (11+ chips wrapped to ~9 rows and filled the first
             screen); from sm they wrap as before. The row bleeds to the screen edges. */}
-        <nav aria-label="Filter by sector" className="scrollbar-none -mx-5 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
-          <Link href="/updates" className={chip(!active) + " max-sm:-order-2"}>All sectors</Link>
+        <nav aria-label="Filter by theme" className="scrollbar-none -mx-5 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+          <Link href="/updates" className={chip(!active) + " max-sm:-order-2"}>All themes</Link>
           {sectors.map((s) => (
             <Link key={s.slug} href={`/updates?sector=${s.slug}`} className={chip(active === s.slug)} aria-current={active === s.slug ? "page" : undefined}>
               {s.name}

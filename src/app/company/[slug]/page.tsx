@@ -96,7 +96,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
               </p>
               {multiSector && (
                 <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">
-                  Mapped in {sectorNames.length} sectors: {listJoin(sectorNames)}.
+                  Mapped in {sectorNames.length} themes: {listJoin(sectorNames)}.
                 </p>
               )}
             </div>
@@ -141,7 +141,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           <h2 className="font-display text-xl font-bold text-ink">Where {c.name} sits in the supply chain</h2>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
             {c.name} appears in {appearances.length} supply-chain layer{appearances.length > 1 ? "s" : ""}{" "}
-            {multiSector ? `across ${sectorNames.length} sectors: ${listJoin(sectorNames)}` : `in one sector, ${sectorNames[0]}`}.
+            {multiSector ? `across ${sectorNames.length} themes: ${listJoin(sectorNames)}` : `in one theme, ${sectorNames[0]}`}.
           </p>
           <div className="mt-5 flex flex-col gap-4">
             {appearances.map((a) => (

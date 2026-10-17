@@ -91,8 +91,8 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-12 px-5 py-14">
         <div>
-          <Link href="/" className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
-            &larr; All sectors
+          <Link href="/#themes" className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
+            &larr; All themes
           </Link>
           <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-start gap-4">
@@ -182,7 +182,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
 
         <section>
           <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">
-            {domains.length > 0 ? "Major areas" : "Inside this sector"}
+            {domains.length > 0 ? "Major areas" : "Inside this theme"}
           </h2>
           <p className="mt-1 text-xs text-ink-soft">
             {domains.length > 0
@@ -221,7 +221,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
               <p className="mt-1 text-xs text-ink-soft">
                 {sector.integratorBlurb ?? (
                   <>
-                    The companies that assemble the finished product from everything else in this sector &mdash;{" "}
+                    The companies that assemble the finished product from everything else in this chain &mdash;{" "}
                     {midSentence(integratorZone.label)}.
                   </>
                 )}
@@ -293,7 +293,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
         )}
 
         <section id="companies" className="scroll-mt-20">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Companies in this sector</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Companies in this theme</h2>
           <p className="mt-1 text-xs text-ink-soft">
             {companies.length} companies, {listedCompanies.length} listed.
           </p>
@@ -362,7 +362,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                 {
                   "@type": "BreadcrumbList",
                   itemListElement: [
-                    { "@type": "ListItem", position: 1, name: "Sectors", item: `${SITE_URL}/#sectors` },
+                    { "@type": "ListItem", position: 1, name: "Themes", item: `${SITE_URL}/#themes` },
                     { "@type": "ListItem", position: 2, name: sector.name, item: `${SITE_URL}/sector/${sector.slug}` },
                   ],
                 },

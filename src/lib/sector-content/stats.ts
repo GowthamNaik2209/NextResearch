@@ -4,6 +4,7 @@
 import { listSectors, tickerForSupplier } from "./index";
 import { sectorNumbers } from "./insights";
 import { companySlug, sectorCompanyCounts } from "./companies";
+import { listIpos } from "../ipo-content";
 
 export function getPlatformStats() {
   const sectors = listSectors().filter((s) => !s.muted);
@@ -22,7 +23,7 @@ export function getPlatformStats() {
 }
 
 export type SearchEntry = {
-  kind: "sector" | "company";
+  kind: "sector" | "ipo" | "company";
   label: string;
   sub: string;
   href: string;
@@ -46,7 +47,7 @@ export function buildSearchIndex(): SearchEntry[] {
   const out: SearchEntry[] = sectors.map((s) => ({
     kind: "sector" as const,
     label: s.name,
-    sub: s.category === "policy" ? "Policy" : "Sector",
+    sub: s.category === "policy" ? "Policy" : "Industry",
     href: `/sector/${s.slug}`,
   }));
   const companies = new Map<string, { name: string; listed: boolean; ticker: string; sectors: string[]; href: string; zone: string }>();
@@ -75,7 +76,7 @@ export function buildSearchIndex(): SearchEntry[] {
         });
       }
   for (const c of companies.values()) {
-    const where = c.sectors.length === 1 ? `${c.zone} · ${c.sectors[0]}` : `${c.sectors.length} sectors: ${c.sectors.join(", ")}`;
+    const where = c.sectors.length === 1 ? `${c.zone} · ${c.sectors[0]}` : `${c.sectors.length} themes: ${c.sectors.join(", ")}`;
     const aliases = [initials(c.name), c.listed ? c.ticker.toLowerCase() : null].filter((a): a is string => !!a);
     out.push({
       kind: "company",
@@ -84,6 +85,10 @@ export function buildSearchIndex(): SearchEntry[] {
       href: c.href,
       aliases: [...new Set(aliases)],
     });
+  }
+  // Upcoming IPOs open their deck on the IPOs page.
+  for (const r of listIpos()) {
+    out.push({ kind: "ipo", label: `${r.name} IPO`, sub: `IPO · ${r.status.label}`, href: `/ipos?ipo=${r.slug}`, aliases: [r.name.toLowerCase(), "ipo", "ipos"] });
   }
   return out;
 }

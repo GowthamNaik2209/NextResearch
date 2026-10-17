@@ -65,10 +65,10 @@ export const SLIDES: SlideDef[] = [
 
 // ---------- shared pieces ----------
 
-const TONE_TEXT: Record<Tone, string> = { pos: "text-pos", neg: "text-danger", neutral: "text-ink-soft" };
-const TONE_LABEL: Record<Tone, string> = { pos: "Tailwind", neg: "Headwind", neutral: "Neutral" };
+export const TONE_TEXT: Record<Tone, string> = { pos: "text-pos", neg: "text-danger", neutral: "text-ink-soft" };
+export const TONE_LABEL: Record<Tone, string> = { pos: "Tailwind", neg: "Headwind", neutral: "Neutral" };
 
-function ToneIcon({ tone, className = "" }: { tone: Tone; className?: string }) {
+export function ToneIcon({ tone, className = "" }: { tone: Tone; className?: string }) {
   return (
     <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden className={"flex-none " + TONE_TEXT[tone] + " " + className} fill="currentColor">
       {tone === "pos" ? <path d="M6 1.5l4.5 7.5h-9z" /> : tone === "neg" ? <path d="M6 10.5L1.5 3h9z" /> : <circle cx="6" cy="6" r="3.2" />}
@@ -76,7 +76,7 @@ function ToneIcon({ tone, className = "" }: { tone: Tone; className?: string }) 
   );
 }
 
-function ToneBadge({ tone, label }: { tone: Tone; label?: string }) {
+export function ToneBadge({ tone, label }: { tone: Tone; label?: string }) {
   return (
     <span className={"inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide " + TONE_TEXT[tone]}>
       <ToneIcon tone={tone} />
@@ -85,11 +85,11 @@ function ToneBadge({ tone, label }: { tone: Tone; label?: string }) {
   );
 }
 
-function Chip({ children }: { children: ReactNode }) {
+export function Chip({ children }: { children: ReactNode }) {
   return <span className="inline-flex items-center rounded-full border border-line bg-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-soft">{children}</span>;
 }
 
-function SlideHead({ n, eyebrow, title }: { n: number; eyebrow: string; title: string }) {
+export function SlideHead({ n, eyebrow, title }: { n: number; eyebrow: string; title: string }) {
   return (
     <header className="mb-5 sm:mb-6">
       <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-accent">
@@ -110,11 +110,11 @@ function SlideFoot({ deck, source }: { deck: Deck; source?: string }) {
   );
 }
 
-function Panel({ className = "", children }: { className?: string; children: ReactNode }) {
+export function Panel({ className = "", children }: { className?: string; children: ReactNode }) {
   return <div className={"rounded-2xl border border-line bg-panel " + className}>{children}</div>;
 }
 
-const inr = (n: number, digits = 0) => n.toLocaleString("en-IN", { maximumFractionDigits: digits, minimumFractionDigits: digits });
+export const inr = (n: number, digits = 0) => n.toLocaleString("en-IN", { maximumFractionDigits: digits, minimumFractionDigits: digits });
 const fmtCr = (n: number | null) => (n == null ? "—" : n >= 100000 ? `Rs ${inr(n / 100000, 2)} L Cr` : `Rs ${inr(n)} Cr`);
 const fmtPct = (n: number | null) => (n == null ? "—" : `${n.toFixed(1)}%`);
 const shortTicker = (c: DeckCompany) => `NSE: ${c.ticker}`;
@@ -213,15 +213,17 @@ function DevelopmentsSlide({ deck }: SlideProps) {
 
 // ---------- 3. Industry overview ----------
 
-function BarChart({ points, unit }: { points: SeriesPoint[]; unit: string }) {
+export function BarChart({ points, unit }: { points: SeriesPoint[]; unit: string }) {
   const max = Math.max(...points.map((p) => p.value), 1);
   const hasProj = points.some((p) => p.projected);
+  // One decimal for every small value in the chart if any needs it ("4.4 / 7.0 / 7.7", not "4.4 / 7 / 7.7").
+  const dec = points.some((p) => p.value < 100 && p.value % 1 !== 0);
   return (
     <figure>
       <div className="flex h-44 items-end gap-1.5 sm:h-52 sm:gap-2.5" role="img" aria-label={points.map((p) => `${p.label}: ${p.value} ${unit}`).join(", ")}>
         {points.map((p) => (
           <div key={p.label} className="group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end">
-            <span className="mb-1 font-mono text-[10px] font-semibold tabular-nums text-ink sm:text-[11px]">{inr(p.value, p.value < 10 && p.value % 1 ? 1 : 0)}</span>
+            <span className="mb-1 font-mono text-[10px] font-semibold tabular-nums text-ink sm:text-[11px]">{inr(p.value, p.value < 1000 && dec ? 1 : 0)}</span>
             <div
               className={
                 "w-full max-w-[56px] rounded-t-[4px] transition-opacity group-hover:opacity-80 " +
@@ -365,10 +367,9 @@ function ValueChainSlide({ deck }: SlideProps) {
 
 // ---------- 5. Growth drivers ----------
 
-function MixChart({ mix }: { mix: Deck["report"]["mix"] }) {
+export function MixChart({ mix }: { mix: { slices: { label: string; value: number }[] } }) {
   const total = mix.slices.reduce((a, s) => a + s.value, 0) || 1;
   const sorted = [...mix.slices];
-  const max = Math.max(...sorted.map((s) => s.value), 1);
   // One hue, stepped by share: parts of a single whole, already ranked by the author.
   const shade = (i: number) => `color-mix(in srgb, var(--accent) ${100 - i * 20}%, var(--panel-2))`;
   return (
@@ -384,12 +385,12 @@ function MixChart({ mix }: { mix: Deck["report"]["mix"] }) {
             <div className="flex items-baseline justify-between gap-3 text-[12px]">
               <span className="inline-flex min-w-0 items-center gap-2 text-ink">
                 <span className="h-2.5 w-2.5 flex-none rounded-sm" style={{ background: shade(i) }} />
-                <span className="truncate">{s.label}</span>
+                <span className="leading-snug">{s.label}</span>
               </span>
               <span className="font-mono font-semibold tabular-nums text-ink">{s.value}%</span>
             </div>
             <div className="mt-1 h-1.5 w-full rounded-full bg-panel-2">
-              <div className="h-full rounded-full transition-opacity group-hover:opacity-80" style={{ width: `${(s.value / max) * 100}%`, background: shade(i) }} />
+              <div className="h-full rounded-full transition-opacity group-hover:opacity-80" style={{ width: `${(s.value / total) * 100}%`, background: shade(i) }} />
             </div>
           </li>
         ))}

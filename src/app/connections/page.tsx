@@ -8,7 +8,7 @@ import { findSupplierByTicker } from "@/lib/sector-content";
 
 export const metadata = {
   title: "Connected companies: Indian stocks that span several supply chains",
-  description: "Listed Indian companies that show up in more than one sector supply chain - see every layer each one supplies.",
+  description: "Listed Indian companies that show up in more than one industry or policy supply chain - see every layer each one supplies.",
   alternates: { canonical: "/connections" },
 };
 
@@ -23,7 +23,7 @@ export default function ConnectionsPage() {
           <h1 className="font-display text-3xl font-bold tracking-tight text-ink">Connected companies</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
             Some listed companies sit in more than one supply chain we map. A shock in one industry can reach their numbers
-            through another, so they are worth reading across sectors, not inside one. Ranked by number of chains, then by
+            through another, so they are worth reading across themes, not inside one. Ranked by number of chains, then by
             how strongly they are exposed in each layer.
           </p>
         </div>

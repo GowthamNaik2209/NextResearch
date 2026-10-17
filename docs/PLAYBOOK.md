@@ -75,6 +75,19 @@ the contract up front so they can run at the same time:
    deleted once no watchlist uses them.
 5. Run the QA routine (section 3).
 
+## 1b. Add or refresh an upcoming IPO
+
+1. Create `src/lib/ipo-content/<slug>.ts` exporting an `IpoReport` (`types.ts` documents every
+   field) and add it to `IPOS` in `index.ts`.
+2. Read the offer document itself (SEBI "Public Issues" filings or the exchange), then dated
+   reporting for status, price band and dates. Restated consolidated figures only; unknown ->
+   `null`. Cross-check issue size and financials in two sources; never include grey-market premium.
+3. `status.stage` drives the order and chip: `open` / `upcoming` (dates fixed) / `approved`
+   (SEBI observation received) / `filed`. Update `status`, `timeline` and `issue` as the IPO moves;
+   once it lists, remove it from `IPOS` (its company can then join a sector).
+4. Peers use NSE tickers; a ticker we already cover opens the stock pop-up from the deck.
+5. `npx tsx scripts/check-ipo.ts <slug>`, `npm test`, then open the deck on phone and desktop.
+
 ## 2. Build or change a 3D model
 
 - Procedural only (no external assets), using `models/kit.ts`. Quality bar: `ev4w.ts`,

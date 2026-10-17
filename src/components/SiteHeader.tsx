@@ -21,7 +21,7 @@ export async function SiteHeader() {
             landing page) still fit beside the logo at 375px; tablets keep the text links on one
             row by tightening the gaps until lg. */}
         <nav className="flex items-center gap-2 sm:gap-3 lg:gap-5">
-          <Link href="/#sectors" className={link}>Sectors</Link>
+          <Link href="/#themes" className={link}>Themes</Link>
           <Link href="/connections" className={link}>Connections</Link>
           <Link href="/updates" className={link}>Updates</Link>
           <Link href="/#how" className={link}>How it works</Link>
