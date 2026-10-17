@@ -230,7 +230,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
                 type="button"
                 onClick={() => go(index + (which === "next" ? 1 : -1))}
                 aria-label={which === "next" ? "Next slide" : "Previous slide"}
-                className={"absolute top-1/2 z-[6] hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-panel-2/90 text-ink shadow-sm backdrop-blur-sm transition hover:border-accent hover:text-accent sm:flex " + pos}
+                className={"absolute top-1/2 z-[6] hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-accent bg-accent text-bg shadow-sm transition hover:opacity-90 sm:flex " + pos}
               >
                 <Chevron dir={which === "next" ? "right" : "left"} />
               </button>
@@ -332,7 +332,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
               onClick={() => go(index - 1)}
               disabled={index === 0}
               aria-label="Previous slide"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-panel-2 text-ink hover:border-accent disabled:opacity-35 disabled:hover:border-line"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-accent bg-accent text-bg transition hover:opacity-90 disabled:border-line disabled:bg-panel-2 disabled:text-ink-soft disabled:opacity-60 disabled:hover:opacity-60"
             >
               <Chevron dir="left" />
             </button>
@@ -340,7 +340,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
               type="button"
               onClick={() => (index === total - 1 ? onClose() : go(index + 1))}
               aria-label={index === total - 1 ? "Close report" : "Next slide"}
-              className="flex h-10 items-center gap-1.5 rounded-full border border-line bg-panel-2 px-4 text-sm font-semibold text-ink hover:border-accent"
+              className="flex h-10 items-center gap-1.5 rounded-full border border-accent bg-accent px-4 text-sm font-semibold text-bg transition hover:opacity-90"
             >
               <span className="hidden sm:inline">{index === total - 1 ? "Done" : "Next"}</span>
               {index === total - 1 ? (
