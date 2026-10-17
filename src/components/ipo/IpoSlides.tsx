@@ -443,13 +443,13 @@ function FinancialsSlide({ deck }: SlideProps) {
   return (
     <>
       <SlideHead n={5} eyebrow="Financial performance" title={financialsTitle(deck)} />
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.35fr_1fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr]">
         <Panel className="p-4 sm:p-5">
           <h4 className="mb-8 font-display text-sm font-semibold text-ink">Revenue, EBITDA and profit</h4>
           <FinChart deck={deck} />
         </Panel>
         <Panel className="overflow-x-auto">
-          <table className="w-full text-[11px] sm:whitespace-nowrap sm:text-[12px]">
+          <table className="w-full text-[11px] sm:text-[12px]">
             <thead>
               <tr className="border-b border-line bg-panel-2 text-left text-[9.5px] uppercase tracking-wider text-ink-soft">
                 <th className="px-1.5 py-2.5 sm:px-3 font-semibold">Rs Cr</th>
