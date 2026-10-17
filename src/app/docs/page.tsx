@@ -25,7 +25,7 @@ export default async function DocsPage({ searchParams }: { searchParams: Promise
         <div>
           <h1 className="font-display text-3xl font-bold text-ink">Reading list</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            Ten-slide industry and policy reports for every sector we cover: investor summary, latest developments,
+            Ten-slide industry and policy reports for every industry and policy we cover: investor summary, latest developments,
             industry overview, value chain, PESTLE, the listed beneficiaries and their financials, and links to the
             McKinsey, IEA and government research behind it. The IPOs tab summarises the prospectus of each big upcoming
             issue the same way.

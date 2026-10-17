@@ -58,7 +58,7 @@ const Eyebrow = ({ children, className = "" }: { children: ReactNode; className?
   <p className={"mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft " + className}>{children}</p>
 );
 // Glues units to their number ("Rs 25,583 Cr", "10.3 lakh Cr") so a narrow card never wraps "Cr" alone.
-const keepUnits = (t: string) => t.replace(/ (lakh|crore|Cr|bn|mn|shares)\b/g, "\u00a0$1");
+const keepUnits = (t: string) => t.replace(/ (lakh|Cr|bn|mn)\b/g, "\u00a0$1");
 const fmtPct = (n: number | null) => (n == null ? "—" : `${n.toFixed(1)}%`);
 // Holder colours: four distinct hues, then the same hues lighter, then grey for the remainder.
 const HOLDER_COLORS = [
@@ -107,7 +107,7 @@ function SummarySlide({ deck }: SlideProps) {
             {deck.keyStats.map((s) => (
               <div key={s.label} className="rounded-xl border border-line bg-bg/70 p-3.5">
                 <div className="text-[10px] font-semibold uppercase tracking-wide text-ink-soft">{s.label}</div>
-                <div className="mt-1 font-display text-lg font-bold leading-tight text-ink sm:text-2xl">{keepUnits(s.value)}</div>
+                <div className="mt-1 font-display text-lg font-bold leading-tight text-ink [overflow-wrap:anywhere] sm:text-2xl">{keepUnits(s.value)}</div>
                 {s.sub && <div className="mt-0.5 text-[11px] leading-snug text-ink-soft">{s.sub}</div>}
               </div>
             ))}

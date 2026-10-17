@@ -115,14 +115,14 @@ export function buildHeroThemeRows(featuredSlug?: string) {
   const soonPolicies = listComingSoonSectors().filter((s) => s.category === "policy");
   const policy = [
     ...live.filter((s) => s.category === "policy").map(themeRow),
-    ...soonPolicies.map((s): Row => ({ key: s.name, icon: s.icon, name: s.name, sub: "Beneficiaries mapped next", chip: "Coming soon", chipTone: "soon" })),
+    ...soonPolicies.map((s): Row => ({ key: s.name, icon: s.icon, name: s.name, sub: "Policy", chip: "Coming soon", chipTone: "soon" })),
   ].slice(0, 3);
   const ipo = listIpos()
     .filter((r) => r.status.stage !== "listed")
     .slice(0, 3)
     .map((r): Row => {
       const i = r.issue;
-      const size = i.totalCr != null ? `Rs ${Math.round(i.totalCr).toLocaleString("en-IN")} Cr issue` : r.sectorLabel;
+      const size = i.totalCr != null ? `Rs ${Math.round(i.totalCr).toLocaleString("en-IN")} Cr` : r.sectorLabel;
       return { key: r.slug, icon: r.icon, name: r.name, sub: size, chip: r.status.label, chipTone: r.status.stage === "open" || r.status.stage === "upcoming" ? "live" : "accent", href: `/ipos?ipo=${r.slug}`, ipoSlug: r.slug };
     });
   return { sector, policy, ipo };

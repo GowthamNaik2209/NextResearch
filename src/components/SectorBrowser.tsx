@@ -132,7 +132,7 @@ export function SectorBrowser({ sectors, comingSoon, ipos }: Props) {
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 font-mono text-xs font-bold text-accent">
                   {s.icon}
                 </div>
-                <span className="text-xs font-semibold text-ink-soft transition group-hover:text-accent">Open map &rarr;</span>
+                <span className="text-xs font-semibold text-ink-soft transition group-hover:text-accent">Open overview &rarr;</span>
               </div>
               <h3 className="font-display text-lg font-semibold text-ink">{s.name}</h3>
               <p className="text-sm leading-relaxed text-ink-soft">{s.tagline}</p>

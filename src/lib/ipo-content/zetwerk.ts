@@ -6,7 +6,7 @@ export const zetwerk: IpoReport = {
   legalName: "Zetwerk Manufacturing Businesses Limited",
   icon: "ZET",
   sectorLabel: "Contract manufacturing & industrial supply",
-  tagline: "An asset-light manufacturing platform raises Rs 5,012 Cr at ~Rs 25,600 Cr, still loss-making",
+  tagline: "An asset-light manufacturing platform raises Rs 5,012 Cr at ~Rs 25,583 Cr, still loss-making",
   asOf: "Oct 2026",
 
   status: {
@@ -191,7 +191,7 @@ export const zetwerk: IpoReport = {
     { name: "Skipper", ticker: "SKIPPER", mcapCr: 6424, revenueCr: 5609, pe: 27.6, note: "Transmission towers and engineering products. Screener, 16 Oct 2026, TTM." },
   ],
   valuationNote:
-    "At ~Rs 25,600 Cr Zetwerk is valued at ~1.6x FY26 revenue, between Dixon (~1.5x) and Waaree (~2.5x) and far below Kaynes (~5.7x), but it has no earnings to put on a P/E and ~41% of revenue is low-margin commodity trading; on adjusted EBITDA the multiple is ~61x.",
+    "At ~Rs 25,583 Cr Zetwerk is valued at ~1.6x FY26 revenue, between Dixon (~1.5x) and Waaree (~2.5x) and far below Kaynes (~5.7x), but it has no earnings to put on a P/E and ~41% of revenue is low-margin commodity trading; on adjusted EBITDA the multiple is ~61x.",
 
   strengths: [
     { title: "Asset-light, multi-sector platform", body: "A network of third-party suppliers plus 20+ own facilities lets Zetwerk take orders across energy, electronics, aerospace and capital goods without building every plant itself." },

@@ -51,15 +51,15 @@ export function ReadingList({ decks, ipos, initial, initialIpo }: { decks: Deck[
           </button>
         ))}
       </div>
-      {tab === "ipo" ? (
-        <IpoGrid ipos={ipos} initial={initialIpo} />
-      ) : (
+      {tab !== "ipo" && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((d) => (
             <ReportCard key={d.slug} deck={d} onOpen={() => setOpenSlug(d.slug)} />
           ))}
         </div>
       )}
+      {tab === "all" && <h2 className="mt-4 font-display text-xl font-bold text-ink">IPOs</h2>}
+      {(tab === "ipo" || tab === "all") && <IpoGrid ipos={ipos} initial={initialIpo} />}
       {open && <ResearchDeck deck={open} onClose={() => setOpenSlug(null)} />}
     </>
   );

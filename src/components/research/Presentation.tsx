@@ -25,6 +25,9 @@ type Props = {
   initialSlide?: number;
 };
 
+// The history step back owed by a deck that just closed (see the Back handling below).
+let pendingBack: number | null = null;
+
 // Pop-up slide presentation (research decks and IPO decks) — the same blurred backdrop +
 // tilting card as the stock pop-up (.nr-pop-* in globals.css), sized like a presentation.
 // Arrow keys / swipe / the footer buttons move between slides; Esc, the ✕ or a backdrop
@@ -55,6 +58,37 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: 0 });
   }, [index]);
+
+  // Back (an iPhone swipe-back included) closes the deck instead of leaving the page: opening
+  // adds a history entry, and closing any other way steps back off it. The step back is
+  // scheduled, so React's dev double-mount (unmount + mount in one tick) reuses the entry
+  // instead of popping it.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+  useEffect(() => {
+    if (pendingBack !== null) {
+      window.clearTimeout(pendingBack);
+      pendingBack = null;
+    } else {
+      window.history.pushState(window.history.state, "");
+    }
+    let leftByBack = false;
+    const onPop = () => {
+      leftByBack = true;
+      onCloseRef.current();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      if (leftByBack) return;
+      pendingBack = window.setTimeout(() => {
+        pendingBack = null;
+        window.history.back();
+      }, 0);
+    };
+  }, []);
 
   useEffect(() => {
     const prevOverflow = document.body.style.overflow;

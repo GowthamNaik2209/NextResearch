@@ -118,7 +118,7 @@ export function ThemeWindow({ rows, ipos }: { rows: Record<ThemeTab, ThemeRow[]>
               <>
                 <span className="flex h-9 w-9 flex-none items-center justify-center rounded-md border border-line bg-bg font-mono text-[11px] font-bold text-accent">{r.icon}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="line-clamp-2 text-sm font-semibold leading-snug text-ink">{r.name}</span>
+                  <span className="block truncate text-sm font-semibold text-ink">{r.name}</span>
                   <span className="block truncate text-xs text-ink-soft">{r.sub}</span>
                 </span>
                 <span className={"flex-none whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide " + CHIP[r.chipTone]}>{r.chip}</span>
