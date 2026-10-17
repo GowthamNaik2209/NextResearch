@@ -211,12 +211,31 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
         <div ref={bodyRef} className="absolute inset-0 overflow-y-auto overscroll-contain">
           <div
             key={index}
-            className={"nr-slide mx-auto flex min-h-full w-full max-w-[1160px] flex-col px-4 py-5 sm:px-8 sm:py-7 " + (dir > 0 ? "nr-slide-next" : "nr-slide-prev")}
+            className={"nr-slide mx-auto flex min-h-full w-full max-w-[1160px] flex-col px-4 py-5 sm:px-14 sm:py-7 " + (dir > 0 ? "nr-slide-next" : "nr-slide-prev")}
             aria-live="polite"
           >
             {renderSlide(index, setStock)}
           </div>
         </div>
+        {/* Side arrows (from sm up; phones have swipe and the footer buttons). They sit in the
+            slide's side padding and stay put while the slide scrolls. */}
+        {!menuOpen &&
+          ([
+            ["prev", index > 0, "left-2 sm:left-3"],
+            ["next", index < total - 1, "right-2 sm:right-3"],
+          ] as const).map(([which, show, pos]) =>
+            show ? (
+              <button
+                key={which}
+                type="button"
+                onClick={() => go(index + (which === "next" ? 1 : -1))}
+                aria-label={which === "next" ? "Next slide" : "Previous slide"}
+                className={"absolute top-1/2 z-[6] hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-panel-2/90 text-ink shadow-sm backdrop-blur-sm transition hover:border-accent hover:text-accent sm:flex " + pos}
+              >
+                <Chevron dir={which === "next" ? "right" : "left"} />
+              </button>
+            ) : null
+          )}
         {moreBelow && !menuOpen && (
           <button
             type="button"
