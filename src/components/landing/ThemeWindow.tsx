@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import type { IpoDeck } from "@/lib/ipo-content";
+import { IpoDeckView } from "@/components/ipo/IpoDeckView";
 import { THEME_TAB_EVENT, type ThemeTab } from "@/components/SectorBrowser";
 
 export type ThemeRow = {
@@ -14,6 +16,8 @@ export type ThemeRow = {
   chipTone: "accent" | "live" | "soon";
   /** Absent for coming-soon rows. */
   href?: string;
+  /** IPO rows open that deck here, on the landing page (href is the fallback without JS). */
+  ipoSlug?: string;
 };
 
 const TABS: { id: ThemeTab; label: string }[] = [
@@ -40,11 +44,27 @@ export function BrowseThemesButton({ className }: { className: string }) {
   );
 }
 
-// The hero's window onto the three themes: a few rows per tab and "Explore more", which takes
-// industries and policies to the Themes section and IPOs to /ipos. Picking a tab here also
-// switches the Themes section below to it, so the two never disagree.
-export function ThemeWindow({ rows }: { rows: Record<ThemeTab, ThemeRow[]> }) {
+// The hero's window onto the three themes: a few rows per tab and "Explore more", which scrolls
+// to the Themes section on the same tab. Picking a tab here also switches that section, so the
+// two never disagree. Theme rows open the theme's overview page; IPO rows open the deck on top
+// of the landing page, and closing it leaves the reader where they were.
+export function ThemeWindow({ rows, ipos }: { rows: Record<ThemeTab, ThemeRow[]>; ipos: IpoDeck[] }) {
   const [tab, setTab] = useState<ThemeTab>("sector");
+  const [openIpo, setOpenIpo] = useState<string | null>(null);
+  const deck = ipos.find((d) => d.slug === openIpo) ?? null;
+
+  // Shareable while open, like the IPO grids (?ipo=<slug>); removed again on close.
+  useEffect(() => {
+    if (!openIpo) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("ipo", openIpo);
+    window.history.replaceState(window.history.state, "", url);
+    return () => {
+      const u = new URL(window.location.href);
+      u.searchParams.delete("ipo");
+      window.history.replaceState(window.history.state, "", u);
+    };
+  }, [openIpo]);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const pick = (t: ThemeTab) => {
@@ -62,7 +82,6 @@ export function ThemeWindow({ rows }: { rows: Record<ThemeTab, ThemeRow[]> }) {
   };
 
   const exploreMore = (e: React.MouseEvent) => {
-    if (tab === "ipo") return; // a plain link to /ipos
     e.preventDefault();
     pick(tab);
     scrollToThemes();
@@ -110,7 +129,16 @@ export function ThemeWindow({ rows }: { rows: Record<ThemeTab, ThemeRow[]> }) {
             return (
               <li key={r.key} className={i >= 2 ? "hidden sm:block" : undefined}>
                 {r.href ? (
-                  <Link href={r.href} className={cls + " bg-panel-2 transition hover:border-accent"}>
+                  <Link
+                    href={r.href}
+                    onClick={(e) => {
+                      if (!r.ipoSlug || !ipos.some((d) => d.slug === r.ipoSlug)) return;
+                      e.preventDefault();
+                      setOpenIpo(r.ipoSlug);
+                    }}
+                    aria-haspopup={r.ipoSlug ? "dialog" : undefined}
+                    className={cls + " bg-panel-2 transition hover:border-accent"}
+                  >
                     {body}
                   </Link>
                 ) : (
@@ -123,12 +151,13 @@ export function ThemeWindow({ rows }: { rows: Record<ThemeTab, ThemeRow[]> }) {
       </div>
 
       <Link
-        href={tab === "ipo" ? "/ipos" : "/#themes"}
+        href="/#themes"
         onClick={exploreMore}
         className="mt-3 flex items-center justify-center gap-1.5 rounded-lg border border-accent/60 px-4 py-2.5 text-sm font-semibold text-accent transition hover:bg-accent/10"
       >
         Explore more <span aria-hidden>&rarr;</span>
       </Link>
+      {deck && <IpoDeckView deck={deck} onClose={() => setOpenIpo(null)} />}
     </div>
   );
 }

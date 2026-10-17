@@ -21,6 +21,7 @@ export default function HomePage() {
   const sectors = listSectors();
   // The sector previewed in the hero and featured below: Data Center if it has a thesis,
   // otherwise the first live sector that does.
+  const ipos = listIpoDecks();
   const featured = sectors.find((s) => s.slug === "datacenter" && s.thesisSummary) ?? sectors.find((s) => s.thesisSummary && !s.muted);
 
   return (
@@ -28,7 +29,7 @@ export default function HomePage() {
       <SiteHeader />
       <main className="flex-1">
         <section className="border-b border-line">
-          <Hero featured={featured} searchIndex={buildSearchIndex()} themeRows={buildHeroThemeRows(featured?.slug)} />
+          <Hero featured={featured} searchIndex={buildSearchIndex()} themeRows={buildHeroThemeRows(featured?.slug)} ipos={ipos} />
           <StatsStrip stats={getPlatformStats()} />
         </section>
 
@@ -37,7 +38,7 @@ export default function HomePage() {
         <section id="themes" className="mx-auto max-w-6xl scroll-mt-20 px-5 pb-20">
           {/* Old shared links point at #sectors. */}
           <span id="sectors" aria-hidden className="block scroll-mt-20" />
-          <SectorBrowser sectors={buildSectorCards()} comingSoon={listComingSoonSectors()} ipos={listIpoDecks()} />
+          <SectorBrowser sectors={buildSectorCards()} comingSoon={listComingSoonSectors()} ipos={ipos} />
         </section>
 
         <section className="mx-auto max-w-6xl px-5 pb-20">

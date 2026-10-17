@@ -105,9 +105,9 @@ export function buildHeroThemeRows(featuredSlug?: string) {
     icon: s.icon,
     name: s.name,
     sub: `${listedCount(s.slug)} listed companies`,
-    chip: "3D map",
+    chip: s.category === "policy" ? "Policy" : "Industry",
     chipTone: "accent",
-    href: `/sector/${s.slug}/explore`,
+    href: `/sector/${s.slug}`,
   });
   const industries = live.filter((s) => (s.category ?? "sector") === "sector");
   const featured = industries.find((s) => s.slug === featuredSlug);
@@ -123,7 +123,7 @@ export function buildHeroThemeRows(featuredSlug?: string) {
     .map((r): Row => {
       const i = r.issue;
       const size = i.totalCr != null ? `Rs ${Math.round(i.totalCr).toLocaleString("en-IN")} Cr issue` : r.sectorLabel;
-      return { key: r.slug, icon: r.icon, name: r.name, sub: size, chip: r.status.label, chipTone: r.status.stage === "open" || r.status.stage === "upcoming" ? "live" : "accent", href: `/ipos?ipo=${r.slug}` };
+      return { key: r.slug, icon: r.icon, name: r.name, sub: size, chip: r.status.label, chipTone: r.status.stage === "open" || r.status.stage === "upcoming" ? "live" : "accent", href: `/ipos?ipo=${r.slug}`, ipoSlug: r.slug };
     });
   return { sector, policy, ipo };
 }
