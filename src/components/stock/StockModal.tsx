@@ -71,7 +71,7 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
               aria-selected={tab === t.id}
               onClick={() => setTab(t.id)}
               className={
-                "flex-none rounded-full px-3 py-1.5 text-sm font-semibold transition-colors sm:px-4 " +
+                "flex-none rounded-full px-2.5 py-1 text-xs font-semibold transition-colors sm:px-4 sm:py-1.5 sm:text-sm " +
                 (tab === t.id ? "bg-accent text-bg" : "text-ink-soft hover:bg-panel-2 hover:text-ink")
               }
             >
