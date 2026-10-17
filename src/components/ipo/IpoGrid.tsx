@@ -56,7 +56,7 @@ export function IpoGrid({ ipos, initial }: { ipos: IpoDeck[]; initial?: string }
 function IpoCard({ deck, onOpen }: { deck: IpoDeck; onOpen: () => void }) {
   // Compact figures from the numeric fields; the authored strings (with their caveats) are for the deck.
   const i = deck.issue;
-  const size = i.totalCr != null ? fmtCr(i.totalCr) : i.freshCr ? `${fmtCr(i.freshCr)} + OFS` : i.ofsCr ? `${fmtCr(i.ofsCr)} OFS` : "OFS only";
+  const size = i.totalCr != null ? fmtCr(i.totalCr) : i.freshCr ? `${fmtCr(i.freshCr)} +\u00a0OFS` : i.ofsCr ? `${fmtCr(i.ofsCr)} OFS` : "OFS only";
   const stats: [string, string][] = [
     ["Issue size", size],
     ["Valuation", i.valuationCr != null ? fmtCr(i.valuationCr) : "Not yet set"],

@@ -95,8 +95,8 @@ export const parasHealthcare: IpoReport = {
 
   industry: {
     narrative: [
-      "CRISIL, in the report commissioned for the DRHP, sizes India's healthcare delivery market at ~Rs 7.0 trillion in FY25 and Rs 7.6-7.8 trillion in FY26, growing 10-12% a year to Rs 11.2-12.2 trillion by FY30. In-patient care is 71-72% of the value.",
-      "North India is expected to reach Rs 3.6-3.8 trillion by FY30, about a third of the national market, and Bihar plus Jharkhand Rs 0.4-0.5 trillion. Health-insurance penetration rose from 35% in FY19 to 41% in FY24, but government schemes such as PM-JAY remain a large payor in these states.",
+      "CRISIL, in the report commissioned for the DRHP, sizes India's healthcare delivery market at ~Rs 7.0 lakh Cr in FY25 and Rs 7.6-7.8 lakh Cr in FY26, growing 10-12% a year to Rs 11.2-12.2 lakh Cr by FY30. In-patient care is 71-72% of the value.",
+      "North India is expected to reach Rs 3.6-3.8 lakh Cr by FY30, about a third of the national market, and Bihar plus Jharkhand Rs 0.4-0.5 lakh Cr. Health-insurance penetration rose from 35% in FY19 to 41% in FY24, but government schemes such as PM-JAY remain a large payor in these states.",
     ],
     chart: {
       title: "India healthcare delivery market",
@@ -111,8 +111,8 @@ export const parasHealthcare: IpoReport = {
     },
     snapshot: [
       { label: "Market growth, FY25-30P (CRISIL)", value: "10-12% CAGR", tone: "pos" },
-      { label: "North India market, FY30P", value: "Rs 3.6-3.8 trillion", tone: "neutral" },
-      { label: "Bihar + Jharkhand market, FY30P", value: "Rs 0.4-0.5 trillion", tone: "neutral" },
+      { label: "North India market, FY30P", value: "Rs 3.6-3.8 lakh Cr", tone: "neutral" },
+      { label: "Bihar + Jharkhand market, FY30P", value: "Rs 0.4-0.5 lakh Cr", tone: "neutral" },
       { label: "In-patient share of market, FY25", value: "71-72%", tone: "neutral" },
       { label: "Health-insurance penetration, FY24", value: "41% (35% in FY19)", tone: "pos" },
     ],

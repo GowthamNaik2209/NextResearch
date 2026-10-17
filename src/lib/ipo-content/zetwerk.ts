@@ -104,13 +104,13 @@ export const zetwerk: IpoReport = {
 
   industry: {
     narrative: [
-      "The Redseer report commissioned for the RHP sizes India's manufacturing procurement of durable goods (production equipment plus materials consumed by end-use industries) at Rs 17.4 trillion in FY26, up from Rs 9.4 trillion in FY21, and projects Rs 37.5-42.6 trillion by FY31. The US market is three times larger but growing far more slowly.",
+      "The Redseer report commissioned for the RHP sizes India's manufacturing procurement of durable goods (production equipment plus materials consumed by end-use industries) at Rs 17.4 lakh Cr in FY26, up from Rs 9.4 lakh Cr in FY21, and projects Rs 37.5-42.6 lakh Cr by FY31. The US market is three times larger but growing far more slowly.",
       "Growth is led by electrical equipment, consumer electronics and energy and power equipment, helped by PLI schemes, the China+1 shift and grid and renewable investment. The RHP states there is no listed company in India or abroad with the same model, so the nearest comparables are EMS, solar and transmission-equipment makers.",
     ],
     chart: {
       title: "India's manufacturing procurement of durable goods",
       unit: "Rs lakh Cr",
-      source: "Redseer report in the Zetwerk RHP (Exhibit 11): FY21, FY26 and FY31P (midpoint of Rs 37.5-42.6 trillion); the RHP gives no other years",
+      source: "Redseer report in the Zetwerk RHP (Exhibit 11): FY21, FY26 and FY31P (midpoint of Rs 37.5-42.6 lakh Cr); the RHP gives no other years",
       points: [
         { label: "FY21", value: 9.42 },
         { label: "FY26", value: 17.37 },
@@ -119,9 +119,9 @@ export const zetwerk: IpoReport = {
     },
     snapshot: [
       { label: "India durable-goods procurement, FY21-26", value: "~13% CAGR", tone: "pos" },
-      { label: "India durable-goods procurement, FY31P", value: "Rs 37.5-42.6 trillion", tone: "pos" },
-      { label: "US durable-goods procurement, FY26", value: "Rs 53.1 trillion, ~3% CAGR", tone: "neutral" },
-      { label: "Manufacturing FDI into India, FY25", value: "Rs 1.62 trillion, +18%", tone: "pos" },
+      { label: "India durable-goods procurement, FY31P", value: "Rs 37.5-42.6 lakh Cr", tone: "pos" },
+      { label: "US durable-goods procurement, FY26", value: "Rs 53.1 lakh Cr, ~3% CAGR", tone: "neutral" },
+      { label: "Manufacturing FDI into India, FY25", value: "Rs 1.62 lakh Cr, +18%", tone: "pos" },
       { label: "Listed peers with the same model (per RHP)", value: "None in India or globally", tone: "neutral" },
     ],
   },
