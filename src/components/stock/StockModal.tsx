@@ -62,7 +62,7 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
         </div>
 
         {supplier.listed && (
-        <div role="tablist" aria-label="Stock details" className="flex flex-none overflow-x-auto border-b border-line bg-panel px-2 sm:px-4">
+        <div role="tablist" aria-label="Stock details" className="flex flex-none gap-1 overflow-x-auto border-b border-line bg-panel px-2 py-2 sm:px-4">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -71,12 +71,11 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
               aria-selected={tab === t.id}
               onClick={() => setTab(t.id)}
               className={
-                "relative flex-none px-4 py-3 text-sm font-semibold transition-colors " +
-                (tab === t.id ? "text-ink" : "text-ink-soft hover:text-ink")
+                "flex-none rounded-full px-3 py-1.5 text-sm font-semibold transition-colors sm:px-4 " +
+                (tab === t.id ? "bg-accent text-bg" : "text-ink-soft hover:bg-panel-2 hover:text-ink")
               }
             >
               {t.label}
-              {tab === t.id && <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-accent" />}
             </button>
           ))}
         </div>
