@@ -6,7 +6,7 @@ import { countWord, growthLine, lcFirst } from "@/components/research/headlines"
 
 const inr = (n: number) => Math.round(n).toLocaleString("en-IN");
 export const fmtCr = (n: number | null | undefined) =>
-  n == null ? "—" : Math.abs(n) >= 100000 ? `Rs ${(n / 100000).toLocaleString("en-IN", { maximumFractionDigits: 2 })} L Cr` : `Rs ${inr(n)} Cr`;
+  n == null ? "—" : Math.abs(n) >= 100000 ? `Rs ${(n / 100000).toLocaleString("en-IN", { maximumFractionDigits: 2 })} lakh Cr` : `Rs ${inr(n)} Cr`;
 
 /** Full fiscal years only: a stub period is not comparable for growth. */
 export const fullYears = (d: IpoDeck) => d.financials.years.filter((y) => !y.partial);

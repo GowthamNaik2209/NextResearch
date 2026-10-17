@@ -1,7 +1,7 @@
 // Landing-page numbers derived straight from the authored sector content, so
 // the hero stats and search index can never drift from what the product
 // actually contains (no hand-typed counts).
-import { listSectors, tickerForSupplier } from "./index";
+import { listComingSoonSectors, listSectors, tickerForSupplier } from "./index";
 import { sectorNumbers } from "./insights";
 import { companySlug, sectorCompanyCounts } from "./companies";
 import { listIpos } from "../ipo-content";
@@ -91,6 +91,41 @@ export function buildSearchIndex(): SearchEntry[] {
     out.push({ kind: "ipo", label: `${r.name} IPO`, sub: `IPO · ${r.status.label}`, href: `/ipos?ipo=${r.slug}`, aliases: [r.name.toLowerCase(), "ipo", "ipos"] });
   }
   return out;
+}
+
+// The hero's theme window: three rows per tab. Industries lead with the featured one, then the
+// most recently added; policies show the live ones, then those coming soon; IPOs the next
+// issues by date (recent listings are left for the IPOs page).
+export function buildHeroThemeRows(featuredSlug?: string) {
+  type Row = import("@/components/landing/ThemeWindow").ThemeRow;
+  const live = listSectors().filter((s) => !s.muted);
+  const listedCount = (slug: string) => buildSectorCards().find((c) => c.slug === slug)?.listed ?? 0;
+  const themeRow = (s: (typeof live)[number]): Row => ({
+    key: s.slug,
+    icon: s.icon,
+    name: s.name,
+    sub: `${listedCount(s.slug)} listed companies`,
+    chip: s.category === "policy" ? "Policy" : "Industry",
+    chipTone: "accent",
+    href: `/sector/${s.slug}`,
+  });
+  const industries = live.filter((s) => (s.category ?? "sector") === "sector");
+  const featured = industries.find((s) => s.slug === featuredSlug);
+  const sector = [...(featured ? [featured] : []), ...industries.filter((s) => s !== featured).reverse()].slice(0, 3).map(themeRow);
+  const soonPolicies = listComingSoonSectors().filter((s) => s.category === "policy");
+  const policy = [
+    ...live.filter((s) => s.category === "policy").map(themeRow),
+    ...soonPolicies.map((s): Row => ({ key: s.name, icon: s.icon, name: s.name, sub: "Policy", chip: "Coming soon", chipTone: "soon" })),
+  ].slice(0, 3);
+  const ipo = listIpos()
+    .filter((r) => r.status.stage !== "listed")
+    .slice(0, 3)
+    .map((r): Row => {
+      const i = r.issue;
+      const size = i.totalCr != null ? `Rs ${Math.round(i.totalCr).toLocaleString("en-IN")} Cr` : r.sectorLabel;
+      return { key: r.slug, icon: r.icon, name: r.name, sub: size, chip: r.status.label, chipTone: r.status.stage === "open" || r.status.stage === "upcoming" ? "live" : "accent", href: `/ipos?ipo=${r.slug}`, ipoSlug: r.slug };
+    });
+  return { sector, policy, ipo };
 }
 
 // One card per sector for the landing grid. SectorBrowser is a Client Component, so only plain
