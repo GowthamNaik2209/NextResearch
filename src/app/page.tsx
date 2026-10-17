@@ -1,5 +1,5 @@
 import { listSectors, listComingSoonSectors } from "@/lib/sector-content";
-import { buildSearchIndex, buildSectorCards, getPlatformStats } from "@/lib/sector-content/stats";
+import { buildHeroThemeRows, buildSearchIndex, buildSectorCards, getPlatformStats } from "@/lib/sector-content/stats";
 import { buildIdeas, dataAsOfRange } from "@/lib/sector-content/insights";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -28,7 +28,7 @@ export default function HomePage() {
       <SiteHeader />
       <main className="flex-1">
         <section className="border-b border-line">
-          <Hero featured={featured} searchIndex={buildSearchIndex()} />
+          <Hero featured={featured} searchIndex={buildSearchIndex()} themeRows={buildHeroThemeRows(featured?.slug)} />
           <StatsStrip stats={getPlatformStats()} />
         </section>
 

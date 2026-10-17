@@ -34,7 +34,10 @@ type Props = {
   ipos: IpoDeck[];
 };
 
-type Tab = "sector" | "policy" | "ipo";
+export type ThemeTab = "sector" | "policy" | "ipo";
+type Tab = ThemeTab;
+/** Fired by the hero's theme window ("Explore more") to open this section on the same tab. */
+export const THEME_TAB_EVENT = "nr-theme-tab";
 const TABS: { id: Tab; label: string; heading: string; blurb: string }[] = [
   {
     id: "sector",
@@ -67,6 +70,11 @@ export function SectorBrowser({ sectors, comingSoon, ipos }: Props) {
     setTab("ipo");
     setInitialIpo(slug);
     /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+  useEffect(() => {
+    const onTab = (e: Event) => setTab((e as CustomEvent<Tab>).detail);
+    window.addEventListener(THEME_TAB_EVENT, onTab);
+    return () => window.removeEventListener(THEME_TAB_EVENT, onTab);
   }, []);
   const current = TABS.find((t) => t.id === tab)!;
 
