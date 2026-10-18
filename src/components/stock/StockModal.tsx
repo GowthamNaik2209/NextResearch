@@ -53,7 +53,7 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
               <WatchlistButton ticker={ticker} name={supplier.name} />
             </div>
             <p className="mt-0.5 truncate text-xs text-ink-soft">
-              <span className="font-mono">{supplier.listed ? `NSE: ${ticker}` : "Unlisted"}</span>
+              <span className="font-mono">{supplier.listed ? `${freshQuote(api?.quote)?.exchange ?? "NSE"}: ${ticker}` : "Unlisted"}</span>
               <span className="hidden sm:inline"> · {supplier.role}</span>
             </p>
           </div>

@@ -10,6 +10,7 @@ const RANGES: { id: ChartRange; label: string; long: string }[] = [
   { id: "6M", label: "6M", long: "6 months" },
   { id: "1Y", label: "1Y", long: "1 year" },
   { id: "3Y", label: "3Y", long: "3 years" },
+  { id: "5Y", label: "5Y", long: "5 years" },
   { id: "MAX", label: "All", long: "lifetime" },
 ];
 
@@ -70,9 +71,9 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
   const points = useMemo(() => (data ? withLiveQuote(data.points, quote) : []), [data, quote]);
   const first = points[0];
   const last = points[points.length - 1];
-  const change = first && last ? last.c - first.c : null;
-  const changePct = first && last ? (change! / first.c) * 100 : null;
-  const up = (change ?? 0) >= 0;
+  // The line's colour follows the whole period; the figure beside the price follows the
+  // crosshair, so it always describes the price and date shown above it.
+  const up = first && last ? last.c >= first.c : true;
 
   // Create the chart once; (re)colour + feed data in the effect below.
   useEffect(() => {
@@ -82,7 +83,8 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
       autoSize: true,
       layout: { background: { type: ColorType.Solid, color: "transparent" }, textColor: cssVar("--ink-soft", "#888"), fontFamily: "IBM Plex Mono, monospace", fontSize: 11 },
       grid: { vertLines: { visible: false }, horzLines: { color: withAlpha(cssVar("--line", "#444444"), 0.6) } },
-      rightPriceScale: { borderVisible: false },
+      // A slim bottom margin: the default 10% pushed the axis under ₹0 on long, steep histories.
+      rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.1, bottom: 0.03 } },
       timeScale: { borderVisible: false, timeVisible: false },
       crosshair: { mode: CrosshairMode.Magnet },
       handleScale: { mouseWheel: false },
@@ -117,7 +119,10 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
     };
     series.setData(points.map((p) => ({ time: p.t as Time, value: p.c })));
     paint();
-    chart.timeScale().fitContent();
+    // Fit with a little room either side: the first and last date labels sit centred on the
+    // edge bars, and with no margin they were cut in half ("96", "202…") on phones.
+    const pad = Math.max(1, Math.round(points.length * 0.06));
+    chart.timeScale().setVisibleLogicalRange({ from: -pad, to: points.length - 1 + pad });
     // Follow a live light/dark toggle while the pop-up is open.
     const mo = new MutationObserver(paint);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -125,6 +130,13 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
   }, [data, points, status, up]);
 
   const shown = hover ?? last ?? null;
+  const change = first && shown ? shown.c - first.c : null;
+  const changePct = first && change != null ? (change / first.c) * 100 : null;
+  const shownUp = (change ?? 0) >= 0;
+  // The chart can come from a different exchange than the live quote (a BSE series when the NSE
+  // one is too short); say so rather than let the header and the footnote disagree.
+  const chartExchange = data?.exchange ?? "NSE";
+  const otherExchange = quote && data?.exchange && quote.exchange !== data.exchange;
 
   return (
     <div className="flex flex-col gap-4">
@@ -136,10 +148,12 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
           </div>
         </div>
         {change != null && changePct != null && (
-          <div className={"text-right font-mono text-sm font-semibold " + (up ? "text-pos" : "text-danger")}>
-            {up ? "▲" : "▼"} {fmtNum(Math.abs(change))} (
-            {range === "MAX" && first && last && last.c / first.c >= 10 ? `${fmtNum(last.c / first.c, 0)}×` : fmtSigned(changePct, 2)})
-            <div className="text-[11px] font-normal text-ink-soft">past {RANGES.find((r) => r.id === range)?.long}</div>
+          <div className={"text-right font-mono text-sm font-semibold " + (shownUp ? "text-pos" : "text-danger")}>
+            {shownUp ? "▲" : "▼"} {fmtNum(Math.abs(change))} (
+            {range === "MAX" && first && shown && shown.c / first.c >= 10 ? `${fmtNum(shown.c / first.c, 0)}×` : fmtSigned(changePct, 2)})
+            <div className="text-[11px] font-normal text-ink-soft">
+              {hover && first ? `since ${new Date(first.t).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : `past ${RANGES.find((r) => r.id === range)?.long}`}
+            </div>
           </div>
         )}
       </div>
@@ -184,7 +198,8 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
           ))}
         </div>
         <p className="text-[11px] text-ink-soft">
-          {data?.source === "screener" ? "Screener.in" : "Yahoo Finance"} · closing prices{range === "3Y" ? " (weekly)" : range === "MAX" ? " (monthly, split-adjusted by the data vendor)" : ""} · {data?.exchange ?? "NSE"}
+          {data?.source === "screener" ? "Screener.in" : "Yahoo Finance"} · closing prices{range === "3Y" || range === "5Y" ? " (weekly)" : range === "MAX" ? " (monthly)" : ""} ·{" "}
+          {otherExchange ? `${chartExchange} prices, which go back further than ${quote!.exchange}'s` : chartExchange}
         </p>
       </div>
     </div>
