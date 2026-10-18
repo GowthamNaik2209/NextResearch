@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { ColorType, CrosshairMode, LineSeries, LineStyle, createChart, type IChartApi, type ISeriesApi, type Time } from "lightweight-charts";
 import type { ChartData, ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
+import { StockLink } from "@/components/stock/StockLink";
 
 export type ChartStock = {
   ticker: string;
@@ -602,7 +603,14 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
                     <line x1="2" y1="5" x2="20" y2="5" stroke={line.color} strokeWidth={line.width} strokeDasharray={DASHARRAY[line.dash]} strokeLinecap="round" />
                   </svg>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-ink">{line.name}</span>
+                    {line.key.startsWith("s:") ? (
+                      // Opens the stock pop-up (Summary / Chart / News / Fundamentals) in place.
+                      <StockLink ticker={line.key.slice(2)} className="block truncate font-medium text-accent hover:underline">
+                        {line.name}
+                      </StockLink>
+                    ) : (
+                      <span className="block truncate text-ink">{line.name}</span>
+                    )}
                     {sub && <span className="block text-[10px] leading-snug text-ink-soft">{sub}</span>}
                   </span>
                   <span className="shrink-0 font-mono text-sm font-semibold text-ink">
