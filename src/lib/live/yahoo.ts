@@ -12,10 +12,11 @@ const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"], validation: { lo
 // the fields we read are all individually optional, so don't fail the whole call.
 const LENIENT = { validateResult: false } as const;
 // ...which also makes the library return `unknown`, so type just what we read.
-type ChartRes = { quotes: { date: Date; close?: number | null }[] };
+type Split = { date?: Date | string; numerator?: number; denominator?: number };
+type ChartRes = { quotes: { date: Date; close?: number | null }[]; events?: { splits?: Split[] } };
 type SummaryRes = { assetProfile?: { sector?: string; industry?: string }; financialData?: { returnOnEquity?: number } };
 
-export type ChartRange = "1M" | "6M" | "1Y" | "3Y" | "MAX";
+export type ChartRange = "1M" | "6M" | "1Y" | "3Y" | "5Y" | "MAX";
 export type PricePoint = { t: string; c: number }; // t = YYYY-MM-DD (IST)
 export type Exchange = "NSE" | "BSE";
 export type Quote = {
@@ -53,11 +54,12 @@ const PARAMS: Record<ChartRange, { days: number | null; interval: "1d" | "1wk" |
   "6M": { days: 183, interval: "1d" },
   "1Y": { days: 366, interval: "1d" },
   "3Y": { days: 1100, interval: "1wk" },
+  "5Y": { days: 1830, interval: "1wk" },
   MAX: { days: null, interval: "1mo" },
 };
 
 export function isChartRange(v: string | null): v is ChartRange {
-  return v === "1M" || v === "6M" || v === "1Y" || v === "3Y" || v === "MAX";
+  return v === "1M" || v === "6M" || v === "1Y" || v === "3Y" || v === "5Y" || v === "MAX";
 }
 
 // Yahoo symbols to try for an NSE ticker, best first. Yahoo keeps serving a *frozen* quote for
@@ -88,23 +90,58 @@ const ordered = (ticker: string, kind: "q" | "c", list: string[]) => {
 const istDay = (d: Date) => new Date(d.getTime() + 5.5 * 3_600_000).toISOString().slice(0, 10);
 
 async function yahooChart(ticker: string, range: ChartRange): Promise<ChartData | null> {
+  // An up-to-date symbol can still hold only weeks of history (SIKA/TANAA/SPELS on `.NS` start
+  // Aug 2026 while `.BO` goes back years), so a short one is kept as a fallback and the next
+  // symbol is tried for the full range.
+  // "All" has no fixed start; a series under three years old is treated as short there too.
+  const days = PARAMS[range].days ?? 1100;
+  let best: { symbol: string; data: ChartData } | null = null;
   for (const symbol of ordered(ticker, "c", chartSymbols(ticker))) {
     const data = await yahooChartFor(symbol, range).catch(() => null);
     // A frozen symbol's history ends where it froze. Weekly/monthly bars are dated at the start
     // of their period, so allow that much extra slack for 3Y/MAX.
     const lastT = data?.points[data.points.length - 1]?.t;
-    const slackDays = MAX_QUOTE_AGE_DAYS + (range === "MAX" ? 31 : range === "3Y" ? 7 : 0);
-    if (data && lastT && Date.now() - Date.parse(lastT) <= slackDays * DAY) {
+    const slackDays = MAX_QUOTE_AGE_DAYS + (range === "MAX" ? 31 : range === "3Y" || range === "5Y" ? 7 : 0);
+    if (!data || !lastT || Date.now() - Date.parse(lastT) > slackDays * DAY) continue;
+    const firstT = data.points[0].t;
+    if (Date.parse(firstT) - (Date.now() - days * DAY) <= 45 * DAY) {
       resolved.set(`c:${ticker}`, symbol);
       return data;
     }
+    if (!best || firstT < best.data.points[0].t) best = { symbol, data };
   }
-  return null;
+  if (best) resolved.set(`c:${ticker}`, best.symbol);
+  return best?.data ?? null;
+}
+
+// Yahoo lists some Indian splits without adjusting the prices before them (BONDADA 5:1,
+// PARAS 2:1), and dates the event up to ~6 months away from the actual drop. So for each
+// listed split, find the bar-to-bar fall near its date that matches its ratio and scale
+// everything before it. No matching fall means Yahoo already adjusted, and nothing changes.
+// Weekly/monthly bars mix pre- and post-split days, so they get a looser match.
+const SPLIT_WINDOW_DAYS = 240;
+function adjustSplits(points: PricePoint[], splits: Split[], coarse: boolean) {
+  const tolerance = coarse ? 0.3 : 0.15;
+  for (const sp of splits) {
+    const r = (sp.numerator ?? 0) / (sp.denominator || 1);
+    const on = sp.date ? new Date(sp.date).getTime() : NaN;
+    if (!Number.isFinite(r) || r <= 0 || r === 1 || !Number.isFinite(on)) continue;
+    let at = -1;
+    let miss = Infinity;
+    for (let i = 1; i < points.length; i++) {
+      if (Math.abs(Date.parse(points[i].t) - on) > SPLIT_WINDOW_DAYS * DAY) continue;
+      const m = Math.abs((points[i].c / points[i - 1].c) * r - 1);
+      if (m < miss) [at, miss] = [i, m];
+    }
+    if (at > 0 && miss < tolerance) for (let i = 0; i < at; i++) points[i].c /= r;
+  }
 }
 
 async function yahooChartFor(symbol: string, range: ChartRange): Promise<ChartData | null> {
   const p = PARAMS[range];
-  const res = (await withTimeout(yf.chart(symbol, { period1: p.days ? new Date(Date.now() - p.days * DAY) : new Date("1990-01-01"), interval: p.interval }, LENIENT))) as ChartRes;
+  const res = (await withTimeout(
+    yf.chart(symbol, { period1: p.days ? new Date(Date.now() - p.days * DAY) : new Date("1990-01-01"), interval: p.interval, events: "split" }, LENIENT),
+  )) as ChartRes;
   const points: PricePoint[] = [];
   for (const q of res.quotes) {
     if (q.close == null || !Number.isFinite(q.close)) continue;
@@ -113,10 +150,11 @@ async function yahooChartFor(symbol: string, range: ChartRange): Promise<ChartDa
     if (points.length && points[points.length - 1].t === t) points[points.length - 1].c = q.close;
     else points.push({ t, c: q.close });
   }
+  if (res.events?.splits?.length) adjustSplits(points, res.events.splits, p.interval !== "1d");
   return points.length >= 2 ? { range, points, source: "yahoo", exchange: exchangeOf(symbol) } : null;
 }
 
-const SCREENER_DAYS: Record<ChartRange, number> = { "1M": 31, "6M": 183, "1Y": 366, "3Y": 1100, MAX: 3650 };
+const SCREENER_DAYS: Record<ChartRange, number> = { "1M": 31, "6M": 183, "1Y": 366, "3Y": 1100, "5Y": 1830, MAX: 3650 };
 
 async function screenerChart(companyId: string, range: ChartRange): Promise<ChartData | null> {
   const url = `https://www.screener.in/api/company/${companyId}/chart/?q=Price&days=${SCREENER_DAYS[range]}&consolidated=true`;
@@ -128,12 +166,32 @@ async function screenerChart(companyId: string, range: ChartRange): Promise<Char
   return points.length > 1 ? { range, points, source: "screener" } : null;
 }
 
+const chartTtl = (range: ChartRange) => (range === "MAX" || range === "3Y" || range === "5Y" ? 60 * 60 * 1000 : 5 * 60 * 1000);
+
+/** History for one fixed Yahoo symbol (an index such as ^NSEI, or an ETF standing in for one). */
+export async function getSymbolChart(symbol: string, range: ChartRange): Promise<ChartData | null> {
+  return cached(`symchart4:${symbol}:${range}`, chartTtl(range), () => yahooChartFor(symbol, range).catch(() => null));
+}
+
+// Corporate actions that make earlier prices a different security: history starts after them.
+// Tata Motors' demerger (14 Oct 2025) split off the commercial-vehicle arm; the listed
+// passenger-vehicle company (TMPV) is not comparable with the pre-demerger stock.
+const HISTORY_FROM: Record<string, string> = { TMPV: "2025-10-14" };
+
 export async function getChart(ticker: string, range: ChartRange, screenerCompanyId?: string | null): Promise<ChartData | null> {
+  const data = await getRawChart(ticker, range, screenerCompanyId);
+  const from = HISTORY_FROM[ticker];
+  if (!data || !from) return data;
+  const points = data.points.filter((p) => p.t >= from);
+  return points.length >= 2 ? { ...data, points } : null;
+}
+
+async function getRawChart(ticker: string, range: ChartRange, screenerCompanyId?: string | null): Promise<ChartData | null> {
   // 5 min for short ranges (they show recent movement), longer for coarse ones.
-  const ttl = range === "MAX" || range === "3Y" ? 60 * 60 * 1000 : 5 * 60 * 1000;
+  const ttl = chartTtl(range);
   // The Screener fallback gets its own key: the plain key may hold a (briefly cached) null
   // from Yahoo, which would otherwise short-circuit the retry with a Screener id.
-  return cached(`chart:${ticker}:${range}:${screenerCompanyId ?? "yahoo"}`, ttl, async () => {
+  return cached(`chart4:${ticker}:${range}:${screenerCompanyId ?? "yahoo"}`, ttl, async () => {
     try {
       const y = await yahooChart(ticker, range);
       if (y) return y;

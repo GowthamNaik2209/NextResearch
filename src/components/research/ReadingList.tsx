@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Deck } from "@/lib/sector-content/reports";
 import type { IpoDeck } from "@/lib/ipo-content";
 import { IpoGrid } from "@/components/ipo/IpoGrid";
 import { ResearchDeck } from "./ResearchDeck";
+import { SectorCharts, type ChartSector } from "./SectorCharts";
+import type { Benchmark } from "@/lib/sector-content/benchmarks";
+import { BackToThemes } from "./back-to-themes";
 
 const TABS = [
   { id: "all", label: "All" },
@@ -13,10 +16,46 @@ const TABS = [
   { id: "ipo", label: "IPOs" },
 ] as const;
 
+const VIEWS = [
+  { id: "reports", label: "Reports" },
+  { id: "charts", label: "Charts" },
+] as const;
+type View = (typeof VIEWS)[number]["id"];
+
 // The /docs grid: one card per research deck; a click opens the deck as a pop-up.
 // `?report=<slug>` opens one directly (shareable), kept in sync while it is open. The IPOs tab
-// holds the upcoming-IPO decks (`?ipo=<slug>` lands on it with that deck open).
-export function ReadingList({ decks, ipos, initial, initialIpo }: { decks: Deck[]; ipos: IpoDeck[]; initial?: string; initialIpo?: string }) {
+// holds the upcoming-IPO decks (`?ipo=<slug>` lands on it with that deck open). The right-hand
+// toggle swaps the cards for comparison charts (`?view=charts&sector=<slug>`); the left tabs then
+// pick which industries the chart offers.
+export function ReadingList({
+  decks,
+  ipos,
+  sectors,
+  market,
+  initial,
+  initialIpo,
+  initialView = "reports",
+  initialSector,
+  fromThemes = false,
+}: {
+  decks: Deck[];
+  ipos: IpoDeck[];
+  sectors: ChartSector[];
+  market: Benchmark[];
+  initial?: string;
+  initialIpo?: string;
+  initialView?: View;
+  initialSector?: string;
+  fromThemes?: boolean;
+}) {
+  const [view, setView] = useState<View>(initialView);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+
+  // Arriving from a theme card's Charts button: bring the chart into view rather than leaving
+  // it below the page intro, which on a phone is a full screen down. Once per visit.
+  useEffect(() => {
+    if (initialView === "charts" && initialSector) toolbarRef.current?.scrollIntoView({ block: "start" });
+  }, [initialView, initialSector]);
   const [openSlug, setOpenSlug] = useState<string | null>(null);
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>(initialIpo ? "ipo" : "all");
   const open = decks.find((d) => d.slug === openSlug) ?? null;
@@ -35,8 +74,23 @@ export function ReadingList({ decks, ipos, initial, initialIpo }: { decks: Deck[
     window.history.replaceState(window.history.state, "", url);
   }, [openSlug]);
 
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (view === "charts") url.searchParams.set("view", "charts");
+    else {
+      url.searchParams.delete("view");
+      url.searchParams.delete("sector");
+    }
+    window.history.replaceState(window.history.state, "", url);
+  }, [view]);
+
+  const chartSectors = sectors.filter((s) => tab === "all" || s.category === tab);
+
   return (
     <>
+      <div ref={toolbarRef} className="flex scroll-mt-20 flex-col gap-3">
+      {fromThemes && <BackToThemes />}
+      <div className="flex flex-wrap items-center justify-between gap-3">
       <div role="tablist" aria-label="Report type" className="flex gap-1 self-start rounded-full border border-line bg-panel p-1">
         {TABS.map((t) => (
           <button
@@ -51,15 +105,40 @@ export function ReadingList({ decks, ipos, initial, initialIpo }: { decks: Deck[
           </button>
         ))}
       </div>
-      {tab !== "ipo" && (
+      <div role="tablist" aria-label="View" className="flex gap-1 rounded-full border border-line bg-panel p-1">
+        {VIEWS.map((v) => (
+          <button
+            key={v.id}
+            type="button"
+            role="tab"
+            aria-selected={view === v.id}
+            onClick={() => setView(v.id)}
+            className={"rounded-full px-4 py-1.5 text-xs font-semibold transition " + (view === v.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
+      </div>
+      </div>
+      {view === "charts" &&
+        (tab === "ipo" ? (
+          <p className="rounded-2xl border border-line bg-panel p-6 text-sm leading-relaxed text-ink-soft">
+            Charts cover the listed stocks in our industries and policies, so IPOs aren&rsquo;t charted here. Switch to Reports for their prospectus
+            summaries.
+          </p>
+        ) : (
+          <SectorCharts key={tab} sectors={chartSectors} market={market} initialSector={initialSector} />
+        ))}
+      {view === "reports" && tab !== "ipo" && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((d) => (
             <ReportCard key={d.slug} deck={d} onOpen={() => setOpenSlug(d.slug)} />
           ))}
         </div>
       )}
-      {tab === "all" && <h2 className="mt-4 font-display text-xl font-bold text-ink">IPOs</h2>}
-      {(tab === "ipo" || tab === "all") && <IpoGrid ipos={ipos} initial={initialIpo} />}
+      {view === "reports" && tab === "all" && <h2 className="mt-4 font-display text-xl font-bold text-ink">IPOs</h2>}
+      {view === "reports" && (tab === "ipo" || tab === "all") && <IpoGrid ipos={ipos} initial={initialIpo} />}
       {open && <ResearchDeck deck={open} onClose={() => setOpenSlug(null)} />}
     </>
   );

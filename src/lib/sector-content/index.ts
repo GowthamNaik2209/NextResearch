@@ -178,8 +178,9 @@ export type SectorDef = {
   build: (ctx: { THREE: unknown; layerGroups: unknown[]; staticGroup: unknown }) => unknown;
   // --- richer "Industry" fields (optional; see SectorZone's comment above) ---
   domains?: SectorDomain[];
-  whyNow?: string;
-  thesisSummary?: string;
+  // Short points (a line each), shown as bullets on the sector page and the landing thesis.
+  whyNow?: string[];
+  thesisSummary?: string[];
   featuredSignals?: string[];
   dataStatus?: DataStatus;
   // The zone whose suppliers are this sector's end manufacturers/integrators

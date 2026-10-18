@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const sector = getSector(slug);
   if (!sector) return NOT_FOUND_METADATA;
   const deck = buildDeck(slug);
-  const title = `${deck?.report.title ?? sector.name} — research report & reading list`;
+  const title = `${deck?.report.title ?? sector.name} — research report`;
   return {
     title,
     description: `Curated research on ${midSentence(sector.name)} in India: a 10-slide report plus the primary sources behind it. ${sector.tagline}.`,

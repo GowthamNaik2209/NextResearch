@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { CHARTS_FROM_THEMES, THEMES_RETURN, type ThemesSpot } from "@/components/research/back-to-themes";
 import type { IpoDeck } from "@/lib/ipo-content";
 import { IpoGrid } from "@/components/ipo/IpoGrid";
 
@@ -36,6 +37,7 @@ type Props = {
 
 export type ThemeTab = "sector" | "policy" | "ipo";
 type Tab = ThemeTab;
+
 /** Fired by the hero's theme window ("Explore more") to open this section on the same tab. */
 export const THEME_TAB_EVENT = "nr-theme-tab";
 const TABS: { id: Tab; label: string; heading: string; blurb: string }[] = [
@@ -71,6 +73,33 @@ export function SectorBrowser({ sectors, comingSoon, ipos }: Props) {
     setInitialIpo(slug);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
+  // Back from a card's Charts: reopen the tab it was on and scroll back to the card.
+  const [returnY, setReturnY] = useState<number | null>(null);
+  useEffect(() => {
+    let spot: ThemesSpot | null = null;
+    try {
+      spot = JSON.parse(sessionStorage.getItem(THEMES_RETURN) ?? "null");
+      sessionStorage.removeItem(THEMES_RETURN);
+    } catch {}
+    if (!spot) return;
+    /* eslint-disable react-hooks/set-state-in-effect -- one-time restore on return */
+    setTab(spot.tab as Tab);
+    setReturnY(spot.y);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+  useEffect(() => {
+    if (returnY == null) return;
+    // After the tab's cards render (and after the router's own #themes scroll).
+    const id = setTimeout(() => window.scrollTo({ top: returnY }), 60);
+    return () => clearTimeout(id);
+  }, [returnY]);
+  // Tells the Analysis page's "Back to themes" that the previous history entry is this page,
+  // and where on it the visitor was.
+  const markChartsFromThemes = () => {
+    try {
+      sessionStorage.setItem(CHARTS_FROM_THEMES, JSON.stringify({ tab, y: Math.round(window.scrollY) } satisfies ThemesSpot));
+    } catch {}
+  };
   useEffect(() => {
     const onTab = (e: Event) => setTab((e as CustomEvent<Tab>).detail);
     window.addEventListener(THEME_TAB_EVENT, onTab);
@@ -123,18 +152,35 @@ export function SectorBrowser({ sectors, comingSoon, ipos }: Props) {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {liveSectors.map((s) => (
-            <Link
+            // The whole card opens the overview (the title link stretches over it); the Charts
+            // button sits above that overlay and opens the industry's comparison chart instead.
+            <div
               key={s.slug}
-              href={`/sector/${s.slug}`}
-              className="group flex flex-col gap-3 rounded-2xl border border-line bg-panel p-5 transition hover:-translate-y-0.5 hover:border-accent hover:shadow-lg"
+              className="group relative flex flex-col gap-3 rounded-2xl border border-line bg-panel p-5 transition hover:-translate-y-0.5 hover:border-accent hover:shadow-lg"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 font-mono text-xs font-bold text-accent">
                   {s.icon}
                 </div>
-                <span className="text-xs font-semibold text-ink-soft transition group-hover:text-accent">Open overview &rarr;</span>
+                <div className="flex items-center gap-3">
+                  <Link
+                    href={`/docs?view=charts&sector=${s.slug}&from=themes`}
+                    onClick={markChartsFromThemes}
+                    className="relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-accent px-3 text-xs font-semibold text-accent transition hover:bg-accent hover:text-bg"
+                  >
+                    <svg aria-hidden width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 10l3.5-4 2.5 2.5L11 3" />
+                    </svg>
+                    Charts
+                  </Link>
+                  <span className="text-xs font-semibold text-ink-soft transition group-hover:text-accent">Open overview &rarr;</span>
+                </div>
               </div>
-              <h3 className="font-display text-lg font-semibold text-ink">{s.name}</h3>
+              <h3 className="font-display text-lg font-semibold text-ink">
+                <Link href={`/sector/${s.slug}`} className="after:absolute after:inset-0 after:rounded-2xl after:content-['']">
+                  {s.name}
+                </Link>
+              </h3>
               <p className="text-sm leading-relaxed text-ink-soft">{s.tagline}</p>
               <dl className="mt-auto grid grid-cols-3 gap-2 border-t border-line pt-3">
                 {[
@@ -142,7 +188,7 @@ export function SectorBrowser({ sectors, comingSoon, ipos }: Props) {
                   ["Median P/E", s.medianPe != null ? `${s.medianPe.toFixed(1)}x` : "–"],
                   ["Median ROCE", s.medianRoce != null ? `${s.medianRoce.toFixed(1)}%` : "–"],
                 ].map(([k, v, note]) => (
-                  <div key={k} title={note}>
+                  <div key={k} title={note} className={note ? "relative z-10" : undefined}>
                     <dt className="text-[10px] uppercase tracking-wide text-ink-soft">{k}</dt>
                     <dd className="font-mono text-sm font-semibold text-ink">{v}</dd>
                   </div>
@@ -155,7 +201,7 @@ export function SectorBrowser({ sectors, comingSoon, ipos }: Props) {
                 <span>·</span>
                 <span><b className="text-ink">{s.listed}</b> listed</span>
               </div>
-            </Link>
+            </div>
           ))}
           {soonSectors.map((s) => (
             <div key={s.name} className="flex flex-col gap-3 rounded-2xl border border-dashed border-line p-5 opacity-60">

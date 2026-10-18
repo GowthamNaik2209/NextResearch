@@ -140,13 +140,14 @@ row behind; delete it only after checking no watchlist references it (children c
 | `/sector/[slug]` | server | Sector overview; company cards open the stock pop-up directly |
 | `/sector/[slug]/explore` | server shell + client | 3D explorer; deep links via `?zone=&company=&scenario=` |
 | `/company/[slug]`, `/companies` | server | One indexable page per listed company; A-Z list |
-| `/updates`, `/docs`, `/docs/[slug]` | server | Live news feed (filter `?sector=`); reading list: 10-slide research deck per sector in a pop-up (`?report=<slug>` opens one) |
+| `/updates`, `/docs`, `/docs/[slug]` | server | Live news feed (filter `?sector=`); Analysis (nav label; route stays `/docs`): Reports view = 10-slide research deck per sector in a pop-up (`?report=<slug>` opens one); Charts view = `SectorCharts`, an industry's listed stocks vs its index, Nifty 50 and Sensex, rebased to % change (`?view=charts&sector=<slug>`) |
 | `/ipos` | server | Upcoming-IPO decks (`?ipo=<slug>` opens one; also works on `/` and `/docs`) |
 | `/connections` | server | Companies present in 2+ supply chains, ranked by footprint (`sector-content/exposure.ts`) |
 | `/watchlist` | server | Auth required; rows open the stock pop-up |
 | `/login`, `/signup`, `/auth/callback` | server | Supabase auth |
 | `/api/stock/[ticker]` | route | `{ quote, fundamentals, news, newsLive, footprint, return1y, seedAsOf }`, `s-maxage=300` |
-| `/api/stock/[ticker]/chart?range=1M\|6M\|1Y\|3Y\|MAX` | route | price history |
+| `/api/stock/[ticker]/chart?range=1M\|6M\|1Y\|3Y\|5Y\|MAX` | route | price history |
+| `/api/benchmark/[id]/chart?range=...` | route | index history for the ids in `sector-content/benchmarks.ts` (Nifty 50, Sensex, sector indices; ETF stand-ins where Yahoo has no index history) |
 | `/api/watchlist` | route | GET (returns `signedIn`, always 200) / POST / DELETE; the heart checks GET first so signed-out taps show the prompt without a 401 |
 
 ## Frontend structure
@@ -236,7 +237,7 @@ row behind; delete it only after checking no watchlist references it (children c
   `screener-company.ts`); a licensed data vendor would replace `lib/live/screener-*`.
 - Yahoo NSE quotes are ~15 minutes delayed; the UI says so. There is no streaming.
 - News comes from Google News RSS (unofficial, headline + link only); the curated set in `extracted.json` is only the fallback. A licensed news API would be the upgrade path.
-- The reading list (`/docs`) shows research decks from `sector-content/reports/` (authored industry text; company
+- The Analysis page (`/docs`) shows research decks from `sector-content/reports/` (authored industry text; company
   figures pulled from the supplier seed data) viewed in `components/research/ResearchDeck.tsx`.
 - No CI: tests/lint/types/build are run by hand (see the checklist above). A GitHub Action
   running them on PRs would be the highest-leverage next step.

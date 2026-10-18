@@ -34,7 +34,7 @@ for (const sector of listSectors()) {
     if (listScenarios(sector.slug).length === 0) fail(`[${sector.slug}] live sector has no scenarios (src/lib/sector-content/scenarios.ts)`);
     if (getResearchForSector(sector.slug).length === 0) fail(`[${sector.slug}] live sector has no reading-list links (src/lib/sector-content/docs.ts)`);
     if (!sector.integratorZoneId) fail(`[${sector.slug}] live sector has no integratorZoneId`);
-    if (!sector.whyNow || !sector.thesisSummary) fail(`[${sector.slug}] live sector is missing whyNow/thesisSummary`);
+    if (!sector.whyNow?.length || !sector.thesisSummary?.length) fail(`[${sector.slug}] live sector is missing whyNow/thesisSummary`);
     const report = getReport(sector.slug);
     if (!report) fail(`[${sector.slug}] live sector has no research deck (src/lib/sector-content/reports/)`);
     else validateReport(report, sector).forEach(fail);
