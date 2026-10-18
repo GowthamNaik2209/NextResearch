@@ -70,10 +70,14 @@ the contract up front so they can run at the same time:
    Add a test in `news.test.ts` for each tricky case.
 3. Marketing copy that lists sectors: `lib/site.ts`, `app/opengraph-image.tsx`,
    `app/docs/page.tsx`, `app/companies/page.tsx`.
-4. `npx tsx prisma/extract-source-data.ts`, then (with the user's go-ahead) `npm run db:seed`.
+4. **Analysis charts:** map the sector to its index in `sector-content/benchmarks.ts`
+   (`SECTOR_INDEX`). Check the Yahoo symbol returns a year or more of history; NSE sector
+   indices often return a day or two, so use an ETF that tracks the index and set `via`. No
+   matching index: leave it out (the chart then says so).
+5. `npx tsx prisma/extract-source-data.ts`, then (with the user's go-ahead) `npm run db:seed`.
    Afterwards compare DB tickers with content tickers; orphaned rows from ticker renames can be
    deleted once no watchlist uses them.
-5. Run the QA routine (section 3).
+6. Run the QA routine (section 3).
 
 ## 1b. Add or refresh an upcoming IPO
 

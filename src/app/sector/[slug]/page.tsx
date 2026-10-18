@@ -18,6 +18,7 @@ import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
 import { companySlug, sectorCompanies, sectorCompanyCounts } from "@/lib/sector-content/companies";
 import { NOT_FOUND_METADATA, SITE_URL, jsonLd, midSentence } from "@/lib/site";
 import type { Metadata } from "next";
+import { Points } from "@/components/Points";
 
 export function generateStaticParams() {
   return listSectorSlugs().map((slug) => ({ slug }));
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!sector) return NOT_FOUND_METADATA;
   const { listed } = sectorCompanyCounts(sector);
   const title = `${sector.name} stocks in India: supply chain map & ${listed} listed companies`;
-  const description = `${sector.tagline}. ${sector.thesisSummary ?? ""}`.slice(0, 300);
+  const description = `${sector.tagline}. ${sector.thesisSummary?.join(" ") ?? ""}`.slice(0, 300);
   return {
     title,
     description,
@@ -150,18 +151,18 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
           )}
         </section>
 
-        {(sector.thesisSummary || sector.whyNow) && (
+        {(!!sector.thesisSummary?.length || !!sector.whyNow?.length) && (
           <section className="grid gap-5 sm:grid-cols-2">
-            {sector.thesisSummary && (
+            {!!sector.thesisSummary?.length && (
               <div className="rounded-2xl border border-line bg-panel p-5">
                 <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">What this is</h2>
-                <p className="mt-2 text-sm leading-relaxed text-ink">{sector.thesisSummary}</p>
+                <Points items={sector.thesisSummary} className="mt-2" />
               </div>
             )}
-            {sector.whyNow && (
+            {!!sector.whyNow?.length && (
               <div className="rounded-2xl border border-line bg-panel p-5">
                 <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Why now</h2>
-                <p className="mt-2 text-sm leading-relaxed text-ink">{sector.whyNow}</p>
+                <Points items={sector.whyNow} className="mt-2" />
               </div>
             )}
           </section>

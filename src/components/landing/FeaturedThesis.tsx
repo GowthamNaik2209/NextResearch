@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { SectorWithSlug } from "@/lib/sector-content";
+import { Points } from "@/components/Points";
 
 export function FeaturedThesis({ sector }: { sector: Pick<SectorWithSlug, "slug" | "name" | "tagline" | "whyNow" | "thesisSummary"> }) {
   return (
@@ -16,11 +17,11 @@ export function FeaturedThesis({ sector }: { sector: Pick<SectorWithSlug, "slug"
         <div className="space-y-5">
           <div>
             <h3 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Why now</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-ink">{sector.whyNow}</p>
+            <Points items={sector.whyNow ?? []} className="mt-1.5" />
           </div>
           <div>
             <h3 className="text-xs font-bold uppercase tracking-widest text-ink-soft">The investable idea</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-ink">{sector.thesisSummary}</p>
+            <Points items={sector.thesisSummary ?? []} className="mt-1.5" />
           </div>
         </div>
       </div>

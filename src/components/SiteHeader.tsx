@@ -7,7 +7,7 @@ import { ThemeToggle } from "./ThemeToggle";
 export async function SiteHeader() {
   const user = await getCurrentUser();
   const displayName = (user?.user_metadata?.display_name as string | undefined) ?? null;
-  // nowrap: at 768px "How it works" and "Reading list" used to break onto two lines.
+  // nowrap: at 768px "How it works" and "Analysis" used to break onto two lines.
   const link = "hidden whitespace-nowrap text-sm font-medium text-ink-soft hover:text-ink md:inline";
 
   return (
@@ -25,7 +25,7 @@ export async function SiteHeader() {
           <Link href="/connections" className={link}>Connections</Link>
           <Link href="/updates" className={link}>Updates</Link>
           <Link href="/#how" className={link}>How it works</Link>
-          <Link href="/docs" className={link}>Reading list</Link>
+          <Link href="/docs" className={link}>Analysis</Link>
           <MobileMenu />
           {/* Not on phones (logo + menu + heart + Sign up + account already fill 375px) nor at
               md, where the five text links take the room; the account menu still has it there. */}

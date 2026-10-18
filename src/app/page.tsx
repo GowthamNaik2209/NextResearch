@@ -22,7 +22,7 @@ export default function HomePage() {
   // The sector previewed in the hero and featured below: Data Center if it has a thesis,
   // otherwise the first live sector that does.
   const ipos = listIpoDecks();
-  const featured = sectors.find((s) => s.slug === "datacenter" && s.thesisSummary) ?? sectors.find((s) => s.thesisSummary && !s.muted);
+  const featured = sectors.find((s) => s.slug === "datacenter" && s.thesisSummary?.length) ?? sectors.find((s) => s.thesisSummary?.length && !s.muted);
 
   return (
     <>
