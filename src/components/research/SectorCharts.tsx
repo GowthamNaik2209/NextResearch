@@ -442,7 +442,7 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
               note: `all ${sector.stocks.length} listed stocks · equal weight`,
             }}
             picks={pickedKey ? { key: pickedKey, label: `Your ${pickedTickers.length} picked stock${pickedTickers.length > 1 ? "s" : ""}`, tickers: pickedTickers, weighting: "equal" } : null}
-            benches={[{ key: "b:nifty50", label: "Nifty 50" }, ...(sector.indices[0] ? [{ key: `b:${sector.indices[0].id}`, label: sector.indices[0].name }] : [])]}
+            benches={[{ key: "b:nifty50", label: "Nifty 50" }]}
           />
           <Link href={`/baskets/industry/${sector.slug}`} className="self-start py-1 text-xs font-semibold text-accent hover:underline">
             Open as a basket (market-cap weight, each stock&rsquo;s contribution) &rarr;

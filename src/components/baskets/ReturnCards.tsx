@@ -80,7 +80,7 @@ export function ReturnCards({
   const p = picks ? card(picks) : null;
 
   return (
-    <section aria-label="Backtest summary" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <section aria-label="Backtest summary" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       <Stat label={basket.label} value={b.value} loading={b.loading} note={basket.note} strong />
       {picks && p && (
         <Stat

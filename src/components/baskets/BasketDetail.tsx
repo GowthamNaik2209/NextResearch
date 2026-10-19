@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ChartRange } from "@/lib/live/yahoo";
@@ -17,6 +17,34 @@ import { loadSeries, savedBasketQuery, type Load } from "./series";
 // (holdings, weights, each one's return and share of the basket's return) and a Chart view
 // (the backtest against the market, its industry index and other industry baskets). The owner
 // of a saved basket can rename, reweight, share, delete, and pick and drop stocks.
+// Copies text while still inside the tap. The Clipboard API first; where it is refused (some
+// browsers and embedded views), the older select-and-copy, which works synchronously.
+function copyNow(text: string): Promise<boolean> {
+  const legacy = () => {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch {}
+    ta.remove();
+    return ok;
+  };
+  if (!navigator.clipboard) return Promise.resolve(legacy());
+  return navigator.clipboard.writeText(text).then(
+    () => true,
+    () => legacy(),
+  );
+}
+
+// Only the market beside the basket; indices and other baskets are a "Compare with" pick on the chart.
+const NIFTY_ONLY = [{ key: "b:nifty50", label: "Nifty 50" }];
+
 const RANGES: { id: ChartRange; long: string }[] = [
   { id: "1M", long: "1 month" },
   { id: "6M", long: "6 months" },
@@ -155,22 +183,17 @@ export function BasketDetail(p: BasketDetailProps) {
     setWeighting(w);
     if (p.mode === "saved" && p.isOwner) await patch({ weighting: w });
   };
+  // Copies the link at once (still inside the tap: Safari refuses a clipboard write that comes
+  // after a network wait), then makes the basket viewable by link if it isn't yet.
   const share = async () => {
+    const url = `${window.location.origin}/baskets/${p.id}`;
+    const copied = copyNow(url);
     if (!isPublic) {
       const res = await patch({ isPublic: true });
-      if (!res) return;
+      if (!res) return setNote("Couldn’t share it right now. Try again.");
       setIsPublic(true);
     }
-    const url = `${window.location.origin}/baskets/${p.id}`;
-    try {
-      if (navigator.share) await navigator.share({ title: name, text: `${name}: a stock basket on NextResearch`, url });
-      else {
-        await navigator.clipboard.writeText(url);
-        setNote("Link copied. Anyone with it can view this basket.");
-      }
-    } catch {
-      // Closing the share sheet is not an error.
-    }
+    setNote((await copied) ? "Link copied. Anyone with it can view this basket." : `Copy this link to share it: ${url}`);
   };
   const unshare = async () => {
     if (await patch({ isPublic: false })) {
@@ -259,7 +282,7 @@ export function BasketDetail(p: BasketDetailProps) {
                 {editing ? "Done editing" : "Add or remove stocks"}
               </button>
               <button type="button" onClick={share} disabled={busy} className="min-h-10 rounded-lg border border-line px-4 text-sm text-ink hover:border-accent">
-                {isPublic ? "Share link" : "Share"}
+                {isPublic ? "Copy link" : "Share"}
               </button>
               {isPublic && (
                 <button type="button" onClick={unshare} disabled={busy} className="min-h-10 rounded-lg border border-line px-4 text-sm text-ink-soft hover:border-accent hover:text-ink">
@@ -291,11 +314,7 @@ export function BasketDetail(p: BasketDetailProps) {
         range={range}
         basket={{ key: basketKey, label: `This basket, ${rangeLong}` }}
         picks={pickedKey ? { key: pickedKey, label: `Your ${picked.length} picked stock${picked.length > 1 ? "s" : ""}`, tickers: picked.map((s) => s.ticker), weighting } : null}
-        benches={[
-          { key: "b:nifty50", label: "Nifty 50" },
-          ...(compareKey && p.compareName ? [{ key: compareKey, label: `${p.compareName} basket` }] : []),
-          ...(p.indices[0] ? [{ key: `b:${p.indices[0].id}`, label: p.indices[0].name }] : []),
-        ]}
+        benches={NIFTY_ONLY}
       />
 
       {/* Controls shared by both views */}
@@ -460,24 +479,60 @@ function StockPicker({
 }) {
   const [query, setQuery] = useState("");
   const [industry, setIndustry] = useState("");
+  // The company list is a dropdown: it opens on tapping the search (every listed company, A-Z)
+  // or picking an industry, stays open while stocks are added, and closes on a tap anywhere else.
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!boxRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+  const sorted = useMemo(() => [...universe].sort((a, b) => a.name.localeCompare(b.name)), [universe]);
   const liked = watchlist.filter((t) => !have.has(t)).map((t) => universe.find((s) => s.ticker === t)).filter((s): s is BasketStock => !!s);
   const q = query.trim().toLowerCase();
-  const matches = universe.filter((s) => (!industry || s.industries.some((i) => i.slug === industry)) && (!q || s.name.toLowerCase().includes(q) || s.ticker.toLowerCase().includes(q)));
+  const matches = sorted.filter((s) => (!industry || s.industries.some((i) => i.slug === industry)) && (!q || s.name.toLowerCase().includes(q) || s.ticker.toLowerCase().includes(q)));
   const addable = matches.filter((s) => !have.has(s.ticker));
-  const shown = q || industry ? matches.slice(0, 60) : [];
 
   return (
     <section aria-label="Add stocks" className="flex flex-col gap-3 rounded-2xl border border-accent/40 bg-panel p-4">
+      <div ref={boxRef} className="relative">
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
           type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onClick={() => setOpen(true)}
           placeholder="Search any listed company"
           aria-label="Search companies to add"
+          role="combobox"
+          aria-expanded={open}
+          aria-controls="add-stock-list"
           className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-base text-ink placeholder:text-ink-soft focus:border-accent focus:outline-none sm:text-sm"
         />
-        <select value={industry} onChange={(e) => setIndustry(e.target.value)} aria-label="Filter by industry" className="rounded-lg border border-line bg-bg px-3 py-2 text-base text-ink sm:text-sm">
+        <select
+          value={industry}
+          onChange={(e) => {
+            // A new industry starts a fresh list: leftover search text would hide its companies.
+            setIndustry(e.target.value);
+            setQuery("");
+            setOpen(true);
+          }}
+          aria-label="Filter by industry"
+          className="rounded-lg border border-line bg-bg px-3 py-2 text-base text-ink sm:text-sm"
+        >
           <option value="">All industries</option>
           {industries.map((i) => (
             <option key={i.slug} value={i.slug}>
@@ -488,7 +543,7 @@ function StockPicker({
       </div>
       {full && <p className="text-xs text-ink-soft">This basket is full ({MAX_STOCKS} stocks). Remove one to add another.</p>}
 
-      {liked.length > 0 && !q && !industry && (
+      {liked.length > 0 && (
         <div>
           <div className="flex items-center justify-between gap-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">From your watchlist</span>
@@ -507,10 +562,10 @@ function StockPicker({
           </div>
         </div>
       )}
-      {!q && !industry && liked.length === 0 && <p className="text-xs text-ink-soft">Search for a company, or pick an industry to see its listed stocks.</p>}
+      {liked.length === 0 && <p className="text-xs text-ink-soft">Tap the search to browse every listed company A&ndash;Z, or pick an industry to see its listed stocks.</p>}
 
-      {(q || industry) && (
-        <div>
+      {open && (
+        <div id="add-stock-list" className="absolute inset-x-0 top-full z-20 mt-1 rounded-xl border border-line bg-panel p-3 shadow-[0_18px_40px_-18px_rgba(0,0,0,0.45)]">
           <div className="flex items-center justify-between gap-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">
               {matches.length} {matches.length === 1 ? "company" : "companies"}
@@ -521,8 +576,8 @@ function StockPicker({
               </button>
             )}
           </div>
-          <ul className="mt-1 max-h-80 divide-y divide-line overflow-y-auto">
-            {shown.map((s) => {
+          <ul className="mt-1 max-h-[min(55vh,22rem)] divide-y divide-line overflow-y-auto overscroll-contain">
+            {matches.map((s) => {
               const inIt = have.has(s.ticker);
               return (
                 <li key={s.ticker} className="flex items-center gap-3 py-2">
@@ -547,6 +602,7 @@ function StockPicker({
           </ul>
         </div>
       )}
+      </div>
     </section>
   );
 }
