@@ -2,43 +2,51 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { BasketBuilder, type BuilderStock } from "@/components/baskets/BasketBuilder";
+import { BasketDetail } from "@/components/baskets/BasketDetail";
 import { getCurrentUser } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { MAX_BASKET_STOCKS, basketStock, listBasketUniverse, listIndustryBaskets, type BasketStock } from "@/lib/baskets/industry";
+import { basketStock, getIndustryBasket, listBasketUniverse } from "@/lib/baskets/industry";
+import { compareProps, pickerProps } from "@/lib/baskets/page-props";
 
 export const metadata = { title: "Create a basket", robots: { index: false, follow: false } };
 
-const lite = (s: BasketStock): BuilderStock => ({ ticker: s.ticker, name: s.name, layer: s.layer });
-
-// ?with=watchlist or ?with=<industry slug>[,<slug>...] opens with those switched on.
+// Create basket: the basket page itself, empty and unsaved. Pick an industry on top, add its
+// stocks, switch industries and keep adding; the returns and chart follow; "Create basket" saves it.
+// ?with=watchlist starts from your liked stocks; ?with=<industry slug> opens on that industry.
 export default async function NewBasketPage({ searchParams }: { searchParams: Promise<{ with?: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/baskets/new");
-  const liked = await prisma.watchlist
-    .findMany({ where: { userId: user.id }, include: { company: { select: { ticker: true } } }, orderBy: { addedAt: "desc" } })
-    .catch((e: unknown) => {
-      console.error("[baskets/new] loading the watchlist failed", e);
-      return [];
-    });
-  const watchlist = liked.map((r) => basketStock(r.company.ticker)).filter((s) => s !== null).map(lite);
-  const industries = listIndustryBaskets().map((b) => ({ slug: b.slug, name: b.name, icon: b.icon, category: b.category, stocks: b.stocks.map(lite) }));
-  const initial = ((await searchParams).with ?? "").split(",").map((g) => (g === "watchlist" ? "__watchlist" : g)).filter(Boolean);
+  const start = (await searchParams).with ?? "";
+  const picker = await pickerProps(user.id).catch((e: unknown) => {
+    console.error("[baskets/new] loading the watchlist failed", e);
+    return null;
+  });
+  const universe = picker?.universe ?? listBasketUniverse();
+  const watchlist = picker?.watchlist ?? [];
+  const stocks = start === "watchlist" ? watchlist.map((t) => basketStock(t)).filter((s) => s !== null) : [];
+  const industry = getIndustryBasket(start)?.slug ?? null;
 
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-5 py-14">
+      <main className="mx-auto flex w-full max-w-4xl lg:max-w-7xl flex-1 flex-col gap-4 px-5 py-14">
         <Link href="/baskets" className="self-start text-xs font-semibold text-accent hover:underline">
           &larr; Baskets
         </Link>
-        <div>
-          <h1 className="font-display text-3xl font-bold text-ink">Create a basket</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            Switch on any mix of industries, keep the stocks you want, and name it. You can add or take off stocks later.
-          </p>
-        </div>
-        <BasketBuilder industries={industries} watchlist={watchlist} universe={listBasketUniverse().map(lite)} max={MAX_BASKET_STOCKS} initialGroups={initial} />
+        <BasketDetail
+          mode="draft"
+          id="new"
+          name=""
+          description={null}
+          stocks={stocks}
+          addPrices={{}}
+          weighting="equal"
+          isOwner
+          isPublic={false}
+          signedIn
+          universe={universe}
+          watchlist={watchlist}
+          {...compareProps(industry)}
+        />
       </main>
       <SiteFooter />
     </>
