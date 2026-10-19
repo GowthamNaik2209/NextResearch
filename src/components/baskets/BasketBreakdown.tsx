@@ -70,7 +70,7 @@ export function BasketBreakdown({
     },
     weights: {
       headline: weightHeadline(holdings, nameOf, picks ? "your picks" : "the basket"),
-      sub: `Share of ${picks ? "your picks" : "the basket"} now; the tick marks where it started. Winners grow, losers shrink.`,
+      sub: `Share of ${picks ? "your picks" : "the basket"} now, against where it started. Winners grow, losers shrink.`,
       rows: weightRows(holdings),
       unit: "%",
       legend: false,
@@ -180,13 +180,27 @@ function Bars({ rows, unit, stockOf }: { rows: BarRow[]; unit: string; stockOf: 
   );
 }
 
-// Weights now as bars on a faint track, with a tick at the weight each started on. Scaled to the
-// single stocks, so a combined "others" row (which can be large) doesn't flatten them.
+// Weights now as bars on a faint track, with a dashed marker at the weight each started on (a
+// key above says so; at equal weights the markers line up). Scaled to the single stocks, so a
+// combined "others" row (which can be large) doesn't flatten them.
 function WeightBars({ rows, stockOf }: { rows: BarRow[]; stockOf: (t: string) => BasketStock | undefined }) {
   const stocks = rows.filter((r) => r.kind === "stock");
   const max = Math.max(1, ...(stocks.length ? stocks : rows).flatMap((r) => (r.kind === "gap" ? [] : [r.value, r.start ?? 0])));
   const at = (v: number) => `${Math.min(100, (v / max) * 100)}%`;
+  const starts = stocks.flatMap((r) => (r.kind === "stock" && r.start != null ? [r.start] : []));
+  const same = starts.length > 1 && Math.max(...starts) - Math.min(...starts) < 0.05;
   return (
+    <>
+    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-soft">
+      <span className="flex items-center gap-1.5">
+        <span aria-hidden className="h-2.5 w-4 rounded-sm bg-accent/70" />
+        Weight now
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span aria-hidden className="h-3.5 border-l-2 border-dashed border-ink-soft" />
+        {same ? `Where each started (${starts[0].toFixed(1)}% each)` : "Where it started"}
+      </span>
+    </div>
     <ul className="flex flex-col gap-1.5">
       {rows.map((r, i) =>
         r.kind === "gap" ? null : (
@@ -195,7 +209,7 @@ function WeightBars({ rows, stockOf }: { rows: BarRow[]; stockOf: (t: string) =>
             <span className="relative h-7">
               <span aria-hidden className="absolute inset-x-0 top-1 h-5 rounded-sm bg-line/50" />
               <span className="absolute left-0 top-1 h-5 rounded-r-sm bg-accent/70" style={{ width: at(r.value) }} />
-              {r.start != null && <span aria-hidden title={`Started at ${r.start.toFixed(1)}%`} className="absolute top-0 h-7 w-0.5 rounded bg-ink" style={{ left: `calc(${at(r.start)} - 1px)` }} />}
+              {r.start != null && <span aria-hidden title={`Started at ${r.start.toFixed(1)}%`} className="absolute -top-1 h-9 border-l-2 border-dashed border-ink-soft" style={{ left: `calc(${at(r.start)} - 1px)` }} />}
             </span>
             <span className="whitespace-nowrap text-right font-mono text-[11px] font-semibold text-ink">
               {r.value.toFixed(1)}%
@@ -205,5 +219,6 @@ function WeightBars({ rows, stockOf }: { rows: BarRow[]; stockOf: (t: string) =>
         ),
       )}
     </ul>
+    </>
   );
 }
