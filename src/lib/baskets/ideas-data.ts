@@ -91,7 +91,7 @@ export const getIdeas = unstable_cache(
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },
-  ["basket-ideas-v3"],
+  ["basket-ideas-v4"],
   { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
 );
 

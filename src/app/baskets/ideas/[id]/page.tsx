@@ -13,7 +13,7 @@ import { compareProps } from "@/lib/baskets/page-props";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const dayOf = (iso: string) => new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
+const dayOf = (iso: string) => new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -44,7 +44,7 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
           mode="idea"
           id={idea.id}
           name={idea.title}
-          description={`${idea.rule} List as of ${dayOf(asOf)}.`}
+          description={`${idea.rule} As of ${dayOf(asOf)}.`}
           stocks={stocks}
           addPrices={{}}
           weighting="equal"

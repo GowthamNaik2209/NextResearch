@@ -51,7 +51,7 @@ export type Idea = {
   title: string;
   /** One line for the card. */
   blurb: string;
-  /** How the list is chosen, for the idea's page. */
+  /** How the list is chosen, in one short line for the idea's page. */
   rule: string;
   /** The range the idea's chart opens on. */
   range: ChartRange;
@@ -101,7 +101,7 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
       id: `top-${p.id.toLowerCase()}`,
       title: `Top performers · ${p.id}`,
       blurb: `The ${TOP_N} listed stocks in our maps that rose most over the past ${p.long}.`,
-      rule: `The ${TOP_N} best price returns over the past ${p.long} among every listed company in our maps, re-ranked each day from the latest closes. Past returns, not a recommendation: a list picked for its past rise will look strong over that same period.`,
+      rule: `The ${TOP_N} biggest gainers over the past ${p.long} across our maps, re-ranked daily. Past returns, not a recommendation.`,
       range: p.id,
       stocks: ranked.map((s) => ({ ticker: s.ticker, stat: pctTxt(stat(s.ticker).ret[p.id]!) })),
       ret: mean(ranked.map((s) => stat(s.ticker).ret[p.id]!)),
@@ -117,7 +117,7 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     id: "quality",
     title: "Quality leaders",
     blurb: "The highest return on capital employed across every industry we map.",
-    rule: `The ${LIST_N} listed companies with the highest ROCE (return on capital employed) in our maps, among those worth at least ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr. Re-ranked whenever the company figures update.`,
+    rule: `Highest ROCE in our maps, among companies worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more.`,
     range: "1Y",
     stocks: quality.map((s) => ({ ticker: s.ticker, stat: `ROCE ${s.roce!.toFixed(0)}%` })),
     ret: ret1y(quality.map((s) => s.ticker)),
@@ -132,7 +132,7 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     id: "bottlenecks",
     title: "Bottleneck plays",
     blurb: "Listed companies in supply-chain layers that only one or two listed names supply.",
-    rule: "Companies with a medium or high exposure to a layer of one of our supply-chain maps that only one or two listed companies supply: the choke points where a listed investor has the fewest alternatives. Scarcest layers first, then the strongest exposure, then the largest company.",
+    rule: "Companies in supply-chain layers that only one or two listed companies supply, scarcest first.",
     range: "1Y",
     stocks: scarce.map((s) => ({ ticker: s.ticker, stat: s.scarce!.listed === 1 ? "sole listed name" : "1 of 2 listed" })),
     ret: ret1y(scarce.map((s) => s.ticker)),
@@ -147,7 +147,7 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     id: "cross-industry",
     title: "Across industries",
     blurb: "Companies that turn up in three or more of our industry maps.",
-    rule: "Listed companies that supply three or more of the industries and policies we map, widest reach first: one stock, several stories.",
+    rule: "Companies in three or more of our industry maps, widest reach first.",
     range: "1Y",
     stocks: cross.map((s) => ({ ticker: s.ticker, stat: `${s.industries} industries` })),
     ret: ret1y(cross.map((s) => s.ticker)),
@@ -165,7 +165,7 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     id: "recent-ipos",
     title: "Recent listings",
     blurb: "Companies in our maps that listed in the past two years.",
-    rule: "Listed companies in our maps whose share-price history starts within the past two years, newest first. REITs, InvITs and demergers are left out. The window rolls forward each day. The basket's backtest leaves out stocks that listed after the chart's first day, so the chart opens on one month, where nearly all of them count.",
+    rule: "Listed in the past two years, newest first. REITs, InvITs and demergers left out.",
     range: "1M",
     stocks: ipos.map((s) => ({ ticker: s.ticker, stat: `listed ${monthYear(stat(s.ticker).first)}` })),
     ret: mean(ipos.map((s) => stat(s.ticker).sinceFirst)),

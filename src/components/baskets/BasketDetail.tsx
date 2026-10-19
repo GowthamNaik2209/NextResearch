@@ -7,8 +7,8 @@ import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import type { BasketStock } from "@/lib/baskets/industry";
 import { StockLink } from "@/components/stock/StockLink";
-import { BasketChart, defaultSelection, pct, useSiteTheme, type ChartSelection, type CompareBasket } from "./BasketChart";
-import { SLOTS } from "@/components/research/SectorCharts";
+import { BasketChart, MAX_CHART_STOCKS, defaultSelection, pct, stockLine, useSiteTheme, type ChartSelection, type CompareBasket } from "./BasketChart";
+import { DASHARRAY } from "@/components/research/SectorCharts";
 import { ReturnCards, picksKey } from "./ReturnCards";
 import { IndustryChips } from "./IndustryChips";
 import { basketCreateError } from "./NewBasketButton";
@@ -55,8 +55,6 @@ const RANGES: { id: ChartRange; long: string }[] = [
   { id: "5Y", long: "5 years" },
 ];
 const MAX_STOCKS = 75;
-// Stocks the chart can draw at once (its line colours; see BasketChart).
-const MAX_CHART_STOCKS = 6;
 
 type Sort = "contribution" | "return" | "weight" | "name";
 const SORTS: { id: Sort; label: string }[] = [
@@ -134,11 +132,11 @@ export function BasketDetail(p: BasketDetailProps) {
   const compareKey = p.compareSlug && !(p.mode === "industry" && p.compareSlug === p.id) ? `x:sector=${p.compareSlug}&w=${weighting}` : null;
   // Kept here, above the chart, so the reader's picks outlive weighting, range and view switches.
   const compareIndustries = p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id));
-  // A saved basket opens with its stocks drawn on the chart (as many as there are line colours);
-  // an industry basket, often 20+ stocks, opens on the benchmarks alone.
+  // A saved basket or an idea opens with its stocks drawn on the chart (as many as there are line
+  // styles); an industry basket, often 20+ stocks, opens on the benchmarks alone.
   const [chartSel, setChartSel] = useState<ChartSelection>(() => {
     const sel = defaultSelection(p.indices, compareIndustries, compareKey ? p.compareSlug : null);
-    if (p.mode === "saved") sel.picks = Object.fromEntries(p.stocks.slice(0, MAX_CHART_STOCKS).map((s, i) => [s.ticker, i]));
+    if (p.mode !== "industry") sel.picks = Object.fromEntries(p.stocks.slice(0, MAX_CHART_STOCKS).map((s, i) => [s.ticker, i]));
     return sel;
   });
   // The stocks switched on in the chart, backtested together as their own basket (same weighting).
@@ -448,7 +446,7 @@ export function BasketDetail(p: BasketDetailProps) {
           <section aria-label="In this basket" className="hidden flex-col gap-1 lg:flex lg:min-h-0 lg:flex-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">In this basket ({stocks.length})</span>
             <span className="text-[11px] leading-snug text-ink-soft">
-              {picked.length > 0 ? "A colour marks a stock drawn on the chart. " : ""}Add or take off lines with the chart&rsquo;s Stocks menu.
+              {picked.length > 0 ? "The mark beside a stock is its line on the chart. " : ""}Add or take off lines with the chart&rsquo;s Stocks menu.
             </span>
             <ul className="divide-y divide-line lg:min-h-24 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
               {[...stocks]
@@ -458,12 +456,12 @@ export function BasketDetail(p: BasketDetailProps) {
                   const slot = chartSel.picks[s.ticker];
                   return (
                     <li key={s.ticker} className="flex items-center gap-2 py-1.5">
-                      {/* The stock's line colour when it is drawn on the chart; an empty slot keeps names aligned. */}
-                      <span
-                        aria-hidden
-                        className={"h-1 w-3 flex-none rounded-full " + (slot == null ? "bg-transparent" : "")}
-                        style={slot == null ? undefined : { background: SLOTS[theme][slot] }}
-                      />
+                      {/* The stock's line (colour and dash) when it is drawn on the chart; an empty slot keeps names aligned. */}
+                      <svg aria-hidden width="16" height="6" viewBox="0 0 16 6" className="flex-none">
+                        {slot != null && (
+                          <line x1="1.5" y1="3" x2="14.5" y2="3" stroke={stockLine(theme, slot).color} strokeWidth="2.5" strokeDasharray={DASHARRAY[stockLine(theme, slot).dash]} strokeLinecap="round" />
+                        )}
+                      </svg>
                       <StockLink ticker={s.ticker} className={"min-w-0 flex-1 truncate text-xs hover:text-accent hover:underline " + (slot == null ? "text-ink" : "font-semibold text-ink")}>
                         {s.name}
                         {slot != null && <span className="sr-only"> (on the chart)</span>}
