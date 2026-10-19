@@ -307,7 +307,7 @@ export function BasketDetail(p: BasketDetailProps) {
         )}
       </div>
 
-      {canEdit && editing && <StockPicker universe={p.universe ?? []} industries={p.industries} watchlist={p.watchlist} have={new Set(tickers)} full={stocks.length >= MAX_STOCKS} onAdd={add} />}
+      {canEdit && editing && <StockPicker universe={p.universe ?? []} industries={p.industries} initialIndustry={p.compareSlug} watchlist={p.watchlist} have={new Set(tickers)} full={stocks.length >= MAX_STOCKS} onAdd={add} />}
 
       {/* Return summary */}
       <ReturnCards
@@ -460,11 +460,13 @@ export function BasketDetail(p: BasketDetailProps) {
   );
 }
 
-// Pick stocks to add: search every listed company, narrow to one industry (with "add all"), or
-// pick from the watchlist.
+// Pick stocks to add, industry first: choose an industry, then add from its listed stocks (one by
+// one or all at once). Switching industries keeps adding to the same basket. The watchlist's
+// stocks sit underneath as one-tap chips.
 function StockPicker({
   universe,
   industries,
+  initialIndustry,
   watchlist,
   have,
   full,
@@ -472,15 +474,16 @@ function StockPicker({
 }: {
   universe: BasketStock[];
   industries: CompareBasket[];
+  initialIndustry: string | null;
   watchlist: string[];
   have: Set<string>;
   full: boolean;
   onAdd: (tickers: string[]) => void;
 }) {
-  const [query, setQuery] = useState("");
-  const [industry, setIndustry] = useState("");
-  // The company list is a dropdown: it opens on tapping the search (every listed company, A-Z)
-  // or picking an industry, stays open while stocks are added, and closes on a tap anywhere else.
+  const [industry, setIndustry] = useState(() => (initialIndustry && industries.some((i) => i.slug === initialIndustry) ? initialIndustry : (industries[0]?.slug ?? "")));
+  const [filter, setFilter] = useState("");
+  // The stocks list is a dropdown: it opens from the Stocks button or on picking an industry,
+  // stays open while adding, and closes on a tap anywhere else or Escape.
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -496,50 +499,106 @@ function StockPicker({
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
-  const sorted = useMemo(() => [...universe].sort((a, b) => a.name.localeCompare(b.name)), [universe]);
-  const liked = watchlist.filter((t) => !have.has(t)).map((t) => universe.find((s) => s.ticker === t)).filter((s): s is BasketStock => !!s);
-  const q = query.trim().toLowerCase();
-  const matches = sorted.filter((s) => (!industry || s.industries.some((i) => i.slug === industry)) && (!q || s.name.toLowerCase().includes(q) || s.ticker.toLowerCase().includes(q)));
+  const inIndustry = useMemo(
+    () => universe.filter((s) => s.industries.some((i) => i.slug === industry)).sort((a, b) => a.name.localeCompare(b.name)),
+    [universe, industry],
+  );
+  const f = filter.trim().toLowerCase();
+  const matches = f ? inIndustry.filter((s) => s.name.toLowerCase().includes(f) || s.ticker.toLowerCase().includes(f)) : inIndustry;
   const addable = matches.filter((s) => !have.has(s.ticker));
+  const industryName = industries.find((i) => i.slug === industry)?.name ?? "this industry";
+  const added = inIndustry.filter((s) => have.has(s.ticker)).length;
+  const liked = watchlist.filter((t) => !have.has(t)).map((t) => universe.find((s) => s.ticker === t)).filter((s): s is BasketStock => !!s);
 
   return (
     <section aria-label="Add stocks" className="flex flex-col gap-3 rounded-2xl border border-accent/40 bg-panel p-4">
       <div ref={boxRef} className="relative">
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          onClick={() => setOpen(true)}
-          placeholder="Search any listed company"
-          aria-label="Search companies to add"
-          role="combobox"
-          aria-expanded={open}
-          aria-controls="add-stock-list"
-          className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-base text-ink placeholder:text-ink-soft focus:border-accent focus:outline-none sm:text-sm"
-        />
-        <select
-          value={industry}
-          onChange={(e) => {
-            // A new industry starts a fresh list: leftover search text would hide its companies.
-            setIndustry(e.target.value);
-            setQuery("");
-            setOpen(true);
-          }}
-          aria-label="Filter by industry"
-          className="rounded-lg border border-line bg-bg px-3 py-2 text-base text-ink sm:text-sm"
-        >
-          <option value="">All industries</option>
-          {industries.map((i) => (
-            <option key={i.slug} value={i.slug}>
-              {i.name}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <label className="flex min-w-0 flex-col gap-1 sm:w-1/2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">Industry</span>
+            <select
+              value={industry}
+              onChange={(e) => {
+                setIndustry(e.target.value);
+                setFilter("");
+                setOpen(true);
+              }}
+              className="rounded-lg border border-line bg-bg px-3 py-2 text-base text-ink sm:text-sm"
+            >
+              {industries.map((i) => (
+                <option key={i.slug} value={i.slug}>
+                  {i.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flex min-w-0 flex-col gap-1 sm:w-1/2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">Stocks</span>
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              aria-haspopup="listbox"
+              aria-expanded={open}
+              aria-controls="add-stock-list"
+              aria-label={`${industryName} stocks: ${inIndustry.length} listed${added > 0 ? `, ${added} in this basket` : ""}`}
+              className={"flex min-h-[42px] items-center justify-between gap-2 rounded-lg border bg-bg px-3 py-2 text-left text-base text-ink sm:text-sm " + (open ? "border-accent" : "border-line")}
+            >
+              <span className="truncate">
+                {inIndustry.length} listed{added > 0 ? ` · ${added} in this basket` : ""}
+              </span>
+              <svg aria-hidden width="10" height="6" viewBox="0 0 10 6" className={"flex-none transition-transform " + (open ? "rotate-180" : "")}>
+                <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {open && (
+          <div id="add-stock-list" className="absolute inset-x-0 top-full z-20 mt-1 rounded-xl border border-line bg-panel p-3 shadow-[0_18px_40px_-18px_rgba(0,0,0,0.45)]">
+            <div className="flex items-center justify-between gap-2">
+              <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wider text-ink-soft">{industryName}</span>
+              {addable.length > 1 && (
+                <button type="button" disabled={full} onClick={() => onAdd(addable.map((s) => s.ticker))} className="flex-none text-xs font-semibold text-accent hover:underline">
+                  Add all {addable.length}
+                </button>
+              )}
+            </div>
+            {inIndustry.length > 12 && (
+              <input
+                type="search"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                placeholder={`Filter ${inIndustry.length} stocks`}
+                aria-label={`Filter ${industryName} stocks`}
+                className="mt-2 w-full rounded-lg border border-line bg-bg px-3 py-1.5 text-base text-ink placeholder:text-ink-soft focus:border-accent focus:outline-none sm:text-sm"
+              />
+            )}
+            <ul role="listbox" aria-label={`${industryName} stocks`} className="mt-1 max-h-[min(45vh,22rem)] divide-y divide-line overflow-y-auto overscroll-contain">
+              {matches.map((s) => {
+                const inIt = have.has(s.ticker);
+                return (
+                  <li key={s.ticker} role="option" aria-selected={inIt} className="flex items-center gap-3 py-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm text-ink">{s.name}</div>
+                      <div className="truncate text-[11px] text-ink-soft">
+                        <span className="font-mono">{s.ticker}</span> · {s.layer}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={inIt || full}
+                      onClick={() => onAdd([s.ticker])}
+                      className={"min-h-9 flex-none rounded-full px-3 text-xs font-semibold " + (inIt ? "text-ink-soft" : "border border-accent text-accent hover:bg-accent hover:text-bg")}
+                    >
+                      {inIt ? "Added" : "+ Add"}
+                    </button>
+                  </li>
+                );
+              })}
+              {matches.length === 0 && <li className="py-2 text-xs text-ink-soft">No {industryName} stock matches &ldquo;{filter}&rdquo;.</li>}
+            </ul>
+          </div>
+        )}
       </div>
       {full && <p className="text-xs text-ink-soft">This basket is full ({MAX_STOCKS} stocks). Remove one to add another.</p>}
 
@@ -562,47 +621,6 @@ function StockPicker({
           </div>
         </div>
       )}
-      {liked.length === 0 && <p className="text-xs text-ink-soft">Tap the search to browse every listed company A&ndash;Z, or pick an industry to see its listed stocks.</p>}
-
-      {open && (
-        <div id="add-stock-list" className="absolute inset-x-0 top-full z-20 mt-1 rounded-xl border border-line bg-panel p-3 shadow-[0_18px_40px_-18px_rgba(0,0,0,0.45)]">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">
-              {matches.length} {matches.length === 1 ? "company" : "companies"}
-            </span>
-            {industry && addable.length > 1 && (
-              <button type="button" disabled={full} onClick={() => onAdd(addable.map((s) => s.ticker))} className="text-xs font-semibold text-accent hover:underline">
-                Add all {addable.length}
-              </button>
-            )}
-          </div>
-          <ul className="mt-1 max-h-[min(55vh,22rem)] divide-y divide-line overflow-y-auto overscroll-contain">
-            {matches.map((s) => {
-              const inIt = have.has(s.ticker);
-              return (
-                <li key={s.ticker} className="flex items-center gap-3 py-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm text-ink">{s.name}</div>
-                    <div className="truncate text-[11px] text-ink-soft">
-                      <span className="font-mono">{s.ticker}</span> · {s.industries.length > 1 ? `${s.industries.length} industries` : s.industries[0]?.name}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={inIt || full}
-                    onClick={() => onAdd([s.ticker])}
-                    className={"min-h-9 flex-none rounded-full px-3 text-xs font-semibold " + (inIt ? "text-ink-soft" : "border border-accent text-accent hover:bg-accent hover:text-bg")}
-                  >
-                    {inIt ? "Added" : "+ Add"}
-                  </button>
-                </li>
-              );
-            })}
-            {matches.length === 0 && <li className="py-2 text-xs text-ink-soft">No listed company matches &ldquo;{query}&rdquo;.</li>}
-          </ul>
-        </div>
-      )}
-      </div>
     </section>
   );
 }
