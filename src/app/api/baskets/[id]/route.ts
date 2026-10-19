@@ -2,6 +2,7 @@ import { NextResponse, after } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MAX_BASKET_STOCKS } from "@/lib/baskets/industry";
+import { uniqueName } from "@/lib/baskets/names";
 import { cleanName, cleanTickers, fillAddPrices, getVisibleBasket } from "@/lib/baskets/store";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -23,7 +24,11 @@ export async function PATCH(request: Request, { params }: Ctx) {
   const body = await request.json().catch(() => ({}));
 
   const data: { name?: string; description?: string | null; weighting?: "EQUAL" | "MCAP"; isPublic?: boolean } = {};
-  if (body?.name !== undefined) data.name = cleanName(body.name, row.name);
+  if (body?.name !== undefined) {
+    // Unique among the owner's other baskets: a name already in use gets a number after it.
+    const others = await prisma.basket.findMany({ where: { userId: user.id, id: { not: id } }, select: { name: true } });
+    data.name = uniqueName(cleanName(body.name, row.name), others.map((b) => b.name));
+  }
   if (body?.description !== undefined) data.description = typeof body.description === "string" && body.description.trim() ? body.description.trim().slice(0, 280) : null;
   if (body?.weighting === "equal" || body?.weighting === "mcap") data.weighting = body.weighting === "mcap" ? "MCAP" : "EQUAL";
   if (typeof body?.isPublic === "boolean") data.isPublic = body.isPublic;

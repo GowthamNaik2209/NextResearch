@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureProfile } from "@/lib/profile";
 import { MAX_BASKETS_PER_USER, getIndustryBasket } from "@/lib/baskets/industry";
 import { cleanName, cleanTickers, fillAddPrices, getVisibleBasket, toSaved } from "@/lib/baskets/store";
+import { uniqueName } from "@/lib/baskets/names";
 
 export const maxDuration = 60;
 
@@ -44,14 +45,15 @@ export async function POST(request: Request) {
     name = cleanName(body?.name, src.isOwner ? `${src.name} (copy)` : src.name).slice(0, 60);
   }
 
-  // A cap per person, so one account can't fill the shared database with baskets. The count and
-  // the profile check run together: each is a round trip to the database.
-  const [count] = await Promise.all([prisma.basket.count({ where: { userId: user.id } }), user.email ? ensureProfile(user.id, user.email) : null]);
-  if (count >= MAX_BASKETS_PER_USER) {
+  // A cap per person, so one account can't fill the shared database with baskets. Their basket
+  // names (which give the count and keep the new name unique) and the profile check run
+  // together: each is a round trip to the database.
+  const [mine] = await Promise.all([prisma.basket.findMany({ where: { userId: user.id }, select: { name: true } }), user.email ? ensureProfile(user.id, user.email) : null]);
+  if (mine.length >= MAX_BASKETS_PER_USER) {
     return NextResponse.json({ error: "limit", max: MAX_BASKETS_PER_USER }, { status: 409 });
   }
   const row = await prisma.basket.create({
-    data: { userId: user.id, name, description, sourceSector, weighting, items: { create: tickers.map((ticker) => ({ ticker })) } },
+    data: { userId: user.id, name: uniqueName(name, mine.map((b) => b.name)), description, sourceSector, weighting, items: { create: tickers.map((ticker) => ({ ticker })) } },
   });
   // Live prices take a few seconds for a big basket; the page doesn't wait for them.
   after(() => fillAddPrices(row.id, tickers));

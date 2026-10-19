@@ -187,7 +187,7 @@ export function BasketDetail(p: BasketDetailProps) {
     try {
       const res = await fetch(`/api/baskets/${p.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (!res.ok) throw new Error();
-      return (await res.json()) as { items: { ticker: string }[] };
+      return (await res.json()) as { name: string; items: { ticker: string }[] };
     } catch {
       setNote("Couldn’t save that change. Check your connection and try again.");
       return null;
@@ -335,7 +335,12 @@ export function BasketDetail(p: BasketDetailProps) {
               const v = name.trim() || p.name;
               setName(v);
               setRenaming(false);
-              await patch({ name: v });
+              // The server may number it ("My basket 2") when another of yours has that name.
+              const res = await patch({ name: v });
+              if (res) {
+                setName(res.name);
+                if (res.name !== v) setNote(`You already have a basket called “${v}”, so this one is “${res.name}”.`);
+              }
             }}
           >
             <input
