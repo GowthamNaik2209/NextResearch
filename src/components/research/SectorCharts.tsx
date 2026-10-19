@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ColorType, CrosshairMode, LineSeries, LineStyle, createChart, type IChartApi, type ISeriesApi, type Time } from "lightweight-charts";
-import type { ChartData, ChartRange } from "@/lib/live/yahoo";
+import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import Link from "next/link";
 import { StockLink } from "@/components/stock/StockLink";
 import { ReturnCards, picksKey } from "@/components/baskets/ReturnCards";
-import { loadSeries } from "@/components/baskets/series";
+import { loadSeries, type Load } from "@/components/baskets/series";
 import { ZOOM_OPTIONS, ZoomControls, useChartZoom } from "@/components/charts/ChartZoom";
 import { onSharedGrid, sharedInterval } from "@/lib/live/ohlc-format";
 
@@ -47,7 +47,6 @@ export const SLOTS = {
 };
 
 type Theme = "light" | "dark";
-type Load = { status: "loading" } | { status: "ok"; data: ChartData } | { status: "error" };
 export type Dash = "solid" | "long" | "dash" | "dot";
 type Line = {
   key: string;
@@ -72,13 +71,6 @@ export const DASHARRAY: Record<Dash, string | undefined> = {
   dash: "4 3",
   dot: "1 4",
 };
-
-// Loaded series survive switching industries, ranges and views (same ticker, same data);
-// a request still running when the view remounts is shared rather than repeated.
-const loaded = new Map<string, ChartData>();
-const inflight = new Map<string, Promise<Load>>();
-const urlFor = (key: string, range: ChartRange) =>
-  key.startsWith("s:") ? `/api/stock/${encodeURIComponent(key.slice(2))}/chart?range=${range}` : `/api/benchmark/${encodeURIComponent(key.slice(2))}/chart?range=${range}`;
 
 const cssVar = (name: string, fallback: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 const readTheme = (): Theme => (document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
@@ -176,10 +168,17 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
     return () => mo.disconnect();
   }, []);
 
+  // The industry's equal-weight basket: the chart's first line, the return cards' first card and
+  // the left list's returns (one request, shared through loadSeries).
+  const basketKey = sector ? `x:sector=${sector.slug}&w=equal` : null;
   const lines: Line[] = useMemo(() => {
-    if (!sector) return [];
+    if (!sector || !basketKey) return [];
     const at = (key: string) => loads[`${key}|${range}`];
-    const out: Line[] = [];
+    const kind = sector.category === "policy" ? "policy" : "industry";
+    // Drawn like the basket pages' own basket: the thick accent line, first in the legend.
+    const out: Line[] = [
+      { key: basketKey, name: `${sector.name} basket`, note: `this ${kind}, equal weight`, color: "var(--accent)", token: "--accent", width: 3, dash: "solid", load: at(basketKey) },
+    ];
     sector.indices.forEach((b, i) => {
       if (!benches.includes(b.id)) return;
       out.push({
@@ -220,27 +219,15 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
       });
     }
     return out;
-  }, [sector, market, benches, picks, range, loads, theme]);
+  }, [sector, basketKey, market, benches, picks, range, loads, theme]);
 
   // Fetch whatever is switched on and not yet loaded for this range.
-  const fetchLine = useCallback((key: string, r: ChartRange) => {
+  // Loaded series survive switching industries, ranges and views (same key, same data); a
+  // request still running is shared rather than repeated.
+  const fetchLine = useCallback((key: string, r: ChartRange, fresh = false) => {
     const id = `${key}|${r}`;
-    const hit = loaded.get(id);
-    if (hit) return setLoads((m) => ({ ...m, [id]: { status: "ok", data: hit } }));
     setLoads((m) => ({ ...m, [id]: { status: "loading" } }));
-    let p = inflight.get(id);
-    if (!p) {
-      p = fetch(urlFor(key, r))
-        .then((res) => (res.ok ? res.json() : Promise.reject(res)))
-        .then((data: ChartData) => {
-          loaded.set(id, data);
-          return { status: "ok", data } as const;
-        })
-        .catch(() => ({ status: "error" }) as const)
-        .finally(() => inflight.delete(id));
-      inflight.set(id, p);
-    }
-    p.then((l) => setLoads((m) => ({ ...m, [id]: l })));
+    loadSeries(key, r, fresh).then((l) => setLoads((m) => ({ ...m, [id]: l })));
   }, []);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the switched-on lines as loading, then fetches them
@@ -372,8 +359,6 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
     if (series.home) chart.timeScale().setVisibleLogicalRange(series.home);
   }, [series, theme]);
 
-  // The industry's equal-weight basket: the return cards' first line and the left list's returns.
-  const basketKey = sector ? `x:sector=${sector.slug}&w=equal` : null;
   useEffect(() => {
     if (!basketKey) return;
     let live = true;
@@ -412,7 +397,7 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
       const value = hover ? hover.values[l.key] : s?.last;
       return { line: l, value: series.short.has(l.key) ? undefined : value, late: s?.late ?? series.short.get(l.key) ?? null, short: series.short.has(l.key) };
     })
-    .sort((a, b) => (b.value ?? -Infinity) - (a.value ?? -Infinity));
+    .sort((a, b) => (a.line.key === basketKey ? -1 : b.line.key === basketKey ? 1 : (b.value ?? -Infinity) - (a.value ?? -Infinity)));
   const anyLoading = lines.some((l) => !l.load || l.load.status === "loading");
   const benchCount = [...sector.indices, ...market].filter((b) => benches.includes(b.id)).length;
   const etfs = sector.indices.filter((b) => b.via && benches.includes(b.id));
@@ -684,7 +669,7 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
                 .join(" · ");
               return (
                 // Stock rows are phone-only: from lg the left column lists the stocks with their colours.
-                <li key={line.key} className={"flex items-center gap-3 px-3 py-2 text-sm " + (line.key.startsWith("s:") ? "lg:hidden" : "")}>
+                <li key={line.key} className={"flex items-center gap-3 px-3 py-2 text-sm " + (line.key === basketKey ? "bg-accent/5 " : "") + (line.key.startsWith("s:") ? "lg:hidden" : "")}>
                   <svg aria-hidden width="22" height="10" className={"shrink-0 " + (short || failed ? "opacity-30" : "")}>
                     <line x1="2" y1="5" x2="20" y2="5" stroke={line.color} strokeWidth={line.width} strokeDasharray={DASHARRAY[line.dash]} strokeLinecap="round" />
                   </svg>
@@ -701,7 +686,7 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
                   </span>
                   <span className="shrink-0 font-mono text-sm font-semibold text-ink">
                     {failed ? (
-                      <button type="button" onClick={() => fetchLine(line.key, range)} className="text-xs font-semibold text-accent underline">
+                      <button type="button" onClick={() => fetchLine(line.key, range, true)} className="text-xs font-semibold text-accent underline">
                         Retry
                       </button>
                     ) : value != null ? (
