@@ -435,8 +435,8 @@ export function BasketDetail(p: BasketDetailProps) {
       <div className="flex min-w-0 flex-col gap-4">
         <ReturnCards
           range={range}
-          basket={{ key: basketKey, label: `This basket, ${rangeLong}` }}
-          picks={pickedKey ? { key: pickedKey, label: `Your ${picked.length} picked stock${picked.length > 1 ? "s" : ""}`, tickers: picked.map((s) => s.ticker), weighting } : null}
+          basket={{ key: basketKey, label: `This basket · ${range}` }}
+          picks={pickedKey ? { key: pickedKey, label: `Your ${picked.length} pick${picked.length > 1 ? "s" : ""}`, tickers: picked.map((s) => s.ticker), weighting } : null}
           benches={NIFTY_ONLY}
         />
 
