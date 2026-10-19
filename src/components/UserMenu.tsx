@@ -163,6 +163,13 @@ export function UserMenu({ email, displayName }: Props) {
               >
                 My watchlist
               </Link>
+              <Link
+                href="/baskets"
+                onClick={() => setOpen(false)}
+                className="mt-1 block rounded-lg border border-line px-2 py-1.5 text-xs text-ink-soft hover:border-accent hover:text-ink"
+              >
+                My baskets
+              </Link>
               <form action={logout} className="mt-1">
                 <button
                   type="submit"

@@ -5,7 +5,8 @@
 import YahooFinance from "yahoo-finance2";
 import { cached } from "./cache";
 import { isFreshQuote, MAX_QUOTE_AGE_DAYS } from "./freshness";
-import type { Fundamentals } from "./screener-company";
+import { getFundamentals, type Fundamentals } from "./screener-company";
+import { samePeriod, type BarInterval, type OhlcBar } from "./ohlc-format";
 
 const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"], validation: { logErrors: false } });
 // Yahoo occasionally returns a shape the library's schema rejects (symbol-specific);
@@ -13,7 +14,8 @@ const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"], validation: { lo
 const LENIENT = { validateResult: false } as const;
 // ...which also makes the library return `unknown`, so type just what we read.
 type Split = { date?: Date | string; numerator?: number; denominator?: number };
-type ChartRes = { quotes: { date: Date; close?: number | null }[]; events?: { splits?: Split[] } };
+type Num = number | null | undefined;
+type ChartRes = { quotes: { date: Date; open?: Num; high?: Num; low?: Num; close?: Num; volume?: Num }[]; events?: { splits?: Split[] } };
 type SummaryRes = { assetProfile?: { sector?: string; industry?: string }; financialData?: { returnOnEquity?: number } };
 
 export type ChartRange = "1M" | "6M" | "1Y" | "3Y" | "5Y" | "MAX";
@@ -32,6 +34,15 @@ export type Quote = {
   exchange: Exchange;
 };
 export type ChartData = { range: ChartRange; points: PricePoint[]; source: "yahoo" | "screener"; exchange?: Exchange };
+export type { OhlcBar, BarInterval };
+/**
+ * Candles + volume (Yahoo only: Screener's fallback has closes alone). `points` are the same
+ * closing prices /chart serves for this symbol, so a line can be drawn from this one response;
+ * `bars` are the candles, with a period's in-progress rows folded into one bar.
+ */
+export type OhlcData = { range: ChartRange; interval: BarInterval; bars: OhlcBar[]; points: PricePoint[]; source: "yahoo"; exchange: Exchange };
+// One Yahoo fetch, read both ways.
+type Series = { range: ChartRange; interval: BarInterval; points: PricePoint[]; bars: OhlcBar[]; exchange: Exchange };
 
 // yahoo-finance2 calls have no deadline of their own, and a hung one would sit in cache.ts's
 // in-flight map forever, hanging every later request for that ticker (seen with TEJASNET).
@@ -89,15 +100,15 @@ const ordered = (ticker: string, kind: "q" | "c", list: string[]) => {
 // Exchange-local (IST) calendar day, so a bar never lands on the previous date.
 const istDay = (d: Date) => new Date(d.getTime() + 5.5 * 3_600_000).toISOString().slice(0, 10);
 
-async function yahooChart(ticker: string, range: ChartRange): Promise<ChartData | null> {
+async function yahooSeries(ticker: string, range: ChartRange): Promise<Series | null> {
   // An up-to-date symbol can still hold only weeks of history (SIKA/TANAA/SPELS on `.NS` start
   // Aug 2026 while `.BO` goes back years), so a short one is kept as a fallback and the next
   // symbol is tried for the full range.
   // "All" has no fixed start; a series under three years old is treated as short there too.
   const days = PARAMS[range].days ?? 1100;
-  let best: { symbol: string; data: ChartData } | null = null;
+  let best: { symbol: string; data: Series } | null = null;
   for (const symbol of ordered(ticker, "c", chartSymbols(ticker))) {
-    const data = await yahooChartFor(symbol, range).catch(() => null);
+    const data = await yahooSeriesFor(symbol, range).catch(() => null);
     // A frozen symbol's history ends where it froze. Weekly/monthly bars are dated at the start
     // of their period, so allow that much extra slack for 3Y/MAX.
     const lastT = data?.points[data.points.length - 1]?.t;
@@ -120,8 +131,11 @@ async function yahooChart(ticker: string, range: ChartRange): Promise<ChartData 
 // everything before it. No matching fall means Yahoo already adjusted, and nothing changes.
 // Weekly/monthly bars mix pre- and post-split days, so they get a looser match.
 const SPLIT_WINDOW_DAYS = 240;
-function adjustSplits(points: PricePoint[], splits: Split[], coarse: boolean) {
+// Returns the dates the price series was cut at (bars before each were divided by its ratio),
+// so the candles can be scaled the same way.
+function adjustSplits(points: PricePoint[], splits: Split[], coarse: boolean): { before: string; r: number }[] {
   const tolerance = coarse ? 0.3 : 0.15;
+  const cuts: { before: string; r: number }[] = [];
   for (const sp of splits) {
     const r = (sp.numerator ?? 0) / (sp.denominator || 1);
     const on = sp.date ? new Date(sp.date).getTime() : NaN;
@@ -133,11 +147,49 @@ function adjustSplits(points: PricePoint[], splits: Split[], coarse: boolean) {
       const m = Math.abs((points[i].c / points[i - 1].c) * r - 1);
       if (m < miss) [at, miss] = [i, m];
     }
-    if (at > 0 && miss < tolerance) for (let i = 0; i < at; i++) points[i].c /= r;
+    if (at > 0 && miss < tolerance) {
+      for (let i = 0; i < at; i++) points[i].c /= r;
+      cuts.push({ before: points[at].t, r });
+    }
   }
+  return cuts;
 }
 
-async function yahooChartFor(symbol: string, range: ChartRange): Promise<ChartData | null> {
+const fin = (v: Num): v is number => v != null && Number.isFinite(v);
+
+// Candles from Yahoo's rows. Rows in one period are folded into one bar: Yahoo sends the
+// in-progress week/month as a row with no close plus a separate "live" row dated today, and the
+// month row then stops at yesterday. Same-day rows repeat a volume (keep the larger); a later
+// day's row adds to a closed row, but not to a no-close one, whose volume already includes it.
+// Rows still missing open/high/low/close are dropped.
+function barsFrom(quotes: ChartRes["quotes"], interval: BarInterval): OhlcBar[] {
+  type Acc = { t: string; o: Num; h: Num; l: Num; c: Num; v: Num };
+  const acc: Acc[] = [];
+  for (const q of quotes) {
+    const t = istDay(q.date);
+    const row: Acc = { t, o: q.open, h: q.high, l: q.low, c: q.close, v: q.volume };
+    const prev = acc[acc.length - 1];
+    if (!prev || !samePeriod(prev.t, t, interval)) {
+      acc.push(row);
+      continue;
+    }
+    const pick = (a: Num, b: Num, f: (x: number, y: number) => number) => (fin(a) && fin(b) ? f(a, b) : fin(a) ? a : b);
+    prev.o = fin(prev.o) ? prev.o : row.o;
+    prev.h = pick(prev.h, row.h, Math.max);
+    prev.l = pick(prev.l, row.l, Math.min);
+    prev.v = pick(prev.v, row.v, prev.t === t || !fin(prev.c) ? Math.max : (a, b) => a + b);
+    if (fin(row.c)) prev.c = row.c;
+  }
+  const bars: OhlcBar[] = [];
+  for (const a of acc) {
+    if (!fin(a.o) || !fin(a.h) || !fin(a.l) || !fin(a.c)) continue;
+    // Yahoo's live row can sit outside its own high/low by a tick; keep the candle consistent.
+    bars.push({ t: a.t, o: a.o, c: a.c, h: Math.max(a.h, a.o, a.c), l: Math.min(a.l, a.o, a.c), v: fin(a.v) && a.v >= 0 ? a.v : null });
+  }
+  return bars;
+}
+
+async function yahooSeriesFor(symbol: string, range: ChartRange): Promise<Series | null> {
   const p = PARAMS[range];
   const res = (await withTimeout(
     yf.chart(symbol, { period1: p.days ? new Date(Date.now() - p.days * DAY) : new Date("1990-01-01"), interval: p.interval, events: "split" }, LENIENT),
@@ -150,9 +202,32 @@ async function yahooChartFor(symbol: string, range: ChartRange): Promise<ChartDa
     if (points.length && points[points.length - 1].t === t) points[points.length - 1].c = q.close;
     else points.push({ t, c: q.close });
   }
-  if (res.events?.splits?.length) adjustSplits(points, res.events.splits, p.interval !== "1d");
-  return points.length >= 2 ? { range, points, source: "yahoo", exchange: exchangeOf(symbol) } : null;
+  const cuts = res.events?.splits?.length ? adjustSplits(points, res.events.splits, p.interval !== "1d") : [];
+  const bars = barsFrom(res.quotes, p.interval);
+  // Same split scaling for the candles: prices divided, volume (share count) multiplied.
+  for (const { before, r } of cuts) {
+    let i = 0;
+    for (; i < bars.length && bars[i].t < before; i++) {
+      const b = bars[i];
+      [b.o, b.h, b.l, b.c] = [b.o / r, b.h / r, b.l / r, b.c / r];
+      if (b.v != null) b.v = Math.round(b.v * r);
+    }
+    // A weekly/monthly bar spanning the split opens (and usually peaks) at the old price: an
+    // open nearer the unadjusted previous close than the adjusted one gets scaled, and its high
+    // with it (bounded by the open/close). Its volume mixes old and new shares; left as is.
+    const b = bars[i];
+    const prev = bars[i - 1];
+    if (b && prev && Math.abs(Math.log(b.o / (prev.c * r))) < Math.abs(Math.log(b.o / prev.c))) {
+      b.o /= r;
+      b.h = Math.max(b.h / r, b.o, b.c);
+      b.l = Math.min(b.l, b.o, b.c);
+    }
+  }
+  return points.length >= 2 ? { range, interval: p.interval, points, bars, exchange: exchangeOf(symbol) } : null;
 }
+
+const toChart = (s: Series | null): ChartData | null => (s ? { range: s.range, points: s.points, source: "yahoo", exchange: s.exchange } : null);
+const yahooChartFor = async (symbol: string, range: ChartRange) => toChart(await yahooSeriesFor(symbol, range));
 
 const SCREENER_DAYS: Record<ChartRange, number> = { "1M": 31, "6M": 183, "1Y": 366, "3Y": 1100, "5Y": 1830, MAX: 3650 };
 
@@ -174,6 +249,11 @@ export async function getSymbolChart(symbol: string, range: ChartRange): Promise
 }
 
 // Corporate actions that make earlier prices a different security: history starts after them.
+// Both the closes (/chart) and the candles (/ohlc) read this, so a pop-up showing both costs one
+// upstream walk. Null (Yahoo has nothing up to date) is held only briefly by cached().
+const getYahooSeries = (ticker: string, range: ChartRange) =>
+  cached(`yseries1:${ticker}:${range}`, chartTtl(range), () => yahooSeries(ticker, range).catch(() => null));
+
 // Tata Motors' demerger (14 Oct 2025) split off the commercial-vehicle arm; the listed
 // passenger-vehicle company (TMPV) is not comparable with the pre-demerger stock.
 const HISTORY_FROM: Record<string, string> = { TMPV: "2025-10-14" };
@@ -186,6 +266,18 @@ export async function getChart(ticker: string, range: ChartRange, screenerCompan
   return points.length >= 2 ? { ...data, points } : null;
 }
 
+/**
+ * getChart, retried on Screener's chart when Yahoo has nothing (thin SME listings, Yahoo outages).
+ * The stock pop-up and the basket backtest both use it, so a stock never has prices in one and
+ * "no price data" in the other.
+ */
+export async function getChartWithFallback(ticker: string, range: ChartRange): Promise<ChartData | null> {
+  const data = await getChart(ticker, range);
+  if (data) return data;
+  const f = await getFundamentals(ticker).catch(() => null);
+  return f?.companyId ? getChart(ticker, range, f.companyId) : null;
+}
+
 async function getRawChart(ticker: string, range: ChartRange, screenerCompanyId?: string | null): Promise<ChartData | null> {
   // 5 min for short ranges (they show recent movement), longer for coarse ones.
   const ttl = chartTtl(range);
@@ -193,13 +285,26 @@ async function getRawChart(ticker: string, range: ChartRange, screenerCompanyId?
   // from Yahoo, which would otherwise short-circuit the retry with a Screener id.
   return cached(`chart4:${ticker}:${range}:${screenerCompanyId ?? "yahoo"}`, ttl, async () => {
     try {
-      const y = await yahooChart(ticker, range);
+      const y = toChart(await getYahooSeries(ticker, range));
       if (y) return y;
     } catch {}
     try {
       if (screenerCompanyId) return await screenerChart(screenerCompanyId, range);
     } catch {}
     return null;
+  });
+}
+
+/** Candles + volume for a ticker (same symbol choice as getChart's Yahoo path), or null: no Screener fallback. */
+export async function getOhlcChart(ticker: string, range: ChartRange): Promise<OhlcData | null> {
+  return cached(`ohlc1:${ticker}:${range}`, chartTtl(range), async () => {
+    const s = await getYahooSeries(ticker, range);
+    if (!s) return null;
+    const from = HISTORY_FROM[ticker];
+    const bars = from ? s.bars.filter((b) => b.t >= from) : s.bars;
+    const points = from ? s.points.filter((p) => p.t >= from) : s.points;
+    if (bars.length < 2 || points.length < 2) return null;
+    return { range, interval: s.interval, bars, points, source: "yahoo", exchange: s.exchange };
   });
 }
 

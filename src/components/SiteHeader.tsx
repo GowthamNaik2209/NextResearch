@@ -24,9 +24,12 @@ export async function SiteHeader() {
           <Link href="/#themes" className={link}>Themes</Link>
           <Link href="/connections" className={link}>Connections</Link>
           <Link href="/updates" className={link}>Updates</Link>
-          <Link href="/#how" className={link}>How it works</Link>
+          {/* lg only: with Baskets added, six links overflowed 768px. Tablets reach it through the
+              menu, which stays until lg for that reason. */}
+          <Link href="/#how" className={link.replace("md:inline", "lg:inline")}>How it works</Link>
           <Link href="/docs" className={link}>Analysis</Link>
-          <MobileMenu />
+          <Link href="/baskets" className={link}>Baskets</Link>
+          <MobileMenu hideFrom="lg:hidden" />
           {/* Not on phones (logo + menu + heart + Sign up + account already fill 375px) nor at
               md, where the five text links take the room; the account menu still has it there. */}
           <span className="hidden sm:contents md:hidden lg:contents">

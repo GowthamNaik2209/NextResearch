@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { findSupplierByTicker } from "@/lib/sector-content";
-import { getChart, isChartRange } from "@/lib/live/yahoo";
-import { getFundamentals } from "@/lib/live/screener-company";
+import { getChartWithFallback, isChartRange } from "@/lib/live/yahoo";
 
 // GET /api/stock/VOLTAS/chart?range=1M|6M|1Y|3Y|5Y|MAX
 export async function GET(req: Request, { params }: { params: Promise<{ ticker: string }> }) {
@@ -10,12 +9,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ ticker: 
   if (!findSupplierByTicker(ticker)) return NextResponse.json({ error: "unknown ticker" }, { status: 404 });
   if (!isChartRange(range)) return NextResponse.json({ error: "bad range" }, { status: 400 });
 
-  let data = await getChart(ticker, range);
-  if (!data) {
-    // Yahoo unreachable: retry with Screener's chart as a fallback (needs its company id).
-    const f = await getFundamentals(ticker);
-    if (f?.companyId) data = await getChart(ticker, range, f.companyId);
-  }
+  const data = await getChartWithFallback(ticker, range);
   if (!data) return NextResponse.json({ error: "unavailable" }, { status: 502 });
   return NextResponse.json(data, { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=900" } });
 }

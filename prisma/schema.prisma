@@ -134,6 +134,7 @@ model Profile {
   email        String        @unique
   createdAt    DateTime      @default(now())
   watchlist    Watchlist[]
+  baskets      Basket[]
   subscription Subscription?
 }
 
@@ -147,6 +148,44 @@ model Watchlist {
   addedAt    DateTime @default(now())
 
   @@unique([userId, companyId])
+}
+
+// A user's own basket of stocks: tracked and backtested, never traded. Industry baskets
+// (every listed stock in a sector) are derived from the authored content and not stored;
+// one copied from an industry keeps that sector in sourceSector to compare against.
+// Shared baskets are readable by anyone with the link (id is an unguessable cuid).
+enum BasketWeighting {
+  EQUAL
+  MCAP
+}
+
+model Basket {
+  id           String          @id @default(cuid())
+  userId       String
+  user         Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  sourceSector String?
+  weighting    BasketWeighting @default(EQUAL)
+  isPublic     Boolean         @default(false)
+  items        BasketItem[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([userId])
+}
+
+// Keyed by ticker rather than a Company FK: any listed ticker in the content can be added,
+// whether or not the seed has a Company row for it. priceAtAdd is the live quote at the time.
+model BasketItem {
+  id         String   @id @default(cuid())
+  basketId   String
+  basket     Basket   @relation(fields: [basketId], references: [id], onDelete: Cascade)
+  ticker     String
+  priceAtAdd Decimal?
+  addedAt    DateTime @default(now())
+
+  @@unique([basketId, ticker])
 }
 
 enum SubscriptionPlan {
