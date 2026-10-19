@@ -24,6 +24,18 @@ type Line = { key: string; name: string; note?: string; color: string; token?: s
 
 const cssVar = (name: string, fallback: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 const readTheme = (): Theme => (document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
+/** The site's light/dark theme, following the toggle live (line colours differ per theme). */
+export function useSiteTheme(): Theme {
+  const [theme, setTheme] = useState<Theme>("light");
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of the theme set by the inline script
+    setTheme(readTheme());
+    const mo = new MutationObserver(() => setTheme(readTheme()));
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => mo.disconnect();
+  }, []);
+  return theme;
+}
 export const pct = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}%`;
 // Axis ticks: whole steps drop the ".0" (+8%, not +8.0%); half steps keep it (−12.5%, not −13%).
 const axisPct = (v: number) => {
@@ -83,7 +95,7 @@ export function BasketChart({
   const [menuLeft, setMenuLeft] = useState(0);
   const [loads, setLoads] = useState<Record<string, Load>>({});
   const [hover, setHover] = useState<{ t: string; values: Record<string, number> } | null>(null);
-  const [theme, setTheme] = useState<Theme>("light");
+  const theme = useSiteTheme();
   const [query, setQuery] = useState("");
   const menusRef = useRef<HTMLDivElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
@@ -113,14 +125,6 @@ export function BasketChart({
       document.removeEventListener("keydown", onKey);
     };
   }, [menu]);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of the theme set by the inline script
-    setTheme(readTheme());
-    const mo = new MutationObserver(() => setTheme(readTheme()));
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => mo.disconnect();
-  }, []);
-
   const lines: Line[] = useMemo(() => {
     const out: Line[] = [{ key: basketKey, name: basketName, note: "this basket", color: "var(--accent)", token: "--accent", width: 3, dash: "solid" }];
     compare.forEach((slug, i) => {
@@ -409,7 +413,8 @@ export function BasketChart({
               .join(" · ");
             const mine = line.key === basketKey;
             return (
-              <li key={line.key} className={"flex items-center gap-3 px-3 py-2 text-sm " + (mine ? "bg-accent/5" : "")}>
+              // Stock rows are phone-only: from lg the left column lists every stock with its line colour.
+              <li key={line.key} className={"flex items-center gap-3 px-3 py-2 text-sm " + (mine ? "bg-accent/5 " : "") + (line.stock ? "lg:hidden" : "")}>
                 <svg aria-hidden width="22" height="10" className={"shrink-0 " + (short || failed ? "opacity-30" : "")}>
                   <line x1="2" y1="5" x2="20" y2="5" stroke={line.color} strokeWidth={line.width} strokeDasharray={DASHARRAY[line.dash]} strokeLinecap="round" />
                 </svg>

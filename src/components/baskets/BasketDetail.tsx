@@ -7,7 +7,8 @@ import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import type { BasketStock } from "@/lib/baskets/industry";
 import { StockLink } from "@/components/stock/StockLink";
-import { BasketChart, defaultSelection, pct, type ChartSelection, type CompareBasket } from "./BasketChart";
+import { BasketChart, defaultSelection, pct, useSiteTheme, type ChartSelection, type CompareBasket } from "./BasketChart";
+import { SLOTS } from "@/components/research/SectorCharts";
 import { ReturnCards, picksKey } from "./ReturnCards";
 import { IndustryChips } from "./IndustryChips";
 import { basketCreateError } from "./NewBasketButton";
@@ -232,6 +233,7 @@ export function BasketDetail(p: BasketDetailProps) {
   const canEdit = p.mode === "saved" && p.isOwner;
   // Desktop shows the chart and the stock table together; phones switch between them.
   const wide = useWide();
+  const theme = useSiteTheme();
   const showChart = wide || view === "chart";
   const showTable = wide || view === "stocks";
   const seg = (on: boolean) => "min-h-9 rounded-full px-2.5 text-[11px] font-semibold transition sm:text-xs lg:min-h-8 " + (on ? "bg-accent text-bg" : "text-ink-soft hover:text-ink");
@@ -243,7 +245,8 @@ export function BasketDetail(p: BasketDetailProps) {
     });
 
   const weightingControl = (
-    <div className="inline-flex rounded-full border border-line bg-panel p-0.5" role="group" aria-label="Weighting">
+    // In the rail (lg) the group spans the column, so its halves are made equal.
+    <div className="inline-flex rounded-full border border-line bg-panel p-0.5 lg:grid lg:grid-cols-2" role="group" aria-label="Weighting">
       {(["equal", "mcap"] as const).map((w) => (
         <button key={w} type="button" aria-pressed={weighting === w} onClick={() => setWeight(w)} className={seg(weighting === w)}>
           {w === "equal" ? (
@@ -261,7 +264,7 @@ export function BasketDetail(p: BasketDetailProps) {
     </div>
   );
   const rangeControl = (
-    <div className="inline-flex rounded-full border border-line bg-panel p-0.5" role="group" aria-label="Time range">
+    <div className="inline-flex rounded-full border border-line bg-panel p-0.5 lg:grid lg:grid-cols-5" role="group" aria-label="Time range">
       {RANGES.map((r) => (
         <button key={r.id} type="button" onClick={() => setRange(r.id)} aria-pressed={range === r.id} className={seg(range === r.id) + " min-w-9 px-2 lg:min-w-8"}>
           {r.id}
@@ -271,7 +274,7 @@ export function BasketDetail(p: BasketDetailProps) {
   );
 
   return (
-    <div className="flex min-w-0 flex-col gap-4 lg:grid lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start lg:gap-6">
+    <div className="flex min-w-0 flex-col gap-4 lg:grid lg:grid-cols-[19rem_minmax(0,1fr)] lg:items-start lg:gap-6">
       {/* Control rail: everything that changes the basket or how it's measured. Phones get it as
           three compact rows on top; from lg it is a column beside the results that stays in view. */}
       <aside aria-label="Basket controls" className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:rounded-2xl lg:border lg:border-line lg:bg-panel lg:p-4">
@@ -383,15 +386,26 @@ export function BasketDetail(p: BasketDetailProps) {
         {stocks.length > 0 && (
           <section aria-label="In this basket" className="hidden flex-col gap-1 lg:flex">
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">In this basket ({stocks.length})</span>
+            <span className="text-[11px] leading-snug text-ink-soft">
+              {picked.length > 0 ? "A colour marks a stock drawn on the chart. " : ""}Add or take off lines with the chart&rsquo;s Stocks menu.
+            </span>
             <ul className="divide-y divide-line">
               {[...stocks]
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map((s) => {
                   const h = holdings.get(s.ticker);
+                  const slot = chartSel.picks[s.ticker];
                   return (
                     <li key={s.ticker} className="flex items-center gap-2 py-1.5">
-                      <StockLink ticker={s.ticker} className="min-w-0 flex-1 truncate text-xs text-ink hover:text-accent hover:underline">
+                      {/* The stock's line colour when it is drawn on the chart; an empty slot keeps names aligned. */}
+                      <span
+                        aria-hidden
+                        className={"h-1 w-3 flex-none rounded-full " + (slot == null ? "bg-transparent" : "")}
+                        style={slot == null ? undefined : { background: SLOTS[theme][slot] }}
+                      />
+                      <StockLink ticker={s.ticker} className={"min-w-0 flex-1 truncate text-xs hover:text-accent hover:underline " + (slot == null ? "text-ink" : "font-semibold text-ink")}>
                         {s.name}
+                        {slot != null && <span className="sr-only"> (on the chart)</span>}
                       </StockLink>
                       <span className={"flex-none font-mono text-[11px] " + (!h ? "text-ink-soft" : h.ret >= 0 ? "text-pos" : "text-danger")}>{h ? pct(h.ret) : "—"}</span>
                       {canEdit && (
