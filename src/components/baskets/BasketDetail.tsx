@@ -7,6 +7,7 @@ import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import type { BasketStock } from "@/lib/baskets/industry";
 import { StockLink } from "@/components/stock/StockLink";
+import { BasketBreakdown, type BreakdownTab } from "./BasketBreakdown";
 import { BasketChart, MAX_CHART_STOCKS, defaultSelection, pct, stockLine, useSiteTheme, type ChartSelection, type CompareBasket } from "./BasketChart";
 import { DASHARRAY } from "@/components/research/SectorCharts";
 import { ReturnCards, picksKey } from "./ReturnCards";
@@ -111,6 +112,10 @@ export function BasketDetail(p: BasketDetailProps) {
   // The stock table measures weight and contribution within the whole basket, or (once stocks
   // are picked on the chart) within just those picks, backtested as their own basket.
   const [scope, setScope] = useState<"all" | "picks">("all");
+  // Under the chart: the stocks as bar charts (who made the return, returns, weights,
+  // industries) or as the stock-by-stock list.
+  const [stockView, setStockView] = useState<"charts" | "list">("charts");
+  const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>("contribution");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [loads, setLoads] = useState<Record<string, Load>>({});
@@ -439,7 +444,14 @@ export function BasketDetail(p: BasketDetailProps) {
             </button>
           ) : canEdit ? (
             <>
-              <button type="button" onClick={() => setEditing((v) => !v)} aria-pressed={editing} className={"min-h-9 rounded-lg px-3 text-xs font-semibold " + (editing ? "bg-accent text-bg" : "border border-line text-ink hover:border-accent")}>
+              <button
+                type="button"
+                // Editing shows the list, where phones have each stock's remove button.
+                onClick={() => {
+                  if (!editing) setStockView("list");
+                  setEditing(!editing);
+                }}
+                aria-pressed={editing} className={"min-h-9 rounded-lg px-3 text-xs font-semibold " + (editing ? "bg-accent text-bg" : "border border-line text-ink hover:border-accent")}>
                 {editing ? "Done" : "Edit"}
               </button>
               <button type="button" onClick={share} disabled={busy} className="min-h-9 rounded-lg border border-line px-3 text-xs font-semibold text-ink hover:border-accent">
@@ -571,11 +583,13 @@ export function BasketDetail(p: BasketDetailProps) {
             {showTable && (
               <section aria-label="Stocks in this basket" className="flex flex-col gap-2">
                 <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-ink-soft">
-                  <span>
-                    <span className="hidden font-semibold text-ink lg:inline">Stock by stock · </span>
-                    Return over the past {rangeLong} · <b className="font-semibold">wt</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} now ·{" "}
-                    <b className="font-semibold">pts</b> what it added to {tableScope === "picks" ? "your picks\u2019" : "the basket\u2019s"} return
-                  </span>
+                  <div role="tablist" aria-label="Show stocks as" className="inline-flex rounded-full border border-line bg-panel p-0.5">
+                    {(["charts", "list"] as const).map((v) => (
+                      <button key={v} type="button" role="tab" aria-selected={stockView === v} onClick={() => setStockView(v)} className={seg(stockView === v)}>
+                        {v === "charts" ? "Charts" : "List"}
+                      </button>
+                    ))}
+                  </div>
                   <div className="flex flex-wrap items-center gap-2">
                   {pickedKey && (
                     <div role="group" aria-label="Measure within" className="inline-flex rounded-full border border-line bg-panel p-0.5">
@@ -586,6 +600,7 @@ export function BasketDetail(p: BasketDetailProps) {
                       ))}
                     </div>
                   )}
+                  {stockView === "list" && (
                   <label className="flex items-center gap-1.5">
                     Sort by
                     <select aria-label="Sort by" value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="rounded-md border border-line bg-bg px-2 py-1 text-xs text-ink">
@@ -596,8 +611,30 @@ export function BasketDetail(p: BasketDetailProps) {
                       ))}
                     </select>
                   </label>
+                  )}
                   </div>
                 </div>
+                {stockView === "list" && (
+                  <p className="text-[11px] text-ink-soft">
+                    Return over the past {rangeLong} · <b className="font-semibold">wt</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} now ·{" "}
+                    <b className="font-semibold">pts</b> what it added to {tableScope === "picks" ? "your picks\u2019" : "the basket\u2019s"} return
+                  </p>
+                )}
+                {stockView === "charts" ? (
+                  tData ? (
+                    <BasketBreakdown
+                      holdings={(tData.holdings ?? []).filter((h) => rows.some((s) => s.ticker === h.ticker))}
+                      stockOf={(t) => byTicker.get(t)}
+                      rangeLong={rangeLong}
+                      picks={tableScope === "picks"}
+                      byIndustry={p.mode !== "industry"}
+                      tab={breakdownTab}
+                      onTab={setBreakdownTab}
+                    />
+                  ) : tbt?.status !== "error" ? (
+                    <div aria-busy className="h-80 animate-pulse rounded-2xl bg-line/60" />
+                  ) : null
+                ) : (
                 <ul className="divide-y divide-line rounded-2xl border border-line bg-panel">
                   {rows.map((s) => {
                     const h = tHoldings.get(s.ticker);
@@ -643,6 +680,7 @@ export function BasketDetail(p: BasketDetailProps) {
                     );
                   })}
                 </ul>
+                )}
                 {tbt?.status === "error" && (
                   <p className="text-xs text-ink-soft">
                     Couldn&rsquo;t backtest the basket right now.{" "}
