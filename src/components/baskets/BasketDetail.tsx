@@ -496,7 +496,7 @@ export function BasketDetail(p: BasketDetailProps) {
                     <div role="group" aria-label="Measure within" className="inline-flex rounded-full border border-line bg-panel p-0.5">
                       {(["all", "picks"] as const).map((v) => (
                         <button key={v} type="button" aria-pressed={tableScope === v} onClick={() => setScope(v)} className={seg(tableScope === v)}>
-                          {v === "all" ? `All ${stocks.length}` : `Your ${picked.length} pick${picked.length > 1 ? "s" : ""}`}
+                          {v === "all" ? "All" : "Your picks"}
                         </button>
                       ))}
                     </div>
