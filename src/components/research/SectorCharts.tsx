@@ -7,6 +7,7 @@ import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import Link from "next/link";
 import { StockLink } from "@/components/stock/StockLink";
 import { ReturnCards, picksKey } from "@/components/baskets/ReturnCards";
+import { loadSeries } from "@/components/baskets/series";
 import { ZOOM_OPTIONS, ZoomControls, useChartZoom } from "@/components/charts/ChartZoom";
 import { onSharedGrid, sharedInterval } from "@/lib/live/ohlc-format";
 
@@ -82,7 +83,6 @@ const urlFor = (key: string, range: ChartRange) =>
 const cssVar = (name: string, fallback: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 const readTheme = (): Theme => (document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
 const pct = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}%`;
-// Axis ticks: whole percents once the scale is wide, so "+80%" and "+160%" read alike.
 // Axis ticks: whole steps drop the ".0" (+8%, not +8.0%); half steps keep it (−12.5%, not −13%).
 const axisPct = (v: number) => {
   const a = Math.round(Math.abs(v) * 10) / 10;
@@ -125,6 +125,9 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
   } | null>(null);
   const [query, setQuery] = useState("");
   const [showAll, setShowAll] = useState(false);
+  // Each stock's return over the range, from the industry basket's backtest (the same request the
+  // return cards make, so it is shared, not repeated). Keyed so a stale range never shows.
+  const [returns, setReturns] = useState<{ id: string; ret: Map<string, number> } | null>(null);
   const [theme, setTheme] = useState<Theme>("light");
   const boxRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -369,7 +372,19 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
     if (series.home) chart.timeScale().setVisibleLogicalRange(series.home);
   }, [series, theme]);
 
-  if (!sector) return null;
+  // The industry's equal-weight basket: the return cards' first line and the left list's returns.
+  const basketKey = sector ? `x:sector=${sector.slug}&w=equal` : null;
+  useEffect(() => {
+    if (!basketKey) return;
+    let live = true;
+    loadSeries(basketKey, range).then((l) => {
+      if (live && l.status === "ok") setReturns({ id: `${basketKey}|${range}`, ret: new Map((l.data.holdings ?? []).map((h) => [h.ticker, h.ret])) });
+    });
+    return () => {
+      live = false;
+    };
+  }, [basketKey, range]);
+  if (!sector || !basketKey) return null;
 
   const picked = Object.keys(picks).length;
   const full = picked >= MAX_STOCKS;
@@ -407,15 +422,22 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
   const pickedTickers = sector.stocks.filter((st) => picks[st.ticker] != null).map((st) => st.ticker);
   const pickedKey = picksKey(pickedTickers, "equal");
 
+  const returnsId = `${basketKey}|${range}`;
+  const stockRet = returns?.id === returnsId ? returns.ret : null;
+  const listed = [...sector.stocks].sort((a, b) => a.name.localeCompare(b.name));
+
   return (
-    <div className="flex flex-col gap-5">
-      <section aria-label={`${sector.name} price comparison`} className="flex min-w-0 flex-col gap-4 rounded-2xl border border-line bg-panel p-4 sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[19rem_minmax(0,1fr)] lg:items-start lg:gap-6">
+      {/* Left column on desktop (stays in view): the industry, period, the way into its basket and
+          its stocks with their returns, a colour marking the ones drawn on the chart. Phones get
+          the title and period on top and the stocks through the Stocks menu. */}
+      <aside aria-label="Chart controls" className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:rounded-2xl lg:border lg:border-line lg:bg-panel lg:p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 lg:flex-col lg:items-stretch">
           <div>
             <h2 className="font-display text-lg font-bold text-ink">{sector.name}</h2>
             <p className="text-xs text-ink-soft">% change over the past {rangeLong}</p>
           </div>
-          <div className="inline-flex rounded-full border border-line bg-bg p-1" role="group" aria-label="Time range">
+          <div className="inline-flex rounded-full border border-line bg-bg p-1 lg:grid lg:grid-cols-5" role="group" aria-label="Time range">
             {RANGES.map((r) => (
               <button
                 key={r.id}
@@ -433,20 +455,47 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
           </div>
         </div>
 
+        <Link href={`/baskets/industry/${sector.slug}`} className="self-start py-1 text-xs font-semibold text-accent hover:underline">
+          Open as a basket (market-cap weight, each stock&rsquo;s contribution) &rarr;
+        </Link>
+        <section aria-label={`In ${sector.name}`} className="hidden flex-col gap-1 lg:flex">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">
+            In this {sector.category === "policy" ? "policy" : "industry"} ({listed.length})
+          </span>
+          <span className="text-[11px] leading-snug text-ink-soft">
+            {picked > 0 ? "A colour marks a stock drawn on the chart. " : ""}Add or take off lines with the Stocks menu.
+          </span>
+          <ul className="divide-y divide-line">
+            {listed.map((st) => {
+              const slot = picks[st.ticker];
+              const r = stockRet?.get(st.ticker);
+              return (
+                <li key={st.ticker} className="flex items-center gap-2 py-1.5">
+                  <span aria-hidden className="h-1 w-3 flex-none rounded-full" style={slot == null ? undefined : { background: SLOTS[theme][slot] }} />
+                  <StockLink ticker={st.ticker} className={"min-w-0 flex-1 truncate text-xs text-ink hover:text-accent hover:underline " + (slot == null ? "" : "font-semibold")}>
+                    {st.name}
+                    {slot != null && <span className="sr-only"> (on the chart)</span>}
+                  </StockLink>
+                  <span className={"flex-none font-mono text-[11px] " + (r == null ? "text-ink-soft" : r >= 0 ? "text-pos" : "text-danger")}>{r == null ? "—" : pct(r)}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      </aside>
+
+      <section aria-label={`${sector.name} price comparison`} className="flex min-w-0 flex-col gap-4 rounded-2xl border border-line bg-panel p-4 sm:p-5">
         <div className="flex flex-col gap-2">
           <ReturnCards
             range={range}
             basket={{
-              key: `x:sector=${sector.slug}&w=equal`,
+              key: basketKey,
               label: `${sector.category === "policy" ? "Policy" : "Industry"} basket, ${rangeLong}`,
               note: `all ${sector.stocks.length} listed stocks · equal weight`,
             }}
             picks={pickedKey ? { key: pickedKey, label: `Your ${pickedTickers.length} picked stock${pickedTickers.length > 1 ? "s" : ""}`, tickers: pickedTickers, weighting: "equal" } : null}
             benches={[{ key: "b:nifty50", label: "Nifty 50" }]}
           />
-          <Link href={`/baskets/industry/${sector.slug}`} className="self-start py-1 text-xs font-semibold text-accent hover:underline">
-            Open as a basket (market-cap weight, each stock&rsquo;s contribution) &rarr;
-          </Link>
         </div>
 
         <div ref={menusRef} className="relative flex flex-wrap items-center gap-2">
@@ -634,7 +683,8 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
                 .filter(Boolean)
                 .join(" · ");
               return (
-                <li key={line.key} className="flex items-center gap-3 px-3 py-2 text-sm">
+                // Stock rows are phone-only: from lg the left column lists the stocks with their colours.
+                <li key={line.key} className={"flex items-center gap-3 px-3 py-2 text-sm " + (line.key.startsWith("s:") ? "lg:hidden" : "")}>
                   <svg aria-hidden width="22" height="10" className={"shrink-0 " + (short || failed ? "opacity-30" : "")}>
                     <line x1="2" y1="5" x2="20" y2="5" stroke={line.color} strokeWidth={line.width} strokeDasharray={DASHARRAY[line.dash]} strokeLinecap="round" />
                   </svg>
