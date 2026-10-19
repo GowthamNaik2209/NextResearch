@@ -237,7 +237,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
               </button>
             ))}
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap">
             <div className="inline-flex rounded-full border border-line bg-panel p-0.5" role="group" aria-label="Chart type">
               {(["line", "candles"] as const).map((m) => {
                 const disabled = m === "candles" && noCandles;
@@ -282,15 +282,17 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         {/* Top band: price on the left, change on the right and the chart's controls between them
-            (on phones they wrap to their own line under the price), so nothing needs a scroll. */}
-        <div className="flex flex-wrap items-end justify-between gap-3">
+            (on phones they wrap to their own line under the price), so nothing needs a scroll.
+            From lg the controls are centred absolutely in the band: the price and change text
+            change width as the crosshair moves, and the controls must not move with them. */}
+        <div className="relative flex flex-wrap items-end justify-between gap-3">
           <div className="order-1">
             <div className="font-mono text-3xl font-bold text-ink">{shown ? `₹${fmtNum(shown.c)}` : "—"}</div>
             <div className="mt-0.5 font-mono text-xs text-ink-soft">{shownDate}</div>
           </div>
-          <div className="order-3 flex basis-full flex-wrap items-center gap-2 lg:order-2 lg:basis-auto lg:justify-center">{controls}</div>
+          <div className="order-3 flex basis-full flex-wrap items-center gap-2 lg:absolute lg:bottom-0 lg:left-1/2 lg:w-max lg:-translate-x-1/2 lg:flex-nowrap">{controls}</div>
           {change != null && changePct != null && (
-            <div className={"order-2 text-right font-mono text-sm font-semibold lg:order-3 " + (shownUp ? "text-pos" : "text-danger")}>
+            <div className={"order-2 text-right font-mono text-sm font-semibold tabular-nums " + (shownUp ? "text-pos" : "text-danger")}>
               {shownUp ? "▲" : "▼"} {fmtNum(Math.abs(change))} (
               {range === "MAX" && first && shown && shown.c / first.c >= 10 ? `${fmtNum(shown.c / first.c, 0)}×` : fmtSigned(changePct, 2)})
               <div className="text-[11px] font-normal text-ink-soft">{hover && first ? `since ${fmtDay(first.t)}` : range === "MAX" && first ? `since ${fmtMonth(first.t)}` : `past ${RANGES.find((r) => r.id === range)?.long}`}</div>
@@ -329,7 +331,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
           {volOn && volHover && (
             <div aria-hidden className="pointer-events-none absolute inset-0">
               <div className="absolute left-0 border-t border-dashed border-ink/60" style={{ top: volHover.y, width: volHover.paneW }} />
-              <span className="absolute z-10 -translate-y-1/2 rounded bg-ink px-1.5 py-0.5 font-mono text-[10px] font-semibold text-bg" style={{ top: volHover.y, left: volHover.paneW + 2 }}>
+              <span className="absolute z-10 -translate-y-1/2 rounded bg-ink px-1.5 py-0.5 font-mono text-[10px] font-semibold text-bg" style={{ top: volHover.y, right: 2 }}>
                 {fmtVolume(volHover.v)}
               </span>
             </div>
