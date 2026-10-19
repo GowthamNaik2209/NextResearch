@@ -7,8 +7,8 @@ import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import type { BasketStock } from "@/lib/baskets/industry";
 import { StockLink } from "@/components/stock/StockLink";
-import { BasketChart, defaultSelection, pct, useSiteTheme, type ChartSelection, type CompareBasket } from "./BasketChart";
-import { SLOTS } from "@/components/research/SectorCharts";
+import { BasketChart, MAX_CHART_STOCKS, defaultSelection, pct, stockLine, useSiteTheme, type ChartSelection, type CompareBasket } from "./BasketChart";
+import { DASHARRAY } from "@/components/research/SectorCharts";
 import { ReturnCards, picksKey } from "./ReturnCards";
 import { IndustryChips } from "./IndustryChips";
 import { basketCreateError } from "./NewBasketButton";
@@ -50,12 +50,11 @@ const RANGES: { id: ChartRange; long: string }[] = [
   { id: "1M", long: "1 month" },
   { id: "6M", long: "6 months" },
   { id: "1Y", long: "1 year" },
+  { id: "2Y", long: "2 years" },
   { id: "3Y", long: "3 years" },
   { id: "5Y", long: "5 years" },
 ];
 const MAX_STOCKS = 75;
-// Stocks the chart can draw at once (its line colours; see BasketChart).
-const MAX_CHART_STOCKS = 6;
 
 type Sort = "contribution" | "return" | "weight" | "name";
 const SORTS: { id: Sort; label: string }[] = [
@@ -66,8 +65,9 @@ const SORTS: { id: Sort; label: string }[] = [
 ];
 
 export type BasketDetailProps = {
-  mode: "industry" | "saved";
-  /** Saved basket id, or the industry's slug. */
+  /** An industry's basket, a saved one, or a basket idea (a list re-ranked each day). */
+  mode: "industry" | "saved" | "idea";
+  /** Saved basket id, the industry's slug, or the idea's id. */
   id: string;
   name: string;
   description: string | null;
@@ -90,12 +90,14 @@ export type BasketDetailProps = {
   viewParam?: string;
   /** The basket name's heading level: h1 on its own page, h2 inside another page. */
   titleAs?: "h1" | "h2";
+  /** The range the chart opens on (1Y unless an idea ranks over another period). */
+  initialRange?: ChartRange;
 };
 
 export function BasketDetail(p: BasketDetailProps) {
   const router = useRouter();
   const [view, setView] = useState<"stocks" | "chart">("stocks");
-  const [range, setRange] = useState<ChartRange>("1Y");
+  const [range, setRange] = useState<ChartRange>(p.initialRange ?? "1Y");
   const [weighting, setWeighting] = useState(p.weighting);
   const [stocks, setStocks] = useState(p.stocks);
   const [name, setName] = useState(p.name);
@@ -125,15 +127,16 @@ export function BasketDetail(p: BasketDetailProps) {
   };
 
   const tickers = useMemo(() => stocks.map((s) => s.ticker), [stocks]);
-  const basketKey = p.mode === "industry" ? `x:sector=${p.id}&w=${weighting}` : `x:${savedBasketQuery(p.id, weighting, tickers)}`;
+  const basketKey =
+    p.mode === "industry" ? `x:sector=${p.id}&w=${weighting}` : p.mode === "idea" ? picksKey(tickers, weighting) ?? `x:tickers=&w=${weighting}` : `x:${savedBasketQuery(p.id, weighting, tickers)}`;
   const compareKey = p.compareSlug && !(p.mode === "industry" && p.compareSlug === p.id) ? `x:sector=${p.compareSlug}&w=${weighting}` : null;
   // Kept here, above the chart, so the reader's picks outlive weighting, range and view switches.
   const compareIndustries = p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id));
-  // A saved basket opens with its stocks drawn on the chart (as many as there are line colours);
-  // an industry basket, often 20+ stocks, opens on the benchmarks alone.
+  // A saved basket or an idea opens with its stocks drawn on the chart (as many as there are line
+  // styles); an industry basket, often 20+ stocks, opens on the benchmarks alone.
   const [chartSel, setChartSel] = useState<ChartSelection>(() => {
     const sel = defaultSelection(p.indices, compareIndustries, compareKey ? p.compareSlug : null);
-    if (p.mode === "saved") sel.picks = Object.fromEntries(p.stocks.slice(0, MAX_CHART_STOCKS).map((s, i) => [s.ticker, i]));
+    if (p.mode !== "industry") sel.picks = Object.fromEntries(p.stocks.slice(0, MAX_CHART_STOCKS).map((s, i) => [s.ticker, i]));
     return sel;
   });
   // The stocks switched on in the chart, backtested together as their own basket (same weighting).
@@ -263,7 +266,7 @@ export function BasketDetail(p: BasketDetailProps) {
     const here = `${window.location.pathname}${window.location.search}`;
     setBusy(true);
     if (!p.signedIn) return router.push(`/login?next=${encodeURIComponent(here)}`);
-    const body = p.mode === "industry" ? { sector: p.id, weighting } : { copyFrom: p.id };
+    const body = p.mode === "industry" ? { sector: p.id, weighting } : p.mode === "idea" ? { tickers, name: p.name, weighting } : { copyFrom: p.id };
     const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
     const json = res ? await res.json().catch(() => null) : null;
     if (res?.ok && json?.id) router.push(`/baskets/${json.id}?edit=1`);
@@ -312,9 +315,9 @@ export function BasketDetail(p: BasketDetailProps) {
     </div>
   );
   const rangeControl = (
-    <div className="inline-flex rounded-full border border-line bg-panel p-0.5 lg:grid lg:grid-cols-5" role="group" aria-label="Time range">
+    <div className="inline-flex rounded-full border border-line bg-panel p-0.5 lg:grid lg:grid-cols-6" role="group" aria-label="Time range">
       {RANGES.map((r) => (
-        <button key={r.id} type="button" onClick={() => setRange(r.id)} aria-pressed={range === r.id} className={seg(range === r.id) + " min-w-9 px-2 lg:min-w-8"}>
+        <button key={r.id} type="button" onClick={() => setRange(r.id)} aria-pressed={range === r.id} className={seg(range === r.id) + " min-w-8 px-1.5 sm:min-w-9 sm:px-2 lg:min-w-0 lg:px-1"}>
           {r.id}
         </button>
       ))}
@@ -382,7 +385,8 @@ export function BasketDetail(p: BasketDetailProps) {
             )}
           </div>
         )}
-        {p.description && <p className="line-clamp-2 text-xs leading-relaxed text-ink-soft lg:line-clamp-none">{p.description}</p>}
+        {/* An idea's description is its rule, list date and disclaimer, so it is never cut short. */}
+        {p.description && <p className={"text-xs leading-relaxed text-ink-soft " + (p.mode === "idea" ? "" : "line-clamp-2 lg:line-clamp-none")}>{p.description}</p>}
 
         {/* Row 2: the main actions, plus the phone's Stocks / Chart switch */}
         <div className="flex flex-wrap items-center gap-2">
@@ -397,7 +401,7 @@ export function BasketDetail(p: BasketDetailProps) {
             </>
           ) : (
             <button type="button" onClick={copy} disabled={busy} className="min-h-9 rounded-lg bg-accent px-3 text-xs font-semibold text-bg hover:opacity-90 lg:w-full lg:text-sm">
-              {busy ? "Creating…" : p.mode === "industry" ? "Customise this basket" : "Copy to my baskets"}
+              {busy ? "Creating…" : p.mode === "industry" ? "Customise this basket" : p.mode === "idea" ? "Save as my basket" : "Copy to my baskets"}
             </button>
           )}
           {stocks.length > 0 && (
@@ -442,7 +446,7 @@ export function BasketDetail(p: BasketDetailProps) {
           <section aria-label="In this basket" className="hidden flex-col gap-1 lg:flex lg:min-h-0 lg:flex-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">In this basket ({stocks.length})</span>
             <span className="text-[11px] leading-snug text-ink-soft">
-              {picked.length > 0 ? "A colour marks a stock drawn on the chart. " : ""}Add or take off lines with the chart&rsquo;s Stocks menu.
+              {picked.length > 0 ? "The mark beside a stock is its line on the chart. " : ""}Add or take off lines with the chart&rsquo;s Stocks menu.
             </span>
             <ul className="divide-y divide-line lg:min-h-24 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
               {[...stocks]
@@ -452,12 +456,12 @@ export function BasketDetail(p: BasketDetailProps) {
                   const slot = chartSel.picks[s.ticker];
                   return (
                     <li key={s.ticker} className="flex items-center gap-2 py-1.5">
-                      {/* The stock's line colour when it is drawn on the chart; an empty slot keeps names aligned. */}
-                      <span
-                        aria-hidden
-                        className={"h-1 w-3 flex-none rounded-full " + (slot == null ? "bg-transparent" : "")}
-                        style={slot == null ? undefined : { background: SLOTS[theme][slot] }}
-                      />
+                      {/* The stock's line (colour and dash) when it is drawn on the chart; an empty slot keeps names aligned. */}
+                      <svg aria-hidden width="16" height="6" viewBox="0 0 16 6" className="flex-none">
+                        {slot != null && (
+                          <line x1="1.5" y1="3" x2="14.5" y2="3" stroke={stockLine(theme, slot).color} strokeWidth="2.5" strokeDasharray={DASHARRAY[stockLine(theme, slot).dash]} strokeLinecap="round" />
+                        )}
+                      </svg>
                       <StockLink ticker={s.ticker} className={"min-w-0 flex-1 truncate text-xs hover:text-accent hover:underline " + (slot == null ? "text-ink" : "font-semibold text-ink")}>
                         {s.name}
                         {slot != null && <span className="sr-only"> (on the chart)</span>}

@@ -15,7 +15,14 @@ import { loadSeries, type Load } from "./series";
 // drawn in ink, stocks in the categorical palette. The basket itself is the thick accent line.
 export type CompareBasket = { slug: string; name: string; icon: string };
 
-const MAX_STOCKS = 6; // palette slots 0-5; slot 6 is kept for the compared industry baskets
+// A stock's line: one of six palette colours (slot 6 is kept for the compared industry baskets),
+// solid first, then long-dashed, then dotted, so 18 stocks can be told apart.
+const STOCK_DASH: Dash[] = ["solid", "long", "dot"];
+export const MAX_CHART_STOCKS = 6 * STOCK_DASH.length;
+const MAX_STOCKS = MAX_CHART_STOCKS;
+export function stockLine(theme: "light" | "dark", slot: number): { color: string; dash: Dash } {
+  return { color: SLOTS[theme][slot % 6], dash: STOCK_DASH[Math.floor(slot / 6) % STOCK_DASH.length] };
+}
 const MAX_COMPARE = 3;
 const COMPARE_DASH: Dash[] = ["long", "dash", "dot"];
 
@@ -139,7 +146,7 @@ export function BasketChart({
     });
     for (const st of stocks) {
       const slot = picks[st.ticker];
-      if (slot != null) out.push({ key: `s:${st.ticker}`, name: st.name, note: st.ticker, color: SLOTS[theme][slot], width: 2, dash: "solid", stock: st.ticker });
+      if (slot != null) out.push({ key: `s:${st.ticker}`, name: st.name, note: st.ticker, ...stockLine(theme, slot), width: 2, stock: st.ticker });
     }
     return out;
   }, [basketKey, basketName, compare, industries, weighting, indices, market, benches, stocks, picks, theme]);
@@ -371,8 +378,8 @@ export function BasketChart({
                           onToggle={() => toggleStock(st.ticker)}
                           label={st.name}
                           sub={st.ticker}
-                          swatch={on ? { color: SLOTS[theme][slot], width: 2, dash: "solid" } : undefined}
-                          trackColor={on ? SLOTS[theme][slot] : undefined}
+                          swatch={on ? { ...stockLine(theme, slot), width: 2 } : undefined}
+                          trackColor={on ? stockLine(theme, slot).color : undefined}
                         />
                       );
                     })}
