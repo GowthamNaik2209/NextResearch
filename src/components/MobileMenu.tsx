@@ -6,12 +6,11 @@ import Link from "next/link";
 // Phone-only navigation: the header's text links are hidden below `md`, so this hamburger
 // opens the same destinations as a dropdown. Closes on a pick, outside tap or Escape.
 const ITEMS: [string, string][] = [
-  ["Themes", "/#themes"],
+  ["Analysis", "/docs"],
+  ["Baskets", "/baskets"],
   ["Connections", "/connections"],
   ["Updates", "/updates"],
   ["How it works", "/#how"],
-  ["Analysis", "/docs"],
-  ["Baskets", "/baskets"],
 ];
 
 // `hideFrom` is the class that hides the menu once the page shows its own nav links: the site

@@ -8,7 +8,7 @@ import { ResearchDeck } from "./ResearchDeck";
 import { IndustryChartsView, type ChartsIndustry } from "@/components/baskets/IndustryChartsView";
 import type { CompareBasket } from "@/components/baskets/BasketChart";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
-import { BackToThemes } from "./back-to-themes";
+import { THEME_TAB_EVENT, ThemeCards, type ComingSoonSector, type SectorCard, type ThemeTab } from "./ThemeCards";
 
 const TABS = [
   { id: "all", label: "All" },
@@ -18,31 +18,35 @@ const TABS = [
 ] as const;
 
 const VIEWS = [
+  { id: "deep", label: "Deep dive" },
   { id: "reports", label: "Reports" },
   { id: "charts", label: "Charts" },
 ] as const;
 type View = (typeof VIEWS)[number]["id"];
 
-// The /docs grid: one card per research deck; a click opens the deck as a pop-up.
-// `?report=<slug>` opens one directly (shareable), kept in sync while it is open. The IPOs tab
-// holds the upcoming-IPO decks (`?ipo=<slug>` lands on it with that deck open). The right-hand
-// toggle swaps the cards for each industry's basket page (`?view=charts&sector=<slug>`); the left tabs then
-// pick which industries the chart offers.
+// The Analysis block (on /docs and the landing page's #themes section). Three views on the
+// right-hand toggle: Deep dive (default) has one card per industry or policy opening its page;
+// Reports has one card per research deck, opened as a pop-up (`?report=<slug>`, shareable);
+// Charts is each industry's basket page (`?view=charts&sector=<slug>`). The left tabs filter all
+// three; the IPOs tab holds the IPO decks (`?ipo=<slug>` lands on it with that deck open).
 export function ReadingList({
   decks,
   ipos,
+  sectorCards,
+  comingSoon,
   baskets,
   industries,
   market,
   signedIn,
   initial,
   initialIpo,
-  initialView = "reports",
+  initialView = "deep",
   initialSector,
-  fromThemes = false,
 }: {
   decks: Deck[];
   ipos: IpoDeck[];
+  sectorCards: SectorCard[];
+  comingSoon: ComingSoonSector[];
   baskets: ChartsIndustry[];
   industries: CompareBasket[];
   market: Benchmark[];
@@ -51,10 +55,16 @@ export function ReadingList({
   initialIpo?: string;
   initialView?: View;
   initialSector?: string;
-  fromThemes?: boolean;
 }) {
   const [view, setView] = useState<View>(initialView);
+  // The industry the Charts view opens on: from the URL, or a Deep dive card's Charts button.
+  const [chartSlug, setChartSlug] = useState(initialSector);
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const openCharts = (slug: string) => {
+    setChartSlug(slug);
+    setView("charts");
+    toolbarRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+  };
 
   // Arriving from a theme card's Charts button: bring the chart into view rather than leaving
   // it below the page intro, which on a phone is a full screen down. Once per visit.
@@ -79,11 +89,23 @@ export function ReadingList({
     window.history.replaceState(window.history.state, "", url);
   }, [openSlug]);
 
+  // The hero's theme window picks a tab here too (landing page), opening the Deep dive on it.
+  useEffect(() => {
+    const onTab = (e: Event) => {
+      setTab((e as CustomEvent<ThemeTab | "all">).detail);
+      setView("deep");
+    };
+    window.addEventListener(THEME_TAB_EVENT, onTab);
+    return () => window.removeEventListener(THEME_TAB_EVENT, onTab);
+  }, []);
+
   useEffect(() => {
     const url = new URL(window.location.href);
     if (view === "charts") url.searchParams.set("view", "charts");
     else {
-      url.searchParams.delete("view");
+      // Deep dive is the default, so it needs no parameter.
+      if (view === "reports") url.searchParams.set("view", "reports");
+      else url.searchParams.delete("view");
       url.searchParams.delete("sector");
       url.searchParams.delete("bview");
     }
@@ -95,7 +117,6 @@ export function ReadingList({
   return (
     <>
       <div ref={toolbarRef} className="flex scroll-mt-20 flex-col gap-3">
-      {fromThemes && <BackToThemes />}
       <div className="flex flex-wrap items-center justify-between gap-3">
       <div role="tablist" aria-label="Report type" className="flex gap-1 self-start rounded-full border border-line bg-panel p-1">
         {TABS.map((t) => (
@@ -134,8 +155,9 @@ export function ReadingList({
             summaries.
           </p>
         ) : (
-          <IndustryChartsView key={tab} baskets={chartBaskets} industries={industries} market={market} signedIn={signedIn} initialSlug={initialSector} />
+          <IndustryChartsView key={`${tab}:${chartSlug ?? ""}`} baskets={chartBaskets} industries={industries} market={market} signedIn={signedIn} initialSlug={chartSlug} />
         ))}
+      {view === "deep" && tab !== "ipo" && <ThemeCards sectors={sectorCards} comingSoon={comingSoon} filter={tab} onCharts={openCharts} />}
       {view === "reports" && tab !== "ipo" && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((d) => (
@@ -143,8 +165,8 @@ export function ReadingList({
           ))}
         </div>
       )}
-      {view === "reports" && tab === "all" && <h2 className="mt-4 font-display text-xl font-bold text-ink">IPOs</h2>}
-      {view === "reports" && (tab === "ipo" || tab === "all") && <IpoGrid ipos={ipos} initial={initialIpo} />}
+      {view !== "charts" && tab === "all" && <h2 className="mt-4 font-display text-xl font-bold text-ink">IPOs</h2>}
+      {view !== "charts" && (tab === "ipo" || tab === "all") && <IpoGrid ipos={ipos} initial={initialIpo} />}
       {open && <ResearchDeck deck={open} onClose={() => setOpenSlug(null)} />}
     </>
   );

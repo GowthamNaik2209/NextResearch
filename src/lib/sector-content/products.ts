@@ -1501,7 +1501,7 @@ var ASOF = "25 Sep 2026";
  // from the landing page's "Policy" tab instead of "Sector" - the story is "this
  // government/regulatory move creates this winner set of stocks" rather than
  // "this industry has this supply chain". See sector-content/index.ts's
- // `category` field and SectorBrowser.tsx for how the two tabs are filtered.
+ // `category` field and research/ThemeCards.tsx for how the two tabs are filtered.
  // ======================================================================
 
  PRODUCTS.solarmodules = {

@@ -92,8 +92,8 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-12 px-5 py-14">
         <div>
-          <Link href="/#themes" className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
-            &larr; All themes
+          <Link href="/docs" className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
+            &larr; All deep dives
           </Link>
           <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-start gap-4">
@@ -371,7 +371,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                 {
                   "@type": "BreadcrumbList",
                   itemListElement: [
-                    { "@type": "ListItem", position: 1, name: "Themes", item: `${SITE_URL}/#themes` },
+                    { "@type": "ListItem", position: 1, name: "Analysis", item: `${SITE_URL}/docs` },
                     { "@type": "ListItem", position: 2, name: sector.name, item: `${SITE_URL}/sector/${sector.slug}` },
                   ],
                 },

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { IpoDeck } from "@/lib/ipo-content";
 import { IpoDeckView } from "@/components/ipo/IpoDeckView";
-import { THEME_TAB_EVENT, type ThemeTab } from "@/components/SectorBrowser";
+import { THEME_TAB_EVENT, type ThemeTab } from "@/components/research/ThemeCards";
 
 export type ThemeRow = {
   key: string;
@@ -33,19 +33,24 @@ const CHIP = {
 } as const;
 
 const scrollToThemes = () => document.getElementById("themes")?.scrollIntoView({ behavior: "smooth" });
+// "Browse deep dives" always lands on every industry and policy, whatever tab the window is on.
+const browseDeepDives = () => {
+  window.dispatchEvent(new CustomEvent<ThemeTab | "all">(THEME_TAB_EVENT, { detail: "all" }));
+  scrollToThemes();
+};
 
-// The hero's "Browse themes": scrolls to the Themes section every time (a bare #themes link does
-// nothing once the URL already ends in #themes). That section follows the window's tab.
+// The hero's "Browse deep dives": scrolls to the Analysis block (#themes) every time (a bare
+// #themes link does nothing once the URL already ends in #themes). It follows the window's tab.
 export function BrowseThemesButton({ className }: { className: string }) {
   return (
-    <button type="button" onClick={scrollToThemes} className={className}>
-      Browse themes
+    <button type="button" onClick={browseDeepDives} className={className}>
+      Browse deep dives
     </button>
   );
 }
 
 // The hero's window onto the three themes: a few rows per tab and "Explore more", which scrolls
-// to the Themes section on the same tab. Picking a tab here also switches that section, so the
+// to the Analysis block's Deep dive on the same tab. Picking a tab here also switches it, so the
 // two never disagree. Theme rows open the theme's overview page; IPO rows open the deck on top
 // of the landing page, and closing it leaves the reader where they were.
 export function ThemeWindow({ rows, ipos }: { rows: Record<ThemeTab, ThemeRow[]>; ipos: IpoDeck[] }) {

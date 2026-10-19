@@ -21,15 +21,13 @@ export async function SiteHeader() {
             landing page) still fit beside the logo at 375px; tablets keep the text links on one
             row by tightening the gaps until lg. */}
         <nav className="flex items-center gap-2 sm:gap-3 lg:gap-5">
-          <Link href="/#themes" className={link}>Themes</Link>
-          <Link href="/connections" className={link}>Connections</Link>
-          <Link href="/updates" className={link}>Updates</Link>
-          {/* lg only: with Baskets added, six links overflowed 768px. Tablets reach it through the
-              menu, which stays until lg for that reason. */}
-          <Link href="/#how" className={link.replace("md:inline", "lg:inline")}>How it works</Link>
+          {/* Analysis holds the industries (Deep dive), reports and charts; it replaced Themes. */}
           <Link href="/docs" className={link}>Analysis</Link>
           <Link href="/baskets" className={link}>Baskets</Link>
-          <MobileMenu hideFrom="lg:hidden" />
+          <Link href="/connections" className={link}>Connections</Link>
+          <Link href="/updates" className={link}>Updates</Link>
+          <Link href="/#how" className={link}>How it works</Link>
+          <MobileMenu />
           {/* Not on phones (logo + menu + heart + Sign up + account already fill 375px) nor at
               md, where the five text links take the room; the account menu still has it there. */}
           <span className="hidden sm:contents md:hidden lg:contents">
