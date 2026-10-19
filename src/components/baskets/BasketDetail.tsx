@@ -86,7 +86,21 @@ export function BasketDetail(p: BasketDetailProps) {
   const tickers = useMemo(() => stocks.map((s) => s.ticker), [stocks]);
   const basketKey = p.mode === "industry" ? `x:sector=${p.id}&w=${weighting}` : `x:${savedBasketQuery(p.id, weighting, tickers)}`;
   const compareKey = p.compareSlug && !(p.mode === "industry" && p.compareSlug === p.id) ? `x:sector=${p.compareSlug}&w=${weighting}` : null;
-  const summaryKeys = useMemo(() => [basketKey, "b:nifty50", ...(compareKey ? [compareKey] : []), ...(p.indices[0] ? [`b:${p.indices[0].id}`] : [])], [basketKey, compareKey, p.indices]);
+  // Kept here, above the chart, so the reader's picks outlive weighting, range and view switches.
+  const compareIndustries = p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id));
+  const [chartSel, setChartSel] = useState<ChartSelection>(() => defaultSelection(p.indices, compareIndustries, compareKey ? p.compareSlug : null));
+  // The stocks switched on in the chart, backtested together as their own basket (same weighting).
+  const picked = useMemo(() => stocks.filter((s) => chartSel.picks[s.ticker] != null), [stocks, chartSel.picks]);
+  const picksKey = picked.length
+    ? `x:tickers=${picked
+        .map((s) => encodeURIComponent(s.ticker))
+        .sort()
+        .join(",")}&w=${weighting}`
+    : null;
+  const summaryKeys = useMemo(
+    () => [basketKey, "b:nifty50", ...(picksKey ? [picksKey] : []), ...(compareKey ? [compareKey] : []), ...(p.indices[0] ? [`b:${p.indices[0].id}`] : [])],
+    [basketKey, picksKey, compareKey, p.indices],
+  );
 
   useEffect(() => {
     if (!tickers.length) return;
@@ -116,9 +130,6 @@ export function BasketDetail(p: BasketDetailProps) {
     const from = l.data.points[0].t;
     return Date.parse(from) - Date.parse(b.data.points[0].t) > slack ? from : null;
   };
-  // Kept here, above the chart, so the reader's picks outlive weighting, range and view switches.
-  const compareIndustries = p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id));
-  const [chartSel, setChartSel] = useState<ChartSelection>(() => defaultSelection(p.indices, compareIndustries, compareKey ? p.compareSlug : null));
   const bt = at(basketKey);
   const btData = bt?.status === "ok" ? bt.data : null;
   const holdings = new Map((btData?.holdings ?? []).map((h) => [h.ticker, h]));
@@ -315,6 +326,20 @@ export function BasketDetail(p: BasketDetailProps) {
       {/* Return summary */}
       <section aria-label="Backtest summary" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label={`This basket, ${rangeLong}`} value={basketRet} loading={!stocks.length ? false : bt?.status !== "ok" && bt?.status !== "error"} strong />
+        {picksKey &&
+          (() => {
+            const c = card(`Your ${picked.length} picked stock${picked.length > 1 ? "s" : ""}`, picksKey);
+            return (
+              <Stat
+                label={c.label}
+                value={c.value}
+                loading={c.loading}
+                who="picks"
+                diff={basketRet != null && c.value != null ? shown(c.value) - shown(basketRet) : null}
+                note={c.note ?? `${picked.map((s) => s.ticker).join(", ")} · ${weighting === "mcap" ? "market-cap" : "equal"} weight`}
+              />
+            );
+          })()}
         {comparisons.map((c) => (
           <Stat key={c.label} label={c.label} value={c.value} loading={c.loading} note={c.note} diff={basketRet != null && c.value != null ? shown(basketRet) - shown(c.value) : null} />
         ))}
@@ -466,14 +491,19 @@ export function BasketDetail(p: BasketDetailProps) {
 // The figure a card displays, so the gap between two cards matches their numbers (−5.4 vs −5.5 is 0.1).
 const shown = (v: number) => Number(v.toFixed(Math.abs(v) >= 100 ? 0 : 1));
 
-function Stat({ label, value, loading, diff, note, strong }: { label: string; value: number | null; loading: boolean; diff?: number | null; note?: string; strong?: boolean }) {
+// `who`: whose gap the card states - the basket's against an index, or the picks' against the basket.
+function Stat({ label, value, loading, diff, note, strong, who = "basket" }: { label: string; value: number | null; loading: boolean; diff?: number | null; note?: string; strong?: boolean; who?: "basket" | "picks" }) {
   return (
     <div className={"min-w-0 rounded-xl border p-3 " + (strong ? "border-accent bg-accent/5" : "border-line bg-panel")}>
       <div className="truncate text-[11px] text-ink-soft">{label}</div>
       <div className={"mt-1 font-mono text-lg font-bold " + (value == null ? "text-ink-soft" : value >= 0 ? "text-pos" : "text-danger")}>{value != null ? pct(value) : loading ? "…" : "—"}</div>
       {diff != null && (
         <div className="mt-0.5 text-[11px] text-ink-soft">
-          {Math.abs(diff) < 0.05 ? "level with the basket" : `basket ${diff > 0 ? "ahead by" : "behind by"} ${Math.abs(diff).toFixed(1)} pts`}
+          {Math.abs(diff) < 0.05
+            ? "level with the basket"
+            : who === "picks"
+              ? `${diff > 0 ? "ahead of" : "behind"} the basket by ${Math.abs(diff).toFixed(1)} pts`
+              : `basket ${diff > 0 ? "ahead by" : "behind by"} ${Math.abs(diff).toFixed(1)} pts`}
         </div>
       )}
       {note && <div className="mt-0.5 text-[11px] leading-snug text-ink-soft">{note}</div>}
