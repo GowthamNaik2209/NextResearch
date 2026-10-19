@@ -54,6 +54,8 @@ const RANGES: { id: ChartRange; long: string }[] = [
   { id: "5Y", long: "5 years" },
 ];
 const MAX_STOCKS = 75;
+// Stocks the chart can draw at once (its line colours; see BasketChart).
+const MAX_CHART_STOCKS = 6;
 
 type Sort = "contribution" | "return" | "weight" | "name";
 const SORTS: { id: Sort; label: string }[] = [
@@ -98,7 +100,8 @@ export function BasketDetail(p: BasketDetailProps) {
   const [stocks, setStocks] = useState(p.stocks);
   const [name, setName] = useState(p.name);
   const [isPublic, setIsPublic] = useState(p.isPublic);
-  const [editing, setEditing] = useState(false);
+  // An empty basket of yours opens in editing, so the picker stays up while you fill it.
+  const [editing, setEditing] = useState(p.isOwner && p.mode === "saved" && p.stocks.length === 0);
   const [renaming, setRenaming] = useState(false);
   const [sort, setSort] = useState<Sort>("contribution");
   // The stock table measures weight and contribution within the whole basket, or (once stocks
@@ -126,9 +129,17 @@ export function BasketDetail(p: BasketDetailProps) {
   const compareKey = p.compareSlug && !(p.mode === "industry" && p.compareSlug === p.id) ? `x:sector=${p.compareSlug}&w=${weighting}` : null;
   // Kept here, above the chart, so the reader's picks outlive weighting, range and view switches.
   const compareIndustries = p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id));
-  const [chartSel, setChartSel] = useState<ChartSelection>(() => defaultSelection(p.indices, compareIndustries, compareKey ? p.compareSlug : null));
+  // A saved basket opens with its stocks drawn on the chart (as many as there are line colours);
+  // an industry basket, often 20+ stocks, opens on the benchmarks alone.
+  const [chartSel, setChartSel] = useState<ChartSelection>(() => {
+    const sel = defaultSelection(p.indices, compareIndustries, compareKey ? p.compareSlug : null);
+    if (p.mode === "saved") sel.picks = Object.fromEntries(p.stocks.slice(0, MAX_CHART_STOCKS).map((s, i) => [s.ticker, i]));
+    return sel;
+  });
   // The stocks switched on in the chart, backtested together as their own basket (same weighting).
   const picked = useMemo(() => stocks.filter((s) => chartSel.picks[s.ticker] != null), [stocks, chartSel.picks]);
+  // Every stock picked is the basket itself: no separate card, and the table needs no second backtest.
+  const picksAll = picked.length > 0 && picked.length === stocks.length;
   const pickedKey = picksKey(
     picked.map((s) => s.ticker),
     weighting,
@@ -136,7 +147,7 @@ export function BasketDetail(p: BasketDetailProps) {
 
   // With no picks left, the table goes back to the whole basket.
   const tableScope = scope === "picks" && pickedKey ? "picks" : "all";
-  const tableKey = tableScope === "picks" && pickedKey ? pickedKey : basketKey;
+  const tableKey = tableScope === "picks" && pickedKey && !picksAll ? pickedKey : basketKey;
 
   // The basket's own backtest feeds the stock rows and the left list (the cards load their lines
   // themselves); the picks' backtest feeds the table when it shows just the picks.
@@ -192,10 +203,28 @@ export function BasketDetail(p: BasketDetailProps) {
     const fresh = list.filter((t) => !byTicker.has(t)).slice(0, MAX_STOCKS - stocks.length);
     if (!fresh.length) return;
     setStocks((s) => [...s, ...fresh.map((t) => universe.get(t)!).filter(Boolean)]);
+    // New stocks go straight onto the chart while line colours are free.
+    setChartSel((sel) => {
+      const picks = { ...sel.picks };
+      for (const t of fresh) {
+        const used = new Set(Object.values(picks));
+        const slot = [...Array(MAX_CHART_STOCKS).keys()].find((i) => !used.has(i));
+        if (slot == null) break;
+        picks[t] = slot;
+      }
+      return { ...sel, picks };
+    });
     syncItems(await patch({ add: fresh }));
   };
   const remove = async (t: string) => {
     setStocks((s) => s.filter((x) => x.ticker !== t));
+    // Frees its line colour for the next stock added.
+    setChartSel((sel) => {
+      if (sel.picks[t] == null) return sel;
+      const picks = { ...sel.picks };
+      delete picks[t];
+      return { ...sel, picks };
+    });
     syncItems(await patch({ remove: [t] }));
   };
   const setWeight = async (w: "equal" | "mcap") => {
@@ -354,8 +383,8 @@ export function BasketDetail(p: BasketDetailProps) {
         <div className="flex flex-wrap items-center gap-2">
           {canEdit ? (
             <>
-              <button type="button" onClick={() => setEditing((v) => !v)} aria-pressed={editing} className={"min-h-9 rounded-lg px-3 text-xs font-semibold lg:hidden " + (editing ? "bg-accent text-bg" : "border border-line text-ink hover:border-accent")}>
-                {editing ? "Done" : "Add stocks"}
+              <button type="button" onClick={() => setEditing((v) => !v)} aria-pressed={editing} className={"min-h-9 rounded-lg px-3 text-xs font-semibold " + (editing ? "bg-accent text-bg" : "border border-line text-ink hover:border-accent")}>
+                {editing ? "Done" : "Edit"}
               </button>
               <button type="button" onClick={share} disabled={busy} className="min-h-9 rounded-lg border border-line px-3 text-xs font-semibold text-ink hover:border-accent">
                 {isPublic ? "Copy link" : "Share"}
@@ -395,8 +424,8 @@ export function BasketDetail(p: BasketDetailProps) {
           </div>
         </div>
 
-        {canEdit && (
-          <div className={editing ? "" : "hidden lg:block"}>
+        {canEdit && (editing || stocks.length === 0) && (
+          <div>
             <StockPicker universe={p.universe ?? []} industries={p.industries} initialIndustry={p.compareSlug} watchlist={p.watchlist} have={new Set(tickers)} full={stocks.length >= MAX_STOCKS} onAdd={add} />
           </div>
         )}
@@ -429,7 +458,7 @@ export function BasketDetail(p: BasketDetailProps) {
                         {slot != null && <span className="sr-only"> (on the chart)</span>}
                       </StockLink>
                       <span className={"flex-none font-mono text-[11px] " + (!h ? "text-ink-soft" : h.ret >= 0 ? "text-pos" : "text-danger")}>{h ? pct(h.ret) : "—"}</span>
-                      {canEdit && (
+                      {canEdit && editing && (
                         <button type="button" onClick={() => remove(s.ticker)} aria-label={`Remove ${s.name}`} className="flex h-6 w-6 flex-none items-center justify-center rounded-full text-ink-soft hover:bg-danger/10 hover:text-danger">
                           <svg aria-hidden width="10" height="10" viewBox="0 0 12 12">
                             <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -449,7 +478,7 @@ export function BasketDetail(p: BasketDetailProps) {
         <ReturnCards
           range={range}
           basket={{ key: basketKey, label: `This basket · ${range}` }}
-          picks={pickedKey ? { key: pickedKey, label: `Your ${picked.length} pick${picked.length > 1 ? "s" : ""}`, tickers: picked.map((s) => s.ticker), weighting } : null}
+          picks={pickedKey && !picksAll ? { key: pickedKey, label: `Your ${picked.length} pick${picked.length > 1 ? "s" : ""}`, tickers: picked.map((s) => s.ticker), weighting } : null}
           benches={NIFTY_ONLY}
         />
 
@@ -457,7 +486,7 @@ export function BasketDetail(p: BasketDetailProps) {
           <div className="rounded-2xl border border-line bg-panel p-8 text-center text-sm text-ink-soft">
             {canEdit ? (
               <>
-                This basket is empty. <span className="lg:hidden">Tap &ldquo;Add stocks&rdquo; to pick some.</span>
+                This basket is empty. <span className="lg:hidden">Pick an industry above and add its stocks.</span>
                 <span className="hidden lg:inline">Pick an industry on the left and add its stocks.</span>
               </>
             ) : (
