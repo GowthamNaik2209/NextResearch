@@ -115,7 +115,7 @@ function Stat({ label, value, loading, diff, note, strong, who = "basket" }: { l
               : `basket ${diff > 0 ? "ahead by" : "behind by"} ${Math.abs(diff).toFixed(1)} pts`}
         </div>
       )}
-      {note && <div className="mt-0.5 text-[11px] leading-snug text-ink-soft">{note}</div>}
+      {note && <div className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-ink-soft sm:line-clamp-none">{note}</div>}
     </div>
   );
 }
