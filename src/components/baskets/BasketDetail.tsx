@@ -8,6 +8,7 @@ import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import type { BasketStock } from "@/lib/baskets/industry";
 import { StockLink } from "@/components/stock/StockLink";
 import { BasketChart, defaultSelection, pct, type ChartSelection, type CompareBasket } from "./BasketChart";
+import { ReturnCards, picksKey } from "./ReturnCards";
 import { IndustryChips } from "./IndustryChips";
 import { basketCreateError } from "./NewBasketButton";
 import { loadSeries, savedBasketQuery, type Load } from "./series";
@@ -91,45 +92,22 @@ export function BasketDetail(p: BasketDetailProps) {
   const [chartSel, setChartSel] = useState<ChartSelection>(() => defaultSelection(p.indices, compareIndustries, compareKey ? p.compareSlug : null));
   // The stocks switched on in the chart, backtested together as their own basket (same weighting).
   const picked = useMemo(() => stocks.filter((s) => chartSel.picks[s.ticker] != null), [stocks, chartSel.picks]);
-  const picksKey = picked.length
-    ? `x:tickers=${picked
-        .map((s) => encodeURIComponent(s.ticker))
-        .sort()
-        .join(",")}&w=${weighting}`
-    : null;
-  const summaryKeys = useMemo(
-    () => [basketKey, "b:nifty50", ...(picksKey ? [picksKey] : []), ...(compareKey ? [compareKey] : []), ...(p.indices[0] ? [`b:${p.indices[0].id}`] : [])],
-    [basketKey, picksKey, compareKey, p.indices],
+  const pickedKey = picksKey(
+    picked.map((s) => s.ticker),
+    weighting,
   );
 
+  // The basket's own backtest feeds the stock rows (the cards load their lines themselves).
   useEffect(() => {
     if (!tickers.length) return;
-    for (const key of summaryKeys) {
-      const id = `${key}|${range}`;
-      if (loads[id]) continue;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the summary series as loading, then fetches them
-      setLoads((m) => ({ ...m, [id]: { status: "loading" } }));
-      loadSeries(key, range).then((r) => setLoads((m) => ({ ...m, [id]: r })));
-    }
-  }, [summaryKeys, range, loads, tickers.length]);
+    const id = `${basketKey}|${range}`;
+    if (loads[id]) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the backtest as loading, then fetches it
+    setLoads((m) => ({ ...m, [id]: { status: "loading" } }));
+    loadSeries(basketKey, range).then((r) => setLoads((m) => ({ ...m, [id]: r })));
+  }, [basketKey, range, loads, tickers.length]);
 
   const at = (key: string) => loads[`${key}|${range}`];
-  const ret = (key: string) => {
-    const l = at(key);
-    if (l?.status !== "ok" || l.data.points.length < 2) return null;
-    const pts = l.data.points;
-    return (pts[pts.length - 1].c / pts[0].c - 1) * 100;
-  };
-  // An index whose history starts well after the basket's first day (an ETF listed mid-period)
-  // can't be compared over the whole range: its card says when its history begins instead.
-  const lateFrom = (key: string) => {
-    const l = at(key);
-    const b = at(basketKey);
-    if (l?.status !== "ok" || b?.status !== "ok" || !l.data.points.length || !b.data.points.length) return null;
-    const slack = (range === "3Y" || range === "5Y" ? 35 : 10) * 86_400_000;
-    const from = l.data.points[0].t;
-    return Date.parse(from) - Date.parse(b.data.points[0].t) > slack ? from : null;
-  };
   const bt = at(basketKey);
   const btData = bt?.status === "ok" ? bt.data : null;
   const holdings = new Map((btData?.holdings ?? []).map((h) => [h.ticker, h]));
@@ -229,21 +207,6 @@ export function BasketDetail(p: BasketDetailProps) {
   }, [p.isOwner]);
 
   const canEdit = p.mode === "saved" && p.isOwner;
-  const basketRet = ret(basketKey);
-  const card = (label: string, key: string) => {
-    const late = lateFrom(key);
-    return {
-      label,
-      value: late ? null : ret(key),
-      loading: at(key)?.status === "loading",
-      note: late ? `history from ${new Date(late).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}, pick a shorter range` : undefined,
-    };
-  };
-  const comparisons: { label: string; value: number | null; loading: boolean; note?: string }[] = [
-    card("Nifty 50", "b:nifty50"),
-    ...(compareKey && p.compareName ? [card(`${p.compareName} basket`, compareKey)] : []),
-    ...(p.indices[0] ? [card(p.indices[0].name, `b:${p.indices[0].id}`)] : []),
-  ];
 
   return (
     <div className="flex min-w-0 flex-col gap-5">
@@ -324,26 +287,16 @@ export function BasketDetail(p: BasketDetailProps) {
       {canEdit && editing && <StockPicker universe={p.universe ?? []} industries={p.industries} watchlist={p.watchlist} have={new Set(tickers)} full={stocks.length >= MAX_STOCKS} onAdd={add} />}
 
       {/* Return summary */}
-      <section aria-label="Backtest summary" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label={`This basket, ${rangeLong}`} value={basketRet} loading={!stocks.length ? false : bt?.status !== "ok" && bt?.status !== "error"} strong />
-        {picksKey &&
-          (() => {
-            const c = card(`Your ${picked.length} picked stock${picked.length > 1 ? "s" : ""}`, picksKey);
-            return (
-              <Stat
-                label={c.label}
-                value={c.value}
-                loading={c.loading}
-                who="picks"
-                diff={basketRet != null && c.value != null ? shown(c.value) - shown(basketRet) : null}
-                note={c.note ?? `${picked.map((s) => s.ticker).join(", ")} · ${weighting === "mcap" ? "market-cap" : "equal"} weight`}
-              />
-            );
-          })()}
-        {comparisons.map((c) => (
-          <Stat key={c.label} label={c.label} value={c.value} loading={c.loading} note={c.note} diff={basketRet != null && c.value != null ? shown(basketRet) - shown(c.value) : null} />
-        ))}
-      </section>
+      <ReturnCards
+        range={range}
+        basket={{ key: basketKey, label: `This basket, ${rangeLong}` }}
+        picks={pickedKey ? { key: pickedKey, label: `Your ${picked.length} picked stock${picked.length > 1 ? "s" : ""}`, tickers: picked.map((s) => s.ticker), weighting } : null}
+        benches={[
+          { key: "b:nifty50", label: "Nifty 50" },
+          ...(compareKey && p.compareName ? [{ key: compareKey, label: `${p.compareName} basket` }] : []),
+          ...(p.indices[0] ? [{ key: `b:${p.indices[0].id}`, label: p.indices[0].name }] : []),
+        ]}
+      />
 
       {/* Controls shared by both views */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -484,29 +437,6 @@ export function BasketDetail(p: BasketDetailProps) {
           </>
         )}
       </p>
-    </div>
-  );
-}
-
-// The figure a card displays, so the gap between two cards matches their numbers (−5.4 vs −5.5 is 0.1).
-const shown = (v: number) => Number(v.toFixed(Math.abs(v) >= 100 ? 0 : 1));
-
-// `who`: whose gap the card states - the basket's against an index, or the picks' against the basket.
-function Stat({ label, value, loading, diff, note, strong, who = "basket" }: { label: string; value: number | null; loading: boolean; diff?: number | null; note?: string; strong?: boolean; who?: "basket" | "picks" }) {
-  return (
-    <div className={"min-w-0 rounded-xl border p-3 " + (strong ? "border-accent bg-accent/5" : "border-line bg-panel")}>
-      <div className="truncate text-[11px] text-ink-soft">{label}</div>
-      <div className={"mt-1 font-mono text-lg font-bold " + (value == null ? "text-ink-soft" : value >= 0 ? "text-pos" : "text-danger")}>{value != null ? pct(value) : loading ? "…" : "—"}</div>
-      {diff != null && (
-        <div className="mt-0.5 text-[11px] text-ink-soft">
-          {Math.abs(diff) < 0.05
-            ? "level with the basket"
-            : who === "picks"
-              ? `${diff > 0 ? "ahead of" : "behind"} the basket by ${Math.abs(diff).toFixed(1)} pts`
-              : `basket ${diff > 0 ? "ahead by" : "behind by"} ${Math.abs(diff).toFixed(1)} pts`}
-        </div>
-      )}
-      {note && <div className="mt-0.5 text-[11px] leading-snug text-ink-soft">{note}</div>}
     </div>
   );
 }

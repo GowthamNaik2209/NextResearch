@@ -15,10 +15,22 @@ export const metadata = {
 
 export default async function BasketsPage() {
   const user = await getCurrentUser();
+  // A failed read of the signed-in user's own rows must not take the page down: the industry
+  // baskets below don't need the database. The error is logged (Vercel runtime logs, "[baskets]").
+  let mineFailed = false;
   const [mine, liked] = user
     ? await Promise.all([
-        prisma.basket.findMany({ where: { userId: user.id }, include: { items: { select: { ticker: true } } }, orderBy: { createdAt: "desc" } }),
-        prisma.watchlist.findMany({ where: { userId: user.id }, include: { company: { select: { ticker: true } } } }),
+        prisma.basket
+          .findMany({ where: { userId: user.id }, include: { items: { select: { ticker: true } } }, orderBy: { createdAt: "desc" } })
+          .catch((e: unknown) => {
+            console.error("[baskets] loading the user's baskets failed", e);
+            mineFailed = true;
+            return [];
+          }),
+        prisma.watchlist.findMany({ where: { userId: user.id }, include: { company: { select: { ticker: true } } } }).catch((e: unknown) => {
+          console.error("[baskets] loading the watchlist failed", e);
+          return [];
+        }),
       ])
     : [[], []];
   const likedTickers = liked.map((r) => r.company.ticker).filter((t) => basketStock(t));
@@ -58,6 +70,10 @@ export default async function BasketsPage() {
                 Sign in
               </Link>{" "}
               to save your own baskets, build them from your watchlist and share them by link. Industry baskets below are open to everyone.
+            </div>
+          ) : mineFailed ? (
+            <div className="rounded-2xl border border-line bg-panel p-6 text-sm text-ink-soft">
+              Your saved baskets couldn&rsquo;t load right now. Reload in a moment; the industry baskets below still work.
             </div>
           ) : mine.length === 0 ? (
             <div className="rounded-2xl border border-line bg-panel p-6 text-sm text-ink-soft">
