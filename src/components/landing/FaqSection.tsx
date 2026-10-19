@@ -15,7 +15,7 @@ const FAQ = [
   },
   {
     q: "Do I need an account?",
-    a: "You can browse every theme and company without one. An account is only needed to save companies to a watchlist.",
+    a: "You can browse every industry, report, chart and company without one. An account is only needed to save companies to a watchlist and to keep your own baskets.",
   },
 ];
 

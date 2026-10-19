@@ -1,9 +1,11 @@
-import { listSectors, listComingSoonSectors } from "@/lib/sector-content";
-import { buildHeroThemeRows, buildSearchIndex, buildSectorCards, getPlatformStats } from "@/lib/sector-content/stats";
+import { listSectors } from "@/lib/sector-content";
+import { buildHeroThemeRows, buildSearchIndex, getPlatformStats } from "@/lib/sector-content/stats";
 import { buildIdeas, dataAsOfRange } from "@/lib/sector-content/insights";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { SectorBrowser } from "@/components/SectorBrowser";
+import { ReadingList } from "@/components/research/ReadingList";
+import { getCurrentUser } from "@/lib/auth";
+import { analysisProps, analysisView } from "@/lib/analysis-props";
 import { listIpoDecks } from "@/lib/ipo-content";
 import { IdeasSection } from "@/components/IdeasSection";
 import { Hero } from "@/components/landing/Hero";
@@ -17,7 +19,9 @@ import { ClosingCta } from "@/components/landing/ClosingCta";
 
 // Landing page: a thin composition of section components (src/components/landing/). All the
 // numbers on it come from the sector content via src/lib/sector-content/{stats,insights}.ts.
-export default function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ report?: string; ipo?: string; view?: string; sector?: string }> }) {
+  const { report, ipo, view, sector } = await searchParams;
+  const user = await getCurrentUser();
   const sectors = listSectors();
   // The sector previewed in the hero and featured below: Data Center if it has a thesis,
   // otherwise the first live sector that does.
@@ -35,10 +39,21 @@ export default function HomePage() {
 
         {featured && <FeaturedThesis sector={featured} />}
 
-        <section id="themes" className="mx-auto max-w-6xl scroll-mt-20 px-5 pb-20">
+        {/* The Analysis block, the same one as /docs (Deep dive, Reports, Charts). It keeps the old
+            Themes section's #themes anchor, so the hero's buttons and shared links still land here. */}
+        <section id="themes" aria-labelledby="analysis-heading" className="mx-auto flex max-w-6xl scroll-mt-20 flex-col gap-6 px-5 pb-20">
           {/* Old shared links point at #sectors. */}
           <span id="sectors" aria-hidden className="block scroll-mt-20" />
-          <SectorBrowser sectors={buildSectorCards()} comingSoon={listComingSoonSectors()} ipos={ipos} />
+          <div>
+            <h2 id="analysis-heading" className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+              Analysis
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
+              Every industry and policy we cover: a deep dive into its supply chain and listed companies, a ten-slide report for
+              investors, and a chart backtesting its stocks as a basket you can customise.
+            </p>
+          </div>
+          <ReadingList {...analysisProps()} signedIn={!!user} initial={report} initialIpo={ipo} initialView={analysisView(view)} initialSector={sector} />
         </section>
 
         <section className="mx-auto max-w-6xl px-5 pb-20">

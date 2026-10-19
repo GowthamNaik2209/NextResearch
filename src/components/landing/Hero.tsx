@@ -3,7 +3,7 @@ import { HeroSearch } from "@/components/HeroSearch";
 import type { SectorWithSlug } from "@/lib/sector-content";
 import type { SearchEntry } from "@/lib/sector-content/stats";
 import { BrowseThemesButton, ThemeWindow, type ThemeRow } from "./ThemeWindow";
-import type { ThemeTab } from "@/components/SectorBrowser";
+import type { ThemeTab } from "@/components/research/ThemeCards";
 import type { IpoDeck } from "@/lib/ipo-content";
 
 type Props = {

@@ -4,7 +4,7 @@ const FEATURES: [title: string, body: string][] = [
   ["Segment exposure", "How directly a company is tied to each layer — direct supplier, enabler, operator — and how strongly."],
   ["Peer comparison", "Line up every company in a layer side by side on the metrics that matter for that segment."],
   ["Bottlenecks & drivers", "Industry-level choke points and demand drivers, each linked back to the layer they come from."],
-  ["Analysis", "A 10-slide report per industry and policy, a prospectus deck per upcoming IPO, and charts that compare an industry's listed stocks against its index, the Nifty 50 and the Sensex."],
+  ["Analysis", "A deep dive into each industry and policy's supply chain, a 10-slide report for investors, a prospectus deck per upcoming IPO, and charts that backtest an industry's listed stocks as a basket against the Nifty 50."],
 ];
 
 export function CompanyFeatures() {

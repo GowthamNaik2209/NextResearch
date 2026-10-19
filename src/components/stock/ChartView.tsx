@@ -55,6 +55,9 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
   const [entry, setEntry] = useState<Entry | null>(null);
   const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
   const [hover, setHover] = useState<string | null>(null);
+  // The hovered bar's volume, drawn as a second crosshair line: its height in the volume band
+  // and the pane's width (the label sits on the price axis, like the price's own label).
+  const [volHover, setVolHover] = useState<{ y: number; v: number; paneW: number } | null>(null);
   const [attempt, setAttempt] = useState(0);
   const boxRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -124,7 +127,9 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
       // A slim bottom margin: the default 10% pushed the axis under ₹0 on long, steep histories.
       // (Widened below while the volume bars are on, so they never sit under the price.)
       rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.1, bottom: 0.03 } },
-      timeScale: { borderVisible: false, timeVisible: false, lockVisibleTimeRangeOnResize: true },
+      // Fixed edges: dragging or zooming out stops at the first and last bar instead of opening
+      // blank space beside the history.
+      timeScale: { borderVisible: false, timeVisible: false, lockVisibleTimeRangeOnResize: true, fixLeftEdge: true, fixRightEdge: true },
       crosshair: { mode: CrosshairMode.Magnet },
       // Pinch / Ctrl + wheel zooms; a plain wheel or vertical swipe still scrolls the pop-up.
       ...ZOOM_OPTIONS,
@@ -145,6 +150,9 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
       // Only the drawn price series has data; the hidden one is empty.
       const v = (p.seriesData.get(area) ?? p.seriesData.get(candle)) as object | undefined;
       setHover(p.time && v ? String(p.time) : null);
+      const bar = p.time ? (p.seriesData.get(vol) as { value?: number } | undefined) : undefined;
+      const y = bar?.value ? vol.priceToCoordinate(bar.value) : null;
+      setVolHover(bar?.value && y != null ? { y, v: bar.value, paneW: chart.timeScale().width() } : null);
     });
     return () => {
       chart.remove();
@@ -155,14 +163,11 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
     };
   }, []);
 
-  // Fit with a little room either side: the first and last date labels sit centred on the
-  // edge bars, and with no margin they were cut in half ("96", "202…") on phones.
+  // The full view: every bar, edge to edge (the time scale's fixed edges keep it there).
   const home = useMemo(() => {
     const vols = volOn ? bars.filter((b) => b.v != null && b.v > 0) : [];
     const n = new Set([...(candles ? bars : points).map((p) => p.t), ...vols.map((b) => b.t)]).size;
-    if (n < 2) return null;
-    const pad = Math.max(1, Math.round(n * 0.06));
-    return { from: -pad, to: n - 1 + pad };
+    return n < 2 ? null : { from: 0, to: n - 1 };
   }, [points, bars, candles, volOn]);
 
   useEffect(() => {
@@ -217,16 +222,77 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
   const noCandles = status === "ok" && !canCandle;
   const noCandlesNote = "Candles need open/high/low prices, which aren't available for this stock right now";
 
+  const controls = (
+    <>
+          <div className="inline-flex rounded-full border border-line bg-panel p-0.5" role="group" aria-label="Time range">
+            {RANGES.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => pick(r.id)}
+                aria-pressed={range === r.id}
+                className={"min-h-8 min-w-9 rounded-full px-2.5 text-xs font-semibold transition-colors " + (range === r.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap">
+            <div className="inline-flex rounded-full border border-line bg-panel p-0.5" role="group" aria-label="Chart type">
+              {(["line", "candles"] as const).map((m) => {
+                const disabled = m === "candles" && noCandles;
+                const on = m === "candles" ? candles : !candles;
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => !disabled && setMode(m)}
+                    aria-pressed={on}
+                    aria-disabled={disabled || undefined}
+                    title={disabled ? noCandlesNote : undefined}
+                    className={
+                      "min-h-8 rounded-full px-3 text-xs font-semibold transition-colors " +
+                      (on ? "bg-accent text-bg" : disabled ? "cursor-not-allowed text-ink-soft opacity-45" : "text-ink-soft hover:text-ink")
+                    }
+                  >
+                    {m === "line" ? "Line" : "Candles"}
+                  </button>
+                );
+              })}
+            </div>
+            {hasVol && (
+              <button
+                type="button"
+                role="switch"
+                aria-checked={showVol}
+                onClick={() => setShowVol((v) => !v)}
+                className="flex min-h-9 items-center gap-2 rounded-full px-2 text-xs font-semibold text-ink-soft transition-colors hover:text-ink"
+              >
+                <span aria-hidden className={"relative h-5 w-9 shrink-0 rounded-full border transition-colors " + (showVol ? "border-transparent bg-accent" : "border-line bg-bg")}>
+                  <span className={"absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full shadow transition-all " + (showVol ? "left-[18px] bg-bg" : "left-0.5 bg-ink-soft")} />
+                </span>
+                Volume
+              </button>
+            )}
+          </div>
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
+        {/* Top band: price on the left, change on the right and the chart's controls between them
+            (on phones they wrap to their own line under the price), so nothing needs a scroll.
+            From lg the controls are centred absolutely in the band: the price and change text
+            change width as the crosshair moves, and the controls must not move with them. */}
+        <div className="relative flex flex-wrap items-end justify-between gap-3">
+          <div className="order-1">
             <div className="font-mono text-3xl font-bold text-ink">{shown ? `₹${fmtNum(shown.c)}` : "—"}</div>
             <div className="mt-0.5 font-mono text-xs text-ink-soft">{shownDate}</div>
           </div>
+          <div className="order-3 flex basis-full flex-wrap items-center gap-2 lg:absolute lg:bottom-0 lg:left-1/2 lg:w-max lg:-translate-x-1/2 lg:flex-nowrap">{controls}</div>
           {change != null && changePct != null && (
-            <div className={"text-right font-mono text-sm font-semibold " + (shownUp ? "text-pos" : "text-danger")}>
+            <div className={"order-2 text-right font-mono text-sm font-semibold tabular-nums " + (shownUp ? "text-pos" : "text-danger")}>
               {shownUp ? "▲" : "▼"} {fmtNum(Math.abs(change))} (
               {range === "MAX" && first && shown && shown.c / first.c >= 10 ? `${fmtNum(shown.c / first.c, 0)}×` : fmtSigned(changePct, 2)})
               <div className="text-[11px] font-normal text-ink-soft">{hover && first ? `since ${fmtDay(first.t)}` : range === "MAX" && first ? `since ${fmtMonth(first.t)}` : `past ${RANGES.find((r) => r.id === range)?.long}`}</div>
@@ -259,8 +325,18 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
         )}
       </div>
 
-      <div className="relative h-[46vh] min-h-[260px] rounded-2xl border border-line bg-panel p-2 sm:h-[400px]">
-        <div ref={boxRef} className="h-full w-full" />
+      <div className="relative h-[46vh] min-h-[260px] rounded-2xl border border-line bg-panel p-2 sm:h-[min(400px,48vh)]">
+        <div className="relative h-full w-full">
+          <div ref={boxRef} className="h-full w-full" />
+          {volOn && volHover && (
+            <div aria-hidden className="pointer-events-none absolute inset-0">
+              <div className="absolute left-0 border-t border-dashed border-ink/60" style={{ top: volHover.y, width: volHover.paneW }} />
+              <span className="absolute z-10 -translate-y-1/2 rounded bg-ink px-1.5 py-0.5 font-mono text-[10px] font-semibold text-bg" style={{ top: volHover.y, right: 2 }}>
+                {fmtVolume(volHover.v)}
+              </span>
+            </div>
+          )}
+        </div>
         {status !== "ok" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-panel/80 text-sm text-ink-soft">
             {status === "loading" ? (
@@ -286,59 +362,6 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
       {status === "ok" && <ZoomControls zoom={zoom} />}
 
       <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex rounded-full border border-line bg-panel p-1" role="group" aria-label="Time range">
-            {RANGES.map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                onClick={() => pick(r.id)}
-                aria-pressed={range === r.id}
-                className={"min-h-9 min-w-12 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors " + (range === r.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex rounded-full border border-line bg-panel p-1" role="group" aria-label="Chart type">
-              {(["line", "candles"] as const).map((m) => {
-                const disabled = m === "candles" && noCandles;
-                const on = m === "candles" ? candles : !candles;
-                return (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => !disabled && setMode(m)}
-                    aria-pressed={on}
-                    aria-disabled={disabled || undefined}
-                    title={disabled ? noCandlesNote : undefined}
-                    className={
-                      "min-h-9 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors " +
-                      (on ? "bg-accent text-bg" : disabled ? "cursor-not-allowed text-ink-soft opacity-45" : "text-ink-soft hover:text-ink")
-                    }
-                  >
-                    {m === "line" ? "Line" : "Candles"}
-                  </button>
-                );
-              })}
-            </div>
-            {hasVol && (
-              <button
-                type="button"
-                role="switch"
-                aria-checked={showVol}
-                onClick={() => setShowVol((v) => !v)}
-                className="flex min-h-9 items-center gap-2 rounded-full px-2 text-xs font-semibold text-ink-soft transition-colors hover:text-ink"
-              >
-                <span aria-hidden className={"relative h-5 w-9 shrink-0 rounded-full border transition-colors " + (showVol ? "border-transparent bg-accent" : "border-line bg-bg")}>
-                  <span className={"absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full shadow transition-all " + (showVol ? "left-[18px] bg-bg" : "left-0.5 bg-ink-soft")} />
-                </span>
-                Volume
-              </button>
-            )}
-          </div>
-        </div>
         <p className="text-[11px] text-ink-soft">
           {data?.source === "screener" ? "Screener.in" : "Yahoo Finance"} · {candles ? "candles" : "closing prices"}
           {coarse}

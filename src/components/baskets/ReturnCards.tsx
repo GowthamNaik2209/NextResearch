@@ -71,7 +71,7 @@ export function ReturnCards({
     return {
       value: late ? null : ret(line.key),
       loading: at(line.key)?.status === "loading" || !at(line.key),
-      note: late ? `history from ${monthYear(late)}, pick a shorter range` : line.note,
+      note: late ? `history only from ${monthYear(late)}` : line.note,
     };
   };
 
@@ -79,8 +79,10 @@ export function ReturnCards({
   const gap = (v: number | null, picksSide: boolean) => (b.value != null && v != null ? (picksSide ? shown(v) - shown(b.value) : shown(b.value) - shown(v)) : null);
   const p = picks ? card(picks) : null;
 
+  // One row on every screen, one column per card (2 or 3), so the cards never stack on phones.
+  const count = 1 + (picks ? 1 : 0) + benches.length;
   return (
-    <section aria-label="Backtest summary" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <section aria-label="Backtest summary" className="grid max-w-3xl gap-2 sm:gap-3" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}>
       <Stat label={basket.label} value={b.value} loading={b.loading} note={basket.note} strong />
       {picks && p && (
         <Stat
@@ -89,7 +91,8 @@ export function ReturnCards({
           loading={p.loading}
           who="picks"
           diff={gap(p.value, true)}
-          note={p.note ?? `${picks.tickers.join(", ")} · ${picks.weighting === "mcap" ? "market-cap" : "equal"} weight`}
+          note={p.note}
+          title={`${picks.tickers.join(", ")} · ${picks.weighting === "mcap" ? "market-cap" : "equal"} weight`}
         />
       )}
       {benches.map((line) => {
@@ -101,21 +104,35 @@ export function ReturnCards({
 }
 
 // `who`: whose gap the card states - the basket's against an index, or the picks' against the basket.
-function Stat({ label, value, loading, diff, note, strong, who = "basket" }: { label: string; value: number | null; loading: boolean; diff?: number | null; note?: string; strong?: boolean; who?: "basket" | "picks" }) {
+// Compact on purpose: three of these share one row on a phone. The gap is one short line,
+// signed: on the picks card it is the picks against the basket, on an index card the basket
+// against that index.
+function Stat({ label, value, loading, diff, note, title, strong, who = "basket" }: { label: string; value: number | null; loading: boolean; diff?: number | null; note?: string; title?: string; strong?: boolean; who?: "basket" | "picks" }) {
+  // "pts" only from sm: a phone's third-of-a-row card has room for the number alone.
+  const pts =
+    diff == null ? null : (
+      <>
+        {diff > 0 ? "+" : "−"}
+        {Math.abs(diff).toFixed(1)}
+        <span className="hidden sm:inline"> pts</span>
+      </>
+    );
   return (
-    <div className={"min-w-0 rounded-xl border p-3 " + (strong ? "border-accent bg-accent/5" : "border-line bg-panel")}>
-      <div className="text-[11px] leading-snug text-ink-soft">{label}</div>
-      <div className={"mt-1 font-mono text-lg font-bold " + (value == null ? "text-ink-soft" : value >= 0 ? "text-pos" : "text-danger")}>{value != null ? pct(value) : loading ? "…" : "—"}</div>
+    <div title={title} className={"min-w-0 rounded-xl border px-2.5 py-2 sm:p-3 " + (strong ? "border-accent bg-accent/5" : "border-line bg-panel")}>
+      <div className="truncate text-[10px] leading-snug text-ink-soft sm:text-[11px]">{label}</div>
+      <div className={"mt-0.5 font-mono text-base font-bold sm:text-lg " + (value == null ? "text-ink-soft" : value >= 0 ? "text-pos" : "text-danger")}>{value != null ? pct(value) : loading ? "…" : "—"}</div>
       {diff != null && (
-        <div className="mt-0.5 text-[11px] text-ink-soft">
-          {Math.abs(diff) < 0.05
-            ? "level with the basket"
-            : who === "picks"
-              ? `${diff > 0 ? "ahead of" : "behind"} the basket by ${Math.abs(diff).toFixed(1)} pts`
-              : `basket ${diff > 0 ? "ahead by" : "behind by"} ${Math.abs(diff).toFixed(1)} pts`}
+        <div className="truncate text-[10px] text-ink-soft sm:text-[11px]">
+          {Math.abs(diff) < 0.05 ? (
+            "level with basket"
+          ) : who === "picks" ? (
+            <>{pts} vs basket</>
+          ) : (
+            <>basket {pts}</>
+          )}
         </div>
       )}
-      {note && <div className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-ink-soft sm:line-clamp-none">{note}</div>}
+      {note && <div className="line-clamp-2 text-[10px] leading-snug text-ink-soft sm:text-[11px]">{note}</div>}
     </div>
   );
 }

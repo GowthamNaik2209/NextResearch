@@ -128,7 +128,7 @@ export function buildHeroThemeRows(featuredSlug?: string) {
   return { sector, policy, ipo };
 }
 
-// One card per sector for the landing grid. SectorBrowser is a Client Component, so only plain
+// One card per sector for the Analysis Deep dive. ThemeCards is a Client Component, so only plain
 // serializable fields cross the boundary - notably not `build`, each sector's three.js
 // geometry function (see explore/page.tsx for the same constraint).
 export function buildSectorCards() {
