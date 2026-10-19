@@ -1,10 +1,11 @@
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ReadingList } from "@/components/research/ReadingList";
-import type { ChartSector } from "@/components/research/SectorCharts";
+import { getCurrentUser } from "@/lib/auth";
+import { listIndustryBaskets } from "@/lib/baskets/industry";
 import { listSectors } from "@/lib/sector-content";
 import { buildDeck, type Deck } from "@/lib/sector-content/reports";
-import { BENCHMARKS, MARKET_BENCHMARKS, sectorBenchmarks } from "@/lib/sector-content/benchmarks";
+import { BENCHMARKS, MARKET_BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listIpoDecks } from "@/lib/ipo-content";
 
 export const metadata = {
@@ -13,31 +14,11 @@ export const metadata = {
   alternates: { canonical: "/docs" },
 };
 
-const parseCr = (s?: string) => {
-  const n = s ? parseFloat(s.replace(/[^0-9.]/g, "")) : NaN;
-  return Number.isFinite(n) ? n : null;
-};
-
-// Every listed company an industry covers, biggest first (the chart switches on the top few).
-function chartSectors(): ChartSector[] {
-  return listSectors()
-    .filter((s) => !s.muted)
-    .map((s) => {
-      const seen = new Set<string>();
-      const stocks = Object.values(s.suppliers)
-        .flatMap((sup) => {
-          const t = sup.f?.ticker;
-          if (!sup.listed || !t || seen.has(t)) return [];
-          seen.add(t);
-          return [{ ticker: t, name: sup.name, mcapCr: parseCr(sup.f?.mcap) }];
-        })
-        .sort((a, b) => (b.mcapCr ?? -1) - (a.mcapCr ?? -1));
-      return { slug: s.slug, name: s.name, icon: s.icon, category: s.category ?? "sector", stocks, indices: sectorBenchmarks(s.slug) };
-    });
-}
-
 export default async function DocsPage({ searchParams }: { searchParams: Promise<{ report?: string; ipo?: string; view?: string; sector?: string; from?: string }> }) {
   const { report, ipo, view, sector, from } = await searchParams;
+  const user = await getCurrentUser();
+  // The Charts view is each industry's basket page (same component), so it gets the baskets.
+  const baskets = listIndustryBaskets();
   const decks = listSectors()
     .filter((s) => !s.muted)
     .map((s) => buildDeck(s.slug))
@@ -59,8 +40,10 @@ export default async function DocsPage({ searchParams }: { searchParams: Promise
         <ReadingList
           decks={decks}
           ipos={listIpoDecks()}
-          sectors={chartSectors()}
+          baskets={baskets.map(({ slug, name, tagline, category, stocks, indices }) => ({ slug, name, tagline, category, stocks, indices }))}
+          industries={baskets.map(({ slug, name, icon }) => ({ slug, name, icon }))}
           market={MARKET_BENCHMARKS.map((id) => BENCHMARKS[id])}
+          signedIn={!!user}
           initial={report}
           initialIpo={ipo}
           initialView={view === "charts" ? "charts" : "reports"}

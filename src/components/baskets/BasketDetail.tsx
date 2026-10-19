@@ -84,6 +84,10 @@ export type BasketDetailProps = {
   /** Owner only: every listed company that can be added, and their watchlist. */
   universe: BasketStock[] | null;
   watchlist: string[];
+  /** URL parameter the phone's Stocks / Chart switch is kept in ("view" on basket pages). */
+  viewParam?: string;
+  /** The basket name's heading level: h1 on its own page, h2 inside another page. */
+  titleAs?: "h1" | "h2";
 };
 
 export function BasketDetail(p: BasketDetailProps) {
@@ -103,13 +107,14 @@ export function BasketDetail(p: BasketDetailProps) {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the view the URL asked for once on mount
-    if (new URLSearchParams(window.location.search).get("view") === "chart") setView("chart");
-  }, []);
+    if (new URLSearchParams(window.location.search).get(p.viewParam ?? "view") === "chart") setView("chart");
+  }, [p.viewParam]);
   const pickView = (v: "stocks" | "chart") => {
     setView(v);
     const url = new URL(window.location.href);
-    if (v === "chart") url.searchParams.set("view", "chart");
-    else url.searchParams.delete("view");
+    const key = p.viewParam ?? "view";
+    if (v === "chart") url.searchParams.set(key, "chart");
+    else url.searchParams.delete(key);
     window.history.replaceState(window.history.state, "", url);
   };
 
@@ -231,6 +236,7 @@ export function BasketDetail(p: BasketDetailProps) {
   }, [p.isOwner]);
 
   const canEdit = p.mode === "saved" && p.isOwner;
+  const Title = p.titleAs ?? "h1";
   // Desktop shows the chart and the stock table together; phones switch between them.
   const wide = useWide();
   const theme = useSiteTheme();
@@ -311,7 +317,7 @@ export function BasketDetail(p: BasketDetailProps) {
         ) : (
           <div className="flex items-start justify-between gap-2">
             <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-              <h1 className="min-w-0 break-words font-display text-xl font-bold leading-tight text-ink lg:text-2xl">{name}</h1>
+              <Title className="min-w-0 break-words font-display text-xl font-bold leading-tight text-ink lg:text-2xl">{name}</Title>
               {p.mode === "saved" && (
                 <span className={"rounded-full border px-2 py-0.5 text-[11px] font-semibold " + (isPublic ? "border-accent text-accent" : "border-line text-ink-soft")}>
                   {isPublic ? "Shared by link" : "Private"}
@@ -384,12 +390,14 @@ export function BasketDetail(p: BasketDetailProps) {
 
         {/* In this basket: the holdings at a glance (desktop only; phones have the Stocks view) */}
         {stocks.length > 0 && (
-          <section aria-label="In this basket" className="hidden flex-col gap-1 lg:flex">
+          // The list takes the rail's leftover height and scrolls on its own, so the name, buttons
+          // and controls above it never scroll out of view.
+          <section aria-label="In this basket" className="hidden flex-col gap-1 lg:flex lg:min-h-0 lg:flex-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">In this basket ({stocks.length})</span>
             <span className="text-[11px] leading-snug text-ink-soft">
               {picked.length > 0 ? "A colour marks a stock drawn on the chart. " : ""}Add or take off lines with the chart&rsquo;s Stocks menu.
             </span>
-            <ul className="divide-y divide-line">
+            <ul className="divide-y divide-line lg:min-h-24 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
               {[...stocks]
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map((s) => {

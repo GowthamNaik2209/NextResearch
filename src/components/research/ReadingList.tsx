@@ -5,7 +5,8 @@ import type { Deck } from "@/lib/sector-content/reports";
 import type { IpoDeck } from "@/lib/ipo-content";
 import { IpoGrid } from "@/components/ipo/IpoGrid";
 import { ResearchDeck } from "./ResearchDeck";
-import { SectorCharts, type ChartSector } from "./SectorCharts";
+import { IndustryChartsView, type ChartsIndustry } from "@/components/baskets/IndustryChartsView";
+import type { CompareBasket } from "@/components/baskets/BasketChart";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import { BackToThemes } from "./back-to-themes";
 
@@ -25,13 +26,15 @@ type View = (typeof VIEWS)[number]["id"];
 // The /docs grid: one card per research deck; a click opens the deck as a pop-up.
 // `?report=<slug>` opens one directly (shareable), kept in sync while it is open. The IPOs tab
 // holds the upcoming-IPO decks (`?ipo=<slug>` lands on it with that deck open). The right-hand
-// toggle swaps the cards for comparison charts (`?view=charts&sector=<slug>`); the left tabs then
+// toggle swaps the cards for each industry's basket page (`?view=charts&sector=<slug>`); the left tabs then
 // pick which industries the chart offers.
 export function ReadingList({
   decks,
   ipos,
-  sectors,
+  baskets,
+  industries,
   market,
+  signedIn,
   initial,
   initialIpo,
   initialView = "reports",
@@ -40,8 +43,10 @@ export function ReadingList({
 }: {
   decks: Deck[];
   ipos: IpoDeck[];
-  sectors: ChartSector[];
+  baskets: ChartsIndustry[];
+  industries: CompareBasket[];
   market: Benchmark[];
+  signedIn: boolean;
   initial?: string;
   initialIpo?: string;
   initialView?: View;
@@ -80,11 +85,12 @@ export function ReadingList({
     else {
       url.searchParams.delete("view");
       url.searchParams.delete("sector");
+      url.searchParams.delete("bview");
     }
     window.history.replaceState(window.history.state, "", url);
   }, [view]);
 
-  const chartSectors = sectors.filter((s) => tab === "all" || s.category === tab);
+  const chartBaskets = baskets.filter((b) => tab === "all" || b.category === tab);
 
   return (
     <>
@@ -128,7 +134,7 @@ export function ReadingList({
             summaries.
           </p>
         ) : (
-          <SectorCharts key={tab} sectors={chartSectors} market={market} initialSector={initialSector} />
+          <IndustryChartsView key={tab} baskets={chartBaskets} industries={industries} market={market} signedIn={signedIn} initialSlug={initialSector} />
         ))}
       {view === "reports" && tab !== "ipo" && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
