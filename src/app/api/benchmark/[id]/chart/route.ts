@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getBenchmark } from "@/lib/sector-content/benchmarks";
 import { getSymbolChart, isChartRange } from "@/lib/live/yahoo";
 
-// GET /api/benchmark/nifty50/chart?range=1M|6M|1Y|3Y|5Y|MAX - only the ids in benchmarks.ts.
+// GET /api/benchmark/nifty50/chart?range=1M|6M|1Y|2Y|3Y|5Y|MAX - only the ids in benchmarks.ts.
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const range = new URL(req.url).searchParams.get("range");

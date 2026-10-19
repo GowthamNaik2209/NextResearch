@@ -18,7 +18,7 @@ type Num = number | null | undefined;
 type ChartRes = { quotes: { date: Date; open?: Num; high?: Num; low?: Num; close?: Num; volume?: Num }[]; events?: { splits?: Split[] } };
 type SummaryRes = { assetProfile?: { sector?: string; industry?: string }; financialData?: { returnOnEquity?: number } };
 
-export type ChartRange = "1M" | "6M" | "1Y" | "3Y" | "5Y" | "MAX";
+export type ChartRange = "1M" | "6M" | "1Y" | "2Y" | "3Y" | "5Y" | "MAX";
 export type PricePoint = { t: string; c: number }; // t = YYYY-MM-DD (IST)
 export type Exchange = "NSE" | "BSE";
 export type Quote = {
@@ -64,13 +64,14 @@ const PARAMS: Record<ChartRange, { days: number | null; interval: "1d" | "1wk" |
   "1M": { days: 31, interval: "1d" },
   "6M": { days: 183, interval: "1d" },
   "1Y": { days: 366, interval: "1d" },
+  "2Y": { days: 731, interval: "1d" },
   "3Y": { days: 1100, interval: "1wk" },
   "5Y": { days: 1830, interval: "1wk" },
   MAX: { days: null, interval: "1mo" },
 };
 
 export function isChartRange(v: string | null): v is ChartRange {
-  return v === "1M" || v === "6M" || v === "1Y" || v === "3Y" || v === "5Y" || v === "MAX";
+  return v === "1M" || v === "6M" || v === "1Y" || v === "2Y" || v === "3Y" || v === "5Y" || v === "MAX";
 }
 
 // Yahoo symbols to try for an NSE ticker, best first. Yahoo keeps serving a *frozen* quote for
@@ -229,7 +230,7 @@ async function yahooSeriesFor(symbol: string, range: ChartRange): Promise<Series
 const toChart = (s: Series | null): ChartData | null => (s ? { range: s.range, points: s.points, source: "yahoo", exchange: s.exchange } : null);
 const yahooChartFor = async (symbol: string, range: ChartRange) => toChart(await yahooSeriesFor(symbol, range));
 
-const SCREENER_DAYS: Record<ChartRange, number> = { "1M": 31, "6M": 183, "1Y": 366, "3Y": 1100, "5Y": 1830, MAX: 3650 };
+const SCREENER_DAYS: Record<ChartRange, number> = { "1M": 31, "6M": 183, "1Y": 366, "2Y": 731, "3Y": 1100, "5Y": 1830, MAX: 3650 };
 
 async function screenerChart(companyId: string, range: ChartRange): Promise<ChartData | null> {
   const url = `https://www.screener.in/api/company/${companyId}/chart/?q=Price&days=${SCREENER_DAYS[range]}&consolidated=true`;
@@ -256,7 +257,7 @@ const getYahooSeries = (ticker: string, range: ChartRange) =>
 
 // Tata Motors' demerger (14 Oct 2025) split off the commercial-vehicle arm; the listed
 // passenger-vehicle company (TMPV) is not comparable with the pre-demerger stock.
-const HISTORY_FROM: Record<string, string> = { TMPV: "2025-10-14" };
+export const HISTORY_FROM: Record<string, string> = { TMPV: "2025-10-14" };
 
 export async function getChart(ticker: string, range: ChartRange, screenerCompanyId?: string | null): Promise<ChartData | null> {
   const data = await getRawChart(ticker, range, screenerCompanyId);

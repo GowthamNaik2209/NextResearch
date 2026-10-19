@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { findSupplierByTicker } from "@/lib/sector-content";
 import { getChartWithFallback, isChartRange } from "@/lib/live/yahoo";
 
-// GET /api/stock/VOLTAS/chart?range=1M|6M|1Y|3Y|5Y|MAX
+// GET /api/stock/VOLTAS/chart?range=1M|6M|1Y|2Y|3Y|5Y|MAX
 export async function GET(req: Request, { params }: { params: Promise<{ ticker: string }> }) {
   const { ticker } = await params;
   const range = new URL(req.url).searchParams.get("range");

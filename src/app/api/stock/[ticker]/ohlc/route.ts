@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { findSupplierByTicker } from "@/lib/sector-content";
 import { getOhlcChart, isChartRange } from "@/lib/live/yahoo";
 
-// GET /api/stock/VOLTAS/ohlc?range=1M|6M|1Y|3Y|5Y|MAX
+// GET /api/stock/VOLTAS/ohlc?range=1M|6M|1Y|2Y|3Y|5Y|MAX
 // Candles + volume (and the same closes /chart serves). Yahoo only: there is no Screener
 // fallback for open/high/low/volume, so a 502 here means "use /chart for a plain line".
 export async function GET(req: Request, { params }: { params: Promise<{ ticker: string }> }) {

@@ -50,6 +50,7 @@ const RANGES: { id: ChartRange; long: string }[] = [
   { id: "1M", long: "1 month" },
   { id: "6M", long: "6 months" },
   { id: "1Y", long: "1 year" },
+  { id: "2Y", long: "2 years" },
   { id: "3Y", long: "3 years" },
   { id: "5Y", long: "5 years" },
 ];
@@ -66,8 +67,9 @@ const SORTS: { id: Sort; label: string }[] = [
 ];
 
 export type BasketDetailProps = {
-  mode: "industry" | "saved";
-  /** Saved basket id, or the industry's slug. */
+  /** An industry's basket, a saved one, or a basket idea (a list re-ranked each day). */
+  mode: "industry" | "saved" | "idea";
+  /** Saved basket id, the industry's slug, or the idea's id. */
   id: string;
   name: string;
   description: string | null;
@@ -90,12 +92,14 @@ export type BasketDetailProps = {
   viewParam?: string;
   /** The basket name's heading level: h1 on its own page, h2 inside another page. */
   titleAs?: "h1" | "h2";
+  /** The range the chart opens on (1Y unless an idea ranks over another period). */
+  initialRange?: ChartRange;
 };
 
 export function BasketDetail(p: BasketDetailProps) {
   const router = useRouter();
   const [view, setView] = useState<"stocks" | "chart">("stocks");
-  const [range, setRange] = useState<ChartRange>("1Y");
+  const [range, setRange] = useState<ChartRange>(p.initialRange ?? "1Y");
   const [weighting, setWeighting] = useState(p.weighting);
   const [stocks, setStocks] = useState(p.stocks);
   const [name, setName] = useState(p.name);
@@ -125,7 +129,8 @@ export function BasketDetail(p: BasketDetailProps) {
   };
 
   const tickers = useMemo(() => stocks.map((s) => s.ticker), [stocks]);
-  const basketKey = p.mode === "industry" ? `x:sector=${p.id}&w=${weighting}` : `x:${savedBasketQuery(p.id, weighting, tickers)}`;
+  const basketKey =
+    p.mode === "industry" ? `x:sector=${p.id}&w=${weighting}` : p.mode === "idea" ? picksKey(tickers, weighting) ?? `x:tickers=&w=${weighting}` : `x:${savedBasketQuery(p.id, weighting, tickers)}`;
   const compareKey = p.compareSlug && !(p.mode === "industry" && p.compareSlug === p.id) ? `x:sector=${p.compareSlug}&w=${weighting}` : null;
   // Kept here, above the chart, so the reader's picks outlive weighting, range and view switches.
   const compareIndustries = p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id));
@@ -263,7 +268,7 @@ export function BasketDetail(p: BasketDetailProps) {
     const here = `${window.location.pathname}${window.location.search}`;
     setBusy(true);
     if (!p.signedIn) return router.push(`/login?next=${encodeURIComponent(here)}`);
-    const body = p.mode === "industry" ? { sector: p.id, weighting } : { copyFrom: p.id };
+    const body = p.mode === "industry" ? { sector: p.id, weighting } : p.mode === "idea" ? { tickers, name: p.name, weighting } : { copyFrom: p.id };
     const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
     const json = res ? await res.json().catch(() => null) : null;
     if (res?.ok && json?.id) router.push(`/baskets/${json.id}?edit=1`);
@@ -312,9 +317,9 @@ export function BasketDetail(p: BasketDetailProps) {
     </div>
   );
   const rangeControl = (
-    <div className="inline-flex rounded-full border border-line bg-panel p-0.5 lg:grid lg:grid-cols-5" role="group" aria-label="Time range">
+    <div className="inline-flex rounded-full border border-line bg-panel p-0.5 lg:grid lg:grid-cols-6" role="group" aria-label="Time range">
       {RANGES.map((r) => (
-        <button key={r.id} type="button" onClick={() => setRange(r.id)} aria-pressed={range === r.id} className={seg(range === r.id) + " min-w-9 px-2 lg:min-w-8"}>
+        <button key={r.id} type="button" onClick={() => setRange(r.id)} aria-pressed={range === r.id} className={seg(range === r.id) + " min-w-8 px-1.5 sm:min-w-9 sm:px-2 lg:min-w-0 lg:px-1"}>
           {r.id}
         </button>
       ))}
@@ -382,7 +387,8 @@ export function BasketDetail(p: BasketDetailProps) {
             )}
           </div>
         )}
-        {p.description && <p className="line-clamp-2 text-xs leading-relaxed text-ink-soft lg:line-clamp-none">{p.description}</p>}
+        {/* An idea's description is its rule, list date and disclaimer, so it is never cut short. */}
+        {p.description && <p className={"text-xs leading-relaxed text-ink-soft " + (p.mode === "idea" ? "" : "line-clamp-2 lg:line-clamp-none")}>{p.description}</p>}
 
         {/* Row 2: the main actions, plus the phone's Stocks / Chart switch */}
         <div className="flex flex-wrap items-center gap-2">
@@ -397,7 +403,7 @@ export function BasketDetail(p: BasketDetailProps) {
             </>
           ) : (
             <button type="button" onClick={copy} disabled={busy} className="min-h-9 rounded-lg bg-accent px-3 text-xs font-semibold text-bg hover:opacity-90 lg:w-full lg:text-sm">
-              {busy ? "Creating…" : p.mode === "industry" ? "Customise this basket" : "Copy to my baskets"}
+              {busy ? "Creating…" : p.mode === "industry" ? "Customise this basket" : p.mode === "idea" ? "Save as my basket" : "Copy to my baskets"}
             </button>
           )}
           {stocks.length > 0 && (
