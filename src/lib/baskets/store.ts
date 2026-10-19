@@ -1,4 +1,5 @@
 // Saved baskets: loading with access checks, and the shape the pages and API share.
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { getQuote } from "@/lib/live/yahoo";
 import { basketStock, MAX_BASKET_STOCKS } from "./industry";
@@ -34,12 +35,15 @@ export function toSaved(row: Row, userId: string | null): SavedBasket {
   };
 }
 
-/** A basket the viewer may see: their own, or one its owner has shared. Null otherwise. */
-export async function getVisibleBasket(id: string, userId: string | null): Promise<SavedBasket | null> {
+/**
+ * A basket the viewer may see: their own, or one its owner has shared. Null otherwise.
+ * Wrapped in React's cache(): a basket page's metadata and body share one database read.
+ */
+export const getVisibleBasket = cache(async (id: string, userId: string | null): Promise<SavedBasket | null> => {
   const row = await loadRow(id).catch(() => null);
   if (!row || (row.userId !== userId && !row.isPublic)) return null;
   return toSaved(row, userId);
-}
+});
 
 /** Only tickers the content knows as listed, de-duplicated, capped at the basket limit. */
 export function cleanTickers(input: unknown): string[] {

@@ -44,11 +44,12 @@ export async function POST(request: Request) {
     name = cleanName(body?.name, src.isOwner ? `${src.name} (copy)` : src.name).slice(0, 60);
   }
 
-  // A cap per person, so one account can't fill the shared database with baskets.
-  if ((await prisma.basket.count({ where: { userId: user.id } })) >= MAX_BASKETS_PER_USER) {
+  // A cap per person, so one account can't fill the shared database with baskets. The count and
+  // the profile check run together: each is a round trip to the database.
+  const [count] = await Promise.all([prisma.basket.count({ where: { userId: user.id } }), user.email ? ensureProfile(user.id, user.email) : null]);
+  if (count >= MAX_BASKETS_PER_USER) {
     return NextResponse.json({ error: "limit", max: MAX_BASKETS_PER_USER }, { status: 409 });
   }
-  if (user.email) await ensureProfile(user.id, user.email);
   const row = await prisma.basket.create({
     data: { userId: user.id, name, description, sourceSector, weighting, items: { create: tickers.map((ticker) => ({ ticker })) } },
   });
