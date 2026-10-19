@@ -11,6 +11,7 @@ const ITEMS: [string, string][] = [
   ["Updates", "/updates"],
   ["How it works", "/#how"],
   ["Analysis", "/docs"],
+  ["Baskets", "/baskets"],
 ];
 
 // `hideFrom` is the class that hides the menu once the page shows its own nav links: the site

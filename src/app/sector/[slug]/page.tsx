@@ -141,6 +141,14 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
           <a href="#companies" className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink">
             Find companies
           </a>
+          {!sector.muted && (
+            <Link
+              href={`/baskets/industry/${sector.slug}`}
+              className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink"
+            >
+              Backtest as a basket
+            </Link>
+          )}
           {hasBottlenecks && (
             <a
               href="#bottlenecks"

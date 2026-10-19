@@ -5,6 +5,8 @@ import { ColorType, CrosshairMode, LineSeries, LineStyle, createChart, type ICha
 import type { ChartData, ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import { StockLink } from "@/components/stock/StockLink";
+import { ZOOM_OPTIONS, ZoomControls, useChartZoom } from "@/components/charts/ChartZoom";
+import { onSharedGrid, sharedInterval } from "@/lib/live/ohlc-format";
 
 export type ChartStock = {
   ticker: string;
@@ -36,14 +38,14 @@ const START_BENCHES = ["nifty50"];
 // Categorical slots 1-7 of the dataviz reference palette, stepped per theme and validated
 // against this site's panel colours. Benchmarks are drawn in ink instead, so they never
 // compete with a stock for a hue.
-const SLOTS = {
+export const SLOTS = {
   light: ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7"],
   dark: ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9"],
 };
 
 type Theme = "light" | "dark";
 type Load = { status: "loading" } | { status: "ok"; data: ChartData } | { status: "error" };
-type Dash = "solid" | "long" | "dash" | "dot";
+export type Dash = "solid" | "long" | "dash" | "dot";
 type Line = {
   key: string;
   name: string;
@@ -55,13 +57,13 @@ type Line = {
   load: Load | undefined;
 };
 
-const STYLE: Record<Dash, LineStyle> = {
+export const STYLE: Record<Dash, LineStyle> = {
   solid: LineStyle.Solid,
   long: LineStyle.LargeDashed,
   dash: LineStyle.Dashed,
   dot: LineStyle.SparseDotted,
 };
-const DASHARRAY: Record<Dash, string | undefined> = {
+export const DASHARRAY: Record<Dash, string | undefined> = {
   solid: undefined,
   long: "7 4",
   dash: "4 3",
@@ -79,7 +81,11 @@ const cssVar = (name: string, fallback: string) => getComputedStyle(document.doc
 const readTheme = (): Theme => (document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
 const pct = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}%`;
 // Axis ticks: whole percents once the scale is wide, so "+80%" and "+160%" read alike.
-const axisPct = (v: number) => (Math.abs(v) >= 10 ? `${v > 0 ? "+" : "−"}${Math.abs(v).toFixed(0)}%` : pct(v));
+// Axis ticks: whole steps drop the ".0" (+8%, not +8.0%); half steps keep it (−12.5%, not −13%).
+const axisPct = (v: number) => {
+  const a = Math.round(Math.abs(v) * 10) / 10;
+  return `${v > 0 && a ? "+" : v < 0 && a ? "−" : ""}${a.toFixed(Number.isInteger(a) ? 0 : 1)}%`;
+};
 const day = (t: string) =>
   new Date(t).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -241,7 +247,11 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
     const ok = lines.flatMap((l) => (l.load?.status === "ok" && l.load.data.points.length > 1 ? [{ line: l, points: l.load.data.points }] : []));
     const start = ok.reduce<string | null>((m, s) => (!m || s.points[0].t < m ? s.points[0].t : m), null);
     const slackDays = range === "3Y" || range === "5Y" ? 35 : 10;
-    const all = ok.map(({ line, points }) => {
+    // One date grid for every line, so a daily line beside weekly ones can't stretch the axis.
+    const grid = onSharedGrid(ok.map((s) => s.points));
+    const step = sharedInterval(ok.map((s) => s.points));
+    const all = ok.map(({ line }, i) => {
+      const points = grid[i];
       const base = points[0].c;
       const values = points.map((p) => ({ time: p.t as Time, value: (p.c / base - 1) * 100 }));
       const late = start && Date.parse(points[0].t) - Date.parse(start) > slackDays * 86_400_000 ? points[0].t : null;
@@ -257,7 +267,10 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
       const t = s.values[s.values.length - 1].time as string;
       return !m || t > m ? t : m;
     }, null);
-    return { start: drawnStart, end: drawnEnd, list, short: new Map(all.filter(isShort).map((s) => [s.line.key, s.late!])) };
+    // The full view in bar positions: every date any drawn line has.
+    const count = new Set(list.flatMap((s) => s.values.map((v) => v.time as string))).size;
+    const home = count > 1 ? { from: 0, to: count - 1 } : null;
+    return { start: drawnStart, end: drawnEnd, list, home, step, short: new Map(all.filter(isShort).map((s) => [s.line.key, s.late!])) };
   }, [lines, range]);
 
   // Create the chart once; the effect below keeps its series in step with the switches.
@@ -278,12 +291,10 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
         horzLines: { color: cssVar("--grid", "#ddd") },
       },
       rightPriceScale: { borderVisible: false },
-      timeScale: { borderVisible: false, timeVisible: false },
+      timeScale: { borderVisible: false, timeVisible: false, fixLeftEdge: true, fixRightEdge: true, lockVisibleTimeRangeOnResize: true },
       crosshair: { mode: CrosshairMode.Normal },
       localization: { priceFormatter: (v: number) => axisPct(v) },
-      // No pan/zoom: on a phone a drag must still scroll the page; a tap shows the crosshair.
-      handleScale: false,
-      handleScroll: false,
+      ...ZOOM_OPTIONS,
     });
     chartRef.current = chart;
     zeroRef.current = chart.addSeries(LineSeries, {
@@ -309,6 +320,8 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
       map.clear();
     };
   }, []);
+
+  const zoom = useChartZoom(chartRef, boxRef, series.home);
 
   useEffect(() => {
     const chart = chartRef.current;
@@ -351,7 +364,7 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
       layout: { textColor: cssVar("--ink-soft", "#888") },
       grid: { horzLines: { color: cssVar("--grid", "#ddd") } },
     });
-    chart.timeScale().fitContent();
+    if (series.home) chart.timeScale().setVisibleLogicalRange(series.home);
   }, [series, theme]);
 
   if (!sector) return null;
@@ -581,10 +594,11 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
             </div>
           )}
         </div>
+        <ZoomControls zoom={zoom} />
 
         <div>
           <div className="mb-1.5 flex items-baseline justify-between text-[11px] uppercase tracking-wide text-ink-soft">
-            <span>{hover ? `On ${day(hover.t)}` : `Return, past ${rangeLong}`}</span>
+            <span>{hover ? `${series.step === "1wk" ? "Week of" : series.step === "1mo" ? "Month of" : "On"} ${day(hover.t)}` : `Return, past ${rangeLong}`}</span>
             {anyLoading && series.list.length > 0 && <span className="normal-case tracking-normal">Loading…</span>}
           </div>
           <ul className="divide-y divide-line rounded-xl border border-line bg-bg/60">
@@ -640,7 +654,7 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
   );
 }
 
-function MenuButton({ label, count, open, onClick }: { label: ReactNode; count: number; open: boolean; onClick: (el: HTMLButtonElement) => void }) {
+export function MenuButton({ label, count, open, onClick }: { label: ReactNode; count: number; open: boolean; onClick: (el: HTMLButtonElement) => void }) {
   return (
     <button
       type="button"
@@ -653,7 +667,11 @@ function MenuButton({ label, count, open, onClick }: { label: ReactNode; count: 
       }
     >
       {label}
-      {count > 0 && <span className={"rounded-full px-1.5 font-mono text-[11px] " + (open ? "bg-bg/25" : "bg-accent text-bg")}>{count}</span>}
+      {/* Always laid out (hidden at 0), so the first pick doesn't widen the button, wrap the row
+          and shift the open list under the next tap. */}
+      <span aria-hidden={count === 0} className={"rounded-full px-1.5 font-mono text-[11px] " + (count === 0 ? "invisible " : "") + (open ? "bg-bg/25" : "bg-accent text-bg")}>
+        {count}
+      </span>
       <svg aria-hidden width="10" height="6" viewBox="0 0 10 6" className={"transition-transform " + (open ? "rotate-180" : "")}>
         <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
@@ -661,7 +679,7 @@ function MenuButton({ label, count, open, onClick }: { label: ReactNode; count: 
   );
 }
 
-function Switch({
+export function Switch({
   on,
   disabled,
   onToggle,
@@ -683,6 +701,7 @@ function Switch({
       type="button"
       role="switch"
       aria-checked={on}
+      aria-label={sub ? `${label}, ${sub}` : label}
       aria-disabled={disabled || undefined}
       onClick={() => !disabled && onToggle()}
       title={disabled ? `Up to ${MAX_STOCKS} stocks at a time` : undefined}
