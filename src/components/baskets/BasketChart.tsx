@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { ColorType, CrosshairMode, LineSeries, LineStyle, createChart, type IChartApi, type ISeriesApi, type Time } from "lightweight-charts";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
@@ -33,6 +33,20 @@ const axisPct = (v: number) => {
 const day = (t: string) => new Date(t).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 const month = (t: string) => new Date(t).toLocaleDateString("en-IN", { month: "short", year: "numeric" });
 
+/** What the reader has switched on: indices, other industry baskets, and stocks (ticker → palette slot). */
+export type ChartSelection = { benches: string[]; compare: string[]; picks: Record<string, number> };
+
+/** The first view: the Nifty 50 and the industry index, plus the default comparison basket if there is one. */
+export function defaultSelection(indices: Benchmark[], industries: CompareBasket[], defaultCompare: string | null): ChartSelection {
+  return {
+    benches: ["nifty50", ...(indices[0] ? [indices[0].id] : [])],
+    compare: defaultCompare && industries.some((i) => i.slug === defaultCompare) ? [defaultCompare] : [],
+    picks: {},
+  };
+}
+
+// The selection is held by the page, not here, so switching weighting, range or the Stocks/Chart
+// view never puts the reader's picks back to the defaults.
 export function BasketChart({
   range,
   rangeLong,
@@ -40,10 +54,11 @@ export function BasketChart({
   basketName,
   weighting,
   industries,
-  defaultCompare,
   indices,
   market,
   stocks,
+  selection,
+  onSelection,
 }: {
   range: ChartRange;
   rangeLong: string;
@@ -53,15 +68,17 @@ export function BasketChart({
   weighting: "equal" | "mcap";
   /** Industry baskets it can be compared with (its own industry excluded by the caller if it is one). */
   industries: CompareBasket[];
-  defaultCompare: string | null;
   /** Its industry's index(es), then the broad market. */
   indices: Benchmark[];
   market: Benchmark[];
   stocks: { ticker: string; name: string }[];
+  selection: ChartSelection;
+  onSelection: Dispatch<SetStateAction<ChartSelection>>;
 }) {
-  const [benches, setBenches] = useState<string[]>(() => ["nifty50", ...(indices[0] ? [indices[0].id] : [])]);
-  const [compare, setCompare] = useState<string[]>(() => (defaultCompare && industries.some((i) => i.slug === defaultCompare) ? [defaultCompare] : []));
-  const [picks, setPicks] = useState<Record<string, number>>({});
+  const { benches, compare, picks } = selection;
+  const setPicks = (f: (p: Record<string, number>) => Record<string, number>) => onSelection((s) => ({ ...s, picks: f(s.picks) }));
+  const setBenches = (f: (b: string[]) => string[]) => onSelection((s) => ({ ...s, benches: f(s.benches) }));
+  const setCompare = (f: (c: string[]) => string[]) => onSelection((s) => ({ ...s, compare: f(s.compare) }));
   const [menu, setMenu] = useState<"compare" | "stocks" | null>(null);
   const [menuLeft, setMenuLeft] = useState(0);
   const [loads, setLoads] = useState<Record<string, Load>>({});

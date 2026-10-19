@@ -7,7 +7,7 @@ import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import type { BasketStock } from "@/lib/baskets/industry";
 import { StockLink } from "@/components/stock/StockLink";
-import { BasketChart, pct, type CompareBasket } from "./BasketChart";
+import { BasketChart, defaultSelection, pct, type ChartSelection, type CompareBasket } from "./BasketChart";
 import { IndustryChips } from "./IndustryChips";
 import { basketCreateError } from "./NewBasketButton";
 import { loadSeries, savedBasketQuery, type Load } from "./series";
@@ -116,6 +116,9 @@ export function BasketDetail(p: BasketDetailProps) {
     const from = l.data.points[0].t;
     return Date.parse(from) - Date.parse(b.data.points[0].t) > slack ? from : null;
   };
+  // Kept here, above the chart, so the reader's picks outlive weighting, range and view switches.
+  const compareIndustries = p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id));
+  const [chartSel, setChartSel] = useState<ChartSelection>(() => defaultSelection(p.indices, compareIndustries, compareKey ? p.compareSlug : null));
   const bt = at(basketKey);
   const btData = bt?.status === "ok" ? bt.data : null;
   const holdings = new Map((btData?.holdings ?? []).map((h) => [h.ticker, h]));
@@ -351,17 +354,17 @@ export function BasketDetail(p: BasketDetailProps) {
       ) : view === "chart" ? (
         <section className="rounded-2xl border border-line bg-panel p-4 sm:p-5">
           <BasketChart
-            key={basketKey}
             range={range}
             rangeLong={rangeLong}
             basketKey={basketKey}
             basketName={name}
             weighting={weighting}
-            industries={p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id))}
-            defaultCompare={compareKey ? p.compareSlug : null}
+            industries={compareIndustries}
             indices={p.indices}
             market={p.market}
             stocks={stocks.map((s) => ({ ticker: s.ticker, name: s.name }))}
+            selection={chartSel}
+            onSelection={setChartSel}
           />
         </section>
       ) : (
