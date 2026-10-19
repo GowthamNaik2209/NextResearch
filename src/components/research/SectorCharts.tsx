@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { ColorType, CrosshairMode, LineSeries, LineStyle, createChart, type IChartApi, type ISeriesApi, type Time } from "lightweight-charts";
 import type { ChartData, ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
+import Link from "next/link";
 import { StockLink } from "@/components/stock/StockLink";
+import { ReturnCards, picksKey } from "@/components/baskets/ReturnCards";
 import { ZOOM_OPTIONS, ZoomControls, useChartZoom } from "@/components/charts/ChartZoom";
 import { onSharedGrid, sharedInterval } from "@/lib/live/ohlc-format";
 
@@ -400,6 +402,10 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
   const benchCount = [...sector.indices, ...market].filter((b) => benches.includes(b.id)).length;
   const etfs = sector.indices.filter((b) => b.via && benches.includes(b.id));
   const rangeLong = RANGES.find((r) => r.id === range)!.long;
+  // The same return cards as the basket pages: the industry's listed stocks as one equal-weight
+  // basket, the stocks picked here as their own basket, and the indices.
+  const pickedTickers = sector.stocks.filter((st) => picks[st.ticker] != null).map((st) => st.ticker);
+  const pickedKey = picksKey(pickedTickers, "equal");
 
   return (
     <div className="flex flex-col gap-5">
@@ -425,6 +431,22 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <ReturnCards
+            range={range}
+            basket={{
+              key: `x:sector=${sector.slug}&w=equal`,
+              label: `${sector.category === "policy" ? "Policy" : "Industry"} basket, ${rangeLong}`,
+              note: `all ${sector.stocks.length} listed stocks · equal weight`,
+            }}
+            picks={pickedKey ? { key: pickedKey, label: `Your ${pickedTickers.length} picked stock${pickedTickers.length > 1 ? "s" : ""}`, tickers: pickedTickers, weighting: "equal" } : null}
+            benches={[{ key: "b:nifty50", label: "Nifty 50" }, ...(sector.indices[0] ? [{ key: `b:${sector.indices[0].id}`, label: sector.indices[0].name }] : [])]}
+          />
+          <Link href={`/baskets/industry/${sector.slug}`} className="self-start py-1 text-xs font-semibold text-accent hover:underline">
+            Open as a basket (market-cap weight, each stock&rsquo;s contribution) &rarr;
+          </Link>
         </div>
 
         <div ref={menusRef} className="relative flex flex-wrap items-center gap-2">
