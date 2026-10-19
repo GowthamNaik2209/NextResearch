@@ -101,6 +101,9 @@ export function BasketDetail(p: BasketDetailProps) {
   const [editing, setEditing] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [sort, setSort] = useState<Sort>("contribution");
+  // The stock table measures weight and contribution within the whole basket, or (once stocks
+  // are picked on the chart) within just those picks, backtested as their own basket.
+  const [scope, setScope] = useState<"all" | "picks">("all");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [loads, setLoads] = useState<Record<string, Load>>({});
@@ -131,15 +134,22 @@ export function BasketDetail(p: BasketDetailProps) {
     weighting,
   );
 
-  // The basket's own backtest feeds the stock rows (the cards load their lines themselves).
+  // With no picks left, the table goes back to the whole basket.
+  const tableScope = scope === "picks" && pickedKey ? "picks" : "all";
+  const tableKey = tableScope === "picks" && pickedKey ? pickedKey : basketKey;
+
+  // The basket's own backtest feeds the stock rows and the left list (the cards load their lines
+  // themselves); the picks' backtest feeds the table when it shows just the picks.
   useEffect(() => {
     if (!tickers.length) return;
-    const id = `${basketKey}|${range}`;
-    if (loads[id]) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the backtest as loading, then fetches it
-    setLoads((m) => ({ ...m, [id]: { status: "loading" } }));
-    loadSeries(basketKey, range).then((r) => setLoads((m) => ({ ...m, [id]: r })));
-  }, [basketKey, range, loads, tickers.length]);
+    for (const key of new Set([basketKey, tableKey])) {
+      const id = `${key}|${range}`;
+      if (loads[id]) continue;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the backtest as loading, then fetches it
+      setLoads((m) => ({ ...m, [id]: { status: "loading" } }));
+      loadSeries(key, range).then((r) => setLoads((m) => ({ ...m, [id]: r })));
+    }
+  }, [basketKey, tableKey, range, loads, tickers.length]);
 
   const at = (key: string) => loads[`${key}|${range}`];
   const bt = at(basketKey);
@@ -148,10 +158,13 @@ export function BasketDetail(p: BasketDetailProps) {
   const byTicker = new Map(stocks.map((s) => [s.ticker, s]));
   const rangeLong = RANGES.find((r) => r.id === range)!.long;
 
-  const rows = [...stocks].sort((a, b) => {
+  const tbt = at(tableKey);
+  const tData = tbt?.status === "ok" ? tbt.data : null;
+  const tHoldings = new Map((tData?.holdings ?? []).map((h) => [h.ticker, h]));
+  const rows = [...(tableScope === "picks" ? picked : stocks)].sort((a, b) => {
     if (sort === "name") return a.name.localeCompare(b.name);
-    const ha = holdings.get(a.ticker);
-    const hb = holdings.get(b.ticker);
+    const ha = tHoldings.get(a.ticker);
+    const hb = tHoldings.get(b.ticker);
     const v = (h: typeof ha) => (!h ? -Infinity : sort === "return" ? h.ret : sort === "weight" ? h.endWeight : h.contribution);
     return v(hb) - v(ha);
   });
@@ -246,7 +259,7 @@ export function BasketDetail(p: BasketDetailProps) {
   const retry = () =>
     setLoads((m) => {
       const rest = { ...m };
-      delete rest[`${basketKey}|${range}`];
+      delete rest[`${tableKey}|${range}`];
       return rest;
     });
 
@@ -475,8 +488,19 @@ export function BasketDetail(p: BasketDetailProps) {
                 <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-ink-soft">
                   <span>
                     <span className="hidden font-semibold text-ink lg:inline">Stock by stock · </span>
-                    Return over the past {rangeLong} · <b className="font-semibold">wt</b> its share of the basket now · <b className="font-semibold">pts</b> what it added to the basket&rsquo;s return
+                    Return over the past {rangeLong} · <b className="font-semibold">wt</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} now ·{" "}
+                    <b className="font-semibold">pts</b> what it added to {tableScope === "picks" ? "your picks\u2019" : "the basket\u2019s"} return
                   </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                  {pickedKey && (
+                    <div role="group" aria-label="Measure within" className="inline-flex rounded-full border border-line bg-panel p-0.5">
+                      {(["all", "picks"] as const).map((v) => (
+                        <button key={v} type="button" aria-pressed={tableScope === v} onClick={() => setScope(v)} className={seg(tableScope === v)}>
+                          {v === "all" ? `All ${stocks.length}` : `Your ${picked.length} pick${picked.length > 1 ? "s" : ""}`}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <label className="flex items-center gap-1.5">
                     Sort by
                     <select aria-label="Sort by" value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="rounded-md border border-line bg-bg px-2 py-1 text-xs text-ink">
@@ -487,13 +511,14 @@ export function BasketDetail(p: BasketDetailProps) {
                       ))}
                     </select>
                   </label>
+                  </div>
                 </div>
                 <ul className="divide-y divide-line rounded-2xl border border-line bg-panel">
                   {rows.map((s) => {
-                    const h = holdings.get(s.ticker);
-                    const ex = btData?.excluded?.find((e) => e.ticker === s.ticker);
+                    const h = tHoldings.get(s.ticker);
+                    const ex = tData?.excluded?.find((e) => e.ticker === s.ticker);
                     const added = p.addPrices[s.ticker];
-                    const last = btData?.last?.[s.ticker];
+                    const last = tData?.last?.[s.ticker];
                     const since = added && last ? (last / added - 1) * 100 : null;
                     return (
                       <li key={s.ticker} className="flex items-start gap-3 px-3 py-3 sm:px-4">
@@ -518,7 +543,7 @@ export function BasketDetail(p: BasketDetailProps) {
                           ) : ex ? (
                             <div className="max-w-[9rem] text-[11px] leading-snug text-ink-soft">{ex.reason === "late" && ex.from ? `Listed ${new Date(ex.from).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}, not in this period` : "No price data"}</div>
                           ) : (
-                            <div className="font-mono text-sm text-ink-soft">{bt?.status === "error" ? "—" : "…"}</div>
+                            <div className="font-mono text-sm text-ink-soft">{tbt?.status === "error" ? "—" : "…"}</div>
                           )}
                           {since != null && <div className="mt-0.5 font-mono text-[11px] text-ink-soft">{pct(since)} since added</div>}
                         </div>
@@ -533,7 +558,7 @@ export function BasketDetail(p: BasketDetailProps) {
                     );
                   })}
                 </ul>
-                {bt?.status === "error" && (
+                {tbt?.status === "error" && (
                   <p className="text-xs text-ink-soft">
                     Couldn&rsquo;t backtest the basket right now.{" "}
                     <button type="button" onClick={retry} className="font-semibold text-accent underline">
