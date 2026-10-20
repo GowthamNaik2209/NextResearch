@@ -104,6 +104,9 @@ export function BasketChart({
   const [hover, setHover] = useState<{ t: string; values: Record<string, number> } | null>(null);
   const theme = useSiteTheme();
   const [query, setQuery] = useState("");
+  // The stocks on the chart when the Stocks menu opened: listed first, so picks made in any
+  // industry are easy to find. Fixed while it is open, so a row never jumps under a tap.
+  const [onTop, setOnTop] = useState<Record<string, number>>({});
   const menusRef = useRef<HTMLDivElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -114,6 +117,7 @@ export function BasketChart({
   const toggleMenu = (name: "compare" | "stocks", btn: HTMLButtonElement) => {
     const row = menusRef.current;
     setMenuLeft(row && window.innerWidth >= 640 ? Math.max(0, Math.min(btn.offsetLeft, row.clientWidth - 384)) : 0);
+    if (name === "stocks" && menu !== "stocks") setOnTop(picks);
     setMenu((m) => (m === name ? null : name));
   };
   useEffect(() => {
@@ -294,7 +298,13 @@ export function BasketChart({
   const etfs = indices.filter((b) => b.via && benches.includes(b.id));
   const compareCount = compare.length + [...indices, ...market].filter((b) => benches.includes(b.id)).length;
   const q = query.trim().toLowerCase();
-  const visible = q ? stocks.filter((s) => s.name.toLowerCase().includes(q) || s.ticker.toLowerCase().includes(q)) : stocks;
+  const ordered = [...stocks].sort((a, b) => {
+    const sa = onTop[a.ticker];
+    const sb = onTop[b.ticker];
+    if (sa != null && sb != null) return sa - sb;
+    return sa != null ? -1 : sb != null ? 1 : 0;
+  });
+  const visible = q ? ordered.filter((s) => s.name.toLowerCase().includes(q) || s.ticker.toLowerCase().includes(q)) : ordered;
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
