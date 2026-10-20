@@ -504,8 +504,15 @@ export function BasketDetail(p: BasketDetailProps) {
               {picked.length > 0 ? "The mark beside a stock is its line on the chart. " : ""}Add or take off lines with the chart&rsquo;s Stocks menu.
             </span>
             <ul className="divide-y divide-line lg:min-h-24 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
+              {/* Stocks on the chart first (in the order their lines were given), then the rest A to Z. */}
               {[...stocks]
-                .sort((a, b) => a.name.localeCompare(b.name))
+                .sort((a, b) => {
+                  const sa = chartSel.picks[a.ticker];
+                  const sb = chartSel.picks[b.ticker];
+                  if (sa != null && sb != null) return sa - sb;
+                  if (sa != null || sb != null) return sa != null ? -1 : 1;
+                  return a.name.localeCompare(b.name);
+                })
                 .map((s) => {
                   const h = holdings.get(s.ticker);
                   const slot = chartSel.picks[s.ticker];
@@ -824,9 +831,15 @@ function StockPicker({
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
+  // Stocks already in the basket list first (as they were when the list opened or the industry
+  // changed, so a row never jumps under a tap), then the rest A to Z.
+  const [pinned, setPinned] = useState<Set<string>>(() => new Set(have));
   const inIndustry = useMemo(
-    () => universe.filter((s) => s.industries.some((i) => i.slug === industry)).sort((a, b) => a.name.localeCompare(b.name)),
-    [universe, industry],
+    () =>
+      universe
+        .filter((s) => s.industries.some((i) => i.slug === industry))
+        .sort((a, b) => Number(pinned.has(b.ticker)) - Number(pinned.has(a.ticker)) || a.name.localeCompare(b.name)),
+    [universe, industry, pinned],
   );
   const f = filter.trim().toLowerCase();
   const matches = f ? inIndustry.filter((s) => s.name.toLowerCase().includes(f) || s.ticker.toLowerCase().includes(f)) : inIndustry;
@@ -852,6 +865,7 @@ function StockPicker({
                 setIndustry(e.target.value);
                 setFilter("");
                 setOpen(true);
+                setPinned(new Set(have));
               }}
               className={"rounded-lg border border-line px-3 py-2 text-base text-ink sm:text-sm " + (bar ? "min-h-[42px] min-w-0 flex-1 bg-panel font-semibold" : "bg-bg")}
             >
@@ -866,7 +880,10 @@ function StockPicker({
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">Stocks</span>
             <button
               type="button"
-              onClick={() => setOpen((o) => !o)}
+              onClick={() => {
+                if (!open) setPinned(new Set(have));
+                setOpen(!open);
+              }}
               aria-haspopup="listbox"
               aria-expanded={open}
               aria-controls="add-stock-list"
