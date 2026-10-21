@@ -79,6 +79,14 @@ export function BasketAnalysis({
       heading={heading}
       title={`Backtest analysis · ${range}${strategyName ? ` · ${strategyName}` : ""}${freq ? ` · ${freq} bars` : ""}`}
       label="Backtest analysis"
+      info={
+        <ul className="flex flex-col gap-1">
+          <li><b>Drawdown</b>: how far below its last high the basket was, and its 5 worst falls.</li>
+          <li><b>Monthly</b>: each calendar month&rsquo;s return.</li>
+          <li><b>Rolling 1Y</b>: the 1-year return through time.</li>
+          <li><b>Capture</b>: how it moved in the Nifty&rsquo;s up and down months.</li>
+        </ul>
+      }
       tools={
         <div role="tablist" aria-label="Analysis view" className={MINI_SEG}>
           {VIEWS.map((v) => (

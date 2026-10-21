@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { InfoTip } from "@/components/InfoTip";
 
 // The dense layout's building block on the basket pages: a flat panel (1px border, small radius)
 // with a small-caps header line holding a title and, on the right, its controls. Everything on
@@ -18,6 +19,7 @@ export function Panel({
   children,
   as: Tag = "section",
   heading: H = "h3",
+  info,
 }: {
   title?: ReactNode;
   /** Controls on the right of the header line. */
@@ -30,12 +32,21 @@ export function Panel({
   as?: "section" | "div";
   /** The title's heading level: h3 inside a page section, h2 when the panel is a section itself. */
   heading?: "h2" | "h3";
+  /** A short explanation behind a small "i" beside the title. */
+  info?: ReactNode;
 }) {
   return (
     <Tag aria-label={label ?? (typeof title === "string" ? title : undefined)} className={PANEL + " " + className}>
       {(title || tools) && (
         <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-line px-3 py-1">
-          {title ? <H className={PANEL_TITLE}>{title}</H> : <span />}
+          {title ? (
+            <div className="flex min-w-0 items-center gap-1.5">
+              <H className={PANEL_TITLE}>{title}</H>
+              {info && <InfoTip label={`About ${label ?? (typeof title === "string" ? title : "this panel")}`}>{info}</InfoTip>}
+            </div>
+          ) : (
+            <span />
+          )}
           {tools && <div className="flex flex-wrap items-center gap-1.5">{tools}</div>}
         </div>
       )}

@@ -653,10 +653,26 @@ export function BasketDetail(p: BasketDetailProps) {
           <div className="flex items-center gap-1.5">
             <span className={ctlLabel + " hidden sm:inline"}>Weight</span>
             {weightingControl}
+            <InfoTip label="What the weightings mean">
+              <ul className="flex flex-col gap-1">
+                <li><b>Equal</b>: every stock the same share.</li>
+                <li><b>M-cap</b>: bigger companies get more, by market cap.</li>
+                <li><b>Capped</b>: by market cap, but no stock above Max stock and no value-chain layer above Max layer.</li>
+                <li><b>Layers</b>: each value-chain layer the same share, split equally between its stocks.</li>
+              </ul>
+            </InfoTip>
           </div>
           <div className="flex items-center gap-1.5">
             <span className={ctlLabel + " hidden sm:inline"}>Rebalance</span>
             {rebalanceControl}
+            <InfoTip label="What the rebalance rules mean">
+              <p className="mb-1">Rebalancing trades every stock back to its target weight.</p>
+              <ul className="flex flex-col gap-1">
+                <li><b>Hold</b>: bought on day one, never traded.</li>
+                <li><b>Monthly</b> / <b>Quarterly</b>: on the first trading day of each month or quarter.</li>
+                <li><b>Drift</b>: only when a stock moves more than the Band above or below its target.</li>
+              </ul>
+            </InfoTip>
           </div>
           <div className="flex items-center gap-1.5">
             <span className={ctlLabel + " hidden sm:inline"}>Period</span>
@@ -723,6 +739,13 @@ export function BasketDetail(p: BasketDetailProps) {
                   title={`Performance · past ${rangeLong} · ${strategyShort(strategy)}`}
                   label="Chart"
                   bodyClassName="p-3"
+                  info={
+                    <>
+                      Every line starts at 0% on the first day, so their ends compare directly. <b>Compare with</b> adds up to 3 indices or industry
+                      baskets; <b>Stocks</b> draws single stocks. Pinch, or use + and −, to zoom; drag sideways to move.
+                      {rebalanced && " vs bought and held also draws the same basket never rebalanced."}
+                    </>
+                  }
                   tools={
                     rebalanced && (
                       <button type="button" aria-pressed={vsHeld} onClick={() => setVsHeld((v) => !v)} className={MINI_SEG + " " + segBtn(vsHeld) + " font-sans"}>
@@ -752,6 +775,12 @@ export function BasketDetail(p: BasketDetailProps) {
                   heading={heading}
                   title={`Holdings · ${tableScope === "picks" ? `your ${picked.length} picks` : `${stocks.length} stocks`}`}
                   label="Stocks in this basket"
+                  info={
+                    <>
+                      <b>Wt</b>: the stock&rsquo;s share of the basket now. <b>Return</b>: its own price change. <b>Pts</b>: what it added to the
+                      basket&rsquo;s return. <b>Breakdown</b> shows the same as charts.
+                    </>
+                  }
                   tools={
                     <>
                       {pickedKey && (
@@ -1164,7 +1193,13 @@ function StockPicker({
             </select>
           </label>
           <div className={"flex min-w-0 gap-1 " + (bar ? "flex-col sm:flex-1 sm:flex-row sm:items-center sm:gap-2" : "flex-col sm:flex-1 lg:w-full")}>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">Stocks</span>
+            <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-soft">
+              Stocks
+              <InfoTip label="How to add stocks">
+                Pick an industry, then add its stocks one by one or all at once. Switching industry keeps adding to the same basket, so one basket can
+                mix several (up to {MAX_STOCKS} stocks).
+              </InfoTip>
+            </span>
             <button
               type="button"
               onClick={() => {
@@ -1252,7 +1287,10 @@ function StockPicker({
       {liked.length > 0 && (
         <div>
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">From your watchlist</span>
+            <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-soft">
+              From your watchlist
+              <InfoTip label="About From your watchlist">Stocks you saved with the heart, one tap to add. Only those not already in the basket show here.</InfoTip>
+            </span>
             {liked.length > 1 && (
               <button type="button" disabled={full} onClick={() => onAdd(liked.map((s) => s.ticker))} className="-my-2 px-1 py-2 text-xs font-semibold text-accent hover:underline">
                 Add all {liked.length}

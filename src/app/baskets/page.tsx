@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { InfoTip } from "@/components/InfoTip";
 import { BasketIdeas } from "@/components/baskets/BasketIdeas";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -61,9 +62,15 @@ export default async function BasketsPage() {
         {/* Order: ready-made ideas first, then your own (create + saved), then the industry and policy baskets. */}
         <section aria-labelledby="ideas-h" id="ideas" className="flex scroll-mt-20 flex-col gap-2">
           <div>
-            <h2 id="ideas-h" className="font-display text-lg font-bold text-ink sm:text-xl">
-              Basket ideas
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 id="ideas-h" className="font-display text-lg font-bold text-ink sm:text-xl">
+                Basket ideas
+              </h2>
+              <InfoTip label="About basket ideas">
+                Ready-made lists, re-ranked every day from the latest closes. Open one to chart it, then save it as your own basket. Past returns, not a
+                recommendation.
+              </InfoTip>
+            </div>
             <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Ready-made lists, re-ranked every day. Open one to chart it, then save it as your own basket.</p>
           </div>
           <BasketIdeas />
@@ -99,9 +106,15 @@ export default async function BasketsPage() {
 
         <section aria-labelledby="industry-h" className="mt-4 flex flex-col gap-2">
           <div>
-            <h2 id="industry-h" className="font-display text-lg font-bold text-ink sm:text-xl">
-              Industry &amp; policy baskets
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 id="industry-h" className="font-display text-lg font-bold text-ink sm:text-xl">
+                Industry &amp; policy baskets
+              </h2>
+              <InfoTip label="What the columns mean">
+                <b>1Y</b>: return over the past year, bought and held at equal weight. <b>Max DD</b>: the deepest fall from a high in that year.{" "}
+                <b>vs Nifty</b>: the basket&rsquo;s return minus the Nifty 50&rsquo;s, in percentage points. Tap a column heading to sort.
+              </InfoTip>
+            </div>
             <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock each industry or policy maps, equal weight. Tap a column heading to sort.</p>
           </div>
           <BasketsSummary mineCount={user && !mineFailed ? mine.length : null} />
