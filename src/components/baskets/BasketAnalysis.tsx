@@ -32,6 +32,7 @@ const tone = (v: number | null | undefined) => (v == null ? "text-ink-soft" : v 
 export function BasketAnalysis({
   range,
   basketKey,
+  strategyName,
   benchKey = "b:nifty50",
   benchName = "Nifty 50",
   heading = "h2",
@@ -39,6 +40,8 @@ export function BasketAnalysis({
 }: {
   range: ChartRange;
   basketKey: string;
+  /** The strategy the backtest ran ("Equal · monthly"), named in the title. */
+  strategyName?: string;
   benchKey?: string;
   benchName?: string;
   heading?: "h2" | "h3";
@@ -74,7 +77,7 @@ export function BasketAnalysis({
   return (
     <Panel
       heading={heading}
-      title={`Backtest analysis · ${range}${freq ? ` · ${freq} bars` : ""}`}
+      title={`Backtest analysis · ${range}${strategyName ? ` · ${strategyName}` : ""}${freq ? ` · ${freq} bars` : ""}`}
       label="Backtest analysis"
       tools={
         <div role="tablist" aria-label="Analysis view" className={MINI_SEG}>

@@ -27,26 +27,38 @@ export type BacktestResult = {
 
 const DAY = 86_400_000;
 
+export type BacktestInput = { ticker: string; weight: number; points: PricePoint[] | null };
+export type HeldInput = { ticker: string; weight: number; points: PricePoint[] };
+
 /**
- * @param input each stock's target weight (any positive scale) and its closes, oldest first
- * @param slackDays a stock whose history starts more than this long after the earliest one
- *   (listed mid-period) can't have been bought on day one, so it is left out and reported
+ * The stocks a backtest can hold from day one, and the rest with the reason: no price data, or a
+ * history that starts more than `slackDays` after the earliest one (listed mid-period).
  */
-export function runBacktest(input: { ticker: string; weight: number; points: PricePoint[] | null }[], slackDays: number): BacktestResult {
+export function splitHeld(input: BacktestInput[], slackDays: number): { held: HeldInput[]; excluded: BacktestExcluded[] } {
   const excluded: BacktestExcluded[] = [];
   const withData = input.filter((s) => {
     const ok = !!s.points && s.points.length > 1 && s.weight > 0;
     if (!ok) excluded.push({ ticker: s.ticker, reason: "no-data" });
     return ok;
-  }) as { ticker: string; weight: number; points: PricePoint[] }[];
-  if (!withData.length) return { points: [], holdings: [], excluded };
-
+  }) as HeldInput[];
+  if (!withData.length) return { held: [], excluded };
   const start = withData.reduce((m, s) => (s.points[0].t < m ? s.points[0].t : m), withData[0].points[0].t);
   const held = withData.filter((s) => {
     const late = Date.parse(s.points[0].t) - Date.parse(start) > slackDays * DAY;
     if (late) excluded.push({ ticker: s.ticker, reason: "late", from: s.points[0].t });
     return !late;
   });
+  return { held, excluded };
+}
+
+/**
+ * @param input each stock's target weight (any positive scale) and its closes, oldest first
+ * @param slackDays a stock whose history starts more than this long after the earliest one
+ *   (listed mid-period) can't have been bought on day one, so it is left out and reported
+ */
+export function runBacktest(input: BacktestInput[], slackDays: number): BacktestResult {
+  const { held, excluded } = splitHeld(input, slackDays);
+  if (!held.length) return { points: [], holdings: [], excluded };
   const total = held.reduce((n, s) => n + s.weight, 0);
 
   // Walk the union of trading dates, carrying each stock's last close forward over days it has

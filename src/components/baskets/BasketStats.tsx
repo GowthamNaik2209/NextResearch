@@ -4,10 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import type { ChartRange } from "@/lib/live/yahoo";
 import { relativeStats, seriesStats } from "@/lib/baskets/stats";
 import { basketCsv, csvFileName, type CsvStock } from "@/lib/baskets/csv";
+import { isPlainHold, rebalanceLabel, strategyShort, weightingLabel, type Strategy } from "@/lib/baskets/strategy";
 import { loadSeries, type Load } from "./series";
 
 // The stats grid under the return cards: risk and return of the basket's backtest over the
-// chosen range, and how it moved against the Nifty 50. A flat, dense panel of mono figures; the
+// chosen range and strategy (named in the title), how it moved against the Nifty 50 and, when it
+// is rebalanced, the trading that took. A flat, dense panel of mono figures; the
 // CSV export sits in its header because it writes out exactly these numbers and the holdings.
 const BENCH = { key: "b:nifty50", name: "Nifty 50" };
 
@@ -34,7 +36,7 @@ export function BasketStats({
   range,
   basketKey,
   name,
-  weighting,
+  strategy,
   stocks,
   compact = false,
   scope,
@@ -44,7 +46,7 @@ export function BasketStats({
   range: ChartRange;
   basketKey: string;
   name: string;
-  weighting: "equal" | "mcap";
+  strategy: Strategy;
   stocks: CsvStock[];
   /** Two columns, for the basket page's side column. */
   compact?: boolean;
@@ -79,6 +81,9 @@ export function BasketStats({
 
   if (b?.status === "error") return null;
   const loading = !basket;
+  // Years the range covers, for turnover a year (none under a year, where it would mislead).
+  const span = basket && basket.points.length > 1 ? (Date.parse(basket.points[basket.points.length - 1].t) - Date.parse(basket.points[0].t)) / (365.25 * 86_400_000) : 0;
+  const years = span >= 0.95 ? span : null;
   const freq = s?.periodsPerYear === 52 ? "weekly" : s?.periodsPerYear === 12 ? "monthly" : "daily";
 
   const exportCsv = () => {
@@ -86,7 +91,7 @@ export function BasketStats({
     const csv = basketCsv({
       name,
       range,
-      weighting,
+      strategy,
       benchName: BENCH.name,
       points: basket.points,
       bench,
@@ -95,12 +100,15 @@ export function BasketStats({
       holdings: basket.holdings ?? [],
       excluded: basket.excluded,
       stocks,
+      turnover: basket.turnover,
+      trades: basket.trades,
+      rebalances: basket.rebalances,
       exportedAt: new Date(),
     });
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = csvFileName(name, range);
+    a.download = csvFileName(name, range, isPlainHold(strategy) ? undefined : strategyShort(strategy));
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -190,6 +198,22 @@ export function BasketStats({
           sub: s.months ? `${Math.round((s.upMonths / s.months) * 100)}% of months` : "under a month",
           help: "Calendar months the basket ended higher than the month before, out of the months in the range.",
         },
+        ...(strategy.rebalance === "never"
+          ? []
+          : [
+              {
+                label: "Turnover",
+                value: basket?.turnover != null ? `${basket.turnover.toFixed(0)}%` : "—",
+                sub: basket?.turnover != null && years ? `${(basket.turnover / years).toFixed(0)}% a year` : "one way, total",
+                help: "Share of the basket bought and sold to get back to the target weights, counted one way and added up over every rebalance. Each 100% means trading the whole basket once.",
+              },
+              {
+                label: "Trades",
+                value: basket?.trades != null ? String(basket.trades) : "—",
+                sub: `${basket?.rebalances?.length ?? 0} rebalance${basket?.rebalances?.length === 1 ? "" : "s"}`,
+                help: "Buys and sells across all the rebalances (the first day's purchase not counted). No costs are taken off the return: brokerage, taxes and slippage would lower it.",
+              },
+            ]),
       ]
     : [];
 
@@ -197,7 +221,7 @@ export function BasketStats({
     <section aria-label="Backtest statistics" className="rounded-md border border-line bg-panel">
       <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-1.5">
         <H className="text-[10px] font-semibold uppercase tracking-wider text-ink-soft sm:text-[11px]">
-          Statistics{scope ? ` · ${scope}` : ""} · {range}
+          Statistics{scope ? ` · ${scope}` : ""} · {range} · <span title={`${weightingLabel(strategy)}, ${rebalanceLabel(strategy)}`}>{strategyShort(strategy)}</span>
           {s ? ` · ${freq} bars` : ""}
         </H>
         <button

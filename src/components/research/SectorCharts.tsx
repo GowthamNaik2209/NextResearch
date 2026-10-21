@@ -405,7 +405,7 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
   // The same return cards as the basket pages: the industry's listed stocks as one equal-weight
   // basket, the stocks picked here as their own basket, and the indices.
   const pickedTickers = sector.stocks.filter((st) => picks[st.ticker] != null).map((st) => st.ticker);
-  const pickedKey = picksKey(pickedTickers, "equal");
+  const pickedKey = picksKey(pickedTickers, "w=equal");
 
   const returnsId = `${basketKey}|${range}`;
   const stockRet = returns?.id === returnsId ? returns.ret : null;
@@ -478,7 +478,7 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
               label: `${sector.category === "policy" ? "Policy" : "Industry"} basket, ${rangeLong}`,
               note: `all ${sector.stocks.length} listed stocks · equal weight`,
             }}
-            picks={pickedKey ? { key: pickedKey, label: `Your ${pickedTickers.length} picked stock${pickedTickers.length > 1 ? "s" : ""}`, tickers: pickedTickers, weighting: "equal" } : null}
+            picks={pickedKey ? { key: pickedKey, label: `Your ${pickedTickers.length} picked stock${pickedTickers.length > 1 ? "s" : ""}`, tickers: pickedTickers, strategy: "equal weight" } : null}
             benches={[{ key: "b:nifty50", label: "Nifty 50" }]}
           />
         </div>

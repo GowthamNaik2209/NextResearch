@@ -24,7 +24,7 @@ const RANGE = "1Y" as const;
 const BENCH = "b:nifty50";
 const MAX_INFLIGHT = 4;
 
-const keyOf = (r: BasketRow) => (r.kind === "saved" ? `x:${savedBasketQuery(r.id, r.weighting, r.tickers)}` : `x:sector=${r.slug}&w=equal`);
+const keyOf = (r: BasketRow) => (r.kind === "saved" ? `x:${savedBasketQuery(r.id, `w=${r.weighting}`, r.tickers)}` : `x:sector=${r.slug}&w=equal`);
 const hrefOf = (r: BasketRow) => (r.kind === "saved" ? `/baskets/${r.id}` : `/baskets/industry/${r.slug}`);
 const countOf = (r: BasketRow) => (r.kind === "saved" ? r.tickers.length : r.count);
 

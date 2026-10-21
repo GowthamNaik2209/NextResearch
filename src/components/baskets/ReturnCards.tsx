@@ -10,13 +10,16 @@ import { loadSeries, type Load } from "./series";
 // basket. The basket pages and the Analysis charts both use it, so they read the same.
 export type CardLine = { key: string; label: string; note?: string };
 
-/** Backtest key for the stocks picked in a chart, or null when none are. Sorted, so order doesn't matter. */
-export function picksKey(tickers: string[], weighting: "equal" | "mcap"): string | null {
+/**
+ * Backtest key for the stocks picked in a chart, or null when none are. Sorted, so order doesn't
+ * matter. `strategy` is the strategy's query ("w=equal", or with rebalancing: see strategy.ts).
+ */
+export function picksKey(tickers: string[], strategy: string): string | null {
   if (!tickers.length) return null;
   return `x:tickers=${tickers
     .map((t) => encodeURIComponent(t))
     .sort()
-    .join(",")}&w=${weighting}`;
+    .join(",")}&${strategy}`;
 }
 
 // The figure a card displays, so the gap between two cards matches their numbers (−5.4 vs −5.5 is 0.1).
@@ -32,8 +35,8 @@ export function ReturnCards({
 }: {
   range: ChartRange;
   basket: CardLine;
-  /** The picked stocks' backtest, with the tickers and weighting named under the figure. */
-  picks: (CardLine & { tickers: string[]; weighting: "equal" | "mcap" }) | null;
+  /** The picked stocks' backtest, with the tickers and strategy ("Equal · held") named in its tooltip. */
+  picks: (CardLine & { tickers: string[]; strategy: string }) | null;
   benches: CardLine[];
   /** The basket pages' flat strip (full width, square cells); the Analysis charts keep the cards. */
   dense?: boolean;
@@ -96,7 +99,7 @@ export function ReturnCards({
           diff={gap(p.value, true)}
           note={p.note}
           dense={dense}
-          title={`${picks.tickers.join(", ")} · ${picks.weighting === "mcap" ? "market-cap" : "equal"} weight`}
+          title={`${picks.tickers.join(", ")} · ${picks.strategy}`}
         />
       )}
       {benches.map((line) => {

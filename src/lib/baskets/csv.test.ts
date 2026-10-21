@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { basketCsv, csvFileName } from "./csv";
 import { relativeStats, seriesStats } from "./stats";
+import { heldStrategy } from "./strategy";
 
 const points = [
   { t: "2026-01-01", c: 100 },
@@ -18,7 +19,7 @@ test("stats, holdings and the rebased value line, with commas and quotes escaped
   const csv = basketCsv({
     name: 'EV, "4W" basket',
     range: "1Y",
-    weighting: "equal",
+    strategy: heldStrategy("equal"),
     benchName: "Nifty 50",
     points,
     bench,
@@ -39,6 +40,8 @@ test("stats, holdings and the rebased value line, with commas and quotes escaped
   const lines = csv.trim().split("\r\n");
   assert.equal(lines[0], 'Basket,"EV, ""4W"" basket"');
   assert.ok(lines.includes("Return %,5"));
+  assert.ok(lines.includes("Weighting,Equal weight") && lines.includes("Rebalancing,bought and held"));
+  assert.ok(!lines.some((l) => l.startsWith("Rebalance")));
   assert.ok(lines.includes("Max drawdown %,-4.5455"));
   // Holdings sorted by contribution, empty cells for missing figures.
   const a = lines.findIndex((l) => l.startsWith("A,"));
@@ -52,12 +55,38 @@ test("stats, holdings and the rebased value line, with commas and quotes escaped
 });
 
 test("no benchmark: a two-column value line", () => {
-  const csv = basketCsv({ name: "X", range: "1M", weighting: "mcap", benchName: "Nifty 50", points, bench: null, stats: null, rel: null, holdings: [], stocks: [], exportedAt: new Date() });
+  const csv = basketCsv({ name: "X", range: "1M", strategy: heldStrategy("mcap"), benchName: "Nifty 50", points, bench: null, stats: null, rel: null, holdings: [], stocks: [], exportedAt: new Date() });
   assert.ok(csv.includes("Date,Basket (100 = start)\r\n"));
   assert.ok(csv.trim().endsWith("2026-01-05,105"));
 });
 
+test("a rebalanced basket names its strategy and lists each rebalance", () => {
+  const csv = basketCsv({
+    name: "X",
+    range: "5Y",
+    strategy: { weighting: "capped", rebalance: "monthly", band: 5, cap: 15, layerCap: 35 },
+    benchName: "Nifty 50",
+    points,
+    bench: null,
+    stats: null,
+    rel: null,
+    holdings: [{ ticker: "A", weight: 1, endWeight: 1, ret: 5, contribution: 5 }],
+    stocks: [],
+    turnover: 12.5,
+    trades: 4,
+    rebalances: [{ t: "2026-01-05T00:00:00Z", turnover: 12.5, trades: 4 }],
+    exportedAt: new Date(),
+  });
+  const lines = csv.trim().split("\r\n");
+  assert.ok(lines.includes('Weighting,"Capped market cap (max 15% a stock, 35% a layer)"'));
+  assert.ok(lines.includes("Rebalancing,rebalanced monthly"));
+  assert.ok(lines.includes("Trades,4") && lines.includes("Turnover % (one way),12.5"));
+  assert.ok(lines.some((l) => l.startsWith("Ticker,Name,Layer,Target weight %")));
+  assert.ok(lines.includes("2026-01-05,12.5,4"));
+});
+
 test("file name", () => {
+  assert.equal(csvFileName("EV 4W basket", "5Y", "Equal · monthly"), "ev-4w-basket-5Y-equal-monthly.csv");
   assert.equal(csvFileName("EV 4W basket", "1Y"), "ev-4w-basket-1Y.csv");
   assert.equal(csvFileName("!!!", "5Y"), "basket-5Y.csv");
 });
