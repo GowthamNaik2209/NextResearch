@@ -4,7 +4,8 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } f
 
 // A small "i" button that opens a short explanation on tap or click (title tooltips never show on
 // a phone). The note is fixed-positioned under the button and kept 16px inside the screen; a tap
-// outside, Escape or a second tap closes it.
+// outside, Escape, a second tap or scrolling the page closes it (so it never slides under the
+// sticky header).
 export function InfoTip({ label, children }: { label: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
@@ -21,11 +22,15 @@ export function InfoTip({ label, children }: { label: string; children: ReactNod
       setPos({ top: r.bottom + 6, left, width });
     };
     place();
+    // A scroll inside the note itself is fine; the page scrolling closes it.
+    const onScroll = (e: Event) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
     window.addEventListener("resize", place);
-    window.addEventListener("scroll", place, true);
+    window.addEventListener("scroll", onScroll, true);
     return () => {
       window.removeEventListener("resize", place);
-      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("scroll", onScroll, true);
     };
   }, [open]);
 

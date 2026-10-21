@@ -111,7 +111,7 @@ export default async function BasketsPage() {
                 Industry &amp; policy baskets
               </h2>
               <InfoTip label="What the columns mean">
-                <b>1Y</b>: return over the past year, bought and held at equal weight. <b>Max DD</b>: the deepest fall from a high in that year.{" "}
+                <b>1Y</b>: return over the past year, bought and held at equal weight. <b>Max DD</b> (tablet and up): the deepest fall from a high in that year.{" "}
                 <b>vs Nifty</b>: the basket&rsquo;s return minus the Nifty 50&rsquo;s, in percentage points. Tap a column heading to sort.
               </InfoTip>
             </div>

@@ -20,6 +20,7 @@ export function Panel({
   as: Tag = "section",
   heading: H = "h3",
   info,
+  infoLabel,
 }: {
   title?: ReactNode;
   /** Controls on the right of the header line. */
@@ -34,6 +35,8 @@ export function Panel({
   heading?: "h2" | "h3";
   /** A short explanation behind a small "i" beside the title. */
   info?: ReactNode;
+  /** The "i" button's accessible name; defaults to "About <label or title>". */
+  infoLabel?: string;
 }) {
   return (
     <Tag aria-label={label ?? (typeof title === "string" ? title : undefined)} className={PANEL + " " + className}>
@@ -42,7 +45,7 @@ export function Panel({
           {title ? (
             <div className="flex min-w-0 items-center gap-1.5">
               <H className={PANEL_TITLE}>{title}</H>
-              {info && <InfoTip label={`About ${label ?? (typeof title === "string" ? title : "this panel")}`}>{info}</InfoTip>}
+              {info && <InfoTip label={infoLabel ?? `About ${label ?? (typeof title === "string" ? title : "this panel")}`}>{info}</InfoTip>}
             </div>
           ) : (
             <span />

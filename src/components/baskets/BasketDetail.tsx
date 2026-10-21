@@ -739,6 +739,7 @@ export function BasketDetail(p: BasketDetailProps) {
                   title={`Performance · past ${rangeLong} · ${strategyShort(strategy)}`}
                   label="Chart"
                   bodyClassName="p-3"
+                  infoLabel="About the chart"
                   info={
                     <>
                       Every line starts at 0% on the first day, so their ends compare directly. <b>Compare with</b> adds up to 3 indices or industry
@@ -775,6 +776,7 @@ export function BasketDetail(p: BasketDetailProps) {
                   heading={heading}
                   title={`Holdings · ${tableScope === "picks" ? `your ${picked.length} picks` : `${stocks.length} stocks`}`}
                   label="Stocks in this basket"
+                  infoLabel="About the holdings"
                   info={
                     <>
                       <b>Wt</b>: the stock&rsquo;s share of the basket now. <b>Return</b>: its own price change. <b>Pts</b>: what it added to the

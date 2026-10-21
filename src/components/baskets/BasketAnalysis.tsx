@@ -79,6 +79,7 @@ export function BasketAnalysis({
       heading={heading}
       title={`Backtest analysis · ${range}${strategyName ? ` · ${strategyName}` : ""}${freq ? ` · ${freq} bars` : ""}`}
       label="Backtest analysis"
+      infoLabel="About the backtest analysis"
       info={
         <ul className="flex flex-col gap-1">
           <li><b>Drawdown</b>: how far below its last high the basket was, and its 5 worst falls.</li>
