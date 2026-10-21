@@ -17,6 +17,8 @@ export type BasketStock = {
   name: string;
   /** Market cap in Rs Cr from the content's last extract (used for cap weighting). */
   mcapCr: number | null;
+  /** Price to earnings from the same extract (null when loss-making or not reported). */
+  pe: number | null;
   /** The company's strongest role and the layer it plays it in. */
   role: string;
   layer: string;
@@ -39,6 +41,12 @@ const parseCr = (s?: string) => {
   return Number.isFinite(n) ? n : null;
 };
 
+// kpi is [pe, bookValue, divYield, roce, roe, faceValue]; a P/E at or below zero is a loss, not a multiple.
+const peOf = (kpi?: (number | null)[] | null) => {
+  const v = kpi?.[0];
+  return typeof v === "number" && Number.isFinite(v) && v > 0 ? v : null;
+};
+
 const stockCache = new Map<string, BasketStock | null>();
 
 /** The basket record for any listed ticker in the content, or null for an unknown one. */
@@ -56,6 +64,7 @@ export function basketStock(ticker: string): BasketStock | null {
       ticker,
       name: page.name,
       mcapCr: parseCr(page.supplier.f?.mcap ?? sup.f?.mcap),
+      pe: peOf(page.supplier.f?.kpi ?? sup.f?.kpi),
       role: primary.role,
       layer: primary.zoneLabel,
       industries,

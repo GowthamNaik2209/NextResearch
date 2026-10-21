@@ -4,7 +4,8 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { BasketIdeas } from "@/components/baskets/BasketIdeas";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { basketStock } from "@/lib/baskets/industry";
+import { basketStock, listIndustryBaskets } from "@/lib/baskets/industry";
+import { BasketsPanel, BasketsSummary, type IndustryRow, type SavedRow } from "@/components/baskets/BasketsTable";
 
 export const metadata = {
   title: "Stock baskets: build your own from any mix of Indian industries",
@@ -28,79 +29,66 @@ export default async function BasketsPage() {
         })
     : [];
 
+  // Plain rows for the tables (figures load in the browser). Tickers the content no longer lists
+  // are left out, as on the basket page, so both read the same backtest.
+  const mineRows: SavedRow[] = mine.map((b) => {
+    const stocks = b.items.map((i) => basketStock(i.ticker)).filter((s) => s !== null);
+    return {
+      kind: "saved",
+      id: b.id,
+      name: b.name,
+      isPublic: b.isPublic,
+      weighting: b.weighting === "MCAP" ? "mcap" : "equal",
+      tickers: stocks.map((s) => s.ticker),
+      names: stocks.map((s) => s.name),
+    };
+  });
+  const industryRows: IndustryRow[] = listIndustryBaskets().map((b) => ({ kind: "industry", slug: b.slug, name: b.name, category: b.category, count: b.stocks.length }));
+
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-10 px-5 py-14">
-        <div>
-          <h1 className="font-display text-3xl font-bold text-ink">Baskets</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            A basket is a group of stocks you follow as one. Create one from any mix of industries and your watchlist, or start
-            from one of today&rsquo;s basket ideas and save it as yours. Each one is backtested against the Nifty 50, with indices
-            and industries a tap away to compare. For tracking and research only: nothing here places trades.
-          </p>
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 px-5 py-14 lg:max-w-7xl">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Baskets</h1>
+            <p className="mt-1.5 max-w-3xl text-xs leading-relaxed text-ink-soft sm:text-sm">
+              A basket is a group of stocks you follow as one. Create one from any mix of industries and your watchlist, or start
+              from one of today&rsquo;s basket ideas and save it as yours. Each one is backtested against the Nifty 50, with indices
+              and industries a tap away to compare. For tracking and research only: nothing here places trades.
+            </p>
+          </div>
+          <Link href={user ? "/baskets/new" : "/login?next=/baskets/new"} className="inline-flex min-h-10 flex-none items-center rounded-md bg-accent px-4 text-sm font-semibold text-bg hover:opacity-90">
+            Create basket
+          </Link>
         </div>
 
-        <section aria-labelledby="mine" className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 id="mine" className="font-display text-xl font-bold text-ink">
-              Your baskets
-            </h2>
-            <Link href={user ? "/baskets/new" : "/login?next=/baskets/new"} className="inline-flex min-h-10 items-center rounded-lg bg-accent px-4 text-sm font-semibold text-bg hover:opacity-90">
-              Create basket
-            </Link>
-          </div>
-          {!user ? (
-            <div className="rounded-2xl border border-line bg-panel p-6 text-sm text-ink-soft">
-              <Link href="/login?next=/baskets" className="font-semibold text-accent hover:underline">
-                Sign in
-              </Link>{" "}
-              to create your own baskets, build them from your watchlist and share them by link. The basket ideas below are open to everyone.
-            </div>
-          ) : mineFailed ? (
-            <div className="rounded-2xl border border-line bg-panel p-6 text-sm text-ink-soft">
-              Your saved baskets couldn&rsquo;t load right now. Reload in a moment; the basket ideas below still work.
-            </div>
-          ) : mine.length === 0 ? (
-            <div className="rounded-2xl border border-line bg-panel p-6 text-sm text-ink-soft">
-              No baskets yet. Tap &ldquo;Create basket&rdquo; to build one from any mix of industries, or save one of the ideas below.
-            </div>
-          ) : (
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {mine.map((b) => {
-                const names = b.items.map((i) => basketStock(i.ticker)?.name).filter(Boolean);
-                return (
-                  <li key={b.id}>
-                    <Link href={`/baskets/${b.id}`} className="flex h-full flex-col gap-2 rounded-2xl border border-line bg-panel p-4 transition hover:border-accent">
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="min-w-0 break-words font-semibold text-ink">{b.name}</span>
-                        <span className={"flex-none rounded-full border px-2 py-0.5 text-[10px] font-semibold " + (b.isPublic ? "border-accent text-accent" : "border-line text-ink-soft")}>
-                          {b.isPublic ? "Shared" : "Private"}
-                        </span>
-                      </div>
-                      <span className="text-xs text-ink-soft">
-                        {b.items.length} {b.items.length === 1 ? "stock" : "stocks"} · {b.weighting === "MCAP" ? "market-cap weighted" : "equal weight"}
-                      </span>
-                      {names.length > 0 && (
-                        <span className="line-clamp-2 text-xs text-ink-soft">
-                          {names.slice(0, 4).join(", ")}
-                          {names.length > 4 ? ` and ${names.length - 4} more` : ""}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
+        <BasketsSummary mineCount={user && !mineFailed ? mine.length : null} />
 
-        <section aria-labelledby="ideas-h" id="ideas" className="flex scroll-mt-20 flex-col gap-4">
+        <div className="grid items-start gap-4 lg:grid-cols-2">
+          <BasketsPanel title="Your baskets" rows={mineRows}>
+            {!user ? (
+              <>
+                <Link href="/login?next=/baskets" className="font-semibold text-accent hover:underline">
+                  Sign in
+                </Link>{" "}
+                to create your own baskets, build them from your watchlist and share them by link. The basket ideas below are open to everyone.
+              </>
+            ) : mineFailed ? (
+              <>Your saved baskets couldn&rsquo;t load right now. Reload in a moment; the basket ideas below still work.</>
+            ) : (
+              <>No baskets yet. Tap &ldquo;Create basket&rdquo; to build one from any mix of industries, or save one of the ideas below.</>
+            )}
+          </BasketsPanel>
+          <BasketsPanel title="Industry & policy baskets" rows={industryRows} initialSort="ret" />
+        </div>
+
+        <section aria-labelledby="ideas-h" id="ideas" className="mt-4 flex scroll-mt-20 flex-col gap-2">
           <div>
-            <h2 id="ideas-h" className="font-display text-xl font-bold text-ink">
+            <h2 id="ideas-h" className="font-display text-lg font-bold text-ink sm:text-xl">
               Basket ideas
             </h2>
-            <p className="mt-1 text-sm text-ink-soft">Ready-made lists, re-ranked every day. Open one to chart it, then save it as your own basket.</p>
+            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Ready-made lists, re-ranked every day. Open one to chart it, then save it as your own basket.</p>
           </div>
           <BasketIdeas />
         </section>
