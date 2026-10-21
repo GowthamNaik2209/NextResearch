@@ -228,7 +228,7 @@ export function BasketStats({
           type="button"
           onClick={exportCsv}
           disabled={!basket}
-          className="min-h-8 rounded border border-line px-2 text-[11px] font-semibold text-ink hover:border-accent disabled:opacity-40 pointer-coarse:min-h-9"
+          className="min-h-8 flex-none whitespace-nowrap rounded border border-line px-2 text-[11px] font-semibold text-ink hover:border-accent disabled:opacity-40 pointer-coarse:min-h-9"
         >
           Export CSV
         </button>
@@ -250,8 +250,14 @@ export function BasketStats({
           </dl>
         </div>
       )}
-      <details className="px-3 py-1.5 text-[11px] text-ink-soft">
-        <summary className="cursor-pointer select-none">What these mean</summary>
+      <details className="group px-3 pb-1.5 text-[11px] text-ink-soft">
+        {/* A flex summary drops the browser's triangle, so it draws its own; tall enough to tap. */}
+        <summary className="flex min-h-8 cursor-pointer select-none list-none items-center gap-1 pointer-coarse:min-h-9 [&::-webkit-details-marker]:hidden">
+          <span aria-hidden className="inline-block text-[9px] transition-transform group-open:rotate-90">
+            ▶
+          </span>
+          What these mean
+        </summary>
         <ul className="mt-1 flex flex-col gap-0.5 leading-snug">
           {cells.map((c) => (
             <li key={c.label}>

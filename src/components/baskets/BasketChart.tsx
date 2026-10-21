@@ -447,11 +447,11 @@ export function BasketChart({
                 </svg>
                 <span className="min-w-0 flex-1">
                   {line.stock ? (
-                    <StockLink ticker={line.stock} className="block truncate font-medium text-accent hover:underline">
+                    <StockLink ticker={line.stock} title={line.name} className="line-clamp-2 break-words font-medium leading-snug text-accent hover:underline">
                       {line.name}
                     </StockLink>
                   ) : (
-                    <span className={"block truncate text-ink " + (mine ? "font-semibold" : "")}>{line.name}</span>
+                    <span title={line.name} className={"line-clamp-2 break-words leading-snug text-ink " + (mine ? "font-semibold" : "")}>{line.name}</span>
                   )}
                   {sub && <span className="block text-[10px] leading-snug text-ink-soft">{sub}</span>}
                 </span>

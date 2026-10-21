@@ -5,7 +5,8 @@ import { InfoTip } from "@/components/InfoTip";
 // with a small-caps header line holding a title and, on the right, its controls. Everything on
 // the baskets and backtest pages sits in one of these so the pages read as one terminal-like grid.
 export const PANEL = "min-w-0 rounded-md border border-line bg-panel";
-export const PANEL_TITLE = "truncate text-[10px] font-semibold uppercase tracking-wider text-ink-soft sm:text-[11px]";
+// Titles wrap on a narrow phone rather than cut off ("Backtest analysis · 1Y · Equal, monthly · daily bars").
+export const PANEL_TITLE = "min-w-0 break-words leading-snug text-[10px] font-semibold uppercase tracking-wider text-ink-soft sm:text-[11px]";
 /** A small segmented control inside a panel header (Table / Breakdown, All / Your picks). */
 export const MINI_SEG = "inline-flex flex-none overflow-hidden rounded border border-line bg-bg";
 export const miniSegBtn = (on: boolean) => "min-h-9 px-2 text-[11px] font-semibold sm:min-h-6 pointer-coarse:min-h-9 " + (on ? "bg-ink text-bg" : "text-ink-soft hover:text-ink");

@@ -201,6 +201,12 @@ export function BasketDetail(p: BasketDetailProps) {
   const compareKey = p.compareSlug && !(p.mode === "industry" && p.compareSlug === p.id) ? `x:sector=${p.compareSlug}&${sq}` : null;
   // Kept here, above the chart, so the reader's picks outlive weighting, range and view switches.
   const compareIndustries = p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id));
+  // A stock's industries with this basket's own first on an industry basket (Bharat Forge sits in
+  // EV 4W here, not in its primary industry, defence), so its chip names why it is in the basket.
+  const industriesOf = (s: BasketStock) => {
+    const own = p.mode === "industry" ? s.industries.find((i) => i.slug === p.id) : undefined;
+    return own ? [own, ...s.industries.filter((i) => i !== own)] : s.industries;
+  };
   // A saved basket or an idea opens with its stocks drawn on the chart (as many as there are line
   // styles); an industry basket, often 20+ stocks, opens on the benchmarks alone.
   const [chartSel, setChartSel] = useState<ChartSelection>(() => {
@@ -856,13 +862,14 @@ export function BasketDetail(p: BasketDetailProps) {
                               <StockLink ticker={s.ticker} className="block text-[13px] font-semibold leading-snug text-accent [overflow-wrap:anywhere] hover:underline">
                                 {s.name}
                               </StockLink>
-                              <div className="text-[11px] text-ink-soft">
+                              {/* Balanced, so a long layer never leaves one word on a line of its own. */}
+                              <div className="text-balance text-[11px] leading-snug text-ink-soft">
                                 <span className="font-mono">{s.ticker}</span> · {s.layer}
                               </div>
                               <div className="font-mono text-[11px] text-ink-soft">
                                 P/E {s.pe != null ? s.pe.toFixed(1) : "—"} · <span className="whitespace-nowrap">{s.mcapCr != null ? `₹${crore(s.mcapCr)}` : "mcap —"}</span>
                               </div>
-                              <IndustryChips industries={s.industries} className="mt-1" />
+                              <IndustryChips industries={industriesOf(s)} className="mt-1" />
                             </div>
                             <div className="flex-none text-right">
                               {h ? (
@@ -922,21 +929,22 @@ export function BasketDetail(p: BasketDetailProps) {
                             const h = tHoldings.get(s.ticker);
                             const ex = excludedNote(s.ticker);
                             const since = moveSinceAdded(s.ticker);
-                            const others = s.industries.length - 1;
+                            const inds = industriesOf(s);
+                            const others = inds.length - 1;
                             return (
                               <tr key={s.ticker} className="border-b border-line/60 even:bg-panel-2/30 hover:bg-accent/5">
                                 <td className="pl-2">{lineSwatch(s.ticker)}</td>
                                 <td className="w-full max-w-0 px-2 py-1.5">
-                                  <StockLink ticker={s.ticker} className="block truncate font-semibold text-accent hover:underline">
+                                  <StockLink ticker={s.ticker} title={s.name} className="block truncate font-semibold text-accent hover:underline">
                                     {s.name}
                                   </StockLink>
-                                  <span className="block truncate text-[10px] text-ink-soft" title={[s.layer, ...s.industries.map((i) => i.name)].join(" · ")}>
+                                  <span className="block truncate text-[10px] text-ink-soft" title={[s.layer, ...inds.map((i) => i.name)].join(" · ")}>
                                     <span className="font-mono">{s.ticker}</span> · {s.layer}
-                                    {s.industries[0] && (
+                                    {inds[0] && (
                                       <>
                                         {" · "}
-                                        <Link href={`/sector/${s.industries[0].slug}`} className="hover:text-accent hover:underline">
-                                          {s.industries[0].name}
+                                        <Link href={`/sector/${inds[0].slug}`} className="hover:text-accent hover:underline">
+                                          {inds[0].name}
                                         </Link>
                                         {others > 0 && <span className="text-accent"> +{others}</span>}
                                       </>

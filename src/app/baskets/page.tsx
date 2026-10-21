@@ -111,11 +111,11 @@ export default async function BasketsPage() {
                 Industry &amp; policy baskets
               </h2>
               <InfoTip label="What the columns mean">
-                <b>1Y</b>: return over the past year, bought and held at equal weight. <b>Max DD</b> (tablet and up): the deepest fall from a high in that year.{" "}
-                <b>vs Nifty</b>: the basket&rsquo;s return minus the Nifty 50&rsquo;s, in percentage points. Tap a column heading to sort.
+                <b>1Y</b>: return over the past year, bought and held at equal weight. <b>Max DD</b>: the deepest fall from a high in that year (a column from tablet width up).{" "}
+                <b>vs Nifty</b>: the basket&rsquo;s return minus the Nifty 50&rsquo;s, in percentage points. Tap a column heading to sort, or use the Sort menu on a phone.
               </InfoTip>
             </div>
-            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock each industry or policy maps, equal weight. Tap a column heading to sort.</p>
+            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock each industry or policy maps, equal weight.</p>
           </div>
           <BasketsSummary mineCount={user && !mineFailed ? mine.length : null} />
           <BasketsPanel title="All industries & policies" rows={industryRows} initialSort="ret" />

@@ -517,7 +517,7 @@ export function SectorCharts({ sectors, market, initialSector }: { sectors: Char
                           type="button"
                           aria-pressed={current}
                           onClick={() => pickSector(s)}
-                          className={"flex min-h-11 w-full items-center gap-3 rounded-lg px-1.5 text-left transition " + (current ? "bg-bg" : "hover:bg-bg/60")}
+                          className={"flex min-h-11 w-full items-center gap-3 rounded-lg px-1.5 py-1 text-left transition " + (current ? "bg-bg" : "hover:bg-bg/60")}
                         >
                           <span aria-hidden className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent/10 font-mono text-[10px] font-bold text-accent">
                             {s.icon}
@@ -762,7 +762,7 @@ export function Switch({
       aria-disabled={disabled || undefined}
       onClick={() => !disabled && onToggle()}
       title={disabled ? `Up to ${MAX_STOCKS} stocks at a time` : undefined}
-      className={"flex min-h-11 w-full items-center gap-3 rounded-lg px-1.5 text-left transition " + (disabled ? "cursor-not-allowed opacity-45" : "hover:bg-bg/60")}
+      className={"flex min-h-11 w-full items-center gap-3 rounded-lg px-1.5 py-1 text-left transition " + (disabled ? "cursor-not-allowed opacity-45" : "hover:bg-bg/60")}
     >
       <span
         aria-hidden
@@ -772,7 +772,7 @@ export function Switch({
         <span className={"absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full shadow transition-all " + (on ? "left-[18px] bg-white" : "left-0.5 bg-ink-soft")} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm text-ink">{label}</span>
+        <span className="block break-words text-sm leading-snug text-ink">{label}</span>
         {sub && <span className="block truncate font-mono text-[10px] text-ink-soft">{sub}</span>}
       </span>
       {swatch && (

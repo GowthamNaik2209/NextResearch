@@ -10,7 +10,10 @@ export function IndustryChips({ industries, className = "" }: { industries: { sl
   const [open, setOpen] = useState(false);
   if (!industries.length) return null;
   const shown = open ? industries : industries.slice(0, 1);
-  const chip = "inline-flex min-h-6 items-center rounded-full border border-line px-2 text-[11px] text-ink-soft hover:border-accent hover:text-ink";
+  // A long name wraps inside a rounded box (not a pill, which pinches two lines). On a touch
+  // screen a chip is 28px tall with a 36px tap area (::before reaches 4px above and below).
+  const touch = "relative pointer-coarse:min-h-7 pointer-coarse:before:absolute pointer-coarse:before:inset-x-0 pointer-coarse:before:-inset-y-1 pointer-coarse:before:content-['']";
+  const chip = "inline-flex min-h-6 max-w-full items-center rounded-xl border border-line px-2 py-0.5 text-left text-[11px] leading-snug text-ink-soft hover:border-accent hover:text-ink " + touch;
   return (
     <div className={"flex flex-wrap items-center gap-1.5 " + className}>
       {shown.map((i) => (
@@ -24,7 +27,7 @@ export function IndustryChips({ industries, className = "" }: { industries: { sl
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           title={open ? undefined : industries.map((i) => i.name).join(", ")}
-          className="inline-flex min-h-6 items-center rounded-full bg-accent/10 px-2 text-[11px] font-semibold text-accent hover:bg-accent/20"
+          className={"inline-flex min-h-6 items-center whitespace-nowrap rounded-full bg-accent/10 px-2 text-[11px] font-semibold text-accent hover:bg-accent/20 " + touch}
         >
           {open ? "Show less" : `In ${industries.length} industries`}
         </button>
