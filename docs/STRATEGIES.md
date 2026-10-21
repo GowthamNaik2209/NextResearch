@@ -30,7 +30,16 @@ can't trade on the price it just saw.
 
 ## Strategy ideas
 
-### A. Rebalancing (start here: works on today's data)
+### A. Rebalancing (built: the basket page's Weight and Rebalance controls)
+
+Built in src/lib/baskets/rebalance.ts (pure, unit-tested) and src/lib/baskets/strategy.ts (the
+query string that names a strategy: `w=equal|mcap|capped|layer`, `cap`, `lcap`,
+`rb=never|monthly|quarterly|drift`, `band`). Calendar rebalances trade at the close of the first
+bar of the new month or quarter; the drift rule trades the bar after the drift is seen. Turnover
+and trade counts are reported (and each rebalance in the CSV); costs are not yet taken off.
+Saved baskets still store only equal or market cap; any other strategy lives in the page URL
+until a `Strategy` model (or columns on `Basket`) is migrated.
+
 
 1. **Equal weight, rebalanced monthly / quarterly.** The simplest improvement over buy-and-hold:
    trims winners, tops up laggards. Compare side by side with the held version.
@@ -112,7 +121,7 @@ Show these on every strategy result, not in a footnote:
 
 ## Suggested order
 
-1. Rebalancing (A1-A4) on the current backtest, side by side with buy-and-hold.
+1. ~~Rebalancing (A1-A4) on the current backtest, side by side with buy-and-hold.~~ Done.
 2. Price-data foundation (stored, adjusted daily bars behind a swappable provider).
 3. Engine with schedule, selection, weighting, exits, costs and trade log (B, C).
 4. Saved, shareable strategies (a `Strategy` model next to `Basket`), Pro gating.
