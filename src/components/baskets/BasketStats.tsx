@@ -32,6 +32,8 @@ const signed = (v: number, dp = 1) => {
   return `${r > 0 ? "+" : r < 0 ? "−" : ""}${Math.abs(r).toFixed(dp)}%`;
 };
 
+const nb = (t: string) => t.replace(/ /g, "\u00a0");
+
 export function BasketStats({
   range,
   basketKey,
@@ -146,7 +148,8 @@ export function BasketStats({
         {
           label: "Max drawdown",
           value: signed(s.maxDd),
-          sub: s.ddPeak && s.ddTrough ? `${day(s.ddPeak)} → ${day(s.ddTrough)}${s.ddRecovered ? "" : " · not regained"}` : "no fall",
+          // Non-breaking spaces inside each date and phrase, so a narrow cell breaks only between them.
+          sub: s.ddPeak && s.ddTrough ? `${nb(day(s.ddPeak))} → ${nb(day(s.ddTrough))}${s.ddRecovered ? "" : ` · ${nb("not regained")}`}` : "no fall",
           cls: s.maxDd < 0 ? "text-danger" : "text-ink-soft",
           help: "Deepest fall from a previous high, peak to trough, and whether the basket has climbed back to that high.",
         },
@@ -244,7 +247,7 @@ export function BasketStats({
               <div key={c.label} title={c.help} className="min-w-0 border-b border-r border-line/70 px-2.5 py-1.5">
                 <dt className="truncate text-[10px] leading-snug text-ink-soft sm:text-[11px]">{c.label}</dt>
                 <dd className={"font-mono text-sm font-semibold " + (c.cls ?? "text-ink")}>{c.value}</dd>
-                {c.sub && <dd className="text-[10px] leading-snug text-ink-soft">{c.sub}</dd>}
+                {c.sub && <dd className="text-balance text-[10px] leading-snug text-ink-soft">{c.sub}</dd>}
               </div>
             ))}
           </dl>

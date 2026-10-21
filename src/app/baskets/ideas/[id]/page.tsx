@@ -37,7 +37,7 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
     <>
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-4xl lg:max-w-7xl flex-1 flex-col gap-4 px-5 py-14">
-        <Link href="/baskets#ideas" className="self-start text-xs font-semibold text-accent hover:underline">
+        <Link href="/baskets#ideas" className="-my-1 inline-flex min-h-8 items-center self-start text-xs font-semibold text-accent hover:underline pointer-coarse:min-h-9">
           &larr; Basket ideas
         </Link>
         <BasketDetail

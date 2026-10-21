@@ -611,7 +611,7 @@ export function BasketDetail(p: BasketDetailProps) {
               </div>
             )}
             {/* An idea's description is its rule, list date and disclaimer, so it is never cut short. */}
-            {p.description && <p className={"max-w-3xl text-xs leading-relaxed text-ink-soft " + (p.mode === "idea" ? "" : "line-clamp-2 lg:line-clamp-none")}>{p.description}</p>}
+            {p.description && <p className="max-w-3xl text-pretty text-xs leading-relaxed text-ink-soft">{p.description}</p>}
           </div>
           <div className="flex flex-none flex-wrap items-center gap-2">
             {draft ? (
@@ -836,7 +836,7 @@ export function BasketDetail(p: BasketDetailProps) {
                   <>
                     {/* Phones: one compact row per stock, sorted from the menu. */}
                     <div className="flex items-center justify-between gap-2 border-b border-line/70 px-3 py-1.5 text-[11px] text-ink-soft sm:hidden">
-                      <span>
+                      <span className="text-balance">
                         <b className="font-semibold">wt</b> share now · <b className="font-semibold">pts</b> added to the return
                       </span>
                       <label className="flex items-center gap-1.5">
@@ -859,7 +859,7 @@ export function BasketDetail(p: BasketDetailProps) {
                           <li key={s.ticker} className="flex items-start gap-2 px-3 py-2">
                             <div className="min-w-0 flex-1">
                               {/* Names wrap rather than cut off; the figures on the right stay narrow to leave them room. */}
-                              <StockLink ticker={s.ticker} className="block text-[13px] font-semibold leading-snug text-accent [overflow-wrap:anywhere] hover:underline">
+                              <StockLink ticker={s.ticker} className="relative block text-[13px] font-semibold leading-snug text-accent [overflow-wrap:anywhere] before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] hover:underline">
                                 {s.name}
                               </StockLink>
                               {/* Balanced, so a long layer never leaves one word on a line of its own. */}
@@ -938,7 +938,8 @@ export function BasketDetail(p: BasketDetailProps) {
                                   <StockLink ticker={s.ticker} title={s.name} className="block truncate font-semibold text-accent hover:underline">
                                     {s.name}
                                   </StockLink>
-                                  <span className="block truncate text-[10px] text-ink-soft" title={[s.layer, ...inds.map((i) => i.name)].join(" · ")}>
+                                  {/* Wraps rather than cuts off: a tablet held upright has no hover to show a title. */}
+                                  <span className="block text-balance text-[10px] leading-snug text-ink-soft">
                                     <span className="font-mono">{s.ticker}</span> · {s.layer}
                                     {inds[0] && (
                                       <>

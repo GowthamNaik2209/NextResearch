@@ -772,7 +772,7 @@ export function Switch({
         <span className={"absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full shadow transition-all " + (on ? "left-[18px] bg-white" : "left-0.5 bg-ink-soft")} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block break-words text-sm leading-snug text-ink">{label}</span>
+        <span className="block text-balance break-words text-sm leading-snug text-ink">{label}</span>
         {sub && <span className="block truncate font-mono text-[10px] text-ink-soft">{sub}</span>}
       </span>
       {swatch && (

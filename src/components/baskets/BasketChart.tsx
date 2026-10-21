@@ -409,7 +409,7 @@ export function BasketChart({
               )}
             </div>
             <div className="border-t border-line p-2">
-              <button type="button" onClick={() => setMenu(null)} className="w-full rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-bg">
+              <button type="button" onClick={() => setMenu(null)} className="min-h-9 w-full rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-bg">
                 Done
               </button>
             </div>
@@ -447,11 +447,11 @@ export function BasketChart({
                 </svg>
                 <span className="min-w-0 flex-1">
                   {line.stock ? (
-                    <StockLink ticker={line.stock} title={line.name} className="line-clamp-2 break-words font-medium leading-snug text-accent hover:underline">
+                    <StockLink ticker={line.stock} className="relative block text-balance break-words font-medium leading-snug text-accent before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] hover:underline">
                       {line.name}
                     </StockLink>
                   ) : (
-                    <span title={line.name} className={"line-clamp-2 break-words leading-snug text-ink " + (mine ? "font-semibold" : "")}>{line.name}</span>
+                    <span className={"block text-balance break-words leading-snug text-ink " + (mine ? "font-semibold" : "")}>{line.name}</span>
                   )}
                   {sub && <span className="block text-[10px] leading-snug text-ink-soft">{sub}</span>}
                 </span>

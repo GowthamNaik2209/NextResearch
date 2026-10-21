@@ -254,7 +254,7 @@ export function BasketsTable({ rows, sort, onSort, label }: { rows: BasketRow[];
                   <Link
                     href={hrefOf(r)}
                     title={r.name}
-                    className="line-clamp-2 min-w-0 break-words font-semibold leading-snug text-ink after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-accent"
+                    className="line-clamp-2 min-w-0 text-balance break-words font-semibold leading-snug text-ink after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-accent"
                   >
                     {r.name}
                   </Link>
@@ -372,7 +372,7 @@ export function BasketsSummary({ mineCount }: { mineCount: number | null }) {
             <>
               <span className={"font-mono font-bold tabular-nums " + tone(best.ret)}>{signed(best.ret, "%")}</span>
               {/* Under the figure, wrapping to two lines, so a long basket name isn't cut off in a half-width tile. */}
-              <span title={best.name} className="line-clamp-2 break-words text-[11px] leading-snug text-ink-soft">
+              <span title={best.name} className="line-clamp-2 text-balance break-words text-[11px] leading-snug text-ink-soft">
                 {best.name}
               </span>
             </>

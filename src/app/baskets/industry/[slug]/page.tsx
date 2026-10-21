@@ -34,10 +34,10 @@ export default async function IndustryBasketPage({ params }: { params: Promise<{
       <main className="mx-auto flex w-full max-w-4xl lg:max-w-7xl flex-1 flex-col gap-4 px-5 py-14">
         {/* Back to the theme the basket is built from (where "Backtest as a basket" opens it), and to the hub. */}
         <nav aria-label="Back" className="-my-1 flex flex-wrap items-center gap-x-4 text-xs font-semibold text-accent">
-          <Link href={`/sector/${b.slug}`} className="inline-block py-1 hover:underline">
+          <Link href={`/sector/${b.slug}`} className="inline-flex min-h-8 items-center hover:underline pointer-coarse:min-h-9">
             &larr; Back to {b.name} theme
           </Link>
-          <Link href="/baskets" className="inline-block py-1 text-ink-soft hover:text-accent hover:underline">
+          <Link href="/baskets" className="inline-flex min-h-8 items-center text-ink-soft hover:text-accent hover:underline pointer-coarse:min-h-9">
             All baskets
           </Link>
         </nav>

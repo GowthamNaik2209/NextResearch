@@ -166,9 +166,9 @@ function DrawdownView({ points, bench, benchName }: { points: PricePoint[]; benc
                   <tr key={e.peak} className="border-b border-line/60 last:border-b-0">
                     <td className="px-2 py-1 text-ink-soft">{i + 1}</td>
                     <td className="px-2 py-1 text-right font-semibold text-danger">{signed(e.depth)}</td>
-                    <td className="px-2 py-1 text-right">{day(e.peak)}</td>
-                    <td className="px-2 py-1 text-right">{day(e.trough)}</td>
-                    <td className={"px-2 py-1 text-right " + (e.recovered ? "" : "text-ink-soft")}>{e.recovered ? day(e.recovered) : "not yet"}</td>
+                    <td className="whitespace-nowrap px-2 py-1 text-right">{day(e.peak)}</td>
+                    <td className="whitespace-nowrap px-2 py-1 text-right">{day(e.trough)}</td>
+                    <td className={"whitespace-nowrap px-2 py-1 text-right " + (e.recovered ? "" : "text-ink-soft")}>{e.recovered ? day(e.recovered) : "not yet"}</td>
                     <td className="px-2 py-1 text-right" title={e.recovered ? "Peak to recovery" : "Peak to the last bar"}>
                       {e.days}
                       {e.recovered ? "" : "+"}
@@ -188,6 +188,8 @@ function DrawdownView({ points, bench, benchName }: { points: PricePoint[]; benc
 
 function MonthlyView({ points, bench, benchName }: { points: PricePoint[]; bench: PricePoint[]; benchName: string }) {
   const rows = useMemo(() => monthlyMatrix(points, bench), [points, bench]);
+  // The tapped month's basket and benchmark figures, shown under the grid (a phone can't hover).
+  const [picked, setPicked] = useState<string | null>(null);
   const spansTwo = points[0].t.slice(0, 7) !== points[points.length - 1].t.slice(0, 7);
   if (!spansTwo || !rows.length) return <Note>The range sits inside one calendar month; pick a longer range for monthly returns.</Note>;
 
@@ -219,13 +221,16 @@ function MonthlyView({ points, bench, benchName }: { points: PricePoint[]; bench
               <tr key={r.year} className="border-b border-line/60 last:border-b-0">
                 <td className="sticky left-0 bg-panel px-1.5 py-1 font-semibold text-ink-soft">{r.year}</td>
                 {r.months.map((v, i) => (
-                  <td
-                    key={i}
-                    className="border-l border-line/40 px-1 py-1 text-right text-ink"
-                    style={{ background: bg(v) }}
-                    title={v == null ? undefined : `${MONTHS[i]} ${r.year}: basket ${signed(v)}${r.bench[i] != null ? ` · ${benchName} ${signed(r.bench[i]!)}` : ""}`}
-                  >
-                    {v == null ? "" : fmt(v)}
+                  <td key={i} className="border-l border-line/40 p-0 text-right text-ink" style={{ background: bg(v) }}>
+                    {v != null &&
+                      (() => {
+                        const label = `${MONTHS[i]} ${r.year}: basket ${signed(v)}${r.bench[i] != null ? ` · ${benchName} ${signed(r.bench[i]!)}` : ""}`;
+                        return (
+                          <button type="button" title={label} aria-label={label} aria-pressed={picked === label} onClick={() => setPicked(label)} className="block w-full px-1 py-1 text-right aria-pressed:outline aria-pressed:outline-1 aria-pressed:-outline-offset-1 aria-pressed:outline-ink pointer-coarse:py-2">
+                            {fmt(v)}
+                          </button>
+                        );
+                      })()}
                   </td>
                 ))}
                 <td className={"border-l border-line px-1.5 py-1 text-right font-semibold " + tone(r.total)}>{r.total == null ? "—" : fmt(r.total)}</td>
@@ -236,7 +241,10 @@ function MonthlyView({ points, bench, benchName }: { points: PricePoint[]; bench
         </table>
       </div>
       <p className="border-t border-line px-3 py-1 text-[10px] leading-snug text-ink-soft">
-        % per calendar month, month-end close to month-end close; the first month counts from the range&rsquo;s first close, so it may be partial. Hover a cell for the {benchName}.
+        <b aria-live="polite" className="block font-mono font-semibold text-ink empty:hidden">
+          {picked}
+        </b>
+        % per calendar month, month-end close to month-end close; the first month counts from the range&rsquo;s first close, so it may be partial. Tap a month for the {benchName}.
       </p>
     </div>
   );

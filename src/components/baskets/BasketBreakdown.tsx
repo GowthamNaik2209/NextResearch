@@ -84,7 +84,7 @@ export function BasketBreakdown({
     },
   }[active];
 
-  const seg = (on: boolean) => "min-h-8 rounded-full px-3 text-[11px] font-semibold transition sm:text-xs " + (on ? "bg-accent text-bg" : "text-ink-soft hover:text-ink");
+  const seg = (on: boolean) => "min-h-8 pointer-coarse:min-h-9 rounded-full px-3 text-[11px] font-semibold transition sm:text-xs " + (on ? "bg-accent text-bg" : "text-ink-soft hover:text-ink");
   return (
     <section aria-label="Breakdown" className="flex flex-col gap-3 p-3 sm:p-4">
       <div role="tablist" aria-label="Breakdown" className="-mx-1 flex gap-0.5 overflow-x-auto px-1">
@@ -126,17 +126,18 @@ function Label({ row, stockOf }: { row: BarRow; stockOf: (t: string) => BasketSt
   if (row.kind === "group")
     return (
       <span className="block min-w-0 text-right">
-        <span className="block truncate text-xs font-semibold text-ink sm:text-sm">{row.label}</span>
-        <span className="block truncate text-[10px] text-ink-soft">{row.count > 1 ? `${row.count} stocks combined` : "1 stock"}</span>
+        <span className="block text-balance break-words text-xs font-semibold leading-snug text-ink sm:text-sm">{row.label}</span>
+        <span className="block text-[10px] text-ink-soft">{row.count > 1 ? `${row.count} stocks combined` : "1 stock"}</span>
       </span>
     );
   const s = stockOf(row.ticker);
   return (
     <span className="block min-w-0 text-right">
-      <StockLink ticker={row.ticker} className="block truncate text-xs font-semibold text-ink hover:text-accent hover:underline sm:text-sm">
+      {/* Names and layers wrap rather than cut off; the link's tap area reaches 8px above and below. */}
+      <StockLink ticker={row.ticker} className="relative block text-balance break-words text-xs font-semibold leading-snug text-ink before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] hover:text-accent hover:underline sm:text-sm">
         {s?.name ?? row.ticker}
       </StockLink>
-      {s?.layer && <span className="block truncate text-[10px] text-ink-soft">{s.layer}</span>}
+      {s?.layer && <span className="block text-balance break-words text-[10px] leading-snug text-ink-soft">{s.layer}</span>}
     </span>
   );
 }
