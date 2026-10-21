@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/profile";
 import { STAGING_USER, stagingSkipLogin } from "@/lib/staging-user";
@@ -14,6 +15,9 @@ let stagingProfile: Promise<void> | null = null;
 // memoizes this per-request, so every caller in one render shares one call.
 export const getCurrentUser = cache(async () => {
   if (stagingSkipLogin()) {
+    // Reading cookies is what keeps every page that checks the user rendered per request;
+    // without it the build tries to prerender them (and write this Profile) and fails.
+    await cookies();
     stagingProfile ??= ensureProfile(STAGING_USER.id, STAGING_USER.email!).catch((e) => {
       stagingProfile = null;
       throw e;
