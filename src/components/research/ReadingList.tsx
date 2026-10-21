@@ -127,7 +127,7 @@ export function ReadingList({
             role="tab"
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
-            className={"rounded-full px-4 py-1.5 text-xs font-semibold transition " + (tab === t.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
+            className={"inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold transition pointer-coarse:min-h-9 " + (tab === t.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
           >
             {t.label}
           </button>
@@ -142,7 +142,7 @@ export function ReadingList({
             role="tab"
             aria-selected={view === v.id}
             onClick={() => setView(v.id)}
-            className={"rounded-full px-4 py-1.5 text-xs font-semibold transition " + (view === v.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
+            className={"inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold transition pointer-coarse:min-h-9 " + (view === v.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
           >
             {v.label}
           </button>

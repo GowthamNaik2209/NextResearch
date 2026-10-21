@@ -107,12 +107,23 @@ function Num({ entry, pick, unit }: { entry: Entry | undefined; pick: (f: Fig) =
 // ---- the table ----
 
 type Sort = "ret" | "dd" | "vs" | "count" | "name";
+/** A column and its direction: "desc" puts the highest number first (Basket: Z to A). */
+type SortState = { by: Sort; dir: "asc" | "desc" };
+// The first tap on a heading: numbers high to low (▼), Basket A to Z (▲). Max DD is a negative
+// number, so high to low is the smallest fall first (−5% above −25%), the same "best first" as 1Y
+// and vs Nifty; a second tap reverses any column, deepest fall first for Max DD.
+const firstDir = (by: Sort): SortState["dir"] => (by === "name" ? "asc" : "desc");
+const DIR_WORDS: Partial<Record<Sort, Record<SortState["dir"], string>>> = {
+  name: { asc: "A to Z", desc: "Z to A" },
+  dd: { desc: "smallest fall first", asc: "deepest fall first" },
+};
+const dirWords = (s: SortState) => DIR_WORDS[s.by]?.[s.dir] ?? (s.dir === "desc" ? "high to low" : "low to high");
 
 // Columns: name grows; the stock count and max drawdown give way on phones (the count moves into
 // the sub-line), so a row fits 375px without sideways scroll.
 const GRID = "grid grid-cols-[minmax(0,1fr)_4rem_4.25rem] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_4.5rem]";
 
-export function BasketsTable({ rows, sort, onSort, label }: { rows: BasketRow[]; sort: Sort | null; onSort: (s: Sort) => void; label: string }) {
+export function BasketsTable({ rows, sort, onSort, label }: { rows: BasketRow[]; sort: SortState | null; onSort: (s: SortState) => void; label: string }) {
   const keys = useMemo(() => rows.map(keyOf), [rows]);
   // Bumps as figures arrive, so the rows (and a sort by them) re-read the store.
   const v = useSyncExternalStore(subscribe, getVersion, getVersion);
@@ -130,33 +141,49 @@ export function BasketsTable({ rows, sort, onSort, label }: { rows: BasketRow[];
   const sorted = useMemo(() => {
     const items = rows.map((r, i) => ({ r, key: keys[i] }));
     if (!sort) return items;
+    const { by, dir } = sort;
+    const sign = dir === "desc" ? -1 : 1;
     const num = (key: string, f: (x: Fig) => number) => {
       const e = figs.get(key);
       const v = e && typeof e === "object" ? f(e) : NaN;
-      return Number.isFinite(v) ? v : -Infinity;
+      return Number.isFinite(v) ? v : null;
     };
     const val = (x: { r: BasketRow; key: string }) =>
-      sort === "ret" ? num(x.key, (f) => f.ret) : sort === "dd" ? num(x.key, (f) => f.maxDd) : sort === "vs" ? num(x.key, (f) => f.vs) : countOf(x.r);
-    return sort === "name" ? [...items].sort((a, b) => a.r.name.localeCompare(b.r.name)) : [...items].sort((a, b) => val(b) - val(a) || a.r.name.localeCompare(b.r.name));
+      by === "ret" ? num(x.key, (f) => f.ret) : by === "dd" ? num(x.key, (f) => f.maxDd) : by === "vs" ? num(x.key, (f) => f.vs) : countOf(x.r);
+    if (by === "name") return [...items].sort((a, b) => sign * a.r.name.localeCompare(b.r.name));
+    // Rows still loading (or without a figure) stay at the bottom either way.
+    return [...items].sort((a, b) => {
+      const va = val(a);
+      const vb = val(b);
+      if (va == null || vb == null) return va == null && vb == null ? a.r.name.localeCompare(b.r.name) : va == null ? 1 : -1;
+      return sign * (va - vb) || a.r.name.localeCompare(b.r.name);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- v: re-sort as figures arrive
   }, [rows, keys, sort, v]);
 
-  const head = (id: Sort, text: string, place: string) => (
-    <button
-      type="button"
-      onClick={() => onSort(id)}
-      aria-pressed={sort === id}
-      aria-label={`Sort by ${id === "count" ? "number of stocks" : id === "dd" ? "max drawdown" : text}`}
-      className={"flex min-h-8 items-center gap-0.5 uppercase tracking-wider hover:text-ink pointer-coarse:min-h-9 " + place + (sort === id ? " text-ink" : "")}
-    >
-      {text}
-      {sort === id && <span aria-hidden>{id === "name" ? "▲" : "▼"}</span>}
-    </button>
-  );
+  const head = (id: Sort, text: string, place: string) => {
+    const on = sort?.by === id ? sort : null;
+    // What a tap does: sorts by this column, or reverses it when it is already the sort.
+    const next: SortState = on ? { by: id, dir: on.dir === "desc" ? "asc" : "desc" } : { by: id, dir: firstDir(id) };
+    const name = id === "count" ? "number of stocks" : id === "dd" ? "max drawdown" : text;
+    return (
+      <button
+        type="button"
+        onClick={() => onSort(next)}
+        aria-pressed={!!on}
+        aria-label={on ? `Sorted by ${name}, ${dirWords(on)}. Tap for ${dirWords(next)}` : `Sort by ${name}, ${dirWords(next)}`}
+        title={on ? `${dirWords(on)} · tap again for ${dirWords(next)}` : dirWords(next)}
+        className={"flex min-h-8 items-center gap-0.5 uppercase tracking-wider hover:text-ink pointer-coarse:min-h-9 " + place + (on ? " text-ink" : "")}
+      >
+        {text}
+        {on && <span aria-hidden>{on.dir === "asc" ? "▲" : "▼"}</span>}
+      </button>
+    );
+  };
 
   return (
     <div className="text-xs">
-      {/* The column headers are the sort controls: tap one to sort by it (numbers high to low, Basket A to Z). */}
+      {/* The column headers are the sort controls: tap one to sort by it (numbers high to low, Basket A to Z), again to reverse. */}
       <div className={GRID + " border-b border-line px-3 text-[10px] font-semibold uppercase tracking-wider text-ink-soft"}>
         {head("name", "Basket", "justify-start")}
         {head("count", "#", "hidden justify-end sm:flex")}
@@ -237,7 +264,7 @@ export function BasketsPanel({
   tools?: ReactNode;
   children?: ReactNode;
 }) {
-  const [sort, setSort] = useState<Sort | null>(initialSort);
+  const [sort, setSort] = useState<SortState | null>(initialSort && { by: initialSort, dir: firstDir(initialSort) });
   const has = rows.length > 0;
   return (
     <Panel label={title} tools={tools}>

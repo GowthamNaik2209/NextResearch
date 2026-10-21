@@ -1,7 +1,7 @@
 "use client";
 
 import { InfoTip } from "@/components/InfoTip";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ChartRange } from "@/lib/live/yahoo";
@@ -212,10 +212,16 @@ export function BasketDetail(p: BasketDetailProps) {
   const picked = useMemo(() => stocks.filter((s) => chartSel.picks[s.ticker] != null), [stocks, chartSel.picks]);
   // Every stock picked is the basket itself: no separate card, and the table needs no second backtest.
   const picksAll = picked.length > 0 && picked.length === stocks.length;
-  const pickedKey = picksKey(
-    picked.map((s) => s.ticker),
-    sq,
-  );
+  // Lines drawn by default (the first 18 of a long basket, or stocks as they're added) aren't the
+  // reader's choice, so "Your picks" (the return card and the table's scope) waits until they
+  // switch a stock on or off in the chart's Stocks menu.
+  const [picksChosen, setPicksChosen] = useState(false);
+  const pickedKey = picksChosen
+    ? picksKey(
+        picked.map((s) => s.ticker),
+        sq,
+      )
+    : null;
 
   // With no picks left, the table goes back to the whole basket.
   const tableScope = scope === "picks" && pickedKey ? "picks" : "all";
@@ -383,11 +389,10 @@ export function BasketDetail(p: BasketDetailProps) {
     />
   );
   const Title = p.titleAs ?? "h1";
-  // Desktop shows the chart and the stock table together; phones switch between them.
-  const wide = useWide();
+  // Desktop shows the chart and the stock table together; phones switch between them. CSS
+  // decides (max-lg:hidden), so a resize or rotation across the breakpoint needs no event.
   const theme = useSiteTheme();
-  const showChart = wide || view === "chart";
-  const showTable = wide || view === "stocks";
+  const onlyOn = (v: "stocks" | "chart") => (view === v ? "" : "max-lg:hidden");
   // Dense controls: flat segmented groups with mono labels, at least 36px tall on phones for taps.
   const segBtn = (on: boolean) =>
     "min-h-9 border-r border-line px-2 font-mono text-[11px] font-semibold last:border-r-0 sm:min-h-7 sm:px-2.5 pointer-coarse:min-h-9 " + (on ? "bg-ink text-bg" : "text-ink-soft hover:text-ink");
@@ -529,9 +534,12 @@ export function BasketDetail(p: BasketDetailProps) {
       </svg>
     );
   };
-  const stats = stocks.length > 0 && (
-    <BasketStats range={range} basketKey={basketKey} name={name} strategy={strategy} stocks={stocks} compact={wide} heading={heading} reload={reload} scope={tableScope === "picks" ? "whole basket" : undefined} />
-  );
+  // Below lg the statistics sit in the results column; from lg, compact in the side column.
+  const stats = (compact: boolean) =>
+    stocks.length > 0 && (
+      <BasketStats range={range} basketKey={basketKey} name={name} strategy={strategy} stocks={stocks} compact={compact} heading={heading} reload={reload} scope={tableScope === "picks" ? "whole basket" : undefined} />
+    );
+  const narrowStats = stocks.length > 0 && <div className="flex min-w-0 flex-col lg:hidden">{stats(false)}</div>;
   const railPicker = canEdit && !draft && (editing || stocks.length === 0) && (
     <Panel title="Add stocks" heading={heading} bodyClassName="p-3">
       {picker("rail")}
@@ -706,7 +714,7 @@ export function BasketDetail(p: BasketDetailProps) {
         {/* Results: the return strip, the chart, the holdings and the backtest analysis. Phones get
             the stock picker on top while editing. */}
         <div className="flex min-w-0 flex-col gap-2">
-          {!wide && railPicker}
+          {railPicker && <div className="flex min-w-0 flex-col lg:hidden">{railPicker}</div>}
           {!(draft && stocks.length === 0) && (
             <ReturnCards
               dense
@@ -716,7 +724,7 @@ export function BasketDetail(p: BasketDetailProps) {
               benches={heldKey ? [{ key: heldKey, label: "Bought and held" }, ...NIFTY_ONLY] : NIFTY_ONLY}
             />
           )}
-          {!wide && view !== "chart" && stats}
+          {view !== "chart" && narrowStats}
 
           {stocks.length === 0 ? (
             <div className={PANEL + " p-8 text-center text-sm text-ink-soft"}>
@@ -733,243 +741,251 @@ export function BasketDetail(p: BasketDetailProps) {
             </div>
           ) : (
             <>
-              {showChart && (
-                <Panel
-                  heading={heading}
-                  title={`Performance · past ${rangeLong} · ${strategyShort(strategy)}`}
-                  label="Chart"
-                  bodyClassName="p-3"
-                  infoLabel="About the chart"
-                  info={
-                    <>
-                      Every line starts at 0% on the first day, so their ends compare directly. <b>Compare with</b> adds up to 3 indices or industry
-                      baskets; <b>Stocks</b> draws single stocks. Pinch, or use + and −, to zoom; drag sideways to move.
-                      {rebalanced && " vs bought and held also draws the same basket never rebalanced."}
-                    </>
-                  }
-                  tools={
-                    rebalanced && (
-                      <button type="button" aria-pressed={vsHeld} onClick={() => setVsHeld((v) => !v)} className={MINI_SEG + " " + segBtn(vsHeld) + " font-sans"}>
-                        vs bought and held
-                      </button>
-                    )
-                  }
-                >
-                  <BasketChart
-                    range={range}
-                    rangeLong={rangeLong}
-                    basketKey={basketKey}
-                    basketName={name}
-                    strategy={sq}
-                    held={heldKey && vsHeld ? { key: heldKey, name: "Bought and held" } : null}
-                    industries={compareIndustries}
-                    indices={p.indices}
-                    market={p.market}
-                    stocks={stocks.map((s) => ({ ticker: s.ticker, name: s.name }))}
-                    selection={chartSel}
-                    onSelection={setChartSel}
-                  />
-                </Panel>
-              )}
-              {showTable && (
-                <Panel
-                  heading={heading}
-                  title={`Holdings · ${tableScope === "picks" ? `your ${picked.length} picks` : `${stocks.length} stocks`}`}
-                  label="Stocks in this basket"
-                  infoLabel="About the holdings"
-                  info={
-                    <>
-                      <b>Wt</b>: the stock&rsquo;s share of the basket now. <b>Return</b>: its own price change. <b>Pts</b>: what it added to the
-                      basket&rsquo;s return. <b>Breakdown</b> shows the same as charts.
-                    </>
-                  }
-                  tools={
-                    <>
-                      {pickedKey && (
-                        <div role="group" aria-label="Measure within" className={MINI_SEG}>
-                          {(["all", "picks"] as const).map((v) => (
-                            <button key={v} type="button" aria-pressed={tableScope === v} onClick={() => setScope(v)} className={segBtn(tableScope === v) + " font-sans"}>
-                              {v === "all" ? "All" : "Your picks"}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      <div role="tablist" aria-label="Show stocks as" className={MINI_SEG}>
-                        {(["list", "charts"] as const).map((v) => (
-                          <button key={v} type="button" role="tab" aria-selected={stockView === v} onClick={() => setStockView(v)} className={segBtn(stockView === v) + " font-sans"}>
-                            {v === "list" ? "Table" : "Breakdown"}
+              <Panel
+                heading={heading}
+                className={onlyOn("chart")}
+                title={`Performance · past ${rangeLong} · ${strategyShort(strategy)}`}
+                label="Chart"
+                bodyClassName="p-3"
+                infoLabel="About the chart"
+                info={
+                  <>
+                    Every line starts at 0% on the first day, so their ends compare directly. <b>Compare with</b> adds up to 3 indices or industry
+                    baskets; <b>Stocks</b> draws single stocks. Pinch, or use + and −, to zoom; drag sideways to move.
+                    {rebalanced && " vs bought and held also draws the same basket never rebalanced."}
+                  </>
+                }
+                tools={
+                  rebalanced && (
+                    <button type="button" aria-pressed={vsHeld} onClick={() => setVsHeld((v) => !v)} className={MINI_SEG + " " + segBtn(vsHeld) + " items-center font-sans"}>
+                      vs bought and held
+                    </button>
+                  )
+                }
+              >
+                <BasketChart
+                  range={range}
+                  rangeLong={rangeLong}
+                  basketKey={basketKey}
+                  basketName={name}
+                  strategy={sq}
+                  held={heldKey && vsHeld ? { key: heldKey, name: "Bought and held" } : null}
+                  industries={compareIndustries}
+                  indices={p.indices}
+                  market={p.market}
+                  stocks={stocks.map((s) => ({ ticker: s.ticker, name: s.name }))}
+                  selection={chartSel}
+                  onSelection={setChartSel}
+                  onPick={() => setPicksChosen(true)}
+                />
+              </Panel>
+              <Panel
+                heading={heading}
+                className={onlyOn("stocks")}
+                title={`Holdings · ${tableScope === "picks" ? `your ${picked.length} picks` : `${stocks.length} stocks`}`}
+                label="Stocks in this basket"
+                infoLabel="About the holdings"
+                info={
+                  <>
+                    <b>Wt</b>: the stock&rsquo;s share of the basket now. <b>Return</b>: its own price change. <b>Pts</b>: what it added to the
+                    basket&rsquo;s return. <b>Breakdown</b> shows the same as charts.
+                  </>
+                }
+                tools={
+                  <>
+                    {pickedKey && (
+                      <div role="group" aria-label="Measure within" className={MINI_SEG}>
+                        {(["all", "picks"] as const).map((v) => (
+                          <button key={v} type="button" aria-pressed={tableScope === v} onClick={() => setScope(v)} className={segBtn(tableScope === v) + " font-sans"}>
+                            {v === "all" ? "All" : "Your picks"}
                           </button>
                         ))}
                       </div>
-                    </>
-                  }
-                >
-                  {stockView === "charts" ? (
-                    tData ? (
-                      <BasketBreakdown
-                        holdings={(tData.holdings ?? []).filter((h) => rows.some((s) => s.ticker === h.ticker))}
-                        stockOf={(t) => byTicker.get(t)}
-                        rangeLong={rangeLong}
-                        picks={tableScope === "picks"}
-                        byIndustry={p.mode !== "industry"}
-                        tab={breakdownTab}
-                        onTab={setBreakdownTab}
-                      />
-                    ) : tbt?.status !== "error" ? (
-                      <div aria-busy className="m-3 h-80 animate-pulse rounded bg-line/50" />
-                    ) : null
-                  ) : (
-                    <>
-                      {/* Phones: one compact row per stock, sorted from the menu. */}
-                      <div className="flex items-center justify-between gap-2 border-b border-line/70 px-3 py-1.5 text-[11px] text-ink-soft sm:hidden">
-                        <span>
-                          <b className="font-semibold">wt</b> share now · <b className="font-semibold">pts</b> added to the return
-                        </span>
-                        <label className="flex items-center gap-1.5">
-                          <span className="sr-only">Sort by</span>
-                          <select aria-label="Sort by" value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="min-h-9 rounded border border-line bg-bg px-1.5 text-xs text-ink">
-                            {SORTS.map((s) => (
-                              <option key={s.id} value={s.id}>
-                                {s.label}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                      </div>
-                      <ul className="divide-y divide-line/70 sm:hidden">
-                        {rows.map((s) => {
-                          const h = tHoldings.get(s.ticker);
-                          const ex = excludedNote(s.ticker);
-                          const since = moveSinceAdded(s.ticker);
-                          return (
-                            <li key={s.ticker} className="flex items-start gap-2 px-3 py-2">
-                              <div className="min-w-0 flex-1">
-                                <StockLink ticker={s.ticker} className="block truncate text-[13px] font-semibold text-accent hover:underline">
-                                  {s.name}
-                                </StockLink>
-                                <div className="truncate text-[11px] text-ink-soft">
-                                  <span className="font-mono">{s.ticker}</span> · {s.layer}
-                                </div>
-                                <div className="font-mono text-[11px] text-ink-soft">
-                                  P/E {s.pe != null ? s.pe.toFixed(1) : "—"} · {s.mcapCr != null ? `₹${crore(s.mcapCr)}` : "mcap —"}
-                                </div>
-                                <IndustryChips industries={s.industries} className="mt-1" />
+                    )}
+                    <div role="tablist" aria-label="Show stocks as" className={MINI_SEG}>
+                      {(["list", "charts"] as const).map((v) => (
+                        <button key={v} type="button" role="tab" aria-selected={stockView === v} onClick={() => setStockView(v)} className={segBtn(stockView === v) + " font-sans"}>
+                          {v === "list" ? "Table" : "Breakdown"}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                }
+              >
+                {stockView === "charts" ? (
+                  tData ? (
+                    <BasketBreakdown
+                      holdings={(tData.holdings ?? []).filter((h) => rows.some((s) => s.ticker === h.ticker))}
+                      stockOf={(t) => byTicker.get(t)}
+                      rangeLong={rangeLong}
+                      picks={tableScope === "picks"}
+                      byIndustry={p.mode !== "industry"}
+                      tab={breakdownTab}
+                      onTab={setBreakdownTab}
+                    />
+                  ) : tbt?.status !== "error" ? (
+                    <div aria-busy className="m-3 h-80 animate-pulse rounded bg-line/50" />
+                  ) : null
+                ) : (
+                  <>
+                    {/* Phones: one compact row per stock, sorted from the menu. */}
+                    <div className="flex items-center justify-between gap-2 border-b border-line/70 px-3 py-1.5 text-[11px] text-ink-soft sm:hidden">
+                      <span>
+                        <b className="font-semibold">wt</b> share now · <b className="font-semibold">pts</b> added to the return
+                      </span>
+                      <label className="flex items-center gap-1.5">
+                        <span className="sr-only">Sort by</span>
+                        <select aria-label="Sort by" value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="min-h-9 rounded border border-line bg-bg px-1.5 text-xs text-ink">
+                          {SORTS.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    <ul className="divide-y divide-line/70 sm:hidden">
+                      {rows.map((s) => {
+                        const h = tHoldings.get(s.ticker);
+                        const ex = excludedNote(s.ticker);
+                        const since = moveSinceAdded(s.ticker);
+                        return (
+                          <li key={s.ticker} className="flex items-start gap-2 px-3 py-2">
+                            <div className="min-w-0 flex-1">
+                              {/* Names wrap rather than cut off; the figures on the right stay narrow to leave them room. */}
+                              <StockLink ticker={s.ticker} className="block text-[13px] font-semibold leading-snug text-accent [overflow-wrap:anywhere] hover:underline">
+                                {s.name}
+                              </StockLink>
+                              <div className="text-[11px] text-ink-soft">
+                                <span className="font-mono">{s.ticker}</span> · {s.layer}
                               </div>
-                              <div className="flex-none text-right">
+                              <div className="font-mono text-[11px] text-ink-soft">
+                                P/E {s.pe != null ? s.pe.toFixed(1) : "—"} · <span className="whitespace-nowrap">{s.mcapCr != null ? `₹${crore(s.mcapCr)}` : "mcap —"}</span>
+                              </div>
+                              <IndustryChips industries={s.industries} className="mt-1" />
+                            </div>
+                            <div className="flex-none text-right">
+                              {h ? (
+                                <>
+                                  <div className={"font-mono text-[13px] font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{pct(h.ret)}</div>
+                                  <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft">wt {(h.endWeight * 100).toFixed(1)}%</div>
+                                  <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft">
+                                    {h.contribution >= 0 ? "+" : "−"}
+                                    {Math.abs(h.contribution).toFixed(2)} pts
+                                  </div>
+                                </>
+                              ) : ex ? (
+                                <div className="max-w-[7rem] text-[11px] leading-snug text-ink-soft">{ex}</div>
+                              ) : (
+                                <div className="font-mono text-sm text-ink-soft">{tbt?.status === "error" ? "—" : "…"}</div>
+                              )}
+                              {since != null && (
+                                <div className="font-mono text-[11px] text-ink-soft">
+                                  {pct(since)}
+                                  <span className="block font-sans">since added</span>
+                                </div>
+                              )}
+                            </div>
+                            {canEdit && editing && removeButton(s)}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {/* From sm: the dense table, sortable by its headers. */}
+                    <div className="hidden overflow-x-auto sm:block">
+                      <table className="w-full border-collapse text-xs">
+                        <thead className="bg-panel-2/60 text-[10px] uppercase tracking-wider text-ink-soft">
+                          <tr className="border-b border-line">
+                            <th scope="col" className="w-6 px-0">
+                              <span className="sr-only">Chart line</span>
+                            </th>
+                            {sortHead("name", "Stock", false)}
+                            {sortHead("weight", "Wt")}
+                            {sortHead("return", "Return")}
+                            {sortHead("contribution", "Pts")}
+                            {sortHead("pe", "P/E")}
+                            {sortHead("mcap", "Mcap ₹ Cr")}
+                            {sinceShown && (
+                              <th scope="col" className="whitespace-nowrap px-2 py-1.5 text-right font-semibold">
+                                Since added
+                              </th>
+                            )}
+                            {canEdit && editing && (
+                              <th scope="col" className="w-9 px-1">
+                                <span className="sr-only">Remove</span>
+                              </th>
+                            )}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rows.map((s) => {
+                            const h = tHoldings.get(s.ticker);
+                            const ex = excludedNote(s.ticker);
+                            const since = moveSinceAdded(s.ticker);
+                            const others = s.industries.length - 1;
+                            return (
+                              <tr key={s.ticker} className="border-b border-line/60 even:bg-panel-2/30 hover:bg-accent/5">
+                                <td className="pl-2">{lineSwatch(s.ticker)}</td>
+                                <td className="w-full max-w-0 px-2 py-1.5">
+                                  <StockLink ticker={s.ticker} className="block truncate font-semibold text-accent hover:underline">
+                                    {s.name}
+                                  </StockLink>
+                                  <span className="block truncate text-[10px] text-ink-soft" title={[s.layer, ...s.industries.map((i) => i.name)].join(" · ")}>
+                                    <span className="font-mono">{s.ticker}</span> · {s.layer}
+                                    {s.industries[0] && (
+                                      <>
+                                        {" · "}
+                                        <Link href={`/sector/${s.industries[0].slug}`} className="hover:text-accent hover:underline">
+                                          {s.industries[0].name}
+                                        </Link>
+                                        {others > 0 && <span className="text-accent"> +{others}</span>}
+                                      </>
+                                    )}
+                                  </span>
+                                </td>
                                 {h ? (
                                   <>
-                                    <div className={"font-mono text-[13px] font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{pct(h.ret)}</div>
-                                    <div className="font-mono text-[11px] text-ink-soft">
-                                      wt {(h.endWeight * 100).toFixed(1)}% · {h.contribution >= 0 ? "+" : "−"}
-                                      {Math.abs(h.contribution).toFixed(2)} pts
-                                    </div>
-                                  </>
-                                ) : ex ? (
-                                  <div className="max-w-[9rem] text-[11px] leading-snug text-ink-soft">{ex}</div>
-                                ) : (
-                                  <div className="font-mono text-sm text-ink-soft">{tbt?.status === "error" ? "—" : "…"}</div>
-                                )}
-                                {since != null && <div className="font-mono text-[11px] text-ink-soft">{pct(since)} since added</div>}
-                              </div>
-                              {canEdit && editing && removeButton(s)}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                      {/* From sm: the dense table, sortable by its headers. */}
-                      <div className="hidden overflow-x-auto sm:block">
-                        <table className="w-full border-collapse text-xs">
-                          <thead className="bg-panel-2/60 text-[10px] uppercase tracking-wider text-ink-soft">
-                            <tr className="border-b border-line">
-                              <th scope="col" className="w-6 px-0">
-                                <span className="sr-only">Chart line</span>
-                              </th>
-                              {sortHead("name", "Stock", false)}
-                              {sortHead("weight", "Wt")}
-                              {sortHead("return", "Return")}
-                              {sortHead("contribution", "Pts")}
-                              {sortHead("pe", "P/E")}
-                              {sortHead("mcap", "Mcap ₹ Cr")}
-                              {sinceShown && (
-                                <th scope="col" className="whitespace-nowrap px-2 py-1.5 text-right font-semibold">
-                                  Since added
-                                </th>
-                              )}
-                              {canEdit && editing && (
-                                <th scope="col" className="w-9 px-1">
-                                  <span className="sr-only">Remove</span>
-                                </th>
-                              )}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {rows.map((s) => {
-                              const h = tHoldings.get(s.ticker);
-                              const ex = excludedNote(s.ticker);
-                              const since = moveSinceAdded(s.ticker);
-                              const others = s.industries.length - 1;
-                              return (
-                                <tr key={s.ticker} className="border-b border-line/60 even:bg-panel-2/30 hover:bg-accent/5">
-                                  <td className="pl-2">{lineSwatch(s.ticker)}</td>
-                                  <td className="w-full max-w-0 px-2 py-1.5">
-                                    <StockLink ticker={s.ticker} className="block truncate font-semibold text-accent hover:underline">
-                                      {s.name}
-                                    </StockLink>
-                                    <span className="block truncate text-[10px] text-ink-soft" title={[s.layer, ...s.industries.map((i) => i.name)].join(" · ")}>
-                                      <span className="font-mono">{s.ticker}</span> · {s.layer}
-                                      {s.industries[0] && (
-                                        <>
-                                          {" · "}
-                                          <Link href={`/sector/${s.industries[0].slug}`} className="hover:text-accent hover:underline">
-                                            {s.industries[0].name}
-                                          </Link>
-                                          {others > 0 && <span className="text-accent"> +{others}</span>}
-                                        </>
-                                      )}
-                                    </span>
-                                  </td>
-                                  {h ? (
-                                    <>
-                                      <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{(h.endWeight * 100).toFixed(1)}%</td>
-                                      <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{pct(h.ret)}</td>
-                                      <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (h.contribution >= 0 ? "text-pos" : "text-danger")}>
-                                        {h.contribution >= 0 ? "+" : "−"}
-                                        {Math.abs(h.contribution).toFixed(2)}
-                                      </td>
-                                    </>
-                                  ) : (
-                                    <td colSpan={3} className="px-2 py-1.5 text-right text-[11px] text-ink-soft">
-                                      {ex ?? (tbt?.status === "error" ? "—" : "…")}
+                                    <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{(h.endWeight * 100).toFixed(1)}%</td>
+                                    <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{pct(h.ret)}</td>
+                                    <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (h.contribution >= 0 ? "text-pos" : "text-danger")}>
+                                      {h.contribution >= 0 ? "+" : "−"}
+                                      {Math.abs(h.contribution).toFixed(2)}
                                     </td>
-                                  )}
-                                  <td className="px-2 py-1.5 text-right font-mono">{s.pe != null ? s.pe.toFixed(1) : "—"}</td>
-                                  <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{s.mcapCr != null ? Math.round(s.mcapCr).toLocaleString("en-IN") : "—"}</td>
-                                  {sinceShown && <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (since == null ? "text-ink-soft" : since >= 0 ? "text-pos" : "text-danger")}>{since != null ? pct(since) : "—"}</td>}
-                                  {canEdit && editing && <td className="px-1 py-1">{removeButton(s, true)}</td>}
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                      <p className="border-t border-line/70 px-3 py-1.5 text-[11px] text-ink-soft">
-                        Return over the past {rangeLong} · <b className="font-semibold">wt</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} now ·{" "}
-                        <b className="font-semibold">pts</b> what it added to {tableScope === "picks" ? "your picks’" : "the basket’s"} return · P/E and market cap from our last data update
-                      </p>
-                    </>
-                  )}
-                  {tbt?.status === "error" && (
-                    <p className="px-3 pb-2 text-xs text-ink-soft">
-                      Couldn&rsquo;t backtest the basket right now.{" "}
-                      <button type="button" onClick={retry} className="font-semibold text-accent underline">
-                        Retry
-                      </button>
+                                  </>
+                                ) : (
+                                  <td colSpan={3} className="px-2 py-1.5 text-right text-[11px] text-ink-soft">
+                                    {ex ?? (tbt?.status === "error" ? "—" : "…")}
+                                  </td>
+                                )}
+                                <td className="px-2 py-1.5 text-right font-mono">{s.pe != null ? s.pe.toFixed(1) : "—"}</td>
+                                <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{s.mcapCr != null ? Math.round(s.mcapCr).toLocaleString("en-IN") : "—"}</td>
+                                {sinceShown && <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (since == null ? "text-ink-soft" : since >= 0 ? "text-pos" : "text-danger")}>{since != null ? pct(since) : "—"}</td>}
+                                {canEdit && editing && <td className="px-1 py-1">{removeButton(s, true)}</td>}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="border-t border-line/70 px-3 py-1.5 text-[11px] text-ink-soft">
+                      Return over the past {rangeLong} · <b className="font-semibold">wt</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} now ·{" "}
+                      <b className="font-semibold">pts</b> what it added to {tableScope === "picks" ? "your picks’" : "the basket’s"} return · P/E and market cap from our last data update
                     </p>
-                  )}
-                </Panel>
-              )}
-              {showChart && <BasketAnalysis range={range} basketKey={basketKey} strategyName={strategyShort(strategy)} heading={heading} reload={reload} />}
-              {!wide && view === "chart" && stats}
+                  </>
+                )}
+                {tbt?.status === "error" && (
+                  <p className="px-3 pb-2 text-xs text-ink-soft">
+                    Couldn&rsquo;t backtest the basket right now.{" "}
+                    <button type="button" onClick={retry} className="font-semibold text-accent underline">
+                      Retry
+                    </button>
+                  </p>
+                )}
+              </Panel>
+              <div className={"flex min-w-0 flex-col " + onlyOn("chart")}>
+                <BasketAnalysis range={range} basketKey={basketKey} strategyName={strategyShort(strategy)} heading={heading} reload={reload} />
+              </div>
+              {view === "chart" && narrowStats}
             </>
           )}
 
@@ -994,61 +1010,46 @@ export function BasketDetail(p: BasketDetailProps) {
         {/* Side column (from lg, beside the results and kept in view): the statistics, the stock
             picker while editing and the stocks at a glance. After the results in the page order,
             so keyboards and screen readers reach the chart and table first. */}
-        {wide && (
-          <aside aria-label="Basket controls" className="sticky top-20 flex max-h-[calc(100vh-6rem)] min-w-0 flex-col gap-2 overflow-y-auto">
-            {stats}
-            {railPicker}
-            {stocks.length > 0 && (
-              <Panel heading={heading} title={`In this basket (${stocks.length})`} className="flex min-h-0 flex-col" bodyClassName="flex min-h-0 flex-col">
-                <p className="px-3 pt-1.5 text-[11px] leading-snug text-ink-soft">
-                  {picked.length > 0 ? "The mark beside a stock is its line on the chart. " : ""}Add or take off lines with the chart&rsquo;s Stocks menu.
-                </p>
-                <ul className="max-h-[22rem] divide-y divide-line/70 overflow-y-auto overscroll-contain px-3 py-1">
-                  {/* Stocks on the chart first (in the order their lines were given), then the rest A to Z. */}
-                  {[...stocks]
-                    .sort((a, b) => {
-                      const sa = chartSel.picks[a.ticker];
-                      const sb = chartSel.picks[b.ticker];
-                      if (sa != null && sb != null) return sa - sb;
-                      if (sa != null || sb != null) return sa != null ? -1 : 1;
-                      return a.name.localeCompare(b.name);
-                    })
-                    .map((s) => {
-                      const h = holdings.get(s.ticker);
-                      const slot = chartSel.picks[s.ticker];
-                      return (
-                        <li key={s.ticker} className="flex items-center gap-2 py-1">
-                          {lineSwatch(s.ticker)}
-                          <StockLink ticker={s.ticker} className={"min-w-0 flex-1 truncate text-xs hover:text-accent hover:underline " + (slot == null ? "text-ink" : "font-semibold text-ink")}>
-                            {s.name}
-                            {slot != null && <span className="sr-only"> (on the chart)</span>}
-                          </StockLink>
-                          <span className={"flex-none font-mono text-[11px] " + (!h ? "text-ink-soft" : h.ret >= 0 ? "text-pos" : "text-danger")}>{h ? pct(h.ret) : "—"}</span>
-                          {canEdit && editing && removeButton(s, true)}
-                        </li>
-                      );
-                    })}
-                </ul>
-              </Panel>
-            )}
-          </aside>
-        )}
+        <aside aria-label="Basket controls" className="sticky top-20 hidden max-h-[calc(100vh-6rem)] min-w-0 flex-col gap-2 overflow-y-auto lg:flex">
+          {stats(true)}
+          {railPicker}
+          {stocks.length > 0 && (
+            <Panel heading={heading} title={`In this basket (${stocks.length})`} className="flex min-h-0 flex-col" bodyClassName="flex min-h-0 flex-col">
+              <p className="px-3 pt-1.5 text-[11px] leading-snug text-ink-soft">
+                {picked.length > 0 ? "The mark beside a stock is its line on the chart. " : ""}Add or take off lines with the chart&rsquo;s Stocks menu.
+              </p>
+              <ul className="max-h-[22rem] divide-y divide-line/70 overflow-y-auto overscroll-contain px-3 py-1">
+                {/* Stocks on the chart first (in the order their lines were given), then the rest A to Z. */}
+                {[...stocks]
+                  .sort((a, b) => {
+                    const sa = chartSel.picks[a.ticker];
+                    const sb = chartSel.picks[b.ticker];
+                    if (sa != null && sb != null) return sa - sb;
+                    if (sa != null || sb != null) return sa != null ? -1 : 1;
+                    return a.name.localeCompare(b.name);
+                  })
+                  .map((s) => {
+                    const h = holdings.get(s.ticker);
+                    const slot = chartSel.picks[s.ticker];
+                    return (
+                      <li key={s.ticker} className="flex items-center gap-2 py-1">
+                        {lineSwatch(s.ticker)}
+                        <StockLink ticker={s.ticker} className={"min-w-0 flex-1 truncate text-xs hover:text-accent hover:underline " + (slot == null ? "text-ink" : "font-semibold text-ink")}>
+                          {s.name}
+                          {slot != null && <span className="sr-only"> (on the chart)</span>}
+                        </StockLink>
+                        <span className={"flex-none font-mono text-[11px] " + (!h ? "text-ink-soft" : h.ret >= 0 ? "text-pos" : "text-danger")}>{h ? pct(h.ret) : "—"}</span>
+                        {canEdit && editing && removeButton(s, true)}
+                      </li>
+                    );
+                  })}
+              </ul>
+            </Panel>
+          )}
+        </aside>
       </div>
     </div>
   );
-}
-
-/** True from the lg breakpoint (1024px) up, where the chart and stock table sit together. */
-function useWide() {
-  const [wide, setWide] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const on = () => setWide(mq.matches);
-    on();
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, []);
-  return wide;
 }
 
 // The ⋯ button: less frequent actions (rename, stop sharing, delete), so they don't take a row.
@@ -1127,6 +1128,8 @@ function StockPicker({
 }) {
   const [industry, setIndustry] = useState(() => (initialIndustry && industries.some((i) => i.slug === initialIndustry) ? initialIndustry : (industries[0]?.slug ?? "")));
   const [filter, setFilter] = useState("");
+  // The page can hold two pickers (results column below lg, side column from lg), so the list's id is per instance.
+  const listId = useId();
   // The stocks list is a dropdown: it opens from the Stocks button or on picking an industry,
   // stays open while adding, and closes on a tap anywhere else or Escape.
   const [open, setOpen] = useState(false);
@@ -1210,7 +1213,7 @@ function StockPicker({
               }}
               aria-haspopup="listbox"
               aria-expanded={open}
-              aria-controls="add-stock-list"
+              aria-controls={listId}
               aria-label={`${industryName} stocks: ${inIndustry.length} listed${added > 0 ? `, ${added} in this basket` : ""}`}
               className={"flex min-h-[42px] items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-base text-ink sm:text-sm " + (bar ? "min-w-0 flex-1 bg-panel " : "bg-bg ") + (open ? "border-accent" : "border-line")}
             >
@@ -1226,7 +1229,7 @@ function StockPicker({
 
         {open && (
           <div
-            id="add-stock-list"
+            id={listId}
             className={"absolute inset-x-0 top-full z-20 mt-1 rounded-xl border border-line bg-panel p-3 shadow-[0_18px_40px_-18px_rgba(0,0,0,0.45)] " + (bar ? "sm:left-auto sm:w-[min(28rem,100%)]" : "lg:static lg:mt-2 lg:bg-bg lg:shadow-none")}
           >
             <div className="flex items-center justify-between gap-2">

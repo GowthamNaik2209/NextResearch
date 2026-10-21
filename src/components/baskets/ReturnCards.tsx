@@ -85,10 +85,12 @@ export function ReturnCards({
   const gap = (v: number | null, picksSide: boolean) => (b.value != null && v != null ? (picksSide ? shown(v) - shown(b.value) : shown(b.value) - shown(v)) : null);
   const p = picks ? card(picks) : null;
 
-  // One row on every screen, one column per card (2 or 3), so the cards never stack on phones.
+  // One row of 2 or 3 cards on every screen; 4 cards (picks beside a rebalanced basket) go two by
+  // two on phones, where a quarter of the row can't hold their labels.
   const count = 1 + (picks ? 1 : 0) + benches.length;
+  const cols = count >= 4 ? "grid-cols-2 sm:grid-cols-4" : count === 3 ? "grid-cols-3" : "grid-cols-2";
   return (
-    <section aria-label="Backtest summary" className={dense ? "grid gap-2" : "grid max-w-3xl gap-2 sm:gap-3"} style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}>
+    <section aria-label="Backtest summary" className={(dense ? "grid gap-2 " : "grid max-w-3xl gap-2 sm:gap-3 ") + cols}>
       <Stat label={basket.label} value={b.value} loading={b.loading} note={basket.note} strong dense={dense} />
       {picks && p && (
         <Stat
@@ -126,10 +128,11 @@ function Stat({ label, value, loading, diff, note, title, strong, dense, who = "
     );
   return (
     <div title={title} className={"min-w-0 border " + (dense ? "rounded-md px-2.5 py-1.5 sm:px-3 " : "rounded-xl px-2.5 py-2 sm:p-3 ") + (strong ? "border-accent bg-accent/5" : "border-line bg-panel")}>
-      <div className="truncate text-[10px] leading-snug text-ink-soft sm:text-[11px]">{label}</div>
+      {/* Labels and gaps wrap rather than cut off: a phone's third of a row is about 100px. */}
+      <div className="text-[10px] leading-snug text-ink-soft sm:text-[11px]">{label}</div>
       <div className={"mt-0.5 font-mono text-base font-bold sm:text-lg " + (value == null ? "text-ink-soft" : value >= 0 ? "text-pos" : "text-danger")}>{value != null ? pct(value) : loading ? "…" : "—"}</div>
       {diff != null && (
-        <div className="truncate text-[10px] text-ink-soft sm:text-[11px]">
+        <div className="text-[10px] leading-snug text-ink-soft sm:text-[11px]">
           {Math.abs(diff) < 0.05 ? (
             "level with basket"
           ) : who === "picks" ? (

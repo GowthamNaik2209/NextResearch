@@ -79,6 +79,7 @@ export function BasketChart({
   stocks,
   selection,
   onSelection,
+  onPick,
 }: {
   range: ChartRange;
   rangeLong: string;
@@ -97,6 +98,8 @@ export function BasketChart({
   stocks: { ticker: string; name: string }[];
   selection: ChartSelection;
   onSelection: Dispatch<SetStateAction<ChartSelection>>;
+  /** Called when the reader switches a stock's line on or off, so the page can tell their own picks from the lines it drew by default. */
+  onPick?: () => void;
 }) {
   const { benches, compare, picks } = selection;
   const setPicks = (f: (p: Record<string, number>) => Record<string, number>) => onSelection((s) => ({ ...s, picks: f(s.picks) }));
@@ -277,7 +280,8 @@ export function BasketChart({
 
   const picked = Object.keys(picks).length;
   const full = picked >= MAX_STOCKS;
-  const toggleStock = (t: string) =>
+  const toggleStock = (t: string) => {
+    onPick?.();
     setPicks((p) => {
       if (p[t] != null) {
         const rest = { ...p };
@@ -288,6 +292,7 @@ export function BasketChart({
       const used = new Set(Object.values(p));
       return { ...p, [t]: [...Array(MAX_STOCKS).keys()].find((i) => !used.has(i))! };
     });
+  };
   const toggleBench = (id: string) => setBenches((b) => (b.includes(id) ? b.filter((x) => x !== id) : [...b, id]));
   const toggleCompare = (slug: string) => setCompare((c) => (c.includes(slug) ? c.filter((x) => x !== slug) : c.length >= MAX_COMPARE ? c : [...c, slug]));
 
