@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Deck } from "@/lib/sector-content/reports";
 import type { IpoDeck } from "@/lib/ipo-content";
 import { IpoGrid } from "@/components/ipo/IpoGrid";
+import { InfoTip } from "@/components/InfoTip";
 import { ResearchDeck } from "./ResearchDeck";
 import { IndustryChartsView, type ChartsIndustry } from "@/components/baskets/IndustryChartsView";
 import type { CompareBasket } from "@/components/baskets/BasketChart";
@@ -126,12 +127,13 @@ export function ReadingList({
             role="tab"
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
-            className={"rounded-full px-4 py-1.5 text-xs font-semibold transition " + (tab === t.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
+            className={"inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold transition pointer-coarse:min-h-9 " + (tab === t.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
           >
             {t.label}
           </button>
         ))}
       </div>
+      <div className="flex items-center gap-2">
       <div role="tablist" aria-label="View" className="flex gap-1 rounded-full border border-line bg-panel p-1">
         {VIEWS.map((v) => (
           <button
@@ -140,11 +142,16 @@ export function ReadingList({
             role="tab"
             aria-selected={view === v.id}
             onClick={() => setView(v.id)}
-            className={"rounded-full px-4 py-1.5 text-xs font-semibold transition " + (view === v.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
+            className={"inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold transition pointer-coarse:min-h-9 " + (view === v.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
           >
             {v.label}
           </button>
         ))}
+      </div>
+      <InfoTip label="About the three views">
+        <b>Deep dive</b>: each industry&rsquo;s supply chain and who supplies it. <b>Reports</b>: ten-slide summaries for investors.{" "}
+        <b>Charts</b>: its listed stocks backtested as one basket against the Nifty 50.
+      </InfoTip>
       </div>
       </div>
       </div>

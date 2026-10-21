@@ -86,7 +86,7 @@ export function BasketBreakdown({
 
   const seg = (on: boolean) => "min-h-8 rounded-full px-3 text-[11px] font-semibold transition sm:text-xs " + (on ? "bg-accent text-bg" : "text-ink-soft hover:text-ink");
   return (
-    <section aria-label="Breakdown" className="flex flex-col gap-3 rounded-2xl border border-line bg-panel p-4 sm:p-5">
+    <section aria-label="Breakdown" className="flex flex-col gap-3 p-3 sm:p-4">
       <div role="tablist" aria-label="Breakdown" className="-mx-1 flex gap-0.5 overflow-x-auto px-1">
         {tabs.map((t) => (
           <button key={t.id} type="button" role="tab" aria-selected={active === t.id} onClick={() => onTab(t.id)} className={seg(active === t.id) + " flex-none"}>

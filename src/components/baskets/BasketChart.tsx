@@ -64,27 +64,32 @@ export function defaultSelection(indices: Benchmark[], industries: CompareBasket
   };
 }
 
-// The selection is held by the page, not here, so switching weighting, range or the Stocks/Chart
+// The selection is held by the page, not here, so switching strategy, range or the Stocks/Chart
 // view never puts the reader's picks back to the defaults.
 export function BasketChart({
   range,
   rangeLong,
   basketKey,
   basketName,
-  weighting,
+  strategy,
+  held = null,
   industries,
   indices,
   market,
   stocks,
   selection,
   onSelection,
+  onPick,
 }: {
   range: ChartRange;
   rangeLong: string;
   /** Series key of the basket itself ("x:<query>"). */
   basketKey: string;
   basketName: string;
-  weighting: "equal" | "mcap";
+  /** The strategy's query ("w=equal", see strategy.ts): compared industry baskets run the same one. */
+  strategy: string;
+  /** The same basket bought and held, drawn beside a rebalanced one for comparison. */
+  held?: { key: string; name: string } | null;
   /** Industry baskets it can be compared with (its own industry excluded by the caller if it is one). */
   industries: CompareBasket[];
   /** Its industry's index(es), then the broad market. */
@@ -93,6 +98,8 @@ export function BasketChart({
   stocks: { ticker: string; name: string }[];
   selection: ChartSelection;
   onSelection: Dispatch<SetStateAction<ChartSelection>>;
+  /** Called when the reader switches a stock's line on or off, so the page can tell their own picks from the lines it drew by default. */
+  onPick?: () => void;
 }) {
   const { benches, compare, picks } = selection;
   const setPicks = (f: (p: Record<string, number>) => Record<string, number>) => onSelection((s) => ({ ...s, picks: f(s.picks) }));
@@ -138,9 +145,10 @@ export function BasketChart({
   }, [menu]);
   const lines: Line[] = useMemo(() => {
     const out: Line[] = [{ key: basketKey, name: basketName, note: "this basket", color: "var(--accent)", token: "--accent", width: 3, dash: "solid" }];
+    if (held) out.push({ key: held.key, name: held.name, note: "same stocks, no rebalancing", color: "var(--accent)", token: "--accent", width: 2, dash: "dot" });
     compare.forEach((slug, i) => {
       const b = industries.find((x) => x.slug === slug);
-      if (b) out.push({ key: `x:sector=${slug}&w=${weighting}`, name: `${b.name} basket`, note: "industry basket", color: SLOTS[theme][6], width: 2, dash: COMPARE_DASH[i % 3] });
+      if (b) out.push({ key: `x:sector=${slug}&${strategy}`, name: `${b.name} basket`, note: "industry basket", color: SLOTS[theme][6], width: 2, dash: COMPARE_DASH[i % 3] });
     });
     indices.forEach((b, i) => {
       if (benches.includes(b.id)) out.push({ key: `b:${b.id}`, name: b.name, note: b.via ? "via ETF" : undefined, color: "var(--ink)", token: "--ink", width: 2, dash: i === 0 ? "solid" : "long" });
@@ -153,7 +161,7 @@ export function BasketChart({
       if (slot != null) out.push({ key: `s:${st.ticker}`, name: st.name, note: st.ticker, ...stockLine(theme, slot), width: 2, stock: st.ticker });
     }
     return out;
-  }, [basketKey, basketName, compare, industries, weighting, indices, market, benches, stocks, picks, theme]);
+  }, [basketKey, basketName, held, compare, industries, strategy, indices, market, benches, stocks, picks, theme]);
 
   const fetchLine = (key: string, fresh = false) => {
     const id = `${key}|${range}`;
@@ -272,7 +280,8 @@ export function BasketChart({
 
   const picked = Object.keys(picks).length;
   const full = picked >= MAX_STOCKS;
-  const toggleStock = (t: string) =>
+  const toggleStock = (t: string) => {
+    onPick?.();
     setPicks((p) => {
       if (p[t] != null) {
         const rest = { ...p };
@@ -283,6 +292,7 @@ export function BasketChart({
       const used = new Set(Object.values(p));
       return { ...p, [t]: [...Array(MAX_STOCKS).keys()].find((i) => !used.has(i))! };
     });
+  };
   const toggleBench = (id: string) => setBenches((b) => (b.includes(id) ? b.filter((x) => x !== id) : [...b, id]));
   const toggleCompare = (slug: string) => setCompare((c) => (c.includes(slug) ? c.filter((x) => x !== slug) : c.length >= MAX_COMPARE ? c : [...c, slug]));
 
