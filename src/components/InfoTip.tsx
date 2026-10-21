@@ -63,7 +63,7 @@ export function InfoTip({ label, children }: { label: string; children: ReactNod
         aria-expanded={open}
         aria-controls={open ? id : undefined}
         onClick={() => setOpen((o) => !o)}
-        className="relative inline-flex h-5 w-5 flex-none items-center justify-center rounded-full border border-line font-serif text-[11px] font-bold italic leading-none text-ink-soft before:absolute before:-inset-2 before:content-[''] hover:border-accent hover:text-ink aria-expanded:border-accent aria-expanded:text-accent"
+        className="relative inline-flex h-5 w-5 flex-none items-center justify-center rounded-full border border-line font-serif text-[11px] font-bold italic leading-none text-ink-soft before:absolute before:-inset-[9px] before:content-[''] hover:border-accent hover:text-ink aria-expanded:border-accent aria-expanded:text-accent"
       >
         i
       </button>

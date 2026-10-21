@@ -95,7 +95,7 @@ export function BasketBreakdown({
         ))}
       </div>
       <div className="border-l-4 border-accent pl-3">
-        {view.headline && <h3 className="font-display text-lg font-bold leading-snug text-ink sm:text-xl">{view.headline}</h3>}
+        {view.headline && <h3 className="text-balance font-display text-lg font-bold leading-snug text-ink sm:text-xl">{view.headline}</h3>}
         <p className="mt-1 text-xs text-ink-soft">{view.sub}</p>
       </div>
       {view.legend && (
@@ -133,8 +133,8 @@ function Label({ row, stockOf }: { row: BarRow; stockOf: (t: string) => BasketSt
   const s = stockOf(row.ticker);
   return (
     <span className="block min-w-0 text-right">
-      {/* Names and layers wrap rather than cut off; the link's tap area reaches 8px above and below. */}
-      <StockLink ticker={row.ticker} className="relative block text-balance break-words text-xs font-semibold leading-snug text-ink before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] hover:text-accent hover:underline sm:text-sm">
+      {/* Names and layers wrap rather than cut off; the link's tap area reaches 10px above and below. */}
+      <StockLink ticker={row.ticker} className="relative block text-balance break-words text-xs font-semibold leading-snug text-ink before:absolute before:inset-x-0 before:-inset-y-2.5 before:content-[''] hover:text-accent hover:underline sm:text-sm">
         {s?.name ?? row.ticker}
       </StockLink>
       {s?.layer && <span className="block text-balance break-words text-[10px] leading-snug text-ink-soft">{s.layer}</span>}

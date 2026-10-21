@@ -11,8 +11,8 @@ export function IndustryChips({ industries, className = "" }: { industries: { sl
   if (!industries.length) return null;
   const shown = open ? industries : industries.slice(0, 1);
   // A long name wraps inside a rounded box (not a pill, which pinches two lines). On a touch
-  // screen a chip is 28px tall with a 36px tap area (::before reaches 4px above and below).
-  const touch = "relative pointer-coarse:min-h-7 pointer-coarse:before:absolute pointer-coarse:before:inset-x-0 pointer-coarse:before:-inset-y-1 pointer-coarse:before:content-['']";
+  // screen a chip is 28px tall with a 36px tap area (::before reaches 5px past the 1px border, above and below).
+  const touch = "relative pointer-coarse:min-h-7 pointer-coarse:before:absolute pointer-coarse:before:inset-x-0 pointer-coarse:before:-inset-y-[5px] pointer-coarse:before:content-['']";
   const chip = "inline-flex min-h-6 max-w-full items-center rounded-xl border border-line px-2 py-0.5 text-left text-[11px] leading-snug text-balance text-ink-soft hover:border-accent hover:text-ink " + touch;
   return (
     <div className={"flex flex-wrap items-center gap-1.5 " + className}>

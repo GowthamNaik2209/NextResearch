@@ -84,6 +84,14 @@ body {
   font-family: var(--font-sans), Arial, sans-serif;
 }
 
+/* Paragraphs avoid leaving one word alone on their last line (browsers without support ignore
+   it). In the base layer, so a text-balance utility still wins. */
+@layer base {
+  p {
+    text-wrap: pretty;
+  }
+}
+
 /* Dropdowns draw their own chevron, inset from the right edge with room for the text, so it
    sits the same on every browser (the native arrow hugs the border on some). Unlayered on
    purpose: it beats a select's px-* utility for the right padding only. */

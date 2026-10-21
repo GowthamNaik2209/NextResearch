@@ -223,7 +223,7 @@ export function BasketStats({
   return (
     <section aria-label="Backtest statistics" className="rounded-md border border-line bg-panel">
       <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-1.5">
-        <H className="text-[10px] font-semibold uppercase tracking-wider text-ink-soft sm:text-[11px]">
+        <H className="text-balance text-[10px] font-semibold uppercase tracking-wider text-ink-soft sm:text-[11px]">
           Statistics{scope ? ` · ${scope}` : ""} · {range} · <span title={`${weightingLabel(strategy)}, ${rebalanceLabel(strategy)}`}>{strategyShort(strategy)}</span>
           {s ? ` · ${freq} bars` : ""}
         </H>

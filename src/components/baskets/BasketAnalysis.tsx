@@ -226,7 +226,7 @@ function MonthlyView({ points, bench, benchName }: { points: PricePoint[]; bench
                       (() => {
                         const label = `${MONTHS[i]} ${r.year}: basket ${signed(v)}${r.bench[i] != null ? ` · ${benchName} ${signed(r.bench[i]!)}` : ""}`;
                         return (
-                          <button type="button" title={label} aria-label={label} aria-pressed={picked === label} onClick={() => setPicked(label)} className="block w-full px-1 py-1 text-right aria-pressed:outline aria-pressed:outline-1 aria-pressed:-outline-offset-1 aria-pressed:outline-ink pointer-coarse:py-2">
+                          <button type="button" title={label} aria-label={label} aria-pressed={picked === label} onClick={() => setPicked(label)} className="block w-full px-1 py-1 text-right aria-pressed:outline aria-pressed:outline-1 aria-pressed:-outline-offset-1 aria-pressed:outline-ink pointer-coarse:min-h-9">
                             {fmt(v)}
                           </button>
                         );
@@ -341,7 +341,7 @@ function SubTitle({ children }: { children: ReactNode }) {
 
 function Th({ children, left, title }: { children: ReactNode; left?: boolean; title?: string }) {
   return (
-    <th scope="col" title={title} className={"px-1.5 py-1 font-semibold " + (left ? "text-left" : "text-right")}>
+    <th scope="col" title={title} className={"whitespace-nowrap px-1.5 py-1 font-semibold " + (left ? "text-left" : "text-right")}>
       {children}
     </th>
   );

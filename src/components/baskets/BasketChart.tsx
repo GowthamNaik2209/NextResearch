@@ -447,7 +447,7 @@ export function BasketChart({
                 </svg>
                 <span className="min-w-0 flex-1">
                   {line.stock ? (
-                    <StockLink ticker={line.stock} className="relative block text-balance break-words font-medium leading-snug text-accent before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] hover:underline">
+                    <StockLink ticker={line.stock} className="relative block text-balance break-words font-medium leading-snug text-accent before:absolute before:inset-x-0 before:-inset-y-2.5 before:content-[''] hover:underline">
                       {line.name}
                     </StockLink>
                   ) : (
