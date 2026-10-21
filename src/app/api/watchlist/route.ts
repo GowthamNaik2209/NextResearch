@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // GET: the current user's watchlisted tickers (empty array if signed out —
@@ -7,10 +7,7 @@ import { prisma } from "@/lib/prisma";
 // `signedIn` lets the heart show the sign-up prompt straight away for a signed-out visitor
 // instead of first POSTing and getting a 401 (which also logged a console error).
 export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return NextResponse.json({ tickers: [], signedIn: false });
 
   const rows = await prisma.watchlist.findMany({
@@ -25,10 +22,7 @@ export async function GET() {
 // the move since the user saved it. Upsert: re-liking an already-saved ticker
 // is a no-op, not a duplicate row or a reset priceAtAdd.
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "not authenticated" }, { status: 401 });
 
   const body = await request.json().catch(() => null);
@@ -51,10 +45,7 @@ export async function POST(request: Request) {
 
 // DELETE ?ticker=X — remove from watchlist.
 export async function DELETE(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "not authenticated" }, { status: 401 });
 
   const ticker = new URL(request.url).searchParams.get("ticker");
