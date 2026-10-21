@@ -1,8 +1,12 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { before, test } from "node:test";
 import { getIpo, listIpoDecks, listIpos } from "./index";
 import { validateIpo } from "./validate";
 import { companyFinancials, parseCrore } from "../sector-content";
+import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
+
+// Company figures come from the database (DATABASE_URL), as in the app.
+before(installFinancialsFromDatabase);
 
 test("every IPO deck is well formed", () => {
   for (const r of listIpos()) assert.deepEqual(validateIpo(r), [], r.slug);

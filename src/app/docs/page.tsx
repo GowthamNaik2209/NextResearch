@@ -3,6 +3,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { ReadingList } from "@/components/research/ReadingList";
 import { getCurrentUser } from "@/lib/auth";
 import { analysisProps, analysisView } from "@/lib/analysis-props";
+import { ensureFinancials } from "@/lib/financials/load";
 
 export const metadata = {
   title: "Analysis: deep dives, research reports and stock charts for Indian industries, policies and IPOs",
@@ -11,6 +12,7 @@ export const metadata = {
 };
 
 export default async function DocsPage({ searchParams }: { searchParams: Promise<{ report?: string; ipo?: string; view?: string; sector?: string }> }) {
+  await ensureFinancials();
   const { report, ipo, view, sector } = await searchParams;
   const user = await getCurrentUser();
   return (

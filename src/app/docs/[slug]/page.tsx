@@ -8,12 +8,18 @@ import { getSector, listSectorSlugs } from "@/lib/sector-content";
 import { getResearchForSector } from "@/lib/sector-content/docs";
 import { buildDeck } from "@/lib/sector-content/reports";
 import { NOT_FOUND_METADATA, midSentence } from "@/lib/site";
+import { ensureFinancials } from "@/lib/financials/load";
 
-export function generateStaticParams() {
+// Figures come from the database; re-render on the same clock as the cached table (load.ts).
+export const revalidate = 900;
+
+export async function generateStaticParams() {
+  await ensureFinancials();
   return listSectorSlugs().map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  await ensureFinancials();
   const { slug } = await params;
   const sector = getSector(slug);
   if (!sector) return NOT_FOUND_METADATA;
@@ -28,6 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function SectorDocsPage({ params }: { params: Promise<{ slug: string }> }) {
+  await ensureFinancials();
   const { slug } = await params;
   const sector = getSector(slug);
   if (!sector) notFound();

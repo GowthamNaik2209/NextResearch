@@ -3,6 +3,10 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { listCompanyPages } from "@/lib/sector-content/companies";
+import { ensureFinancials } from "@/lib/financials/load";
+
+// Figures come from the database; re-render on the same clock as the cached table (load.ts).
+export const revalidate = 900;
 
 // A-Z hub of every company page - gives crawlers (and people) one page that links to all
 // of them, rather than leaving the company pages discoverable only through sector pages.
@@ -14,7 +18,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/companies" },
 };
 
-export default function CompaniesPage() {
+export default async function CompaniesPage() {
+  await ensureFinancials();
   const companies = listCompanyPages();
   const byLetter = new Map<string, typeof companies>();
   for (const c of companies) {

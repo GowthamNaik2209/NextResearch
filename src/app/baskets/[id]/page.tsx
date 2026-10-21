@@ -7,9 +7,11 @@ import { getCurrentUser } from "@/lib/auth";
 import { basketStock, dominantIndustry } from "@/lib/baskets/industry";
 import { compareProps, pickerProps } from "@/lib/baskets/page-props";
 import { getVisibleBasket } from "@/lib/baskets/store";
+import { ensureFinancials } from "@/lib/financials/load";
 
 // Shared baskets are reachable by link but never indexed: they are a person's own picks.
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  await ensureFinancials();
   const { id } = await params;
   const user = await getCurrentUser();
   const b = await getVisibleBasket(id, user?.id ?? null);
@@ -21,6 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default async function SavedBasketPage({ params }: { params: Promise<{ id: string }> }) {
+  await ensureFinancials();
   const { id } = await params;
   const user = await getCurrentUser();
   const b = await getVisibleBasket(id, user?.id ?? null);

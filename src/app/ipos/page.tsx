@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { IpoGrid } from "@/components/ipo/IpoGrid";
 import { listIpoDecks } from "@/lib/ipo-content";
+import { ensureFinancials } from "@/lib/financials/load";
 
 export const metadata: Metadata = {
   title: "Upcoming IPOs in India: prospectus summaries",
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 };
 
 export default async function IposPage({ searchParams }: { searchParams: Promise<{ ipo?: string }> }) {
+  await ensureFinancials();
   const { ipo } = await searchParams;
   const ipos = listIpoDecks();
   return (

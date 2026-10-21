@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getIdea } from "@/lib/baskets/ideas-data";
 import { basketStock, dominantIndustry, getIndustryBasket, listBasketUniverse } from "@/lib/baskets/industry";
 import { compareProps, pickerProps } from "@/lib/baskets/page-props";
+import { ensureFinancials } from "@/lib/financials/load";
 
 export const metadata = { title: "Create a basket", robots: { index: false, follow: false } };
 
@@ -15,6 +16,7 @@ export const metadata = { title: "Create a basket", robots: { index: false, foll
 // ?with=watchlist starts from your liked stocks; ?with=<industry slug> opens on that industry;
 // ?idea=<id> (an idea's "Edit") starts from that idea's stocks, name and period.
 export default async function NewBasketPage({ searchParams }: { searchParams: Promise<{ with?: string; idea?: string }> }) {
+  await ensureFinancials();
   const sp = await searchParams;
   const start = sp.with ?? "";
   const ideaId = sp.idea ?? "";

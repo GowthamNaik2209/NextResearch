@@ -7,7 +7,11 @@ import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { getCompanyPage, listCompanyPages, primaryAppearance } from "@/lib/sector-content/companies";
 import { NOT_FOUND_METADATA, SITE_URL, jsonLd } from "@/lib/site";
-import { DATA_AS_OF } from "@/lib/sector-content/insights";
+import { dataAsOf } from "@/lib/sector-content/insights";
+import { ensureFinancials } from "@/lib/financials/load";
+
+// Figures come from the database; re-render on the same clock as the cached table (load.ts).
+export const revalidate = 900;
 
 // One indexable, server-rendered page per listed company: where it sits in each sector's
 // supply chain, who it sits next to, and the seed financials. The live numbers stay in the
@@ -19,11 +23,13 @@ const listJoin = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0
 // Phones show the latest three years so the table never needs a sideways swipe.
 const PHONE_YEARS = 3;
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  await ensureFinancials();
   return listCompanyPages().map((c) => ({ slug: c.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  await ensureFinancials();
   const { slug } = await params;
   const c = getCompanyPage(slug);
   if (!c) return NOT_FOUND_METADATA;
@@ -42,6 +48,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function CompanyPage({ params }: { params: Promise<{ slug: string }> }) {
+  await ensureFinancials();
   const { slug } = await params;
   const c = getCompanyPage(slug);
   if (!c) notFound();
@@ -53,7 +60,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   // The supplier record (role, strengths, risks) is the one from the company's strongest link
   // (companies.ts), and multi-sector companies get a line naming every sector they appear in.
   const primary = primaryAppearance(c);
-  const asOf = f?.asOf ?? supplier.sourceDate ?? DATA_AS_OF;
+  const asOf = f?.asOf ?? supplier.sourceDate ?? dataAsOf();
 
   const stats = [
     { label: "Market cap", value: f?.mcap?.replace("Rs ", "₹") },

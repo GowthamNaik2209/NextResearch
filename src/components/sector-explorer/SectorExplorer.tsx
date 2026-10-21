@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -10,7 +10,9 @@ import {
   tickerForSupplier,
   EXPOSURE_TYPE_LABEL,
   EXPOSURE_STRENGTH_LABEL,
+  type SupplierFinancials,
 } from "@/lib/sector-content";
+import { installFinancials } from "@/lib/financials/store";
 import { listScenarios, scenarioCompanies, scenarioZoneImpacts } from "@/lib/sector-content/scenarios";
 import { mountExplorer, type ExplorerController, type ExplorerDom, type ImpactMap } from "./engine";
 import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
@@ -39,12 +41,17 @@ function useSpeechSupported(): boolean {
 
 type Props = {
   slug: string;
+  // This sector's company figures by ticker, from the database (the explore page loads them).
+  figures: Record<string, SupplierFinancials>;
   userEmail?: string | null;
   displayName?: string | null;
 };
 
-export function SectorExplorer({ slug, userEmail = null, displayName = null }: Props) {
+export function SectorExplorer({ slug, figures, userEmail = null, displayName = null }: Props) {
   const searchParams0 = useSearchParams();
+  // Fill this sector's suppliers (`f`) before anything below reads them. Idempotent (the same
+  // figures land in the same places), so running it during render is safe.
+  useMemo(() => installFinancials(figures, { partial: true }), [figures]);
   // Looked up here (client bundle) rather than passed as a prop from the server
   // page — the sector object carries three.js geometry-building functions, which
   // can't cross the server/client boundary as React props. The page's own

@@ -6,12 +6,15 @@ import { BasketDetail } from "@/components/baskets/BasketDetail";
 import { getCurrentUser } from "@/lib/auth";
 import { getIndustryBasket, listIndustryBaskets } from "@/lib/baskets/industry";
 import { compareProps } from "@/lib/baskets/page-props";
+import { ensureFinancials } from "@/lib/financials/load";
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  await ensureFinancials();
   return listIndustryBaskets().map((b) => ({ slug: b.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  await ensureFinancials();
   const { slug } = await params;
   const b = getIndustryBasket(slug);
   if (!b) return { title: "Page not found", robots: { index: false } };
@@ -23,6 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function IndustryBasketPage({ params }: { params: Promise<{ slug: string }> }) {
+  await ensureFinancials();
   const { slug } = await params;
   const b = getIndustryBasket(slug);
   if (!b) notFound();

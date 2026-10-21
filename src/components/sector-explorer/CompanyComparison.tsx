@@ -21,10 +21,10 @@ type Props = {
 // i.e. how correlated its stock is likely to be with something happening to it.
 const STRENGTH_RANK = { low: 1, medium: 2, high: 3 } as const;
 
-// Latest fiscal year in the seed data's 5-year revenue series (see SupplierFinancials in
+// Latest fiscal year in the company figures' 5-year revenue series (see SupplierFinancials in
 // sector-content). Revenue here is company-wide, not segment-level.
 const LATEST_FY = 26;
-const latestRevenueCr = (rev: number[] | undefined) => rev?.[rev.length - 1] ?? null;
+const latestRevenueCr = (rev: (number | null)[] | undefined) => rev?.[rev.length - 1] ?? null;
 
 // Compare the companies in one layer: role, exposure type, main risk, a revenue snapshot
 // and data status. Everything comes from the static sector content, so it renders

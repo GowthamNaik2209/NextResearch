@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { getIdeas } from "@/lib/baskets/ideas-data";
 import { basketStock } from "@/lib/baskets/industry";
+import { ensureFinancials } from "@/lib/financials/load";
 
 // The first build of the day's lists reads ~260 price histories (10 at a time).
 export const maxDuration = 60;
 
 // GET /api/baskets/ideas - the day's basket ideas, each stock with its name for the cards.
 export async function GET() {
+  await ensureFinancials();
   try {
     const { asOf, ideas } = await getIdeas();
     return NextResponse.json(

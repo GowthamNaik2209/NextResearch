@@ -6,6 +6,7 @@ import { listSectors, findSupplierByTicker } from "@/lib/sector-content";
 import { getCompanyPage, companySlug, listCompanyPages, primaryAppearance } from "@/lib/sector-content/companies";
 import { getCompanyFootprint } from "@/lib/sector-content/exposure";
 import { sectorBenchmarks, type Benchmark } from "@/lib/sector-content/benchmarks";
+import { memoByFinancials } from "@/lib/financials/store";
 
 /** Upper bound on a saved basket (the largest industry, real estate, has 57). */
 export const MAX_BASKET_STOCKS = 75;
@@ -36,7 +37,7 @@ export type IndustryBasket = {
   indices: Benchmark[];
 };
 
-const parseCr = (s?: string) => {
+const parseCr = (s?: string | null) => {
   const n = s ? parseFloat(s.replace(/[^0-9.]/g, "")) : NaN;
   return Number.isFinite(n) ? n : null;
 };
@@ -47,10 +48,12 @@ const peOf = (kpi?: (number | null)[] | null) => {
   return typeof v === "number" && Number.isFinite(v) && v > 0 ? v : null;
 };
 
-const stockCache = new Map<string, BasketStock | null>();
+// Both caches carry market caps and P/Es, so they rebuild whenever new figures are installed.
+const stockCaches = memoByFinancials(() => new Map<string, BasketStock | null>());
 
 /** The basket record for any listed ticker in the content, or null for an unknown one. */
 export function basketStock(ticker: string): BasketStock | null {
+  const stockCache = stockCaches();
   if (stockCache.has(ticker)) return stockCache.get(ticker)!;
   const sup = findSupplierByTicker(ticker);
   const page = getCompanyPage(companySlug(ticker));
@@ -74,11 +77,9 @@ export function basketStock(ticker: string): BasketStock | null {
   return out;
 }
 
-let industryCache: IndustryBasket[] | null = null;
-
 /** One basket per live industry/policy: all its listed stocks, biggest first. */
-export function listIndustryBaskets(): IndustryBasket[] {
-  industryCache ??= listSectors()
+export const listIndustryBaskets = memoByFinancials((): IndustryBasket[] =>
+  listSectors()
     .filter((s) => !s.muted)
     .map((s) => {
       const seen = new Set<string>();
@@ -105,9 +106,8 @@ export function listIndustryBaskets(): IndustryBasket[] {
         stocks,
         indices: sectorBenchmarks(s.slug),
       };
-    });
-  return industryCache;
-}
+    }),
+);
 
 export function getIndustryBasket(slug: string): IndustryBasket | null {
   return listIndustryBaskets().find((b) => b.slug === slug) ?? null;

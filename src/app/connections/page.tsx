@@ -5,6 +5,10 @@ import { EXPOSURE_STRENGTH_LABEL, EXPOSURE_TYPE_LABEL } from "@/lib/sector-conte
 import { footprintScore, listConnectedCompanies } from "@/lib/sector-content/exposure";
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { findSupplierByTicker } from "@/lib/sector-content";
+import { ensureFinancials } from "@/lib/financials/load";
+
+// Figures come from the database; re-render on the same clock as the cached table (load.ts).
+export const revalidate = 900;
 
 export const metadata = {
   title: "Connected companies: Indian stocks that span several supply chains",
@@ -12,7 +16,8 @@ export const metadata = {
   alternates: { canonical: "/connections" },
 };
 
-export default function ConnectionsPage() {
+export default async function ConnectionsPage() {
+  await ensureFinancials();
   const companies = listConnectedCompanies();
 
   return (

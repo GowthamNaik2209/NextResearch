@@ -5,6 +5,7 @@ import { getIndustryBasket } from "@/lib/baskets/industry";
 import { backtestBasket } from "@/lib/baskets/run";
 import { parseStrategy } from "@/lib/baskets/strategy";
 import { cleanTickers, getVisibleBasket } from "@/lib/baskets/store";
+import { ensureFinancials } from "@/lib/financials/load";
 
 // A cold industry basket fetches up to ~57 price histories (8 at a time).
 export const maxDuration = 60;
@@ -15,6 +16,7 @@ export const maxDuration = 60;
 // the turnover and trades its rebalancing took. With no strategy parameters it is bought at equal
 // weights (a saved basket: its own weighting) and held, as it always has been.
 export async function GET(req: Request) {
+  await ensureFinancials();
   const q = new URL(req.url).searchParams;
   const range = q.get("range");
   if (!isChartRange(range)) return NextResponse.json({ error: "bad range" }, { status: 400 });

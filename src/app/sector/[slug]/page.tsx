@@ -19,12 +19,18 @@ import { companySlug, sectorCompanies, sectorCompanyCounts } from "@/lib/sector-
 import { NOT_FOUND_METADATA, SITE_URL, jsonLd, midSentence } from "@/lib/site";
 import type { Metadata } from "next";
 import { Points } from "@/components/Points";
+import { ensureFinancials } from "@/lib/financials/load";
 
-export function generateStaticParams() {
+// Figures come from the database; re-render on the same clock as the cached table (load.ts).
+export const revalidate = 900;
+
+export async function generateStaticParams() {
+  await ensureFinancials();
   return listSectorSlugs().map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  await ensureFinancials();
   const { slug } = await params;
   const sector = getSector(slug);
   if (!sector) return NOT_FOUND_METADATA;
@@ -40,6 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function SectorOverviewPage({ params }: { params: Promise<{ slug: string }> }) {
+  await ensureFinancials();
   const { slug } = await params;
   const sector = getSector(slug);
   if (!sector) notFound();

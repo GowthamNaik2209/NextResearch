@@ -5,11 +5,13 @@ import { ensureProfile } from "@/lib/profile";
 import { MAX_BASKETS_PER_USER, getIndustryBasket } from "@/lib/baskets/industry";
 import { cleanName, cleanTickers, fillAddPrices, getVisibleBasket, toSaved } from "@/lib/baskets/store";
 import { uniqueName } from "@/lib/baskets/names";
+import { ensureFinancials } from "@/lib/financials/load";
 
 export const maxDuration = 60;
 
 // GET: the signed-in user's baskets, newest first.
 export async function GET() {
+  await ensureFinancials();
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ baskets: [], signedIn: false });
   const rows = await prisma.basket.findMany({ where: { userId: user.id }, include: { items: { orderBy: { addedAt: "asc" } } }, orderBy: { createdAt: "desc" } });
@@ -19,6 +21,7 @@ export async function GET() {
 // POST { name?, tickers? | sector? | copyFrom?, weighting? } - a new basket, empty, from a list
 // of stocks, from an industry basket, or a copy of a basket shared with the viewer.
 export async function POST(request: Request) {
+  await ensureFinancials();
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "not authenticated" }, { status: 401 });
   const body = await request.json().catch(() => ({}));

@@ -11,6 +11,7 @@ import { basketStock } from "@/lib/baskets/industry";
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { IndustryChips } from "@/components/baskets/IndustryChips";
 import { NewBasketButton } from "@/components/baskets/NewBasketButton";
+import { ensureFinancials } from "@/lib/financials/load";
 
 export const metadata = { title: "Watchlist", robots: { index: false, follow: false } };
 
@@ -33,6 +34,7 @@ async function quotes(tickers: string[]): Promise<Map<string, Quote>> {
 }
 
 export default async function WatchlistPage() {
+  await ensureFinancials();
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/watchlist");
 

@@ -4,10 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { MAX_BASKET_STOCKS } from "@/lib/baskets/industry";
 import { uniqueName } from "@/lib/baskets/names";
 import { cleanName, cleanTickers, fillAddPrices, getVisibleBasket } from "@/lib/baskets/store";
+import { ensureFinancials } from "@/lib/financials/load";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(_req: Request, { params }: Ctx) {
+  await ensureFinancials();
   const { id } = await params;
   const user = await getCurrentUser();
   const b = await getVisibleBasket(id, user?.id ?? null);
@@ -16,6 +18,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 
 // PATCH { name?, description?, weighting?, isPublic?, add?: string[], remove?: string[] } - owner only.
 export async function PATCH(request: Request, { params }: Ctx) {
+  await ensureFinancials();
   const { id } = await params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "not authenticated" }, { status: 401 });
@@ -48,6 +51,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
 }
 
 export async function DELETE(_req: Request, { params }: Ctx) {
+  await ensureFinancials();
   const { id } = await params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "not authenticated" }, { status: 401 });

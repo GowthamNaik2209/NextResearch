@@ -6,12 +6,12 @@
 // (materials, meshes, camera rigs), not application data, and it's cheap to keep
 // byte-for-byte portable from future artifact iterations rather than retyped.
 //
-// PRODUCTS[key].suppliers[...].f (revenue/KPI figures baked in at authoring time, typed as
-// SupplierFinancials in ./index.ts) is the OFFLINE FALLBACK: the UI shows live Screener.in /
-// Yahoo Finance data when it can (src/lib/live/) and falls back to these figures otherwise.
+// No company figures live here. A supplier's `f` is co(ticker, sectorNote): a placeholder that
+// src/lib/financials/store.ts fills from the company table in the database (price, valuation,
+// ratios, FY22-FY26 revenue/profit, typed as SupplierFinancials in ./index.ts). Add or refresh a
+// company's figures with scripts/refresh-financials.ts, never in this file.
 // NEWS here is unused by the app (curated headlines are read from
-// prisma/seed-source/extracted.json by ./insights.ts) and kept only because `fin()` and
-// other definitions below reference module-level state that's simplest left intact.
+// prisma/seed-source/extracted.json by ./insights.ts) and kept for the extract script.
 import { buildEv4w } from "./models/ev4w";
 import { buildNaval } from "./models/naval";
 import { buildAerospace } from "./models/aerospace";
@@ -27,14 +27,12 @@ import { defineSemicon2 } from "./policies/semicon2";
 import { defineRareearth } from "./policies/rareearth";
 import { defineDefenceproc } from "./policies/defenceproc";
 import { defineEcms } from "./policies/ecms";
+import { finRef } from "../financials/store";
 
+// ASOF dates the authored content (suppliers' sourceDate). The figures carry their own date
+ // (supplier.f.asOf, the latest refresh in the database).
 var ASOF = "20 Oct 2026";
  var SRC = "Screener.in (consolidated financials)";
- // asOf: the date the price/valuation figures were taken. Every company is re-read from Screener in
- // one run (scripts/refresh-financials.ts), which sets ASOF, so all of them share one date; an entry
- // that could not be refreshed says its own date in its note ("Price/valuation as of DD Mon YYYY").
- function fin(rev, np, mcap, price, ticker, note, cagr, range, tl, kpi){ var m = note && /as of (\d{1,2} [A-Z][a-z]{2} \d{4})/i.exec(note); return {rev:rev, np:np, mcap:mcap, price:price, ticker:ticker, note:note||null, cagr:cagr||null, range:range||null, tl:tl||null, kpi:kpi||null, asOf:m ? m[1] : ASOF}; }
- // kpi = [Stock P/E, Book Value (Rs), Dividend Yield %, ROCE %, ROE %, Face Value (Rs)] - Screener.in top-summary fields, null entries render as "n/a"
 
  // ======================================================================
  // NEWS COVERAGE
@@ -158,307 +156,13 @@ var ASOF = "20 Oct 2026";
 
  // ======================================================================
  // COMPANY FINANCIALS BY TICKER
- // One source of truth for every listed company that appears in more than one
- // sector, so the same ticker shows the same figures everywhere (stock pop-ups,
- // research decks, /connections). Supplier rows reference it with
- // co(ticker, sectorNote): `note` here is company-level (one-offs, fiscal-year
- // conventions) and is joined with the optional sector-specific note.
- // Shared-ticker consistency is enforced by financials.test.ts.
+ // Supplier rows reference a company's figures with co(ticker, sectorNote). The
+ // figures are one record per ticker in the database (src/lib/financials/), so
+ // the same ticker shows the same figures everywhere (stock pop-ups, research
+ // decks, /connections); the company-level note there is joined with the
+ // optional sector-specific note given here.
  // ======================================================================
- var FIN = {};
- FIN["AADHARHFC"] = fin([null,null,null,3109,3683],[null,null,null,912,1096],"Rs 19,601 Cr","Rs 447","AADHARHFC","Lender: revenue is total income (interest earned plus other income) as Screener reports it; listed May 2024 - pre-listing years left blank",[-13,null,null],[425,563],[2249184,"aadhar-housing-finance-ltd"],[17,173,0,11.4,15.9,10]);
- FIN["AARTIDRUGS"] = fin([2489,2716,2529,2387,2565],[205,166,172,168,195],"Rs 3,644 Cr","Rs 399","AARTIDRUGS",null,[-22,-8,-8],[319,534],[null,"aarti-drugs-ltd"],[18.9,170,0.5,12,13.4,10]);
- FIN["AARTIPHARM"] = fin([1200,1945,1853,2115,1819],[122,193,217,272,175],"Rs 7,548 Cr","Rs 832","AARTIPHARM","Demerged from Aarti Industries and listed Jan 2023",[-1,28,null],[584,1002],[null,"aarti-pharmalabs-ltd"],[35.1,234,0.42,10.7,8.59,5]);
- FIN["AAVAS"] = fin([1304,1608,2018,2355,2683],[357,430,491,574,655],"Rs 9,254 Cr","Rs 1,167","AAVAS","Lender: revenue is total income (interest earned plus other income) as Screener reports it; standalone figures (Screener's consolidated page lacks FY25-FY26)",[-28,-10,-16],[1050,1775],[106807,"aavas-financiers-ltd"],[13.5,637,0,9.92,13.9,10]);
- FIN["ABB"] = fin([6934,8568,10447,12188,13203],[520,1016,1242,1872,1668],"Rs 1,47,785 Cr","Rs 6,974","ABB","Reports Jan-Dec fiscal year: the FY22-FY26 columns hold CY2021-CY2025",[33,20,30],[4638,7924],[17,"abb-india-ltd"],[95.9,441,0.56,29.9,22.4,2]);
- FIN["ABBOTINDIA"] = fin([4919,5349,5849,6409,6929],[799,949,1201,1414,1552],"Rs 55,048 Cr","Rs 25,905","ABBOTINDIA","Standalone figures (Abbott India publishes no consolidated accounts)",[-13,5,4],[25135,30655],[null,"abbott-india-ltd"],[34.1,2247,2.03,44.8,34.4,10]);
- FIN["ADANIENT"] = fin([69420,127540,96421,97895,100469],[788,2422,3335,8005,9951],"Rs 3,59,674 Cr","Rs 2,658","ADANIENT","Diversified incubator entity - solar manufacturing is a sub-segment, not separately reported revenue; FY25-FY26 profit includes large exceptional gains (e.g. Adani Wilmar stake sales), not run-rate",[8,5,11],[1753,3245],[null,"adani-enterprises-ltd"],[152,627,0.05,5.8,4.48,1]);
- FIN["ADANIGREEN"] = fin([5133,7792,9220,11212,12928],[489,973,1260,2001,1987],"Rs 2,13,342 Cr","Rs 1,295","ADANIGREEN",null,[25,12,2],[765,1632],[null,"adani-green-energy-ltd"],[110,121,0,7.39,11.4,10]);
- FIN["ADANIPOWER"] = fin([27711,38773,50351,56203,54241],[4912,10727,20829,12750,12971],"Rs 3,74,277 Cr","Rs 194","ADANIPOWER","FY24 profit includes one-off prior-period income and a deferred-tax credit, not run-rate",[14,42,51],[128,254],[null,"adani-power-ltd"],[26.3,33.7,0,17.2,21.1,2]);
- FIN["ADOR"] = fin([661,null,1074,1123,1140],[45,null,86,60,82],"Rs 2,572 Cr","Rs 1,478","ADOR","General-industrial welding supplier, not naval-exclusive; shipyard is one of several end-markets",[29,6,17],[848,1766],[31,"ador-welding-ltd"],[22.2,319,1.56,22.8,15.8,10]);
- FIN["AEQUS"] = fin([null,812,965,925,1230],[null,-110,-14,-102,-113],"Rs 17,213 Cr","Rs 257","AEQUS","Aerospace order book crossed $1bn in Q1 FY27; recently IPO'd, currently loss-making",[null,null,null],[113,295],[3346246,"aequs-ltd"],[null,22.2,0,1.69,-9.96,10]);
- FIN["AFCONS"] = fin([11019,12637,13268,12548,11948],[358,411,450,487,251],"Rs 9,015 Cr","Rs 245","AFCONS","Listed Nov 2024 (IPO); 3Y/5Y stock price CAGR not applicable (insufficient trading history)",[-45,null,null],[225,458],null,[44,148,0.82,13.9,5.61,10]);
- FIN["AHLUCONT"] = fin([2692,2838,3855,4099,4565],[155,194,375,202,266],"Rs 3,719 Cr","Rs 555","AHLUCONT",null,[-41,-9,9],[541,1078],[43,"ahluwalia-contracts-india-ltd"],[16.5,308,0.13,20.4,13.8,2]);
- FIN["AJANTPHARM"] = fin([3341,3743,4209,4648,5453],[713,588,816,920,1056],"Rs 41,223 Cr","Rs 3,299","AJANTPHARM",null,[35,23,18],[2382,3797],[null,"ajanta-pharma-ltd"],[36.3,362,0.97,34.5,27.1,2]);
- FIN["AKSHOPTFBR"] = fin([316,286,220,130,127],[0,-14,-71,-26,-13],"Rs 115 Cr","Rs 7.09","AKSHOPTFBR","Five straight years of shrinking revenue and losses - a distressed/turnaround-watch name",[-7,-14,-4],[3.81,9.06],null,[null,-0.79,0,-6.63,null,5]);
- FIN["AKUMS"] = fin([3672,3655,4178,4118,4359],[-251,98,1,344,256],"Rs 11,168 Cr","Rs 710","AKUMS","Listed Aug 2024; FY22 loss reflects a one-off fair-value charge before the IPO",[52,null,null],[409,839],[null,"akums-drugs-pharmaceuticals-ltd"],[36.6,211,0.14,14.9,8.45,2]);
- FIN["ALKEM"] = fin([10634,11599,12668,12965,14712],[1680,1007,1811,2215,2351],"Rs 59,830 Cr","Rs 5,004","ALKEM",null,[-10,12,6],[4975,5934],[null,"alkem-laboratories-ltd"],[26.3,1156,1.06,21.2,18.9,2]);
- FIN["ALTIUSINVIT"] = fin([9786,11100,12878,19454,24165],[547,797,1119,840,1107],"Rs 52,257 Cr","Rs 171","ALTIUSINVIT","FY26 is its first full year of integrated operations post the ATC India acquisition",[15,4,null],[146,180],null,[41.3,37.6,2.34,8.6,8.07,150]);
- FIN["AMBUJACEM"] = fin([28965,38937,33160,35336,40656],[3711,3024,4735,5294,5637],"Rs 89,913 Cr","Rs 362","AMBUJACEM","Ambuja moved from a Jan-Dec to an Apr-Mar year: the FY22 column holds CY2021 and the FY23 column the 15 months Jan 2022-Mar 2023",[-36,-6,-1],[341,589],[71,"ambuja-cements-ltd"],[19.1,240,0.55,5.61,8.85,2]);
- FIN["ANANTRAJ"] = fin([462,957,1483,2060,2512],[53,149,271,426,559],"Rs 17,906 Cr","Rs 498","ANANTRAJ",null,[-22,28,49],[403,657],[78,"anant-raj-ltd"],[31,161,0.2,12.1,11.2,2]);
- FIN["ANGELONE"] = fin([2292,3002,4272,5239,5138],[625,890,1126,1172,915],"Rs 27,703 Cr","Rs 303","ANGELONE",null,[21,9,18],[209,360],null,[24,72.9,1.34,14.8,15.6,1]);
- FIN["ANTHEM"] = fin([1231,1057,1419,1845,2124],[406,385,367,451,592],"Rs 45,546 Cr","Rs 808","ANTHEM","Listed Jul 2025",[11,null,null],[579,978],[null,"anthem-biosciences-ltd"],[76.8,54.2,0.25,30.4,22.3,2]);
- FIN["APARINDS"] = fin([9317,14336,16153,18581,22902],[257,638,825,821,977],"Rs 65,894 Cr","Rs 15,737","APARINDS",null,[84,44,86],[6800,19269],[88,"apar-industries-ltd"],[54.7,1343,0.38,31.8,20.3,10]);
- FIN["APLAPOLLO"] = fin([13063,16166,18119,20690,23079],[619,642,732,757,1203],"Rs 59,547 Cr","Rs 2,145","APLAPOLLO",null,[23,8,21],[1690,2301],[91,"apl-apollo-tubes-ltd"],[48.4,191,0.4,31.8,25.4,2]);
- FIN["APLLTD"] = fin([5306,5653,6229,6672,7345],[521,342,616,582,671],"Rs 15,535 Cr","Rs 790","APLLTD",null,[-15,0,0],[635,998],[null,"alembic-pharmaceuticals-ltd"],[20.8,289,1.52,12.6,13.4,2]);
- FIN["APOLLO"] = fin([243,298,372,562,904],[15,19,31,56,107],"Rs 15,748 Cr","Rs 424","APOLLO",null,[47,78,105],[180,467],[72727,"apollo-micro-systems-ltd"],[130,36.8,0.06,14.5,11.8,1]);
- FIN["APOLLOHOSP"] = fin([14663,16612,19059,21794,25228],[1108,844,935,1505,2003],"Rs 1,10,714 Cr","Rs 7,700","APOLLOHOSP",null,[-4,16,13],[6680,9327],[null,"apollo-hospitals-enterprise-ltd"],[52.6,659,0.26,17.4,21.2,5]);
- FIN["APSISAERO"] = fin([null,10.37,16.87,20.49,30.65],[null,1.03,2.55,6.6,7.51],"Rs 715 Cr","Rs 593","APSISAERO","NSE SME, incorporated 2022, so no FY22 figures",[null,null,null],[147,645],[3449240,"apsis-aerocom-ltd"],[94.8,40.6,0,32,25.5,10]);
- FIN["ARE&M"] = fin([8697,10392,11708,12846,13814],[513,731,934,945,896],"Rs 13,414 Cr","Rs 733","ARE&M",null,[-26,5,1],[670,1023],[68,"amara-raja-energy-mobility-ltd"],[18.4,442,1.45,12.2,7.18,1]);
- FIN["ASAHIINDIA"] = fin([3170,4019,4341,4594,4982],[343,362,325,367,345],"Rs 23,461 Cr","Rs 920","ASAHIINDIA",null,[-1,17,21],[775,1074],[107,"asahi-india-glass-ltd"],[52.6,154,0.22,11.5,10.3,1]);
- FIN["ASIANPAINT"] = fin([29101,34489,35495,33906,35584],[3085,4195,5558,3710,4395],"Rs 2,23,560 Cr","Rs 2,331","ASIANPAINT",null,[-7,-9,-5],[2115,2986],[117,"asian-paints-ltd"],[45.8,223,1.18,26.3,21.8,1]);
- FIN["ASMTEC"] = fin([192,220,202,289,529],[14,7,-7,25,61],"Rs 9,255 Cr","Rs 6,345","ASMTEC",null,[75,141,92],[2100,7248],[3131,"asm-technologies-ltd"],[127,210,0.26,27,25.5,10]);
- FIN["ASTRAL"] = fin([4394,5158,5641,5832,6569],[490,472,546,519,535],"Rs 38,363 Cr","Rs 1,428","ASTRAL",null,[-1,-8,-3],[1312,1769],[122,"astral-ltd"],[64.8,151,0.28,19.2,13.8,1]);
- FIN["ASTRAMICRO"] = fin([750,816,909,1051,1163],[38,70,121,154,193],"Rs 15,355 Cr","Rs 1,617","ASTRAMICRO",null,[46,50,53],[836,1960],[123,"astra-microwave-products-ltd"],[81.2,138,0.15,20.3,16,2]);
- FIN["AUROPHARMA"] = fin([23455,24855,29002,31724,33653],[2647,1928,3169,3484,3503],"Rs 93,292 Cr","Rs 1,621","AUROPHARMA",null,[47,23,18],[1080,1740],[null,"aurobindo-pharma-ltd"],[24.7,652,0.25,12.9,10.1,1]);
- FIN["AVALON"] = fin([841,945,867,1098,1603],[67,52,28,63,113],"Rs 13,514 Cr","Rs 2,020","AVALON",null,[67,56,null],[777,2620],null,[101,108,0,19.3,16.5,2]);
- FIN["AVANTEL"] = fin([105,154,224,249,223],[18,27,53,56,15],"Rs 4,033 Cr","Rs 152","AVANTEL",null,[-13,15,60],[117,198],[3840,"avantel-ltd"],[235,12.7,0.13,9.63,5.29,2]);
- FIN["AXISCADES"] = fin([610,822,955,1031,1159],[23,-5,33,75,72],"Rs 8,918 Cr","Rs 2,097","AXISCADES",null,[39,59,91],[1061,2360],[141,"axiscades-technologies-ltd"],[272,171,0,15.4,11.5,5]);
- FIN["AZAD"] = fin([194,252,341,457,603],[29,8,59,87,134],"Rs 17,342 Cr","Rs 2,685","AZAD",null,[64,null,null],[1359,3128],[1840438,"azad-engineering-ltd"],[125,237,0,11.9,9.09,2]);
- FIN["BAGMANE"] = fin([null,null,null,null,null],[null,null,null,null,null],"Rs 36,016 Cr","Rs 106","BAGMANE","listed May 2026 - the trust's FY22-FY26 accounts pre-date its acquisition of the office SPVs, so revenue, profit, P/E, book value and returns are not meaningful yet and left blank; REIT: most of the payout is interest and debt repayment rather than dividend, so P/E, ROE and dividend yield don't reflect what unitholders receive (see the trust's distribution per unit)",[null,null,null],[102,112],[3497836,"bagmane-prime-office-reit"],[null,null,1.42,null,null,100]);
- FIN["BAJAJHFL"] = fin([null,null,null,9554,11150],[null,null,null,2163,2560],"Rs 68,917 Cr","Rs 82.7","BAJAJHFL","Lender: revenue is total income (interest earned plus other income) as Screener reports it; listed Sep 2024 - pre-listing years left blank; standalone figures (no subsidiaries)",[-24,null,null],[72.6,112],[2607004,"bajaj-housing-finance-ltd"],[24.5,28.8,0,8.85,12.1,10]);
- FIN["BAJFINANCE"] = fin([31633,41411,54972,68832,81985],[7028,11508,14451,16779,19332],"Rs 5,96,042 Cr","Rs 957","BAJFINANCE",null,[-11,7,4],[788,1178],null,[27.2,198,0.56,10.9,18.2,1]);
- FIN["BDL"] = fin([2817,2489,2369,3345,2442],[500,352,613,550,420],"Rs 39,882 Cr","Rs 1,088","BDL",null,[-29,30,37],[1048,1633],[80210,"bharat-dynamics-ltd"],[76.6,116,0.45,13.9,10.2,5]);
- FIN["BEL"] = fin([15368,17734,20268,23769,27610],[2400,2986,3985,5323,6062],"Rs 2,75,725 Cr","Rs 377","BEL",null,[-9,41,41],[360,473],[175,"bharat-electronics-ltd"],[44.9,32.8,0.66,36.4,27.4,1]);
- FIN["BEML"] = fin([4337,3899,4054,4022,4351],[129,158,282,293,141],"Rs 16,145 Cr","Rs 1,938","BEML",null,[-11,19,25],[1355,2277],[176,"beml-ltd"],[90.5,352,0.88,7.66,4.78,5]);
- FIN["BERGEPAINT"] = fin([8762,10568,11199,11545,11880],[833,860,1170,1183,1128],"Rs 54,802 Cr","Rs 470","BERGEPAINT",null,[-13,-7,-6],[391,595],[178,"berger-paints-india-ltd"],[44.6,59.3,0.85,21.6,17.3,1]);
- FIN["BHARATFORG"] = fin([10461,12910,15682,15123,16812],[1077,508,910,913,1089],"Rs 87,892 Cr","Rs 1,799","BHARATFORG",null,[44,19,18],[1235,2295],[184,"bharat-forge-ltd"],[87,200,0.47,12.6,12,2]);
- FIN["BHARTIARTL"] = fin([116547,139145,149982,172985,210973],[8305,12287,8558,37481,33823],"Rs 11,70,428 Cr","Rs 1,875","BHARTIARTL","FY25's profit jump reflects a large one-off/deferred-tax-related gain, not run-rate",[-9,26,22],[1726,2175],[187,"bharti-airtel-ltd"],[37.5,245,1.28,17.6,20.3,5]);
- FIN["BHARTIHEXA"] = fin([5405,6579,7089,8548,9354],[1675,549,504,1494,1733],"Rs 81,630 Cr","Rs 1,633","BHARTIHEXA","Operating margins above 50% in recent quarters",[-9,null,null],[1359,1956],null,[44.2,143,1.1,21.4,26,5]);
- FIN["BHEL"] = fin([21211,23365,23893,28339,33782],[445,654,282,534,1600],"Rs 1,48,806 Cr","Rs 427","BHEL",null,[83,51,43],[230,464],[189,"bharat-heavy-electricals-ltd"],[51.7,76.8,0.33,9.14,6.23,2]);
- FIN["BIOCON"] = fin([8184,11174,14756,15262,16927],[772,643,1298,1429,369],"Rs 55,410 Cr","Rs 340","BIOCON","FY26 profit is depressed by finance costs and one-offs around the Biocon Biologics integration",[-7,14,0],[338,447],[null,"biocon-ltd"],[76.2,210,0.15,3.61,1.4,5]);
- FIN["BIRET"] = fin([877,1197,1787,2390,2971],[246,131,-15,160,537],"Rs 26,407 Cr","Rs 318","BIRET","REIT: most of the payout is interest and debt repayment rather than dividend, so P/E, ROE and dividend yield don't reflect what unitholders receive (see the trust's distribution per unit)",[-9,10,3],[311,376],[414152,"brookfield-india-real-estate-trust"],[49.2,260,2.07,5.36,2.75,323]);
- FIN["BIRLACABLE"] = fin([null,792,686,662,771],[null,33,22,5,17],"Rs 987 Cr","Rs 329","BIRLACABLE",null,[113,1,29],[104,419],null,[21.3,93.6,0.38,8.96,6.26,10]);
- FIN["BLUESTARCO"] = fin([6064,7977,9685,11968,12402],[168,401,414,591,527],"Rs 32,306 Cr","Rs 1,571","BLUESTARCO",null,[-20,20,29],[1432,2033],[209,"blue-star-ltd"],[61,167,0.54,21.2,17.2,2]);
- FIN["BONDADA"] = fin([334,371,801,1571,2843],[10,18,46,113,211],"Rs 3,245 Cr","Rs 291","BONDADA","Solar is now ~79% of FY26 revenue - telecom exposure is a shrinking share of a fast-growing company",[-31,75,null],[215,503],null,[14.9,62.2,0.1,39.4,35.7,2]);
- FIN["BORORENEW"] = fin([null,891,1371,1476,1556],[null,71,-50,-87,127],"Rs 6,210 Cr","Rs 422","BORORENEW","Consolidated history starts FY23; margins highly sensitive to anti-dumping duty status and Chinese import pricing",[-37,1,-1],[374,721],[null,"borosil-renewables-ltd"],[16.7,108,0,25.3,25.7,1]);
- FIN["BOROSCI"] = fin([null,null,392,434,462],[null,null,23,27,35],"Rs 932 Cr","Rs 105","BOROSCI","Demerged from Borosil Ltd and listed in 2024; FY22-FY23 not reported as a standalone company",[-23,null,null],[96.6,181],[null,"borosil-scientific-ltd"],[21,49.6,0,12.1,9.51,1]);
- FIN["BOSCH-HCIL"] = fin([2159,2384,1919,2756,2699],[16,-82,-76,59,-3],"Rs 4,856 Cr","Rs 1,786","BOSCH-HCIL","formerly Johnson Controls-Hitachi Air Conditioning India (JCHAC), renamed after Bosch bought Johnson Controls' residential HVAC business; standalone figures",[4,15,-4],[1021,2037],[563,"bosch-home-comfort-india-ltd"],[241,184,2.02,4.78,2.36,10]);
- FIN["BRIGADE"] = fin([2999,3445,4897,5074,5697],[-65,222,401,680,725],"Rs 18,634 Cr","Rs 571","BRIGADE",null,[-22,8,12],[451,802],[219,"brigade-enterprises-ltd"],[27.4,209,0.35,10.5,10.5,10]);
- FIN["BSE"] = fin([841,925,1568,3212,5124],[245,206,772,1322,2487],"Rs 1,36,070 Cr","Rs 3,336","BSE",null,[34,85,86],[2326,4447],null,[48,164,0.3,60,46,2]);
- FIN["CAMS"] = fin([910,972,1137,1422,1516],[287,285,351,465,472],"Rs 17,085 Cr","Rs 688","CAMS",null,[-10,11,2],[611,845],null,[34.5,53.3,1.82,47,36.3,2]);
- FIN["CAPACITE"] = fin([1340,1799,1932,2350,2623],[48,95,120,204,193],"Rs 1,428 Cr","Rs 169","CAPACITE",null,[-38,-8,0],[167,314],[60599,"capacit-e-infraprojects-ltd"],[7.71,226,0,15.5,10.4,10]);
- FIN["CAPLIPOINT"] = fin([1269,1467,1694,1937,2187],[308,377,461,541,650],"Rs 17,170 Cr","Rs 2,259","CAPLIPOINT",null,[12,28,21],[1500,2991],[null,"caplin-point-laboratories-ltd"],[25.8,443,0.35,24.2,20.9,2]);
- FIN["CDSL"] = fin([551,555,812,1082,1145],[312,276,420,526,455],"Rs 26,543 Cr","Rs 1,270","CDSL",null,[-21,24,13],[1116,1674],null,[56.3,93.8,1,32,24.5,10]);
- FIN["CEMPRO"] = fin([3809,5091,7718,9246,10061],[69,125,274,373,598],"Rs 20,079 Cr","Rs 1,169","CEMPRO","Renamed from ITD Cementation India Ltd to Cemindia Projects Ltd (ticker CEMPRO) in 2025 after Adani Group acquisition",[46,75,68],[481,1650],null,[33.4,140,0.26,32.8,27.8,1]);
- FIN["CENTUM"] = fin([780,923,1091,740,953],[-53,7,-3,-2,-52],"Rs 5,883 Cr","Rs 3,985","CENTUM",null,[58,42,48],[2044,5000],[251,"centum-electronics-ltd"],[67.3,233,0.13,25.5,-12.5,10]);
- FIN["CENTURYPLY"] = fin([3027,3647,3886,4528,5397],[313,384,325,186,268],"Rs 14,755 Cr","Rs 664","CENTURYPLY",null,[-12,1,4],[618,859],[252,"century-plyboards-india-ltd"],[49.7,117,0.15,11.5,10.8,1]);
- FIN["CERA"] = fin([1442,1803,1871,1915,2050],[149,210,239,246,204],"Rs 6,411 Cr","Rs 4,970","CERA","standalone figures (Screener's consolidated page lacks FY26)",[-18,-18,-2],[4461,6740],[254,"cera-sanitaryware-ltd"],[31.1,1142,1.51,19.2,14.8,5]);
- FIN["CGPOWER"] = fin([5484,6973,8046,9909,12418],[913,963,1428,973,1199],"Rs 1,34,703 Cr","Rs 855","CGPOWER",null,[16,29,44],[526,981],[293,"cg-power-and-industrial-solutions-ltd"],[106,50.6,0.15,26.7,20.5,2]);
- FIN["CHALET"] = fin([508,1128,1417,1718,2770],[-81,183,278,142,645],"Rs 18,455 Cr","Rs 843","CHALET",null,[-12,13,28],[690,978],null,[34.5,169,0.24,17,19,10]);
- FIN["CIPLA"] = fin([21763,22753,25774,27548,28163],[2547,2833,4154,5269,3862],"Rs 1,06,970 Cr","Rs 1,324","CIPLA",null,[-19,3,8],[1166,1673],[null,"cipla-ltd"],[29.9,426,0.98,15.5,11.6,2]);
- FIN["COCHINSHIP"] = fin([3191,2365,3830,4820,5022],[564,305,783,827,717],"Rs 32,267 Cr","Rs 1,226","COCHINSHIP","Only Indian yard to have delivered a domestically-built aircraft carrier; also runs a ship-repair facility",[-32,35,47],[1187,1864],[57095,"cochin-shipyard-ltd"],[47.4,223,0.73,16.2,12.5,5]);
- FIN["COHANCE"] = fin([1320,1340,1051,2608,2269],[454,411,300,484,150],"Rs 17,511 Cr","Rs 458","COHANCE","Formerly Suven Pharmaceuticals; FY25 onward includes the merged Cohance/NJ Bio businesses, so years are not like-for-like",[-48,-8,-3],[267,918],[null,"cohance-lifesciences-ltd"],[163,102,0,5.81,4.89,1]);
- FIN["CONCOR"] = fin([7653,8169,8653,8887,9079],[1052,1173,1262,1293,1246],"Rs 33,637 Cr","Rs 442","CONCOR","Operator, not a rolling-stock/component supplier - included here for its centrality to the rail-freight ecosystem",[-17,-8,-4],[421,558],null,[27.1,170,1.95,12.6,9.81,5]);
- FIN["CONCORDBIO"] = fin([713,853,1017,1200,1055],[175,240,308,372,259],"Rs 13,452 Cr","Rs 1,286","CONCORDBIO","Listed Aug 2023",[-14,3,null],[987,1615],[null,"concord-biotech-ltd"],[48.4,193,0.59,17.1,12.5,1]);
- FIN["CRAFTSMAN"] = fin([2217,3183,4452,5690,8069],[163,251,337,201,384],"Rs 29,183 Cr","Rs 11,158","CRAFTSMAN",null,[67,35,35],[6252,11999],[445359,"craftsman-automation-ltd"],[62.3,1368,0.1,13.9,12.5,5]);
- FIN["CUMMINSIND"] = fin([6171,7772,9000,10391,12143],[934,1228,1721,2000,2362],"Rs 1,27,845 Cr","Rs 4,612","CUMMINSIND",null,[15,40,39],[3883,6143],[297,"cummins-india-ltd"],[52.4,306,1.43,39.5,30.2,2]);
- FIN["CYIENT"] = fin([4534,6016,7147,7360,7268],[522,514,703,648,463],"Rs 13,032 Cr","Rs 1,172","CYIENT",null,[-2,-12,0],[750,1226],[301,"cyient-ltd"],[32,511,1.36,12.3,8.61,5]);
- FIN["CYIENTDLM"] = fin([null,832,1192,1520,1261],[null,32,61,68,73],"Rs 5,931 Cr","Rs 747","CYIENTDLM",null,[61,2,null],[265,1061],[1513580,"cyient-dlm-ltd"],[70.6,135,0,9.9,7.49,10]);
- FIN["DALBHARAT"] = fin([11286,13552,14691,13980,14804],[845,1079,853,699,1157],"Rs 30,434 Cr","Rs 1,623","DALBHARAT",null,[-26,-9,-4],[1580,2260],[120412,"dalmia-bharat-ltd"],[27.7,959,0.55,7.59,6.11,2]);
- FIN["DATAPATTNS"] = fin([311,453,520,708,925],[94,124,182,222,271],"Rs 22,684 Cr","Rs 4,052","DATAPATTNS",null,[46,26,null],[2131,5000],[755079,"data-patterns-india-ltd"],[83.9,310,0.25,21.9,15.2,2]);
- FIN["DCAL"] = fin([2141,2413,2616,2712,2932],[18,-30,-153,3,97],"Rs 2,286 Cr","Rs 146","DCAL","Thin and volatile profits; FY24 loss on impairments at Carbogen Amcis",[-48,-1,-8],[128,306],[null,"dishman-carbogen-amcis-ltd"],[126,426,0,3.14,1.58,2]);
- FIN["DCXINDIA"] = fin([1102,1254,1424,1084,743],[66,72,76,39,-8],"Rs 1,647 Cr","Rs 148","DCXINDIA",null,[-35,-19,null],[147,235],[1099425,"dcx-systems-ltd"],[null,136,0,0.87,-0.53,2]);
- FIN["DIGIFIBRE"] = fin([11712,15496,16729,18553,18568],[-2582,-1089,-808,-332,-273],null,null,"DIGIFIBRE","Illiquid and rarely traded, so there is no market price or market cap",null,null,null,[null,null,null,6.51,2.93,100]);
- FIN["DIGILOGIC"] = fin([40,56,52,72,77],[1,2,2,8,10],"Rs 539 Cr","Rs 186","DIGILOGIC",null,[null,null,null],[73,215],null,[54.5,37.3,0,18.6,14,2]);
- FIN["DIVISLAB"] = fin([8960,7768,7845,9360,10560],[2960,1823,1600,2191,2568],"Rs 2,41,231 Cr","Rs 9,087","DIVISLAB",null,[38,37,12],[5648,10000],[null,"divis-laboratories-ltd"],[81,631,0.33,22,16.5,2]);
- FIN["DIXON"] = fin([10697,12192,17691,38860,48873],[190,255,375,1233,1644],"Rs 74,016 Cr","Rs 12,100","DIXON",null,[-25,30,18],[9600,16264],[60393,"dixon-technologies-india-ltd"],[39.4,769,0.08,29.2,18.9,2]);
- FIN["DLF"] = fin([5717,5695,6427,7994,8194],[1500,2034,2724,4367,4415],"Rs 1,66,551 Cr","Rs 673","DLF",null,[-13,7,11],[489,786],[337,"dlf-ltd"],[36.2,184,1.19,6.32,9.5,2]);
- FIN["DMART"] = fin([30976,42840,50789,59358,68821],[1492,2378,2536,2707,2970],"Rs 2,15,523 Cr","Rs 3,304","DMART",null,[-23,-4,-6],[3296,4644],null,[69.2,400,0,17.2,12.9,10]);
- FIN["DRREDDY"] = fin([21545,24670,28011,32644,33700],[2182,4507,5578,5725,4158],"Rs 1,03,709 Cr","Rs 1,242","DRREDDY",null,[-3,4,6],[1080,1415],[null,"dr-reddys-laboratories-ltd"],[32.2,454,0.64,13,11.2,1]);
- FIN["DYNAMATECH"] = fin([1253,1316,1429,1404,1621],[15,43,122,43,32],"Rs 9,251 Cr","Rs 13,621","DYNAMATECH",null,[69,46,39],[7630,14500],[351,"dynamatic-technologies-ltd"],[158,1251,0.07,10.2,6.67,10]);
- FIN["EIHOTEL"] = fin([985,2019,2511,2743,2940],[-95,329,678,770,657],"Rs 19,064 Cr","Rs 305","EIHOTEL",null,[-21,11,17],[271,405],null,[26.3,84.2,0.49,20.7,14.5,2]);
- FIN["ELGIEQUIP"] = fin([2525,3041,3218,3510,3951],[178,371,312,350,430],"Rs 17,251 Cr","Rs 544","ELGIEQUIP",null,[17,3,22],[408,653],null,[37.2,70.4,0.5,22.1,19,1]);
- FIN["EMBASSY"] = fin([3053,3532,3816,4039,4582],[888,506,964,1624,339],"Rs 41,322 Cr","Rs 436","EMBASSY","REIT: most of the payout is interest and debt repayment rather than dividend, so P/E, ROE and dividend yield don't reflect what unitholders receive (see the trust's distribution per unit); FY25 profit includes a deferred-tax credit and FY26 a high tax charge",[1,12,4],[410,462],[139325,"embassy-office-parks-reit"],[168,219,0.05,5.61,1.26,10]);
- FIN["ENDURANCE"] = fin([7549,8804,10241,11561,14596],[461,480,680,836,952],"Rs 33,320 Cr","Rs 2,369","ENDURANCE",null,[-20,13,6],[2143,3075],[4797,"endurance-technologies-ltd"],[33.8,486,0.49,17.8,14.9,10]);
- FIN["ENTERO"] = fin([2522,3300,3922,5096,6591],[-29,-11,40,107,146],"Rs 6,545 Cr","Rs 1,504","ENTERO","Listed Feb 2024",[36,null,null],[944,1920],[null,"entero-healthcare-solutions-ltd"],[50.7,388,0,10.5,6.94,10]);
- FIN["ERIS"] = fin([1347,1685,2009,2894,3129],[406,374,397,375,648],"Rs 15,544 Cr","Rs 1,120","ERIS",null,[-30,9,7],[1111,1740],[null,"eris-lifesciences-ltd"],[23.7,282,0.64,14.1,18.7,1]);
- FIN["ESCORTS"] = fin([7283,8429,9804,10244,11540],[736,637,1077,1265,2394],"Rs 30,283 Cr","Rs 2,707","ESCORTS","Company-wide figures span Agri Machinery, Construction Equipment and Railway Equipment (~11% of revenue)",[-27,-6,13],[2550,3999],[387,"escorts-kubota-ltd"],[21.3,1106,1.22,13.9,18.7,10]);
- FIN["ETERNAL"] = fin([4192,7079,12114,20243,54364],[-1222,-971,351,527,366],"Rs 3,09,004 Cr","Rs 320","ETERNAL",null,[-5,41,18],[213,345],null,[714,32.1,0,2.48,0.38,1]);
- FIN["EXICOM"] = fin([843,708,1020,868,1152],[5,8,64,-110,-274],"Rs 1,926 Cr","Rs 138","EXICOM","Listed 2024; loss-making since FY25 so P/E is n/a",[-1,null,null],[75.6,189],[2077200,"exicom-tele-systems-ltd"],[null,46.8,0,-14.7,-40.8,10]);
- FIN["EXIDEIND"] = fin([12789,15078,16770,17238,17995],[4357,823,883,800,860],"Rs 30,613 Cr","Rs 360","EXIDEIND","FY22 profit includes a one-time gain",[-10,12,15],[287,496],[404,"exide-industries-ltd"],[32.6,164,0.56,8.54,5.97,1]);
- FIN["FINCABLES"] = fin([3768,4481,5014,5319,6321],[599,504,652,701,714],"Rs 19,614 Cr","Rs 1,282","FINCABLES",null,[63,11,23],[701,1499],[416,"finolex-cables-ltd"],[24.5,398,0.7,16,12.3,2]);
- FIN["FINPIPE"] = fin([4647,4397,4317,4142,4113],[1051,251,474,800,599],"Rs 9,388 Cr","Rs 151","FINPIPE",null,[-21,-12,-8],[147,200],[417,"finolex-industries-ltd"],[15.2,100,1.32,11.8,8.57,2]);
- FIN["FLUOROCHEM"] = fin([3954,5685,4281,4737,4996],[776,1323,435,546,574],"Rs 48,928 Cr","Rs 4,454","FLUOROCHEM",null,[19,17,19],[2917,4959],[169265,"gujarat-fluorochemicals-ltd"],[79.2,716,0.07,9.64,7.82,1]);
- FIN["FORTIS"] = fin([5718,6298,6893,7783,9128],[790,633,645,809,1064],"Rs 55,701 Cr","Rs 738","FORTIS",null,[-33,30,23],[732,1104],null,[52.2,131,0.14,13.4,11.2,10]);
- FIN["FROG"] = fin([133,133,158,219,106],[15,15,16,24,-2],"Rs 377 Cr","Rs 242","FROG","Sharp FY25-to-FY26 revenue collapse (-52%) into a small loss - possible order-timing air-pocket",[10,2,null],[124,305],null,[null,102,0,-1.91,-0.71,10]);
- FIN["GLAND"] = fin([4401,3625,5665,5616,6431],[1212,781,772,699,1027],"Rs 49,830 Cr","Rs 3,020","GLAND",null,[57,25,-4],[1574,3171],[null,"gland-pharma-ltd"],[43.5,629,0.66,15.1,10.7,1]);
- FIN["GLENMARK"] = fin([12305,11583,11813,13322,16983],[994,377,-1434,1047,1362],"Rs 62,377 Cr","Rs 2,210","GLENMARK","FY24 loss reflects discontinued operations and one-off charges around the Glenmark Life Sciences sale; FY26 includes the US$700m AbbVie upfront for ISB 2001",[19,41,34],[1793,2538],[null,"glenmark-pharmaceuticals-ltd"],[20,372,0.23,39.8,23.6,1]);
- FIN["GODREJPROP"] = fin([1825,2252,3036,4923,5131],[351,621,747,1389,1841],"Rs 47,865 Cr","Rs 1,589","GODREJPROP",null,[-31,-1,-7],[1434,2352],[478,"godrej-properties-ltd"],[29.6,636,0.63,7.63,8.82,5]);
- FIN["GRANULES"] = fin([3765,4512,4506,4482,5366],[413,517,405,502,595],"Rs 21,987 Cr","Rs 806","GRANULES",null,[42,33,20],[520,924],[null,"granules-india-ltd"],[33.8,205,0.22,15.5,13.8,1]);
- FIN["GREENPANEL"] = fin([1624,1783,1567,1436,1539],[233,230,135,72,-29],"Rs 1,721 Cr","Rs 140","GREENPANEL","standalone figures (Screener's consolidated page lacks FY25-FY26); loss-making in FY26",[-54,-28,-15],[140,311],[170350,"greenpanel-industries-ltd"],[256,111,0.36,-0.4,-2.13,1]);
- FIN["GREENPOWER"] = fin([311,258,271,260,293],[36,33,38,42,72],"Rs 974 Cr","Rs 8.3","GREENPOWER","Small-cap",[-37,-13,16],[7.98,14.9],[null,"orient-green-power-company-ltd"],[18.2,9.82,0,7.19,5.27,10]);
- FIN["GRSE"] = fin([1754,2561,3593,5076,7002],[190,228,357,527,748],"Rs 23,893 Cr","Rs 2,086","GRSE","Highest ROCE/ROE of the PSU shipyards; revenue grew ~6x in 5 years, largely export/ASW-craft driven",[-21,40,56],[1964,3339],[105874,"garden-reach-shipbuilders-engineers-ltd"],[29.8,229,0.94,42.8,31.6,10]);
- FIN["GTLINFRA"] = fin([1463,1458,1372,1344,1372],[-1475,-1817,-681,-875,779],"Rs 1,307 Cr","Rs 1.02","GTLINFRA","Long-distressed independent tower co with negative net worth; FY26 return to profit may include one-offs",[-30,2,-9],[0.96,1.67],null,[null,-4.07,0,null,null,10]);
- FIN["HAL"] = fin([24620,26927,30381,30981,33089],[5080,5828,7621,8364,9116],"Rs 3,31,646 Cr","Rs 4,959","HAL",null,[2,37,49],[3479,5150],[80502,"hindustan-aeronautics-ltd"],[35.6,614,0.91,32,24,5]);
- FIN["HAVELLS"] = fin([13938,16911,18590,21778,22528],[1196,1072,1271,1470,1689],"Rs 69,201 Cr","Rs 1,103","HAVELLS",null,[-26,-5,-3],[1015,1517],[525,"havells-india-ltd"],[41.5,151,0.91,24.9,19,1]);
- FIN["HBLENGINE"] = fin([1236,1369,2233,1967,3303],[94,98,280,276,814],"Rs 22,535 Cr","Rs 813","HBLENGINE","Renamed from HBL Power Systems (ticker HBLPOWER -> HBLENGINE)",[-14,41,72],[603,1122],[526,"hbl-engineering-ltd"],[28.1,79.9,0.37,59.3,45.3,1]);
- FIN["HDFCBANK"] = fin([135936,170754,283649,336367,348615],[38151,46149,65446,73440,79219],"Rs 10,97,804 Cr","Rs 712","HDFCBANK","Lender: revenue is total income (interest earned plus other income) as Screener reports it; FY24 onward includes the July 2023 merger with HDFC Ltd; price reflects the 2025 1:1 bonus",[-29,-2,-3],[682,1020],[533,"hdfc-bank-ltd"],[13.7,391,1.83,7.02,13.6,1]);
- FIN["HFCL"] = fin([4727,4743,4465,4065,4949],[326,318,338,173,329],"Rs 41,144 Cr","Rs 269","HFCL",null,[252,57,30],[59.8,276],[543,"hfcl-ltd"],[47.4,36.9,0.07,10.8,6.98,1]);
- FIN["HIKAL"] = fin([1943,2023,1785,1860,1713],[160,78,70,91,-49],"Rs 2,679 Cr","Rs 217","HIKAL",null,[-10,-9,-15],[146,261],[null,"hikal-ltd"],[63.2,97.2,0.28,3.5,2.21,2]);
- FIN["HIRECT"] = fin([null,null,518,655,999],[null,null,13,37,39],"Rs 3,896 Cr","Rs 1,099","HIRECT","Small-cap; formerly Hind Rectifiers, renamed to Hirect Ltd",[38,82,66],[565,1400],null,[99.4,60.7,0.13,18.8,25.2,2]);
- FIN["HOMEFIRST"] = fin([596,796,1157,1539,1921],[186,228,306,382,540],"Rs 11,034 Cr","Rs 1,055","HOMEFIRST","Lender: revenue is total income (interest earned plus other income) as Screener reports it; standalone figures (no subsidiaries)",[-14,4,11],[894,1318],[407835,"home-first-finance-company-india-ltd"],[19,418,0.49,11.1,15.7,2]);
- FIN["IDEA"] = fin([38516,42177,42652,43572,44873],[-28245,-29301,-31238,-27384,34552],"Rs 1,33,045 Cr","Rs 12.3","IDEA","Returned to a large reported profit in FY26 substantially via other-income/one-offs (likely AGR-relief or conversion accounting) - not a fundamental turnaround",[37,1,4],[8.13,15.8],[589,"vodafone-idea-ltd"],[null,-3.3,0,-1.72,null,10]);
- FIN["IDEAFORGE"] = fin([159,186,314,161,226],[44,32,45,-62,-17],"Rs 3,505 Cr","Rs 705","IDEAFORGE","Sharp FY25 revenue/profit decline followed by partial FY26 recovery; still loss-making",[50,-5,null],[366,997],null,[892,138,0,-2.81,-3.34,10]);
- FIN["INA"] = fin([215,279,737,1334,2146],[7,11,55,126,201],"Rs 1,555 Cr","Rs 70.5","INA","Migrated from the BSE SME platform to the NSE/BSE main board in Mar 2026",[-57,10,null],[69.6,198],[null,"insolation-energy-ltd"],[7.98,36.6,0,22.4,28.4,1]);
- FIN["INDHOTEL"] = fin([3056,5810,6769,8335,9689],[-265,1053,1330,2038,2247],"Rs 1,08,181 Cr","Rs 760","INDHOTEL",null,[2,23,30],[565,776],null,[55.7,91.7,0.43,17.1,14.2,1]);
- FIN["INDUSTOWER"] = fin([27717,28382,28601,30123,32493],[6373,2040,6036,9932,7145],"Rs 1,00,883 Cr","Rs 382","INDUSTOWER",null,[8,28,5],[354,482],[629,"indus-towers-ltd"],[14.1,150,3.66,19.5,18.6,10]);
- FIN["INOXWIND"] = fin([625,737,1746,3557,4397],[-483,-671,-48,438,449],"Rs 11,215 Cr","Rs 64.9","INOXWIND",null,[-56,7,18],[62.4,159],[null,"inox-wind-ltd"],[32.6,36.9,0,10.6,7.5,10]);
- FIN["IOLCP"] = fin([2184,2217,2133,2079,2319],[168,139,134,101,138],"Rs 5,375 Cr","Rs 183","IOLCP",null,[93,26,10],[67.1,224],[null,"iol-chemicals-pharmaceuticals-ltd"],[30.5,61.3,0.55,11.3,8.41,2]);
- FIN["IONEXCHANG"] = fin([1577,1990,2348,2737,2915],[162,195,195,208,143],"Rs 5,396 Cr","Rs 368","IONEXCHANG",null,[-8,-17,10],[312,486],[2050,"ion-exchange-india-ltd"],[49,91.3,0.34,14.2,12,1]);
- FIN["IPCALAB"] = fin([5797,6204,7662,8897,9599],[890,479,523,785,1184],"Rs 46,035 Cr","Rs 1,814","IPCALAB",null,[43,25,10],[1252,2039],[null,"ipca-laboratories-ltd"],[33.5,318,0.33,17,15.7,1]);
- FIN["IRCON"] = fin([7380,10368,12514,10760,9071],[592,765,930,728,592],"Rs 9,795 Cr","Rs 104","IRCON","Miniratna PSU; revenue has declined the last two years",[-39,-12,17],[101,186],[109297,"ircon-international-ltd"],[18.7,70.6,1.82,9.27,8.19,2]);
- FIN["IRCTC"] = fin([null,3541,4260,4675,5215],[null,1006,1111,1315,1393],"Rs 36,448 Cr","Rs 456","IRCTC","Navratna PSU, near-monopoly on IR e-ticketing",[-37,-13,-13],[446,736],[167028,"indian-railway-catering-tourism-corporation-ltd"],[26.4,53.9,1.98,46.1,34.4,2]);
- FIN["IRFC"] = fin([20299,23892,26650,27153,27285],[6090,6337,6412,6502,7009],"Rs 1,02,509 Cr","Rs 78.4","IRFC","NBFC structure - funds nearly all rolling-stock capex for Indian Railways",[-37,1,27],[74.1,137],[402503,"indian-railway-finance-corporation-ltd"],[13.9,46.4,2.68,5.64,12.8,10]);
- FIN["ITI"] = fin([1861,1395,1264,3616,2184],[120,-360,-569,-215,293],"Rs 22,924 Cr","Rs 238","ITI","High debtor days (~486); market cap looks rich relative to revenue - likely PSU-rerating/speculative rather than fundamentals-driven",[-29,-7,14],[233,342],null,[null,19.8,0,2.1,-8.86,10]);
- FIN["JAYKAY"] = fin([11,47,53,81,240],[18,8,10,7,216],"Rs 3,244 Cr","Rs 215","JAYKAY","FY26 net profit unusually close to revenue - likely includes a one-off/exceptional item; verify before use",[4,70,50],[107,273],[2066,"jaykay-enterprises-ltd"],[79.6,45.7,0,4.76,3.56,1]);
- FIN["JBMA"] = fin([3193,3857,5009,5472,6088],[156,125,194,215,238],"Rs 12,515 Cr","Rs 529","JBMA",null,[-19,-5,34],[477,738],[667,"jbm-auto-ltd"],[54.4,65,0.16,15.1,15.7,1]);
- FIN["JKCEMENT"] = fin([7991,9720,11556,11879,13722],[679,416,790,872,988],"Rs 37,695 Cr","Rs 4,878","JKCEMENT",null,[-24,14,8],[4670,6504],[683,"jk-cement-ltd"],[38.6,911,0.41,15.1,15.6,10]);
- FIN["JKIL"] = fin([null,4203,4879,5693,5723],[null,274,331,391,387],"Rs 3,442 Cr","Rs 455","JKIL","Consolidated P&L on Screener only available from FY2023 onward",[-27,0,22],[425,672],null,[8.85,445,0.88,18.4,12.4,5]);
- FIN["JLHL"] = fin([733,893,1073,1302,1500],[51,73,177,194,194],"Rs 7,996 Cr","Rs 244","JLHL",null,[-22,6,null],[230,340],null,[41.8,47.1,0.08,14.8,13.1,2]);
- FIN["JSWENERGY"] = fin([8167,10332,11486,11745,18901],[1743,1480,1725,1983,2762],"Rs 88,411 Cr","Rs 482","JSWENERGY",null,[-8,8,5],[428,617],[null,"jsw-energy-ltd"],[44.1,175,0.41,8.16,7.51,10]);
- FIN["JSWSTEEL"] = fin([146371,165960,175006,168824,185470],[20938,4139,8973,3491,25508],"Rs 3,03,554 Cr","Rs 1,241","JSWSTEEL","FY26 profit includes about Rs 18,500 Cr of other income, largely one-off, not run-rate",[8,17,13],[1073,1351],[699,"jsw-steel-ltd"],[25.2,409,0.57,11,10.2,1]);
- FIN["JWL"] = fin([1178,2068,3644,3963,2916],[50,121,331,380,166],"Rs 8,408 Cr","Rs 197","JWL","Fastest-growing wagon maker; diversifying into EV bus bodies and braking systems",[-39,-14,44],[196,358],[245,"jupiter-wagons-ltd"],[47.2,69.7,0.51,9.14,6.37,10]);
- FIN["KAJARIACER"] = fin([3705,4382,4474,4635,4830],[383,346,432,300,487],"Rs 18,991 Cr","Rs 1,208","KAJARIACER",null,[-1,-1,-1],[870,1276],[709,"kajaria-ceramics-ltd"],[32.9,192,1.16,23.4,17.9,1]);
- FIN["KAYNES"] = fin([706,1126,1805,2722,3626],[42,95,183,293,364],"Rs 21,847 Cr","Rs 3,250","KAYNES",null,[-53,10,null],[2995,6998],[1124672,"kaynes-technology-india-ltd"],[62.9,708,0,12.7,8.69,10]);
- FIN["KEC"] = fin([13742,17282,19914,21847,23506],[332,176,347,571,606],"Rs 9,145 Cr","Rs 344","KEC","Railways is a named segment but not broken out numerically",[-60,-19,-6],[342,861],[727,"kec-international-ltd"],[15.2,231,1.6,16.5,11.4,2]);
- FIN["KEI"] = fin([5727,6912,8104,9736,11748],[376,477,581,696,918],"Rs 42,486 Cr","Rs 4,442","KEI",null,[7,19,38],[3729,5931],[729,"kei-industries-ltd"],[42.6,697,0.1,20,14.7,2]);
- FIN["KERNEX"] = fin([7,4,20,190,430],[-17,-20,-27,50,88],"Rs 2,920 Cr","Rs 1,738","KERNEX","Explosive revenue/profit inflection FY24-FY26, directly tied to Kavach rollout orders",[31,46,85],[850,2586],[731,"kernex-microsystems-india-ltd"],[15.3,148,0,47.8,43.5,10]);
- FIN["KIMS"] = fin([1651,2198,2498,3035,3905],[344,366,336,415,242],"Rs 28,497 Cr","Rs 678","KIMS",null,[-6,20,25],[576,858],null,[137,56.2,0,9.5,11.3,2]);
- FIN["KIRLOSBROS"] = fin([3058,3730,4001,4492,4538],[94,236,350,419,377],"Rs 13,610 Cr","Rs 1,714","KIRLOSBROS","Confirmed direct naval pump-system supplier for INS Taragiri",[-13,20,35],[1333,2192],[744,"kirloskar-brothers-ltd"],[33.6,310,0.41,20.4,17.3,2]);
- FIN["KIRLOSENG"] = fin([4022,5020,5898,6329,7701],[171,332,440,476,562],"Rs 28,723 Cr","Rs 1,973","KIRLOSENG",null,[124,51,54],[880,2720],[745,"kirloskar-oil-engines-ltd"],[50.4,249,0.35,14.6,17.5,2]);
- FIN["KIRLPNU"] = fin([666,538,484,1640,1787],[62,49,37,211,254],"Rs 7,997 Cr","Rs 615","KIRLPNU","Revenue tripled FY24-FY25 - looks like a major new order/contract inflection",[6,27,29],[478,1099],[2214,"kirloskar-pneumatic-company-ltd"],[30.4,96.1,0.98,29.6,22.6,1]);
- FIN["KPIGREEN"] = fin([230,644,1024,1735,2696],[43,110,162,325,509],"Rs 6,224 Cr","Rs 315","KPIGREEN",null,[-37,20,84],[272,542],[null,"kpi-green-energy-ltd"],[13.6,154,0.29,13.7,16.9,5]);
- FIN["KPIL"] = fin([14777,16361,19626,22316,27143],[535,435,516,567,1031],"Rs 22,998 Cr","Rs 1,347","KPIL","Railways is one of several verticals; company-wide, not rail-only, figures",[7,24,26],[1007,1500],[712,"kalpataru-projects-international-ltd"],[20.7,455,0.82,18.3,13.7,2]);
- FIN["KPITTECH"] = fin([2432,3365,4872,5842,6455],[276,387,599,840,637],"Rs 14,720 Cr","Rs 537","KPITTECH",null,[-53,-23,10],[470,1285],[141324,"kpit-technologies-ltd"],[23.6,129,1.4,26.3,20.9,10]);
- FIN["KRONECOMM"] = fin([121,143,179,187,200],[8,8,21,24,19],"Rs 1,064 Cr","Rs 2,312","KRONECOMM","Debt-free; rising debtor days (66 to 82) is a mild working-capital flag",[50,46,47],[1150,2678],null,[47.2,188,1.08,31.4,24.2,10]);
- FIN["KRT"] = fin([null,null,null,null,3047],[null,null,null,null,375],"Rs 50,104 Cr","Rs 113","KRT","listed Aug 2025 - FY26 consolidates the office SPVs only from acquisition at listing (about 7.5 months), pre-listing years left blank; REIT: most of the payout is interest and debt repayment rather than dividend, so P/E, ROE and dividend yield don't reflect what unitholders receive (see the trust's distribution per unit)",[-3,null,null],[108,129],[3203669,"knowledge-realty-trust"],[79.9,97.4,1.5,5.22,1.67,100]);
- FIN["LAURUSLABS"] = fin([4936,6041,5041,5554,6813],[832,793,162,358,890],"Rs 1,11,791 Cr","Rs 2,069","LAURUSLABS",null,[125,73,29],[902,2089],[null,"laurus-labs-ltd"],[102,98.2,0.1,17.8,18.3,2]);
- FIN["LEMONTREE"] = fin([402,875,1071,1286,1444],[-137,141,182,243,288],"Rs 8,847 Cr","Rs 112","LEMONTREE",null,[-33,-2,16],[99.6,171],null,[34.6,17.6,0,14.1,19.2,10]);
- FIN["LICHSGFIN"] = fin([19978,22717,27277,28098,28838],[2286,2891,4763,5443,5604],"Rs 28,136 Cr","Rs 512","LICHSGFIN","Lender: revenue is total income (interest earned plus other income) as Screener reports it",[-11,4,3],[459,598],[790,"lic-housing-finance-ltd"],[4.9,753,1.96,8.59,14.4,2]);
- FIN["LINDEINDIA"] = fin([2112,null,2769,2485,2531],[507,null,434,455,549],"Rs 51,198 Cr","Rs 6,004","LINDEINDIA","FY23 figure unavailable due to a reporting period change (Dec-end to Mar-end transition)",[-1,-2,20],[5653,8049],[791,"linde-india-ltd"],[93.7,500,0.07,18.2,13.6,10]);
- FIN["LODHA"] = fin([9233,9470,10316,13780,16676],[1208,490,1554,2767,3431],"Rs 1,02,940 Cr","Rs 1,030","LODHA",null,[-13,8,15],[651,1345],[460813,"lodha-developers-ltd"],[25,233,0.41,16.4,15.5,10]);
- FIN["LT"] = fin([156521,183341,221113,255734,285874],[10419,12531,15547,17673,18954],"Rs 5,03,839 Cr","Rs 3,662","LT",null,[-5,7,15],[3288,4440],[800,"larsen-toubro-ltd"],[28.6,794,1.04,14.6,15.9,2]);
- FIN["LUPIN"] = fin([16405,16642,20011,22708,27958],[-1528,448,1936,3306,5355],"Rs 88,678 Cr","Rs 1,939","LUPIN","FY22 loss reflects one-off impairments and a US litigation provision",[0,18,16],[1900,2530],[null,"lupin-ltd"],[14.9,491,0.93,29.9,28.7,2]);
- FIN["M&M"] = fin([90171,121362,139078,159211,198639],[7253,11374,12270,14073,18622],"Rs 3,61,494 Cr","Rs 2,907","M&M",null,[-19,23,27],[2743,3840],[807,"mahindra-mahindra-ltd"],[18.8,749,1.14,15.1,20.3,5]);
- FIN["MAHLIFE"] = fin([394,607,212,372,1178],[162,103,98,61,298],"Rs 7,341 Cr","Rs 344","MAHLIFE",null,[-11,-10,6],[287,428],[818,"mahindra-lifespace-developers-ltd"],[23.6,170,1.02,7.64,9.91,10]);
- FIN["MANKIND"] = fin([7782,8749,10260,12207,14278],[1453,1310,1942,2011,1938],"Rs 93,067 Cr","Rs 2,253","MANKIND","Listed May 2023",[-8,8,null],[1910,2642],[null,"mankind-pharma-ltd"],[43.6,395,0.04,13.5,13.1,1]);
- FIN["MAXHEALTH"] = fin([3937,4563,5406,7028,8373],[605,1104,1058,1076,1442],"Rs 80,785 Cr","Rs 830","MAXHEALTH",null,[-31,12,19],[828,1222],null,[54,110,0.24,14.7,14.7,10]);
- FIN["MAZDOCK"] = fin([5733,7827,9467,11432,13006],[611,1119,1937,2414,2578],"Rs 82,774 Cr","Rs 2,052","MAZDOCK","Only listed pure-play submarine builder; monopoly-adjacent on P75 Scorpene follow-ons and P75I contention",[-28,26,71],[1988,2883],[305195,"mazagon-dock-shipbuilders-ltd"],[29,242,0.88,36,29.2,5]);
- FIN["MCX"] = fin([367,514,684,1113,2302],[143,149,83,560,1332],"Rs 81,202 Cr","Rs 3,184","MCX",null,[73,90,53],[1761,3481],null,[52.7,112,0.25,71.4,56.3,2]);
- FIN["MEDANTA"] = fin([2167,2710,3275,3692,4410],[196,326,478,481,554],"Rs 33,289 Cr","Rs 1,238","MEDANTA",null,[-11,17,null],[955,1544],null,[58.1,147,0.04,17.4,15.2,2]);
- FIN["MEDPLUS"] = fin([3779,4558,5625,6136,6892],[95,50,66,150,220],"Rs 7,200 Cr","Rs 599","MEDPLUS",null,[-22,-9,null],[593,1022],[null,"medplus-health-services-ltd"],[34.2,165,0,12.6,11.6,2]);
- FIN["MICEL"] = fin([45,23,55,95,191],[3,0,62,10,-13],"Rs 1,080 Cr","Rs 36.2","MICEL","Extremely volatile earnings; FY24's profit spike on modest revenue looks like a one-off gain",[-34,-8,null],[30,58.7],[861,"mic-electronics-ltd"],[null,8.97,0,8.67,-5.76,2]);
- FIN["MIDHANI"] = fin([859,872,1073,1074,1209],[177,156,92,111,131],"Rs 7,590 Cr","Rs 405","MIDHANI",null,[7,-1,15],[267,482],[80900,"mishra-dhatu-nigam-ltd"],[56.2,81.8,0.21,11.4,8.92,10]);
- FIN["MINDACORP"] = fin([2976,4300,4651,5056,6185],[192,284,227,255,358],"Rs 15,150 Cr","Rs 634","MINDACORP",null,[10,21,38],[468,769],[863,"minda-corporation-ltd"],[37.6,110,0.22,12.7,14.7,2]);
- FIN["MINDSPACE"] = fin([1761,2298,2462,2596,3216],[447,308,561,514,694],"Rs 32,659 Cr","Rs 493","MINDSPACE","REIT: most of the payout is interest and debt repayment rather than dividend, so P/E, ROE and dividend yield don't reflect what unitholders receive (see the trust's distribution per unit)",[6,16,9],[441,526],[250865,"mindspace-business-parks-reit"],[41.9,232,2.39,7.64,4.65,485]);
- FIN["MOSCHIP"] = fin([148,198,294,467,585],[6,6,10,33,35],"Rs 3,555 Cr","Rs 182","MOSCHIP",null,[-33,28,32],[147,277],[3841,"moschip-technologies-ltd"],[112,21.1,0,11,11,2]);
- FIN["MOTHERSON"] = fin([63536,78701,98692,113663,126104],[1182,1670,3020,4146,4086],"Rs 1,68,551 Cr","Rs 158","MOTHERSON",null,[50,36,14],[101,173],[878,"samvardhana-motherson-international-ltd"],[36.9,38.8,0.38,13.4,11.2,1]);
- FIN["MSUMI"] = fin([5635,7068,8327,9319,11478],[411,487,638,606,625],"Rs 23,463 Cr","Rs 35.4","MSUMI",null,[-24,-6,null],[32.7,53.6],[856676,"motherson-sumi-wiring-india-ltd"],[37.4,3.26,1.64,38.9,32.4,1]);
- FIN["MTARTECH"] = fin([322,574,581,676,876],[61,103,56,53,94],"Rs 22,079 Cr","Rs 7,178","MTARTECH",null,[229,38,35],[2113,8715],[436155,"mtar-technologies-ltd"],[162,267,0,15.1,12.4,10]);
- FIN["MTNL"] = fin([1149,935,799,1130,956],[-2603,-2915,-3268,-3328,-3107],"Rs 1,443 Cr","Rs 22.9","MTNL",null,[-45,-8,5],[20.3,44.7],[888,"mahanagar-telephone-nigam-ltd"],[null,-476,0,-9.32,null,10]);
- FIN["NATCOPHARM"] = fin([1945,2707,3999,4430,4078],[170,715,1388,1883,1418],"Rs 15,710 Cr","Rs 801","NATCOPHARM",null,[-3,-1,-1],[779,1217],[null,"natco-pharma-ltd"],[13.7,470,0.62,17.4,17.1,2]);
- FIN["NAUKRI"] = fin([1589,2346,2536,2850,3285],[12882,-70,595,1310,1763],"Rs 79,107 Cr","Rs 1,220","NAUKRI","profit swings with gains/losses on investee stakes (e.g. Eternal/Zomato, PB Fintech) - FY22 includes a large Zomato-listing gain; 99acres (real estate) is a small part of revenue",[-7,13,-2],[908,1420],[913,"info-edge-india-ltd"],[53.6,585,0.69,3.45,1.81,2]);
- FIN["NAVINFLUOR"] = fin([1453,2077,2065,2349,3314],[263,375,270,289,664],"Rs 41,834 Cr","Rs 8,152","NAVINFLUOR",null,[58,31,19],[4889,8950],[914,"navin-fluorine-international-ltd"],[52.6,775,0.19,21,19.6,2]);
- FIN["NCC"] = fin([11138,15553,20845,22199,20823],[494,646,740,868,724],"Rs 8,024 Cr","Rs 128","NCC",null,[-39,-6,10],[119,217],[918,"ncc-ltd"],[11.1,125,1.72,16.8,9.19,2]);
- FIN["NETWEB"] = fin([247,445,724,1149,2184],[22,47,76,114,206],"Rs 27,940 Cr","Rs 4,700","NETWEB",null,[21,74,null],[2920,5813],[1544933,"netweb-technologies-india-ltd"],[107,127,0.06,37.5,32.8,2]);
- FIN["NEULANDLAB"] = fin([951,1191,1559,1477,2023],[64,164,300,260,364],"Rs 24,659 Cr","Rs 19,220","NEULANDLAB",null,[17,68,65],[11500,24235],[null,"neuland-laboratories-ltd"],[49.5,1461,0.18,26.5,21.2,10]);
- FIN["NH"] = fin([3701,4525,4890,5483,7896],[342,607,790,791,806],"Rs 35,577 Cr","Rs 1,741","NH",null,[-1,18,28],[1564,2094],null,[41.3,222,0.26,15.5,20.5,10]);
- FIN["NHPC"] = fin([9144,10607,9631,10380,11615],[3774,4261,4000,3412,4220],"Rs 71,018 Cr","Rs 70.7","NHPC",null,[-18,11,18],[68.7,87.3],[null,"nhpc-ltd"],[18.7,41.2,2.28,5.75,9.32,10]);
- FIN["NRBBEARING"] = fin([943,1057,1094,1199,1335],[76,96,242,82,146],"Rs 4,556 Cr","Rs 470","NRBBEARING","Predominantly auto-component bearings; rail exposure is a minor, unquantified slice",[78,20,28],[213,560],[956,"nrb-bearings-ltd"],[30.5,99.3,1.69,18.4,15.6,2]);
- FIN["NTPC"] = fin([132669,176207,178525,188138,187385],[16960,17121,21332,23953,27546],"Rs 2,99,627 Cr","Rs 309","NTPC",null,[-10,9,16],[306,414],[null,"ntpc-ltd"],[10.8,210,2.91,8.92,15.1,10]);
- FIN["NXST"] = fin([null,null,1916,2283,2568],[null,null,599,483,403],"Rs 24,849 Cr","Rs 164","NXST","listed May 2023 - pre-listing years left blank; REIT: most of the payout is interest and debt repayment rather than dividend, so P/E, ROE and dividend yield don't reflect what unitholders receive (see the trust's distribution per unit)",[1,8,null],[150,192],[1452281,"nexus-select-trust-reit"],[56.4,87.2,1.49,5.83,2.69,100]);
- FIN["OBEROIRLTY"] = fin([2694,4193,4496,5286,6009],[1047,1905,1927,2226,2507],"Rs 60,954 Cr","Rs 1,676","OBEROIRLTY",null,[-1,15,14],[1390,1986],[962,"oberoi-realty-ltd"],[23,525,0.48,17.3,14.6,10]);
- FIN["OLECTRA"] = fin([593,1091,1154,1802,2312],[35,67,79,139,180],"Rs 8,571 Cr","Rs 1,044","OLECTRA",null,[-28,-2,14],[867,1574],[484,"olectra-greentech-ltd"],[48.3,150,0.06,21,15.6,4]);
- FIN["OPTIEMUS"] = fin([472,1174,1528,1890,1769],[-1,42,57,63,66],"Rs 6,751 Cr","Rs 749","OPTIEMUS","Partial exposure - mostly contract manufacturing (about 60% of FY26 revenue, rising with smartphone assembly from Mar 2026) plus handset distribution; antennas are a small part",[23,35,18],[288,926],null,[92.9,87.6,0,10.9,9.15,10]);
- FIN["PACEDIGITK"] = fin([406,503,2434,2439,2641],[12,17,230,279,307],"Rs 3,410 Cr","Rs 158","PACEDIGITK","Sharp FY23-to-FY24 revenue step-up suggests a large contract/consolidation event worth verifying",[-27,null,null],[140,230],null,[11.4,102,0,21.4,17.6,2]);
- FIN["PANACEABIO"] = fin([661,460,559,559,640],[1078,-34,-2,-9,-7],"Rs 2,138 Cr","Rs 349","PANACEABIO","FY22 profit is a one-off gain from selling its domestic formulations brands to Mankind Pharma, not run-rate",[-20,30,8],[292,648],[null,"panacea-biotec-ltd"],[null,136,0,-2.43,-2.42,1]);
- FIN["PARAS"] = fin([183,222,254,365,477],[27,36,30,61,89],"Rs 10,195 Cr","Rs 1,265","PARAS",null,[78,51,18],[580,1585],[665815,"paras-defence-and-space-technologies-ltd"],[110,90,0.08,17.2,12.4,5]);
- FIN["PAYTM"] = fin([4974,7990,9978,6900,8437],[-2396,-1776,-1422,-663,552],"Rs 1,08,247 Cr","Rs 1,686","PAYTM",null,[29,20,null],[931,1856],null,[133,250,0,4.96,4.64,1]);
- FIN["PHOENIXLTD"] = fin([1460,2616,3972,3807,4418],[268,1478,1333,1307,1557],"Rs 67,387 Cr","Rs 1,884","PHOENIXLTD","FY23 profit includes a one-off fair-value gain",[14,27,33],[1465,2170],[1036,"phoenix-mills-ltd"],[52,307,0.13,12.4,11,2]);
- FIN["PNBHOUSING"] = fin([6196,6527,7053,7685,8494],[836,1046,1508,1936,2291],"Rs 29,938 Cr","Rs 1,148","PNBHOUSING","Lender: revenue is total income (interest earned plus other income) as Screener reports it",[32,15,22],[730,1225],[4826,"pnb-housing-finance-ltd"],[12.9,738,0.7,9.4,12.7,10]);
- FIN["POLICYBZR"] = fin([1425,2558,3438,4977,6794],[-833,-488,64,352,670],"Rs 47,895 Cr","Rs 1,035","POLICYBZR",null,[-37,13,null],[945,1964],null,[64,158,0,10.3,9.75,2]);
- FIN["POLYCAB"] = fin([12204,14108,18039,22408,28884],[917,1282,1803,2046,2708],"Rs 1,20,942 Cr","Rs 8,025","POLYCAB",null,[5,15,29],[6660,10129],[139599,"polycab-india-ltd"],[38.3,869,0.59,33.2,23,10]);
- FIN["POWERINDIA"] = fin([4884,4469,5237,6385,8148],[203,94,164,384,988],"Rs 1,28,056 Cr","Rs 28,730","POWERINDIA",null,[65,85,63],[16104,38800],[202203,"hitachi-energy-india-ltd"],[108,1161,0.03,29.4,21.9,2]);
- FIN["PPLPHARMA"] = fin([6559,7082,8171,9151,8869],[376,-186,18,91,-326],"Rs 25,887 Cr","Rs 194","PPLPHARMA","Demerged from Piramal Enterprises and listed Oct 2022",[-1,25,null],[132,232],[null,"piramal-pharma-ltd"],[null,61.4,0,2.52,-3.83,10]);
- FIN["PREMEXPLN"] = fin([199,202,272,417,388],[5,7,28,29,46],"Rs 3,725 Cr","Rs 693","PREMEXPLN",null,[13,41,70],[378,830],[3116,"premier-explosives-ltd"],[108,53.8,0.07,23,18.8,2]);
- FIN["PREMIERENE"] = fin([743,1429,3144,6519,7824],[-14,-13,231,937,1510],"Rs 40,810 Cr","Rs 899","PREMIERENE","Listed Sep 2024",[-15,null,null],[660,1134],[null,"premier-energies-ltd"],[24.5,95.1,0.11,32.7,41,1]);
- FIN["PRESTIGE"] = fin([6390,8315,7877,7349,12685],[1215,1067,1629,617,1305],"Rs 63,533 Cr","Rs 1,475","PRESTIGE",null,[-14,26,29],[1090,1805],[1071,"prestige-estates-projects-ltd"],[55.8,378,0.14,10.4,7.53,10]);
- FIN["PRICOLLTD"] = fin([1545,1959,2272,2692,4041],[51,125,141,167,251],"Rs 8,077 Cr","Rs 663","PRICOLLTD",null,[23,24,46],[509,823],[1072,"pricol-ltd"],[30.2,103,0.3,24.5,21.8,1]);
- FIN["PRINCEPIPE"] = fin([2657,2711,2569,2524,2598],[249,121,182,43,75],"Rs 3,065 Cr","Rs 277","PRINCEPIPE","standalone figures",[-14,-26,-17],[205,332],[177142,"prince-pipes-fittings-ltd"],[29.4,149,0.36,6.03,4.6,10]);
- FIN["PSPPROJECT"] = fin([1748,1938,2506,2512,3149],[167,132,123,56,56],"Rs 3,117 Cr","Rs 786","PSPPROJECT",null,[-1,1,9],[569,1143],[54332,"psp-projects-ltd"],[42.4,319,0,7.88,4.55,10]);
- FIN["PTCIL"] = fin([179,219,257,308,603],[13,26,42,61,102],"Rs 39,689 Cr","Rs 25,045","PTCIL",null,[49,70,87],[14499,26085],[4156,"ptc-industries-ltd"],[316,1005,0,8.59,7.16,10]);
- FIN["QUADFUTURE"] = fin([104,153,151,150,153],[2,14,12,-20,-43],"Rs 1,770 Cr","Rs 442","QUADFUTURE","Recently IPO'd (Jan 2025); currently loss-making with elevated working-capital days - high-risk/early-stage name",[19,null,null],[249,568],[2897925,"quadrant-future-tek-ltd"],[null,64.5,0,-15.5,-15.4,10]);
- FIN["RAILTEL"] = fin([1522,1957,2568,3478,4277],[208,188,246,300,346],"Rs 8,040 Cr","Rs 250","RAILTEL",null,[-32,2,14],[245,391],null,[21.7,70.5,1.3,22.8,17.1,10]);
- FIN["REDINGTON"] = fin([62644,79377,89346,99334,119162],[1315,1439,1239,1821,1284],"Rs 29,008 Cr","Rs 371","REDINGTON",null,[39,36,21],[191,420],[1120,"redington-ltd"],[16.1,130,1.62,18.4,16.9,2]);
- FIN["RITES"] = fin([2662,2628,2453,2196,2415],[539,571,495,424,454],"Rs 9,799 Cr","Rs 204","RITES","Navratna PSU; revenue has been gently declining over the shown period",[-18,-6,7],[175,260],[92280,"rites-ltd"],[23.5,55.8,3.9,23,15.4,10]);
- FIN["RKFORGE"] = fin([2320,3193,3705,4034,4238],[198,248,291,415,72],"Rs 12,712 Cr","Rs 685","RKFORGE","FY26 profit fell sharply on one-off items - verify before use",[26,2,23],[460,773],[1140,"ramkrishna-forgings-ltd"],[111,181,0.15,5.6,2.51,2]);
- FIN["ROSSTECH"] = fin([null,null,217,260,485],[null,null,11,8,22],"Rs 5,558 Cr","Rs 1,474","ROSSTECH","Demerged from Rossell India and listed in FY24, so FY24-FY26 only",[121,null,null],[552,1699],null,[210,41.1,0.02,11.5,15.7,2]);
- FIN["RPTECH"] = fin([9313,9454,11095,13773,15827],[183,123,144,210,282],"Rs 5,712 Cr","Rs 860","RPTECH","Recently listed (IPO Feb 2024) - only 1Y stock CAGR available",[156,null,null],[314,1005],[1992194,"rashi-peripherals-ltd"],[17.9,307,0.23,17,14.7,5]);
- FIN["RVNL"] = fin([19382,20282,21879,19923,20412],[1110,1342,1551,1278,871],"Rs 40,554 Cr","Rs 194","RVNL","Govt Navratna PSU under Ministry of Railways",[-41,5,40],[187,401],[139596,"rail-vikas-nigam-ltd"],[45.1,47.1,0.88,10.8,9.02,10]);
- FIN["SAIL"] = fin([103477,104448,105378,102479,110811],[12243,2177,3067,2372,3373],"Rs 69,793 Cr","Rs 169","SAIL","Effective monopoly on indigenous warship-grade steel; naval share of revenue not separately disclosed",[30,25,7],[124,210],[1165,"steel-authority-of-india-sail-ltd"],[14.4,146,1.39,7.92,6.57,10]);
- FIN["SAILIFE"] = fin([870,1217,1465,1695,2192],[6,10,83,170,349],"Rs 29,651 Cr","Rs 1,396","SAILIFE","Listed Dec 2024",[59,null,null],[784,1697],[null,"sai-life-sciences-ltd"],[80.6,117,0,19.6,15.4,1]);
- FIN["SALASAR"] = fin([719,1005,1208,1447,1503],[31,40,53,19,18],"Rs 722 Cr","Rs 4.13","SALASAR",null,[-56,-25,-5],[3.8,11.5],[56821,"salasar-techno-engineering-ltd"],[52.7,4.77,0,8.13,2.13,1]);
- FIN["SARTELE"] = fin([5,32,124,350,522],[0,1,16,47,72],"Rs 425 Cr","Rs 84.8","SARTELE","Explosive but early-stage revenue growth (5-yr CAGR ~256%) reflects a low base - treat growth rates cautiously",[-54,null,null],[72.4,265],null,[5.87,193,0,8.84,8.02,2]);
- FIN["SBIN"] = fin([289973,350845,439189,490313,514933],[37183,57750,69543,80523,86666],"Rs 8,98,800 Cr","Rs 974","SBIN","Lender: revenue is total income (interest earned plus other income) as Screener reports it",[7,20,14],[901,1235],[1193,"state-bank-of-india"],[10.7,674,1.78,6.13,15.4,1]);
- FIN["SCHAEFFLER"] = fin([null,6867,7251,8232,9686],[null,879,899,939,1150],"Rs 56,635 Cr","Rs 3,623","SCHAEFFLER","Calendar-year (Dec) reporting; rail is a small piece of the diversified Industrial segment",[-6,6,19],[3518,4468],[406,"schaeffler-india-ltd"],[45.2,393,0.97,27.3,20.2,2]);
- FIN["SCHNEIDER"] = fin([1530,1777,2207,2637,2891],[28,124,172,268,213],"Rs 27,045 Cr","Rs 1,131","SCHNEIDER",null,[39,49,59],[572,1548],[1195,"schneider-electric-infrastructure-ltd"],[140,28.8,0,29.6,38.2,2]);
- FIN["SENORES"] = fin([14,35,215,398,633],[1,8,33,58,122],"Rs 5,773 Cr","Rs 1,254","SENORES","Listed Dec 2024; very small revenue base before FY24, so growth rates flatter",[72,null,null],[706,1600],[null,"senores-pharmaceuticals-ltd"],[45.7,203,0,15.1,13.4,10]);
- FIN["SERVOTECH"] = fin([144,278,353,674,672],[4,11,12,33,32],"Rs 1,546 Cr","Rs 68.4","SERVOTECH","Small-cap with thin trading history",[-44,-4,100],[57.5,125],[87778,"servotech-power-systems-ltd"],[41.3,12.8,0.03,12.8,12.8,1]);
- FIN["SHREECEM"] = fin([15010,17852,20404,19283,20943],[2337,1269,2396,1124,1749],"Rs 80,424 Cr","Rs 22,290","SHREECEM",null,[-23,-5,-4],[21355,29434],[1226,"shree-cements-ltd"],[49.3,6449,0.67,10.3,7.51,10]);
- FIN["SIEMENS"] = fin([13198,16138,19554,15146,null],[1089,1543,1962,2718,null],"Rs 1,29,022 Cr","Rs 3,623","SIEMENS","Fiscal year ends September: the FY22-FY25 columns hold Sep 2021-Sep 2024, and the 18-month period to Mar 2026 (after the Energy demerger) is left out",[17,22,24],[2826,4149],[1237,"siemens-ltd"],[85.8,389,0.5,21.4,19.2,2]);
- FIN["SIGACHI"] = fin([250,302,399,488,478],[40,44,57,70,-83],"Rs 1,021 Cr","Rs 26.7","SIGACHI","FY26 loss reflects the June 2025 Pashamylaram plant explosion (write-offs and shutdown)",[-30,-13,null],[16.6,40.8],[null,"sigachi-industries-ltd"],[45.4,13.6,0.37,6.14,5.78,1]);
- FIN["SIGMAADV"] = fin([52,2,0,107,492],[5,9,-13,-14,268],"Rs 17,304 Cr","Rs 911","SIGMAADV","CAUTION: 2026 reverse-merger conversion of former telecom-software shell Megasoft Ltd; FY22-25 figures are the legacy shell's numbers, not the aerospace business - do not treat pre-FY26 as organic history",[496,167,119],[139,1165],[854,"sigma-advanced-systems-ltd"],[104,26.6,0,11.7,-4.03,10]);
- FIN["SIGNATURE"] = fin([null,1554,1241,2498,2596],[null,-64,16,101,1095],"Rs 10,113 Cr","Rs 719","SIGNATURE","listed Sep 2022 - FY22 left blank; FY26 profit includes about Rs 1,355 Cr of one-off other income booked in Q4 FY26, not run-rate; Screener shows no P/E",[-33,9,null],[695,1154],[1696785,"signatureglobal-india-ltd"],[null,132,0,2.38,-30.3,1]);
- FIN["SIKA"] = fin([98,60,106,148,211],[17,9,19,25,36],"Rs 1,948 Cr","Rs 919","SIKA","Indian Offset Partner status",[-24,57,47],[755,1359],null,[56.2,77.3,0.38,34.6,25.1,2]);
- FIN["SJVN"] = fin([2417,2938,2579,3072,4528],[990,1359,911,818,642],"Rs 20,085 Cr","Rs 51.1","SJVN",null,[-43,-12,12],[51,90.4],[null,"sjvn-ltd"],[31.4,36.2,2.93,5.73,4.58,10]);
- FIN["SKIPPER"] = fin([1707,1980,3282,4624,5553],[25,36,82,149,213],"Rs 6,363 Cr","Rs 521","SKIPPER",null,[2,33,47],[300,617],[1728,"skipper-ltd"],[27.4,132,0.02,23.6,16.6,1]);
- FIN["SOBHA"] = fin([2561,3310,3097,4039,5190],[173,104,49,95,193],"Rs 12,575 Cr","Rs 1,176","SOBHA",null,[-24,18,9],[1130,1732],[1261,"sobha-ltd"],[65.8,443,0.51,6.86,4.16,10]);
- FIN["SOLARA"] = fin([1268,1444,1289,1284,1369],[-58,-22,-567,1,-7],"Rs 3,133 Cr","Rs 646","SOLARA","FY24 loss includes large one-off impairments and write-offs",[9,29,-13],[422,774],[null,"solara-active-pharma-sciences-ltd"],[66.2,296,0,4.86,-0.13,10]);
- FIN["SOLARINDS"] = fin([3948,6918,6070,7540,9838],[455,811,875,1288,1737],"Rs 1,79,197 Cr","Rs 19,803","SOLARINDS","Commercial (mining) explosives are still the bulk of revenue; defense is the fastest-growing segment",[41,55,51],[11641,22700],[1263,"solar-industries-india-ltd"],[90,694,0.06,38.1,32.6,2]);
- FIN["SONACOMS"] = fin([2131,2655,3185,3546,4449],[362,395,518,600,629],"Rs 49,559 Cr","Rs 794","SONACOMS",null,[72,14,5],[438,844],[547977,"sona-blw-precision-forgings-ltd"],[68.2,96.2,0.43,14.2,11.3,10]);
- FIN["SPARC"] = fin([null,239,76,72,1879],[null,-223,-387,-343,1553],"Rs 6,006 Cr","Rs 185","SPARC","FY22 consolidated figures not shown on Screener; FY26 revenue and profit are almost entirely a one-off US FDA priority review voucher (Sezaby), later sold for US$195m",[42,-7,-8],[108,289],[null,"sun-pharma-advanced-research-company-ltd"],[3.76,41.3,0,164,279,1]);
- FIN["SPARC"].screenOut = true; // FY26 is the one-off voucher sale; the business is otherwise loss-making
- FIN["SPELS"] = fin([9,11,12,8,6],[-13,-3,-17,-21,-24],"Rs 494 Cr","Rs 107","SPELS","BSE-only listing (no NSE ticker); persistently loss-making, small-cap, thin float",[-47,24,35],[107,209],[2745,"spel-semiconductor-ltd"],[null,0.66,0,0.06,-64.5,10]);
- FIN["SRF"] = fin([12434,14870,13139,14693,15787],[1889,2162,1336,1251,1835],"Rs 72,091 Cr","Rs 2,432","SRF",null,[-24,3,1],[2314,3239],[1283,"srf-ltd"],[32.2,474,0.37,14.6,14.3,10]);
- FIN["STLTECH"] = fin([5437,6925,4083,3996,4745],[45,127,-57,-123,56],"Rs 45,610 Cr","Rs 887","STLTECH","P/E (~180x) sits on a thin FY26 profit after the stock re-rated ~8x in a year (52W low Rs 84.6); market cap re-checked against Screener on 14 Oct 2026 (~Rs 47,500 Cr)",[655,95,35],[84.6,1054],[1299,"sterlite-technologies-ltd"],[193,46.5,0,7.65,1.24,2]);
- FIN["STONEINDIA"] = fin([null,null,null,null,null],[null,null,null,null,null],null,null,"STONEINDIA","No current price or financials: Screener shows data only through FY16, so figures need checking against exchange filings before use",null,null,[2880,"stone-india-ltd"],null);
- FIN["SUBROS"] = fin([2239,2806,3071,3368,3756],[33,48,98,150,166],"Rs 4,255 Cr","Rs 652","SUBROS",null,[-36,19,13],[621,1162],[1302,"subros-ltd"],[24.8,191,0.46,19.2,14.5,2]);
- FIN["SUNDRMFAST"] = fin([4902,5663,5666,5955,6289],[462,500,526,542,593],"Rs 23,003 Cr","Rs 1,095","SUNDRMFAST",null,[12,-6,6],[730,1347],[1313,"sundram-fasteners-ltd"],[37,203,0.73,17.6,14.9,1]);
- FIN["SUNPHARMA"] = fin([38654,43886,48497,52578,58462],[3389,8513,9610,10965,11509],"Rs 4,18,204 Cr","Rs 1,743","SUNPHARMA","FY22 profit is depressed by a one-off Taro settlement/exceptional charge",[3,15,16],[1584,2048],[null,"sun-pharmaceutical-industries-ltd"],[33.1,348,0.92,20.5,16,1]);
- FIN["SUPREMEIND"] = fin([7773,9202,10134,10446,11218],[968,865,1070,961,954],"Rs 45,993 Cr","Rs 3,621","SUPREMEIND",null,[-14,-8,9],[3140,4212],[1324,"supreme-industries-ltd"],[44.6,486,0.99,20.7,15.8,2]);
- FIN["SUYOG"] = fin([null,null,167,193,222],[null,null,63,41,63],"Rs 701 Cr","Rs 598","SUYOG",null,[-24,-8,8],[525,921],null,[11.6,418,0.17,14.6,14.2,10]);
- FIN["SUZLON"] = fin([6582,5971,6529,10890,16732],[-177,2887,660,2072,3163],"Rs 55,062 Cr","Rs 40.4","SUZLON","FY23 profit includes a one-off gain on debt restructuring and FY25 a deferred-tax credit, not run-rate",[-24,8,44],[36.3,61.5],[null,"suzlon-energy-ltd"],[17.5,6.96,0,34.2,39.7,2]);
- FIN["SWIGGY"] = fin([5705,8265,11247,15227,23053],[-3629,-4179,-2350,-3117,-4154],"Rs 63,211 Cr","Rs 229","SWIGGY",null,[-46,null,null],[228,434],null,[null,66.4,0,-24.1,-29.1,1]);
- FIN["SWSOLAR"] = fin([5199,2015,3035,6302,7548],[-916,-1175,-211,86,-296],"Rs 3,742 Cr","Rs 160","SWSOLAR",null,[-29,-17,-17],[148,261],[null,"sterling-and-wilson-renewable-energy-ltd"],[16.3,31,0,26.8,40.1,1]);
- FIN["SYNGENE"] = fin([2604,3193,3489,3642,3739],[396,464,510,496,317],"Rs 16,046 Cr","Rs 398","SYNGENE",null,[-38,-18,-8],[344,679],[null,"syngene-international-ltd"],[54.2,120,0.31,9.99,7.78,10]);
- FIN["SYRMA"] = fin([1267,2048,3154,3787,4819],[79,123,124,184,346],"Rs 29,842 Cr","Rs 1,548","SYRMA",null,[98,33,null],[634,1823],[995074,"syrma-sgs-technology-ltd"],[80.4,148,0.1,16.8,14,10]);
- FIN["TANAA"] = fin([31,32,30,41,40],[5,11,11,18,17],"Rs 838 Cr","Rs 329","TANAA",null,[-9,13,30],[190,380],[2893,"taneja-aerospace-aviation-ltd"],[43.8,60.6,0.76,15.6,11.4,5]);
- FIN["TARIL"] = fin([1158,1396,1291,2017,2507],[14,42,47,216,272],"Rs 9,788 Cr","Rs 326","TARIL",null,[-32,60,87],[224,489],[1417,"transformers-rectifiers-india-ltd"],[32.2,55.1,0.08,23.3,19.1,1]);
- FIN["TATACOMM"] = fin([16725,17838,20969,23109,24803],[1485,1801,970,1837,997],"Rs 48,992 Cr","Rs 1,718","TATACOMM","Volatile net profit likely reflects data-centre business (STT GDC) divestment/accounting effects",[-10,0,4],[1322,2110],[1357,"tata-communications-ltd"],[40.5,119,1.02,14.6,32.6,10]);
- FIN["TATAELXSI"] = fin([2471,3145,3552,3729,3757],[550,755,792,785,628],"Rs 23,614 Cr","Rs 3,790","TATAELXSI",null,[-30,-21,-9],[2996,5950],[1358,"tata-elxsi-ltd"],[32.8,468,1.98,30,23.6,10]);
- FIN["TATAPOWER"] = fin([42816,55109,61449,65478,62429],[2156,3810,4280,4775,5118],"Rs 1,12,556 Cr","Rs 352","TATAPOWER",null,[-12,13,9],[334,465],[1364,"tata-power-company-ltd"],[28.8,124,0.71,10.5,10.2,1]);
- FIN["TATASTEEL"] = fin([243959,243353,229171,218543,232140],[41749,8075,-4910,3174,10886],"Rs 2,17,263 Cr","Rs 174","TATASTEEL","FY24 loss reflects UK restructuring and impairment charges",[1,12,6],[160,224],[1366,"tata-steel-ltd"],[18.4,81.8,2.3,12.5,11.7,1]);
- FIN["TECHERA"] = fin([null,null,38.81,49.5,48.5],[null,null,2.82,3.36,2.77],"Rs 240 Cr","Rs 146","TECHERA","NSE SME listing (2024 IPO); FY22-FY23 figures not on Screener",[-48,null,null],[128,326],[2663457,"techera-engineering-india-ltd"],[125,31.8,0,7.86,3.77,10]);
- FIN["TEJASNET"] = fin([551,920,2471,8923,1103],[-63,-36,63,447,-909],"Rs 8,074 Cr","Rs 453","TEJASNET","The FY25-to-FY26 swing from Rs 8,923 Cr revenue/Rs 447 Cr profit to a Rs 909 Cr loss reflects lumpy government order-cycle recognition, not steady-state economics - single-year snapshots are misleading here",[-16,-20,0],[294,645],[54898,"tejas-networks-ltd"],[null,142,0,-14.6,-26.8,10]);
- FIN["TEXRAIL"] = fin([1814,2243,3503,5107,4377],[21,26,113,249,194],"Rs 4,446 Cr","Rs 109","TEXRAIL","Part of the Adventz/Texmaco Group",[-19,-6,26],[78,143],[1380,"texmaco-rail-engineering-ltd"],[20.5,58.4,0.69,11.2,7.3,1]);
- FIN["THERMAX"] = fin([6128,8090,9323,10387,10774],[312,451,643,627,720],"Rs 38,546 Cr","Rs 3,235","THERMAX",null,[2,1,19],[2743,5278],[1387,"thermax-ltd"],[70,466,0.43,13.9,10.6,2]);
- FIN["TIMKEN"] = fin([null,null,null,3197,3478],[null,null,null,462,415],"Rs 21,519 Cr","Rs 2,861","TIMKEN","Not rail-exclusive - bearings sold across industrial end-markets",[-2,-2,10],[2783,3925],[1399,"timken-india-ltd"],[50.5,387,0.09,19,14.3,10]);
- FIN["TITAGARH"] = fin([1468,2780,3853,3868,3186],[-1,126,286,87,123],"Rs 9,977 Cr","Rs 741","TITAGARH",null,[-16,-4,50],[569,971],[1434,"titagarh-rail-systems-ltd"],[51.4,182,0.13,10.9,6.78,2]);
- FIN["TMPV"] = fin([278454,345967,434016,366094,335582],[-11309,2690,31807,28149,82645],"Rs 1,02,387 Cr","Rs 278","TMPV","Post-Oct 2025 demerger from Tata Motors Ltd; retains JLR + India PV/EV. FY26 net profit (Rs 82,645 Cr) is dominated by a one-off demerger-related gain booked in other income (~Rs 86,300 Cr) - the 24.6% FY26 net margin is not run-rate",[-30,-11,-2],[272,419],[1362,"tata-motors-passenger-vehicles-ltd"],[103,304,1.08,2.73,75.7,2]);
- FIN["TORNTPHARM"] = fin([8508,9620,10728,11516,13980],[777,1245,1656,1911,2138],"Rs 1,73,398 Cr","Rs 4,559","TORNTPHARM","FY26 includes J B Chemicals from 21 Jan 2026, when Torrent took control; JB was then amalgamated into Torrent in Jul 2026 (51 Torrent shares per 100 JB)",[28,34,25],[3533,5250],[null,"torrent-pharmaceuticals-ltd"],[77.7,248,0.83,15.2,27.4,5]);
- FIN["TTML"] = fin([1094,1106,1192,1308,1160],[-1215,-1145,-1228,-1275,-215],"Rs 6,426 Cr","Rs 32.9","TTML","Standalone financials (no material subsidiaries)",[-40,-29,-8],[30.1,58.2],[1423,"tata-teleservices-maharashtra-ltd"],[null,-102,0,55.6,null,10]);
- FIN["ULTRACEMCO"] = fin([52599,63240,70908,75955,88512],[7334,5073,7004,6040,8188],"Rs 3,13,833 Cr","Rs 10,650","ULTRACEMCO","FY25-FY26 include India Cements after its acquisition",[-14,8,8],[10325,13110],[1443,"ultratech-cement-ltd"],[35.3,2600,2.25,12.7,11.1,10]);
- FIN["UNIMECH"] = fin([36,94,209,243,240],[3,23,58,83,63],"Rs 8,551 Cr","Rs 1,680","UNIMECH",null,[79,null,null],[695,1901],[2868825,"unimech-aerospace-and-manufacturing-ltd"],[119,145,0,11.2,7.96,5]);
- FIN["UNOMINDA"] = fin([8313,11236,14031,16775,19658],[413,700,925,1021,1284],"Rs 62,794 Cr","Rs 1,087","UNOMINDA",null,[-12,22,24],[994,1355],[864,"uno-minda-ltd"],[51.4,118,0.24,19.6,19.3,2]);
- FIN["VINATIORGA"] = fin([1616,2066,1900,2248,2227],[347,419,323,405,444],"Rs 11,596 Cr","Rs 1,119","VINATIORGA",null,[-34,-14,-11],[1115,1713],[null,"vinati-organics-ltd"],[25.9,305,0.76,19.8,14.9,1]);
- FIN["VINDHYATEL"] = fin([1324,2900,4088,4054,3593],[193,185,283,203,220],"Rs 3,404 Cr","Rs 2,873","VINDHYATEL",null,[103,6,20],[960,2999],[1486,"vindhya-telelinks-ltd"],[14.4,3548,0.21,8.15,5.31,10]);
- FIN["VOLTAMP"] = fin([1127,1385,1616,1934,2154],[133,200,307,325,305],"Rs 10,532 Cr","Rs 10,410","VOLTAMP",null,[46,33,49],[6666,12863],[1499,"voltamp-transformers-ltd"],[33.2,1771,0.96,23.5,17.4,10]);
- FIN["VOLTAS"] = fin([7934,9499,12481,15413,14244],[506,136,248,834,370],"Rs 33,737 Cr","Rs 1,020","VOLTAS",null,[-29,8,-3],[1012,1582],[1500,"voltas-ltd"],[72.2,193,0.39,9.04,6.1,1]);
- FIN["WAAREEENER"] = fin([2854,6751,11398,14444,26537],[80,500,1274,1928,3884],"Rs 72,344 Cr","Rs 2,515","WAAREEENER","Listed Oct 2024",[-28,null,null],[2282,3643],[null,"waaree-energies-ltd"],[18,502,0.16,38.4,32.5,10]);
- FIN["WALCHANNAG"] = fin([299,322,302,259,275],[-38,20,-42,-86,-15],"Rs 1,454 Cr","Rs 214","WALCHANNAG","Chronic loss-maker with negative ROE; a distressed/turnaround situation, not a growth story",[25,8,32],[131,316],[1509,"walchandnagar-industries-ltd"],[null,52.9,0,4.17,-4.41,2]);
- FIN["WEBELSOLAR"] = fin([213,17,26,521,974],[10,-24,-121,155,303],"Rs 2,836 Cr","Rs 65.3","WEBELSOLAR","Standalone figures (no consolidated history before FY25); FY23-FY24 revenue collapsed while the cell lines were shut for an upgrade, so growth runs off a near-zero base",[-46,54,55],[50.4,138],[null,"websol-energy-system-ltd"],[9.03,14.5,0.38,63.2,66.9,1]);
- FIN["WOCKPHARMA"] = fin([3230,2651,2798,3012,3373],[-279,-621,-472,-57,199],"Rs 30,976 Cr","Rs 1,906","WOCKPHARMA","Loss-making through FY25; FY26 is the first profitable year in the series",[42,98,35],[1087,2422],[null,"wockhardt-ltd"],[77.7,304,0,7.55,6.11,5]);
- FIN["YATHARTH"] = fin([375,478,635,886,1207],[44,66,114,131,170],"Rs 9,356 Cr","Rs 971","YATHARTH",null,[18,39,null],[538,1184],null,[51.6,185,0.05,12.9,10.2,10]);
- FIN["YATRA"] = fin([198,380,422,791,1007],[-31,8,-5,37,47],"Rs 1,520 Cr","Rs 96.8","YATRA",null,[-42,-12,null],[89.2,202],null,[44.2,52.9,0,7.23,6.23,1]);
- FIN["ZENTEC"] = fin([70,219,440,974,688],[3,50,130,299,218],"Rs 14,694 Cr","Rs 1,627","ZENTEC",null,[19,32,49],[1223,2044],[1580,"zen-technologies-ltd"],[80.9,209,0.06,16.2,10.7,1]);
- FIN["ZYDUSLIFE"] = fin([15265,17237,19547,23242,27148],[4618,2092,3973,4673,5124],"Rs 1,11,112 Cr","Rs 1,114","ZYDUSLIFE",null,[11,24,17],[836,1232],[null,"zydus-lifesciences-ltd"],[22.8,269,0.09,21.1,21.2,1]);
- function co(ticker, sectorNote){
-   var b = FIN[ticker];
-   if (!b) throw new Error("No FIN entry for ticker " + ticker);
-   var note = [b.note, sectorNote].filter(Boolean).join("; ") || null;
-   return Object.assign({}, b, {note: note});
- }
+ function co(ticker, sectorNote){ return finRef(ticker, sectorNote); }
 
  // ======================================================================
  // PRODUCT REGISTRY
@@ -2472,12 +2176,10 @@ var ASOF = "20 Oct 2026";
  };
 
  // Policies authored in their own files (./policies/<slug>.ts) so each can be edited on its own.
- // addFin adds a ticker to FIN and refuses one that is already there (one FIN entry per ticker).
- function addFin(ticker, f){ if (FIN[ticker]) throw new Error("FIN already has " + ticker + " - use co()"); FIN[ticker] = f; }
- PRODUCTS.semicon2 = defineSemicon2({ FIN: FIN, fin: fin, co: co, addFin: addFin, ASOF: ASOF, SRC: SRC });
- PRODUCTS.rareearth = defineRareearth({ FIN: FIN, fin: fin, co: co, addFin: addFin, ASOF: ASOF, SRC: SRC });
- PRODUCTS.defenceproc = defineDefenceproc({ FIN: FIN, fin: fin, co: co, addFin: addFin, ASOF: ASOF, SRC: SRC });
- PRODUCTS.ecms = defineEcms({ FIN: FIN, fin: fin, co: co, addFin: addFin, ASOF: ASOF, SRC: SRC });
+ PRODUCTS.semicon2 = defineSemicon2({ co: co, ASOF: ASOF, SRC: SRC });
+ PRODUCTS.rareearth = defineRareearth({ co: co, ASOF: ASOF, SRC: SRC });
+ PRODUCTS.defenceproc = defineDefenceproc({ co: co, ASOF: ASOF, SRC: SRC });
+ PRODUCTS.ecms = defineEcms({ co: co, ASOF: ASOF, SRC: SRC });
 
  PRODUCTS._comingSoon = [
  {icon:"PH", name:"Smartphone", tagline:"Display, SoC, camera module & battery supply chain"},
@@ -2487,4 +2189,4 @@ var ASOF = "20 Oct 2026";
  {icon:"CM", name:"Critical Minerals Mission", tagline:"Lithium, cobalt and rare-earth processors benefiting from the National Critical Mineral Mission", category:"policy"}
  ];
 
-export { PRODUCTS, NEWS, ASOF, SRC, NEWS_ASOF, FIN };
+export { PRODUCTS, NEWS, ASOF, SRC, NEWS_ASOF };

@@ -10,11 +10,15 @@ commands see the [README](../README.md); for step-by-step recipes (adding a sect
  authored content (git)                    live data (fetched server-side, cached)
  ───────────────────────                   ─────────────────────────────────────────
  sector-content/products.ts   ──┐          Yahoo Finance (yahoo-finance2)  quote, price history
-   zones, suppliers, 3D scene   │          Screener.in (HTML parse)        ratios, growth,
- prisma/seed-source/            │                                          shareholding, P&L,
-   extracted.json (figures,     │                                          industry medians
-   fallback news)               │          Google News RSS                 latest headlines
+   zones, suppliers (tickers),  │          Screener.in (HTML parse)        ratios, growth,
+   3D scene                     │                                          shareholding, P&L,
+ prisma/seed-source/            │                                          industry medians
+   extracted.json (fallback     │          Google News RSS                 latest headlines
+   news)                        │                         │
                                 │                         │
+ Postgres company table ────────┤  (src/lib/financials/: │
+   figures per ticker, written  │   cached loader fills   │
+   by refresh-financials.ts     │   every supplier.f)     │
                                 ▼                         ▼
                   src/lib/sector-content/*        src/lib/live/*  ──►  /api/stock/[ticker][/chart]
                   (typed facade + derived         (cache, parsers)            │
@@ -25,8 +29,8 @@ commands see the [README](../README.md); for step-by-step recipes (adding a sect
 
 Two rules shape most decisions:
 
-1. **Live when possible, seed when not.** Every live source can fail (rate limits, markup
-   changes, outages). The UI always renders from the seed figures first and overlays live data
+1. **Live when possible, stored figures when not.** Every live source can fail (rate limits, markup
+   changes, outages). The UI always renders from the company table's figures first and overlays live data
    on top (`components/stock/merge.ts`), labelling what is live vs cached. Never make a screen
    depend on a live fetch succeeding.
 2. **Server fetches third parties, the browser never does.** The browser only talks to our own
@@ -45,12 +49,13 @@ Two rules shape most decisions:
   A company in several sectors has one supplier record *per sector*; `findSupplierByTicker` (and
   `companies.ts` `primaryAppearance`) pick the record from its **strongest link** (`linkWeight`:
   high > medium > low, enablers/indirect lower), so the pop-up and company page describe it alike.
-- **Financials live in one place per ticker:** the `FIN` table near the top of `products.ts`.
-  Supplier rows use `f: co("TICKER", "optional sector note")`; never inline `fin(...)` for a
-  ticker another sector also lists (`financials.test.ts` fails if the figures diverge). `fin()`
-  derives a per-company `asOf` from an "as of DD Mon YYYY" phrase in the note (default: the file's
-  `ASOF`), shown on company pages and the pop-up. `FIN["X"].screenOut = true` keeps a company whose
-  latest year is dominated by a one-off (SPARC's FY26 voucher sale) out of the idea screens.
+- **Financials live in one place per ticker: the company table in the database** (see "Company
+  figures" below), never in the content files. Supplier rows say only `f: co("TICKER", "optional
+  sector note")`; the loader fills that object with the ticker's figures and joins the company note
+  with the sector note. A ticker the content names but the table lacks fails loudly (add it with
+  `refresh-financials.ts --add`). Each company's `asOf` is the date of its latest snapshot, shown
+  on company pages and the pop-up. `Company.screenOut` keeps a company whose latest year is
+  dominated by a one-off (SPARC's FY26 voucher sale) out of the idea screens.
 - **Zones carry `layer`** (index into `layerNames`): picking the zone peels the 3D model to the
   layer where that part is visible. Views may carry `layer` too ("Underground" -> Land & Capital).
   `validate:content` requires a valid `layer` on every zone of a live sector.
@@ -63,8 +68,9 @@ Two rules shape most decisions:
   strongest exposure there; enablers such as lenders are discounted). Sector revenue totals skip
   companies below `CORE_CENTRALITY`, and sector news feeds lead with core players - otherwise
   HDFC Bank/SBI dominate Real Estate's revenue and headlines.
-- `SupplierFinancials` (`supplier.f`) holds the seed figures (5-year revenue, KPIs, price CAGR,
-  52-week range). They are an *as of* snapshot (`DATA_AS_OF`) - the offline fallback.
+- `SupplierFinancials` (`supplier.f`) holds the company table's figures (5-year revenue, KPIs,
+  price CAGR, 52-week range). They are an *as of* snapshot (`dataAsOf()`) - the fallback under
+  the live data.
 
 ### Upcoming IPOs - `src/lib/ipo-content/`
 
@@ -118,17 +124,47 @@ a Suspense skeleton so pages never wait on the news fetch.
 Screener has no public API: we parse its HTML (one page + the peers table per company,
 cached). It rate-limits bursts and the markup can change - the parsers are covered by tests
 against saved fixtures in `lib/live/__fixtures__/`. If Screener is unreachable the Fundamentals
-tab falls back to Yahoo's partial data and says so; if both fail it shows seed figures.
+tab falls back to Yahoo's partial data and says so; if both fail it shows the stored figures.
+
+### Company figures - `src/lib/financials/` (Postgres)
+
+Every listed company's price, market cap, ratios, 52-week range, price CAGR and FY22-FY26
+revenue/profit live **only** in the database: `Company` (`tracked`, `financialsNote`, `screenOut`,
+Trendlyne ids), its latest `KpiSnapshot` and its `FinancialSnapshot` years.
+
+- `query.ts` - the one query (tracked companies, latest snapshot, FY rows); `rows.ts` converts
+  rows <-> `SupplierFinancials`.
+- `load.ts` (server) - `ensureFinancials()` reads the table through `unstable_cache` (shared by
+  all instances, re-read in the background after 15 minutes, so a refresh shows within about half
+  an hour) and installs it. A ticker the content names but the table lacks stays blank and is
+  logged (and fails `financials.test.ts`), rather than taking pages down. **Every page, route
+  handler, OG image and the sitemap awaits it first**, including `generateMetadata` /
+  `generateStaticParams` that read sectors. Inside the Next server, `listSectors()`, `getSector()`
+  and `findSupplierByTicker()` throw if nothing is installed, so a missed call fails the build
+  instead of rendering blanks.
+- `store.ts` (server and browser) - the installed table; fills every `co()` placeholder in place
+  and bumps a version so derived caches (`memoByFinancials`: insights metrics, basket stocks)
+  rebuild. Client components get figures as props (stock pop-ups, decks) or, for the 3D explorer,
+  as a `figures` prop the explore page loads for its sector; the browser bundle carries none.
+- Writes come only from scripts: `refresh-financials.ts` (a new dated `KpiSnapshot` per company
+  per run; `--fix-history`, `--add`) and the one-off `migrate-financials-to-db.ts` that moved the
+  figures out of the content (Oct 2026).
+- Tests that check real figures read the table from `DATABASE_URL` (`test-db.ts`), read-only.
+
+If the database is unreachable, an instance keeps serving the table it has installed (and the data
+cache its last copy); a cold instance with neither cannot render pages until it is back. Run the
+migration and the data copy together: with `tracked` rows missing, the table reads as empty.
 
 ### Database (Postgres via Prisma)
 
-Used for **users and the watchlist** (`Profile`, `Watchlist`). The `Company`, `FinancialSnapshot`,
-`KpiSnapshot`, ... tables are seeded from `extracted.json` and the watchlist reads a company's
-last price from them (`priceAtAdd`), but **no page reads company data from the DB any more** -
-the stock UI is DB-free by design, which is why it works with an empty database.
+Holds **users, watchlists and baskets** (`Profile`, `Watchlist`, `Basket`) and **the company
+figures** above. `npm run db:seed` writes company identity (name, role, sector links) and the
+curated news from `extracted.json`; it does not write figures. The watchlist reads a company's
+latest `KpiSnapshot` price as `priceAtAdd`.
 
 There is **one Supabase project** (`DATABASE_URL` in `.env`), shared by staging and production, so
-`npm run db:seed` writes to live data - ask before running it. The seed is idempotent (upserts by
+`npm run db:seed`, `refresh-financials.ts --apply` and migrations write to live data - ask before
+running them. The seed is idempotent (upserts by
 ticker) and retries dropped connections. A ticker rename (HBLPOWER -> HBLENGINE) leaves an orphaned
 row behind; delete it only after checking no watchlist references it (children cascade).
 
@@ -201,13 +237,13 @@ row behind; delete it only after checking no watchlist references it (children c
 - **Comments explain *why*** (constraints, gotchas, trade-offs) - the code shows what.
 - **Add or unlock a sector / policy - complete the whole loop.** A sector is only done when every
   surface that lists companies knows about it. Checklist:
-  1. Author it in `products.ts` (zones with `layer`, suppliers with `f: co(...)` figures from `FIN`,
+  1. Author it in `products.ts` (zones with `layer`, suppliers with `f: co(...)` - add new tickers'
+     figures to the company table with `refresh-financials.ts --add`,
      domains, `whyNow`, `thesisSummary`, `integratorZoneId`, exposure links, 3D model) and leave
      `muted` off. The full recipe is in the [Playbook](PLAYBOOK.md).
   2. `scenarios.ts`: 3-4 "what if" shocks; `docs.ts`: reading links; `reports/<slug>.ts`: the research deck
      (register it in `reports/index.ts`; `npx tsx scripts/check-report.ts <slug>` checks one while authoring).
-  3. `npx tsx prisma/extract-source-data.ts` (regenerates `extracted.json`; `npm run db:extract`
-     points at a stale .mjs) + `npm run db:seed`, so every listed company has a `Company` row (the
+  3. `npm run db:extract` (regenerates `extracted.json`) + `npm run db:seed`, so every listed company has a `Company` row (the
      watchlist heart needs it). The seed hits the shared live DB - get a go-ahead first.
   4. Run `npm run validate:content` - it fails a live sector that lacks scenarios, reading links,
      an integrator zone, a thesis, or a valid `layer` on any zone/view.
@@ -223,7 +259,8 @@ row behind; delete it only after checking no watchlist references it (children c
   test when a parser changes.
 - **Before merging:** `npx tsc --noEmit && npx eslint src scripts && npm test && npm run validate:content`,
   `npx tsx scripts/check-report.ts <slug>` for touched decks, and `next build` (stop the dev
-  server first - see the Playbook). Then the QA routine in the Playbook. Work lands on `staging`
+  server first - see the Playbook). `npm test` and `next build` read the company table, so they
+  need `DATABASE_URL`. Then the QA routine in the Playbook. Work lands on `staging`
   first, then `main` via PR.
 
 ## Known gaps / tech debt
@@ -231,7 +268,7 @@ row behind; delete it only after checking no watchlist references it (children c
 - `SectorExplorer.tsx` (~1,000 lines) and `engine.ts` mix layout, state and the zone panel - a
   candidate to split (rail / panel / header / camera framing) next.
 - Energy's opening "Platform" layer has no systems of its own, so phones show all its tags there.
-- DIGIFIBRE and STONEINDIA have no live quote source; they always show cached seed figures.
+- DIGIFIBRE and STONEINDIA have no live quote source; they always show the stored figures.
 - `products.ts` is untyped (`@ts-nocheck`) authored content; `validate:content` is the only guard.
 - Screener scraping is fragile and sits in a legal grey area (see the note in
   `screener-company.ts`); a licensed data vendor would replace `lib/live/screener-*`.

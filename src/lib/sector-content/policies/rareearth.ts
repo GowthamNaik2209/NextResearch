@@ -2,25 +2,15 @@
 // Rare-Earth Magnets (REPM) - policy content: the Scheme to Promote Manufacturing of Sintered Rare
 // Earth Permanent Magnets (Ministry of Heavy Industries, Rs 7,280 crore) and the mine-to-motor chain
 // it pulls through. Same untyped authored shape as a PRODUCTS.* entry in ../products.ts (see SectorDef
-// in ../index.ts). `h` hands over products.ts's shared helpers: FIN (one entry per ticker), fin(),
-// co(), addFin(), ASOF, SRC.
+// in ../index.ts). `h` hands over products.ts's shared helpers: co() (a company's figures by ticker,
+// from the database), ASOF, SRC.
 import { buildRareearth, RAREEARTH_ANCHORS, RAREEARTH_VIEWS } from "../models/rareearth";
 
 export function defineRareearth(h) {
-  const { fin, co, addFin, ASOF, SRC } = h;
+  const { co, ASOF, SRC } = h;
   void SRC; void ASOF;
   const A = RAREEARTH_ANCHORS;
 
-  // New tickers (Screener.in consolidated, read 20 Oct 2026; prices are the 19 Oct 2026 close).
-  // tl = [Trendlyne stock id, slug]. None of these is added by semicon2 (which loads first).
-  addFin("COALINDIA", fin([109715,138252,144762,169177,168400],[17378,31723,37369,35450,31071],"Rs 2,53,720 Cr","Rs 412","COALINDIA",null,[5,10,18],[370,491],[275,"coal-india-ltd"],[8.13,193,6.44,35,28.2,10]));
-  addFin("20MICRONS", fin([613,702,777,913,954],[35,42,56,62,67],"Rs 655 Cr","Rs 186","20MICRONS",null,[-11,11,26],[130,238],[8,"20-microns-ltd"],[9.63,137,0.67,17.3,14.5,5]));
-  addFin("GMDCLTD", fin([2732,3498,2463,2534,2523],[446,1204,597,680,957],"Rs 14,588 Cr","Rs 459","GMDCLTD","ROE as Screener reports it (it looks low against FY26 profit)",[-21,5,44],[456,772],[471,"gujarat-mineral-development-corporation-ltd"],[25.6,222,2.07,10.8,4.22,2]));
-  addFin("NMDC", fin([25965,17667,21308,23906,32071],[9429,5601,5567,6520,7450],"Rs 61,982 Cr","Rs 70.5","NMDC","per-share figures reflect the Dec 2024 2:1 bonus",[-6,10,13],[70.1,97.5],[949,"nmdc-ltd"],[8.31,38.7,4.96,27.6,23.4,1]));
-  addFin("MIDWESTLTD", fin([525,503,586,626,646],[67,54,100,133,106],"Rs 4,084 Cr","Rs 1,129","MIDWESTLTD","Listed 24 Oct 2025, so no multi-year price CAGR yet",[null,null,null],[860,1860],[3291682,"midwest-ltd"],[36.8,266,0,15.8,13.6,5]));
-  addFin("BAJAJ-AUTO", fin([33145,36455,44870,50995,62905],[6166,6060,7708,7325,10574],"Rs 2,82,691 Cr","Rs 10,287","BAJAJ-AUTO",null,[13,23,22],[8605,12470],[144,"bajaj-auto-ltd"],[24,1389,1.46,28.2,29.2,10]));
-  addFin("TVSMOTOR", fin([24355,31974,38779,44089,56070],[731,1309,1779,2380,3186],"Rs 1,93,550 Cr","Rs 4,074","TVSMOTOR","Consolidated figures include the TVS Credit lending arm",[12,37,48],[3228,4485],[1430,"tvs-motor-company-ltd"],[56,201,0.29,17.4,33.6,1]));
-  addFin("OLAELEC", fin([373,2631,5010,4514,2253],[-784,-1472,-1584,-2276,-1833],"Rs 17,240 Cr","Rs 34.5","OLAELEC","Loss-making in every year shown, so P/E is not meaningful; listed Aug 2024 (no 3y/5y price CAGR)",[-36,null,null],[20.8,53.6],[2484734,"ola-electric-mobility-ltd"],[null,7.03,0,-19.9,-43.2,10]));
 
   const D = "20 Oct 2026";
   return {

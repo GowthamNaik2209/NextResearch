@@ -1,12 +1,17 @@
 import { getPlatformStats } from "@/lib/sector-content/stats";
 import { OG_CONTENT_TYPE, OG_SIZE, renderOgCard } from "@/lib/og";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
+import { ensureFinancials } from "@/lib/financials/load";
+
+// Figures come from the database; re-render on the same clock as the cached table (load.ts).
+export const revalidate = 900;
 
 export const alt = `${SITE_NAME} — ${SITE_TAGLINE}`;
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
-export default function Image() {
+export default async function Image() {
+  await ensureFinancials();
   const s = getPlatformStats();
   return renderOgCard({
     kicker: "India · Equity research",

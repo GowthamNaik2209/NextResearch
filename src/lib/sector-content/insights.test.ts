@@ -1,8 +1,12 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { before, test } from "node:test";
 import { findSupplierByTicker, listSectors } from "./index";
 import { buildIdeas, listNews, sectorNumbers } from "./insights";
 import { buildSearchIndex, getPlatformStats } from "./stats";
+import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
+
+// Company figures come from the database (DATABASE_URL), as in the app.
+before(installFinancialsFromDatabase);
 
 test("every idea screen is non-empty, short, and states its rule", () => {
   const ideas = buildIdeas();

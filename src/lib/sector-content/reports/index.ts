@@ -82,7 +82,7 @@ export type Deck = {
 const FIRST_FY = 22;
 const MIN_CAGR_YEARS = 3;
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
-const parseRs = (s?: string) => {
+const parseRs = (s?: string | null) => {
   const n = s ? parseFloat(s.replace(/[^0-9.]/g, "")) : NaN;
   return Number.isFinite(n) ? n : null;
 };
