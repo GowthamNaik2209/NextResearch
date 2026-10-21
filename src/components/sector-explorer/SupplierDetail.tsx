@@ -10,6 +10,7 @@ import type { StockTab } from "@/components/stock/types";
 import { PriceTag } from "@/components/stock/PriceTag";
 import { SummaryView } from "@/components/stock/SummaryView";
 import { StockModal } from "@/components/stock/StockModal";
+import { quoteTiming } from "@/lib/live/freshness";
 
 type Props = {
   sector: SectorDef;
@@ -74,7 +75,7 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
       {supplier.listed && (
         <>
           <div className="flex items-center justify-between gap-3">
-            <span className="text-[11px] text-ink-soft">{api?.quote ? `${api.quote.exchange}${api.quote.delayedMin ? ` · ~${api.quote.delayedMin} min delayed` : ""}` : loading ? "Fetching live price…" : "Last known price"}</span>
+            <span className="text-[11px] text-ink-soft">{api?.quote ? `${api.quote.exchange} · ${quoteTiming(api.quote)}` : loading ? "Fetching live price…" : "Last known price"}</span>
             <PriceTag price={stats.price} quote={api?.quote ?? null} size="sm" />
           </div>
           <div role="group" aria-label="Open stock details" className="grid grid-cols-4 gap-1 sm:gap-1.5">

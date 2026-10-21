@@ -7,6 +7,13 @@ import { getCompanyFootprint } from "@/lib/sector-content/exposure";
 import { DATA_AS_OF } from "@/lib/sector-content/insights";
 import { priceReturn, withLiveQuote } from "@/components/stock/merge";
 
+// One slow upstream must not hold the whole response (an Apollo pop-up once sat on "fetching" for
+// a minute): each part gets this long, then counts as unreachable and the client uses cached figures.
+const PART_TIMEOUT_MS = 10_000;
+function within<T>(p: Promise<T>, fallback: T): Promise<T> {
+  return Promise.race([p.catch(() => fallback), new Promise<T>((r) => setTimeout(() => r(fallback), PART_TIMEOUT_MS))]);
+}
+
 // GET /api/stock/VOLTAS — live quote + Screener fundamentals + industry medians +
 // latest headlines (curated fallback), with no database dependency. Every part is best-effort: a null
 // section means that upstream was unreachable and the client falls back to the
@@ -20,12 +27,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
   // The 1Y price history is the same cached series the Chart tab draws, so the Summary's
   // 1-year return and the chart's "past 1 year" change are one computation, not two sources.
   const [screener, quote, newsResult, chart1y] = await Promise.all([
-    getFundamentals(ticker),
-    getQuote(ticker),
-    getCompanyNews(ticker, 8),
-    getChart(ticker, "1Y").catch(() => null),
+    within(getFundamentals(ticker), null),
+    within(getQuote(ticker), null),
+    within(getCompanyNews(ticker, 8), { items: [], live: false }),
+    within(getChart(ticker, "1Y"), null),
   ]);
-  const fundamentals = screener ?? (await getYahooFundamentals(ticker));
+  const fundamentals = screener ?? (await within(getYahooFundamentals(ticker), null));
   // `ts` lets the browser render "3h ago" against its own clock (this response is CDN-cached).
   const news = newsResult.items.map(({ headline, source, url, date, ts }) => ({ headline, source, url, date, ts }));
   const return1y = chart1y ? priceReturn(withLiveQuote(chart1y.points, quote)) : null;

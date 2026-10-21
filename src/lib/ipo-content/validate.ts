@@ -1,5 +1,6 @@
 // Shape and sanity checks for an authored IPO deck - run by `scripts/check-ipo.ts` and the
 // content test. Returns human-readable problems; an empty list means the deck is well formed.
+import { companyFinancials } from "../sector-content";
 import type { IpoReport } from "./types";
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
@@ -26,6 +27,13 @@ export function validateIpo(r: IpoReport): string[] {
   need(r.shareholding.length >= 2, "shareholding needs at least 2 holder groups");
   need(near100(r.shareholding.map((s) => s.pct)), `shareholding sums to ${sum(r.shareholding.map((s) => s.pct)).toFixed(1)}%, not ~100`);
   need(r.peers.length >= 3 && r.peers.length <= 6, "peers needs 3-6");
+  // One set of numbers per company: an NSE peer's figures come from the shared company table.
+  for (const peer of r.peers) {
+    if (!peer.ticker) continue;
+    need(companyFinancials(peer.ticker), `peer ${peer.ticker} is not in the company table - run scripts/refresh-financials.ts --add=${peer.ticker}`);
+    need(peer.mcapCr === undefined && peer.revenueCr === undefined && peer.pe === undefined, `peer ${peer.ticker}: leave out mcapCr/revenueCr/pe - they come from the company table`);
+    need(!/\b(Screener|TTM|trailing)\b/i.test(peer.note), `peer ${peer.ticker}: note should say why it compares, not restate figures or their source`);
+  }
   need(r.strengths.length === 4, "strengths needs exactly 4");
   need(r.risks.length >= 4 && r.risks.length <= 5, "risks needs 4-5");
   need(r.sources.length >= 3 && r.sources.length <= 8, "sources needs 3-8");

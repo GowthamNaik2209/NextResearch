@@ -200,12 +200,12 @@ export const zepto: IpoReport = {
   ],
 
   peers: [
-    { name: "Eternal (Blinkit)", ticker: "ETERNAL", mcapCr: 312619, revenueCr: 67408, pe: 722, note: "Blinkit is the quick-commerce leader; group profitable on food delivery" },
-    { name: "Swiggy (Instamart)", ticker: "SWIGGY", mcapCr: 64604, revenueCr: 24904, pe: null, note: "Loss-making; Instamart is the #3 player" },
-    { name: "Avenue Supermarts (DMart)", ticker: "DMART", mcapCr: 218221, revenueCr: 74223, pe: 70.0, note: "Offline grocery benchmark; profitable, low-cost model" },
+    { name: "Eternal (Blinkit)", ticker: "ETERNAL", note: "Blinkit is the quick-commerce leader; group profitable on food delivery" },
+    { name: "Swiggy (Instamart)", ticker: "SWIGGY", note: "Loss-making; Instamart is the #3 player" },
+    { name: "Avenue Supermarts (DMart)", ticker: "DMART", note: "Offline grocery benchmark; profitable, low-cost model" },
   ],
   valuationNote:
-    "At the ~Rs 42,750 Cr pre-IPO mark Zepto trades at ~1.9x FY26 revenue, below Swiggy (~2.6x trailing revenue) and Eternal (~4.6x), both of which also own profitable or scaled food-delivery arms. Peer figures are Screener.in, 16 Oct 2026 close, trailing twelve months.",
+    "At the ~Rs 42,750 Cr pre-IPO mark Zepto trades at ~1.9x FY26 revenue, below Swiggy and Eternal on sales (see the table), both of which also own profitable or scaled food-delivery arms.",
 
   strengths: [
     {

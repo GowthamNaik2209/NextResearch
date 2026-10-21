@@ -16,6 +16,9 @@ const eslintConfig = defineConfig([
     // close to byte-for-byte portable as possible rather than modernized, so it
     // stays a trivial diff against future artifact iterations.
     "src/lib/sector-content/products.ts",
+    // Policy content in the same untyped authored shape, split out of products.ts per policy.
+    "src/lib/sector-content/policies/*.ts",
+    "!src/lib/sector-content/policies/*.extras.ts",
     "prisma/seed-source/artifact-data-slice.js",
   ]),
 ]);

@@ -14,7 +14,7 @@ export const SITE_URL = resolveSiteUrl();
 export const SITE_NAME = "NextResearch";
 export const SITE_TAGLINE = "Supply-chain research for India's public markets";
 export const SITE_DESCRIPTION =
-  "Map India's listed companies by where they sit in an industry's supply chain - data centres, EVs, semiconductors, railways, defence, solar, real estate, pharma and more - then deep-dive into any company's financials.";
+  "Map India's listed companies by where they sit in an industry's supply chain - data centres, EVs, chips and phones, electronic components, rare-earth magnets, railways, defence, solar, real estate, pharma and more - then deep-dive into any company's financials.";
 
 // Brand tokens for places CSS variables can't reach (OG images via satori). Keep in sync
 // with globals.css's light theme.

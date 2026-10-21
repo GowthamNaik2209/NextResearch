@@ -1,6 +1,6 @@
 // Typed façade over products.ts (see that file's header for why the underlying
 // data is loosely typed authored 3D content rather than application data).
-import { PRODUCTS as PRODUCTS_RAW } from "./products";
+import { PRODUCTS as PRODUCTS_RAW, FIN as FIN_RAW } from "./products";
 import { syntheticTicker } from "@/lib/slugify";
 
 export type SectorView = {
@@ -146,6 +146,9 @@ export type SectorDomain = {
   description: string;
   color: string;
   relatedDomains?: string[];
+  // The zone the overview's domain card opens. Defaults to the domain's first zone in array
+  // order, but that order also sets the explorer's callout rails, so it isn't always the best entry.
+  leadZoneId?: string;
 };
 
 export type SectorDef = {
@@ -194,6 +197,10 @@ export type SectorDef = {
   // the sector (e.g. power generation, where the end players are plant operators).
   integratorHeading?: string;
   integratorBlurb?: string;
+  // Phone/tablet overview framing: tilt, turn (up to 30 degrees) and re-centre a flat campus so it
+  // fills the portrait stage (engine.ts portraitFit). Opt-in, so sectors whose phone views were
+  // already approved keep them.
+  portraitFit?: boolean;
 };
 
 type ComingSoonSector = { icon: string; name: string; tagline: string; category?: "sector" | "policy" };
@@ -245,6 +252,23 @@ export function linkWeight(link: SectorCompanyLink): number {
     (exposureStrength ? { high: 3, medium: 2, low: 1 }[exposureStrength] : 3) -
     (exposureType === "enabler" || exposureType === "indirect_supplier" ? 0.5 : 0)
   );
+}
+
+// The one record of a listed company's figures (products.ts FIN): every sector, policy and IPO
+// peer table reads a company from here, so the same ticker shows the same numbers everywhere.
+const FIN = FIN_RAW as unknown as Record<string, SupplierFinancials>;
+export function companyFinancials(ticker: string): SupplierFinancials | null {
+  return Object.hasOwn(FIN, ticker) ? FIN[ticker] : null;
+}
+
+export function listCompanyFinancials(): SupplierFinancials[] {
+  return Object.values(FIN);
+}
+
+/** "Rs 1,12,682 Cr" -> 112682. */
+export function parseCrore(s: string | null | undefined): number | null {
+  const n = s ? parseFloat(s.replace(/[^\d.]/g, "")) : NaN;
+  return Number.isFinite(n) ? n : null;
 }
 
 let supplierByTicker: Map<string, SectorSupplier> | null = null;

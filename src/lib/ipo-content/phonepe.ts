@@ -198,13 +198,13 @@ export const phonepe: IpoReport = {
   ],
 
   peers: [
-    { name: "One 97 Communications (Paytm)", ticker: "PAYTM", mcapCr: 108887, revenueCr: 8967, pe: 134, note: "Closest listed peer: UPI app, merchant devices, lending distribution" },
-    { name: "PB Fintech (Policybazaar)", ticker: "POLICYBZR", mcapCr: 49579, revenueCr: 7334, pe: 66.3, note: "Insurance and credit distribution benchmark" },
-    { name: "Bajaj Finance", ticker: "BAJFINANCE", mcapCr: 609399, revenueCr: 85964, pe: 29.8, note: "Consumer lender; a partner and a competitor for credit customers" },
-    { name: "Angel One", ticker: "ANGELONE", mcapCr: 27517, revenueCr: 5651, pe: 23.8, note: "Benchmark for Share.Market broking" },
+    { name: "One 97 Communications (Paytm)", ticker: "PAYTM", note: "Closest listed peer: UPI app, merchant devices, lending distribution" },
+    { name: "PB Fintech (Policybazaar)", ticker: "POLICYBZR", note: "Insurance and credit distribution benchmark" },
+    { name: "Bajaj Finance", ticker: "BAJFINANCE", note: "Consumer lender; a partner and a competitor for credit customers" },
+    { name: "Angel One", ticker: "ANGELONE", note: "Benchmark for Share.Market broking" },
   ],
   valuationNote:
-    "A ~US$10bn (~Rs 95,000 Cr) valuation is ~13.4x FY25 revenue of Rs 7,115 Cr, the last full year in the offer document (~12x audited FY26 revenue of Rs 7,921 Cr), close to Paytm (~12x trailing revenue, now profitable) and well above Policybazaar (~6.8x). Peer figures are Screener.in, 16 Oct 2026 close, trailing twelve months.",
+    "A ~US$10bn (~Rs 95,000 Cr) valuation is ~13.4x FY25 revenue of Rs 7,115 Cr, the last full year in the offer document (~12x audited FY26 revenue of Rs 7,921 Cr): close to Paytm's sales multiple (now profitable) and well above Policybazaar's (see the table).",
 
   strengths: [
     {

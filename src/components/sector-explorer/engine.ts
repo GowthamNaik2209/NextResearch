@@ -64,6 +64,7 @@ type ZoneRuntime = {
   box: HTMLButtonElement;
   tag: HTMLButtonElement;
   line: SVGLineElement;
+  tagLine: SVGLineElement;
 };
 
 export function mountExplorer(
@@ -214,8 +215,9 @@ export function mountExplorer(
     // Re-fit the current preset view to the new aspect unless the user has
     // orbited away from it (an in-flight animation re-fits every frame anyway).
     if (shot && !camAnim) {
-      camera.position.copy(fitView(shot));
-      controls.target.set(shot.target[0], shot.target[1], shot.target[2]);
+      const f = fitView(shot);
+      camera.position.copy(f.pos);
+      controls.target.copy(f.target);
     }
   });
   stageObserver.observe(stage);
@@ -311,33 +313,51 @@ export function mountExplorer(
 
   // Each part is its own element so CSS can keep the crumb on one line and truncate only
   // the system's name (labels are authored text, so they go in as textContent, not HTML).
+  // The nodes are built once and updated in place: rebuilding them while a pick's layer tween
+  // ran swapped the \u2715 out from under a click (and moved it), so an early \u2715 did nothing.
   let crumbKey = "";
-  function updateBreadcrumb() {
-    const idx = Math.round(currentLevel);
-    const layerName = sector.layerNames[idx] ?? sector.layerNames[0];
-    const z = currentZoneId ? sector.zones.find((zz) => zz.id === currentZoneId) : null;
-    const key = `${layerName}|${currentZoneId ?? ""}`;
-    if (key === crumbKey) return; // applyLevel runs every frame of a layer tween
-    crumbKey = key;
+  let crumb: { layer: HTMLElement; zoneParts: HTMLElement[]; zone: HTMLElement } | null = null;
+  function crumbNodes() {
+    if (crumb && dom.breadcrumb.contains(crumb.layer)) return crumb;
     const el = (tag: string, cls: string, text: string) => {
       const n = document.createElement(tag);
       n.className = cls;
       n.textContent = text;
       return n;
     };
-    const parts: HTMLElement[] = [el("b", "bc-root", "Product"), el("span", "bc-sep bc-root", "\u203a"), el("span", "bc-layer", layerName)];
-    if (currentZoneId) {
-      parts.push(el("span", "bc-sep", "\u203a"), el("b", "bc-zone", z ? z.label : currentZoneId));
-      const back = el("button", "bc-back", "\u2715") as HTMLButtonElement;
-      back.type = "button";
-      back.title = "Back to product";
-      back.setAttribute("aria-label", "Clear selection");
-      back.addEventListener("click", () => selectZone(null));
-      parts.push(back);
-    }
-    dom.breadcrumb.replaceChildren(...parts);
+    const layer = el("span", "bc-layer", "");
+    const zone = el("b", "bc-zone", "");
+    const back = el("button", "bc-back", "\u2715") as HTMLButtonElement;
+    back.type = "button";
+    back.title = "Back to product";
+    back.setAttribute("aria-label", "Clear selection");
+    back.addEventListener("click", () => selectZone(null));
+    const zoneParts = [el("span", "bc-sep", "\u203a"), zone, back];
+    dom.breadcrumb.replaceChildren(el("b", "bc-root", "Product"), el("span", "bc-sep bc-root", "\u203a"), layer, ...zoneParts);
+    crumb = { layer, zoneParts, zone };
+    return crumb;
+  }
+  function updateBreadcrumb() {
+    const z = currentZoneId ? sector.zones.find((zz) => zz.id === currentZoneId) : null;
+    // With a system picked, name the layer that shows it (where the model is heading) rather
+    // than each layer the tween passes through, so the crumb doesn't change under the reader.
+    const idx = z && z.layer != null && z.layer >= 0 && z.layer < sector.layerNames.length ? z.layer : Math.round(currentLevel);
+    const layerName = sector.layerNames[idx] ?? sector.layerNames[0];
+    const key = `${layerName}|${currentZoneId ?? ""}`;
+    const nodes = crumbNodes();
+    if (key === crumbKey) return; // applyLevel runs every frame of a layer tween
+    crumbKey = key;
+    nodes.layer.textContent = layerName;
+    nodes.zone.textContent = z ? z.label : currentZoneId ?? "";
+    nodes.zoneParts.forEach((n) => (n.hidden = !currentZoneId));
   }
 
+  // Phone tags that had to move off their marker to stay clear of the others get a thin
+  // leader back to it, so a displaced tag still points at its part.
+  const tagLeaders = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  tagLeaders.setAttribute("class", "mtag-leaders");
+  tagLeaders.setAttribute("aria-hidden", "true");
+  mobileTags.appendChild(tagLeaders);
   const zones = new Map<string, ZoneRuntime>();
   const markerMeshes: THREE.Mesh[] = [];
 
@@ -401,8 +421,12 @@ export function mountExplorer(
       selectZone(z.id);
     });
     mobileTags.appendChild(tag);
+    const tagLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    tagLine.setAttribute("stroke", z.color);
+    tagLine.setAttribute("stroke-width", "1.25");
+    tagLeaders.appendChild(tagLine);
 
-    zones.set(z.id, { def: z, marker, ring, box, tag, line });
+    zones.set(z.id, { def: z, marker, ring, box, tag, line, tagLine });
   }
 
   function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
@@ -484,7 +508,7 @@ export function mountExplorer(
     const z = zones.get(id)?.def;
     if (!z) return;
     const p = new THREE.Vector3(z.pos[0], z.pos[1], z.pos[2]);
-    const sheetMode = !!dom.sheet && getComputedStyle(dom.sheet).position === "fixed";
+    const sheetMode = sheetLayout();
     // Judge framing from where the camera is heading, not where it is mid-flight (a deep link
     // selects the system while the opening shot is still animating in).
     const from = camAnim ? camAnim.endTarget : controls.target;
@@ -518,11 +542,12 @@ export function mountExplorer(
     const back = focusReturn;
     focusReturn = null;
     shot = back.shot;
+    const f = back.shot ? fitView(back.shot) : { pos: back.pos, target: back.target };
     camAnim = {
       startPos: camera.position.clone(),
-      endPos: back.shot ? fitView(back.shot) : back.pos,
+      endPos: f.pos,
       startTarget: controls.target.clone(),
-      endTarget: back.target,
+      endTarget: f.target,
       t0: performance.now(),
       dur: 700,
     };
@@ -553,44 +578,125 @@ export function mountExplorer(
   }
   // Smallest camera distance (along the view's direction) at which the whole model fits
   // the visible part of the stage with a small margin, for the current aspect.
-  function fitDistance(dir: THREE.Vector3, t: THREE.Vector3) {
-    if (!modelCorners.length) return 0;
+  function viewBasis(dir: THREE.Vector3) {
     const f = dir.clone().negate();
     const right = new THREE.Vector3().crossVectors(f, camera.up);
     if (right.lengthSq() < 1e-6) right.set(1, 0, 0);
     right.normalize();
     const up = new THREE.Vector3().crossVectors(right, f).normalize();
+    return { right, up };
+  }
+  // Half-extents of the visible frame as tangents (vertical: the strip above the sheet).
+  function frameTans(fill: number) {
     const h = Math.max(stage.clientHeight, 1);
-    const fill = 0.9;
-    const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * fill * Math.max(0.3, (h - sheetInset) / h);
-    const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * fill * camera.aspect;
+    const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * fill;
+    return { tanV: tan * Math.max(0.3, (h - sheetInset) / h), tanH: tan * camera.aspect };
+  }
+  function fitDistance(dir: THREE.Vector3, t: THREE.Vector3, fill = 0.9, points = modelCorners) {
+    if (!points.length) return 0;
+    const { right, up } = viewBasis(dir);
+    const { tanV, tanH } = frameTans(fill);
     let need = 0;
-    for (const c of modelCorners) {
+    for (const c of points) {
       const q = c.clone().sub(t);
       const along = q.dot(dir);
       need = Math.max(need, along + Math.abs(q.dot(right)) / tanH, along + Math.abs(q.dot(up)) / tanV);
     }
     return need;
   }
+  // The model's on-screen extent (as tangents) seen from t + dir * dist.
+  function screenExtent(dir: THREE.Vector3, t: THREE.Vector3, dist: number) {
+    const { right, up } = viewBasis(dir);
+    const cam = t.clone().addScaledVector(dir, dist);
+    let x0 = Infinity,
+      x1 = -Infinity,
+      y0 = Infinity,
+      y1 = -Infinity;
+    for (const c of modelCorners) {
+      const q = c.clone().sub(cam);
+      const z = Math.max(1e-3, -q.dot(dir));
+      const x = q.dot(right) / z,
+        y = q.dot(up) / z;
+      x0 = Math.min(x0, x);
+      x1 = Math.max(x1, x);
+      y0 = Math.min(y0, y);
+      y1 = Math.max(y1, y);
+    }
+    return { x0, x1, y0, y1, right, up };
+  }
+  // Portrait stages (phones, tablets held upright): the authored overview is a low, wide
+  // three-quarter shot, so once it is pulled back to fit the narrow width the model is a thin
+  // band with empty stage above and below. Tilt the camera up (only up: by at most 20°, to at most 50°) and turn it up to 30° either way, which
+  // shows more of the floor plan for the same width, and re-centre the model in the visible
+  // strip, picking the angle that fills the most of the frame.
+  function portraitFit(dir0: THREE.Vector3, t0: THREE.Vector3) {
+    const az = Math.atan2(dir0.x, dir0.z);
+    const el0 = Math.asin(THREE.MathUtils.clamp(dir0.y, -1, 1));
+    const cap = Math.max(el0, Math.min(el0 + THREE.MathUtils.degToRad(20), THREE.MathUtils.degToRad(50)));
+    const { tanV, tanH } = frameTans(1);
+    let best: { dir: THREE.Vector3; t: THREE.Vector3; dist: number; score: number } | null = null;
+    const steps = 6;
+    const deg = THREE.MathUtils.degToRad(1);
+    for (let i = 0; i <= steps; i++) for (const daz of [0, -10, 10, -20, 20, -30, 30]) {
+      const el = el0 + ((cap - el0) * i) / steps;
+      const a = az + daz * deg;
+      const dir = new THREE.Vector3(Math.sin(a) * Math.cos(el), Math.sin(el), Math.cos(a) * Math.cos(el));
+      const t = t0.clone();
+      // Every system's marker stays well inside the frame (its tag sits above it); the model's
+      // outermost corners may run a few percent past the sides, which on a diagonal plinth only
+      // trims its tips and lets the whole model be drawn noticeably larger.
+      const need = () => Math.max(fitDistance(dir, t, 1.04), fitDistance(dir, t, 0.86, markerPoints));
+      let dist = need();
+      for (let k = 0; k < 3; k++) {
+        const e = screenExtent(dir, t, dist);
+        t.addScaledVector(e.right, ((e.x0 + e.x1) / 2) * dist).addScaledVector(e.up, ((e.y0 + e.y1) / 2) * dist);
+        dist = need();
+      }
+      const e = screenExtent(dir, t, dist);
+      // A turned or steeper view has to earn it: the further from the authored angle, the
+      // more of the frame it must fill to win.
+      const fillFrac = (Math.min(2, (e.x1 - e.x0) / tanH) * Math.min(2, (e.y1 - e.y0) / tanV)) / 4;
+      const score = fillFrac * (1 - 0.005 * Math.abs(daz)) * (1 - 0.15 * ((el - el0) / deg / 30));
+      if (!best || score > best.score) best = { dir, t, dist, score };
+    }
+    return best!;
+  }
   // Views are authored for a landscape stage. Overview shots (`fit`) back off until the
   // whole model fits - narrow phone stages and the desktop stage squeezed between the
-  // rail and the panel both cropped wide plinths otherwise. Close-ups keep their framing
-  // and are only pulled back in proportion to how portrait the stage is.
+  // rail and the panel both cropped wide plinths otherwise; on portrait stages they are also
+  // tilted and re-centred (portraitFit). Close-ups keep their framing and are only pulled
+  // back in proportion to how portrait the stage is.
+  const sheetLayout = () => !!dom.sheet && getComputedStyle(dom.sheet).position === "fixed";
+  let fitCache: { s: Shot; key: string; pos: THREE.Vector3; target: THREE.Vector3 } | null = null;
   function fitView(s: Shot) {
+    const key = `${camera.aspect.toFixed(4)}|${Math.round(sheetInset)}|${stage.clientHeight}|${sheetLayout()}`;
+    if (!fitCache || fitCache.s !== s || fitCache.key !== key) fitCache = { s, key, ...computeFit(s) };
+    return { pos: fitCache.pos.clone(), target: fitCache.target.clone() };
+  }
+  function computeFit(s: Shot) {
     const t = new THREE.Vector3(s.target[0], s.target[1], s.target[2]);
     const dir = new THREE.Vector3(s.pos[0], s.pos[1], s.pos[2]).sub(t);
     const authored = dir.length();
     dir.normalize();
-    let dist = authored * aspectFit();
-    if (s.fit) {
-      dist = Math.max(authored, fitDistance(dir, t));
-      if (dist > fitMaxDistance) {
-        fitMaxDistance = dist;
-        controls.maxDistance = Math.max(controls.maxDistance, dist * 1.3);
-      }
+    if (!s.fit) return { pos: t.clone().addScaledVector(dir, authored * aspectFit()), target: t };
+    let dist: number;
+    let target = t;
+    // Only in the phone/tablet layout (bottom sheet over the stage). The desktop stage between
+    // the rail and the side panel can be portrait too, but its overviews are approved as authored.
+    // Opt-in per sector (SectorDef.portraitFit): existing sectors keep their approved phone views.
+    if (sector.portraitFit && camera.aspect < 1 && sheetLayout() && modelCorners.length) {
+      const p = portraitFit(dir, t);
+      dir.copy(p.dir);
+      target = p.t;
+      dist = p.dist;
+    } else dist = Math.max(authored, fitDistance(dir, t));
+    if (dist > fitMaxDistance) {
+      fitMaxDistance = dist;
+      controls.maxDistance = Math.max(controls.maxDistance, dist * 1.3);
     }
-    return t.addScaledVector(dir, dist);
+    return { pos: target.clone().addScaledVector(dir, dist), target };
   }
+  const markerPoints = sector.zones.map((z) => new THREE.Vector3(z.pos[0], z.pos[1], z.pos[2]));
   const defaultViewId = sector.defaultView || sector.views[0]?.id;
   const isFitView = (id: string) => id === defaultViewId || id === "top";
 
@@ -604,11 +710,12 @@ export function mountExplorer(
       exitDeepDive();
       setUserLevel(v.layer, false);
     }
+    const f = fitView(shot);
     camAnim = {
       startPos: camera.position.clone(),
-      endPos: fitView(shot),
+      endPos: f.pos,
       startTarget: controls.target.clone(),
-      endTarget: new THREE.Vector3(v.target[0], v.target[1], v.target[2]),
+      endTarget: f.target,
       t0: performance.now(),
       dur: 900,
     };
@@ -644,11 +751,12 @@ export function mountExplorer(
     const c = deepDiveDef.entryCamera;
     focusReturn = null;
     shot = { pos: c.pos, target: c.target, fit: false };
+    const f = fitView(shot);
     camAnim = {
       startPos: camera.position.clone(),
-      endPos: fitView(shot),
+      endPos: f.pos,
       startTarget: controls.target.clone(),
-      endTarget: new THREE.Vector3(c.target[0], c.target[1], c.target[2]),
+      endTarget: f.target,
       t0: performance.now(),
       dur: 1000,
     };
@@ -758,6 +866,8 @@ export function mountExplorer(
       const isDimmed = isDimmedZone(z.id);
 
       const tagHidden = offscreen;
+      const mx = px,
+        my = py;
       let crowded = false;
       if (phoneTags && !tagHidden) {
         const tagScale = isSelected ? 1.08 : 1;
@@ -766,27 +876,35 @@ export function mountExplorer(
         const th = zr.tag.offsetHeight * tagScale;
         // At least EDGE px from the stage's sides.
         px = Math.max(Math.min(w / 2, EDGE + tw / 2), Math.min(Math.max(w / 2, w - EDGE - tw / 2), px));
-        const rectAt = (y: number) => ({ x0: px - tw / 2 - 2, x1: px + tw / 2 + 2, y0: y - 1.38 * th - 2, y1: y - 0.38 * th + 2 });
-        let chosen: ReturnType<typeof rectAt> | null = null;
-        let chosenY = py;
-        // Search a few rows either way for a free slot so every tag finds a place; the
-        // most important ones (selected, scenario-hit) were placed first.
-        for (const k of [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6]) {
-          const y = py + k * (th + 3);
-          const r = rectAt(y);
-          if (r.y0 < EDGE || r.y1 > visibleH - EDGE) continue;
-          if (placed.some((p) => r.x0 < p.x1 && r.x1 > p.x0 && r.y0 < p.y1 && r.y1 > p.y0)) continue;
-          chosen = r;
-          chosenY = y;
-          break;
+        const xMin = Math.min(w / 2, EDGE + tw / 2),
+          xMax = Math.max(w / 2, w - EDGE - tw / 2);
+        const rectAt = (x: number, y: number) => ({ x0: x - tw / 2 - 2, x1: x + tw / 2 + 2, y0: y - 1.38 * th - 2, y1: y - 0.38 * th + 2 });
+        const overlap = (r: ReturnType<typeof rectAt>) =>
+          placed.reduce((s, p) => s + Math.max(0, Math.min(r.x1, p.x1) - Math.max(r.x0, p.x0)) * Math.max(0, Math.min(r.y1, p.y1) - Math.max(r.y0, p.y0)), 0);
+        // Find the free slot nearest the marker: a row up or down, or a nudge sideways (cheaper
+        // than a row, since a sideways tag still sits over its marker). The most important tags
+        // (selected, scenario-hit) were placed first. If nothing is free, take the slot that
+        // overlaps least - every tag stays at full strength (labels never fade unless a
+        // system is picked) and lies under the placed ones.
+        const rowH = th + 3;
+        let best: { x: number; y: number; r: ReturnType<typeof rectAt>; over: number; score: number } | null = null;
+        for (let k = -8; k <= 8; k++) {
+          for (const sx of [0, 0.35, -0.35, 0.7, -0.7]) {
+            const x = Math.max(xMin, Math.min(xMax, px + sx * tw));
+            const y = py + k * rowH;
+            const r = rectAt(x, y);
+            if (r.y0 < EDGE || r.y1 > visibleH - EDGE) continue;
+            const cost = Math.abs(k) * rowH + Math.abs(x - px) * 0.6 + (k < 0 ? 0 : 2);
+            const over = overlap(r);
+            const score = over > 0 ? 1e6 + over + cost * 4 : cost;
+            if (!best || score < best.score) best = { x, y, r, over, score };
+          }
         }
-        if (chosen) {
-          placed.push(chosen);
-          py = chosenY;
-        } else {
-          // No free slot nearby: keep it on its marker but faded, so every system stays
-          // labelled (the user wants the whole map readable) without fighting the placed ones.
-          crowded = !isSelected;
+        if (best) {
+          placed.push(best.r);
+          px = best.x;
+          py = best.y;
+          crowded = best.over > 0 && !isSelected;
         }
       }
       // Hidden tags still sit inside the stage, so they never widen its scrollable area.
@@ -796,11 +914,26 @@ export function mountExplorer(
       zr.tag.classList.toggle("selected", isSelected);
       zr.tag.classList.toggle("dimmed", isDimmed);
       const tagShown = labelsVisible && !tagHidden;
-      zr.tag.style.opacity = tagShown ? (isSelected ? "1" : isDimmed || crowded ? "0.28" : "1") : "0";
+      zr.tag.style.opacity = tagShown ? (isDimmed ? "0.28" : "1") : "0";
       zr.tag.style.zIndex = isSelected ? "3" : crowded ? "1" : "2";
       zr.tag.style.pointerEvents = tagShown ? "auto" : "none";
       zr.tag.tabIndex = tagShown ? 0 : -1;
       zr.tag.setAttribute("aria-hidden", String(!tagShown));
+      if (phoneTags) {
+        // Leader from the marker to the nearest point of the tag's lower (or upper) edge,
+        // drawn only when the tag had to move clear of its usual spot just above the marker.
+        const tw = zr.tag.offsetWidth,
+          th = zr.tag.offsetHeight;
+        const below = my > py - 0.38 * th;
+        const ax = Math.max(px - tw / 2 + 6, Math.min(px + tw / 2 - 6, mx));
+        const ay = below ? py - 0.38 * th : py - 1.38 * th;
+        const far = Math.hypot(ax - mx, ay - my) > th * 0.9;
+        zr.tagLine.setAttribute("x1", String(mx));
+        zr.tagLine.setAttribute("y1", String(my));
+        zr.tagLine.setAttribute("x2", String(ax));
+        zr.tagLine.setAttribute("y2", String(ay));
+        zr.tagLine.setAttribute("opacity", String(tagShown && far ? (isDimmed ? 0.18 : 0.75) : 0));
+      }
 
       const boxRect = zr.box.getBoundingClientRect();
       let anchorX: number, anchorY: number;
@@ -887,7 +1020,12 @@ export function mountExplorer(
     if (camAnim) {
       const t = Math.min(1, (performance.now() - camAnim.t0) / camAnim.dur);
       const ease = 1 - Math.pow(1 - t, 3);
-      if (shot) camAnim.endPos.copy(fitView(shot)); // aspect may still be settling
+      if (shot) {
+        // The aspect (and the sheet's inset) may still be settling.
+        const f = fitView(shot);
+        camAnim.endPos.copy(f.pos);
+        camAnim.endTarget.copy(f.target);
+      }
       camera.position.lerpVectors(camAnim.startPos, camAnim.endPos, ease);
       controls.target.lerpVectors(camAnim.startTarget, camAnim.endTarget, ease);
       if (t >= 1) camAnim = null;
@@ -932,10 +1070,12 @@ export function mountExplorer(
     envRT.dispose();
     renderer.dispose();
     if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
+    tagLeaders.remove();
     for (const zr of zones.values()) {
       zr.box.remove();
       zr.tag.remove();
       zr.line.remove();
+      zr.tagLine.remove();
     }
   }
 

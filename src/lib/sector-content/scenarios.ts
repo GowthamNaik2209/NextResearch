@@ -7,6 +7,10 @@
 //
 // Zone ids must exist in the sector (checked by `npm run validate:content`).
 import { companyLinkExposure, companyLinkKey, tickerForSupplier, type ExposureStrength, type SectorDef } from "./index";
+import { SEMICON2_SCENARIOS } from "./policies/semicon2.extras";
+import { RAREEARTH_SCENARIOS } from "./policies/rareearth.extras";
+import { DEFENCEPROC_SCENARIOS } from "./policies/defenceproc.extras";
+import { ECMS_SCENARIOS } from "./policies/ecms.extras";
 
 export type Severity = 1 | 2 | 3; // 3 = directly hit / directly helped
 export type ScenarioEffect = "headwind" | "tailwind";
@@ -585,6 +589,10 @@ export const SCENARIOS: Record<string, Scenario[]> = {
       ],
     },
   ],
+  semicon2: SEMICON2_SCENARIOS,
+  rareearth: RAREEARTH_SCENARIOS,
+  defenceproc: DEFENCEPROC_SCENARIOS,
+  ecms: ECMS_SCENARIOS,
 };
 
 export function listScenarios(slug: string): Scenario[] {

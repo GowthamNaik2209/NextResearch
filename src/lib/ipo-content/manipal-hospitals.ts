@@ -182,14 +182,14 @@ export const manipalHospitals: IpoReport = {
   ],
 
   peers: [
-    { name: "Apollo Hospitals", ticker: "APOLLOHOSP", mcapCr: 112788, revenueCr: 26431, pe: 53.6, note: "Largest by revenue; pharmacy and digital add scale beyond hospitals" },
-    { name: "Max Healthcare", ticker: "MAXHEALTH", mcapCr: 82448, revenueCr: 8712, pe: 55.1, note: "North India focus; highest occupancy and ARPOB among peers" },
-    { name: "Fortis Healthcare", ticker: "FORTIS", mcapCr: 55876, revenueCr: 9506, pe: 52.4, note: "Pan-India network plus Agilus diagnostics" },
-    { name: "Narayana Health", ticker: "NH", mcapCr: 35174, revenueCr: 9073, pe: 40.8, note: "Value-focused model; Cayman Islands and UK operations" },
-    { name: "Medanta (Global Health)", ticker: "MEDANTA", mcapCr: 33287, revenueCr: 4683, pe: 58.1, note: "Gurugram-led, high-acuity, expanding in north and east" },
+    { name: "Apollo Hospitals Enterprise", ticker: "APOLLOHOSP", note: "Largest by revenue; pharmacy and digital add scale beyond hospitals" },
+    { name: "Max Healthcare Institute", ticker: "MAXHEALTH", note: "North India focus; highest occupancy and ARPOB among peers" },
+    { name: "Fortis Healthcare", ticker: "FORTIS", note: "Pan-India network plus Agilus diagnostics" },
+    { name: "Narayana Health", ticker: "NH", note: "Value-focused model; Cayman Islands and UK operations" },
+    { name: "Medanta (Global Health)", ticker: "MEDANTA", note: "Gurugram-led, high-acuity, expanding in north and east" },
   ],
   valuationNote:
-    "At Rs 590, the IPO valued Manipal at ~Rs 77,600 Cr, about 76-85x FY26 earnings and ~35x EV/EBITDA, against 66-75x for Apollo, Max and Fortis at the time (FundsIndia, ICICI Direct, Angel One). In mid-Oct 2026 it trades at ~Rs 84,500 Cr and ~95x trailing P/E, above every listed peer (41-58x). Peer revenue is trailing twelve months to Jun 2026 (Screener).",
+    "At Rs 590, the IPO valued Manipal at ~Rs 77,600 Cr, about 76-85x FY26 earnings and ~35x EV/EBITDA, against 66-75x for Apollo, Max and Fortis at the time (FundsIndia, ICICI Direct, Angel One). In mid-Oct 2026 it trades at ~Rs 84,500 Cr and ~95x trailing P/E, above every listed peer in the table.",
 
   strengths: [
     { title: "Unmatched bed scale and metro leadership", body: "Largest pan-India network by beds and the only private chain leading three metros (Bengaluru, Kolkata, Pune) by bed capacity, per Crisil." },

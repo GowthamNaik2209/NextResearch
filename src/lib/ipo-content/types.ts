@@ -118,12 +118,14 @@ export type IpoReport = {
 
   // --- Slide 8: peer valuation ---
   /**
-   * 3-6 listed peers (Indian first, global if no Indian peer). `ticker` is the NSE symbol;
-   * if it matches a company already in sector content the row opens the stock pop-up.
-   * Figures as of `asOf`; null when unavailable.
+   * 3-6 listed peers (Indian first, global if no Indian peer). `ticker` is the NSE symbol, and an
+   * NSE peer's market cap, revenue and P/E come from the shared company table (sector-content FIN,
+   * same figures and date as every industry and policy page) - so leave those three out for it and
+   * add the company to FIN instead (`scripts/refresh-financials.ts --add=TICKER`). Only a peer with
+   * no NSE listing carries its own figures, as of `asOf`; null when unavailable.
    */
-  peers: { name: string; ticker?: string; mcapCr: number | null; revenueCr: number | null; pe: number | null; evSales?: number | null; note: string }[];
-  /** How the IPO's implied valuation compares; one or two sentences. */
+  peers: { name: string; ticker?: string; mcapCr?: number | null; revenueCr?: number | null; pe?: number | null; note: string }[];
+  /** How the IPO's implied valuation compares, in words (the peer table carries the numbers); one or two sentences. */
   valuationNote: string;
 
   // --- Slide 9: strengths & risk factors ---

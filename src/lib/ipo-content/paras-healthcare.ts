@@ -170,14 +170,14 @@ export const parasHealthcare: IpoReport = {
   ],
 
   peers: [
-    { name: "Max Healthcare Institute", ticker: "MAXHEALTH", mcapCr: 82448, revenueCr: 8712, pe: 55.1, note: "Largest listed North India chain; ~9.5x trailing sales. Screener, 16 Oct 2026, TTM." },
-    { name: "Fortis Healthcare", ticker: "FORTIS", mcapCr: 55876, revenueCr: 9506, pe: 52.4, note: "Pan-India chain with a large NCR presence. Screener, 16 Oct 2026, TTM." },
-    { name: "Krishna Institute of Medical Sciences", ticker: "KIMS", mcapCr: 28827, revenueCr: 4212, pe: 138, note: "Tier-2 focused multi-specialty chain in the South. Screener, 16 Oct 2026, TTM." },
-    { name: "Yatharth Hospital & Trauma Care", ticker: "YATHARTH", mcapCr: 9558, revenueCr: 1334, pe: 52.8, note: "NCR and western UP chain of similar size. Screener, 16 Oct 2026, TTM." },
-    { name: "Jupiter Life Line Hospitals", ticker: "JLHL", mcapCr: 8126, revenueCr: 1558, pe: 42.5, note: "Western India chain of similar revenue. Screener, 16 Oct 2026, TTM." },
+    { name: "Max Healthcare Institute", ticker: "MAXHEALTH", note: "Largest listed North India chain." },
+    { name: "Fortis Healthcare", ticker: "FORTIS", note: "Pan-India chain with a large NCR presence." },
+    { name: "Krishna Institute of Medical Sciences", ticker: "KIMS", note: "Tier-2 focused multi-specialty chain in the South." },
+    { name: "Yatharth Hospital & Trauma Care", ticker: "YATHARTH", note: "NCR and western UP chain of similar size." },
+    { name: "Jupiter Life Line Hospitals", ticker: "JLHL", note: "Western India chain of similar revenue." },
   ],
   valuationNote:
-    "At ~Rs 7,500 Cr Paras trades at ~4.7x FY26 revenue, below Jupiter (5.2x), Yatharth (7.2x) and Max (9.5x) on trailing sales, but at ~160x FY26 earnings versus a 42-55x range for most peers. Annualising the Q1 FY27 profit, which was helped by a tax credit, brings the post-issue P/E to ~38x (Chittorgarh).",
+    "At ~Rs 7,500 Cr Paras trades at ~4.7x FY26 revenue, below all five listed peers on sales (Jupiter is the closest), but at ~160x FY26 earnings, above every listed peer's P/E (see the table). Annualising the Q1 FY27 profit, which was helped by a tax credit, brings the post-issue P/E to ~38x (Chittorgarh).",
 
   strengths: [
     { title: "Early mover in North India, Bihar and Jharkhand", body: "Among the largest private providers in these regions, with hospitals in cities such as Patna, Darbhanga and Ranchi where few corporate chains operate." },

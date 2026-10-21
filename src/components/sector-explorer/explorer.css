@@ -88,16 +88,18 @@
  input[type="range"]{ width:100%; accent-color:var(--accent) }
  .view-btn{
  background:var(--chip); border:1px solid var(--line); border-radius:7px; color:var(--ink-soft);
- font-family:inherit; font-size:11.5px; font-weight:600; padding:7px 6px; cursor:pointer; text-align:center;
+ font-family:inherit; font-size:11.5px; font-weight:600; padding:7px 4px; cursor:pointer; text-align:center;
  }
  .view-btn:hover{border-color:var(--accent); color:var(--ink)}
  .view-btn.active{background:color-mix(in srgb, var(--accent) 18%, var(--chip)); border-color:var(--accent); color:var(--ink)}
- .view-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px}
- /* Short desktop screens: tighten the rail so Layers, Systems and Camera view fit. */
- @media (max-height:860px) and (min-width:1001px){
+ /* minmax(0,...) so a long one-word label ("Underground") can't push the grid past the rail. */
+ .view-grid{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:6px}
+ /* Short desktop screens: tighten the rail so Layers, Systems and Camera view fit (a sector
+    with four layers, four scenarios and seven camera views ran past the fold at 900px). */
+ @media (max-height:960px) and (min-width:1001px){
  .rail{ gap:9px; padding:10px 10px }
  .layer-btn{ padding:5px 10px }
- .view-btn{ padding:5px 6px }
+ .view-btn{ padding:5px 4px }
  .zone-more-btn{ padding:6px 10px }
  .view-grid{ gap:5px }
  }
@@ -144,6 +146,8 @@
  font-size:11.5px; color:var(--ink-soft); backdrop-filter:blur(6px);
  }
  .breadcrumb > *{ flex:none }
+ /* The engine keeps the system part of the crumb in the DOM and hides it with [hidden]. */
+ .breadcrumb > [hidden]{ display:none }
  .breadcrumb .bc-zone{ flex:0 1 auto; min-width:2.5em; overflow:hidden; text-overflow:ellipsis }
  /* "Zoom out to the starting view" - for anyone who has orbited or zoomed deep into the model. */
  .reset-btn{
@@ -256,6 +260,7 @@
  .callout.selected{ background:color-mix(in srgb, var(--zc) 30%, var(--callout-bg-strong)); transform:scale(1.08) }
  .rail-left .callout, .rail-right .callout{ max-width:200px; white-space:normal; line-height:1.25 }
  .mobile-tags{ display:none; position:absolute; inset:0; pointer-events:none; z-index:4; overflow:clip }
+ .mtag-leaders{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible }
  /* Compact: long names truncate (full name in the title/aria-label and the Systems list);
     the selected tag shows its full name. */
  /* Pinch/drag starting on a label is handled by the engine (moves the model), not the page. */

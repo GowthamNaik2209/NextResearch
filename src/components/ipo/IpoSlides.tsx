@@ -658,8 +658,9 @@ function PeersSlide({ deck, openStock }: SlideProps) {
   const v = deck.issue.valuationCr;
   const lastRev = deck.financials.years.filter((y) => !y.partial).at(-1);
   const rows = [...deck.peers].sort((a, b) => (b.mcapCr ?? -1) - (a.mcapCr ?? -1));
-  // EV/Sales is optional content: the column only appears when a deck fills it.
-  const hasEv = rows.some((p) => p.evSales != null);
+  // Market cap over latest-year revenue, worked out from the same figures shown in the row.
+  const ps = (p: IpoPeer) => (p.mcapCr != null && p.revenueCr ? `${(p.mcapCr / p.revenueCr).toFixed(1)}x` : "—");
+  const dates = [...new Set(rows.filter((p) => p.ticker).map((p) => p.asOf))];
   const max = Math.max(v ?? 0, ...rows.map((r) => r.mcapCr ?? 0), 1);
   const bar = (n: number | null, self = false) =>
     n == null ? (
@@ -691,21 +692,19 @@ function PeersSlide({ deck, openStock }: SlideProps) {
           <li key={p.name} className="rounded-xl border border-line bg-panel p-3.5">
             <PeerName p={p} openStock={openStock} />
             <div className="mt-2 text-[11px]">{bar(p.mcapCr)}</div>
-            <dl className={"mt-2 grid gap-2 text-[11px] " + (hasEv ? "grid-cols-3" : "grid-cols-2")}>
+            <dl className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
               <div>
-                <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">Revenue</dt>
+                <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">Revenue FY26</dt>
                 <dd className="font-mono text-ink">{fmtCr(p.revenueCr)}</dd>
               </div>
               <div>
                 <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">P/E</dt>
                 <dd className="font-mono text-ink">{p.pe != null ? p.pe.toFixed(1) : "—"}</dd>
               </div>
-              {hasEv && (
-                <div>
-                  <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">EV/Sales</dt>
-                  <dd className="font-mono text-ink">{p.evSales != null ? `${p.evSales.toFixed(1)}x` : "—"}</dd>
-                </div>
-              )}
+              <div>
+                <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">Mcap / sales</dt>
+                <dd className="font-mono text-ink">{ps(p)}</dd>
+              </div>
             </dl>
             <p className="mt-2 text-[11.5px] leading-snug text-ink-soft">{p.note}</p>
           </li>
@@ -717,9 +716,9 @@ function PeersSlide({ deck, openStock }: SlideProps) {
             <tr className="border-b border-line bg-panel-2 text-left text-[9.5px] uppercase tracking-wider text-ink-soft">
               <th className="px-4 py-2.5 font-semibold">Company</th>
               <th className="px-3 py-2.5 font-semibold">Market cap</th>
-              <th className="px-3 py-2.5 text-right font-semibold">Revenue</th>
+              <th className="px-3 py-2.5 text-right font-semibold">Revenue FY26</th>
               <th className="px-3 py-2.5 text-right font-semibold">P/E</th>
-              {hasEv && <th className="px-3 py-2.5 text-right font-semibold">EV/Sales</th>}
+              <th className="px-3 py-2.5 text-right font-semibold">Mcap / sales</th>
               <th className="px-4 py-2.5 font-semibold">Why it compares</th>
             </tr>
           </thead>
@@ -732,7 +731,7 @@ function PeersSlide({ deck, openStock }: SlideProps) {
                 <td className="whitespace-nowrap px-3 py-2.5">{bar(p.mcapCr)}</td>
                 <td className="whitespace-nowrap px-3 py-2.5 text-right font-mono tabular-nums text-ink">{fmtCr(p.revenueCr)}</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums text-ink">{p.pe != null ? p.pe.toFixed(1) : "—"}</td>
-                {hasEv && <td className="px-3 py-2.5 text-right font-mono tabular-nums text-ink">{p.evSales != null ? `${p.evSales.toFixed(1)}x` : "—"}</td>}
+                <td className="px-3 py-2.5 text-right font-mono tabular-nums text-ink">{ps(p)}</td>
                 <td className="px-4 py-2.5 text-[11.5px] leading-snug text-ink-soft">{p.note}</td>
               </tr>
             ))}
@@ -741,7 +740,7 @@ function PeersSlide({ deck, openStock }: SlideProps) {
       </Panel>
       <p className="mt-3 border-l-2 border-accent pl-3 text-[12.5px] leading-relaxed text-ink">{deck.valuationNote}</p>
       <p className="mt-2 text-[10.5px] text-ink-soft">
-        Peer figures are a snapshot as of {deck.asOf}; P/E is blank for loss-making companies.{rows.some((p) => p.supplier) ? " Peers marked › open their live price, financials and news, which can differ from the snapshot." : ""}
+        NSE peers: Screener.in, as of {dates.join(" / ") || deck.asOf} - the same figures as their industry and policy pages; revenue is the latest full fiscal year (FY26), P/E on trailing earnings and blank for loss-making companies.{rows.some((p) => !p.ticker) ? ` Other peers as of ${deck.asOf}.` : ""}{rows.some((p) => p.supplier) ? " Peers marked › open their live price, financials and news, which can differ from the snapshot." : ""}
       </p>
       <Foot deck={deck} />
     </>
