@@ -1,17 +1,12 @@
 // @ts-nocheck
 // Semicon 2.0 + Mobile Phones (MPMS) - policy content.
 // Same untyped authored shape as a PRODUCTS.* entry in ../products.ts (see SectorDef in ../index.ts).
-// `h` hands over products.ts's shared helpers: FIN (one entry per ticker), fin(), co(), addFin(), ASOF, SRC.
+// `h` hands over products.ts's shared helpers: co() (a company's figures by ticker, from the database), ASOF, SRC.
 // Geometry lives in ../models/semicon2.ts (anchors + views are imported from there).
 import { buildSemicon2, SEMICON2_ANCHORS, SEMICON2_VIEWS } from "../models/semicon2";
 
 export function defineSemicon2(h) {
-  const { FIN, fin, co, addFin, ASOF } = h;
-  void FIN;
-  // New tickers (Screener.in consolidated, 19 Oct 2026 close).
-  addFin("PGEL", fin([1098,2160,2746,4870,5288],[37,77,135,288,197],"Rs 14,567 Cr","Rs 508","PGEL","PG Electroplast; FY26 profit fell as room-AC demand softened",[-13,34,60],[437,645],null,[70.8,107,0.05,10.3,6.7,1]));
-  addFin("ACI", fin([1130,1441,1330,1041,1081],[188,383,319,162,105],"Rs 5,923 Cr","Rs 480","ACI","Archean Chemical Industries (marine chemicals: bromine, industrial salt); listed Nov 2022, so no 5-year price history",[-27,-9,null],[446,676],null,[61.2,157,0.52,7.41,5.42,2]));
-  addFin("AMBER", fin([4206,6927,6729,9973,12186],[111,164,139,251,226],"Rs 23,028 Cr","Rs 6,530","AMBER",null,[-21,29,14],[5400,8974],null,[112,1242,0,10.3,5.99,10]));
+  const { co, ASOF } = h;
 
   const A = SEMICON2_ANCHORS;
   return {

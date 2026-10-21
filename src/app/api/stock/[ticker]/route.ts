@@ -4,8 +4,9 @@ import { getFundamentals } from "@/lib/live/screener-company";
 import { getChart, getQuote, getYahooFundamentals } from "@/lib/live/yahoo";
 import { getCompanyNews } from "@/lib/live/news";
 import { getCompanyFootprint } from "@/lib/sector-content/exposure";
-import { DATA_AS_OF } from "@/lib/sector-content/insights";
+import { dataAsOf } from "@/lib/sector-content/insights";
 import { priceReturn, withLiveQuote } from "@/components/stock/merge";
+import { ensureFinancials } from "@/lib/financials/load";
 
 // One slow upstream must not hold the whole response (an Apollo pop-up once sat on "fetching" for
 // a minute): each part gets this long, then counts as unreachable and the client uses cached figures.
@@ -15,10 +16,11 @@ function within<T>(p: Promise<T>, fallback: T): Promise<T> {
 }
 
 // GET /api/stock/VOLTAS — live quote + Screener fundamentals + industry medians +
-// latest headlines (curated fallback), with no database dependency. Every part is best-effort: a null
+// latest headlines (curated fallback). Every part is best-effort: a null
 // section means that upstream was unreachable and the client falls back to the
-// static seed figures it already carries.
+// company-table figures it already carries (the allowlist check needs that table loaded).
 export async function GET(_req: Request, { params }: { params: Promise<{ ticker: string }> }) {
+  await ensureFinancials();
   const { ticker } = await params;
   if (!findSupplierByTicker(ticker)) return NextResponse.json({ error: "unknown ticker" }, { status: 404 });
 
@@ -38,7 +40,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
   const return1y = chart1y ? priceReturn(withLiveQuote(chart1y.points, quote)) : null;
 
   return NextResponse.json(
-    { ticker, quote, fundamentals, news, newsLive: newsResult.live, footprint: getCompanyFootprint(ticker), return1y, seedAsOf: findSupplierByTicker(ticker)?.f?.asOf ?? DATA_AS_OF },
+    { ticker, quote, fundamentals, news, newsLive: newsResult.live, footprint: getCompanyFootprint(ticker), return1y, seedAsOf: findSupplierByTicker(ticker)?.f?.asOf ?? dataAsOf() },
     { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=900" } }
   );
 }

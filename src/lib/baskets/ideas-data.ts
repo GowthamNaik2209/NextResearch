@@ -6,6 +6,7 @@ import { unstable_cache } from "next/cache";
 import { listSectors, companyLinkKey, companyLinkExposure, findSupplierByTicker } from "@/lib/sector-content";
 import { HISTORY_FROM, getChartWithFallback } from "@/lib/live/yahoo";
 import { listBasketUniverse } from "./industry";
+import { ensureFinancials } from "@/lib/financials/load";
 import { buildIdeas, priceStat, type Idea, type IdeaStockInfo, type PriceSnapshot, type PriceStat } from "./ideas";
 
 const CONCURRENCY = 10;
@@ -88,6 +89,7 @@ export type IdeasPayload = { asOf: string; ideas: Idea[] };
 /** The day's ideas, from the shared cache (rebuilt in the background once it is a few hours old). */
 export const getIdeas = unstable_cache(
   async (): Promise<IdeasPayload> => {
+    await ensureFinancials();
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },

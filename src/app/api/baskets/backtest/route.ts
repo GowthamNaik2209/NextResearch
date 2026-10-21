@@ -4,6 +4,7 @@ import { isChartRange } from "@/lib/live/yahoo";
 import { getIndustryBasket } from "@/lib/baskets/industry";
 import { backtestBasket, type Weighting } from "@/lib/baskets/run";
 import { cleanTickers, getVisibleBasket } from "@/lib/baskets/store";
+import { ensureFinancials } from "@/lib/financials/load";
 
 // A cold industry basket fetches up to ~57 price histories (8 at a time).
 export const maxDuration = 60;
@@ -11,6 +12,7 @@ export const maxDuration = 60;
 // GET /api/baskets/backtest?range=1Y&(sector=ev4w | id=<basket id> | tickers=A,B,C)[&w=equal|mcap]
 // Returns the basket's value (100 on day one) plus each holding's return and contribution.
 export async function GET(req: Request) {
+  await ensureFinancials();
   const q = new URL(req.url).searchParams;
   const range = q.get("range");
   if (!isChartRange(range)) return NextResponse.json({ error: "bad range" }, { status: 400 });

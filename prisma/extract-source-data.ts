@@ -1,10 +1,9 @@
-// Regenerates prisma/seed-source/extracted.json straight from the live
-// src/lib/sector-content/products.ts (the actual source of truth for sector/
-// company content) instead of the frozen, one-off artifact-data-slice.js this
-// repo bootstrapped from. Run this whenever products.ts changes (new sectors,
-// new companies, edited financials) and then `npm run db:seed` to sync the
-// database — extract-source-data.mjs + artifact-data-slice.js are now stale
-// and only reflect the original port, not anything added since.
+// Regenerates prisma/seed-source/extracted.json (`npm run db:extract`) straight from
+// src/lib/sector-content/products.ts: the content's companies (names, roles, sector
+// links) and the curated news - no figures, which live only in the database. Run it
+// when products.ts gains sectors or companies, then `npm run db:seed` to sync company
+// rows. extract-source-data.mjs + artifact-data-slice.js are stale and only reflect
+// the original port.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

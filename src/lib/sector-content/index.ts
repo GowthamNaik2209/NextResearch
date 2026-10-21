@@ -1,6 +1,7 @@
 // Typed façade over products.ts (see that file's header for why the underlying
 // data is loosely typed authored 3D content rather than application data).
-import { PRODUCTS as PRODUCTS_RAW, FIN as FIN_RAW } from "./products";
+import { PRODUCTS as PRODUCTS_RAW } from "./products";
+import { financialsVersion, getFinancials, listFinancials } from "@/lib/financials/store";
 import { syntheticTicker } from "@/lib/slugify";
 
 export type SectorView = {
@@ -103,21 +104,21 @@ export type SectorZone = {
   dataStatus?: DataStatus;
 };
 
-// Figures baked into the authored sector content at extract time (see
-// prisma/seed-source/extracted.json, "as of" date in its `asOf`). They are the offline
-// fallback behind the live Screener.in / Yahoo data (see components/stock/merge.ts).
+// A company's figures from the company table in the database (src/lib/financials/: load.ts reads
+// them, store.ts fills every supplier's `f` in place). They are also the fallback behind the live
+// Screener.in / Yahoo data in the stock pop-up (see components/stock/merge.ts).
 export type SupplierFinancials = {
   ticker: string;
-  rev?: number[]; // 5 fiscal years FY22..FY26, Rs Cr
-  np?: number[]; // net profit, same years
-  mcap?: string; // "Rs 1,74,575 Cr"
-  price?: string; // "Rs 166"
+  rev?: (number | null)[]; // 5 fiscal years FY22..FY26, Rs Cr
+  np?: (number | null)[]; // net profit, same years
+  mcap?: string | null; // "Rs 1,74,575 Cr"
+  price?: string | null; // "Rs 166"
   note?: string | null;
   cagr?: (number | null)[] | null; // stock price CAGR [1y, 3y, 5y], %
   range?: (number | null)[] | null; // 52-week [low, high]
-  tl?: [number, string] | null; // Trendlyne [id, slug]
+  tl?: [number | null, string] | null; // Trendlyne [id, slug]
   kpi?: (number | null)[] | null; // [pe, bookValue, divYield, roce, roe, faceValue]
-  asOf?: string; // date of the price/valuation figures, e.g. "16 Oct 2026" (set by products.ts fin())
+  asOf?: string; // date of the price/valuation figures, e.g. "16 Oct 2026" (the latest refresh)
   // Latest-year profit/revenue dominated by a one-off (e.g. SPARC's FY26 priority-review
   // voucher sale): kept out of the landing page's rule-based idea screens.
   screenOut?: boolean;
@@ -213,6 +214,15 @@ const PRODUCTS = PRODUCTS_RAW as unknown as Record<string, SectorDef> & {
 
 const SECTOR_KEYS = Object.keys(PRODUCTS).filter((k) => k !== "_comingSoon");
 
+// Suppliers' figures are filled from the database (src/lib/financials/), so inside the Next server
+// reading sectors before they are installed would quietly render blanks: fail loudly instead.
+// Scripts and tests (no NEXT_RUNTIME) read the content without figures; the browser installs the
+// slice it is handed (the 3D explorer) before reading.
+function assertFiguresLoaded() {
+  if (process.env.NEXT_RUNTIME && typeof window === "undefined" && financialsVersion() === 0)
+    throw new Error("Company figures are not loaded: await ensureFinancials() (src/lib/financials/load.ts) first");
+}
+
 export function listSectorSlugs(): string[] {
   return [...SECTOR_KEYS];
 }
@@ -221,10 +231,12 @@ export function listSectorSlugs(): string[] {
 export type SectorWithSlug = SectorDef & { slug: string };
 
 export function listSectors(): SectorWithSlug[] {
+  assertFiguresLoaded();
   return SECTOR_KEYS.map((slug) => ({ slug, ...PRODUCTS[slug] }));
 }
 
 export function getSector(slug: string): SectorWithSlug | null {
+  assertFiguresLoaded();
   const sector = PRODUCTS[slug];
   return sector ? { slug, ...sector } : null;
 }
@@ -254,15 +266,15 @@ export function linkWeight(link: SectorCompanyLink): number {
   );
 }
 
-// The one record of a listed company's figures (products.ts FIN): every sector, policy and IPO
-// peer table reads a company from here, so the same ticker shows the same numbers everywhere.
-const FIN = FIN_RAW as unknown as Record<string, SupplierFinancials>;
+// The one record of a listed company's figures (the company table in the database, loaded by
+// src/lib/financials/load.ts): every sector, policy and IPO peer table reads a company from here,
+// so the same ticker shows the same numbers everywhere.
 export function companyFinancials(ticker: string): SupplierFinancials | null {
-  return Object.hasOwn(FIN, ticker) ? FIN[ticker] : null;
+  return getFinancials(ticker);
 }
 
 export function listCompanyFinancials(): SupplierFinancials[] {
-  return Object.values(FIN);
+  return listFinancials();
 }
 
 /** "Rs 1,12,682 Cr" -> 112682. */
@@ -273,6 +285,7 @@ export function parseCrore(s: string | null | undefined): number | null {
 
 let supplierByTicker: Map<string, SectorSupplier> | null = null;
 export function findSupplierByTicker(ticker: string): SectorSupplier | null {
+  assertFiguresLoaded();
   if (!supplierByTicker) {
     const best = new Map<string, { sup: SectorSupplier; w: number }>();
     for (const slug of SECTOR_KEYS) {

@@ -1,8 +1,12 @@
 import assert from "node:assert/strict";
-import { afterEach, test } from "node:test";
+import { before, afterEach, test } from "node:test";
 import { cleanSource, feedCompanies, formatNewsDate, getCompanyNews, getLatestNews, isAbout, isListHeadline, parseGoogleNewsRss } from "./news";
 import { newsAgeLabel } from "./news-date";
 import { listCompanyMetrics } from "@/lib/sector-content/insights";
+import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
+
+// Company figures come from the database (DATABASE_URL), as in the app.
+before(installFinancialsFromDatabase);
 
 const NOW = Date.parse("2026-10-13T12:00:00Z");
 const item = (title: string, source: string, pub: string, link = "https://news.google.com/rss/articles/X") =>

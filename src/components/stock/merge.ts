@@ -47,7 +47,7 @@ export function priceReturn(points: PricePoint[]): number | null {
   return +(((last.c - first.c) / first.c) * 100).toFixed(2);
 }
 
-const rs = (s?: string) => {
+const rs = (s?: string | null) => {
   const n = parseFloat((s ?? "").replace(/[^0-9.]/g, ""));
   return Number.isFinite(n) ? n : null;
 };

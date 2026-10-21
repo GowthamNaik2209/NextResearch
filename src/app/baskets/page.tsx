@@ -5,6 +5,7 @@ import { BasketIdeas } from "@/components/baskets/BasketIdeas";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { basketStock } from "@/lib/baskets/industry";
+import { ensureFinancials } from "@/lib/financials/load";
 
 export const metadata = {
   title: "Stock baskets: build your own from any mix of Indian industries",
@@ -14,6 +15,7 @@ export const metadata = {
 };
 
 export default async function BasketsPage() {
+  await ensureFinancials();
   const user = await getCurrentUser();
   // A failed read of the signed-in user's own rows must not take the page down: the basket ideas
   // below don't need the database. The error is logged (Vercel runtime logs, "[baskets]").

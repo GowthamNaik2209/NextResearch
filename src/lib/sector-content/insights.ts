@@ -1,8 +1,10 @@
 // Landing-page "numbers" layer: sector aggregates, rule-based idea screens and
-// the news feed — all derived from the authored content + extracted seed data
-// (static, no DB), so the home page stays fast and never depends on a DB call.
+// the news feed — derived from the authored content, the company figures (the
+// database's company table, cached by src/lib/financials/load.ts) and the curated
+// headlines in the extracted seed data.
 import extracted from "../../../prisma/seed-source/extracted.json";
-import { getSector, listSectors, tickerForSupplier, type SectorWithSlug } from "./index";
+import { getSector, listCompanyFinancials, listSectors, tickerForSupplier, type SectorWithSlug } from "./index";
+import { memoByFinancials } from "@/lib/financials/store";
 
 
 export type CompanyMetrics = {
@@ -32,7 +34,7 @@ const STRENGTH_WEIGHT = { high: 1, medium: 0.2, low: 0.03 } as const;
 const SIDE_TYPES = new Set(["enabler", "indirect_supplier"]);
 
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
-const parseRs = (s?: string) => {
+const parseRs = (s?: string | null) => {
   if (!s) return null;
   const n = parseFloat(s.replace(/[^0-9.]/g, ""));
   return Number.isFinite(n) ? n : null;
@@ -92,10 +94,12 @@ function buildSectorMetrics(s: SectorWithSlug): CompanyMetrics[] {
   return out;
 }
 
-const sectorCache = new Map<string, CompanyMetrics[]>();
+// Rebuilt whenever new figures are installed (see memoByFinancials).
+const sectorCache = memoByFinancials(() => new Map<string, CompanyMetrics[]>());
 function sectorMetrics(s: SectorWithSlug): CompanyMetrics[] {
-  let m = sectorCache.get(s.slug);
-  if (!m) sectorCache.set(s.slug, (m = buildSectorMetrics(s)));
+  const c = sectorCache();
+  let m = c.get(s.slug);
+  if (!m) c.set(s.slug, (m = buildSectorMetrics(s)));
   return m;
 }
 
@@ -109,17 +113,15 @@ export function sectorCompanyMetrics(slug: string): CompanyMetrics[] {
 // several sectors or policies appears once, under the one most central to it - Bharat Forge under
 // the industry it mainly supplies, not a policy it touches at low strength. Ties keep the earlier
 // sector, so industries come before the policies that reuse their companies.
-let cache: CompanyMetrics[] | null = null;
-export function listCompanyMetrics(): CompanyMetrics[] {
-  if (cache) return cache;
+export const listCompanyMetrics = memoByFinancials((): CompanyMetrics[] => {
   const best = new Map<string, CompanyMetrics>();
   for (const s of listSectors().filter((x) => !x.muted))
     for (const c of sectorMetrics(s)) {
       const prev = best.get(c.ticker);
       if (!prev || c.centrality > prev.centrality) best.set(c.ticker, c);
     }
-  return (cache = [...best.values()]);
-}
+  return [...best.values()];
+});
 
 const median = (xs: number[]) => {
   if (xs.length === 0) return null;
@@ -211,16 +213,21 @@ export function buildIdeas(): Idea[] {
   ].filter((i) => i.rows.length > 0);
 }
 
-export const DATA_AS_OF: string = (extracted as { asOf: string }).asOf;
+/** The date of the latest figures in the company table, e.g. "20 Oct 2026". */
+export function dataAsOf(): string {
+  const dates = listCompanyFinancials().flatMap((f) => (f.asOf ? [f.asOf] : []));
+  return dates.reduce((a, b) => (Date.parse(b) > Date.parse(a) ? b : a), dates[0] ?? "");
+}
 
-// Companies are refreshed in batches (each FIN entry carries its own `asOf`), so screens that mix
+// A company the refresh could not read keeps its older snapshot (and date), so screens that mix
 // them state the span: "25 Sep – 16 Oct 2026", or a single date when they all agree.
 export function dataAsOfRange(): string {
   const dates = new Set<string>();
   for (const s of listSectors().filter((x) => !x.muted))
-    for (const sup of Object.values(s.suppliers)) if (sup.listed && sup.f) dates.add(sup.f.asOf ?? DATA_AS_OF);
+    // A company with no market price has no price date (the refresh cannot read it): leave it out.
+    for (const sup of Object.values(s.suppliers)) if (sup.listed && sup.f?.asOf && sup.f.price != null) dates.add(sup.f.asOf);
   const sorted = [...dates].sort((a, b) => Date.parse(a) - Date.parse(b));
-  if (sorted.length <= 1) return sorted[0] ?? DATA_AS_OF;
+  if (sorted.length <= 1) return sorted[0] ?? dataAsOf();
   const [first, last] = [sorted[0], sorted[sorted.length - 1]];
   const sameYear = first.slice(-4) === last.slice(-4);
   return `${sameYear ? first.slice(0, -5) : first} – ${last}`;
@@ -239,9 +246,7 @@ export type NewsItem = {
   url: string;
 };
 
-let newsCache: NewsItem[] | null = null;
-export function listNews(): NewsItem[] {
-  if (newsCache) return newsCache;
+export const listNews = memoByFinancials((): NewsItem[] => {
   const byTicker = new Map<string, CompanyMetrics>();
   for (const c of listCompanyMetrics()) byTicker.set(c.ticker, c);
   const now = Date.now();
@@ -257,8 +262,8 @@ export function listNews(): NewsItem[] {
       items.push({ ticker, company: c.name, sectorSlug: c.sectorSlug, sectorName: c.sectorName, ...it, ts });
     }
   }
-  return (newsCache = items.sort((a, b) => b.ts - a.ts));
-}
+  return items.sort((a, b) => b.ts - a.ts);
+});
 
 export function newsForTickers(tickers: string[]): NewsItem[] {
   const set = new Set(tickers);

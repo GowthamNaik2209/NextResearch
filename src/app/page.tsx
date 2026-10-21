@@ -16,10 +16,12 @@ import { HowItWorks } from "@/components/landing/HowItWorks";
 import { CompanyFeatures } from "@/components/landing/CompanyFeatures";
 import { FaqSection } from "@/components/landing/FaqSection";
 import { ClosingCta } from "@/components/landing/ClosingCta";
+import { ensureFinancials } from "@/lib/financials/load";
 
 // Landing page: a thin composition of section components (src/components/landing/). All the
 // numbers on it come from the sector content via src/lib/sector-content/{stats,insights}.ts.
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ report?: string; ipo?: string; view?: string; sector?: string }> }) {
+  await ensureFinancials();
   const { report, ipo, view, sector } = await searchParams;
   const user = await getCurrentUser();
   const sectors = listSectors();

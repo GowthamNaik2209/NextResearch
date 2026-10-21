@@ -42,11 +42,11 @@ the contract up front so they can run at the same time:
 - **Financials are real or null.** Read each listed company's Screener.in page (consolidated,
   falling back to standalone): FY22-FY26 revenue and net profit, mcap, price, P/E, book value,
   dividend yield, ROCE, ROE, face value, 52-week range, 1/3/5-year price CAGR. Unknown -> `null`
-  with the reason in `note`; rev and np null in the same years. Put "Price/valuation as of
-  DD Mon YYYY" in the note (it becomes the company's `asOf`).
-- **One `FIN` entry per ticker.** Search `FIN["TICKER"]` first; reuse with `co("TICKER", note)`.
-  If another sector inlined the same ticker, move it into `FIN`. One-off-dominated latest year ->
-  `FIN["X"].screenOut = true`.
+  with the reason in the company's `financialsNote`; rev and np null in the same years.
+- **Figures go in the database, never in the content.** A supplier says `f: co("TICKER", note)`
+  and nothing more. A ticker not in the company table yet: `npx tsx scripts/refresh-financials.ts
+  --add=TICKER` (dry run, then `--apply` with the go-ahead), then check its row and note. One-off
+  dominated latest year -> set `Company.screenOut`.
 - Use one supplier key per company within a sector, referenced from several zones with different
   `exposureType`/`exposureStrength`. Link genuine cross-sector companies (L&T, Polycab...) -
   that is what `/connections` shows.
@@ -74,7 +74,8 @@ the contract up front so they can run at the same time:
    (`SECTOR_INDEX`). Check the Yahoo symbol returns a year or more of history; NSE sector
    indices often return a day or two, so use an ETF that tracks the index and set `via`. No
    matching index: leave it out (the chart then says so).
-5. `npx tsx prisma/extract-source-data.ts`, then (with the user's go-ahead) `npm run db:seed`.
+5. `npx tsx prisma/extract-source-data.ts`, then (with the user's go-ahead) `npm run db:seed`
+   and `refresh-financials.ts --add=` for new tickers.
    Afterwards compare DB tickers with content tickers; orphaned rows from ticker renames can be
    deleted once no watchlist uses them.
 6. Run the QA routine (section 3).
@@ -83,33 +84,33 @@ the contract up front so they can run at the same time:
 
 A policy (category "policy": a government move and the stocks it benefits) lives in its own files
 instead of products.ts, so parallel authors never edit the same file:
-`sector-content/policies/<slug>.ts` (the sector def; `define<Slug>(h)` gets FIN, fin, co, addFin,
-ASOF), `policies/<slug>.extras.ts` (typed scenarios and reading list, wired into scenarios.ts and
-docs.ts), `models/<slug>.ts` and `reports/<slug>.ts`. products.ts calls the define functions in a
-fixed order (semicon2, rareearth, defenceproc, ecms): a new ticker goes in with `addFin`, which
-refuses a ticker that is already there, and a later policy reuses an earlier one's ticker with
-`co()`. Don't wrap addFin in a "skip if present" helper - that hides duplicates.
+`sector-content/policies/<slug>.ts` (the sector def; `define<Slug>(h)` gets co, ASOF, SRC),
+`policies/<slug>.extras.ts` (typed scenarios and reading list, wired into scenarios.ts and
+docs.ts), `models/<slug>.ts` and `reports/<slug>.ts`. Every company, new or reused, is `co()`;
+a new ticker's figures go into the company table with `refresh-financials.ts --add`.
 
 Every surface else is the same as an industry: news matcher entries and tests, `SECTOR_INDEX`,
 marketing copy, extract + seed.
 
 ### 1.5 One set of figures per company, one date
 
-A listed company's numbers live once, in FIN, and every page reads them from there: industries
-and policies via `co()`, IPO peer tables via `companyFinancials()` (a peer with an NSE ticker
-carries no figures of its own; add it with `--add`). IPO valuation notes compare peers in words and
+A listed company's numbers live once, in the database's company table, and every page reads them
+from there: industries and policies via `co()`, IPO peer tables via `companyFinancials()` (a peer
+with an NSE ticker carries no figures of its own; add it with `--add`). IPO valuation notes compare peers in words and
 point to the table instead of restating multiples that drift.
 
-`npx tsx scripts/refresh-financials.ts` re-reads every company from Screener in one run:
+`npx tsx scripts/refresh-financials.ts` re-reads every company from Screener in one run and writes
+a new snapshot dated today to the database (it prints which one first; the live one needs the
+go-ahead). The site shows it within about half an hour, no deploy:
 1. Dry run. It lists failures and writes `scripts/.refresh-financials-report.json` with every
    company whose authored FY22-FY26 revenue/profit differs from Screener's by >3%. Read it: some
    are genuine errors (a history shifted by a year, standalone figures where consolidated
    belong), some deliberate (pre-listing years left blank, explained in the note).
-2. `--fix-history=A,B,... --apply` refreshes price/valuation for everyone (one snapshot date,
-   ASOF) and replaces the listed companies' histories with Screener's. Update any note that the
-   fix makes stale ("only FY26 available").
-3. `--add=TICKER,...` creates entries for companies we don't cover yet (IPO peers).
-Run it before a release that adds companies, then extract + seed (with the go-ahead).
+2. `--fix-history=A,B,... --apply` refreshes price/valuation for everyone (one snapshot date)
+   and replaces the listed companies' histories with Screener's. Update any note that the
+   fix makes stale ("only FY26 available") in `Company.financialsNote`.
+3. `--add=TICKER,...` adds companies we don't cover yet (IPO peers, a new sector's suppliers).
+A company Screener could not read keeps its older snapshot and date; screens then show the span.
 
 ## 1b. Add or refresh an upcoming IPO
 
@@ -122,7 +123,7 @@ Run it before a release that adds companies, then extract + seed (with the go-ah
    (SEBI observation received) / `filed`. Update `status`, `timeline` and `issue` as the IPO moves;
    once it lists, remove it from `IPOS` (its company can then join a sector).
 4. Peers use NSE tickers and carry only `name`, `ticker` and `note`: their market cap, FY26 revenue
-   and P/E come from FIN (add a new one with `scripts/refresh-financials.ts --add=TICKER`). A peer
+   and P/E come from the company table (add a new one with `scripts/refresh-financials.ts --add=TICKER`). A peer
    we cover opens the stock pop-up from the deck. Only a peer with no NSE listing carries figures.
 5. `npx tsx scripts/check-ipo.ts <slug>`, `npm test`, then open the deck on phone and desktop.
 
@@ -185,4 +186,4 @@ The bar the user set: **no omissions**. Before anything goes to `staging`:
 | A sub-agent stopped by mistake can't be resumed | Stopped agents are final | Relaunch with the same brief (keep briefs in the conversation) |
 | Explorers throw `firstElem.toArray` / NaN leader lines in dev | HMR swapping a model module mid-render while another author saves files | Judge consoles only after all authors stop editing; a fresh load is clean |
 | Parallel 3D authors fight over the browser pane | It renders only the fronted tab | Headless Chrome screenshots, one throwaway profile per call (SwiftShader WebGL works) |
-| Same company, different numbers on an IPO deck and a sector page | Peer figures typed into the deck | Peers read FIN; `ipo-content.test.ts` enforces it |
+| Same company, different numbers on an IPO deck and a sector page | Peer figures typed into the deck | Peers read the company table; `ipo-content.test.ts` enforces it |

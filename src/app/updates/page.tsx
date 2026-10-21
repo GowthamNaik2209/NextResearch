@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { NewsFeed } from "@/components/NewsFeed";
 import { listSectors } from "@/lib/sector-content";
+import { ensureFinancials } from "@/lib/financials/load";
 
 export const metadata = {
   title: "Updates: industry, policy and company news",
@@ -11,6 +12,7 @@ export const metadata = {
 };
 
 export default async function UpdatesPage({ searchParams }: { searchParams: Promise<{ sector?: string }> }) {
+  await ensureFinancials();
   const { sector } = await searchParams;
   const sectors = listSectors().filter((s) => !s.muted);
   // Ignore an unknown ?sector= value rather than showing an empty feed.

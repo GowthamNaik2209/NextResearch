@@ -3,18 +3,11 @@
 // and the physical value chain it pulls into India (enclosures, modules, PCBs, laminate, passives,
 // cell materials, capital equipment).
 // Same untyped authored shape as a PRODUCTS.* entry in ../products.ts (see SectorDef in ../index.ts).
-// `h` hands over products.ts's shared helpers: FIN (one entry per ticker), fin(), co(), addFin(), ASOF, SRC.
+// `h` hands over products.ts's shared helpers: co() (a company's figures by ticker, from the database), ASOF, SRC.
 import { buildEcms, ECMS_ANCHORS, ECMS_VIEWS } from "../models/ecms";
 
 export function defineEcms(h) {
-  const { FIN, fin, co, addFin, ASOF } = h;
-  // AMBER is added by semicon2 (loads first) and reused here with co().
-  // New tickers (Screener.in consolidated, read 20 Oct 2026; prices are the 19 Oct 2026 close).
-  addFin("HINDALCO", fin([195059,223202,215962,238496,274944],[13730,10097,10155,16002,13391],"Rs 2,02,352 Cr","Rs 900","HINDALCO","Includes Novelis (US/Europe aluminium rolling)",[15,24,13],[770,1179],null,[9.72,608,0.56,13.2,13,1]));
-  addFin("JYOTICNC", fin([746,929,1338,1818,2093],[-48,-5,151,316,336],"Rs 22,192 Cr","Rs 976","JYOTICNC","Listed Jan 2024, so no 3- or 5-year price history; loss-making in FY22-FY23 before the IPO deleveraging",[5,null,null],[580,1135],null,[69,88,0,21.3,18.2,2]));
-  addFin("PCBL", fin([4446,5774,6420,8404,8189],[426,442,491,435,198],"Rs 11,912 Cr","Rs 303","PCBL","PCBL Chemical (formerly Phillips Carbon Black)",[-16,14,21],[226,375],null,[45,102,1.98,7.75,5.56,1]));
-  addFin("ACUTAAS", fin([520,617,717,1007,1339],[72,83,49,160,356],"Rs 26,636 Cr","Rs 3,253","ACUTAAS","Acutaas Chemicals (formerly Ami Organics)",[84,76,40],[1570,3740],null,[69,202,0.08,31.6,24,5]));
-  addFin("BPL", fin([38,52,66,78,78],[13,5,13,0,-9],"Rs 206 Cr","Rs 42.1","BPL","Micro-cap; FY26 net loss so P/E is not meaningful",[-44,-24,-19],[37.6,79],null,[null,48.5,0,0.99,-0.47,10]));
+  const { co, ASOF } = h;
 
   return {
     id: "ecms", icon: "EC", name: "Electronic Components (ECMS)",

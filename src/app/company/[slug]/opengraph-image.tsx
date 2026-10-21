@@ -1,15 +1,21 @@
 import { getCompanyPage, listCompanyPages, primaryAppearance } from "@/lib/sector-content/companies";
 import { OG_CONTENT_TYPE, OG_SIZE, renderOgCard } from "@/lib/og";
+import { ensureFinancials } from "@/lib/financials/load";
+
+// Figures come from the database; re-render on the same clock as the cached table (load.ts).
+export const revalidate = 900;
 
 export const alt = "Company supply-chain profile on NextResearch";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  await ensureFinancials();
   return listCompanyPages().map((c) => ({ slug: c.slug }));
 }
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
+  await ensureFinancials();
   const { slug } = await params;
   const c = getCompanyPage(slug);
   if (!c) return renderOgCard({ kicker: "Company", title: "NextResearch" });

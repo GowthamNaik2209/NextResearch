@@ -1,16 +1,14 @@
 // @ts-nocheck
 // Defence Procurement (DAC approvals) - policy content.
 // Same untyped authored shape as a PRODUCTS.* entry in ../products.ts (see SectorDef in ../index.ts).
-// `h` hands over products.ts's shared helpers: FIN (one entry per ticker), fin(), co(), addFin(), ASOF, SRC.
-// Most defence tickers already live in FIN (naval / aerospace sectors); this page reuses them with
-// procurement-specific roles. Only Ashok Leyland is new.
+// `h` hands over products.ts's shared helpers: co() (a company's figures by ticker, from the database), ASOF, SRC.
+// Most defence tickers also appear in the naval / aerospace sectors; this page reuses them with
+// procurement-specific roles.
 import { buildDefenceproc, DEFENCEPROC_ANCHORS as A, DEFENCEPROC_VIEWS } from "../models/defenceproc";
 
 export function defineDefenceproc(h) {
-  const { co, addFin, fin } = h;
+  const { co } = h;
   const SD = "20 Oct 2026";
-
-  addFin("ASHOKLEY", fin([26237,41673,45703,48535,56362],[-285,1362,2696,3383,3721],"Rs 86,769 Cr","Rs 148","ASHOKLEY","FY22 loss reflects the Covid-hit truck cycle; share count doubled after the 2025 1:1 bonus, so older per-share prices are not comparable",[9,20,16],[136,215],[null,"ashok-leyland-ltd"],[23.3,24.2,2.37,13.6,27.4,1]));
 
   const z = (id) => ({ pos: A[id].pos, side: A[id].side });
 

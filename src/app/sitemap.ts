@@ -3,8 +3,13 @@ import { listSectors } from "@/lib/sector-content";
 import { listCompanyPages } from "@/lib/sector-content/companies";
 import { buildDeck } from "@/lib/sector-content/reports";
 import { SITE_URL } from "@/lib/site";
+import { ensureFinancials } from "@/lib/financials/load";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// Figures come from the database; re-render on the same clock as the cached table (load.ts).
+export const revalidate = 900;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  await ensureFinancials();
   const now = new Date();
   const sectors = listSectors().filter((s) => !s.muted);
   return [

@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getIdea } from "@/lib/baskets/ideas-data";
 import { basketStock, dominantIndustry } from "@/lib/baskets/industry";
 import { compareProps } from "@/lib/baskets/page-props";
+import { ensureFinancials } from "@/lib/financials/load";
 
 // A basket idea: today's list for one rule, as a basket anyone can chart and save as their own.
 // The list moves with prices, so the page is rendered per request from the day's cached lists.
@@ -16,6 +17,7 @@ export const maxDuration = 60;
 const dayOf = (iso: string) => new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  await ensureFinancials();
   const { id } = await params;
   const got = await getIdea(id).catch(() => null);
   if (!got) return { title: "Page not found", robots: { index: false } };
@@ -27,6 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default async function IdeaPage({ params }: { params: Promise<{ id: string }> }) {
+  await ensureFinancials();
   const { id } = await params;
   const [got, user] = await Promise.all([getIdea(id).catch(() => null), getCurrentUser()]);
   if (!got) notFound();
