@@ -6,7 +6,7 @@ import { analysisProps, analysisView } from "@/lib/analysis-props";
 
 export const metadata = {
   title: "Analysis: deep dives, research reports and stock charts for Indian industries, policies and IPOs",
-  description: "Every industry and policy NextResearch maps - data centres, EVs, semiconductors, railways, defence, solar, real estate, pharma and more - as a deep dive into its supply chain and listed companies, a curated 10-slide research report, and a chart backtesting its listed stocks as a basket against the Nifty 50, plus prospectus summaries of upcoming IPOs.",
+  description: "Every industry and policy NextResearch maps - data centres, EVs, chips and phones, electronic components, rare-earth magnets, railways, defence procurement, solar, real estate, pharma and more - as a deep dive into its supply chain and listed companies, a curated 10-slide research report, and a chart backtesting its listed stocks as a basket against the Nifty 50, plus prospectus summaries of upcoming IPOs.",
   alternates: { canonical: "/docs" },
 };
 

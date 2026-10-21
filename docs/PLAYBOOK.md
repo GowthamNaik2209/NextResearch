@@ -79,6 +79,38 @@ the contract up front so they can run at the same time:
    deleted once no watchlist uses them.
 6. Run the QA routine (section 3).
 
+### 1.4 Policies (since Oct 2026)
+
+A policy (category "policy": a government move and the stocks it benefits) lives in its own files
+instead of products.ts, so parallel authors never edit the same file:
+`sector-content/policies/<slug>.ts` (the sector def; `define<Slug>(h)` gets FIN, fin, co, addFin,
+ASOF), `policies/<slug>.extras.ts` (typed scenarios and reading list, wired into scenarios.ts and
+docs.ts), `models/<slug>.ts` and `reports/<slug>.ts`. products.ts calls the define functions in a
+fixed order (semicon2, rareearth, defenceproc, ecms): a new ticker goes in with `addFin`, which
+refuses a ticker that is already there, and a later policy reuses an earlier one's ticker with
+`co()`. Don't wrap addFin in a "skip if present" helper - that hides duplicates.
+
+Every surface else is the same as an industry: news matcher entries and tests, `SECTOR_INDEX`,
+marketing copy, extract + seed.
+
+### 1.5 One set of figures per company, one date
+
+A listed company's numbers live once, in FIN, and every page reads them from there: industries
+and policies via `co()`, IPO peer tables via `companyFinancials()` (a peer with an NSE ticker
+carries no figures of its own; add it with `--add`). IPO valuation notes compare peers in words and
+point to the table instead of restating multiples that drift.
+
+`npx tsx scripts/refresh-financials.ts` re-reads every company from Screener in one run:
+1. Dry run. It lists failures and writes `scripts/.refresh-financials-report.json` with every
+   company whose authored FY22-FY26 revenue/profit differs from Screener's by >3%. Read it: some
+   are genuine errors (a history shifted by a year, standalone figures where consolidated
+   belong), some deliberate (pre-listing years left blank, explained in the note).
+2. `--fix-history=A,B,... --apply` refreshes price/valuation for everyone (one snapshot date,
+   ASOF) and replaces the listed companies' histories with Screener's. Update any note that the
+   fix makes stale ("only FY26 available").
+3. `--add=TICKER,...` creates entries for companies we don't cover yet (IPO peers).
+Run it before a release that adds companies, then extract + seed (with the go-ahead).
+
 ## 1b. Add or refresh an upcoming IPO
 
 1. Create `src/lib/ipo-content/<slug>.ts` exporting an `IpoReport` (`types.ts` documents every
@@ -89,7 +121,9 @@ the contract up front so they can run at the same time:
 3. `status.stage` drives the order and chip: `open` / `upcoming` (dates fixed) / `approved`
    (SEBI observation received) / `filed`. Update `status`, `timeline` and `issue` as the IPO moves;
    once it lists, remove it from `IPOS` (its company can then join a sector).
-4. Peers use NSE tickers; a ticker we already cover opens the stock pop-up from the deck.
+4. Peers use NSE tickers and carry only `name`, `ticker` and `note`: their market cap, FY26 revenue
+   and P/E come from FIN (add a new one with `scripts/refresh-financials.ts --add=TICKER`). A peer
+   we cover opens the stock pop-up from the deck. Only a peer with no NSE listing carries figures.
 5. `npx tsx scripts/check-ipo.ts <slug>`, `npm test`, then open the deck on phone and desktop.
 
 ## 2. Build or change a 3D model
@@ -102,6 +136,9 @@ the contract up front so they can run at the same time:
   part is visible at the zone's `layer`.
 - Balance callout rails (3-4 per side) to avoid leader-line crossings from the default view.
 - Views: 5-7, `overview` first. A view about one layer sets `layer` (it peels the model to it).
+- Flat campuses (wide plinths) can set `portraitFit: true` on the sector: phone/tablet overviews are then
+  tilted, turned up to 30 degrees and re-centred to fill the portrait stage. It is opt-in so sectors whose
+  phone views were already approved keep them; desktop is never affected.
 - Keep the scene compact (about +/-5 units); the engine fits default/top views to the stage, but
   very wide plinths still get small on phones.
 - Verify every layer and every view in light and dark, at 375 px and 1440 px, with the tab in
@@ -146,3 +183,6 @@ The bar the user set: **no omissions**. Before anything goes to `staging`:
 | Callouts pointing at the wrong part in other camera views | Markers off-screen still drew labels | Off-screen callouts are hidden; set `layer` on layer-specific views |
 | Deep-linked system cropped the model on phones | Focus measured mid-animation | `focusZone` judges from the camera's destination and pans sideways only when needed |
 | A sub-agent stopped by mistake can't be resumed | Stopped agents are final | Relaunch with the same brief (keep briefs in the conversation) |
+| Explorers throw `firstElem.toArray` / NaN leader lines in dev | HMR swapping a model module mid-render while another author saves files | Judge consoles only after all authors stop editing; a fresh load is clean |
+| Parallel 3D authors fight over the browser pane | It renders only the fronted tab | Headless Chrome screenshots, one throwaway profile per call (SwiftShader WebGL works) |
+| Same company, different numbers on an IPO deck and a sector page | Peer figures typed into the deck | Peers read FIN; `ipo-content.test.ts` enforces it |

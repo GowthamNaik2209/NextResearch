@@ -261,3 +261,55 @@ test("one story from several outlets counts once; Iveco/target-price items are n
   const rss = `<rss><channel><item><title>Asian Paints target price raised by brokerage - X</title><link>https://x</link><pubDate>Wed, 14 Oct 2026 10:00:00 GMT</pubDate><source>X</source></item><item><title>Tata Motors stock rises 3.08 percent at a 36.64 price-to-earnings ratio - Y</title><link>https://y</link><pubDate>Wed, 14 Oct 2026 10:00:00 GMT</pubDate><source>Y</source></item></channel></rss>`;
   assert.equal(parse(rss, Date.parse("2026-10-16T00:00:00Z")).length, 0);
 });
+
+// The four policies added Oct 2026 brought names that are also ordinary words or share a
+// family name with companies we don't cover.
+test("isAbout handles the Oct 2026 policy companies' look-alikes", () => {
+  const cases: [string, string, string, boolean][] = [
+    ["Coal India Q2 profit rises 12%", "Coal India", "COALINDIA", true],
+    ["20 Microns bids for rare-earth magnet scheme", "20 Microns", "20MICRONS", true],
+    ["GMDC shares jump on rare earth plan", "Gujarat Mineral Development Corporation (GMDC)", "GMDCLTD", true],
+    ["Gujarat Mineral Development Corporation Q2 results", "Gujarat Mineral Development Corporation (GMDC)", "GMDCLTD", true],
+    ["Midwest Ltd shares surge after listing", "Midwest Ltd", "MIDWESTLTD", true],
+    ["Midwest Energy wins solar contract", "Midwest Ltd", "MIDWESTLTD", false],
+    ["Bajaj Auto October sales up 8%", "Bajaj Auto", "BAJAJ-AUTO", true],
+    ["Bajaj Finance Q2 results beat estimates", "Bajaj Auto", "BAJAJ-AUTO", false],
+    ["Bajaj Auto Credit raises Rs 500 crore", "Bajaj Auto", "BAJAJ-AUTO", false],
+    ["TVS Motor launches new electric scooter", "TVS Motor", "TVSMOTOR", true],
+    ["TVS Srichakra Q2 profit falls", "TVS Motor", "TVSMOTOR", false],
+    ["TVS Supply Chain shares slide", "TVS Motor", "TVSMOTOR", false],
+    ["Ola Electric shares hit record low", "Ola Electric", "OLAELEC", true],
+    ["Ola cab fares rise in Bengaluru", "Ola Electric", "OLAELEC", false],
+    ["Krutrim cuts jobs as Ola's AI unit shrinks", "Ola Electric", "OLAELEC", false],
+    ["Amber Enterprises gets ECMS nod for PCB plant", "Amber Enterprises India", "AMBER", true],
+    ["IMD issues amber alert for Mumbai", "Amber Enterprises India", "AMBER", false],
+    ["Hindalco Q2 profit beats estimates", "Hindalco Industries", "HINDALCO", true],
+    ["Jyoti CNC Automation order book swells", "Jyoti CNC Automation", "JYOTICNC", true],
+    ["Jyoti Structures wins Rs 300 crore order", "Jyoti CNC Automation", "JYOTICNC", false],
+    ["PCBL Chemical Q2 results", "PCBL Chemical", "PCBL", true],
+    ["Acutaas Chemicals shares rally", "Acutaas Chemicals", "ACUTAAS", true],
+    ["BPL Ltd shares surge 10%", "BPL", "BPL", true],
+    ["BPL card holders to get free rations", "BPL", "BPL", false],
+    ["Ashok Leyland bags army truck order", "Ashok Leyland", "ASHOKLEY", true],
+    ["Hinduja Leyland Finance raises Rs 500 crore", "Ashok Leyland", "ASHOKLEY", false],
+    ["PG Electroplast shares jump on MPMS nod", "PG Electroplast", "PGEL", true],
+    ["Archean Chemical arm SiCSem breaks ground", "Archean Chemical Industries", "ACI", true],
+    ["ACI Worldwide results beat estimates", "Archean Chemical Industries", "ACI", false],
+    ["Minda Corp shares rise on ECMS approval", "Minda Corporation", "MINDACORP", true],
+    ["Spark Minda gets camera module approval", "Minda Corporation", "MINDACORP", true],
+    ["Uno Minda Q2 profit rises", "Minda Corporation", "MINDACORP", false],
+    ["Kalyani Strategic Systems bags artillery order", "Bharat Forge (Kalyani Strategic Systems)", "BHARATFORG", true],
+    ["Kalyani Steels Q2 results", "Bharat Forge (Kalyani Strategic Systems)", "BHARATFORG", false],
+    ["Cyient DLM Q2 profit rises", "Cyient Ltd", "CYIENT", false],
+    ["ASM International orders surge", "ASM Technologies", "ASMTEC", false],
+    ["CG Semi starts pilot line at Sanand", "CG Power & Industrial Solutions", "CGPOWER", true],
+    ["Kaynes Semicon ships first chips", "Kaynes Technology", "KAYNES", true],
+    ["US Midwest farmers brace for drought", "Midwest Ltd", "MIDWESTLTD", false],
+    ["NMDC Steel posts Q2 loss", "NMDC", "NMDC", false],
+    ["NMDC raises iron ore prices", "NMDC", "NMDC", true],
+    ["TVS Holdings Q2 results", "TVS Motor", "TVSMOTOR", false],
+    ["Coal India arm BCCL IPO opens", "Coal India", "COALINDIA", true],
+    ["Ola Cabs to cut drivers' commission", "Ola Electric", "OLAELEC", false],
+  ];
+  for (const [h, name, ticker, want] of cases) assert.equal(isAbout(h, { name, ticker }), want, `${ticker}: ${h}`);
+});

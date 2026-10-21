@@ -10,10 +10,10 @@ export const zetwerk: IpoReport = {
   asOf: "Oct 2026",
 
   status: {
-    stage: "open",
-    label: "Open till 19 Oct",
+    stage: "upcoming",
+    label: "Closed · lists 23 Oct",
     detail:
-      "Bidding opened 15 Oct after a Rs 2,251 Cr anchor book; the issue was 0.31x subscribed at the end of day 2 (QIB 0.37x, retail 0.36x, NII 0.16x, per BSE data via Inc42). It closes Mon 19 Oct, with allotment on 21 Oct and listing on BSE and NSE expected 23 Oct.",
+      "Bidding ran 15-19 Oct after a Rs 2,251 Cr anchor book. It closed about 3.1x subscribed (QIB 4.7x, NII 1.5x, retail 0.8x, per Chittorgarh's final-day count), so retail demand fell short while institutions took more than their share. Allotment is due 21 Oct and listing on BSE and NSE 23 Oct (tentative).",
   },
   timeline: [
     { date: "Mar 2026", event: "Confidential pre-filing of the draft offer document with SEBI", done: true },
@@ -22,7 +22,7 @@ export const zetwerk: IpoReport = {
     { date: "11 Oct 2026", event: "RHP filed; fresh issue raised to Rs 2,830 Cr, OFS to 14.45 crore shares", done: true },
     { date: "14 Oct 2026", event: "Anchor book: Rs 2,251 Cr", done: true },
     { date: "15 Oct 2026", event: "Issue opens", done: true },
-    { date: "19 Oct 2026", event: "Issue closes; allotment 21 Oct (tentative)", done: false },
+    { date: "19 Oct 2026", event: "Issue closes, about 3.1x subscribed; allotment 21 Oct (tentative)", done: true },
     { date: "23 Oct 2026", event: "Listing on BSE and NSE (tentative)", done: false },
   ],
 
@@ -185,13 +185,13 @@ export const zetwerk: IpoReport = {
   ],
 
   peers: [
-    { name: "Dixon Technologies", ticker: "DIXON", mcapCr: 75342, revenueCr: 51585, pe: 40.1, note: "Largest listed EMS company; benchmark for precision and electronics. Screener, 16 Oct 2026, TTM." },
-    { name: "Waaree Energies", ticker: "WAAREEENER", mcapCr: 73898, revenueCr: 30043, pe: 18.4, note: "Solar module maker; comparable to the energy-products business. Screener, 16 Oct 2026, TTM." },
-    { name: "Kaynes Technology India", ticker: "KAYNES", mcapCr: 22089, revenueCr: 3899, pe: 63.6, note: "EMS and precision electronics for industrial and aerospace customers. Screener, 16 Oct 2026, TTM." },
-    { name: "Skipper", ticker: "SKIPPER", mcapCr: 6424, revenueCr: 5609, pe: 27.6, note: "Transmission towers and engineering products. Screener, 16 Oct 2026, TTM." },
+    { name: "Dixon Technologies", ticker: "DIXON", note: "Largest listed EMS company; benchmark for precision and electronics." },
+    { name: "Waaree Energies", ticker: "WAAREEENER", note: "Solar module maker; comparable to the energy-products business." },
+    { name: "Kaynes Technology India", ticker: "KAYNES", note: "EMS and precision electronics for industrial and aerospace customers." },
+    { name: "Skipper", ticker: "SKIPPER", note: "Transmission towers and engineering products." },
   ],
   valuationNote:
-    "At ~Rs 25,583 Cr Zetwerk is valued at ~1.6x FY26 revenue, between Dixon (~1.5x) and Waaree (~2.5x) and far below Kaynes (~5.7x), but it has no earnings to put on a P/E and ~41% of revenue is low-margin commodity trading; on adjusted EBITDA the multiple is ~61x.",
+    "At ~Rs 25,583 Cr Zetwerk is valued at ~1.6x FY26 revenue: close to Dixon, below Waaree and far below Kaynes on sales (see the table). But it has no earnings to put on a P/E and ~41% of revenue is low-margin commodity trading; on adjusted EBITDA the multiple is ~61x.",
 
   strengths: [
     { title: "Asset-light, multi-sector platform", body: "A network of third-party suppliers plus 20+ own facilities lets Zetwerk take orders across energy, electronics, aerospace and capital goods without building every plant itself." },
@@ -215,7 +215,7 @@ export const zetwerk: IpoReport = {
   sources: [
     { title: "Zetwerk Manufacturing Businesses Limited - RHP", source: "SEBI", url: "https://www.sebi.gov.in/filings/public-issues/oct-2026/zetwerk-manufacturing-businesses-limited-rhp_105195.html", year: "2026" },
     { title: "Zetwerk IPO date, price, issue details and financials", source: "Chittorgarh", url: "https://www.chittorgarh.com/ipo/zetwerk-ipo/3091/", year: "2026" },
-    { title: "Zetwerk IPO subscribed 27% on day 2 so far", source: "Inc42", url: "https://inc42.com/buzz/zetwerk-ipo-subscribed-27-on-day-2-so-far-qib-retail-portions-booked-32-each/", year: "2026" },
+    { title: "Zetwerk IPO: subscription status and dates", source: "Chittorgarh", url: "https://www.chittorgarh.com/ipo/zetwerk-ipo/3091/", year: "2026" },
     { title: "Zetwerk files updated IPO papers with SEBI for Rs 2,600 crore fresh issue", source: "Business Today", url: "https://www.businesstoday.in/markets/ipo-corner/story/zetwerk-files-updated-ipo-papers-with-sebi-for-rs-2600-crore-fresh-issue-549165-2026-08-14", year: "2026" },
     { title: "Dixon Technologies consolidated financials", source: "Screener", url: "https://www.screener.in/company/DIXON/consolidated/", year: "2026" },
     { title: "Waaree Energies consolidated financials", source: "Screener", url: "https://www.screener.in/company/WAAREEENER/consolidated/", year: "2026" },

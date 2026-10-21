@@ -193,13 +193,13 @@ export const nse: IpoReport = {
   ],
 
   peers: [
-    { name: "BSE", ticker: "BSE", mcapCr: 137171, revenueCr: 5442, pe: 48.4, note: "Only other listed Indian equity exchange; gaining options share. Screener, 16 Oct 2026, TTM." },
-    { name: "Multi Commodity Exchange", ticker: "MCX", mcapCr: 80714, revenueCr: 2631, pe: 52.4, note: "Commodity derivatives exchange. Screener, 16 Oct 2026, TTM." },
-    { name: "CDSL", ticker: "CDSL", mcapCr: 26896, revenueCr: 1179, pe: 57.1, note: "Depository; benefits from the same retail investor growth. Screener, 16 Oct 2026, TTM." },
-    { name: "CAMS", ticker: "CAMS", mcapCr: 17412, revenueCr: 1557, pe: 35.2, note: "Mutual-fund registrar and transfer agent. Screener, 16 Oct 2026, TTM." },
+    { name: "BSE", ticker: "BSE", note: "Only other listed Indian equity exchange; gaining options share." },
+    { name: "Multi Commodity Exchange", ticker: "MCX", note: "Commodity derivatives exchange." },
+    { name: "CDSL", ticker: "CDSL", note: "Depository; benefits from the same retail investor growth." },
+    { name: "CAMS", ticker: "CAMS", note: "Mutual-fund registrar and transfer agent." },
   ],
   valuationNote:
-    "At the Rs 1,785 issue price NSE was valued at 42.9x FY26 diluted EPS of Rs 41.62 (35x on annualised Q1 FY27), below BSE's ~48x despite far larger scale and share. On 16 Oct 2026 it closed at Rs 1,749 (market cap Rs 4,32,989 Cr), which is ~42x the same FY26 EPS and ~41x trailing twelve-month profit to Jun 2026 (~Rs 10,500 Cr). Screener shows 47.1x for that day; that figure implies trailing profit of only ~Rs 9,200 Cr, below reported FY26 PAT, so it is not comparable with the EPS-based multiples here.",
+    "At the Rs 1,785 issue price NSE was valued at 42.9x FY26 diluted EPS of Rs 41.62 (35x on annualised Q1 FY27), below BSE's P/E (see the table) despite far larger scale and share. On 16 Oct 2026 it closed at Rs 1,749 (market cap Rs 4,32,989 Cr), which is ~42x the same FY26 EPS and ~41x trailing twelve-month profit to Jun 2026 (~Rs 10,500 Cr). Screener showed 47.1x that day; that figure implies trailing profit of only ~Rs 9,200 Cr, below reported FY26 PAT, so it is not comparable with the EPS-based multiples here.",
 
   strengths: [
     { title: "Dominant market share", body: "93% of cash equities and ~99.8% of equity futures, plus the world's largest derivatives franchise by contracts - network effects that are hard to dislodge." },

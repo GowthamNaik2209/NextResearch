@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { listSectors, type SupplierFinancials } from "./index";
+import { listCompanyFinancials, listSectors, type SupplierFinancials } from "./index";
 
 // Every listed supplier row across all sectors, tagged with where it lives.
 const rows = listSectors().flatMap((sector) =>
@@ -37,4 +37,12 @@ test("five fiscal years of revenue and profit, aligned", () => {
     assert.equal(f.np?.length, 5, `${where} np`);
     f.rev.forEach((v, i) => assert.equal(v == null, f.np![i] == null, `${where} FY${22 + i} has revenue or profit but not both`));
   }
+});
+
+// scripts/refresh-financials.ts re-reads every company in one run, so industries, policies and IPO
+// peer tables all quote prices and valuations from the same day.
+test("every company's price and valuation share one snapshot date", () => {
+  const dates = new Map<string, string[]>();
+  for (const f of listCompanyFinancials()) dates.set(f.asOf ?? "none", [...(dates.get(f.asOf ?? "none") ?? []), f.ticker]);
+  assert.equal(dates.size, 1, `mixed dates - run scripts/refresh-financials.ts: ${[...dates].map(([d, ts]) => `${d}: ${ts.slice(0, 8).join(", ")}${ts.length > 8 ? "..." : ""}`).join(" | ")}`);
 });

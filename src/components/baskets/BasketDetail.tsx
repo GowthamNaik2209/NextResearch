@@ -113,8 +113,9 @@ export function BasketDetail(p: BasketDetailProps) {
   // are picked on the chart) within just those picks, backtested as their own basket.
   const [scope, setScope] = useState<"all" | "picks">("all");
   // Under the chart: the stocks as bar charts (who made the return, returns, weights,
-  // industries) or as the stock-by-stock list.
-  const [stockView, setStockView] = useState<"charts" | "list">("charts");
+  // industries) or as the stock-by-stock list. A Create basket that starts with stocks (an idea's
+  // Edit, the watchlist) opens on the list, where phones have each stock's remove button.
+  const [stockView, setStockView] = useState<"charts" | "list">(p.mode === "draft" && p.stocks.length > 0 ? "list" : "charts");
   const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>("contribution");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
@@ -300,7 +301,7 @@ export function BasketDetail(p: BasketDetailProps) {
     const json = res ? await res.json().catch(() => null) : null;
     if (res?.ok && json?.id) return router.push(`/baskets/${json.id}`);
     setBusy(false);
-    if (res?.status === 401) return router.push("/login?next=/baskets/new");
+    if (res?.status === 401) return router.push(`/login?next=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`);
     setNote(json?.error === "limit" ? basketCreateError(json) : "Couldn’t create the basket right now. Try again.");
   };
   const picker = (layout: "rail" | "bar") => (
@@ -458,9 +459,23 @@ export function BasketDetail(p: BasketDetailProps) {
                 {isPublic ? "Copy link" : "Share"}
               </button>
             </>
+          ) : p.mode === "idea" ? (
+            // Save keeps the idea as it is; Edit opens it on Create basket to change before saving
+            // (signed out, both go to sign in first).
+            <div className="flex gap-2 lg:w-full">
+              <button type="button" onClick={copy} disabled={busy} className="min-h-9 rounded-lg bg-accent px-3 text-xs font-semibold text-bg hover:opacity-90 lg:flex-1 lg:text-sm">
+                {busy ? "Creating…" : "Save as my basket"}
+              </button>
+              <Link
+                href={`/baskets/new?idea=${encodeURIComponent(p.id)}`}
+                className="inline-flex min-h-9 items-center justify-center rounded-lg border border-line px-3 text-xs font-semibold text-ink hover:border-accent lg:text-sm"
+              >
+                Edit
+              </Link>
+            </div>
           ) : (
             <button type="button" onClick={copy} disabled={busy} className="min-h-9 rounded-lg bg-accent px-3 text-xs font-semibold text-bg hover:opacity-90 lg:w-full lg:text-sm">
-              {busy ? "Creating…" : p.mode === "industry" ? "Customise this basket" : p.mode === "idea" ? "Save as my basket" : "Copy to my baskets"}
+              {busy ? "Creating…" : p.mode === "industry" ? "Customise this basket" : "Copy to my baskets"}
             </button>
           )}
           {stocks.length > 0 && (
@@ -497,13 +512,14 @@ export function BasketDetail(p: BasketDetailProps) {
         {/* In this basket: the holdings at a glance (desktop only; phones have the Stocks view) */}
         {stocks.length > 0 && (
           // The list takes the rail's leftover height and scrolls on its own, so the name, buttons
-          // and controls above it never scroll out of view.
+          // and controls above it never scroll out of view. Its right padding keeps the returns clear
+          // of the scrollbar (an overlay one on Macs draws over the last characters otherwise).
           <section aria-label="In this basket" className="hidden flex-col gap-1 lg:flex lg:min-h-0 lg:flex-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">In this basket ({stocks.length})</span>
             <span className="text-[11px] leading-snug text-ink-soft">
               {picked.length > 0 ? "The mark beside a stock is its line on the chart. " : ""}Add or take off lines with the chart&rsquo;s Stocks menu.
             </span>
-            <ul className="divide-y divide-line lg:min-h-24 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
+            <ul className="divide-y divide-line lg:min-h-24 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-3 lg:[scrollbar-gutter:stable]">
               {/* Stocks on the chart first (in the order their lines were given), then the rest A to Z. */}
               {[...stocks]
                 .sort((a, b) => {

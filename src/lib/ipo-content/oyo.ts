@@ -175,14 +175,14 @@ export const oyo: IpoReport = {
   sellers: [],
 
   peers: [
-    { name: "Indian Hotels (Taj)", ticker: "INDHOTEL", mcapCr: 110119, revenueCr: 9987, pe: 56.7, note: "Largest listed hotel company; owns and manages, upscale focus" },
-    { name: "Lemon Tree Hotels", ticker: "LEMONTREE", mcapCr: 8978, revenueCr: 1473, pe: 35.1, note: "Midscale and economy chain; growing management contracts" },
-    { name: "Chalet Hotels", ticker: "CHALET", mcapCr: 18683, revenueCr: 2387, pe: 34.9, note: "Owner of branded upscale hotels plus commercial real estate" },
-    { name: "EIH (Oberoi)", ticker: "EIHOTEL", mcapCr: 18895, revenueCr: 3023, pe: 26.0, note: "Luxury owner-operator" },
-    { name: "Yatra Online", ticker: "YATRA", mcapCr: 1505, revenueCr: 985, pe: 43.7, note: "Online travel agency; closest listed platform peer in India" },
+    { name: "Indian Hotels (Taj)", ticker: "INDHOTEL", note: "Largest listed hotel company; owns and manages, upscale focus" },
+    { name: "Lemon Tree Hotels", ticker: "LEMONTREE", note: "Midscale and economy chain; growing management contracts" },
+    { name: "Chalet Hotels", ticker: "CHALET", note: "Owner of branded upscale hotels plus commercial real estate" },
+    { name: "EIH (Oberoi)", ticker: "EIHOTEL", note: "Luxury owner-operator" },
+    { name: "Yatra Online", ticker: "YATRA", note: "Online travel agency; closest listed platform peer in India" },
   ],
   valuationNote:
-    "At the reported US$7-8bn (~Rs 66,500-76,000 Cr at ~Rs 95/US$; the rupee closed at 94.92 on 16 Oct 2026), PRISM would be priced at roughly 7-8x FY26 revenue and ~67-76x FY26 reported PAT (higher excluding the tax credit), versus ~11x sales for Indian Hotels and 26-57x P/E for listed hotel owners. Peers are asset-heavy hotel owners, so they are only a partial comparison. Peer figures are Screener, Oct 2026 (revenue trailing twelve months to Jun 2026).",
+    "At the reported US$7-8bn (~Rs 66,500-76,000 Cr at ~Rs 95/US$; the rupee closed at 94.92 on 16 Oct 2026), PRISM would be priced at roughly 7-8x FY26 revenue and ~67-76x FY26 reported PAT (higher excluding the tax credit): below Indian Hotels on sales but above every listed hotel owner on P/E (see the table). Peers are asset-heavy hotel owners, so they are only a partial comparison.",
 
   strengths: [
     { title: "Global scale with an asset-light model", body: "About 2.94 lakh storefronts in 35+ countries without owning real estate, so growth needs little capital beyond technology and sales." },

@@ -99,20 +99,26 @@ function sectorMetrics(s: SectorWithSlug): CompanyMetrics[] {
   return m;
 }
 
-// One row per listed company across the platform: a company in several sectors appears once,
-// under the first sector that lists it (ideas, news feed).
+/** Every listed company in one sector or policy, with its centrality there (sector feeds). */
+export function sectorCompanyMetrics(slug: string): CompanyMetrics[] {
+  const s = getSector(slug);
+  return s && !s.muted ? sectorMetrics(s) : [];
+}
+
+// One row per listed company across the platform (ideas, the all-themes news feed): a company in
+// several sectors or policies appears once, under the one most central to it - Bharat Forge under
+// the industry it mainly supplies, not a policy it touches at low strength. Ties keep the earlier
+// sector, so industries come before the policies that reuse their companies.
 let cache: CompanyMetrics[] | null = null;
 export function listCompanyMetrics(): CompanyMetrics[] {
   if (cache) return cache;
-  const seen = new Set<string>();
-  const out: CompanyMetrics[] = [];
+  const best = new Map<string, CompanyMetrics>();
   for (const s of listSectors().filter((x) => !x.muted))
     for (const c of sectorMetrics(s)) {
-      if (seen.has(c.ticker)) continue;
-      seen.add(c.ticker);
-      out.push(c);
+      const prev = best.get(c.ticker);
+      if (!prev || c.centrality > prev.centrality) best.set(c.ticker, c);
     }
-  return (cache = out);
+  return (cache = [...best.values()]);
 }
 
 const median = (xs: number[]) => {
@@ -160,7 +166,9 @@ const pct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}%`;
 // Rule-based screens, not recommendations: each states its rule so the list is
 // reproducible, and ranks purely on one reported number.
 export function buildIdeas(): Idea[] {
-  const cs = listCompanyMetrics().filter((c) => !c.screenOut);
+  // Side-exposed companies (Coal India bidding for the magnet scheme) would be labelled with a
+  // theme their own business isn't about, so screens use companies central to some theme.
+  const cs = listCompanyMetrics().filter((c) => !c.screenOut && c.centrality >= CORE_CENTRALITY);
   const row = (c: CompanyMetrics, value: string) => ({ name: c.name, sector: c.sectorName, href: c.href, value });
   const sorted = (f: (c: CompanyMetrics) => number | null, dir: 1 | -1, filter: (c: CompanyMetrics) => boolean = () => true) =>
     cs.filter((c) => f(c) != null && filter(c)).sort((a, b) => dir * ((f(a) as number) - (f(b) as number)));

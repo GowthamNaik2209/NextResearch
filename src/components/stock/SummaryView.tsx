@@ -3,6 +3,7 @@ import { EXPOSURE_STRENGTH_LABEL, EXPOSURE_TYPE_LABEL, type SectorSupplier } fro
 import type { StockApi, StockTab } from "./types";
 import { fmtNum, fmtSigned, freshQuote, mergeStats, REIT_NOTE, revenueSeries } from "./merge";
 import { NewsTime } from "./NewsTime";
+import { quoteTiming } from "@/lib/live/freshness";
 
 const Label = ({ children }: { children: React.ReactNode }) => (
   <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-soft">{children}</div>
@@ -267,7 +268,7 @@ export function SummaryView({
       <p className={"border-t border-dashed border-line pt-2 text-[10.5px] text-ink-soft" + phoneHide}>
         Ratios: <b>{s.ratioSource === "yahoo" ? "Yahoo Finance" : `Screener.in (${api?.fundamentals?.basis ?? "consolidated"})`}</b>,{" "}
         {s.ratioSource === "cached" ? `cached${api?.seedAsOf ? ` as of ${api.seedAsOf}` : ""}` : "live"}. Price:{" "}
-        {quote ? `Yahoo Finance (${quote.exchange})${quote.delayedMin ? `, ~${quote.delayedMin} min delayed` : ""}` : `cached${api?.seedAsOf ? ` as of ${api.seedAsOf}` : ""}`}. Not investment advice.
+        {quote ? `Yahoo Finance (${quote.exchange}), ${quoteTiming(quote)}` : `cached${api?.seedAsOf ? ` as of ${api.seedAsOf}` : ""}`}. Not investment advice.
       </p>
     </div>
   );

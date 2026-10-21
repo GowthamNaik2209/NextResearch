@@ -200,7 +200,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {(domains.length > 0 ? domains : sector.zones).map((item) => {
-              const zoneId = "title" in item ? firstZoneIdByDomain.get(item.id) : item.id;
+              const zoneId = "title" in item ? (item.leadZoneId ?? firstZoneIdByDomain.get(item.id)) : item.id;
               const card = (
                 <div className="h-full rounded-xl border border-line bg-panel p-4 transition hover:border-accent">
                   <div className="flex items-center gap-2">

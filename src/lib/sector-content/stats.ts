@@ -94,7 +94,7 @@ export function buildSearchIndex(): SearchEntry[] {
 }
 
 // The hero's theme window: three rows per tab. Industries lead with the featured one, then the
-// most recently added; policies show the live ones, then those coming soon; IPOs the next
+// most recently added; policies the live ones, newest first, then those coming soon; IPOs the next
 // issues by date (recent listings are left for the IPOs page).
 export function buildHeroThemeRows(featuredSlug?: string) {
   type Row = import("@/components/landing/ThemeWindow").ThemeRow;
@@ -114,7 +114,7 @@ export function buildHeroThemeRows(featuredSlug?: string) {
   const sector = [...(featured ? [featured] : []), ...industries.filter((s) => s !== featured).reverse()].slice(0, 3).map(themeRow);
   const soonPolicies = listComingSoonSectors().filter((s) => s.category === "policy");
   const policy = [
-    ...live.filter((s) => s.category === "policy").map(themeRow),
+    ...live.filter((s) => s.category === "policy").reverse().map(themeRow),
     ...soonPolicies.map((s): Row => ({ key: s.name, icon: s.icon, name: s.name, sub: "Policy", chip: "Coming soon", chipTone: "soon" })),
   ].slice(0, 3);
   const ipo = listIpos()

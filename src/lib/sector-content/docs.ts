@@ -1,3 +1,8 @@
+import { SEMICON2_DOCS } from "./policies/semicon2.extras";
+import { RAREEARTH_DOCS } from "./policies/rareearth.extras";
+import { DEFENCEPROC_DOCS } from "./policies/defenceproc.extras";
+import { ECMS_DOCS } from "./policies/ecms.extras";
+
 // Curated external reading list per sector — first-class industry/research
 // sources (McKinsey, IEA, trade bodies, etc.) for people who want to read
 // beyond this app's own 3D maps and financials. Kept as its own small content
@@ -61,6 +66,10 @@ export const SECTOR_DOCS: Record<string, ResearchLink[]> = {
     { title: "Export data and publications", source: "Pharmexcil", url: "https://pharmexcil.com/" },
     { title: "Reports and publications", source: "IQVIA Institute for Human Data Science", url: "https://www.iqvia.com/insights/the-iqvia-institute/reports-and-publications" },
   ],
+  semicon2: SEMICON2_DOCS,
+  rareearth: RAREEARTH_DOCS,
+  defenceproc: DEFENCEPROC_DOCS,
+  ecms: ECMS_DOCS,
 };
 
 export function getResearchForSector(slug: string): ResearchLink[] {

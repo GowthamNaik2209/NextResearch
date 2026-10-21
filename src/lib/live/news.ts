@@ -9,7 +9,7 @@ import { cached } from "./cache";
 import { formatNewsDate } from "./news-date";
 
 export { formatNewsDate };
-import { listCompanyMetrics, listNews, newsForTickers, type CompanyMetrics, type NewsItem } from "@/lib/sector-content/insights";
+import { CORE_CENTRALITY, listCompanyMetrics, listNews, sectorCompanyMetrics, newsForTickers, type CompanyMetrics, type NewsItem } from "@/lib/sector-content/insights";
 import { companyLinkExposure, companyLinkKey, listSectors, tickerForSupplier } from "@/lib/sector-content";
 
 const REVALIDATE_S = 15 * 60;
@@ -155,15 +155,25 @@ const ALIASES: Record<string, string[]> = {
   PHOENIXLTD: ["phoenix mills"],
   SBIN: ["sbi"],
   AAVAS: ["aavas"],
+  GMDCLTD: ["gmdc"],
+  MINDACORP: ["minda corp", "spark minda"],
+  BHARATFORG: ["bharat forge", "kalyani strategic"],
+  CGPOWER: ["cg power", "cg semi"],
 };
 // Headlines that name the company but are about a sibling it no longer owns. Tata Motors
 // demerged in Oct 2025: the commercial-vehicle business kept the "Tata Motors Ltd" name (TMCV),
 // so "Tata Motors" + CV/truck wording is TMCV's news, not TMPV's.
 const NOT_ABOUT: Record<string, RegExp> = {
   TMPV: /\b(tmcv|commercial vehicles?|cvs?|trucks?|buses|iveco|tata motors (ltd|limited) \(tmcv)/i,
+  // The word, not the company: weather alerts, traffic lights.
+  AMBER: /\bamber (alert|warning|light|signal|zone)/i,
+  // "Below poverty line" ration cards and households.
+  // The US region, not the company.
+  MIDWESTLTD: /\b(us|u s|american|the) midwest\b|\bmidwest (farmers?|states?|region|storms?|weather|drought|crops?)/i,
+  BPL: /\bbpl (cards?|card ?holders?|families|households|category|list|beneficiar)|below (the )?poverty/i,
 };
 // Tickers that are ordinary words ("US Embassy ..."), so they don't identify the company on their own.
-const WORD_TICKERS = new Set(["EMBASSY"]);
+const WORD_TICKERS = new Set(["EMBASSY", "ACI"]);
 // Separately listed companies, outside our coverage, whose names contain one of ours. A match
 // that sits inside one of these (or inside another covered company's name) doesn't count.
 const OTHER_COMPANIES = [
@@ -174,6 +184,9 @@ const OTHER_COMPANIES = [
   "Sun Pharma Advanced Research", "Torrent Power", "Zydus Wellness", "Apollo Tyres", "Piramal Enterprises", "Piramal Finance",
   "Aarti Industries", "Abbott Laboratories", "Embassy Developments", "Bosch Ltd", "SBI Life", "SBI Cards", "SBI Card",
   "SBI Funds", "SBI Mutual Fund", "SBI General", "HDFC Life", "HDFC AMC", "Brookfield Asset Management",
+  "Midwest Energy", "Midwest Advanced Materials", "Bajaj Auto Credit", "Hinduja Leyland Finance", "ACI Worldwide",
+  "Jyoti Structures", "Kalyani Steels", "Ola Cabs", "ASM International", "Bharat FIH", "Indian Rare Earths",
+  "NMDC Steel", "TVS Supply Chain", "TVS Srichakra", "TVS Holdings",
 ].map(normalize);
 
 const nameWords = (name: string) => normalize(name.replace(/\(.*?\)/g, "")).split(" ").filter(Boolean);
@@ -348,9 +361,13 @@ export function feedCompanies(sectorSlug: string, companies: CompanyMetrics[], n
 
 /** Latest headlines for the whole platform, or one sector, newest first. */
 export async function getLatestNews({ sectorSlug, limit = 20 }: { sectorSlug?: string; limit?: number } = {}): Promise<NewsResult> {
+  // One theme: every company in it (a company shared with other themes counts here too), tagged
+  // with this theme. All themes: each company once, under the theme most central to it. Either
+  // way side-exposed companies are left out - Hindalco's aluminium news isn't ECMS news.
   const bySector = new Map<string, CompanyMetrics[]>();
-  for (const c of listCompanyMetrics()) {
-    if (sectorSlug && c.sectorSlug !== sectorSlug) continue;
+  const pool = sectorSlug ? sectorCompanyMetrics(sectorSlug) : listCompanyMetrics();
+  for (const c of pool) {
+    if (c.centrality < CORE_CENTRALITY) continue;
     bySector.set(c.sectorSlug, [...(bySector.get(c.sectorSlug) ?? []), c]);
   }
   const perSector = sectorSlug ? PER_SECTOR_SINGLE : PER_SECTOR_ALL;

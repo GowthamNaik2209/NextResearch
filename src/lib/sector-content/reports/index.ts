@@ -15,6 +15,10 @@ import { solarmodules } from "./solarmodules";
 import { energy } from "./energy";
 import { realestate } from "./realestate";
 import { pharma } from "./pharma";
+import { semicon2 } from "./semicon2";
+import { rareearth } from "./rareearth";
+import { defenceproc } from "./defenceproc";
+import { ecms } from "./ecms";
 
 export type { SectorReport, Tone } from "./types";
 
@@ -30,6 +34,10 @@ const REPORTS: Record<string, SectorReport> = {
   energy,
   realestate,
   pharma,
+  semicon2,
+  rareearth,
+  defenceproc,
+  ecms,
 };
 
 export function getReport(slug: string): SectorReport | null {

@@ -54,3 +54,4 @@ skills-lock.json
 
 # media engine: scripts, content plan and generated posts stay local, never on GitHub
 /media/
+scripts/.refresh-financials-report.json

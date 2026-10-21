@@ -32,6 +32,7 @@ const SECTOR_INDEX: Partial<Record<string, BenchmarkId[]>> = {
   energy: ["niftyenergy"],
   realestate: ["niftyrealty"],
   pharma: ["niftypharma"],
+  defenceproc: ["niftydefence"],
 };
 
 export function sectorBenchmarks(slug: string): Benchmark[] {

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { getIpo, listIpoDecks, listIpos } from "./index";
 import { validateIpo } from "./validate";
+import { companyFinancials, parseCrore } from "../sector-content";
 
 test("every IPO deck is well formed", () => {
   for (const r of listIpos()) assert.deepEqual(validateIpo(r), [], r.slug);
@@ -22,4 +23,15 @@ test("IPOs are listed nearest-to-listing first", () => {
 test("a peer with an NSE ticker we cover resolves to its supplier record", () => {
   for (const d of listIpoDecks())
     for (const p of d.peers) if (p.supplier) assert.equal(p.supplier.f?.ticker, p.ticker, `${d.slug}: ${p.name}`);
+});
+
+test("an NSE peer shows the same figures as its industry and policy pages", () => {
+  for (const d of listIpoDecks())
+    for (const p of d.peers) {
+      if (!p.ticker) continue;
+      const f = companyFinancials(p.ticker);
+      assert.ok(f, `${d.slug}: ${p.ticker} is not in the company table`);
+      assert.deepEqual([p.mcapCr, p.revenueCr, p.pe, p.asOf], [parseCrore(f.mcap), f.rev?.[4] ?? null, f.kpi?.[0] ?? null, f.asOf], `${d.slug}: ${p.ticker}`);
+      if (p.supplier) assert.deepEqual(p.supplier.f && { ...p.supplier.f, note: null }, { ...f, note: null }, `${d.slug}: ${p.ticker} pop-up record`);
+    }
 });

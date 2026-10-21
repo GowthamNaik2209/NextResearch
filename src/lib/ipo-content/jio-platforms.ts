@@ -185,13 +185,13 @@ export const jioPlatforms: IpoReport = {
   sellers: [],
 
   peers: [
-    { name: "Bharti Airtel", ticker: "BHARTIARTL", mcapCr: 1190312, revenueCr: 220049, pe: 38.1, note: "Closest peer; larger revenue base incl. Africa, higher ARPU. Screener, 16 Oct 2026, TTM." },
-    { name: "Vodafone Idea", ticker: "IDEA", mcapCr: 135861, revenueCr: 45539, pe: null, note: "Loss-making No. 3 operator; P/E not meaningful. Screener, 16 Oct 2026, TTM." },
-    { name: "Bharti Hexacom", ticker: "BHARTIHEXA", mcapCr: 81142, revenueCr: 9601, pe: 43.9, note: "Airtel's listed North-East/Rajasthan circle operator. Screener, 16 Oct 2026, TTM." },
-    { name: "Indus Towers", ticker: "INDUSTOWER", mcapCr: 101360, revenueCr: 32867, pe: 14.2, note: "Tower infrastructure supplier to all operators. Screener, 16 Oct 2026, TTM." },
+    { name: "Bharti Airtel", ticker: "BHARTIARTL", note: "Closest peer; larger revenue base incl. Africa, higher ARPU." },
+    { name: "Vodafone Idea", ticker: "IDEA", note: "Loss-making No. 3 operator; P/E not meaningful." },
+    { name: "Bharti Hexacom", ticker: "BHARTIHEXA", note: "Airtel's listed North-East/Rajasthan circle operator." },
+    { name: "Indus Towers", ticker: "INDUSTOWER", note: "Tower infrastructure supplier to all operators." },
   ],
   valuationNote:
-    "At ~Rs 10.3 lakh Cr Jio is valued at ~33x FY26 earnings and ~7x FY26 revenue, versus Bharti Airtel at 38x trailing earnings and ~5.4x trailing revenue: a modest P/E discount to Airtel but a higher sales multiple, reflecting Jio's higher margin and smaller non-India exposure.",
+    "At ~Rs 10.3 lakh Cr Jio is valued at ~33x FY26 earnings and ~7x FY26 revenue: a modest P/E discount to Bharti Airtel but a higher sales multiple (see the table), reflecting Jio's higher margin and smaller non-India exposure.",
 
   strengths: [
     { title: "Market leadership at scale", body: "India's largest operator with 533 mn customers and the largest 5G base, giving it the lowest cost per GB and pricing leadership in tariff rounds." },
