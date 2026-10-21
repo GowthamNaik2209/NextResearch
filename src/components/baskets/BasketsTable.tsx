@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { seriesStats, relativeStats } from "@/lib/baskets/stats";
-import { MINI_SEG, miniSegBtn, Panel } from "./Panel";
+import { Panel } from "./Panel";
 import { loadSeries, savedBasketQuery } from "./series";
 
 // The Baskets page's dense tables: one row per basket with its 1Y return, deepest fall and lead
@@ -107,32 +107,12 @@ function Num({ entry, pick, unit }: { entry: Entry | undefined; pick: (f: Fig) =
 // ---- the table ----
 
 type Sort = "ret" | "dd" | "vs" | "count" | "name";
-const SORTS: { id: Sort; label: string }[] = [
-  { id: "ret", label: "1Y" },
-  { id: "dd", label: "Max DD" },
-  { id: "vs", label: "vs Nifty" },
-  { id: "count", label: "# stocks" },
-  { id: "name", label: "Name" },
-];
-
-/** The sort chips for a table's panel header. */
-export function SortChips({ sort, onSort }: { sort: Sort | null; onSort: (s: Sort) => void }) {
-  return (
-    <div role="group" aria-label="Sort by" className={MINI_SEG}>
-      {SORTS.map((s) => (
-        <button key={s.id} type="button" aria-pressed={sort === s.id} onClick={() => onSort(s.id)} className={miniSegBtn(sort === s.id)}>
-          {s.label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 // Columns: name grows; the stock count and max drawdown give way on phones (the count moves into
 // the sub-line), so a row fits 375px without sideways scroll.
 const GRID = "grid grid-cols-[minmax(0,1fr)_4rem_4.25rem] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_4.5rem]";
 
-export function BasketsTable({ rows, sort, label }: { rows: BasketRow[]; sort: Sort | null; label: string }) {
+export function BasketsTable({ rows, sort, onSort, label }: { rows: BasketRow[]; sort: Sort | null; onSort: (s: Sort) => void; label: string }) {
   const keys = useMemo(() => rows.map(keyOf), [rows]);
   // Bumps as figures arrive, so the rows (and a sort by them) re-read the store.
   const v = useSyncExternalStore(subscribe, getVersion, getVersion);
@@ -161,14 +141,28 @@ export function BasketsTable({ rows, sort, label }: { rows: BasketRow[]; sort: S
     // eslint-disable-next-line react-hooks/exhaustive-deps -- v: re-sort as figures arrive
   }, [rows, keys, sort, v]);
 
+  const head = (id: Sort, text: string, place: string) => (
+    <button
+      type="button"
+      onClick={() => onSort(id)}
+      aria-pressed={sort === id}
+      aria-label={`Sort by ${id === "count" ? "number of stocks" : id === "dd" ? "max drawdown" : text}`}
+      className={"flex min-h-8 items-center gap-0.5 uppercase tracking-wider hover:text-ink pointer-coarse:min-h-9 " + place + (sort === id ? " text-ink" : "")}
+    >
+      {text}
+      {sort === id && <span aria-hidden>{id === "name" ? "▲" : "▼"}</span>}
+    </button>
+  );
+
   return (
     <div className="text-xs">
-      <div aria-hidden className={GRID + " border-b border-line px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-ink-soft"}>
-        <span>Basket</span>
-        <span className="hidden text-right sm:block">#</span>
-        <span className="text-right">1Y</span>
-        <span className="hidden text-right sm:block">Max DD</span>
-        <span className="text-right">vs Nifty</span>
+      {/* The column headers are the sort controls: tap one to sort by it (numbers high to low, Basket A to Z). */}
+      <div className={GRID + " border-b border-line px-3 text-[10px] font-semibold uppercase tracking-wider text-ink-soft"}>
+        {head("name", "Basket", "justify-start")}
+        {head("count", "#", "hidden justify-end sm:flex")}
+        {head("ret", "1Y", "justify-end")}
+        {head("dd", "Max DD", "hidden justify-end sm:flex")}
+        {head("vs", "vs Nifty", "justify-end")}
       </div>
       <ul aria-label={label}>
         {sorted.map(({ r, key }) => {
@@ -226,15 +220,28 @@ export function BasketsTable({ rows, sort, label }: { rows: BasketRow[]; sort: S
 }
 
 /**
- * A table in its panel: the title and sort chips on the header line, the rows below. With no
+ * A table in its panel. The page's section heading names it (the title is the panel's accessible
+ * name); the column headers sort. With no
  * rows it shows its children instead (sign-in prompt, an error, the empty state).
  */
-export function BasketsPanel({ title, rows, initialSort = null, children }: { title: string; rows: BasketRow[]; initialSort?: Sort | null; children?: ReactNode }) {
+export function BasketsPanel({
+  title,
+  rows,
+  initialSort = null,
+  tools,
+  children,
+}: {
+  title: string;
+  rows: BasketRow[];
+  initialSort?: Sort | null;
+  tools?: ReactNode;
+  children?: ReactNode;
+}) {
   const [sort, setSort] = useState<Sort | null>(initialSort);
   const has = rows.length > 0;
   return (
-    <Panel heading="h2" title={title} tools={has ? <SortChips sort={sort} onSort={setSort} /> : undefined} className="self-start">
-      {has ? <BasketsTable rows={rows} sort={sort} label={title} /> : <div className="px-3 py-3 text-xs leading-relaxed text-ink-soft">{children}</div>}
+    <Panel label={title} tools={tools}>
+      {has ? <BasketsTable rows={rows} sort={sort} onSort={setSort} label={title} /> : <div className="px-3 py-3 text-xs leading-relaxed text-ink-soft">{children}</div>}
     </Panel>
   );
 }
