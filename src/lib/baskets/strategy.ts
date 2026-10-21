@@ -83,7 +83,7 @@ export function weightingLabel(s: Strategy): string {
 
 export function rebalanceLabel(s: Strategy): string {
   if (s.rebalance === "never") return "bought and held";
-  if (s.rebalance === "drift") return `rebalanced when a stock drifts ${s.band} pts off target`;
+  if (s.rebalance === "drift") return `rebalanced when a stock drifts ${s.band} pts above or below its target`;
   return `rebalanced ${s.rebalance}`;
 }
 

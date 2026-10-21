@@ -1,5 +1,6 @@
 "use client";
 
+import { InfoTip } from "@/components/InfoTip";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -455,11 +456,27 @@ export function BasketDetail(p: BasketDetailProps) {
       </select>
     </label>
   );
+  // A target weight wide enough for the band's example to have a lower trigger above zero.
+  const bandEx = Math.max(20, strategy.band * 2);
   const strategySettings = (weighting === "capped" || strategy.rebalance === "drift") && (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
       {weighting === "capped" && numSelect("Max stock", strategy.cap, CAP_CHOICES, "%", (v) => pickStrategy({ ...strategy, cap: v }))}
       {weighting === "capped" && numSelect("Max layer", strategy.layerCap, LAYER_CAP_CHOICES, "%", (v) => pickStrategy({ ...strategy, layerCap: v }))}
-      {strategy.rebalance === "drift" && numSelect("Band", strategy.band, BAND_CHOICES, " pts", (v) => pickStrategy({ ...strategy, band: v }))}
+      {strategy.rebalance === "drift" && (
+        <span className="flex items-center gap-1.5">
+          {numSelect("Band", strategy.band, BAND_CHOICES, " pts", (v) => pickStrategy({ ...strategy, band: v }))}
+          <InfoTip label="What the drift band means">
+            <p>
+              Rebalance when any stock is more than <b>{strategy.band} pts above or below</b> its target weight. Every stock then goes back
+              to its target at the next day&rsquo;s close.
+            </p>
+            <p className="mt-1.5 text-ink-soft">
+              Example: a {bandEx}% target triggers above {bandEx + strategy.band}% or below {bandEx - strategy.band}%. A stock whose target is
+              {" "}{strategy.band}% or less can only trigger on the way up.
+            </p>
+          </InfoTip>
+        </span>
+      )}
     </div>
   );
   const rangeControl = (
