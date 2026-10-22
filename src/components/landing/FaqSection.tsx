@@ -31,12 +31,12 @@ export function FaqSection() {
         </div>
         <div className="divide-y divide-line rounded-2xl border border-line bg-bg">
           {FAQ.map((f) => (
-            <details key={f.q} className="group px-5 py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-ink">
+            <details key={f.q} className="group px-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-sm font-semibold text-ink">
                 {f.q}
                 <span className="text-accent transition group-open:rotate-45">+</span>
               </summary>
-              <p className="mt-3 text-sm leading-relaxed text-ink-soft">{f.a}</p>
+              <p className="-mt-1 pb-4 text-sm leading-relaxed text-ink-soft">{f.a}</p>
             </details>
           ))}
         </div>

@@ -23,7 +23,7 @@ export const BRAND = {
   panel: "#efe9d9",
   panel2: "#e5dec9",
   ink: "#14201a",
-  inkSoft: "#5b6a60",
+  inkSoft: "#536157",
   line: "#d4cab0",
   accent: "#0f5c4a",
   amber: "#a8650a",

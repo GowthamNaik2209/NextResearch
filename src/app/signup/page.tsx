@@ -85,7 +85,7 @@ export default async function SignupPage({
 
         <p className="mt-6 text-sm text-ink-soft">
           Already have an account?{" "}
-          <Link href={loginHref} className="text-accent hover:underline">
+          <Link href={loginHref} className="tap-target text-accent hover:underline">
             Log in
           </Link>
         </p>

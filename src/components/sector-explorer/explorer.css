@@ -11,7 +11,7 @@
     the canvas's own always-dark-or-grey palette. Every token below must keep
     matching its globals.css counterpart for the same reason. */
  --bg:#0C1110; --panel:#121A17; --panel-2:#18231F; --ink:#EEF2EA; --ink-soft:#93A399;
- --line:#25342D; --grid:#1A2721; --accent:#F0B53F; --amber:#E08A3C; --danger:#E8705E;
+ --line:#25342D; --grid:#1A2721; --accent:#F0B53F; --amber:#E08A3C; --amber-ink:#E08A3C; --danger:#E8705E;
  --chip:#1B2823; --callout-bg:rgba(12,17,16,.88); --callout-bg-strong:rgba(12,17,16,.92); --shadow:0 20px 50px -24px rgba(0,0,0,.7);
  color-scheme: dark;
 
@@ -226,7 +226,7 @@
  .chip.active{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--chip))}
  .badge{ font-size:9.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; padding:2px 6px; border-radius:5px }
  .badge.listed{ background:color-mix(in srgb, var(--accent) 22%, var(--chip)); color:var(--accent) }
- .badge.unlisted{ background:color-mix(in srgb, var(--amber) 22%, var(--chip)); color:var(--amber) }
+ .badge.unlisted{ background:color-mix(in srgb, var(--amber) 22%, var(--chip)); color:var(--amber-ink) }
  .supplier-detail{ border-top:1px solid var(--line); padding-top:12px; display:flex; flex-direction:column; gap:12px }
  .supplier-head{ display:flex; align-items:flex-start; gap:10px }
  .supplier-head-title{ flex:1; min-width:0 }
@@ -442,8 +442,8 @@
    .nr-explorer's base declaration above for why that matters for
    Tailwind-styled descendants. */
 :root[data-theme="light"] .nr-explorer {
- --bg:#F8F4EA; --panel:#EFE9D9; --panel-2:#E5DEC9; --ink:#14201A; --ink-soft:#5B6A60;
- --line:#D4CAB0; --grid:#DDD5BD; --accent:#0F5C4A; --amber:#A8650A; --danger:#B73A2C; --chip:#E8E1CD; --callout-bg:rgba(248,244,234,.9); --callout-bg-strong:rgba(248,244,234,.95);
+ --bg:#F8F4EA; --panel:#EFE9D9; --panel-2:#E5DEC9; --ink:#14201A; --ink-soft:#536157;
+ --line:#D4CAB0; --grid:#DDD5BD; --accent:#0F5C4A; --amber:#A8650A; --amber-ink:#7A4703; --danger:#AC3628; --chip:#E8E1CD; --callout-bg:rgba(248,244,234,.9); --callout-bg-strong:rgba(248,244,234,.95);
 }
 /* The stage viewport in light mode: a pale, cool studio-grey sweep (like a
    product-photography backdrop) - light enough to sit with the cream chrome,

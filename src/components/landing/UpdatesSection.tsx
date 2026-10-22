@@ -10,7 +10,7 @@ export function UpdatesSection() {
           <p className="mt-3 text-sm leading-relaxed text-ink-soft">
             Results, deals and announcements for the companies in our maps — each linked to its source.
           </p>
-          <Link href="/updates" className="mt-5 inline-block text-sm font-semibold text-accent hover:underline">
+          <Link href="/updates" className="tap-target mt-5 inline-block text-sm font-semibold text-accent hover:underline">
             See all updates &rarr;
           </Link>
         </div>

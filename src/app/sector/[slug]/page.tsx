@@ -99,7 +99,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-12 px-5 py-14">
         <div>
-          <Link href="/docs" className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
+          <Link href="/docs" className="tap-target text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
             &larr; All deep dives
           </Link>
           <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
@@ -113,7 +113,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
               </div>
             </div>
             {sector.dataStatus && (
-              <span className="rounded-full border border-amber/40 bg-amber/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-amber">
+              <span className="rounded-full border border-amber/40 bg-amber/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-ink">
                 {sector.dataStatus === "demo" ? "From publicly available information" : sector.dataStatus}
               </span>
             )}
@@ -255,7 +255,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                         <span
                           className={
                             "flex-none rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide " +
-                            (company.listed ? "bg-accent/15 text-accent" : "bg-amber/15 text-amber")
+                            (company.listed ? "bg-accent/15 text-accent" : "bg-amber/15 text-amber-ink")
                           }
                         >
                           {company.listed ? "Listed" : "Unlisted"}
@@ -264,7 +264,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                       <p className="mt-1 text-xs leading-relaxed text-ink-soft">{company.role}</p>
                       <Link
                         href={`/sector/${sector.slug}/explore?zone=${encodeURIComponent(integratorZone.id)}&company=${encodeURIComponent(key)}`}
-                        className="mt-2 inline-block text-[11px] text-accent hover:underline"
+                        className="tap-y mt-2 inline-block text-[11px] text-accent hover:underline"
                       >
                         View in the map &rarr;
                       </Link>
@@ -321,7 +321,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-sm font-semibold text-ink">
                       {ticker ? (
-                        <Link href={`/company/${companySlug(ticker)}`} className="hover:text-accent hover:underline">
+                        <Link href={`/company/${companySlug(ticker)}`} className="tap-y hover:text-accent hover:underline">
                           {company.name}
                         </Link>
                       ) : (
@@ -332,7 +332,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                     <span
                       className={
                         "flex-none rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide " +
-                        (company.listed ? "bg-accent/15 text-accent" : "bg-amber/15 text-amber")
+                        (company.listed ? "bg-accent/15 text-accent" : "bg-amber/15 text-amber-ink")
                       }
                     >
                       {company.listed ? "Listed" : "Unlisted"}
@@ -344,18 +344,18 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                     </p>
                   ))}
                   {zones.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
+                    <div className="mt-3 flex flex-wrap gap-1.5 pointer-coarse:gap-y-4">
                       {zones.map((z) => (
                         <Link
                           key={z.zoneId}
                           href={`/sector/${sector.slug}/explore?zone=${encodeURIComponent(z.zoneId)}&company=${encodeURIComponent(z.companyKey)}`}
-                          className="flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[10px] text-ink-soft hover:border-accent hover:text-ink"
+                          className="tap-y flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[10px] text-ink-soft hover:border-accent hover:text-ink"
                           title={z.exposureType ? EXPOSURE_TYPE_LABEL[z.exposureType] : undefined}
                         >
                           <span className="h-1.5 w-1.5 rounded-full" style={{ background: z.zoneColor }} />
                           {z.zoneLabel}
                           {z.exposureType && (
-                            <span className="text-ink-soft/70">
+                            <span>
                               &middot; {EXPOSURE_TYPE_LABEL[z.exposureType]}
                               {z.exposureStrength ? ` (${EXPOSURE_STRENGTH_LABEL[z.exposureStrength]})` : ""}
                             </span>

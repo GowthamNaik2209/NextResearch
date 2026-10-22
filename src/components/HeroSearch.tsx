@@ -79,7 +79,7 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
 
   return (
     <div ref={rootRef} className="relative w-full max-w-xl">
-      <div className="flex items-center gap-3 rounded-xl border border-line bg-panel px-4 py-3 shadow-sm focus-within:border-accent">
+      <div className="flex items-center gap-3 rounded-xl border border-line bg-panel px-4 shadow-sm focus-within:border-accent">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="flex-none text-ink-soft" aria-hidden>
           <circle cx="11" cy="11" r="7" />
           <path d="M20 20l-3.5-3.5" />
@@ -105,7 +105,7 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={showList && active >= 0 ? optionId(active) : undefined}
-          className="w-full min-w-0 bg-transparent text-base text-ink outline-none placeholder:text-ink-soft sm:text-sm [&::-webkit-search-cancel-button]:hidden"
+          className="w-full min-w-0 bg-transparent py-3 text-base text-ink outline-none placeholder:text-ink-soft sm:text-sm [&::-webkit-search-cancel-button]:hidden"
         />
       </div>
       {showList && (

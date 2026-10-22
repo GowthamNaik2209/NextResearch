@@ -11,12 +11,12 @@ export function SiteFooter() {
             <p className="mt-1 text-xs text-ink-soft">Supply-chain research for India&rsquo;s public markets.</p>
           </div>
           <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-soft">
-            <Link href="/docs" className="hover:text-ink">Analysis</Link>
-            <Link href="/companies" className="hover:text-ink">Companies A-Z</Link>
-            <Link href="/connections" className="hover:text-ink">Connected companies</Link>
-            <Link href="/baskets" className="hover:text-ink">Baskets</Link>
-            <Link href="/watchlist" className="hover:text-ink">Watchlist</Link>
-            <Link href="/login" className="hover:text-ink">Log in</Link>
+            <Link href="/docs" className="inline-flex items-center hover:text-ink pointer-coarse:min-h-9">Analysis</Link>
+            <Link href="/companies" className="inline-flex items-center hover:text-ink pointer-coarse:min-h-9">Companies A-Z</Link>
+            <Link href="/connections" className="inline-flex items-center hover:text-ink pointer-coarse:min-h-9">Connected companies</Link>
+            <Link href="/baskets" className="inline-flex items-center hover:text-ink pointer-coarse:min-h-9">Baskets</Link>
+            <Link href="/watchlist" className="inline-flex items-center hover:text-ink pointer-coarse:min-h-9">Watchlist</Link>
+            <Link href="/login" className="inline-flex items-center hover:text-ink pointer-coarse:min-h-9">Log in</Link>
           </nav>
         </div>
         <p className="mt-8 max-w-3xl text-[11px] leading-relaxed text-ink-soft">

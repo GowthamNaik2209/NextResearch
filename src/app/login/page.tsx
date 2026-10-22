@@ -79,7 +79,7 @@ export default async function LoginPage({
 
         <p className="mt-6 text-sm text-ink-soft">
           No account?{" "}
-          <Link href={signupHref} className="text-accent hover:underline">
+          <Link href={signupHref} className="tap-target text-accent hover:underline">
             Sign up
           </Link>
         </p>

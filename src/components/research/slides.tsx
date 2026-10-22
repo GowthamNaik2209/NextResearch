@@ -683,7 +683,7 @@ function CompanyNewsSlide({ deck, openCompany }: SlideProps) {
 
 // ---------- 10. Risks, outlook, reading ----------
 
-const SEVERITY = { high: "text-danger", medium: "text-amber", low: "text-ink-soft" } as const;
+const SEVERITY = { high: "text-danger", medium: "text-amber-ink", low: "text-ink-soft" } as const;
 
 function OutlookSlide({ deck }: SlideProps) {
   const r = deck.report;

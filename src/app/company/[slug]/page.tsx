@@ -108,7 +108,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
               )}
             </div>
             {supplier.dataStatus && (
-              <span className="rounded-full border border-amber/40 bg-amber/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-amber">
+              <span className="rounded-full border border-amber/40 bg-amber/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-ink">
                 {supplier.dataStatus === "demo" ? "From publicly available information" : supplier.dataStatus}
               </span>
             )}

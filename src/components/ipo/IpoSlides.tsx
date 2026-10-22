@@ -749,7 +749,7 @@ function PeersSlide({ deck, openStock }: SlideProps) {
 
 // ---------- 9. Strengths & risks ----------
 
-const SEVERITY = { high: "text-danger", medium: "text-amber", low: "text-ink-soft" } as const;
+const SEVERITY = { high: "text-danger", medium: "text-amber-ink", low: "text-ink-soft" } as const;
 const RISK_ORDER = { high: 0, medium: 1, low: 2 } as const;
 
 function RisksSlide({ deck }: SlideProps) {

@@ -20,7 +20,7 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
   // On phones the active chip moves next to "All sectors" (CSS order) so it stays in view in
   // the sideways-scrolling row.
   const chip = (isActive: boolean) =>
-    "flex-none whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs font-semibold " +
+    "tap-y flex-none whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs font-semibold " +
     (isActive ? "border-accent bg-accent text-bg max-sm:-order-1" : "border-line bg-panel text-ink-soft hover:text-ink");
 
   return (
@@ -35,7 +35,7 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
         </div>
         {/* Phones: one sideways-scrolling row (11+ chips wrapped to ~9 rows and filled the first
             screen); from sm they wrap as before. The row bleeds to the screen edges. */}
-        <nav aria-label="Filter by theme" className="scrollbar-none -mx-5 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+        <nav aria-label="Filter by theme" className="scrollbar-none -mx-5 flex gap-2 overflow-x-auto px-5 pb-1 pointer-coarse:pt-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
           <Link href="/updates" className={chip(!active) + " max-sm:-order-2"}>All themes</Link>
           {sectors.map((s) => (
             <Link key={s.slug} href={`/updates?sector=${s.slug}`} className={chip(active === s.slug)} aria-current={active === s.slug ? "page" : undefined}>
@@ -46,7 +46,7 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
         {/* key: switching sector shows the skeleton again instead of the previous list */}
         <NewsFeed key={active ?? "all"} sectorSlug={active} limit={30} />
         <p className="text-xs text-ink-soft">
-          Tip: save companies to your <Link href="/watchlist" className="text-accent hover:underline">watchlist</Link> to see their news in one place.
+          Tip: save companies to your <Link href="/watchlist" className="tap-target text-accent hover:underline">watchlist</Link> to see their news in one place.
         </p>
       </main>
       <SiteFooter />

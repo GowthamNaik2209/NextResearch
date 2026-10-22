@@ -12,7 +12,7 @@ export function NewsView({ ticker, name, supplier, api }: { ticker: string; name
         <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-panel">
           {items.map((n) => (
             <li key={n.url + n.headline} className="px-4 py-3.5">
-              <a href={n.url} target="_blank" rel="noopener noreferrer" className="block text-sm font-semibold leading-snug text-ink hover:text-accent">
+              <a href={n.url} target="_blank" rel="noopener noreferrer" className="tap-y block text-sm font-semibold leading-snug text-ink hover:text-accent">
                 {n.headline}
               </a>
               <div className="mt-1 font-mono text-[11px] text-ink-soft">

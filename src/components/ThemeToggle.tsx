@@ -62,7 +62,7 @@ export function ThemeToggle({ variant = "switch" }: { variant?: "switch" | "icon
       aria-checked={isLight}
       aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
       title={isLight ? "Switch to dark mode" : "Switch to light mode"}
-      className="relative flex h-7 w-14 flex-none items-center rounded-full border border-line bg-panel-2 px-1 transition-colors"
+      className="tap-y relative flex h-7 w-14 flex-none items-center rounded-full border border-line bg-panel-2 px-1 transition-colors"
     >
       <MoonIcon className="absolute left-1.5 h-3.5 w-3.5 text-ink-soft" />
       <SunIcon className="absolute right-1.5 h-3.5 w-3.5 text-ink-soft" />

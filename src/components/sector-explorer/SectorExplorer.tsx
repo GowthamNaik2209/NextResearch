@@ -454,7 +454,7 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
     <div className={"nr-explorer" + (isControlsOpen ? " controls-open" : "")}>
       <header>
         <div className="title-block">
-          <Link href="/" className="brand" style={{ textDecoration: "none" }} aria-label="NextResearch home">
+          <Link href="/" className="brand tap-target" style={{ textDecoration: "none" }} aria-label="NextResearch home">
             <span className="brand-full">NextResearch</span>
             <span className="brand-mark" aria-hidden>N</span>
           </Link>
@@ -466,7 +466,7 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
           )}
         </div>
         <div className="right">
-          <Link href={`/sector/${sector.slug}`} className="hdr-btn" aria-label="Back to overview" title="Back to overview">
+          <Link href={`/sector/${sector.slug}`} className="hdr-btn tap-target" aria-label="Back to overview" title="Back to overview">
             &larr;<span className="lbl"> Overview</span>
           </Link>
           <div className="status" title="Drag to orbit · scroll to zoom">
@@ -478,7 +478,7 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
           <MobileMenu hideFrom="min-[1001px]:hidden" />
           <Link
             href="/watchlist"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
+            className="tap-target flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
             aria-label="Watchlist"
             title="Watchlist"
           >

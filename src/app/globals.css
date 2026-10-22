@@ -10,6 +10,8 @@
   --grid: #1a2721;
   --accent: #f0b53f;
   --amber: #e08a3c;
+  /* Amber for text (chips, labels); --amber itself stays for chart fills. */
+  --amber-ink: #e08a3c;
   --danger: #e8705e;
   --pos: #5fcf8e;
   /* Third chart series (IPO profit bars): must stay distinct from --accent in each theme. */
@@ -21,19 +23,21 @@
    green accent, deliberately away from the usual cold-blue fintech look.
    Toggled via a `data-theme` attribute on <html> (see ThemeToggle.tsx and the
    inline script in layout.tsx). The 3D explorer mirrors these values in
-   explorer.css's `[data-theme="light"] .nr-explorer` block; keep them in sync. */
+   explorer.css's `[data-theme="light"] .nr-explorer` block; keep them in sync.
+   --ink-soft and --pos are dark enough for 4.5:1 text contrast even on --panel-2. */
 :root[data-theme="light"] {
   --bg: #f8f4ea;
   --panel: #efe9d9;
   --panel-2: #e5dec9;
   --ink: #14201a;
-  --ink-soft: #5b6a60;
+  --ink-soft: #536157;
   --line: #d4cab0;
   --grid: #ddd5bd;
   --accent: #0f5c4a;
   --amber: #a8650a;
-  --danger: #b73a2c;
-  --pos: #1c7a4b;
+  --amber-ink: #7a4703;
+  --danger: #ac3628;
+  --pos: #187043;
   --series-3: var(--amber);
   color-scheme: light;
 }
@@ -54,6 +58,25 @@
   }
 }
 
+/* Touch screens only: grows a link's hit area to at least 36x36px (centred, invisible) for dense
+   lists and chips, so desktop keeps its exact layout. Neighbours above and below need enough room
+   that the enlarged areas do not overlap. Not on an element that clips its overflow (truncate),
+   which would cut the area off. */
+@utility tap-y {
+  position: relative;
+  @media (pointer: coarse) {
+    &::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: max(100%, 36px);
+      height: max(100%, 36px);
+      transform: translate(-50%, -50%);
+    }
+  }
+}
+
 /* Phones: a row of filter chips scrolls sideways instead of wrapping into a wall of rows. */
 @utility scrollbar-none {
   scrollbar-width: none;
@@ -71,6 +94,7 @@
   --color-line: var(--line);
   --color-accent: var(--accent);
   --color-amber: var(--amber);
+  --color-amber-ink: var(--amber-ink);
   --color-danger: var(--danger);
   --color-pos: var(--pos);
   --font-display: var(--font-space-grotesk);

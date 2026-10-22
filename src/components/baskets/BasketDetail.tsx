@@ -1008,7 +1008,7 @@ export function BasketDetail(p: BasketDetailProps) {
               <>
                 {" "}
                 Every listed company on the{" "}
-                <Link href={`/sector/${p.id}`} className="text-accent hover:underline">
+                <Link href={`/sector/${p.id}`} className="tap-y text-accent hover:underline">
                   {p.name.replace(/ basket$/, "")} map
                 </Link>
                 .

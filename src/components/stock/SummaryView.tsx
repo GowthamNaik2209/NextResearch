@@ -39,7 +39,7 @@ export function ExtLink({ href, children }: { href: string; children: React.Reac
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center justify-between gap-2 rounded-lg border border-line bg-panel-2 px-3 py-2 text-xs text-ink transition-colors hover:border-accent"
+      className="flex items-center justify-between gap-2 rounded-lg border border-line bg-panel-2 px-3 py-2 text-xs text-ink transition-colors hover:border-accent pointer-coarse:min-h-9"
     >
       <span>{children}</span>
       <span className="font-mono text-accent">&rarr;</span>
@@ -233,8 +233,9 @@ export function SummaryView({
           <Label>Recent news</Label>
           <ul className="mt-2 flex flex-col gap-1.5">
             {api!.news.slice(0, 3).map((n) => (
-              <li key={n.url + n.headline} className="rounded-lg border border-line bg-panel-2 px-3 py-2">
-                <a href={n.url} target="_blank" rel="noopener noreferrer" className="text-[12.5px] font-semibold leading-snug text-ink hover:text-accent">
+              // The whole card is the link's tap area (the headline alone is one 17px line).
+              <li key={n.url + n.headline} className="relative rounded-lg border border-line bg-panel-2 px-3 py-2">
+                <a href={n.url} target="_blank" rel="noopener noreferrer" className="text-[12.5px] font-semibold leading-snug text-ink after:absolute after:inset-0 after:content-[''] hover:text-accent">
                   {n.headline}
                 </a>
                 <div className="mt-0.5 font-mono text-[10.5px] text-ink-soft">

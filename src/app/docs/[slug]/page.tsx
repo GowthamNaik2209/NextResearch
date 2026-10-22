@@ -49,7 +49,7 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-5 py-14">
         <div>
-          <Link href="/docs" className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
+          <Link href="/docs" className="tap-target text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
             &larr; All reports
           </Link>
           <div className="mt-4 flex items-center gap-3">

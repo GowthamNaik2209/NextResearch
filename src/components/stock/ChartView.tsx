@@ -231,7 +231,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
                 type="button"
                 onClick={() => pick(r.id)}
                 aria-pressed={range === r.id}
-                className={"min-h-8 min-w-9 rounded-full px-2.5 text-xs font-semibold transition-colors " + (range === r.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
+                className={"min-h-8 min-w-9 rounded-full px-2.5 text-xs pointer-coarse:min-h-9 font-semibold transition-colors " + (range === r.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
               >
                 {r.label}
               </button>
@@ -251,7 +251,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
                     aria-disabled={disabled || undefined}
                     title={disabled ? noCandlesNote : undefined}
                     className={
-                      "min-h-8 rounded-full px-3 text-xs font-semibold transition-colors " +
+                      "min-h-8 rounded-full px-3 text-xs font-semibold transition-colors pointer-coarse:min-h-9 " +
                       (on ? "bg-accent text-bg" : disabled ? "cursor-not-allowed text-ink-soft opacity-45" : "text-ink-soft hover:text-ink")
                     }
                   >

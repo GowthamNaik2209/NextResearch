@@ -441,13 +441,15 @@ export function BasketChart({
             const mine = line.key === basketKey;
             return (
               // Stock rows are phone-only: from lg the left column lists every stock with its line colour.
+              // Stock names are ink, not accent: the basket's own line is accent, and the swatch
+              // already shows each stock's colour.
               <li key={line.key} className={"flex items-center gap-3 px-3 py-2 text-sm " + (mine ? "bg-accent/5 " : "") + (line.stock ? "lg:hidden" : "")}>
                 <svg aria-hidden width="22" height="10" className={"shrink-0 " + (short || failed ? "opacity-30" : "")}>
                   <line x1="2" y1="5" x2="20" y2="5" stroke={line.color} strokeWidth={line.width} strokeDasharray={DASHARRAY[line.dash]} strokeLinecap="round" />
                 </svg>
                 <span className="min-w-0 flex-1">
                   {line.stock ? (
-                    <StockLink ticker={line.stock} className="relative block text-balance break-words font-medium leading-snug text-accent before:absolute before:inset-x-0 before:-inset-y-2.5 before:content-[''] hover:underline">
+                    <StockLink ticker={line.stock} className="relative block text-balance break-words font-medium leading-snug text-ink underline decoration-line underline-offset-2 before:absolute before:inset-x-0 before:-inset-y-2.5 before:content-[''] hover:text-accent">
                       {line.name}
                     </StockLink>
                   ) : (

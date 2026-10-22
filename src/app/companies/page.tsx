@@ -44,7 +44,7 @@ export default async function CompaniesPage() {
             <ul className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
               {list.map((c) => (
                 <li key={c.slug} className="text-sm">
-                  <Link href={`/company/${c.slug}`} className="font-semibold text-ink hover:text-accent hover:underline">
+                  <Link href={`/company/${c.slug}`} className="tap-y font-semibold text-ink hover:text-accent hover:underline">
                     {c.name}
                   </Link>
                   <span className="block text-xs text-ink-soft">

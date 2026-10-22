@@ -28,7 +28,7 @@ const TABS: { id: ThemeTab; label: string }[] = [
 
 const CHIP = {
   accent: "bg-accent/10 text-accent",
-  live: "bg-pos/15 text-pos",
+  live: "border border-pos/40 text-pos",
   soon: "border border-dashed border-line text-ink-soft",
 } as const;
 
