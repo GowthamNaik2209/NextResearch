@@ -5,7 +5,8 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { BasketDetail } from "@/components/baskets/BasketDetail";
 import { getCurrentUser } from "@/lib/auth";
 import { getIdea } from "@/lib/baskets/ideas-data";
-import { basketStock, dominantIndustry, getIndustryBasket, listBasketUniverse } from "@/lib/baskets/industry";
+import { MAX_BASKET_STOCKS, basketStock, dominantIndustry, getIndustryBasket, listBasketUniverse } from "@/lib/baskets/industry";
+import { parseWeights } from "@/lib/baskets/strategy";
 import { compareProps, pickerProps } from "@/lib/baskets/page-props";
 import { ensureFinancials } from "@/lib/financials/load";
 
@@ -14,8 +15,9 @@ export const metadata = { title: "Create a basket", robots: { index: false, foll
 // Create basket: the basket page itself, empty and unsaved. Pick an industry on top, add its
 // stocks, switch industries and keep adding; the returns and chart follow; "Create basket" saves it.
 // ?with=watchlist starts from your liked stocks; ?with=<industry slug> opens on that industry;
-// ?idea=<id> (an idea's "Edit") starts from that idea's stocks, name and period.
-export default async function NewBasketPage({ searchParams }: { searchParams: Promise<{ with?: string; idea?: string }> }) {
+// ?idea=<id> (an idea's "Edit") starts from that idea's stocks, name and period. A link with
+// custom weights (wt=custom&cw=...) starts from those stocks, so a reload or a shared link keeps them.
+export default async function NewBasketPage({ searchParams }: { searchParams: Promise<{ with?: string; idea?: string; wt?: string; cw?: string }> }) {
   await ensureFinancials();
   const sp = await searchParams;
   const start = sp.with ?? "";
@@ -32,11 +34,14 @@ export default async function NewBasketPage({ searchParams }: { searchParams: Pr
   const universe = picker?.universe ?? listBasketUniverse();
   const watchlist = picker?.watchlist ?? [];
   const idea = ideaId ? ((await getIdea(ideaId).catch(() => null))?.idea ?? null) : null;
+  const linked = sp.wt === "custom" ? Object.keys(parseWeights(sp.cw ?? null) ?? {}) : [];
   const stocks = idea
     ? idea.stocks.map((s) => basketStock(s.ticker)).filter((s) => s !== null)
-    : start === "watchlist"
-      ? watchlist.map((t) => basketStock(t)).filter((s) => s !== null)
-      : [];
+    : linked.length
+      ? linked.map((t) => basketStock(t)).filter((s) => s !== null).slice(0, MAX_BASKET_STOCKS)
+      : start === "watchlist"
+        ? watchlist.map((t) => basketStock(t)).filter((s) => s !== null)
+        : [];
   const industry = idea ? dominantIndustry(stocks.map((s) => s.ticker)) : (getIndustryBasket(start)?.slug ?? null);
 
   return (

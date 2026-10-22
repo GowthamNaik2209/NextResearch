@@ -16,7 +16,8 @@ export type BacktestHolding = {
   contribution: number;
 };
 
-export type BacktestExcluded = { ticker: string; reason: "no-data" | "late"; from?: string };
+/** Left out: no prices, listed mid-period ("late"), or set to 0% in a custom weighting ("zero"). */
+export type BacktestExcluded = { ticker: string; reason: "no-data" | "late" | "zero"; from?: string };
 
 export type BacktestResult = {
   /** Basket value, 100 on the first day. */
@@ -38,7 +39,7 @@ export function splitHeld(input: BacktestInput[], slackDays: number): { held: He
   const excluded: BacktestExcluded[] = [];
   const withData = input.filter((s) => {
     const ok = !!s.points && s.points.length > 1 && s.weight > 0;
-    if (!ok) excluded.push({ ticker: s.ticker, reason: "no-data" });
+    if (!ok) excluded.push({ ticker: s.ticker, reason: s.weight === 0 && s.points && s.points.length > 1 ? "zero" : "no-data" });
     return ok;
   }) as HeldInput[];
   if (!withData.length) return { held: [], excluded };

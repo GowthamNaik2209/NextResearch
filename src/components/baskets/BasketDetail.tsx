@@ -124,7 +124,7 @@ export type BasketDetailProps = {
   stocks: BasketStock[];
   addPrices: Record<string, number | null>;
   weighting: "equal" | "mcap" | "custom";
-  /** A custom-weighted saved basket's weights, % per stock. */
+  /** A saved basket's custom weights, % per stock (in use, or kept from when it was last custom). */
   customWeights?: Record<string, number> | null;
   isOwner: boolean;
   isPublic: boolean;
@@ -157,7 +157,8 @@ export function BasketDetail(p: BasketDetailProps) {
   const savedCustom = (list: BasketStock[]) => toPercents(schemeShares(list, "custom", p.customWeights ?? undefined));
   const [strategy, setStrategy] = useState<Strategy>(() => heldStrategy(p.weighting, p.weighting === "custom" ? savedCustom(p.stocks) : undefined));
   // The custom weights as typed, which may not total 100% yet; the backtest keeps the last ones that did.
-  const [customEdit, setCustomEdit] = useState<Record<string, number> | null>(() => (p.weighting === "custom" ? savedCustom(p.stocks) : null));
+  // Kept while another weighting is picked, so going back to Custom brings the same split back.
+  const [customEdit, setCustomEdit] = useState<Record<string, number> | null>(() => (p.weighting === "custom" || p.customWeights ? savedCustom(p.stocks) : null));
   // What the server last stored for a saved basket's custom weights (by query value), so an edit saves once.
   const savedRef = useRef<string | null>(p.weighting === "custom" ? weightsParam(savedCustom(p.stocks)) : null);
   // The custom weights panel: open when Custom is picked, closed with its × once they total 100%
@@ -382,8 +383,9 @@ export function BasketDetail(p: BasketDetailProps) {
       if (ownsWeights && w !== "layer") await patch({ weighting: w });
       return;
     }
-    // Custom starts from the weights the basket had a moment ago, so nothing jumps.
-    const start = toPercents(schemeShares(stocks, weighting));
+    // Custom brings back the split set before (this visit, or saved with the basket); the first
+    // time, it starts from the weights the basket had a moment ago, so nothing jumps.
+    const start = toPercents(customEdit && tickers.some((t) => customEdit[t] != null) ? customTargets(tickers, customEdit) : schemeShares(stocks, weighting));
     setCustomEdit(start);
     pickStrategy({ ...strategy, weighting: "custom", weights: start });
     if (ownsWeights && stocks.length) {
@@ -616,6 +618,7 @@ export function BasketDetail(p: BasketDetailProps) {
   const excludedNote = (t: string) => {
     const ex = tData?.excluded?.find((e) => e.ticker === t);
     if (!ex) return null;
+    if (ex.reason === "zero") return "Set to 0%";
     return ex.reason === "late" && ex.from ? `Listed ${new Date(ex.from).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}, not in this period` : "No price data";
   };
   const removeButton = (s: BasketStock, small = false) => (
@@ -823,6 +826,11 @@ export function BasketDetail(p: BasketDetailProps) {
             the stock picker on top while editing. */}
         <div className="flex min-w-0 flex-col gap-2">
           {railPicker && <div className="flex min-w-0 flex-col lg:hidden">{railPicker}</div>}
+          {customBlocked && (
+            <p role="status" className="rounded-md border border-danger/50 px-3 py-1.5 text-xs font-semibold text-danger">
+              The custom weights don&rsquo;t total 100%, so these results are still for the last ones that did.
+            </p>
+          )}
           {!(draft && stocks.length === 0) && (
             <ReturnCards
               dense
@@ -876,7 +884,7 @@ export function BasketDetail(p: BasketDetailProps) {
                   rangeLong={rangeLong}
                   basketKey={basketKey}
                   basketName={name}
-                  strategy={sq}
+                  strategy={compareSq}
                   held={heldKey && vsHeld ? { key: heldKey, name: "Bought and held" } : null}
                   industries={compareIndustries}
                   indices={p.indices}
@@ -1186,6 +1194,16 @@ function CustomWeights({
   /** A saved basket of yours: the weights are kept with it. */
   saves: boolean;
 }) {
+  // Boxes holding something that isn't a number from 0 to 100 (cleared when they're left).
+  const [bad, setBad] = useState<Set<string>>(() => new Set());
+  const markBad = (t: string, on: boolean) =>
+    setBad((b) => {
+      if (b.has(t) === on) return b;
+      const next = new Set(b);
+      if (on) next.add(t);
+      else next.delete(t);
+      return next;
+    });
   const total = weightsTotal(Object.fromEntries(stocks.map((s) => [s.ticker, values[s.ticker] ?? 0])));
   const off = Math.round((100 - total) * 10) / 10;
   const ok = Math.abs(off) < 0.05;
@@ -1210,7 +1228,7 @@ function CustomWeights({
             </button>
           </div>
         </div>
-        {ok && (
+        {ok && !bad.size && (
           <button
             type="button"
             onClick={onClose}
@@ -1223,12 +1241,15 @@ function CustomWeights({
           </button>
         )}
       </div>
-      <p role="status" className={"px-3 pt-1.5 text-[11px] leading-snug " + (ok ? "text-ink-soft" : "font-semibold text-danger")}>
-        {ok
+      <p role="status" className={"px-3 pt-1.5 text-[11px] leading-snug " + (ok && !bad.size ? "text-ink-soft" : "font-semibold text-danger")}>
+        {bad.size
+          ? "Type a number from 0 to 100 in each box."
+          : ok
           ? "The backtest uses these weights."
           : `Total is ${total.toFixed(1)}%: ${off > 0 ? `add ${off.toFixed(1)}%` : `take off ${(-off).toFixed(1)}%`} to make 100%. The backtest waits until then.`}
       </p>
-      <ul className="grid max-h-72 grid-cols-1 gap-x-4 overflow-y-auto overscroll-contain px-3 py-1 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Phones list every stock (the × closes the panel); wider screens scroll a long list inside. */}
+      <ul className="grid grid-cols-1 gap-x-4 px-3 py-1 sm:max-h-72 sm:grid-cols-2 sm:overflow-y-auto sm:overscroll-contain lg:grid-cols-3">
         {stocks.map((s) => (
           <li key={s.ticker} className="flex items-center gap-2 border-b border-line/60 py-1">
             <span className="min-w-0 flex-1">
@@ -1237,7 +1258,7 @@ function CustomWeights({
               </span>
               <span className="block truncate font-mono text-[10px] text-ink-soft">{s.ticker}</span>
             </span>
-            <WeightInput label={`${s.name} weight, %`} value={values[s.ticker] ?? 0} onCommit={(v) => onChange({ ...values, [s.ticker]: v })} />
+            <WeightInput label={`${s.name} weight, %`} value={values[s.ticker] ?? 0} onCommit={(v) => onChange({ ...values, [s.ticker]: v })} onBad={(b) => markBad(s.ticker, b)} />
           </li>
         ))}
       </ul>
@@ -1245,33 +1266,42 @@ function CustomWeights({
   );
 }
 
-// A % field that lets "12." or an empty box sit while typing; any number it can read goes up at once.
-function WeightInput({ label, value, onCommit }: { label: string; value: number; onCommit: (v: number) => void }) {
+// A % field that lets "12." or an empty box sit while typing; any number from 0 to 100 goes up at
+// once (an empty box counts as 0). Anything else is marked, and leaving the box puts the last
+// good value back.
+function WeightInput({ label, value, onCommit, onBad }: { label: string; value: number; onCommit: (v: number) => void; onBad: (bad: boolean) => void }) {
   const [text, setText] = useState<string | null>(null);
   const read = (v: string) => {
-    const n = Number(v.replace(",", "."));
-    return v.trim() !== "" && Number.isFinite(n) ? Math.min(100, Math.max(0, Math.round(n * 100) / 100)) : null;
+    if (v.trim() === "") return 0;
+    const n = Number(v.trim().replace(",", "."));
+    return Number.isFinite(n) && n >= 0 && n <= 100 ? Math.round(n * 100) / 100 : null;
   };
+  const bad = text != null && read(text) == null;
   return (
     <label className="flex flex-none items-center gap-1">
       <input
         type="text"
         inputMode="decimal"
         aria-label={label}
+        aria-invalid={bad || undefined}
         // What's being typed, unless the value moved underneath it (Reset to equal, a stock added).
-        value={text != null && (read(text) == null || read(text) === value) ? text : String(value)}
+        value={text != null && (bad || read(text) === value) ? text : String(value)}
         onChange={(e) => {
           setText(e.target.value);
           const n = read(e.target.value);
+          onBad(n == null);
           if (n != null) onCommit(n);
         }}
         onFocus={(e) => e.target.select()}
         onBlur={() => {
-          if (text != null && read(text) == null) onCommit(0);
+          if (bad) onBad(false);
           setText(null);
         }}
         // 16px on phones, so iOS doesn't zoom the page on focus.
-        className="min-h-9 w-16 rounded border border-line bg-bg px-1.5 text-right font-mono text-base text-ink focus:border-accent focus:outline-none sm:min-h-7 sm:text-xs pointer-coarse:min-h-9"
+        className={
+          "min-h-9 w-16 rounded border bg-bg px-1.5 text-right font-mono text-base text-ink focus:outline-none sm:min-h-7 sm:text-xs pointer-coarse:min-h-9 " +
+          (bad ? "border-danger focus:border-danger" : "border-line focus:border-accent")
+        }
       />
       <span aria-hidden className="font-mono text-[11px] text-ink-soft">
         %

@@ -16,7 +16,8 @@ export type SavedBasket = {
   isOwner: boolean;
   createdAt: string;
   items: { ticker: string; priceAtAdd: number | null; addedAt: string }[];
-  /** Custom weighting: each stock's target, % of the basket. Null for the other weightings. */
+  /** Custom weights, % per stock: the ones in use, or kept from when the basket was last custom
+   * (so switching to Equal and back doesn't lose them). Null when it never was. */
   weights: Record<string, number> | null;
 };
 
@@ -35,7 +36,7 @@ export function toSaved(row: Row, userId: string | null): SavedBasket {
     isOwner: row.userId === userId,
     createdAt: row.createdAt.toISOString(),
     items: row.items.map((i) => ({ ticker: i.ticker, priceAtAdd: i.priceAtAdd ? i.priceAtAdd.toNumber() : null, addedAt: i.addedAt.toISOString() })),
-    weights: row.customWeighting ? Object.fromEntries(row.items.filter((i) => i.weight != null).map((i) => [i.ticker, i.weight!])) : null,
+    weights: row.items.some((i) => i.weight != null) ? Object.fromEntries(row.items.filter((i) => i.weight != null).map((i) => [i.ticker, i.weight!])) : null,
   };
 }
 

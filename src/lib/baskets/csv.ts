@@ -79,7 +79,7 @@ export function basketCsv(input: {
   if (input.excluded?.length) {
     lines.push("", row("Not in the backtest", "Name", "Reason"));
     for (const e of input.excluded) {
-      const why = e.reason === "late" ? `listed during the period${e.from ? ` (from ${e.from.slice(0, 10)})` : ""}` : "no price data";
+      const why = e.reason === "late" ? `listed during the period${e.from ? ` (from ${e.from.slice(0, 10)})` : ""}` : e.reason === "zero" ? "set to 0%" : "no price data";
       lines.push(row(e.ticker, byTicker.get(e.ticker)?.name, why));
     }
   }

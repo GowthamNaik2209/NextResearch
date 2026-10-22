@@ -196,3 +196,16 @@ test("strategy query: the default is the old w= only, and it round-trips", () =>
   // Custom with no weights in the link leaves them to the basket's own.
   assert.equal(parseStrategy(new URLSearchParams("w=custom")).weights, undefined);
 });
+
+test("a stock set to 0% is left out as such, not as missing prices", () => {
+  const r = runBacktest(
+    [
+      { ticker: "A", weight: 1, points: pts([100, 110]) },
+      { ticker: "Z", weight: 0, points: pts([100, 90]) },
+      { ticker: "N", weight: 0, points: null },
+    ],
+    10,
+  );
+  assert.deepEqual(r.holdings.map((h) => h.ticker), ["A"]);
+  assert.deepEqual(r.excluded.map((e) => [e.ticker, e.reason]), [["Z", "zero"], ["N", "no-data"]]);
+});
