@@ -4,10 +4,12 @@
 // so the lists follow each trading day without a visitor waiting on ~260 price histories.
 import { unstable_cache } from "next/cache";
 import { listSectors, companyLinkKey, companyLinkExposure, findSupplierByTicker } from "@/lib/sector-content";
-import { HISTORY_FROM, getChartWithFallback } from "@/lib/live/yahoo";
+import { HISTORY_FROM, getChartWithFallback, getSymbolChart } from "@/lib/live/yahoo";
 import { listBasketUniverse } from "./industry";
 import { ensureFinancials } from "@/lib/financials/load";
-import { buildIdeas, priceStat, type Idea, type IdeaStockInfo, type PriceSnapshot, type PriceStat } from "./ideas";
+import { backtestBasket } from "./run";
+import { heldStrategy } from "./strategy";
+import { buildIdeas, priceStat, withBacktestReturns, type Idea, type IdeaBacktest, type IdeaStockInfo, type PriceSnapshot, type PriceStat } from "./ideas";
 
 const CONCURRENCY = 10;
 // Below this share of stocks with prices the day's run is treated as an upstream outage: it
@@ -81,7 +83,16 @@ async function priceSnapshot(): Promise<PriceSnapshot> {
     if (st) stats[t] = st;
   });
   if (Object.keys(stats).length < tickers.length * MIN_COVERAGE) throw new Error(`basket ideas: prices for only ${Object.keys(stats).length} of ${tickers.length} stocks`);
-  return { asOf: new Date(now).toISOString(), stats };
+  return { asOf: (await lastTradingDay()) ?? new Date(now).toISOString(), stats };
+}
+
+/**
+ * The day of the latest close the lists were ranked on (the Nifty 50's last daily bar), not the
+ * hour the lists were built: a rebuild after midnight on yesterday's closes still says yesterday.
+ */
+async function lastTradingDay(): Promise<string | null> {
+  const pts = (await getSymbolChart("^NSEI", "1M").catch(() => null))?.points;
+  return pts?.length ? pts[pts.length - 1].t : null;
 }
 
 export type IdeasPayload = { asOf: string; ideas: Idea[] };
@@ -93,12 +104,41 @@ export const getIdeas = unstable_cache(
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },
-  ["basket-ideas-v4"],
+  ["basket-ideas-v5"],
   { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
 );
 
+/** One idea, with its card's figures and order (its page lists the stocks as the card does). */
 export async function getIdea(id: string): Promise<{ asOf: string; idea: Idea } | null> {
   const { asOf, ideas } = await getIdeas();
   const idea = ideas.find((i) => i.id === id);
-  return idea ? { asOf, idea } : null;
+  if (!idea) return null;
+  const [withRet] = withBacktestReturns([idea], { [idea.id]: await ideaBacktest(idea) });
+  return { asOf, idea: withRet };
+}
+
+// Backtests run at once while the cards' figures load (each fetches up to 8 price histories at a time).
+const BACKTEST_CONCURRENCY = 3;
+
+/**
+ * The day's ideas with each card's figure from the backtest its page runs: the same function,
+ * range and weighting (equal, held), so the same cache entry and the same number. Run per request
+ * (the backtests cache for minutes), not inside the lists' four-hour cache, which would freeze the
+ * card while the page moves with the day's prices.
+ */
+export async function getIdeasWithReturns(): Promise<IdeasPayload> {
+  const { asOf, ideas } = await getIdeas();
+  const results = await mapLimit(ideas, BACKTEST_CONCURRENCY, ideaBacktest);
+  return { asOf, ideas: withBacktestReturns(ideas, Object.fromEntries(ideas.map((i, k) => [i.id, results[k]]))) };
+}
+
+async function ideaBacktest(idea: Idea): Promise<IdeaBacktest | null> {
+  const bt = await backtestBasket(
+    idea.stocks.map((s) => s.ticker),
+    idea.range,
+    heldStrategy(),
+  ).catch(() => null);
+  const pts = bt?.points ?? [];
+  // Measured as the page's return card measures the same series.
+  return pts.length < 2 ? null : { ret: (pts[pts.length - 1].c / pts[0].c - 1) * 100, holdings: bt!.holdings };
 }
