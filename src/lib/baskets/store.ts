@@ -43,9 +43,15 @@ export function toSaved(row: Row, userId: string | null): SavedBasket {
 /**
  * A basket the viewer may see: their own, or one its owner has shared. Null otherwise.
  * Wrapped in React's cache(): a basket page's metadata and body share one database read.
+ * An id that can't be one of ours is "not found" without asking the database; a database error is
+ * logged and thrown, so an outage shows as an error rather than as a basket that doesn't exist.
  */
 export const getVisibleBasket = cache(async (id: string, userId: string | null): Promise<SavedBasket | null> => {
-  const row = await loadRow(id).catch(() => null);
+  if (typeof id !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(id)) return null;
+  const row = await loadRow(id).catch((e) => {
+    console.error(`basket ${id}: read failed`, e);
+    throw e;
+  });
   if (!row || (row.userId !== userId && !row.isPublic)) return null;
   return toSaved(row, userId);
 });

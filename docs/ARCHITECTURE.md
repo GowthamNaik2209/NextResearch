@@ -148,7 +148,8 @@ Trendlyne ids), its latest `KpiSnapshot` and its `FinancialSnapshot` years.
   as a `figures` prop the explore page loads for its sector; the browser bundle carries none.
 - Writes come only from scripts: `refresh-financials.ts` (a new dated `KpiSnapshot` per company
   per run; `--fix-history`, `--add`) and the one-off `migrate-financials-to-db.ts` that moved the
-  figures out of the content (Oct 2026).
+  figures out of the content (Oct 2026). Both go through `write.ts`, which writes each company in
+  one transaction (retried whole on a dropped connection), so a crash never leaves half a company.
 - Tests that check real figures read the table from `DATABASE_URL` (`test-db.ts`), read-only.
 
 If the database is unreachable, an instance keeps serving the table it has installed (and the data
@@ -157,16 +158,46 @@ migration and the data copy together: with `tracked` rows missing, the table rea
 
 ### Database (Postgres via Prisma)
 
-Holds **users, watchlists and baskets** (`Profile`, `Watchlist`, `Basket`) and **the company
-figures** above. `npm run db:seed` writes company identity (name, role, sector links) and the
-curated news from `extracted.json`; it does not write figures. The watchlist reads a company's
-latest `KpiSnapshot` price as `priceAtAdd`.
+`prisma/schema.prisma` models exactly what the code uses:
+
+| Table | Holds | Written by |
+| --- | --- | --- |
+| `Company` | ticker, name, listed, role, Trendlyne ids, `tracked`, `financialsNote`, `screenOut` | `db:seed` (identity), `write.ts` (figure fields) |
+| `KpiSnapshot` | one dated price/valuation/ratio row per company per refresh (the app reads the latest) | `write.ts` |
+| `FinancialSnapshot` | FY22-FY26 revenue/net profit, one row per year | `write.ts` |
+| `Profile` | mirror of a Supabase auth user (`ensureProfile`, on sign-in and before a watchlist or basket write) | app |
+| `Watchlist` | user x company, `priceAtAdd` | `/api/watchlist` |
+| `Basket`, `BasketItem` | a user's baskets; items keyed by ticker, with `priceAtAdd` and custom `weight` | `/api/baskets` |
+
+`npm run db:seed` writes company identity only (ticker, name, listed, role) from
+`prisma/seed-source/extracted.json`; the curated news in that file is read by the app straight from
+the file, not from the database. The watchlist's `priceAtAdd` is the live quote when the heart is
+tapped, else the company table's price; the column is NOT NULL, so 0 means "unknown" and the
+watchlist shows no move for it. A basket PATCH locks the basket row (`SELECT ... FOR UPDATE`) inside
+one transaction, so two edits at once can't lose each other's weights.
+
+**Still in the database but no longer modelled** (Prisma ignores them): the tables
+`FinancialStatementLine`, `PriceSnapshot`, `NewsLink`, `Subscription` and their enums, and the
+columns `Company.dataStatus`, `Company.notes`, `Company.sectorSlugs`, `KpiSnapshot.note`.
+`Company.role` stays modelled because it is NOT NULL with no database default. The drops, a default
+for `role`, Row Level Security for the public schema (closing the Supabase REST API's `anon` /
+`authenticated` access; the app connects as `postgres` and is unaffected), an optional
+`Watchlist(companyId)` index and a `KpiSnapshot` retention delete (latest plus one per month) are
+drafted in **`prisma/proposed/2026-10-22_cleanup.sql` - not applied**. It sits outside
+`prisma/migrations` on purpose; each section lists its prerequisites; take a backup first.
+
+**Connections.** `src/lib/prisma.ts` gives each server instance a pool of at most 5 connections
+that close after 10s idle, because on Vercel every instance has its own pool. Runtime
+`DATABASE_URL` should be Supabase's transaction pooler (port 6543); the Prisma CLI (migrations)
+reads `DIRECT_URL` (direct connection or session pooler, port 5432) and falls back to
+`DATABASE_URL` when it is unset (`prisma7.config.ts`, `.env.example`). The scripts use
+`scripts/db.ts` (retries on dropped connections).
 
 There is **one Supabase project** (`DATABASE_URL` in `.env`), shared by staging and production, so
-`npm run db:seed`, `refresh-financials.ts --apply` and migrations write to live data - ask before
-running them. The seed is idempotent (upserts by
-ticker) and retries dropped connections. A ticker rename (HBLPOWER -> HBLENGINE) leaves an orphaned
-row behind; delete it only after checking no watchlist references it (children cascade).
+`npm run db:seed`, `refresh-financials.ts --apply`, migrations and the proposal file write to live
+data - ask before running them. The seed is idempotent (upserts by ticker) and retries dropped
+connections. A ticker rename (HBLPOWER -> HBLENGINE) leaves an orphaned row behind; delete it only
+after checking no watchlist references it (children cascade).
 
 ## Routes
 

@@ -1,5 +1,10 @@
-// NextResearch data model.
-// See /Users/gowtham/.claude/plans/breezy-booping-spindle.md for the design this implements.
+// NextResearch data model: users, watchlists and baskets, plus the company table (every listed
+// company's figures). docs/ARCHITECTURE.md ("Database", "Company figures") describes it.
+//
+// Tables the code stopped using (FinancialStatementLine, PriceSnapshot, NewsLink, Subscription) and a
+// few unused Company/KpiSnapshot columns are no longer modelled here but still exist in the database
+// until prisma/proposed/2026-10-22_cleanup.sql is applied; Prisma ignores them. Company.role stays
+// (NOT NULL with no database default, so inserts need it) until that file gives it a default.
 
 generator client {
   provider = "prisma-client"
@@ -10,53 +15,33 @@ datasource db {
   provider = "postgresql"
 }
 
-// Provenance label shown next to any financial/exposure figure so a demo number
-// never passes as a live, verified one (product rule: never present unverified
-// data as authoritative). Everything seeded from the original artifact today is
-// DEMO; this is the seam a real data vendor flips to VERIFIED later per-company.
-enum DataStatus {
-  DEMO
-  USER_GENERATED
-  UNVERIFIED
-  VERIFIED
-  SOURCE_REQUIRED
-}
-
 // Sectors, zones and 3D geometry are static authored content (three.js `build()`
 // functions ported into src/lib/sector-content/products.ts) — not modeled here.
 // Every company figure (price, valuation, ratios, FY revenue/profit) lives here and only here:
 // the app reads it through src/lib/financials/load.ts and scripts/refresh-financials.ts writes it.
-// A Company's sectorSlugs mirrors which static sector(s) reference its ticker
-// (set at seed time) so the company page can cross-link back to each ecosystem.
 model Company {
-  id             String                   @id @default(cuid())
-  ticker         String                   @unique
+  id             String              @id @default(cuid())
+  ticker         String              @unique
   name           String
-  listed         Boolean                  @default(true)
+  listed         Boolean             @default(true)
   role           String
   // Trendlyne slug and stock id (the content's `tl` pair), used for the Trendlyne links.
   screenerSlug   String?
   externalId     String?
-  notes          String[]
-  sectorSlugs    String[]                 @default([])
-  dataStatus     DataStatus               @default(DEMO)
   // In the company table: the app shows this company's figures and the refresh keeps them current.
   // Rows from older seeds that are not (renamed tickers, unlisted names) stay false.
-  tracked        Boolean                  @default(false)
+  tracked        Boolean             @default(false)
   // Company-level note on the figures (basis, fiscal-year convention, one-offs), shown with them in
   // every industry; a sector can add its own note on top. "standalone figures" here also tells the
   // refresh to read Screener's standalone page.
   financialsNote String?
   // Latest year dominated by a one-off (e.g. SPARC's FY26 voucher sale): kept out of the idea screens.
-  screenOut      Boolean                  @default(false)
+  screenOut      Boolean             @default(false)
   financials     FinancialSnapshot[]
-  statementLines FinancialStatementLine[]
-  prices         PriceSnapshot[]
   kpis           KpiSnapshot[]
-  news           NewsLink[]
   watchlistedBy  Watchlist[]
-  createdAt      DateTime                 @default(now())
-  updatedAt      DateTime                 @updatedAt
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 }
 
 // FY revenue/net profit, one row per year that has a value (supplier.f.rev/np, FY22-FY26).
@@ -71,43 +56,8 @@ model FinancialSnapshot {
   @@unique([companyId, year])
 }
 
-enum StatementType {
-  INCOME
-  BALANCE
-  CASHFLOW
-}
-
-// Full income/balance/cash-flow line items, all years. Sparse (mostly empty) until
-// a real data vendor is wired in — UI renders "—" for missing lineItem/year cells.
-model FinancialStatementLine {
-  id            String        @id @default(cuid())
-  companyId     String
-  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  statementType StatementType
-  year          Int
-  lineItem      String
-  value         Decimal
-  sortOrder     Int           @default(0)
-
-  @@unique([companyId, statementType, year, lineItem])
-}
-
-// Price chart series. isEstimate flags seeded/sparse points so the UI can visibly
-// mark them as not-real history rather than passing them off as a live feed.
-model PriceSnapshot {
-  id         String   @id @default(cuid())
-  companyId  String
-  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  date       DateTime
-  close      Decimal
-  isEstimate Boolean  @default(false)
-
-  @@unique([companyId, date])
-}
-
 // Point-in-time KPI/price snapshot (matches the artifact's kpi tuple + mcap/price/range/cagr).
 // The app shows each company's latest one; every refresh run adds one per company dated that day.
-// `note` is unused now (the company-level note is Company.financialsNote).
 model KpiSnapshot {
   id        String   @id @default(cuid())
   companyId String
@@ -126,29 +76,17 @@ model KpiSnapshot {
   cagr1y    Decimal?
   cagr3y    Decimal?
   cagr5y    Decimal?
-  note      String?
 
   @@unique([companyId, asOf])
 }
 
-model NewsLink {
-  id        String  @id @default(cuid())
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  date      String
-  headline  String
-  source    String
-  url       String
-}
-
 // Mirrors a Supabase auth.users row (id = that user's UUID) for FK convenience.
 model Profile {
-  id           String        @id
-  email        String        @unique
-  createdAt    DateTime      @default(now())
-  watchlist    Watchlist[]
-  baskets      Basket[]
-  subscription Subscription?
+  id        String      @id
+  email     String      @unique
+  createdAt DateTime    @default(now())
+  watchlist Watchlist[]
+  baskets   Basket[]
 }
 
 model Watchlist {
@@ -204,27 +142,4 @@ model BasketItem {
   addedAt    DateTime @default(now())
 
   @@unique([basketId, ticker])
-}
-
-enum SubscriptionPlan {
-  FREE
-  PRO
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  PAST_DUE
-  CANCELED
-  NONE
-}
-
-model Subscription {
-  id                     String             @id @default(cuid())
-  userId                 String             @unique
-  user                   Profile            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  razorpaySubscriptionId String?
-  plan                   SubscriptionPlan   @default(FREE)
-  status                 SubscriptionStatus @default(NONE)
-  currentPeriodEnd       DateTime?
-  updatedAt              DateTime           @updatedAt
 }

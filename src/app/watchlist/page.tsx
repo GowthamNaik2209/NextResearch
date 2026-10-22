@@ -12,13 +12,10 @@ import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { IndustryChips } from "@/components/baskets/IndustryChips";
 import { NewBasketButton } from "@/components/baskets/NewBasketButton";
 import { ensureFinancials } from "@/lib/financials/load";
+import { parseRupees } from "@/lib/financials/rows";
 
 export const metadata = { title: "Watchlist", robots: { index: false, follow: false } };
 
-const parseNum = (s?: string | null) => {
-  const n = s ? parseFloat(s.replace(/[^0-9.]/g, "")) : NaN;
-  return Number.isFinite(n) ? n : null;
-};
 const pct = (v: number) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)}%`;
 // "Rs 1,74,575 Cr" -> "₹1.75 L Cr": a lakh crore reads faster than seven digits on a phone.
 const fmtCap = (cr: number) => (cr >= 1e5 ? `₹${(cr / 1e5).toFixed(2)} L Cr` : `₹${Math.round(cr).toLocaleString("en-IN")} Cr`);
@@ -40,7 +37,9 @@ export default async function WatchlistPage() {
 
   const rows = await prisma.watchlist.findMany({
     where: { userId: user.id },
-    include: { company: { include: { kpis: { orderBy: { asOf: "desc" }, take: 1 } } } },
+    // Identity only: the figures come from the company table installed by ensureFinancials()
+    // (supplier.f), the same copy every other page shows.
+    select: { id: true, priceAtAdd: true, addedAt: true, company: { select: { ticker: true, name: true } } },
     orderBy: { addedAt: "desc" },
   });
   const live = await quotes(rows.map((r) => r.company.ticker));
@@ -83,14 +82,16 @@ export default async function WatchlistPage() {
               const ticker = row.company.ticker;
               const supplier = findSupplierByTicker(ticker);
               const stock = basketStock(ticker);
-              const kpi = row.company.kpis[0];
+              const f = supplier?.f;
               const q = live.get(ticker);
-              const current = q?.price ?? kpi?.price?.toNumber() ?? parseNum(supplier?.f?.price);
-              const priceAtAdd = row.priceAtAdd.toNumber();
-              const since = current != null && priceAtAdd > 0 ? ((current - priceAtAdd) / priceAtAdd) * 100 : null;
-              const low = kpi?.low52w?.toNumber() ?? supplier?.f?.range?.[0] ?? null;
-              const high = kpi?.high52w?.toNumber() ?? supplier?.f?.range?.[1] ?? null;
-              const pe = kpi?.pe?.toNumber() ?? supplier?.f?.kpi?.[0] ?? null;
+              const current = q?.price ?? parseRupees(f?.price);
+              // 0 is stored when no price was known at the time: no "since added" move for it.
+              const added = row.priceAtAdd.toNumber();
+              const priceAtAdd = added > 0 ? added : null;
+              const since = current != null && priceAtAdd != null ? ((current - priceAtAdd) / priceAtAdd) * 100 : null;
+              const low = f?.range?.[0] ?? null;
+              const high = f?.range?.[1] ?? null;
+              const pe = f?.kpi?.[0] ?? null;
               const cap = stock?.mcapCr ?? null;
               // Where today's price sits in its 52-week range, 0 (at the low) to 1 (at the high).
               const pos = current != null && low != null && high != null && high > low ? Math.min(1, Math.max(0, (current - low) / (high - low))) : null;
@@ -137,7 +138,7 @@ export default async function WatchlistPage() {
                       )}
                     </div>
                   </div>
-                  <div className="font-mono text-[10px] text-ink-soft">added {row.addedAt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}{priceAtAdd > 0 && ` at ₹${priceAtAdd.toLocaleString("en-IN")}`}</div>
+                  <div className="font-mono text-[10px] text-ink-soft">added {row.addedAt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}{priceAtAdd != null && ` at ₹${priceAtAdd.toLocaleString("en-IN")}`}</div>
                 </>
               );
               return supplier ? (
