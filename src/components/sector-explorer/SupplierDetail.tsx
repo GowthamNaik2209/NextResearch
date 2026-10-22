@@ -85,7 +85,7 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
                 type="button"
                 aria-haspopup="dialog"
                 onClick={() => setOpenTab(t.id)}
-                className="rounded-md bg-accent px-0.5 py-1.5 text-[10px] font-semibold tracking-tight text-bg transition hover:opacity-90 sm:rounded-lg sm:px-1 sm:py-2 sm:text-xs sm:tracking-normal"
+                className="rounded-md bg-accent px-0.5 py-1.5 text-[10px] font-semibold tracking-tight text-bg transition hover:opacity-90 sm:rounded-lg sm:px-1 sm:py-2 sm:text-xs sm:tracking-normal pointer-coarse:min-h-9"
               >
                 {t.label}
               </button>

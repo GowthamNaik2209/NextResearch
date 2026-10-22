@@ -245,7 +245,7 @@ export function SummaryView({
             ))}
           </ul>
           {onOpenTab && (
-            <button type="button" onClick={() => onOpenTab("news")} className="mt-2 text-xs font-semibold text-accent hover:underline">
+            <button type="button" onClick={() => onOpenTab("news")} className="tap-y mt-2 text-xs font-semibold text-accent hover:underline">
               All news &amp; links &rarr;
             </button>
           )}

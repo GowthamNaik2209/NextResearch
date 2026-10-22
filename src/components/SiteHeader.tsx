@@ -8,7 +8,7 @@ export async function SiteHeader() {
   const user = await getCurrentUser();
   const displayName = (user?.user_metadata?.display_name as string | undefined) ?? null;
   // nowrap: at 768px "How it works" and "Analysis" used to break onto two lines.
-  const link = "hidden whitespace-nowrap text-sm font-medium text-ink-soft hover:text-ink md:inline";
+  const link = "tap-y hidden whitespace-nowrap text-sm font-medium text-ink-soft hover:text-ink md:inline";
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">

@@ -11,7 +11,7 @@
   --accent: #f0b53f;
   --amber: #e08a3c;
   /* Amber for text (chips, labels); --amber itself stays for chart fills. */
-  --amber-ink: #e08a3c;
+  --amber-ink: #eb9a52;
   --danger: #e8705e;
   --pos: #5fcf8e;
   /* Third chart series (IPO profit bars): must stay distinct from --accent in each theme. */

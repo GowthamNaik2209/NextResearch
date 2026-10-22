@@ -230,7 +230,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
                 type="button"
                 onClick={() => go(index + (which === "next" ? 1 : -1))}
                 aria-label={which === "next" ? "Next slide" : "Previous slide"}
-                className={"absolute top-1/2 z-[6] hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-accent bg-accent text-bg shadow-sm transition hover:opacity-90 sm:flex " + pos}
+                className={"absolute top-1/2 z-[6] hidden h-8 w-8 -translate-y-1/2 items-center pointer-coarse:h-10 pointer-coarse:w-10 justify-center rounded-full border border-accent bg-accent text-bg shadow-sm transition hover:opacity-90 sm:flex " + pos}
               >
                 <Chevron dir={which === "next" ? "right" : "left"} />
               </button>

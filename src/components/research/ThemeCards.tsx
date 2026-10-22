@@ -106,10 +106,10 @@ export function ThemeCards({
         </div>
       ))}
       {soon.map((s) => (
-        // Marked by the dashed border and the label, not faded: faded text fails 4.5:1 contrast.
+        // Muted by the dashed border, the soft title and the label, not by fading: faded text fails 4.5:1.
         <div key={s.name} className="flex flex-col gap-3 rounded-2xl border border-dashed border-line p-5">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-panel-2 font-mono text-xs font-bold text-ink-soft">{s.icon}</div>
-          <h3 className="font-display text-lg font-semibold text-ink">{s.name}</h3>
+          <h3 className="font-display text-lg font-semibold text-ink-soft">{s.name}</h3>
           <p className="text-sm leading-relaxed text-ink-soft">{s.tagline}</p>
           <span className="mt-auto text-[10px] font-bold uppercase tracking-wide text-accent">Coming soon</span>
         </div>

@@ -11,7 +11,7 @@
     the canvas's own always-dark-or-grey palette. Every token below must keep
     matching its globals.css counterpart for the same reason. */
  --bg:#0C1110; --panel:#121A17; --panel-2:#18231F; --ink:#EEF2EA; --ink-soft:#93A399;
- --line:#25342D; --grid:#1A2721; --accent:#F0B53F; --amber:#E08A3C; --amber-ink:#E08A3C; --danger:#E8705E;
+ --line:#25342D; --grid:#1A2721; --accent:#F0B53F; --amber:#E08A3C; --amber-ink:#EB9A52; --danger:#E8705E;
  --chip:#1B2823; --callout-bg:rgba(12,17,16,.88); --callout-bg-strong:rgba(12,17,16,.92); --shadow:0 20px 50px -24px rgba(0,0,0,.7);
  color-scheme: dark;
 
@@ -223,10 +223,11 @@
  cursor:pointer; font-size:12.5px; font-weight:600; display:flex; align-items:center; justify-content:space-between; gap:8px;
  }
  .chip:hover{border-color:var(--accent)}
- .chip.active{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--chip))}
+ .chip.active{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 6%, var(--chip))}
  .badge{ font-size:9.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; padding:2px 6px; border-radius:5px }
- .badge.listed{ background:color-mix(in srgb, var(--accent) 22%, var(--chip)); color:var(--accent) }
- .badge.unlisted{ background:color-mix(in srgb, var(--amber) 22%, var(--chip)); color:var(--amber-ink) }
+ /* Light tints so the label text keeps 4.5:1 contrast (also on an active chip). */
+ .badge.listed{ background:color-mix(in srgb, var(--accent) 14%, var(--chip)); color:var(--accent) }
+ .badge.unlisted{ background:color-mix(in srgb, var(--amber) 14%, var(--chip)); color:var(--amber-ink) }
  .supplier-detail{ border-top:1px solid var(--line); padding-top:12px; display:flex; flex-direction:column; gap:12px }
  .supplier-head{ display:flex; align-items:flex-start; gap:10px }
  .supplier-head-title{ flex:1; min-width:0 }
@@ -499,4 +500,11 @@
   .scn-clear{ flex:1 1 100% }
   .scn-pill{ bottom:auto; top:52px; left:12px; transform:none }
  }
+}
+
+/* Touch screens: rail controls at least 36px tall for a reliable tap - on phones and tablets,
+   and on a tablet held sideways, which gets the desktop rail. Mouse users keep the dense rail. */
+@media (pointer: coarse) {
+ .nr-explorer :is(.layer-btn, .view-btn, .zone-more-btn, .zone-btn, .scn-btn, .compare-btn){ min-height:36px }
+ .nr-explorer input[type="range"]{ height:36px }
 }

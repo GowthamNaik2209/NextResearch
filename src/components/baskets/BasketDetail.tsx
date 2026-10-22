@@ -401,7 +401,7 @@ export function BasketDetail(p: BasketDetailProps) {
   const onlyOn = (v: "stocks" | "chart") => (view === v ? "" : "max-lg:hidden");
   // Dense controls: flat segmented groups with mono labels, at least 36px tall on phones for taps.
   const segBtn = (on: boolean) =>
-    "min-h-9 border-r border-line px-2 font-mono text-[11px] font-semibold last:border-r-0 sm:min-h-7 sm:px-2.5 pointer-coarse:min-h-9 " + (on ? "bg-ink text-bg" : "text-ink-soft hover:text-ink");
+    "min-h-9 border-r border-line px-2 font-mono text-[11px] font-semibold last:border-r-0 sm:min-h-7 sm:px-2.5 pointer-coarse:min-h-9 pointer-coarse:min-w-9 " + (on ? "bg-ink text-bg" : "text-ink-soft hover:text-ink");
   const btn = "inline-flex min-h-9 items-center justify-center rounded border px-3 text-xs font-semibold disabled:opacity-40 sm:min-h-8 pointer-coarse:min-h-9";
   const btnPri = btn + " border-accent bg-accent text-bg hover:opacity-90";
   const btnSec = btn + " border-line bg-bg text-ink hover:border-accent";
@@ -503,7 +503,7 @@ export function BasketDetail(p: BasketDetailProps) {
   // The holdings table's sortable headers: numbers sort high to low, P/E low to high, names A to Z.
   const sortHead = (id: Sort, label: string, right = true) => (
     <th scope="col" aria-sort={sort === id ? (id === "name" || id === "pe" ? "ascending" : "descending") : "none"} className={"px-2 py-1.5 font-semibold " + (right ? "text-right" : "text-left")}>
-      <button type="button" onClick={() => setSort(id)} className={"inline-flex min-h-6 items-center whitespace-nowrap uppercase tracking-wider hover:text-ink pointer-coarse:min-h-9 " + (sort === id ? "text-ink" : "")}>
+      <button type="button" onClick={() => setSort(id)} className={"tap-y inline-flex min-h-6 items-center whitespace-nowrap uppercase tracking-wider hover:text-ink pointer-coarse:min-h-9 " + (sort === id ? "text-ink" : "")}>
         {label}
         {sort === id && <span aria-hidden>{id === "name" || id === "pe" ? " ▲" : " ▼"}</span>}
       </button>
@@ -935,16 +935,18 @@ export function BasketDetail(p: BasketDetailProps) {
                               <tr key={s.ticker} className="border-b border-line/60 even:bg-panel-2/30 hover:bg-accent/5">
                                 <td className="pl-2">{lineSwatch(s.ticker)}</td>
                                 <td className="w-full max-w-0 px-2 py-1.5">
-                                  <StockLink ticker={s.ticker} title={s.name} className="block truncate font-semibold text-accent hover:underline">
+                                  {/* Touch screens: the name is padded to 36px and the line below spaced out so the
+                                      industry link's 36px area (tap-y) does not overlap it. */}
+                                  <StockLink ticker={s.ticker} title={s.name} className="block truncate font-semibold text-accent hover:underline pointer-coarse:py-2.5">
                                     {s.name}
                                   </StockLink>
                                   {/* Wraps rather than cuts off: a tablet held upright has no hover to show a title. */}
-                                  <span className="block text-balance text-[10px] leading-snug text-ink-soft">
+                                  <span className="block text-balance text-[10px] leading-snug text-ink-soft pointer-coarse:mt-3">
                                     <span className="font-mono">{s.ticker}</span> · {s.layer}
                                     {inds[0] && (
                                       <>
                                         {" · "}
-                                        <Link href={`/sector/${inds[0].slug}`} className="hover:text-accent hover:underline">
+                                        <Link href={`/sector/${inds[0].slug}`} className="tap-y hover:text-accent hover:underline">
                                           {inds[0].name}
                                         </Link>
                                         {others > 0 && <span className="text-accent"> +{others}</span>}
