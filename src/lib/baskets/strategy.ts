@@ -152,14 +152,20 @@ export const weightsTotal = (w: Record<string, number>) => Math.round(Object.val
 export const weightsValid = (w: Record<string, number> | undefined, tickers: string[]) =>
   !!w && tickers.length > 0 && tickers.every((t) => w[t] != null && w[t] >= 0) && Math.abs(weightsTotal(Object.fromEntries(tickers.map((t) => [t, w[t]]))) - 100) < 0.05;
 
-/** A stock added to custom weights gets an equal share (100/n); the others shrink in proportion. */
-export function addToWeights(w: Record<string, number>, added: string[]): Record<string, number> {
+/**
+ * Stocks added to custom weights: one taken off earlier gets back the % it had (`earlier`), any
+ * other an equal share (100/n); the rest shrink in proportion to make room. So taking a stock off
+ * and putting it back returns every stock to where it was.
+ */
+export function addToWeights(w: Record<string, number>, added: string[], earlier: Record<string, number> = {}): Record<string, number> {
   const fresh = added.filter((t) => w[t] == null);
   if (!fresh.length) return w;
   const n = Object.keys(w).length + fresh.length;
-  const keep = Object.keys(w).length / n;
-  const scaled = Object.fromEntries(Object.entries(w).map(([t, v]) => [t, (v / (weightsTotal(w) || 100)) * keep]));
-  for (const t of fresh) scaled[t] = 1 / n;
+  const share = new Map(fresh.map((t) => [t, earlier[t] != null ? Math.min(100, Math.max(0, earlier[t])) / 100 : 1 / n]));
+  const room = Math.max(0, 1 - [...share.values()].reduce((a, b) => a + b, 0));
+  const total = weightsTotal(w);
+  const scaled: Record<string, number> = total > 0 ? Object.fromEntries(Object.entries(w).map(([t, v]) => [t, (v / total) * room])) : Object.fromEntries(Object.keys(w).map((t) => [t, room / Object.keys(w).length]));
+  for (const [t, v] of share) scaled[t] = v;
   return toPercents(scaled);
 }
 

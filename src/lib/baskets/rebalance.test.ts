@@ -163,6 +163,10 @@ test("adding a stock gives it an equal share; removing one keeps the others' pro
   // Weights that didn't total 100 yet come out at 100.
   assert.equal(weightsTotal(addToWeights({ A: 50, B: 30 }, ["C"])), 100);
   assert.deepEqual(addToWeights({}, ["A"]), { A: 100 });
+  // Taken off and put back: its earlier % returns, and so do everyone else's.
+  const off = removeFromWeights({ B: 10, C: 50, D: 20, A: 20 }, ["A"]);
+  assert.deepEqual(off, { B: 12.5, C: 62.5, D: 25 });
+  assert.deepEqual(addToWeights(off, ["A"], { A: 20 }), { B: 10, C: 50, D: 20, A: 20 });
 });
 
 test("plain cap weights match the held backtest's (median for a missing figure)", () => {

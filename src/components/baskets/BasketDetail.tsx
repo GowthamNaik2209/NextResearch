@@ -335,6 +335,8 @@ export function BasketDetail(p: BasketDetailProps) {
   };
   // Custom weights follow the stocks: a new one gets an equal share and the rest shrink in
   // proportion; one taken off leaves the rest in proportion, scaled back up to 100%.
+  // The % each stock had when it was taken off, so adding it back this visit restores it.
+  const takenOff = useRef<Record<string, number>>({});
   const reweigh = (next: Record<string, number>) => {
     setCustomEdit(next);
     if (ownsWeights) savedRef.current = weightsParam(next);
@@ -345,7 +347,8 @@ export function BasketDetail(p: BasketDetailProps) {
     const fresh = list.filter((t) => !byTicker.has(t)).slice(0, MAX_STOCKS - stocks.length);
     if (!fresh.length) return;
     setStocks((s) => [...s, ...fresh.map((t) => universe.get(t)!).filter(Boolean)]);
-    const weights = weighting === "custom" ? { weights: reweigh(addToWeights(customEdit ?? {}, fresh)) } : {};
+    const weights = weighting === "custom" ? { weights: reweigh(addToWeights(customEdit ?? {}, fresh, takenOff.current)) } : {};
+    for (const t of fresh) delete takenOff.current[t];
     // New stocks go straight onto the chart while line colours are free.
     setChartSel((sel) => {
       const picks = { ...sel.picks };
@@ -361,6 +364,7 @@ export function BasketDetail(p: BasketDetailProps) {
   };
   const remove = async (t: string) => {
     setStocks((s) => s.filter((x) => x.ticker !== t));
+    if (weighting === "custom" && customEdit?.[t] != null) takenOff.current[t] = customEdit[t];
     const weights = weighting === "custom" ? { weights: reweigh(removeFromWeights(customEdit ?? {}, [t])) } : {};
     // Its line goes to the first stock not yet on the chart, or waits for the next one added.
     setChartSel((sel) => {
@@ -817,7 +821,11 @@ export function BasketDetail(p: BasketDetailProps) {
       {draft && <div className={PANEL + " px-3 py-2.5 sm:px-4"}>{picker("bar")}</div>}
 
       {weighting === "custom" && stocks.length > 0 && (weightsOpen || customBlocked) && (
-        <CustomWeights heading={heading} stocks={stocks} values={customEdit ?? {}} onChange={editWeights} onReset={resetToEqual} onClose={() => setWeightsOpen(false)} saves={ownsWeights} />
+        <CustomWeights
+          heading={heading}
+          stocks={stocks}
+          picks={pickedKey && !picksAll ? picked.map((s) => s.ticker) : null}
+          values={customEdit ?? {}} onChange={editWeights} onReset={resetToEqual} onClose={() => setWeightsOpen(false)} saves={ownsWeights} />
       )}
 
       <div className="flex min-w-0 flex-col gap-2 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
@@ -1183,9 +1191,13 @@ function CustomWeights({
   onReset,
   onClose,
   saves,
+  picks,
 }: {
   heading: "h2" | "h3";
   stocks: BasketStock[];
+  /** The stocks switched on in the chart (when the reader has picked some, not all): each one's
+   * share of "Your picks", the basket's %s scaled up in proportion. Their %s here don't change. */
+  picks: string[] | null;
   values: Record<string, number>;
   onChange: (next: Record<string, number>) => void;
   onReset: () => void;
@@ -1205,6 +1217,7 @@ function CustomWeights({
       return next;
     });
   const total = weightsTotal(Object.fromEntries(stocks.map((s) => [s.ticker, values[s.ticker] ?? 0])));
+  const pickShare = picks ? toPercents(customTargets(picks, values)) : null;
   const off = Math.round((100 - total) * 10) / 10;
   const ok = Math.abs(off) < 0.05;
   const H = heading;
@@ -1251,12 +1264,15 @@ function CustomWeights({
       {/* Phones list every stock (the × closes the panel); wider screens scroll a long list inside. */}
       <ul className="grid grid-cols-1 gap-x-4 px-3 py-1 sm:max-h-72 sm:grid-cols-2 sm:overflow-y-auto sm:overscroll-contain lg:grid-cols-3">
         {stocks.map((s) => (
-          <li key={s.ticker} className="flex items-center gap-2 border-b border-line/60 py-1">
+          <li key={s.ticker} className={"flex items-center gap-2 border-b border-line/60 py-1 " + (pickShare && pickShare[s.ticker] == null ? "opacity-60" : "")}>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-xs font-semibold text-ink" title={s.name}>
                 {s.name}
               </span>
-              <span className="block truncate font-mono text-[10px] text-ink-soft">{s.ticker}</span>
+              <span className="block truncate text-[10px] text-ink-soft">
+                <span className="font-mono">{s.ticker}</span>
+                {pickShare && (pickShare[s.ticker] != null ? ` · ${pickShare[s.ticker].toFixed(1)}% of your picks` : " · off in your picks")}
+              </span>
             </span>
             <WeightInput label={`${s.name} weight, %`} value={values[s.ticker] ?? 0} onCommit={(v) => onChange({ ...values, [s.ticker]: v })} onBad={(b) => markBad(s.ticker, b)} />
           </li>
