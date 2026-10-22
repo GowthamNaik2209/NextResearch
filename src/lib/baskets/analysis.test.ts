@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { alignTo, drawdownEpisodes, monthlyCapture, monthlyMatrix, monthlyReturns, rollingReturn, underwater } from "./analysis";
+import { alignTo, captureIsGood, drawdownEpisodes, monthlyCapture, monthlyMatrix, monthlyReturns, rollingReturn, underwater } from "./analysis";
 import type { PricePoint } from "./backtest";
+import { seriesStats } from "./stats";
 
 const near = (a: number | null | undefined, b: number, eps = 1e-9) => assert.ok(a != null && Math.abs(a - b) < eps, `${a} != ${b}`);
 
@@ -164,15 +165,15 @@ test("rolling return across benchmark-style gaps and too-short series", () => {
 });
 
 test("monthly capture: up/down on benchmark months, months beating it", () => {
-  // Month ends; the basket does 2× the benchmark's month in every month.
+  // Month ends from the previous year's last close; the basket does 2× the benchmark's month.
   const bench: PricePoint[] = [
-    { t: "2024-01-01", c: 100 },
+    { t: "2023-12-29", c: 100 },
     { t: "2024-01-31", c: 110 }, // +10
     { t: "2024-02-29", c: 99 }, // -10
     { t: "2024-03-29", c: 108.9 }, // +10
   ];
   const basket: PricePoint[] = [
-    { t: "2024-01-01", c: 100 },
+    { t: "2023-12-29", c: 100 },
     { t: "2024-01-31", c: 120 }, // +20
     { t: "2024-02-29", c: 96 }, // -20
     { t: "2024-03-29", c: 115.2 }, // +20
@@ -183,13 +184,52 @@ test("monthly capture: up/down on benchmark months, months beating it", () => {
   assert.equal(c.upMonths, 2);
   assert.equal(c.downMonths, 1);
   assert.equal(c.beat, 2);
+  assert.equal(c.lineUp, 2);
   assert.equal(c.months, 3);
 });
 
+test("monthly capture counts the same months as the stats grid's Months up", () => {
+  // Starts mid-January: the part month to 31 Jan is left out, as seriesStats leaves it out.
+  const basket: PricePoint[] = [
+    { t: "2024-01-15", c: 100 },
+    { t: "2024-01-31", c: 150 }, // part month, +50: not counted
+    { t: "2024-02-29", c: 140 }, // down, but fell less than the index: beats it
+    { t: "2024-03-28", c: 147 }, // up
+    { t: "2024-04-10", c: 150 }, // month in progress: counted, like the stats grid
+  ];
+  const bench: PricePoint[] = [
+    { t: "2024-01-15", c: 100 },
+    { t: "2024-01-31", c: 100 },
+    { t: "2024-02-29", c: 90 },
+    { t: "2024-03-28", c: 99 },
+    { t: "2024-04-10", c: 100 },
+  ];
+  const c = monthlyCapture(basket, bench);
+  const s = seriesStats(basket)!;
+  assert.equal(c.months, s.months);
+  assert.equal(c.lineUp, s.upMonths);
+  assert.equal(c.months, 3);
+  assert.equal(c.lineUp, 2);
+  assert.equal(c.beat, 2); // February (-7% vs -10%) and April (+2% vs +1%), not March (+5% vs +10%)
+});
+
 test("monthly capture with only rising benchmark months has no down capture", () => {
-  const c = monthlyCapture(daily([100, 101, 102]), daily([10, 11, 12]));
+  const c = monthlyCapture(daily([100, 101, 102, 103], 20), daily([10, 11, 12, 13], 20)); // 1 Jan to 1 Mar
   assert.equal(c.downCapture, null);
   assert.equal(c.downMonths, 0);
-  assert.equal(c.months, 1);
+  assert.equal(c.months, 2);
+  assert.equal(monthlyCapture(daily([100, 101, 102]), daily([10, 11, 12])).months, 0); // one part month only
   assert.equal(monthlyCapture(daily([100, 101]), []).months, 0);
+});
+
+test("capture colour follows the whole percent shown", () => {
+  assert.equal(captureIsGood("up", 99.6), true); // reads 100%: takes all of the rise
+  assert.equal(captureIsGood("up", 100), true);
+  assert.equal(captureIsGood("up", 99.4), false);
+  assert.equal(captureIsGood("up", 140), true);
+  assert.equal(captureIsGood("down", 100.4), true); // reads 100%: falls no more than the index
+  assert.equal(captureIsGood("down", 100.6), false);
+  assert.equal(captureIsGood("down", 60), true);
+  assert.equal(captureIsGood("down", -20), true); // rose while the index fell
+  assert.equal(captureIsGood("up", -20), false); // fell while the index rose
 });

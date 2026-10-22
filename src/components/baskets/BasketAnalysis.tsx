@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { PricePoint } from "@/lib/baskets/backtest";
 import { periodsPerYear } from "@/lib/baskets/stats";
-import { alignTo, drawdownEpisodes, monthlyCapture, monthlyMatrix, rollingReturn, underwater } from "@/lib/baskets/analysis";
+import { alignTo, captureIsGood, drawdownEpisodes, monthlyCapture, monthlyMatrix, rollingReturn, underwater } from "@/lib/baskets/analysis";
 import { loadSeries, type Load } from "./series";
 import { MINI_SEG, Panel, miniSegBtn } from "./Panel";
 
@@ -279,16 +279,17 @@ function RollingView({ points, bench, benchName, range }: { points: PricePoint[]
 function CaptureView({ points, bench, benchName }: { points: PricePoint[]; bench: PricePoint[]; benchName: string }) {
   const c = useMemo(() => monthlyCapture(points, bench), [points, bench]);
   if (!bench.length) return <Note>{benchName} could not be loaded, so capture can&rsquo;t be worked out.</Note>;
-  // A handful of months gives wild ratios (one partial month can read −400%), so it waits for six.
-  if (c.months < 6) return <Note>Capture needs at least six calendar months: pick 1Y or longer.</Note>;
+  // A handful of months gives wild ratios (three up months can read −13%), so it waits for ten.
+  if (c.months < 10) return <Note>Capture needs at least ten calendar months: pick 1Y or longer.</Note>;
   const bars = [
-    { label: "Up capture", v: c.upCapture, n: c.upMonths, good: (v: number) => v >= 100, help: `of the ${benchName}'s rise, over its ${c.upMonths} up month${c.upMonths === 1 ? "" : "s"}` },
-    { label: "Down capture", v: c.downCapture, n: c.downMonths, good: (v: number) => v <= 100, help: `of the ${benchName}'s fall, over its ${c.downMonths} down month${c.downMonths === 1 ? "" : "s"}` },
+    { label: "Up capture", v: c.upCapture, n: c.upMonths, good: (v: number) => captureIsGood("up", v), help: `of the ${benchName}'s rise, over its ${c.upMonths} up month${c.upMonths === 1 ? "" : "s"}` },
+    { label: "Down capture", v: c.downCapture, n: c.downMonths, good: (v: number) => captureIsGood("down", v), help: `of the ${benchName}'s fall, over its ${c.downMonths} down month${c.downMonths === 1 ? "" : "s"}` },
   ];
   const vals = bars.map((x) => x.v).filter((v): v is number => v != null);
   const lo = Math.min(0, ...vals);
   const hi = Math.max(150, ...vals) * 1.05;
   const x = (v: number) => ((v - lo) / (hi - lo)) * 100;
+  const pct = (v: number) => `${Math.round(v) < 0 ? "−" : ""}${Math.abs(Math.round(v))}%`;
 
   return (
     <div className="px-3 py-2">
@@ -296,21 +297,27 @@ function CaptureView({ points, bench, benchName }: { points: PricePoint[]; bench
         {bars.map((bar) => (
           <div key={bar.label} className="grid grid-cols-[5.5rem_minmax(0,1fr)_3.5rem] items-center gap-2 text-[11px]">
             <span className="text-ink-soft">{bar.label}</span>
-            <div className="relative h-4 rounded-sm bg-bg" title={bar.v == null ? "No such months in the range" : `${bar.v.toFixed(0)}% ${bar.help}`}>
+            <div className="relative h-4 rounded-sm bg-bg" title={bar.v == null ? "No such months in the range" : `${pct(bar.v)} ${bar.help}`}>
               {bar.v != null && (
                 <div
                   className="absolute inset-y-0 rounded-sm"
                   style={{ left: `${x(Math.min(0, bar.v))}%`, width: `${Math.abs(x(bar.v) - x(0))}%`, background: bar.good(bar.v) ? "var(--pos)" : "var(--danger)" }}
                 />
               )}
+              {lo < 0 && <div className="absolute inset-y-[-3px] w-px bg-ink-soft" style={{ left: `${x(0)}%` }} aria-hidden />}
               <div className="absolute inset-y-[-3px] w-px bg-ink" style={{ left: `${x(100)}%` }} aria-hidden />
             </div>
-            <span className={"text-right font-mono font-semibold " + (bar.v == null ? "text-ink-soft" : bar.good(bar.v) ? "text-pos" : "text-danger")}>{bar.v == null ? "—" : `${bar.v.toFixed(0)}%`}</span>
+            <span className={"text-right font-mono font-semibold " + (bar.v == null ? "text-ink-soft" : bar.good(bar.v) ? "text-pos" : "text-danger")}>{bar.v == null ? "—" : pct(bar.v)}</span>
           </div>
         ))}
         <div className="grid grid-cols-[5.5rem_minmax(0,1fr)_3.5rem] gap-2 text-[10px] text-ink-soft">
           <span />
           <span className="relative h-3">
+            {lo < 0 && (
+              <span className="absolute -translate-x-1/2 font-mono" style={{ left: `${x(0)}%` }}>
+                0
+              </span>
+            )}
             <span className="absolute -translate-x-1/2 font-mono" style={{ left: `${x(100)}%` }}>
               100%
             </span>
@@ -318,16 +325,26 @@ function CaptureView({ points, bench, benchName }: { points: PricePoint[]; bench
           <span />
         </div>
       </div>
-      <p className="mt-1 text-[11px]">
-        Months beating the {benchName}:{" "}
-        <b className="font-mono font-semibold text-ink">
-          {c.beat} / {c.months}
-        </b>
-        <span className="ml-1 font-mono text-ink-soft">({Math.round((c.beat / c.months) * 100)}%)</span>
-      </p>
+      <dl className="mt-1 grid grid-cols-[auto_auto] justify-start gap-x-3 gap-y-0.5 text-[11px]">
+        {[
+          { label: `Months beating the ${benchName}`, n: c.beat },
+          { label: "Months up", n: c.lineUp },
+        ].map((row) => (
+          <Fragment key={row.label}>
+            <dt>{row.label}</dt>
+            <dd className="whitespace-nowrap">
+              <b className="font-mono font-semibold text-ink">
+                {row.n}/{c.months}
+              </b>
+              <span className="ml-1 font-mono text-ink-soft">({Math.round((row.n / c.months) * 100)}%)</span>
+            </dd>
+          </Fragment>
+        ))}
+      </dl>
       <p className="mt-1 text-[10px] leading-snug text-ink-soft">
-        On calendar-month returns, matched month by month. Up capture above 100% means the basket rose more than the {benchName} in its up months; down capture below 100% means it fell less in its down
-        months. The stats grid shows the same measures on individual bars, so the figures differ.
+        Calendar months, counted as in the stats grid: the part month the range starts in is left out, the month in progress is in. Beating the {benchName} means a better month than
+        it, even when both fell. Up capture above 100% means the basket rose more than the {benchName} in its up months; down capture below 100% means it fell less in its down months, and
+        below 0% that it rose in them. The stats grid&rsquo;s capture compares single bars, so it can differ; this monthly one is the usual measure.
       </p>
     </div>
   );
