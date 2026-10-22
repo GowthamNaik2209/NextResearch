@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { runBacktest } from "./backtest";
 import { runRebalanced, targetWeights } from "./rebalance";
-import { heldStrategy, parseStrategy, strategyQuery, strategyShort } from "./strategy";
+import { addToWeights, customTargets, heldStrategy, parseStrategy, removeFromWeights, strategyQuery, strategyShort, toPercents, weightsTotal, weightsValid } from "./strategy";
 
 const near = (a: number, b: number, tol = 1e-9) => assert.ok(Math.abs(a - b) < tol, `${a} != ${b}`);
 const sum = (m: Map<string, number>) => [...m.values()].reduce((a, b) => a + b, 0);
@@ -111,56 +111,58 @@ test("layer-balanced: equal per layer, then equal within", () => {
   near(sum(w), 1);
 });
 
-test("capped market cap holds every stock and layer to its cap", () => {
-  const stocks = [
-    { ticker: "BIG", mcapCr: 1000, layer: "OEM" },
-    { ticker: "OEM2", mcapCr: 300, layer: "OEM" },
-    { ticker: "OEM3", mcapCr: 200, layer: "OEM" },
-    ...["C1", "C2", "C3", "C4", "C5"].map((t) => ({ ticker: t, mcapCr: 50, layer: "Cells" })),
-    ...["M1", "M2", "M3"].map((t) => ({ ticker: t, mcapCr: 40, layer: "Motors" })),
-    { ticker: "X", mcapCr: null, layer: "Chargers" },
-  ];
-  const w = targetWeights(stocks, "capped", 15, 35);
-  near(sum(w), 1);
-  for (const v of w.values()) assert.ok(v <= 0.15 + 1e-9, `stock ${v}`);
-  const byLayer = new Map<string, number>();
-  for (const s of stocks) byLayer.set(s.layer, (byLayer.get(s.layer) ?? 0) + w.get(s.ticker)!);
-  for (const v of byLayer.values()) assert.ok(v <= 0.35 + 1e-9, `layer ${v}`);
-  near(w.get("BIG")!, 0.15);
-  // The giant is capped; the rest of its layer's 35% goes to the others by market cap (300:200).
-  near(w.get("OEM2")!, 0.12);
-  near(w.get("OEM3")!, 0.08);
-  near(byLayer.get("OEM")!, 0.35);
-  near(byLayer.get("Cells")!, 0.35);
-});
-
-test("a cap too tight for the basket is loosened to equal weights", () => {
-  const w = targetWeights(
-    [
-      { ticker: "A", mcapCr: 900, layer: "L" },
-      { ticker: "B", mcapCr: 100, layer: "L" },
-    ],
-    "capped",
-    15,
-    35,
-  );
+test("custom weights are each stock's own %, fitted to the stocks held", () => {
+  const stocks = ["A", "B", "C"].map((t) => ({ ticker: t, mcapCr: 1, layer: "L" }));
+  const w = targetWeights(stocks, "custom", { A: 50, B: 30, C: 20 });
   near(w.get("A")!, 0.5);
-  near(w.get("B")!, 0.5);
+  near(w.get("C")!, 0.2);
+  // A subset (the chart's picks, or a stock with no prices left out) keeps their proportions.
+  const sub = targetWeights(stocks.slice(0, 2), "custom", { A: 50, B: 30, C: 20 });
+  near(sub.get("A")!, 50 / 80);
+  near(sum(sub), 1);
+  // A stock with no weight of its own gets the others' average.
+  const gap = customTargets(["A", "B", "C"], { A: 60, B: 20 });
+  near(gap.get("C")!, 40 / 120);
+  // None at all: equal.
+  near(customTargets(["A", "B"], undefined).get("A")!, 0.5);
 });
 
-test("caps that can't all hold together go over as little as the basket allows", () => {
-  // A lone stock in its layer can hold at most 15%, so the other layer has to take 85%.
-  const w = targetWeights(
+test("rebalancing goes back to the custom targets", () => {
+  const up = [100, 200, 200].map((c, i) => ({ t: `2026-0${i + 1}-02T00:00:00Z`, c }));
+  const flat = [100, 100, 100].map((c, i) => ({ t: `2026-0${i + 1}-02T00:00:00Z`, c }));
+  const r = runRebalanced(
     [
-      { ticker: "SOLO", mcapCr: 500, layer: "A" },
-      ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => ({ ticker: `B${i}`, mcapCr: 10, layer: "B" })),
+      { ticker: "UP", weight: 0.2, points: up },
+      { ticker: "FLAT", weight: 0.8, points: flat },
     ],
-    "capped",
-    15,
-    35,
+    10,
+    "monthly",
   );
-  near(sum(w), 1);
-  assert.ok(w.get("SOLO")! >= 0.15 - 1e-9);
+  // Month two: UP doubled to 0.4 of 1.2 (a third), then traded back to 20%.
+  near(r.holdings.find((h) => h.ticker === "UP")!.weight, 0.2);
+  near(r.rebalances[0].turnover, (1 / 3 - 0.2) * 100);
+  near(r.holdings.find((h) => h.ticker === "UP")!.endWeight, 0.2);
+});
+
+test("percentages total exactly 100 to a tenth", () => {
+  const p = toPercents(new Map([["A", 1 / 3], ["B", 1 / 3], ["C", 1 / 3]]));
+  assert.equal(weightsTotal(p), 100);
+  assert.deepEqual(Object.values(p).sort(), [33.3, 33.3, 33.4]);
+  assert.ok(weightsValid(p, ["A", "B", "C"]));
+  assert.ok(!weightsValid({ A: 50, B: 40 }, ["A", "B"]));
+  assert.ok(!weightsValid({ A: 50, B: 50 }, ["A", "B", "C"]));
+});
+
+test("adding a stock gives it an equal share; removing one keeps the others' proportions", () => {
+  const added = addToWeights({ A: 60, B: 40 }, ["C"]);
+  near(added.C, 33.3, 0.1);
+  near(added.A / added.B, 1.5, 0.01);
+  assert.equal(weightsTotal(added), 100);
+  const removed = removeFromWeights({ A: 50, B: 30, C: 20 }, ["A"]);
+  assert.deepEqual(removed, { B: 60, C: 40 });
+  // Weights that didn't total 100 yet come out at 100.
+  assert.equal(weightsTotal(addToWeights({ A: 50, B: 30 }, ["C"])), 100);
+  assert.deepEqual(addToWeights({}, ["A"]), { A: 100 });
 });
 
 test("plain cap weights match the held backtest's (median for a missing figure)", () => {
@@ -178,15 +180,19 @@ test("plain cap weights match the held backtest's (median for a missing figure)"
 test("strategy query: the default is the old w= only, and it round-trips", () => {
   assert.equal(strategyQuery(heldStrategy("equal")), "w=equal");
   assert.equal(strategyQuery(heldStrategy("mcap")), "w=mcap");
-  const s = { weighting: "capped" as const, rebalance: "drift" as const, band: 10, cap: 20, layerCap: 50 };
+  const s = { weighting: "custom" as const, rebalance: "drift" as const, band: 10, weights: { TCS: 40, INFY: 60 } };
   const q = strategyQuery(s);
-  assert.equal(q, "w=capped&cap=20&lcap=50&rb=drift&band=10");
+  assert.equal(q, "w=custom&cw=INFY:60,TCS:40&rb=drift&band=10");
   assert.deepEqual(parseStrategy(new URLSearchParams(q)), s);
   // Junk falls back to the defaults, and numbers are clamped.
-  const j = parseStrategy(new URLSearchParams("w=bogus&rb=daily&band=999&cap=-3"), "mcap");
+  const j = parseStrategy(new URLSearchParams("w=bogus&rb=daily&band=999"), "mcap");
   assert.equal(j.weighting, "mcap");
   assert.equal(j.rebalance, "never");
   assert.equal(j.band, 50);
-  assert.equal(j.cap, 1);
-  assert.equal(strategyShort(s), "Capped 20/50 · drift 10 pts");
+  assert.equal(strategyShort(s), "Custom · drift 10 pts");
+  // Capped is gone: an old link reads as market cap, its caps ignored.
+  const old = parseStrategy(new URLSearchParams("wt=capped&cap=15&lcap=35&rb=monthly"), "equal", { w: "wt" });
+  assert.deepEqual(old, { weighting: "mcap", rebalance: "monthly", band: 5 });
+  // Custom with no weights in the link leaves them to the basket's own.
+  assert.equal(parseStrategy(new URLSearchParams("w=custom")).weights, undefined);
 });

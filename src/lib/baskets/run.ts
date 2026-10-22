@@ -8,8 +8,8 @@ import { basketStock } from "./industry";
 import { runRebalanced, targetWeights, type Rebalance } from "./rebalance";
 import { isPlainHold, strategyQuery, type Strategy } from "./strategy";
 
-/** A saved basket's own weighting (the strategy's other weightings live in the page's URL). */
-export type Weighting = "equal" | "mcap";
+/** A saved basket's own weighting (layer-balanced lives only in the page's URL). */
+export type Weighting = "equal" | "mcap" | "custom";
 
 export type BasketBacktest = {
   range: ChartRange;
@@ -46,8 +46,8 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
 
 /**
  * @param layers each stock's value-chain layer where the caller knows a better one than the stock's
- *   primary (an industry basket reads layers within that industry); used by the capped and
- *   layer-balanced weightings.
+ *   primary (an industry basket reads layers within that industry); used by the layer-balanced
+ *   weighting.
  */
 export async function backtestBasket(tickers: string[], range: ChartRange, strategy: Strategy, layers?: Map<string, string>): Promise<BasketBacktest> {
   const stocks = [...new Set(tickers)].map((t) => basketStock(t)).filter((s) => s !== null);
@@ -55,7 +55,7 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
   // weightings that read them.
   const plain = isPlainHold(strategy);
   const sorted = stocks.map((s) => s.ticker).sort();
-  const byLayer = layers && (strategy.weighting === "capped" || strategy.weighting === "layer") ? `:L${layerHash(sorted.map((t) => layers.get(t) ?? ""))}` : "";
+  const byLayer = layers && (strategy.weighting === "layer") ? `:L${layerHash(sorted.map((t) => layers.get(t) ?? ""))}` : "";
   const key = `basket3:${plain ? strategy.weighting : strategyQuery(strategy)}:${range}:${sorted.join(",")}${byLayer}`;
   const ttl = range === "3Y" || range === "5Y" || range === "MAX" ? 60 * 60 * 1000 : 5 * 60 * 1000;
   return cached(key, ttl, async () => {
@@ -63,8 +63,8 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
     // Weekly bars on 3Y/5Y can start up to a week later than a daily-range stock would.
     const slackDays = range === "3Y" || range === "5Y" || range === "MAX" ? 35 : 10;
     // Equal and market cap weigh the whole list, as they always have (a missing market cap gets
-    // the list's median); capped and layer-balanced weigh only the stocks actually held, so a stock
-    // with no prices can't leave its layer short or its cap unspent.
+    // the list's median); custom and layer-balanced weigh only the stocks actually held, so a stock
+    // with no prices can't leave its layer short or its share unspent.
     const caps = basketWeights(stocks, "mcap");
     let weights: Map<string, number>;
     if (strategy.weighting === "equal" || strategy.weighting === "mcap") weights = basketWeights(stocks, strategy.weighting);
@@ -77,8 +77,7 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
       weights = targetWeights(
         held.map((h) => ({ ticker: h.ticker, mcapCr: caps.get(h.ticker) ?? null, layer: layers?.get(h.ticker) ?? byTicker.get(h.ticker)!.layer })),
         strategy.weighting,
-        strategy.cap,
-        strategy.layerCap,
+        strategy.weights,
       );
     }
     // A stock with no target is one the backtest leaves out anyway; any positive weight lets it

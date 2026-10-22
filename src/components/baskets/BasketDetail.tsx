@@ -18,20 +18,27 @@ import { MINI_SEG, PANEL, Panel } from "./Panel";
 import { IndustryChips } from "./IndustryChips";
 import { basketCreateError } from "./NewBasketButton";
 import { loadSeries, savedBasketQuery, type Load } from "./series";
+import { basketWeights } from "@/lib/baskets/backtest";
+import { targetWeights } from "@/lib/baskets/rebalance";
 import {
   BAND_CHOICES,
-  CAP_CHOICES,
-  LAYER_CAP_CHOICES,
   REBALANCE_RULES,
   RULE_SHORT,
   SCHEME_SHORT,
   WEIGHT_SCHEMES,
+  addToWeights,
+  customTargets,
   heldStrategy,
   isPlainHold,
   parseStrategy,
   rebalanceLabel,
+  removeFromWeights,
   strategyQuery,
   strategyShort,
+  toPercents,
+  weightsParam,
+  weightsTotal,
+  weightsValid,
   type Strategy,
   type WeightScheme,
 } from "@/lib/baskets/strategy";
@@ -81,9 +88,20 @@ const RANGES: { id: ChartRange; long: string }[] = [
 ];
 const MAX_STOCKS = 75;
 // The page's own URL keeps a strategy other than the basket's default, so a link reopens it.
-// "wt" for the weighting, so it can't clash with a host page's "w".
-const STRATEGY_PARAMS = ["wt", "rb", "band", "cap", "lcap"];
+// "wt" for the weighting, so it can't clash with a host page's "w". cap and lcap belonged to the
+// removed Capped weighting: still cleared, so an old link's are tidied away.
+const STRATEGY_PARAMS = ["wt", "rb", "band", "cw", "cap", "lcap"];
 const strategyUrlParams = (s: Strategy) => [...new URLSearchParams(strategyQuery(s))].map(([k, v]) => [k === "w" ? "wt" : k, v] as const);
+
+/** Each stock's share (fractions summing to 1) under a weighting, as the backtest sets it. */
+function schemeShares(stocks: BasketStock[], scheme: WeightScheme, custom?: Record<string, number>): Map<string, number> {
+  if (!stocks.length) return new Map();
+  if (scheme === "custom") return customTargets(stocks.map((s) => s.ticker), custom);
+  if (scheme === "layer") return targetWeights(stocks, "layer");
+  const raw = basketWeights(stocks, scheme);
+  const sum = [...raw.values()].reduce((a, b) => a + b, 0);
+  return new Map([...raw].map(([t, v]) => [t, v / sum]));
+}
 
 type Sort = "contribution" | "return" | "weight" | "pe" | "mcap" | "name";
 const SORTS: { id: Sort; label: string }[] = [
@@ -105,7 +123,9 @@ export type BasketDetailProps = {
   description: string | null;
   stocks: BasketStock[];
   addPrices: Record<string, number | null>;
-  weighting: "equal" | "mcap";
+  weighting: "equal" | "mcap" | "custom";
+  /** A custom-weighted saved basket's weights, % per stock. */
+  customWeights?: Record<string, number> | null;
   isOwner: boolean;
   isPublic: boolean;
   signedIn: boolean;
@@ -131,8 +151,15 @@ export function BasketDetail(p: BasketDetailProps) {
   const [view, setView] = useState<"stocks" | "chart">("stocks");
   const [range, setRange] = useState<ChartRange>(p.initialRange ?? "1Y");
   // How the basket is weighted and rebalanced. Starts as the basket's own weighting, bought and
-  // held; anything else lives in the URL (a saved basket stores only equal or market cap).
-  const [strategy, setStrategy] = useState<Strategy>(() => heldStrategy(p.weighting));
+  // held; anything else lives in the URL (a saved basket stores equal, market cap or custom).
+  // Custom weights always cover the basket's stocks and total 100: a stock missing one gets the
+  // others' average, then all are scaled to fit.
+  const savedCustom = (list: BasketStock[]) => toPercents(schemeShares(list, "custom", p.customWeights ?? undefined));
+  const [strategy, setStrategy] = useState<Strategy>(() => heldStrategy(p.weighting, p.weighting === "custom" ? savedCustom(p.stocks) : undefined));
+  // The custom weights as typed, which may not total 100% yet; the backtest keeps the last ones that did.
+  const [customEdit, setCustomEdit] = useState<Record<string, number> | null>(() => (p.weighting === "custom" ? savedCustom(p.stocks) : null));
+  // What the server last stored for a saved basket's custom weights (by query value), so an edit saves once.
+  const savedRef = useRef<string | null>(p.weighting === "custom" ? weightsParam(savedCustom(p.stocks)) : null);
   const weighting = strategy.weighting;
   const sq = strategyQuery(strategy);
   const rebalanced = strategy.rebalance !== "never";
@@ -165,24 +192,37 @@ export function BasketDetail(p: BasketDetailProps) {
   }, [p.viewParam]);
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the strategy a link asked for once on mount
-    if (STRATEGY_PARAMS.some((k) => q.has(k))) setStrategy(parseStrategy(q, p.weighting, { w: "wt" }));
+    if (!STRATEGY_PARAMS.some((k) => q.has(k))) return;
+    const s = parseStrategy(q, p.weighting, { w: "wt" });
+    if (s.weighting === "custom") {
+      // A link's weights fitted to the stocks here; none in the link: the basket's own (or equal).
+      const w = s.weights ? toPercents(customTargets(p.stocks.map((x) => x.ticker), s.weights)) : savedCustom(p.stocks);
+      s.weights = w;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the strategy a link asked for once on mount
+      setCustomEdit(w);
+    }
+    setStrategy(s);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once on mount, with the server's props
   }, [p.weighting]);
+  // A saved basket of yours keeps its custom weights itself, so its URL needn't carry them.
+  const ownsWeights = p.mode === "saved" && p.isOwner;
   const pickStrategy = (next: Strategy) => {
     setStrategy(next);
     const url = new URL(window.location.href);
     for (const k of STRATEGY_PARAMS) url.searchParams.delete(k);
-    if (!(isPlainHold(next) && next.weighting === p.weighting)) for (const [k, v] of strategyUrlParams(next)) url.searchParams.set(k, v);
+    if (!(isPlainHold(next) && next.weighting === p.weighting)) for (const [k, v] of strategyUrlParams(ownsWeights ? { ...next, weights: undefined } : next)) url.searchParams.set(k, v);
     window.history.replaceState(window.history.state, "", url);
   };
-  // Carries a strategy onto the page a copy or a new basket opens on.
-  const withStrategy = (path: string) => {
+  // Carries a strategy onto the page a copy or a new basket opens on. A new saved basket stores
+  // custom weights itself (they go in the create request), so `keepWeights` is only for a draft.
+  const withStrategy = (path: string, keepWeights = false) => {
     if (isPlainHold(strategy) && strategy.weighting === p.weighting) return path;
-    const q = new URLSearchParams(strategyUrlParams(strategy) as [string, string][]);
+    const q = new URLSearchParams(strategyUrlParams(keepWeights ? strategy : { ...strategy, weights: undefined }) as [string, string][]);
     return `${path}${path.includes("?") ? "&" : "?"}${q}`;
   };
-  // What a saved basket can store: equal, or market cap for the cap-weighted schemes.
-  const savedWeighting = weighting === "mcap" || weighting === "capped" ? "mcap" : "equal";
+  // What a saved basket can store: equal, market cap or custom (layer-balanced saves as equal).
+  const savedWeighting = weighting === "mcap" || weighting === "custom" ? weighting : "equal";
+  const savedWeights = weighting === "custom" && strategy.weights ? { weights: strategy.weights } : {};
   const pickView = (v: "stocks" | "chart") => {
     setView(v);
     const url = new URL(window.location.href);
@@ -198,7 +238,10 @@ export function BasketDetail(p: BasketDetailProps) {
   const basketKey = keyFor(sq);
   // The same basket at the same weights, bought and held: the rebalanced one's comparison.
   const heldKey = rebalanced ? keyFor(strategyQuery({ ...strategy, rebalance: "never" })) : null;
-  const compareKey = p.compareSlug && !(p.mode === "industry" && p.compareSlug === p.id) ? `x:sector=${p.compareSlug}&${sq}` : null;
+  // Industry baskets compared alongside run the same strategy; custom weights are this basket's
+  // own stocks', so those run at equal weights.
+  const compareSq = weighting === "custom" ? strategyQuery({ ...strategy, weighting: "equal", weights: undefined }) : sq;
+  const compareKey = p.compareSlug && !(p.mode === "industry" && p.compareSlug === p.id) ? `x:sector=${p.compareSlug}&${compareSq}` : null;
   // Kept here, above the chart, so the reader's picks outlive weighting, range and view switches.
   const compareIndustries = p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id));
   // A stock's industries with this basket's own first on an industry basket (Bharat Forge sits in
@@ -286,10 +329,19 @@ export function BasketDetail(p: BasketDetailProps) {
   const syncItems = (res: { items: { ticker: string }[] } | null) => {
     if (res) setStocks(res.items.map((i) => byTicker.get(i.ticker) ?? universe.get(i.ticker)).filter((s): s is BasketStock => !!s));
   };
+  // Custom weights follow the stocks: a new one gets an equal share and the rest shrink in
+  // proportion; one taken off leaves the rest in proportion, scaled back up to 100%.
+  const reweigh = (next: Record<string, number>) => {
+    setCustomEdit(next);
+    if (ownsWeights) savedRef.current = weightsParam(next);
+    if (Object.keys(next).length) pickStrategy({ ...strategy, weights: next });
+    return next;
+  };
   const add = async (list: string[]) => {
     const fresh = list.filter((t) => !byTicker.has(t)).slice(0, MAX_STOCKS - stocks.length);
     if (!fresh.length) return;
     setStocks((s) => [...s, ...fresh.map((t) => universe.get(t)!).filter(Boolean)]);
+    const weights = weighting === "custom" ? { weights: reweigh(addToWeights(customEdit ?? {}, fresh)) } : {};
     // New stocks go straight onto the chart while line colours are free.
     setChartSel((sel) => {
       const picks = { ...sel.picks };
@@ -301,10 +353,11 @@ export function BasketDetail(p: BasketDetailProps) {
       }
       return { ...sel, picks };
     });
-    if (!draft) syncItems(await patch({ add: fresh }));
+    if (!draft) syncItems(await patch({ add: fresh, ...weights }));
   };
   const remove = async (t: string) => {
     setStocks((s) => s.filter((x) => x.ticker !== t));
+    const weights = weighting === "custom" ? { weights: reweigh(removeFromWeights(customEdit ?? {}, [t])) } : {};
     // Its line goes to the first stock not yet on the chart, or waits for the next one added.
     setChartSel((sel) => {
       const slot = sel.picks[t];
@@ -315,13 +368,47 @@ export function BasketDetail(p: BasketDetailProps) {
       if (next) picks[next.ticker] = slot;
       return { ...sel, picks };
     });
-    if (!draft) syncItems(await patch({ remove: [t] }));
+    if (!draft) syncItems(await patch({ remove: [t], ...weights }));
   };
   const setWeight = async (w: WeightScheme) => {
-    pickStrategy({ ...strategy, weighting: w });
-    // A saved basket keeps equal or market cap as its own; capped and layer-balanced stay in the URL.
-    if (p.mode === "saved" && p.isOwner && (w === "equal" || w === "mcap") && w !== weighting) await patch({ weighting: w });
+    if (w === weighting) return;
+    if (w !== "custom") {
+      pickStrategy({ ...strategy, weighting: w, weights: undefined });
+      // A saved basket keeps equal, market cap or custom as its own; layer-balanced stays in the URL.
+      if (ownsWeights && w !== "layer") await patch({ weighting: w });
+      return;
+    }
+    // Custom starts from the weights the basket had a moment ago, so nothing jumps.
+    const start = toPercents(schemeShares(stocks, weighting));
+    setCustomEdit(start);
+    pickStrategy({ ...strategy, weighting: "custom", weights: start });
+    if (ownsWeights && stocks.length) {
+      savedRef.current = weightsParam(start);
+      await patch({ weighting: "custom", weights: start });
+    }
   };
+  const blockedNote = "Make the custom weights total 100% first.";
+  // One stock's % typed (or reset to equal): the backtest follows once they total 100%, and a
+  // saved basket of yours keeps them (a moment after the last keystroke).
+  const editWeights = (next: Record<string, number>) => {
+    setCustomEdit(next);
+    if (!weightsValid(next, tickers)) return;
+    pickStrategy({ ...strategy, weights: next });
+    setNote((n) => (n === blockedNote ? null : n));
+  };
+  const resetToEqual = () => editWeights(toPercents(schemeShares(stocks, "equal")));
+  useEffect(() => {
+    if (!ownsWeights || weighting !== "custom" || !strategy.weights) return;
+    const q = weightsParam(strategy.weights);
+    if (q === savedRef.current) return;
+    const w = strategy.weights;
+    const timer = setTimeout(() => {
+      savedRef.current = q;
+      patch({ weights: w });
+    }, 700);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- saves when the weights change, nothing else
+  }, [ownsWeights, weighting, strategy.weights]);
   // Copies the link at once (still inside the tap: Safari refuses a clipboard write that comes
   // after a network wait), then makes the basket viewable by link if it isn't yet.
   const share = async () => {
@@ -350,11 +437,19 @@ export function BasketDetail(p: BasketDetailProps) {
       setNote("Couldn’t delete the basket right now.");
     }
   };
+  // Custom weights that don't total 100% yet can't be saved as a new basket.
+  const customBlocked = weighting === "custom" && tickers.length > 0 && !weightsValid(customEdit ?? undefined, tickers);
   const copy = async () => {
     const here = `${window.location.pathname}${window.location.search}`;
+    if (customBlocked) return setNote(blockedNote);
     setBusy(true);
     if (!p.signedIn) return router.push(`/login?next=${encodeURIComponent(here)}`);
-    const body = p.mode === "industry" ? { sector: p.id, weighting: savedWeighting } : p.mode === "idea" ? { tickers, name: p.name, weighting: savedWeighting } : { copyFrom: p.id };
+    const body =
+      p.mode === "industry"
+        ? { sector: p.id, weighting: savedWeighting, ...savedWeights }
+        : p.mode === "idea"
+          ? { tickers, name: p.name, weighting: savedWeighting, ...savedWeights }
+          : { copyFrom: p.id, ...(weighting === "custom" ? { weighting: "custom", ...savedWeights } : {}) };
     const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
     const json = res ? await res.json().catch(() => null) : null;
     if (res?.ok && json?.id) router.push(withStrategy(`/baskets/${json.id}?edit=1`));
@@ -372,9 +467,10 @@ export function BasketDetail(p: BasketDetailProps) {
   // Create basket: saves the stocks picked so far under the name typed (numbered by the server if taken).
   const createDraft = async () => {
     if (!tickers.length) return;
+    if (customBlocked) return setNote(blockedNote);
     setBusy(true);
     setNote(null);
-    const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tickers, name: name.trim() || undefined, weighting: savedWeighting }) }).catch(() => null);
+    const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tickers, name: name.trim() || undefined, weighting: savedWeighting, ...savedWeights }) }).catch(() => null);
     const json = res ? await res.json().catch(() => null) : null;
     if (res?.ok && json?.id) return router.push(withStrategy(`/baskets/${json.id}`));
     setBusy(false);
@@ -420,7 +516,7 @@ export function BasketDetail(p: BasketDetailProps) {
   const WEIGHT_HELP: Record<WeightScheme, string> = {
     equal: "Every stock the same share",
     mcap: "By market cap",
-    capped: "By market cap, with a most per stock and per value-chain layer",
+    custom: "Set each stock's % yourself",
     layer: "Each value-chain layer the same share, split equally between its stocks",
   };
   const weightingControl = (
@@ -469,10 +565,8 @@ export function BasketDetail(p: BasketDetailProps) {
   );
   // A target weight wide enough for the band's example to have a lower trigger above zero.
   const bandEx = Math.max(20, strategy.band * 2);
-  const strategySettings = (weighting === "capped" || strategy.rebalance === "drift") && (
+  const strategySettings = strategy.rebalance === "drift" && (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      {weighting === "capped" && numSelect("Max stock", strategy.cap, CAP_CHOICES, "%", (v) => pickStrategy({ ...strategy, cap: v }))}
-      {weighting === "capped" && numSelect("Max layer", strategy.layerCap, LAYER_CAP_CHOICES, "%", (v) => pickStrategy({ ...strategy, layerCap: v }))}
       {strategy.rebalance === "drift" && (
         <span className="flex items-center gap-1.5">
           {numSelect("Band", strategy.band, BAND_CHOICES, " pts", (v) => pickStrategy({ ...strategy, band: v }))}
@@ -615,7 +709,7 @@ export function BasketDetail(p: BasketDetailProps) {
           </div>
           <div className="flex flex-none flex-wrap items-center gap-2">
             {draft ? (
-              <button type="button" onClick={createDraft} disabled={busy || !tickers.length} className={btnPri}>
+              <button type="button" onClick={createDraft} disabled={busy || !tickers.length} aria-disabled={customBlocked || undefined} className={btnPri}>
                 {busy ? "Creating…" : tickers.length ? `Create basket (${tickers.length})` : "Create basket"}
               </button>
             ) : canEdit ? (
@@ -637,13 +731,13 @@ export function BasketDetail(p: BasketDetailProps) {
                 </button>
               </>
             ) : p.mode === "idea" ? (
-              // Save keeps the idea as it is; Edit opens it on Create basket to change before saving
-              // (signed out, both go to sign in first).
+              // Save keeps the idea as it is; Edit opens it on Create basket to change before saving,
+              // with the weighting and rebalancing picked here (signed out, both go to sign in first).
               <>
                 <button type="button" onClick={copy} disabled={busy} className={btnPri}>
                   {busy ? "Creating…" : "Save as my basket"}
                 </button>
-                <Link href={`/baskets/new?idea=${encodeURIComponent(p.id)}`} className={btnSec + " inline-flex items-center"}>
+                <Link href={withStrategy(`/baskets/new?idea=${encodeURIComponent(p.id)}`, true)} className={btnSec + " inline-flex items-center"}>
                   Edit
                 </Link>
               </>
@@ -671,7 +765,7 @@ export function BasketDetail(p: BasketDetailProps) {
               <ul className="flex flex-col gap-1">
                 <li><b>Equal</b>: every stock the same share.</li>
                 <li><b>M-cap</b>: bigger companies get more, by market cap.</li>
-                <li><b>Capped</b>: by market cap, but no stock above Max stock and no value-chain layer above Max layer.</li>
+                <li><b>Custom</b>: you set each stock&rsquo;s %; they must total 100%.{ownsWeights ? " Saved with the basket." : ""}</li>
                 <li><b>Layers</b>: each value-chain layer the same share, split equally between its stocks.</li>
               </ul>
             </InfoTip>
@@ -714,6 +808,10 @@ export function BasketDetail(p: BasketDetailProps) {
 
       {/* Create basket: the industry and its stocks, like the Analysis charts' industry picker. */}
       {draft && <div className={PANEL + " px-3 py-2.5 sm:px-4"}>{picker("bar")}</div>}
+
+      {weighting === "custom" && stocks.length > 0 && (
+        <CustomWeights heading={heading} stocks={stocks} values={customEdit ?? {}} onChange={editWeights} onReset={resetToEqual} saves={ownsWeights} />
+      )}
 
       <div className="flex min-w-0 flex-col gap-2 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
 
@@ -1001,8 +1099,8 @@ export function BasketDetail(p: BasketDetailProps) {
           )}
 
           <p className="text-[11px] leading-relaxed text-ink-soft">
-            Backtest: bought on the first day of the period at {weighting === "equal" ? "equal weights" : weighting === "layer" ? "equal weights per value-chain layer (equal within each)" : weighting === "capped" ? `market-cap weights capped at ${strategy.cap}% a stock and ${strategy.layerCap}% a layer` : "weights by market cap"}
-            {weighting === "mcap" || weighting === "capped" ? " (today’s market caps, from our last data update, so slightly flattering to winners)" : ""}
+            Backtest: bought on the first day of the period at {weighting === "equal" ? "equal weights" : weighting === "layer" ? "equal weights per value-chain layer (equal within each)" : weighting === "custom" ? "your custom weights (a stock with no prices for the period has its share spread over the rest, in proportion)" : "weights by market cap"}
+            {weighting === "mcap" ? " (today’s market caps, from our last data update, so slightly flattering to winners)" : ""}
             {rebalanced
               ? `, then ${rebalanceLabel(strategy)}, trading at that day’s close${strategy.rebalance === "drift" ? " (the day after the drift is seen)" : ""}. Turnover and trades are shown, but no brokerage, taxes or slippage are taken off. Price change only, no dividends.`
               : " and held without rebalancing. Price change only, no dividends, costs or taxes."} Stocks listed during the period are left out of it, and the basket is today&rsquo;s list of stocks, so companies that fell out of the industry before now are missing. A tracking and research tool, not investment advice.
@@ -1060,6 +1158,104 @@ export function BasketDetail(p: BasketDetailProps) {
         </aside>
       </div>
     </div>
+  );
+}
+
+// Custom weighting: each stock's % as a typed number, a running total that has to reach 100% (the
+// backtest keeps the last weights that did until then), and Reset to equal.
+function CustomWeights({
+  heading,
+  stocks,
+  values,
+  onChange,
+  onReset,
+  saves,
+}: {
+  heading: "h2" | "h3";
+  stocks: BasketStock[];
+  values: Record<string, number>;
+  onChange: (next: Record<string, number>) => void;
+  onReset: () => void;
+  /** A saved basket of yours: the weights are kept with it. */
+  saves: boolean;
+}) {
+  const total = weightsTotal(Object.fromEntries(stocks.map((s) => [s.ticker, values[s.ticker] ?? 0])));
+  const off = Math.round((100 - total) * 10) / 10;
+  const ok = Math.abs(off) < 0.05;
+  return (
+    <Panel
+      heading={heading}
+      title={`Custom weights · ${stocks.length} stock${stocks.length > 1 ? "s" : ""}`}
+      label="Custom weights"
+      infoLabel="About custom weights"
+      info={
+        <>
+          Type each stock&rsquo;s share of the basket; together they must make 100%. Rebalancing trades back to these.
+          {saves ? " Saved with the basket." : ""}
+        </>
+      }
+      tools={
+        <>
+          <span className={"font-mono text-[11px] font-semibold " + (ok ? "text-pos" : "text-danger")}>Total {total.toFixed(1)}%</span>
+          <button type="button" onClick={onReset} className="inline-flex min-h-9 items-center rounded border border-line bg-bg px-2 text-[11px] font-semibold text-ink hover:border-accent sm:min-h-6 pointer-coarse:min-h-9">
+            Reset to equal
+          </button>
+        </>
+      }
+    >
+      <p role="status" className={"px-3 pt-1.5 text-[11px] leading-snug " + (ok ? "text-ink-soft" : "font-semibold text-danger")}>
+        {ok
+          ? "The backtest uses these weights."
+          : `Total is ${total.toFixed(1)}%: ${off > 0 ? `add ${off.toFixed(1)}%` : `take off ${(-off).toFixed(1)}%`} to make 100%. The backtest waits until then.`}
+      </p>
+      <ul className="grid max-h-72 grid-cols-1 gap-x-4 overflow-y-auto overscroll-contain px-3 py-1 sm:grid-cols-2 lg:grid-cols-3">
+        {stocks.map((s) => (
+          <li key={s.ticker} className="flex items-center gap-2 border-b border-line/60 py-1">
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-xs font-semibold text-ink" title={s.name}>
+                {s.name}
+              </span>
+              <span className="block truncate font-mono text-[10px] text-ink-soft">{s.ticker}</span>
+            </span>
+            <WeightInput label={`${s.name} weight, %`} value={values[s.ticker] ?? 0} onCommit={(v) => onChange({ ...values, [s.ticker]: v })} />
+          </li>
+        ))}
+      </ul>
+    </Panel>
+  );
+}
+
+// A % field that lets "12." or an empty box sit while typing; any number it can read goes up at once.
+function WeightInput({ label, value, onCommit }: { label: string; value: number; onCommit: (v: number) => void }) {
+  const [text, setText] = useState<string | null>(null);
+  const read = (v: string) => {
+    const n = Number(v.replace(",", "."));
+    return v.trim() !== "" && Number.isFinite(n) ? Math.min(100, Math.max(0, Math.round(n * 100) / 100)) : null;
+  };
+  return (
+    <label className="flex flex-none items-center gap-1">
+      <input
+        type="text"
+        inputMode="decimal"
+        aria-label={label}
+        value={text ?? String(value)}
+        onChange={(e) => {
+          setText(e.target.value);
+          const n = read(e.target.value);
+          if (n != null) onCommit(n);
+        }}
+        onFocus={(e) => e.target.select()}
+        onBlur={() => {
+          if (text != null && read(text) == null) onCommit(0);
+          setText(null);
+        }}
+        // 16px on phones, so iOS doesn't zoom the page on focus.
+        className="min-h-9 w-16 rounded border border-line bg-bg px-1.5 text-right font-mono text-base text-ink focus:border-accent focus:outline-none sm:min-h-7 sm:text-xs pointer-coarse:min-h-9"
+      />
+      <span aria-hidden className="font-mono text-[11px] text-ink-soft">
+        %
+      </span>
+    </label>
   );
 }
 

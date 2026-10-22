@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } fr
 import { seriesStats, relativeStats } from "@/lib/baskets/stats";
 import { Panel } from "./Panel";
 import { loadSeries, savedBasketQuery } from "./series";
+import { heldStrategy, strategyQuery } from "@/lib/baskets/strategy";
 
 // The Baskets page's dense tables: one row per basket with its 1Y return, deepest fall and lead
 // over the Nifty 50. Figures load in the browser after the page shows, through the same series
@@ -12,7 +13,7 @@ import { loadSeries, savedBasketQuery } from "./series";
 // A shared queue keeps at most a few backtests in flight (an account may keep 50 baskets).
 
 /** A saved basket of the viewer's, as the page hands it over (plain, serializable). */
-export type SavedRow = { kind: "saved"; id: string; name: string; isPublic: boolean; weighting: "equal" | "mcap"; tickers: string[]; names: string[] };
+export type SavedRow = { kind: "saved"; id: string; name: string; isPublic: boolean; weighting: "equal" | "mcap" | "custom"; weights?: Record<string, number> | null; tickers: string[]; names: string[] };
 /** An industry or policy basket (every listed stock it maps, equal weight). */
 export type IndustryRow = { kind: "industry"; slug: string; name: string; category: "sector" | "policy"; count: number };
 export type BasketRow = SavedRow | IndustryRow;
@@ -24,7 +25,7 @@ const RANGE = "1Y" as const;
 const BENCH = "b:nifty50";
 const MAX_INFLIGHT = 4;
 
-const keyOf = (r: BasketRow) => (r.kind === "saved" ? `x:${savedBasketQuery(r.id, `w=${r.weighting}`, r.tickers)}` : `x:sector=${r.slug}&w=equal`);
+const keyOf = (r: BasketRow) => (r.kind === "saved" ? `x:${savedBasketQuery(r.id, strategyQuery(heldStrategy(r.weighting, r.weights ?? undefined)), r.tickers)}` : `x:sector=${r.slug}&w=equal`);
 const hrefOf = (r: BasketRow) => (r.kind === "saved" ? `/baskets/${r.id}` : `/baskets/industry/${r.slug}`);
 const countOf = (r: BasketRow) => (r.kind === "saved" ? r.tickers.length : r.count);
 
@@ -265,7 +266,7 @@ export function BasketsTable({ rows, sort, onSort, label }: { rows: BasketRow[];
                       <span className="min-w-0">
                         <span className="line-clamp-2 break-words">
                           <span className="sm:hidden">{stocksWord} · </span>
-                          {r.weighting === "mcap" ? "Mcap wt" : "Equal wt"}
+                          {r.weighting === "mcap" ? "Mcap wt" : r.weighting === "custom" ? "Custom wt" : "Equal wt"}
                           {r.names.length > 0 && ` · ${r.names.slice(0, 3).join(", ")}${r.names.length > 3 ? ` +${r.names.length - 3}` : ""}`}
                         </span>
                         {ddNote}

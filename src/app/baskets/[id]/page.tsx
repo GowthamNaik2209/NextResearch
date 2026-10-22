@@ -47,6 +47,7 @@ export default async function SavedBasketPage({ params }: { params: Promise<{ id
           stocks={stocks}
           addPrices={Object.fromEntries(b.items.map((i) => [i.ticker, i.priceAtAdd]))}
           weighting={b.weighting}
+          customWeights={b.weights}
           isOwner={b.isOwner}
           isPublic={b.isPublic}
           signedIn={!!user}

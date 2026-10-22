@@ -1,9 +1,9 @@
-// Basket strategies on top of the backtest: target weights (equal, market cap, capped market cap,
+// Basket strategies on top of the backtest: target weights (equal, market cap, custom,
 // layer-balanced) and a backtest that puts the basket back to those targets on a schedule
 // (monthly, quarterly, or when a stock drifts too far off target), counting the trades and
 // turnover that takes. Pure (no fetching), so it is unit-tested on its own, like backtest.ts.
 import { splitHeld, type BacktestInput, type BacktestResult, type PricePoint } from "./backtest";
-import type { RebalanceRule, WeightScheme } from "./strategy";
+import { customTargets, type RebalanceRule, type WeightScheme } from "./strategy";
 
 export type WeightStock = { ticker: string; mcapCr: number | null; layer: string };
 
@@ -18,8 +18,6 @@ export type RebalancedResult = BacktestResult & {
   rebalances: Rebalance[];
 };
 
-const EPS = 1e-9;
-
 const median = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b);
   return s.length ? s[Math.floor(s.length / 2)] : 1;
@@ -27,16 +25,15 @@ const median = (xs: number[]) => {
 
 /**
  * Target weights (summing to 1) for the stocks actually held. Equal and market cap match
- * basketWeights (a stock with no market cap gets the median); capped market cap holds every stock
- * to `cap`% and every layer to `layerCap`%, handing the excess to the rest in proportion to their
- * market caps; layer-balanced splits the basket equally between layers, then equally within each.
- * A cap too tight for the basket (5 stocks at 15% can't add up to 100%) is loosened to the
- * smallest that fits: 1/n per stock, 1/layers per layer.
+ * basketWeights (a stock with no market cap gets the median); custom takes each stock's own %
+ * (see customTargets); layer-balanced splits the basket equally between layers, then equally
+ * within each.
  */
-export function targetWeights(stocks: WeightStock[], scheme: WeightScheme, cap = 15, layerCap = 35): Map<string, number> {
+export function targetWeights(stocks: WeightStock[], scheme: WeightScheme, custom?: Record<string, number>): Map<string, number> {
   const n = stocks.length;
   if (!n) return new Map();
   if (scheme === "equal") return new Map(stocks.map((s) => [s.ticker, 1 / n]));
+  if (scheme === "custom") return customTargets(stocks.map((s) => s.ticker), custom);
   if (scheme === "layer") {
     const per = new Map<string, number>();
     for (const s of stocks) per.set(s.layer, (per.get(s.layer) ?? 0) + 1);
@@ -45,60 +42,7 @@ export function targetWeights(stocks: WeightStock[], scheme: WeightScheme, cap =
   const med = median(stocks.map((s) => s.mcapCr).filter((v): v is number => v != null && v > 0));
   const raw = stocks.map((s) => (s.mcapCr && s.mcapCr > 0 ? s.mcapCr : med));
   const sum = raw.reduce((a, b) => a + b, 0);
-  const w = raw.map((v) => v / sum);
-  if (scheme === "mcap") return new Map(stocks.map((s, i) => [s.ticker, w[i]]));
-
-  // Two levels of water-filling, as cap-weighted indices do it: layers share the basket by market
-  // cap, none above its cap (nor above what its stocks can hold at their own cap); then each
-  // layer's share goes to its stocks by market cap, none above the stock cap.
-  const layers = [...new Set(stocks.map((s) => s.layer))];
-  const sCap = Math.max(cap / 100, 1 / n);
-  const lCap = Math.max(layerCap / 100, 1 / layers.length);
-  const members = layers.map((l) => stocks.map((s, i) => (s.layer === l ? i : -1)).filter((i) => i >= 0));
-  const budgets = waterfill(
-    members.map((m) => m.reduce((a, i) => a + raw[i], 0)),
-    members.map((m) => Math.min(lCap, m.length * sCap)),
-    1,
-  );
-  const out = new Array<number>(n).fill(0);
-  members.forEach((m, l) => {
-    const within = waterfill(
-      m.map((i) => raw[i]),
-      m.map(() => sCap),
-      budgets[l],
-    );
-    m.forEach((i, k) => (out[i] = within[k]));
-  });
-  // Caps that can't all hold together (one stock alone in its layer, say) leave some unplaced:
-  // spread it in proportion, going over the caps as little as the basket allows.
-  const total = out.reduce((a, b) => a + b, 0);
-  return new Map(stocks.map((s, i) => [s.ticker, out[i] / total]));
-}
-
-/**
- * Splits `budget` in proportion to `raw`, none above its cap: whatever a capped item can't take
- * goes to the rest, in proportion again, until nothing is over. Leaves budget unplaced only when
- * every item is at its cap.
- */
-function waterfill(raw: number[], caps: number[], budget: number): number[] {
-  const out = raw.map(() => 0);
-  const free = new Set(raw.map((_, i) => i));
-  let left = budget;
-  while (left > EPS && free.size) {
-    const base = [...free].reduce((a, i) => a + raw[i], 0);
-    const share = (i: number) => (base > 0 ? (left * raw[i]) / base : left / free.size);
-    const over = [...free].filter((i) => out[i] + share(i) > caps[i] + EPS);
-    if (!over.length) {
-      for (const i of free) out[i] += share(i);
-      break;
-    }
-    for (const i of over) {
-      left -= caps[i] - out[i];
-      out[i] = caps[i];
-      free.delete(i);
-    }
-  }
-  return out;
+  return new Map(stocks.map((s, i) => [s.ticker, raw[i] / sum]));
 }
 
 const monthOf = (t: string) => t.slice(0, 7);

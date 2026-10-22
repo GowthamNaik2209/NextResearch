@@ -24,7 +24,7 @@ export default async function BasketsPage() {
   let mineFailed = false;
   const mine = user
     ? await prisma.basket
-        .findMany({ where: { userId: user.id }, include: { items: { select: { ticker: true } } }, orderBy: { createdAt: "desc" } })
+        .findMany({ where: { userId: user.id }, include: { items: { select: { ticker: true, weight: true } } }, orderBy: { createdAt: "desc" } })
         .catch((e: unknown) => {
           console.error("[baskets] loading the user's baskets failed", e);
           mineFailed = true;
@@ -41,7 +41,8 @@ export default async function BasketsPage() {
       id: b.id,
       name: b.name,
       isPublic: b.isPublic,
-      weighting: b.weighting === "MCAP" ? "mcap" : "equal",
+      weighting: b.customWeighting ? "custom" : b.weighting === "MCAP" ? "mcap" : "equal",
+      weights: b.customWeighting ? Object.fromEntries(b.items.filter((i) => i.weight != null).map((i) => [i.ticker, i.weight!])) : null,
       tickers: stocks.map((s) => s.ticker),
       names: stocks.map((s) => s.name),
     };

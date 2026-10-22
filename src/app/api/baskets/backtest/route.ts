@@ -11,10 +11,11 @@ import { ensureFinancials } from "@/lib/financials/load";
 export const maxDuration = 60;
 
 // GET /api/baskets/backtest?range=1Y&(sector=ev4w | id=<basket id> | tickers=A,B,C)
-//   [&w=equal|mcap|capped|layer][&cap=15&lcap=35][&rb=never|monthly|quarterly|drift][&band=5]
+//   [&w=equal|mcap|custom|layer][&cw=TCS:40,INFY:60][&rb=never|monthly|quarterly|drift][&band=5]
 // Returns the basket's value (100 on day one) plus each holding's return and contribution, and
 // the turnover and trades its rebalancing took. With no strategy parameters it is bought at equal
-// weights (a saved basket: its own weighting) and held, as it always has been.
+// weights (a saved basket: its own weighting) and held, as it always has been. Custom with no cw
+// reads a saved basket's own weights (equal for any other basket); "capped" reads as market cap.
 export async function GET(req: Request) {
   await ensureFinancials();
   const q = new URL(req.url).searchParams;
@@ -31,7 +32,7 @@ export async function GET(req: Request) {
     const b = getIndustryBasket(sector);
     if (!b) return NextResponse.json({ error: "unknown industry" }, { status: 404 });
     tickers = b.stocks.map((s) => s.ticker);
-    // Its stocks' layers within this industry, for the capped and layer-balanced weightings.
+    // Its stocks' layers within this industry, for the layer-balanced weighting.
     layers = new Map(b.stocks.map((s) => [s.ticker, s.layer]));
   } else if (id) {
     const user = await getCurrentUser();
@@ -39,6 +40,7 @@ export async function GET(req: Request) {
     if (!b) return NextResponse.json({ error: "not found" }, { status: 404 });
     tickers = b.items.map((i) => i.ticker);
     if (!q.get("w")) strategy = parseStrategy(q, b.weighting);
+    if (strategy.weighting === "custom" && !strategy.weights && b.weights) strategy = { ...strategy, weights: b.weights };
     shared = b.isPublic;
   } else {
     tickers = cleanTickers((q.get("tickers") ?? "").split(","));

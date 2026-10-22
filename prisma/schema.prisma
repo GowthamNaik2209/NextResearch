@@ -173,17 +173,20 @@ enum BasketWeighting {
 }
 
 model Basket {
-  id           String          @id @default(cuid())
-  userId       String
-  user         Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name         String
-  description  String?
-  sourceSector String?
-  weighting    BasketWeighting @default(EQUAL)
-  isPublic     Boolean         @default(false)
-  items        BasketItem[]
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  id              String          @id @default(cuid())
+  userId          String
+  user            Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  sourceSector    String?
+  weighting       BasketWeighting @default(EQUAL)
+  // Custom weighting: each item's own weight (BasketItem.weight). A flag rather than a new enum
+  // value, so code that only knows EQUAL and MCAP still reads every row (it sees `weighting`).
+  customWeighting Boolean         @default(false)
+  isPublic        Boolean         @default(false)
+  items           BasketItem[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@index([userId])
 }
@@ -196,6 +199,8 @@ model BasketItem {
   basket     Basket   @relation(fields: [basketId], references: [id], onDelete: Cascade)
   ticker     String
   priceAtAdd Decimal?
+  // Custom weighting: the stock's target, % of the basket (the items total 100). Null otherwise.
+  weight     Float?
   addedAt    DateTime @default(now())
 
   @@unique([basketId, ticker])

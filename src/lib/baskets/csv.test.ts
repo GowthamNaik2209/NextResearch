@@ -64,7 +64,7 @@ test("a rebalanced basket names its strategy and lists each rebalance", () => {
   const csv = basketCsv({
     name: "X",
     range: "5Y",
-    strategy: { weighting: "capped", rebalance: "monthly", band: 5, cap: 15, layerCap: 35 },
+    strategy: { weighting: "custom", rebalance: "monthly", band: 5, weights: { A: 100 } },
     benchName: "Nifty 50",
     points,
     bench: null,
@@ -78,7 +78,7 @@ test("a rebalanced basket names its strategy and lists each rebalance", () => {
     exportedAt: new Date(),
   });
   const lines = csv.trim().split("\r\n");
-  assert.ok(lines.includes('Weighting,"Capped market cap (max 15% a stock, 35% a layer)"'));
+  assert.ok(lines.includes("Weighting,Custom (each stock's % set by hand)"));
   assert.ok(lines.includes("Rebalancing,rebalanced monthly"));
   assert.ok(lines.includes("Trades,4") && lines.includes("Turnover % (one way),12.5"));
   assert.ok(lines.some((l) => l.startsWith("Ticker,Name,Layer,Target weight %")));
