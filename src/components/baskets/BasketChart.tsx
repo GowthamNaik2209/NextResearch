@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
-import { ColorType, CrosshairMode, LineSeries, LineStyle, createChart, type IChartApi, type ISeriesApi, type Time } from "lightweight-charts";
+import { ColorType, CrosshairMode, LineSeries, LineStyle, TickMarkType, createChart, type IChartApi, type ISeriesApi, type Time } from "lightweight-charts";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import { StockLink } from "@/components/stock/StockLink";
 import { ZOOM_OPTIONS, ZoomControls, useChartZoom } from "@/components/charts/ChartZoom";
 import { onSharedGrid, sharedInterval } from "@/lib/live/ohlc-format";
-import { DASHARRAY, MenuButton, SLOTS, STYLE, Switch, type Dash } from "@/components/research/SectorCharts";
-import { loadSeries, type Load } from "./series";
+import { DASHARRAY, SLOTS, STYLE, type Dash } from "@/components/charts/palette";
+import { MenuButton, Switch } from "@/components/charts/controls";
+import { cssVar, useSiteTheme, type SiteTheme } from "@/lib/theme";
+import { axisPct, fmtDay, fmtMonth, NA, signedPct } from "@/lib/format";
+import { slackDaysFor } from "@/lib/baskets/backtest";
+import { useSeries } from "./use-series";
 
 // A basket's backtest beside the market, its industry's index and other industry baskets, on the
 // Analysis charts' conventions: every line starts at 0% on the first day shown, benchmarks are
@@ -19,38 +23,26 @@ export type CompareBasket = { slug: string; name: string; icon: string };
 // solid first, then long-dashed, then dotted, so 18 stocks can be told apart.
 const STOCK_DASH: Dash[] = ["solid", "long", "dot"];
 export const MAX_CHART_STOCKS = 6 * STOCK_DASH.length;
-const MAX_STOCKS = MAX_CHART_STOCKS;
-export function stockLine(theme: "light" | "dark", slot: number): { color: string; dash: Dash } {
+export function stockLine(theme: SiteTheme, slot: number): { color: string; dash: Dash } {
   return { color: SLOTS[theme][slot % 6], dash: STOCK_DASH[Math.floor(slot / 6) % STOCK_DASH.length] };
 }
 const MAX_COMPARE = 3;
 const COMPARE_DASH: Dash[] = ["long", "dash", "dot"];
 
-type Theme = "light" | "dark";
 type Line = { key: string; name: string; note?: string; color: string; token?: string; width: 2 | 3; dash: Dash; stock?: string };
 
-const cssVar = (name: string, fallback: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
-const readTheme = (): Theme => (document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
-/** The site's light/dark theme, following the toggle live (line colours differ per theme). */
-export function useSiteTheme(): Theme {
-  const [theme, setTheme] = useState<Theme>("light");
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of the theme set by the inline script
-    setTheme(readTheme());
-    const mo = new MutationObserver(() => setTheme(readTheme()));
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => mo.disconnect();
-  }, []);
-  return theme;
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/**
+ * The time axis' labels: a year where the year turns, a short month otherwise, and a day only
+ * with its month ("12 Oct"), never a bare "12". The library's own labels follow the browser's
+ * locale ("Sept") and print a lone day number where a short range ends mid-month.
+ */
+function tickLabel(time: Time, type: TickMarkType): string {
+  const d = typeof time === "string" ? new Date(`${time}T00:00:00Z`) : typeof time === "number" ? new Date(time * 1000) : new Date(Date.UTC(time.year, time.month - 1, time.day));
+  if (type === TickMarkType.Year) return String(d.getUTCFullYear());
+  if (type === TickMarkType.Month) return MONTHS[d.getUTCMonth()];
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
 }
-export const pct = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}%`;
-// Axis ticks: whole steps drop the ".0" (+8%, not +8.0%); half steps keep it (−12.5%, not −13%).
-const axisPct = (v: number) => {
-  const a = Math.round(Math.abs(v) * 10) / 10;
-  return `${v > 0 && a ? "+" : v < 0 && a ? "−" : ""}${a.toFixed(Number.isInteger(a) ? 0 : 1)}%`;
-};
-const day = (t: string) => new Date(t).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-const month = (t: string) => new Date(t).toLocaleDateString("en-IN", { month: "short", year: "numeric" });
 
 /** What the reader has switched on: indices, other industry baskets, and stocks (ticker → palette slot). */
 export type ChartSelection = { benches: string[]; compare: string[]; picks: Record<string, number> };
@@ -107,7 +99,6 @@ export function BasketChart({
   const setCompare = (f: (c: string[]) => string[]) => onSelection((s) => ({ ...s, compare: f(s.compare) }));
   const [menu, setMenu] = useState<"compare" | "stocks" | null>(null);
   const [menuLeft, setMenuLeft] = useState(0);
-  const [loads, setLoads] = useState<Record<string, Load>>({});
   const [hover, setHover] = useState<{ t: string; values: Record<string, number> } | null>(null);
   const theme = useSiteTheme();
   const [query, setQuery] = useState("");
@@ -163,28 +154,18 @@ export function BasketChart({
     return out;
   }, [basketKey, basketName, held, compare, industries, strategy, indices, market, benches, stocks, picks, theme]);
 
-  const fetchLine = (key: string, fresh = false) => {
-    const id = `${key}|${range}`;
-    setLoads((m) => ({ ...m, [id]: { status: "loading" } }));
-    loadSeries(key, range, fresh).then((l) => setLoads((m) => ({ ...m, [id]: l })));
-  };
-  useEffect(() => {
-    for (const l of lines) {
-      const id = `${l.key}|${range}`;
-      if (loads[id]) continue;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the switched-on lines as loading, then fetches them
-      setLoads((m) => ({ ...m, [id]: { status: "loading" } }));
-      loadSeries(l.key, range).then((r) => setLoads((m) => ({ ...m, [id]: r })));
-    }
-  }, [lines, range, loads]);
+  const { get: loadOf, retry } = useSeries(
+    lines.map((l) => l.key),
+    range,
+  );
 
   const series = useMemo(() => {
     const ok = lines.flatMap((l) => {
-      const ld = loads[`${l.key}|${range}`];
+      const ld = loadOf(l.key);
       return ld?.status === "ok" && ld.data.points.length > 1 ? [{ line: l, points: ld.data.points }] : [];
     });
     const start = ok.reduce<string | null>((m, s) => (!m || s.points[0].t < m ? s.points[0].t : m), null);
-    const slackDays = range === "3Y" || range === "5Y" ? 35 : 10;
+    const slackDays = slackDaysFor(range);
     // One date grid for every line, so a daily line beside weekly ones can't stretch the axis.
     const grid = onSharedGrid(ok.map((s) => s.points));
     const step = sharedInterval(ok.map((s) => s.points));
@@ -208,7 +189,7 @@ export function BasketChart({
     const count = new Set(list.flatMap((s) => s.values.map((v) => v.time as string))).size;
     const home = count > 1 ? { from: 0, to: count - 1 } : null;
     return { start: drawnStart, end: drawnEnd, list, home, step, short: new Map(all.filter(isShort).map((s) => [s.line.key, s.late!])) };
-  }, [lines, loads, range]);
+  }, [lines, loadOf, range]);
 
   useEffect(() => {
     const el = boxRef.current;
@@ -219,7 +200,7 @@ export function BasketChart({
       layout: { background: { type: ColorType.Solid, color: "transparent" }, textColor: cssVar("--ink-soft", "#888"), fontFamily: "IBM Plex Mono, monospace", fontSize: 11 },
       grid: { vertLines: { visible: false }, horzLines: { color: cssVar("--grid", "#ddd") } },
       rightPriceScale: { borderVisible: false },
-      timeScale: { borderVisible: false, timeVisible: false, fixLeftEdge: true, fixRightEdge: true, lockVisibleTimeRangeOnResize: true },
+      timeScale: { borderVisible: false, timeVisible: false, fixLeftEdge: true, fixRightEdge: true, lockVisibleTimeRangeOnResize: true, tickMarkFormatter: tickLabel },
       crosshair: { mode: CrosshairMode.Normal },
       localization: { priceFormatter: (v: number) => axisPct(v) },
       ...ZOOM_OPTIONS,
@@ -279,7 +260,7 @@ export function BasketChart({
   }, [series, theme]);
 
   const picked = Object.keys(picks).length;
-  const full = picked >= MAX_STOCKS;
+  const full = picked >= MAX_CHART_STOCKS;
   const toggleStock = (t: string) => {
     onPick?.();
     setPicks((p) => {
@@ -288,9 +269,9 @@ export function BasketChart({
         delete rest[t];
         return rest;
       }
-      if (Object.keys(p).length >= MAX_STOCKS) return p;
+      if (Object.keys(p).length >= MAX_CHART_STOCKS) return p;
       const used = new Set(Object.values(p));
-      return { ...p, [t]: [...Array(MAX_STOCKS).keys()].find((i) => !used.has(i))! };
+      return { ...p, [t]: [...Array(MAX_CHART_STOCKS).keys()].find((i) => !used.has(i))! };
     });
   };
   const toggleBench = (id: string) => setBenches((b) => (b.includes(id) ? b.filter((x) => x !== id) : [...b, id]));
@@ -301,10 +282,10 @@ export function BasketChart({
     .map((l) => {
       const s = byKey.get(l.key);
       const value = hover ? hover.values[l.key] : s?.last;
-      return { line: l, value: series.short.has(l.key) ? undefined : value, late: s?.late ?? series.short.get(l.key) ?? null, short: series.short.has(l.key), load: loads[`${l.key}|${range}`] };
+      return { line: l, value: series.short.has(l.key) ? undefined : value, late: s?.late ?? series.short.get(l.key) ?? null, short: series.short.has(l.key), load: loadOf(l.key) };
     })
     .sort((a, b) => (a.line.key === basketKey ? -1 : b.line.key === basketKey ? 1 : (b.value ?? -Infinity) - (a.value ?? -Infinity)));
-  const anyLoading = lines.some((l) => loads[`${l.key}|${range}`]?.status !== "ok" && loads[`${l.key}|${range}`]?.status !== "error");
+  const anyLoading = lines.some((l) => loadOf(l.key)?.status !== "ok" && loadOf(l.key)?.status !== "error");
   const etfs = indices.filter((b) => b.via && benches.includes(b.id));
   const compareCount = compare.length + [...indices, ...market].filter((b) => benches.includes(b.id)).length;
   const q = query.trim().toLowerCase();
@@ -357,6 +338,7 @@ export function BasketChart({
                           key={b.slug}
                           on={on}
                           disabled={!on && compare.length >= MAX_COMPARE}
+                          disabledTitle={`Up to ${MAX_COMPARE} industry baskets at a time`}
                           onToggle={() => toggleCompare(b.slug)}
                           label={b.name}
                           sub={`${b.icon} basket`}
@@ -372,10 +354,10 @@ export function BasketChart({
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">{stocks.length} in this basket</span>
                     <span className="font-mono text-[11px] text-ink-soft">
-                      {picked}/{MAX_STOCKS} on
+                      {picked === stocks.length ? `all ${picked} on` : `${picked} of ${stocks.length} on`}
                     </span>
                   </div>
-                  {full && <p className="mt-1 text-xs text-ink-soft">Up to {MAX_STOCKS} at a time. Switch one off to add another.</p>}
+                  {full && <p className="mt-1 text-xs text-ink-soft">Up to {MAX_CHART_STOCKS} lines at a time. Switch one off to add another.</p>}
                   {stocks.length > 12 && (
                     <input
                       type="search"
@@ -395,6 +377,7 @@ export function BasketChart({
                           key={st.ticker}
                           on={on}
                           disabled={!on && full}
+                          disabledTitle={`Up to ${MAX_CHART_STOCKS} stocks at a time`}
                           onToggle={() => toggleStock(st.ticker)}
                           label={st.name}
                           sub={st.ticker}
@@ -429,13 +412,13 @@ export function BasketChart({
 
       <div>
         <div className="mb-1.5 flex items-baseline justify-between text-[11px] uppercase tracking-wide text-ink-soft">
-          <span>{hover ? `${series.step === "1wk" ? "Week of" : series.step === "1mo" ? "Month of" : "On"} ${day(hover.t)}` : `Return, past ${rangeLong}`}</span>
+          <span>{hover ? `${series.step === "1wk" ? "Week of" : series.step === "1mo" ? "Month of" : "On"} ${fmtDay(hover.t)}` : `Return, past ${rangeLong}`}</span>
           {anyLoading && series.list.length > 0 && <span className="normal-case tracking-normal">Loading…</span>}
         </div>
         <ul className="divide-y divide-line rounded-xl border border-line bg-bg/60">
           {rows.map(({ line, value, late, short, load }) => {
             const failed = load?.status === "error";
-            const sub = [line.note, short && late ? `history from ${month(late)}, pick a shorter range` : late ? `data from ${month(late)}` : null, failed ? "no price data available" : null]
+            const sub = [line.note, short && late ? `history from ${fmtMonth(late)}, pick a shorter range` : late ? `data from ${fmtMonth(late)}` : null, failed ? "no price data available" : null]
               .filter(Boolean)
               .join(" · ");
             const mine = line.key === basketKey;
@@ -459,13 +442,13 @@ export function BasketChart({
                 </span>
                 <span className="shrink-0 font-mono text-sm font-semibold text-ink">
                   {failed ? (
-                    <button type="button" onClick={() => fetchLine(line.key, true)} className="text-xs font-semibold text-accent underline">
+                    <button type="button" onClick={() => retry(line.key)} className="text-xs font-semibold text-accent underline">
                       Retry
                     </button>
                   ) : value != null ? (
-                    pct(value)
+                    signedPct(value)
                   ) : (
-                    <span className="text-ink-soft">—</span>
+                    <span className="text-ink-soft">{NA}</span>
                   )}
                 </span>
               </li>

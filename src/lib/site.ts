@@ -1,3 +1,5 @@
+import { listSectors } from "@/lib/sector-content";
+
 // The canonical public origin, used for metadataBase, canonical URLs, the sitemap and
 // robots.txt. NEXT_PUBLIC_SITE_URL wins when set (set it to the custom domain once one is
 // attached); otherwise Vercel's own production URL, which Vercel switches to the custom
@@ -13,8 +15,23 @@ function resolveSiteUrl(): string {
 export const SITE_URL = resolveSiteUrl();
 export const SITE_NAME = "NextResearch";
 export const SITE_TAGLINE = "Supply-chain research for India's public markets";
+// No list of themes here: a hand-typed list drifted from the content (this is read at import time,
+// before the content can be). Pages that name the themes use themeNames() below.
 export const SITE_DESCRIPTION =
-  "Map India's listed companies by where they sit in an industry's supply chain - data centres, EVs, chips and phones, electronic components, rare-earth magnets, railways, defence, solar, real estate, pharma and more - then deep-dive into any company's financials.";
+  "Map India's listed companies by where they sit in an industry's or a policy's supply chain, layer by layer, then deep-dive into any company's financials, peers and risks.";
+
+/**
+ * The live industries and policies as a phrase for descriptions and share cards, from the content
+ * itself so it never drifts: "electric 4-wheeler, semiconductors, data center, … and pharmaceuticals".
+ * Parentheticals and "/ …" tails are dropped for length. Call after ensureFinancials().
+ */
+export function themeNames(max = Infinity): string {
+  const names = listSectors()
+    .filter((s) => !s.muted)
+    .map((s) => midSentence(s.name.replace(/\s*\(.*?\)/g, "").split(" / ")[0].trim()));
+  if (names.length > max) return `${names.slice(0, max).join(", ")} and more`;
+  return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : names.join("");
+}
 
 // Brand tokens for places CSS variables can't reach (OG images via satori). Keep in sync
 // with globals.css's light theme.

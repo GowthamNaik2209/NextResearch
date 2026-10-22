@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { listSectors } from "@/lib/sector-content";
 import { listCompanyPages } from "@/lib/sector-content/companies";
-import { buildDeck } from "@/lib/sector-content/reports";
+import { cachedDeck } from "@/lib/analysis-props";
 import { SITE_URL } from "@/lib/site";
 import { ensureFinancials } from "@/lib/financials/load";
 
@@ -23,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/updates`, lastModified: now, changeFrequency: "daily", priority: 0.6 },
     ...sectors.map((s) => ({ url: `${SITE_URL}/sector/${s.slug}`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.9 })),
     ...sectors
-      .filter((s) => buildDeck(s.slug))
+      .filter((s) => cachedDeck(s.slug))
       .map((s) => ({ url: `${SITE_URL}/docs/${s.slug}`, lastModified: now, changeFrequency: "monthly" as const, priority: 0.6 })),
     ...listCompanyPages().map((c) => ({
       url: `${SITE_URL}/company/${c.slug}`,

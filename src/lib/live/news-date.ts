@@ -3,9 +3,18 @@
 
 const HOUR = 3_600_000;
 
-/** "3h ago" for the last 24 hours, "12 Oct 2026" (IST calendar date) for older ones. */
+// Times that mean "this day, time unknown": Google News dates many stories 07:00:00 GMT (12:30
+// IST) when the publisher gave no time, and curated items are parsed at UTC or IST midnight. A
+// dozen such stories all read "Just now" at once at 12:30 IST, so these get the date instead.
+const DATE_ONLY_UTC_MINUTES = new Set([0, 7 * 60, 18 * 60 + 30]);
+export function isDateOnly(ts: number): boolean {
+  const d = new Date(ts);
+  return d.getUTCSeconds() === 0 && d.getUTCMilliseconds() === 0 && DATE_ONLY_UTC_MINUTES.has(d.getUTCHours() * 60 + d.getUTCMinutes());
+}
+
+/** "3h ago" for the last 24 hours, "12 Oct 2026" (IST calendar date) for older ones and date-only stamps. */
 export function formatNewsDate(ts: number, now = Date.now()): string {
-  const hours = (now - ts) / HOUR;
+  const hours = isDateOnly(ts) ? Infinity : (now - ts) / HOUR;
   if (hours < 1) return "Just now";
   if (hours < 24) return `${Math.floor(hours)}h ago`;
   return new Date(ts).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });

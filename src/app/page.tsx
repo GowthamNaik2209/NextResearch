@@ -1,12 +1,10 @@
 import { listSectors } from "@/lib/sector-content";
-import { buildHeroThemeRows, buildSearchIndex, getPlatformStats } from "@/lib/sector-content/stats";
-import { buildIdeas, dataAsOfRange } from "@/lib/sector-content/insights";
+import { dataAsOfRange } from "@/lib/sector-content/insights";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ReadingList } from "@/components/research/ReadingList";
 import { getCurrentUser } from "@/lib/auth";
-import { analysisProps, analysisView } from "@/lib/analysis-props";
-import { listIpoDecks } from "@/lib/ipo-content";
+import { analysisProps, analysisView, cachedHeroThemeRows, cachedIdeas, cachedPlatformStats, cachedSearchIndex } from "@/lib/analysis-props";
 import { IdeasSection } from "@/components/IdeasSection";
 import { Hero } from "@/components/landing/Hero";
 import { StatsStrip } from "@/components/landing/StatsStrip";
@@ -27,7 +25,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const sectors = listSectors();
   // The sector previewed in the hero and featured below: Data Center if it has a thesis,
   // otherwise the first live sector that does.
-  const ipos = listIpoDecks();
   const featured = sectors.find((s) => s.slug === "datacenter" && s.thesisSummary?.length) ?? sectors.find((s) => s.thesisSummary?.length && !s.muted);
 
   return (
@@ -35,8 +32,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <SiteHeader />
       <main className="flex-1">
         <section className="border-b border-line">
-          <Hero featured={featured} searchIndex={buildSearchIndex()} themeRows={buildHeroThemeRows(featured?.slug)} ipos={ipos} />
-          <StatsStrip stats={getPlatformStats()} />
+          <Hero featured={featured} searchIndex={cachedSearchIndex()} themeRows={cachedHeroThemeRows(featured?.slug)} />
+          <StatsStrip stats={cachedPlatformStats()} />
         </section>
 
         {featured && <FeaturedThesis sector={featured} />}
@@ -55,11 +52,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               investors, and a chart backtesting its stocks as a basket you can customise.
             </p>
           </div>
-          <ReadingList {...analysisProps()} signedIn={!!user} initial={report} initialIpo={ipo} initialView={analysisView(view)} initialSector={sector} />
+          <ReadingList {...analysisProps({ report, ipo, view })} signedIn={!!user} initial={report} initialIpo={ipo} initialView={analysisView(view)} initialSector={sector} />
         </section>
 
         <section className="mx-auto max-w-6xl px-5 pb-20">
-          <IdeasSection ideas={buildIdeas()} asOf={dataAsOfRange()} />
+          <IdeasSection ideas={cachedIdeas()} asOf={dataAsOfRange()} />
         </section>
 
         <UpdatesSection />

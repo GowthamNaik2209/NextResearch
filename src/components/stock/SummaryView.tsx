@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { EXPOSURE_STRENGTH_LABEL, EXPOSURE_TYPE_LABEL, type SectorSupplier } from "@/lib/sector-content";
 import type { StockApi, StockTab } from "./types";
-import { fmtNum, fmtSigned, freshQuote, mergeStats, REIT_NOTE, revenueSeries } from "./merge";
+import { fmtNum, fmtPrice, fmtSigned, freshQuote, mergeStats, REIT_NOTE, revenueSeries } from "./merge";
+import { croreShort, inr, NA, pct } from "@/lib/format";
 import { NewsTime } from "./NewsTime";
 import { quoteTiming } from "@/lib/live/freshness";
 
@@ -20,17 +21,6 @@ function BulletList({ title, items }: { title: string; items: string[] }) {
       </ul>
     </div>
   );
-}
-
-// Where each CAGR figure comes from, so a 1Y that differs from Screener's rounded figure, or a
-// cached one, is never mistaken for the Chart tab's live number.
-function cagrSourceLabel(one: string | null, long: string | null, seedAsOf?: string): string {
-  const seed = `cached${seedAsOf ? ` as of ${seedAsOf}` : ""}`;
-  const name = (src: string | null) => (src === "chart" ? "live price history (as on the Chart tab)" : src === "screener" ? "Screener.in" : src === "seed" ? seed : null);
-  const a = name(one);
-  const b = name(long);
-  if (a && b && a !== b) return `1Y: ${a}; 3Y/5Y: ${b}`;
-  return a ?? b ?? "";
 }
 
 export function ExtLink({ href, children }: { href: string; children: React.ReactNode }) {
@@ -75,21 +65,24 @@ export function SummaryView({
   const quote = freshQuote(api?.quote);
   // REITs: P/E, ROE and dividend yield are shown as "n/m" (not meaningful) with REIT_NOTE below.
   const nm = (v: string) => (s.reit ? "n/m" : v);
-  const rev = revenueSeries(f, api);
+  const rev = revenueSeries(f);
+  const asOf = s.asOf ? `as of ${s.asOf}` : "snapshot";
   const maxRev = Math.max(1, ...rev.map((r) => r.revenue ?? 0));
   const tl = f?.tl;
 
   // [label, value, optional] - optional chips are muted on phones to save space.
+  // The snapshot price sits beside the snapshot market cap and P/E it was computed at; the live
+  // price is in the pop-up header (and the 52-week bar below), labelled live.
   const chips: [string, string, boolean?][] = [
-    ["Mkt Cap", s.marketCap?.replace("Rs ", "₹") ?? "—"],
-    ["Price", s.price != null ? `₹${fmtNum(s.price)}` : "—"],
-    ["High / Low", s.high52w != null && s.low52w != null ? `${fmtNum(s.high52w, 0)} / ${fmtNum(s.low52w, 0)}` : "—", true],
-    ["Stock P/E", nm(fmtNum(s.pe, 1))],
-    ["Book Value", fmtNum(s.bookValue, 1), true],
-    ["Div Yield", nm(s.divYield != null ? `${s.divYield}%` : "—")],
-    ["ROCE", s.roce != null ? `${s.roce}%` : "—"],
-    ["ROE", nm(s.roe != null ? `${s.roe}%` : "—")],
-    ["Face Value", fmtNum(s.faceValue, 2), true],
+    ["Mkt Cap", croreShort(s.marketCapCr)],
+    ["Price", fmtPrice(s.snapshotPrice)],
+    ["High / Low", s.high52w != null && s.low52w != null ? `${inr(s.high52w)} / ${inr(s.low52w)}` : NA, true],
+    ["Stock P/E", nm(s.pe != null ? `${s.pe.toFixed(1)}x` : NA)],
+    ["Book Value", s.bookValue != null ? `₹${fmtNum(s.bookValue, 1)}` : NA, true],
+    ["Div Yield", nm(pct(s.divYield, 2))],
+    ["ROCE", pct(s.roce)],
+    ["ROE", nm(pct(s.roe))],
+    ["Face Value", s.faceValue != null ? `₹${fmtNum(s.faceValue, 2)}` : NA, true],
   ];
 
   return (
@@ -99,22 +92,7 @@ export function SummaryView({
 
       <div>
         <Label>
-          Key stats —{" "}
-          {s.ratioSource === "screener" ? (
-            <span className="text-pos">live · Screener.in{s.liveQuote ? " & Yahoo Finance" : ""}</span>
-          ) : s.ratioSource === "yahoo" ? (
-            <span>
-              <span className="text-pos">live</span> · Yahoo Finance (Screener.in unreachable; ROCE &amp; face value cached)
-            </span>
-          ) : s.liveQuote ? (
-            <span>
-              price <span className="text-pos">live</span> · ratios cached (data sources unreachable right now)
-            </span>
-          ) : loading ? (
-            "fetching live data…"
-          ) : (
-            "cached figures (live data unavailable right now)"
-          )}
+          Key stats <span className="font-normal normal-case tracking-normal">— company snapshot {asOf}</span>
         </Label>
         <div className="mt-2 grid grid-cols-3 gap-1.5 sm:grid-cols-5">
           {chips.map(([k, v, opt]) => (
@@ -157,7 +135,9 @@ export function SummaryView({
 
       {rev.some((r) => r.revenue != null) && (
         <div className={phoneHide.trim()}>
-          <Label>Revenue, ₹ Cr (5-yr)</Label>
+          <Label>
+            Revenue, ₹ Cr (5-yr) <span className="font-normal normal-case tracking-normal">— company table</span>
+          </Label>
           <div className="mt-2 flex h-28 items-end gap-2">
             {rev.map((r, i) => (
               <div key={r.label} className="flex flex-1 flex-col items-center justify-end gap-1">
@@ -176,10 +156,7 @@ export function SummaryView({
       {(s.cagr1y != null || s.cagr3y != null || s.cagr5y != null) && (
         <div className={phoneHide.trim()}>
           <Label>
-            Stock price CAGR{" "}
-            <span className="font-normal normal-case tracking-normal">
-              — {cagrSourceLabel(s.cagr1ySource, s.cagrLongSource, api?.seedAsOf)}
-            </span>
+            Stock price CAGR <span className="font-normal normal-case tracking-normal">— snapshot {asOf}</span>
           </Label>
           <div className="mt-2 grid grid-cols-3 gap-2">
             {(
@@ -202,7 +179,9 @@ export function SummaryView({
 
       {s.low52w != null && s.high52w != null && s.price != null && (
         <div className={phoneHide.trim()}>
-          <Label>52-week range vs current price</Label>
+          <Label>
+            52-week range {asOf} vs {s.liveQuote ? <span className="text-pos">live</span> : "snapshot"} price
+          </Label>
           <div className="relative mt-3 h-2 rounded-full bg-gradient-to-r from-danger/50 via-line to-pos/50">
             <div
               className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-panel bg-accent ring-1 ring-line"
@@ -210,9 +189,9 @@ export function SummaryView({
             />
           </div>
           <div className="mt-1.5 flex justify-between font-mono text-[10px] text-ink-soft">
-            <span>₹{fmtNum(s.low52w, 0)}</span>
-            <span>₹{fmtNum(s.price, 0)}</span>
-            <span>₹{fmtNum(s.high52w, 0)}</span>
+            <span>₹{inr(s.low52w)}</span>
+            <span>₹{inr(s.price)}</span>
+            <span>₹{inr(s.high52w)}</span>
           </div>
         </div>
       )}
@@ -267,9 +246,15 @@ export function SummaryView({
       </div>
       {f?.note && <p className={"text-[11px] text-ink-soft" + phoneHide}>Note: {f.note}</p>}
       <p className={"border-t border-dashed border-line pt-2 text-[10.5px] text-ink-soft" + phoneHide}>
-        Ratios: <b>{s.ratioSource === "yahoo" ? "Yahoo Finance" : `Screener.in (${api?.fundamentals?.basis ?? "consolidated"})`}</b>,{" "}
-        {s.ratioSource === "cached" ? `cached${api?.seedAsOf ? ` as of ${api.seedAsOf}` : ""}` : "live"}. Price:{" "}
-        {quote ? `Yahoo Finance (${quote.exchange}), ${quoteTiming(quote)}` : `cached${api?.seedAsOf ? ` as of ${api.seedAsOf}` : ""}`}. Not investment advice.
+        Market cap, ratios, CAGR and revenue: company table snapshot {asOf} (the same figures on every page). Price:{" "}
+        {quote ? (
+          <>
+            <span className="text-pos">live</span>, Yahoo Finance ({quote.exchange}), {quoteTiming(quote)}
+          </>
+        ) : (
+          `snapshot ${asOf}`
+        )}
+        . Not investment advice.
       </p>
     </div>
   );

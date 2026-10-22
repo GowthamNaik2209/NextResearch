@@ -5,6 +5,7 @@
 import { unstable_cache } from "next/cache";
 import { listSectors, companyLinkKey, companyLinkExposure, findSupplierByTicker } from "@/lib/sector-content";
 import { HISTORY_FROM, getChartWithFallback, getSymbolChart } from "@/lib/live/yahoo";
+import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listBasketUniverse } from "./industry";
 import { ensureFinancials } from "@/lib/financials/load";
 import { backtestBasket } from "./run";
@@ -91,7 +92,7 @@ async function priceSnapshot(): Promise<PriceSnapshot> {
  * hour the lists were built: a rebuild after midnight on yesterday's closes still says yesterday.
  */
 async function lastTradingDay(): Promise<string | null> {
-  const pts = (await getSymbolChart("^NSEI", "1M").catch(() => null))?.points;
+  const pts = (await getSymbolChart(BENCHMARKS.nifty50.symbol, "1M").catch(() => null))?.points;
   return pts?.length ? pts[pts.length - 1].t : null;
 }
 

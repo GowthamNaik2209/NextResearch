@@ -2,9 +2,11 @@
 
 import type { ReactNode } from "react";
 import type { IpoDeck, IpoPeer } from "@/lib/ipo-content";
-import type { IpoStage, Tone } from "@/lib/ipo-content/types";
+import type { Tone } from "@/lib/ipo-content/types";
 import type { OpenableStock } from "@/components/research/Presentation";
-import { BarChart, Chip, MixChart, Panel, SlideHead, TONE_LABEL, TONE_TEXT, ToneBadge, ToneIcon } from "@/components/research/slides";
+import { BarChart, Chip, MixChart, Panel, SlideHead, TONE_LABEL, TONE_TEXT, ToneBadge, ToneIcon, ToneValueCell } from "@/components/research/slides";
+import { rupee } from "@/components/research/headlines";
+import { StageChip } from "./StageChip";
 import { businessTitle, financialsTitle, fmtCr, industryTitle, issueTitle, kpiTitle, peersTitle, proceedsTitle, revenueGrowth, risksTitle } from "./headlines";
 
 // The ten slides of an IPO deck: a DRHP read the way an analyst would brief it - the issue,
@@ -29,22 +31,6 @@ export const IPO_SLIDES: IpoSlideDef[] = [
 
 // ---------- shared pieces ----------
 
-export const STAGE_TEXT: Record<IpoStage, string> = {
-  open: "bg-pos text-bg",
-  upcoming: "bg-accent text-bg",
-  approved: "border border-accent text-accent",
-  filed: "border border-line text-ink-soft",
-  listed: "bg-panel-2 text-ink",
-};
-
-export function StageChip({ deck, className = "" }: { deck: Pick<IpoDeck, "status">; className?: string }) {
-  return (
-    <span className={"inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide " + STAGE_TEXT[deck.status.stage] + " " + className}>
-      {deck.status.label}
-    </span>
-  );
-}
-
 function Foot({ deck, source }: { deck: IpoDeck; source?: string }) {
   return (
     <p className="mt-auto pt-5 text-[10.5px] leading-relaxed text-ink-soft">
@@ -57,8 +43,9 @@ function Foot({ deck, source }: { deck: IpoDeck; source?: string }) {
 const Eyebrow = ({ children, className = "" }: { children: ReactNode; className?: string }) => (
   <p className={"mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft " + className}>{children}</p>
 );
-// Glues units to their number ("Rs 25,583 Cr", "10.3 lakh Cr") so a narrow card never wraps "Cr" alone.
-const keepUnits = (t: string) => t.replace(/ (lakh|Cr|bn|mn)\b/g, "\u00a0$1");
+// Writes the authored "Rs 25,583 Cr" as "₹25,583 Cr" and glues units to their number, so a narrow
+// card never wraps "Cr" alone.
+const keepUnits = (t: string) => rupee(t).replace(/ (lakh|Cr|bn|mn)\b/g, "\u00a0$1");
 const fmtPct = (n: number | null) => (n == null ? "—" : `${n.toFixed(1)}%`);
 // Holder colours: four distinct hues, then the same hues lighter, then grey for the remainder.
 const HOLDER_COLORS = [
@@ -119,7 +106,7 @@ function SummarySlide({ deck }: SlideProps) {
         {glance.map(([k, v], n) => (
           <div key={k} className={"min-w-0 p-3 " + (n % 2 ? "border-l border-line " : "") + (n >= 2 ? "border-t border-line lg:border-t-0 " : "") + (n === 2 ? "lg:border-l" : "")}>
             <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">{k}</dt>
-            <dd className="mt-0.5 text-[13px] font-semibold leading-snug text-ink">{v}</dd>
+            <dd className="mt-0.5 text-[13px] font-semibold leading-snug text-ink">{rupee(v)}</dd>
           </div>
         ))}
       </dl>
@@ -316,12 +303,7 @@ function IndustrySlide({ deck }: SlideProps) {
               {o.snapshot.map((row) => (
                 <tr key={row.label} className="border-b border-line last:border-0">
                   <td className="px-4 py-2 text-ink-soft">{row.label}</td>
-                  <td className={"px-4 py-2 text-right font-mono font-semibold tabular-nums " + (row.tone ? TONE_TEXT[row.tone] : "text-ink")}>
-                    <span className="inline-flex items-center gap-1.5">
-                      {row.tone && row.tone !== "neutral" && <ToneIcon tone={row.tone} />}
-                      {row.value}
-                    </span>
-                  </td>
+                  <ToneValueCell tone={row.tone} value={row.value} />
                 </tr>
               ))}
             </tbody>
@@ -430,7 +412,7 @@ function FinChart({ deck }: { deck: IpoDeck }) {
             <span className="h-2.5 w-2.5 rounded-sm" style={barFill("var(--ink-soft)", true)} /> Part-year
           </span>
         )}
-        <span>Rs Cr</span>
+        <span>₹ Cr</span>
       </figcaption>
     </figure>
   );
@@ -452,7 +434,7 @@ function FinancialsSlide({ deck }: SlideProps) {
           <table className="w-full text-[11px] sm:text-[12px]">
             <thead>
               <tr className="border-b border-line bg-panel-2 text-left text-[9.5px] uppercase tracking-wider text-ink-soft">
-                <th className="px-1.5 py-2.5 sm:px-3 font-semibold">Rs Cr</th>
+                <th className="px-1.5 py-2.5 sm:px-3 font-semibold">₹ Cr</th>
                 {ys.map((y) => (
                   <th key={y.label} className="px-1.5 py-2.5 sm:px-3 text-right font-semibold">
                     {y.label}
@@ -522,12 +504,7 @@ function KpiSlide({ deck }: SlideProps) {
               {deck.ratios.map((row) => (
                 <tr key={row.label} className="border-b border-line last:border-0">
                   <td className="px-4 py-2 text-ink-soft">{row.label}</td>
-                  <td className={"px-4 py-2 text-right font-mono font-semibold tabular-nums " + (row.tone ? TONE_TEXT[row.tone] : "text-ink")}>
-                    <span className="inline-flex items-center gap-1.5">
-                      {row.tone && row.tone !== "neutral" && <ToneIcon tone={row.tone} />}
-                      {row.value}
-                    </span>
-                  </td>
+                  <ToneValueCell tone={row.tone} value={row.value} />
                 </tr>
               ))}
             </tbody>
@@ -571,7 +548,7 @@ function ProceedsSlide({ deck }: SlideProps) {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Panel className="p-4 sm:p-5">
           <h4 className="font-display text-sm font-semibold text-ink">{uses.length ? "Objects of the fresh issue" : "No fresh issue"}</h4>
-          {uses.length ? <p className="mb-4 text-[10.5px] text-ink-soft">Rs Cr{fresh ? `, of a ${fmtCr(fresh)} fresh issue` : ""}</p> : null}
+          {uses.length ? <p className="mb-4 text-[10.5px] text-ink-soft">₹ Cr{fresh ? `, of a ${fmtCr(fresh)} fresh issue` : ""}</p> : null}
           {uses.length ? (
             <ul className="space-y-3">
               {uses.map((u) => (
@@ -819,7 +796,8 @@ function OutlookSlide({ deck }: SlideProps) {
       <section className="mt-5">
         <Eyebrow>Offer document & sources</Eyebrow>
         <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {deck.sources.map((l) => (
+          {/* Each link once (a repeated URL also gave React a duplicate key). */}
+          {deck.sources.filter((l, i, all) => all.findIndex((x) => x.url === l.url) === i).map((l) => (
             <li key={l.url}>
               <a href={l.url} target="_blank" rel="noopener noreferrer" className="group flex h-full items-start gap-3 rounded-xl border border-line bg-panel p-3.5 transition hover:border-accent">
                 <span className="min-w-0 flex-1">

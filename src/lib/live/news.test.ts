@@ -246,6 +246,14 @@ test("a sector feed is led by the sector's own players (developers/REITs for rea
   assert.equal(feedCompanies("pharma", pharma, 5).length, 5);
 });
 
+test("stamps without a real time (Google's 07:00 GMT, curated midnights) show the date, never 'Just now'", () => {
+  const googleDateOnly = Date.parse("2026-10-13T07:00:00Z");
+  assert.equal(formatNewsDate(googleDateOnly, googleDateOnly + 20 * 60_000), "13 Oct 2026");
+  assert.equal(formatNewsDate(Date.parse("2026-10-13T00:00:00Z"), NOW), "13 Oct 2026");
+  assert.equal(newsAgeLabel("Just now", googleDateOnly, googleDateOnly + 60_000), "13 Oct 2026");
+  assert.equal(formatNewsDate(Date.parse("2026-10-13T07:00:12Z"), NOW), "4h ago", "a real 07:00:12 stamp stays relative");
+});
+
 test("headline ages are recomputed on the viewer's clock, curated month-only dates are kept", () => {
   const ts = NOW - 30 * 60_000;
   assert.equal(newsAgeLabel("3h ago", ts, NOW), "Just now", "a stale cached label is replaced");

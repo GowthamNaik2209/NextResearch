@@ -186,7 +186,7 @@ export const defenceproc: SectorReport = {
   risks: [
     { risk: "Approvals convert to contracts slowly (FY26: ~33% by value)", mitigant: "DAP 2026 simplification, fewer trial rounds, emergency and fast-track routes", severity: "high" },
     { risk: "Imported engines and components delay deliveries (GE F404)", mitigant: "Engine localisation (marine gas turbine AoN), dual sourcing, larger inventories", severity: "high" },
-    { risk: "Valuations price in years of growth (many stocks above 50x P/E, a few above 300x)", mitigant: "Order books of 3-8 years of revenue give visibility, but not certainty", severity: "medium" },
+    { risk: "Valuations price in years of growth: many stocks trade at very high P/Es (see each company's figures)", mitigant: "Order books of 3-8 years of revenue give visibility, but not certainty", severity: "medium" },
     { risk: "Budget growth slows or shifts to revenue spending", mitigant: "75% domestic reserve, exports and repeat ammunition demand", severity: "medium" },
   ],
   outlook: {

@@ -4400,7 +4400,7 @@
           "risks": [
             "Reported profit lags bookings because revenue is recognised on completion; reported ROE is still single-digit",
             "Aggressive land buying lifts net debt if sales slow",
-            "Stock down ~27% over the past year as the housing cycle cooled"
+            "Stock has fallen over the past year as the housing cycle cooled"
           ],
           "f": {
             "ticker": "GODREJPROP"
@@ -4473,7 +4473,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Among the highest margins and ROCE (~17%) in the listed sector",
+            "Among the highest margins and ROCE in the listed sector",
             "Growing rental income from Mumbai offices and malls (Oberoi Mall, Sky City)",
             "Low debt and long-held, low-cost Mumbai land"
           ],
@@ -4517,7 +4517,7 @@
             "Entered Mumbai luxury housing in FY26"
           ],
           "risks": [
-            "Low reported profit and ROE (~4%) despite strong bookings",
+            "Low reported profit and ROE despite strong bookings",
             "Bengaluru concentration",
             "Integrated model ties up capital in manufacturing units"
           ],
@@ -4539,7 +4539,7 @@
           "risks": [
             "Bengaluru is the bulk of sales and rental income",
             "Rental assets add debt during build-out",
-            "Stock down ~20% in a year as housing sentiment weakened"
+            "Stock has fallen over the past year as housing sentiment weakened"
           ],
           "f": {
             "ticker": "BRIGADE"
@@ -4619,7 +4619,7 @@
           "risks": [
             "Short listed track record and a part-year FY26",
             "Hyderabad has more new office supply than other cities",
-            "Units trade in a Rs 108-129 range, not far above the Rs 100 issue price"
+            "Units have traded not far above the Rs 100 issue price"
           ],
           "f": {
             "ticker": "KRT"
@@ -4677,7 +4677,7 @@
           "risks": [
             "Single-city exposure",
             "No meaningful listed financial history yet - figures left blank",
-            "Units have traded in a narrow Rs 102-112 range since listing"
+            "Units have traded in a narrow range since listing"
           ],
           "f": {
             "ticker": "BAGMANE"
@@ -4716,7 +4716,7 @@
           ],
           "risks": [
             "New malls take years to reach full rent",
-            "Valuation already prices in strong growth (P/E ~53)",
+            "Valuation already prices in strong growth",
             "Spending slowdown would hit revenue-share income"
           ],
           "f": {
@@ -4874,13 +4874,13 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Pure play on building construction with ROCE of ~20%",
+            "Pure play on building construction with a healthy ROCE",
             "Revenue grew from Rs 2,692 Cr (FY22) to Rs 4,565 Cr (FY26)"
           ],
           "risks": [
             "Profit fell in FY25 on cost overruns; margins remain volatile",
             "Large share of government orders",
-            "Stock down ~41% in a year"
+            "Stock has fallen sharply over the past year"
           ],
           "f": {
             "ticker": "AHLUCONT"
@@ -4899,7 +4899,7 @@
           "risks": [
             "Profit collapsed from Rs 167 Cr (FY22) to Rs 56 Cr (FY26)",
             "Gujarat concentration",
-            "ROE only ~4.5%"
+            "Low ROE"
           ],
           "f": {
             "ticker": "PSPPROJECT"
@@ -4912,13 +4912,13 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Specialist in tall buildings; low P/E (~8)",
+            "Specialist in tall buildings; trades at a low P/E",
             "Profit grew from Rs 48 Cr (FY22) to Rs 193 Cr (FY26)"
           ],
           "risks": [
             "Long receivable cycles with government housing clients",
             "Small balance sheet",
-            "Stock down ~38% in a year"
+            "Stock has fallen sharply over the past year"
           ],
           "f": {
             "ticker": "CAPACITE"
@@ -4932,12 +4932,12 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Scale (~Rs 21,000 Cr revenue) and a large order book",
-            "Cheap valuation (P/E ~11)"
+            "Cheap valuation"
           ],
           "risks": [
             "FY26 revenue fell ~6% as state-funded projects slowed",
             "Heavy dependence on state government payments",
-            "Stock down ~41% in a year"
+            "Stock has fallen sharply over the past year"
           ],
           "f": {
             "ticker": "NCC"
@@ -4976,7 +4976,7 @@
           "risks": [
             "Integration of many acquired plants",
             "Group-level governance scrutiny affects sentiment",
-            "Stock down ~38% in a year"
+            "Stock has fallen sharply over the past year"
           ],
           "f": {
             "ticker": "AMBUJACEM"
@@ -4994,8 +4994,8 @@
           ],
           "risks": [
             "Chose price over volume, losing share",
-            "FY25 profit halved; ROE ~7.5%",
-            "Expensive at ~50x earnings"
+            "FY25 profit halved; ROE is low",
+            "Expensive relative to earnings"
           ],
           "f": {
             "ticker": "SHREECEM"
@@ -5013,7 +5013,7 @@
           ],
           "risks": [
             "Weak pricing in the east and south",
-            "ROE ~6%",
+            "Low ROE",
             "Expansion plans need large capex"
           ],
           "f": {
@@ -5028,7 +5028,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "White cement and putty sell into the finishing stage at higher margins",
-            "ROE ~15.6%, among the best mid-size cement makers"
+            "ROE among the best of the mid-size cement makers"
           ],
           "risks": [
             "Expansion into new regions adds debt",
@@ -5045,13 +5045,13 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "ROCE ~32% and FY26 profit up ~59% to Rs 1,203 Cr",
+            "High ROCE and FY26 profit up ~59% to Rs 1,203 Cr",
             "Brand and dealer network let it charge more than commodity steel",
             "Benefits as steel framing replaces concrete in some buildings"
           ],
           "risks": [
             "Steel price swings affect volumes and inventory",
-            "High P/E (~49)"
+            "Rich valuation"
           ],
           "f": {
             "ticker": "APLAPOLLO"
@@ -5102,7 +5102,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Wide pipe and fittings range with a strong distribution network",
-            "Low debt; ROCE ~21%"
+            "Low debt and high ROCE"
           ],
           "risks": [
             "PVC price falls cause inventory losses",
@@ -5124,7 +5124,7 @@
           ],
           "risks": [
             "Profit flat at ~Rs 500-550 Cr since FY22",
-            "High P/E (~65)",
+            "Rich valuation",
             "PVC resin price swings"
           ],
           "f": {
@@ -5162,7 +5162,7 @@
           "risks": [
             "Profit fell from Rs 249 Cr (FY22) to Rs 75 Cr (FY26)",
             "Losing ground to larger rivals",
-            "Stock down ~15% in a year"
+            "Stock has fallen over the past year"
           ],
           "f": {
             "ticker": "PRINCEPIPE"
@@ -5193,12 +5193,12 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Leading switchgear and wire brand; ROCE ~25%",
+            "Leading switchgear and wire brand with high ROCE",
             "Strong retail network"
           ],
           "risks": [
             "Lloyd ACs and consumer durables weigh on margins",
-            "Stock down ~24% in a year"
+            "Stock has fallen over the past year"
           ],
           "f": {
             "ticker": "HAVELLS"
@@ -5336,7 +5336,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Largest dealer network and brand in decorative paints",
-            "ROCE ~26%"
+            "High ROCE"
           ],
           "risks": [
             "Birla Opus (Grasim) and other entrants have squeezed share and margins since 2024",
@@ -5354,7 +5354,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Strong in east and north India",
-            "ROCE ~22%"
+            "High ROCE"
           ],
           "risks": [
             "Same new-entrant pressure as the leader",
@@ -5429,7 +5429,7 @@
           ],
           "risks": [
             "Loss of Rs 29 Cr in FY26 as MDF prices fell",
-            "Stock down ~52% in a year"
+            "Stock has fallen sharply over the past year"
           ],
           "f": {
             "ticker": "GREENPANEL"
@@ -5463,7 +5463,7 @@
           ],
           "risks": [
             "Home loans are one part of a broad banking book",
-            "Stock down ~27% in a year"
+            "Stock has fallen over the past year"
           ],
           "f": {
             "ticker": "HDFCBANK"
@@ -5492,7 +5492,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Low valuation (P/E ~5); profit up ~2.5x since FY22"
+            "Low valuation; profit up ~2.5x since FY22"
           ],
           "risks": [
             "Competition from banks on prime home loans",
@@ -5514,7 +5514,7 @@
           ],
           "risks": [
             "Developer and lease-rental loans add risk",
-            "Expensive (P/E ~26) and stock down ~24% in a year"
+            "Trades at a premium to other housing lenders, and the stock has fallen over the past year"
           ],
           "f": {
             "ticker": "BAJAJHFL"
@@ -5528,7 +5528,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Profit up ~2.7x since FY22 after a turnaround",
-            "Stock up ~40% in a year"
+            "Stock has risen strongly over the past year"
           ],
           "risks": [
             "Management change after the CEO's 2025 exit",
@@ -5545,7 +5545,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Large affordable lender with ROE ~16%",
+            "Large affordable lender with a healthy ROE",
             "Profit up ~20% in FY26"
           ],
           "risks": [
@@ -5566,7 +5566,7 @@
           ],
           "risks": [
             "State concentration",
-            "Stock down ~26% in a year"
+            "Stock has fallen over the past year"
           ],
           "f": {
             "ticker": "AAVAS"
@@ -5646,7 +5646,7 @@
             "Track record of buying and re-energising brands (Elder, Unichem India, Curatio)"
           ],
           "risks": [
-            "Rich valuation (P/E ~78x) leaves little room for integration slips",
+            "Rich valuation leaves little room for integration slips",
             "Acquisition and exceptional charges cut Q4 FY26 profit 27% YoY",
             "Small US business with past USFDA issues at Indrad and Dahej"
           ],
@@ -5681,7 +5681,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Very high returns (ROCE ~45%, ROE ~34%) with no debt and a 2%+ dividend yield",
+            "Very high returns on capital with no debt and a healthy dividend yield",
             "100% domestic - insulated from US pricing, tariffs and USFDA risk",
             "Strong women's health, thyroid and GI brands with parent's global pipeline to in-license"
           ],
@@ -5782,7 +5782,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "~70% of revenue from branded markets (India, Asia, Africa) - less exposed to US price erosion",
-            "High returns (ROCE ~35%) and consistent dividend/buyback payouts",
+            "High returns on capital and consistent dividend/buyback payouts",
             "India growth above market in chronic niches"
           ],
           "risks": [
@@ -5839,7 +5839,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Turnaround complete: FY26 net profit Rs 5,355 crore vs a FY22 loss, ROCE ~30%",
+            "Turnaround complete: FY26 net profit Rs 5,355 crore vs a FY22 loss, with high ROCE",
             "Leading US respiratory generics (gSpiriva, albuterol) and limited-competition launches (tolvaptan, mirabegron)",
             "Growing India chronic business and European specialty (VISUfarma ophthalmics)"
           ],
@@ -6016,7 +6016,7 @@
           "risks": [
             "Eugia sterile sites under USFDA action: Unit III WL (2024), Unit II OAI (Mar 2026), Unit I WL (Aug 2026, ~2% of revenue)",
             "High US exposure (~45% of sales) to price erosion and the 2028 tariff clock",
-            "Low ROE (~10%) versus peers"
+            "Low ROE versus peers"
           ],
           "f": {
             "ticker": "AUROPHARMA"
@@ -6034,9 +6034,9 @@
             "Big capex cycle largely complete - operating leverage ahead if utilisation rises"
           ],
           "risks": [
-            "New plants carry depreciation before they fill - ROCE ~13%",
+            "New plants carry depreciation before they fill, holding ROCE down",
             "US price erosion in oral solids",
-            "Stock has derated (5-year CAGR ~0%)"
+            "Stock has derated over the past five years"
           ],
           "f": {
             "ticker": "APLLTD"
@@ -6128,7 +6128,7 @@
             "Brand leadership in Indian lab glassware"
           ],
           "risks": [
-            "Very small (market cap ~Rs 1,000 crore) and stock down ~20% in a year",
+            "Very small company, and the stock has fallen over the past year",
             "Competes with SCHOTT Poonawalla and imports in pharma glass"
           ],
           "f": {
@@ -6178,7 +6178,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Pure-play injectables with a long USFDA-compliant record in Hyderabad",
-            "Recovery under way: FY26 profit Rs 1,027 crore (+47%); stock nearly doubled from its 52-week low",
+            "Recovery under way: FY26 profit Rs 1,027 crore (+47%); stock has recovered strongly from its 52-week low",
             "Building GLP-1 / peptide fill-finish and biologics CDMO capacity"
           ],
           "risks": [
@@ -6197,7 +6197,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Net-cash, high-return (ROCE ~24%) and steady growth - FY26 profit Rs 650 crore",
+            "Net-cash, high-return and steady growth - FY26 profit Rs 650 crore",
             "US sterile pipeline building from Chennai plants with clean regulatory record"
           ],
           "risks": [
@@ -6220,7 +6220,7 @@
           ],
           "risks": [
             "FY26 net loss of Rs 326 crore as CDMO customers destocked",
-            "Leverage and low ROCE (~2.5%)",
+            "Leverage and very low ROCE",
             "Customer-specific inventory cycles make earnings lumpy"
           ],
           "f": {
@@ -6239,7 +6239,7 @@
             "Majority shareholder of Syngene (CRO/CDMO)"
           ],
           "risks": [
-            "High leverage from the Viatris biosimilars deal - FY26 profit just Rs 369 crore, ROE ~1%",
+            "High leverage from the Viatris biosimilars deal - FY26 profit just Rs 369 crore, ROE near zero",
             "Biosimilar price erosion as more competitors launch",
             "Past USFDA issues at Bengaluru and Malaysia sites"
           ],
@@ -6329,7 +6329,7 @@
           ],
           "risks": [
             "Validation-batch revenue is lumpy - margin spike in Q1 FY27 may not repeat",
-            "Valuation (~81x earnings) already prices in CDMO success",
+            "Valuation already prices in CDMO success",
             "Customer concentration in custom synthesis"
           ],
           "f": {
@@ -6348,7 +6348,7 @@
           ],
           "risks": [
             "ARV API pricing depends on global tenders",
-            "P/E above 100x leaves no margin for CDMO delays",
+            "Very rich valuation leaves no margin for CDMO delays",
             "Customer concentration in large CDMO contracts"
           ],
           "f": {
@@ -6363,11 +6363,11 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Backward integration into intermediates lowers China dependence",
-            "Low valuation (~19x earnings)"
+            "Lower valuation than most API peers"
           ],
           "risks": [
             "Commodity APIs directly exposed to Chinese price competition - revenue flat FY22-FY26",
-            "Thin margins and stock down ~24% in a year"
+            "Thin margins, and the stock has fallen over the past year"
           ],
           "f": {
             "ticker": "AARTIDRUGS"
@@ -6416,7 +6416,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Peptide and complex-chemistry capability with a growing CMS book",
-            "Strong 5-year stock CAGR (~61%) on CMS wins"
+            "Strong five-year share-price gains on CMS wins"
           ],
           "risks": [
             "CMS revenue is lumpy and tied to a few innovator molecules",
@@ -6456,7 +6456,7 @@
           ],
           "risks": [
             "Pharma is an indirect exposure - ATBS and butylphenols drive most earnings",
-            "Chemical-cycle and Chinese pricing pressure (stock -34% in a year)"
+            "Chemical-cycle and Chinese pricing pressure; the stock has fallen sharply over the past year"
           ],
           "f": {
             "ticker": "VINATIORGA"
@@ -6491,8 +6491,8 @@
             "Added US biologics manufacturing (Baltimore site) and Bengaluru capacity"
           ],
           "risks": [
-            "FY26 profit fell 36% and the stock is down ~40% in a year on weak biotech demand and large-molecule customer destocking",
-            "Biologics capacity ramp-up dilutes returns (ROCE ~10%)"
+            "FY26 profit fell 36% and the stock has fallen sharply over the past year on weak biotech demand and large-molecule customer destocking",
+            "Biologics capacity ramp-up dilutes returns on capital"
           ],
           "f": {
             "ticker": "SYNGENE"
@@ -6509,7 +6509,7 @@
             "Well placed for BIOSECURE-driven vendor diversification"
           ],
           "risks": [
-            "P/E ~80x",
+            "Very rich valuation (see the figures)",
             "Biotech funding sensitivity and customer concentration"
           ],
           "f": {
@@ -6523,7 +6523,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Very high margins and ROCE (~30%) for a CRDMO",
+            "Very high margins and ROCE for a CRDMO",
             "Profit up 31% in FY26"
           ],
           "risks": [
@@ -6545,7 +6545,7 @@
           ],
           "risks": [
             "USFDA warning letter at its Nacharam formulation site (Feb 2026)",
-            "FY26 profit fell to Rs 150 crore; stock down ~49% in a year",
+            "FY26 profit fell to Rs 150 crore; the stock has fallen sharply over the past year",
             "Integration of several acquisitions"
           ],
           "f": {
@@ -6562,7 +6562,7 @@
             "Swiss/European CDMO footprint valued by Western customers seeking non-China supply"
           ],
           "risks": [
-            "Weak profitability (ROE ~2%) and impairments",
+            "Weak profitability (very low ROE) and impairments",
             "High-cost European operations"
           ],
           "f": {
@@ -6580,7 +6580,7 @@
           ],
           "risks": [
             "FY26 net loss on crop-protection weakness and pharma CDMO delays",
-            "Low returns (ROCE ~3.5%)"
+            "Low returns on capital"
           ],
           "f": {
             "ticker": "HIKAL"
@@ -6597,7 +6597,7 @@
             "Scale advantage as Revised Schedule M squeezes small contract makers"
           ],
           "risks": [
-            "API segment losses and low ROE (~8%)",
+            "API segment losses and low ROE",
             "Margin pressure from customer pricing"
           ],
           "f": {
@@ -6696,7 +6696,7 @@
           ],
           "risks": [
             "Mostly services revenue; product bets are early",
-            "High valuation (P/E above 100) for a services business"
+            "High valuation for a services business"
           ],
           "f": {
             "ticker": "MOSCHIP"
@@ -6919,7 +6919,7 @@
           ],
           "risks": [
             "Phone-related revenue is a small share - most work is industrial, auto and consumer boards",
-            "Rich valuation (P/E ~90)"
+            "Rich valuation"
           ],
           "f": {
             "ticker": "SYRMA"
@@ -6939,7 +6939,7 @@
           "risks": [
             "OSAT and ECMS plants are early and loss-making while they ramp",
             "Heavy capex stretches the balance sheet",
-            "Stock fell sharply from its 52-week high (Rs 7,705 to ~Rs 3,650)"
+            "Stock has fallen sharply from its 52-week high"
           ],
           "f": {
             "ticker": "KAYNES"
@@ -7028,7 +7028,7 @@
           ],
           "risks": [
             "OSAT start-up losses weigh on group profit for several years",
-            "Very high valuation (P/E ~110)"
+            "Very high valuation"
           ],
           "f": {
             "ticker": "CGPOWER"
@@ -7082,7 +7082,7 @@
           ],
           "risks": [
             "Core chemical profits have fallen for three years (Rs 383 crore FY23 to Rs 105 crore FY26)",
-            "SiCSem is pre-revenue and large relative to Archean's ~Rs 5,900 crore market value"
+            "SiCSem is pre-revenue and large relative to Archean's own size"
           ],
           "f": {
             "ticker": "ACI"
@@ -7215,7 +7215,7 @@
             "New plants at Dabaspet (Karnataka) and Sriperumbudur (Tamil Nadu)"
           ],
           "risks": [
-            "Very high valuation (P/E ~140)",
+            "Very high valuation - priced well ahead of earnings",
             "Small company dependent on a few global toolmaker clients"
           ],
           "f": {
@@ -7235,7 +7235,7 @@
           ],
           "risks": [
             "Chip gas revenue starts only as fabs ramp",
-            "Very high valuation (P/E ~96)"
+            "Very high valuation"
           ],
           "f": {
             "ticker": "LINDEINDIA"
@@ -7348,7 +7348,7 @@
           ],
           "risks": [
             "No sintered-magnet experience disclosed; bid details are not public",
-            "Building an integrated plant could strain a Rs 655 crore market-cap balance sheet",
+            "Building an integrated plant could strain a small company's balance sheet",
             "Highly binary: losing the bid leaves no rare-earth story"
           ],
           "f": {
@@ -7556,7 +7556,7 @@
           ],
           "risks": [
             "Rare earths are pre-revenue; earnings come from lignite and other minerals",
-            "Stock rallied on the theme and then fell 21% over the past year - sentiment-driven"
+            "Stock rallied on the theme and then fell back over the past year - sentiment-driven"
           ],
           "f": {
             "ticker": "GMDCLTD"
@@ -7842,7 +7842,7 @@
           "strengths": [
             "P75(I) (~Rs 70,000 crore, six submarines) cleared by the Finance Ministry and sent to the CCS (2026)",
             "Only listed yard with a submarine franchise",
-            "Strong profit growth and high returns (ROE ~29%)"
+            "Strong profit growth and high returns on equity"
           ],
           "risks": [
             "P75(I) still unsigned as of Oct 2026; first boat ~7 years after signing",
@@ -7925,7 +7925,7 @@
             "Diversified across defence, mining and metro rail"
           ],
           "risks": [
-            "FY26 profit roughly halved and ROE is low (~5%)",
+            "FY26 profit roughly halved and ROE is low",
             "Defence orders are tender-based and lumpy",
             "Rail and mining cycles add volatility"
           ],
@@ -7966,7 +7966,7 @@
           ],
           "risks": [
             "Pinaka is a large share of the defence book - single-programme risk",
-            "Very rich valuation (P/E ~90x)",
+            "Very rich valuation (see the figures)",
             "Explosives plants carry safety and licensing risk"
           ],
           "f": {
@@ -8045,7 +8045,7 @@
             "Expanding into larger sub-systems and integration"
           ],
           "risks": [
-            "High valuation (P/E ~120x) on a small profit base",
+            "High valuation on a small profit base",
             "Receivables and inventory heavy",
             "Depends on BDL/BEL production schedules"
           ],
@@ -8065,7 +8065,7 @@
             "Space-optics niche adds a second growth leg"
           ],
           "risks": [
-            "P/E ~115x leaves no room for slips",
+            "Rich valuation leaves no room for slips",
             "Small order sizes and lumpy revenue",
             "Competes with much larger BEL in some products"
           ],
@@ -8147,7 +8147,7 @@
           "risks": [
             "Profit is below FY22 levels despite higher revenue",
             "Slow execution and inventory build-up",
-            "Valuation (P/E ~56x) assumes a turnaround"
+            "Valuation assumes a turnaround"
           ],
           "f": {
             "ticker": "MIDHANI"
@@ -8165,7 +8165,7 @@
             "FY26 revenue nearly doubled"
           ],
           "risks": [
-            "P/E ~260x - priced far ahead of earnings",
+            "Priced far ahead of earnings - one of the richest valuations in the group",
             "Large capex still ramping",
             "Qualification timelines with global engine makers"
           ],
@@ -8186,7 +8186,7 @@
           ],
           "risks": [
             "Most revenue is not Indian defence - this is an indirect exposure",
-            "P/E ~127x",
+            "Very rich valuation (see the figures)",
             "Customer concentration"
           ],
           "f": {
@@ -8333,7 +8333,7 @@
           "risks": [
             "PCB plant commissioning guided for late 2026/FY27 - not yet producing",
             "JV structure with a Korean partner for know-how",
-            "Stretched valuation (P/E ~90x on Screener)"
+            "Stretched valuation (see the figures)"
           ],
           "f": {
             "ticker": "SYRMA"
@@ -8372,7 +8372,7 @@
           "risks": [
             "No ECMS approval of its own found as of Oct 2026 - an indirect beneficiary",
             "FY26 revenue fell ~17% on aerospace order timing",
-            "Thin ROE (~7.5%)"
+            "Thin ROE"
           ],
           "f": {
             "ticker": "CYIENTDLM"
@@ -8478,12 +8478,12 @@
           "strengths": [
             "Rs 1,021 crore ECMS approval for capital goods (Aug 2026)",
             "Enclosure plants need thousands of machining centres - a large local demand pool",
-            "ROCE ~21% and profit up ~2x since FY24"
+            "High ROCE and profit up ~2x since FY24"
           ],
           "risks": [
             "Must match Japanese/Taiwanese machines on precision and uptime for electronics",
             "Lumpy orders and working capital typical of machine tools",
-            "Rich valuation (P/E ~69x)"
+            "Rich valuation"
           ],
           "f": {
             "ticker": "JYOTICNC"
@@ -8501,7 +8501,7 @@
           ],
           "risks": [
             "Approved investment is large relative to its ~Rs 530 crore revenue",
-            "Very high valuation (P/E ~140x)"
+            "Very high valuation - priced well ahead of earnings"
           ],
           "f": {
             "ticker": "ASMTEC"
@@ -8553,10 +8553,10 @@
           "strengths": [
             "ECMS approval (17 Aug 2026) for its electrolyte additives plant at Jhagadia: Rs 119 crore eligible investment, incentive up to 25% through FY31",
             "Battery chemicals already in commercial supply (per PL, Jul 2026)",
-            "ROCE ~32% and FY26 profit more than doubled"
+            "High ROCE and FY26 profit more than doubled"
           ],
           "risks": [
-            "Valuation (P/E ~69x) already prices in battery growth",
+            "Valuation already prices in battery growth",
             "Battery-chemicals demand depends on global cell makers' qualification cycles"
           ],
           "f": {
@@ -8574,7 +8574,7 @@
             "Existing PCB plant and customers"
           ],
           "risks": [
-            "Micro-cap (~Rs 200 crore market value), FY26 net loss",
+            "Micro-cap, FY26 net loss",
             "Revenue of ~Rs 78 crore limits its ability to fund a large fab"
           ],
           "f": {

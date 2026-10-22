@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import type { IpoDeck } from "@/lib/ipo-content";
-import { IpoDeckView } from "@/components/ipo/IpoDeckView";
+import { LazyIpoDeck, intentProps, prefetchIpo } from "@/components/research/LazyDecks";
 import { THEME_TAB_EVENT, type ThemeTab } from "@/components/research/ThemeCards";
 
 export type ThemeRow = {
@@ -16,7 +15,8 @@ export type ThemeRow = {
   chipTone: "accent" | "live" | "soon";
   /** Absent for coming-soon rows. */
   href?: string;
-  /** IPO rows open that deck here, on the landing page (href is the fallback without JS). */
+  /** IPO rows open that deck here, on the landing page (href is the fallback without JS). Only
+   *  set for an IPO that has a deck (buildHeroThemeRows). */
   ipoSlug?: string;
 };
 
@@ -53,23 +53,11 @@ export function BrowseThemesButton({ className }: { className: string }) {
 // to the Analysis block's Deep dive on the same tab. Picking a tab here also switches it, so the
 // two never disagree. Theme rows open the theme's overview page; IPO rows open the deck on top
 // of the landing page, and closing it leaves the reader where they were.
-export function ThemeWindow({ rows, ipos }: { rows: Record<ThemeTab, ThemeRow[]>; ipos: IpoDeck[] }) {
+export function ThemeWindow({ rows }: { rows: Record<ThemeTab, ThemeRow[]> }) {
   const [tab, setTab] = useState<ThemeTab>("sector");
   const [openIpo, setOpenIpo] = useState<string | null>(null);
-  const deck = ipos.find((d) => d.slug === openIpo) ?? null;
+  const closeIpo = useCallback(() => setOpenIpo(null), []);
 
-  // Shareable while open, like the IPO grids (?ipo=<slug>); removed again on close.
-  useEffect(() => {
-    if (!openIpo) return;
-    const url = new URL(window.location.href);
-    url.searchParams.set("ipo", openIpo);
-    window.history.replaceState(window.history.state, "", url);
-    return () => {
-      const u = new URL(window.location.href);
-      u.searchParams.delete("ipo");
-      window.history.replaceState(window.history.state, "", u);
-    };
-  }, [openIpo]);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const pick = (t: ThemeTab) => {
@@ -123,8 +111,9 @@ export function ThemeWindow({ rows, ipos }: { rows: Record<ThemeTab, ThemeRow[]>
               <>
                 <span className="flex h-9 w-9 flex-none items-center justify-center rounded-md border border-line bg-bg font-mono text-[11px] font-bold text-accent">{r.icon}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-ink">{r.name}</span>
-                  <span className="block truncate text-xs text-ink-soft">{r.sub}</span>
+                  {/* Wraps rather than truncating: "Data Center / AI Infras…" hid what the row was. */}
+                  <span className="block text-sm font-semibold leading-snug text-ink [overflow-wrap:anywhere]">{r.name}</span>
+                  <span className="block text-xs text-ink-soft [overflow-wrap:anywhere]">{r.sub}</span>
                 </span>
                 <span className={"flex-none whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide " + CHIP[r.chipTone]}>{r.chip}</span>
               </>
@@ -137,10 +126,11 @@ export function ThemeWindow({ rows, ipos }: { rows: Record<ThemeTab, ThemeRow[]>
                   <Link
                     href={r.href}
                     onClick={(e) => {
-                      if (!r.ipoSlug || !ipos.some((d) => d.slug === r.ipoSlug)) return;
+                      if (!r.ipoSlug) return;
                       e.preventDefault();
                       setOpenIpo(r.ipoSlug);
                     }}
+                    {...(r.ipoSlug ? intentProps(() => prefetchIpo(r.ipoSlug!)) : {})}
                     aria-haspopup={r.ipoSlug ? "dialog" : undefined}
                     className={cls + " bg-panel-2 transition hover:border-accent"}
                   >
@@ -162,7 +152,7 @@ export function ThemeWindow({ rows, ipos }: { rows: Record<ThemeTab, ThemeRow[]>
       >
         Explore more <span aria-hidden>&rarr;</span>
       </Link>
-      {deck && <IpoDeckView deck={deck} onClose={() => setOpenIpo(null)} />}
+      {openIpo && <LazyIpoDeck key={openIpo} slug={openIpo} onClose={closeIpo} urlParam="ipo" />}
     </div>
   );
 }

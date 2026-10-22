@@ -2,16 +2,13 @@
 // sector maps, so it is derived here rather than stored, and changes whenever the content does.
 // The same per-stock record (name, market cap, role, every industry it appears in) backs the
 // rows of saved baskets and the watchlist.
-import { listSectors, findSupplierByTicker } from "@/lib/sector-content";
+import { listSectors, findSupplierByTicker, parseCrore } from "@/lib/sector-content";
 import { getCompanyPage, companySlug, listCompanyPages, primaryAppearance } from "@/lib/sector-content/companies";
 import { getCompanyFootprint } from "@/lib/sector-content/exposure";
 import { sectorBenchmarks, type Benchmark } from "@/lib/sector-content/benchmarks";
 import { memoByFinancials } from "@/lib/financials/store";
 
-/** Upper bound on a saved basket (the largest industry, real estate, has 57). */
-export const MAX_BASKET_STOCKS = 75;
-/** Saved baskets one account may keep. */
-export const MAX_BASKETS_PER_USER = 50;
+export { MAX_BASKET_STOCKS, MAX_BASKETS_PER_USER } from "./limits";
 
 export type BasketStock = {
   ticker: string;
@@ -25,6 +22,9 @@ export type BasketStock = {
   layer: string;
   /** Every industry the company is mapped in, primary one first. */
   industries: { slug: string; name: string }[];
+  /** Its layer within each industry it is mapped in (the strongest where it has several), by
+   * industry slug: the stock picker lists an industry's stocks under that industry's own layers. */
+  layerIn: Record<string, string>;
 };
 
 export type IndustryBasket = {
@@ -35,11 +35,6 @@ export type IndustryBasket = {
   category: "sector" | "policy";
   stocks: BasketStock[];
   indices: Benchmark[];
-};
-
-const parseCr = (s?: string | null) => {
-  const n = s ? parseFloat(s.replace(/[^0-9.]/g, "")) : NaN;
-  return Number.isFinite(n) ? n : null;
 };
 
 // kpi is [pe, bookValue, divYield, roce, roe, faceValue]; a P/E at or below zero is a loss, not a multiple.
@@ -63,14 +58,20 @@ export function basketStock(ticker: string): BasketStock | null {
     const fp = getCompanyFootprint(ticker);
     const industries = (fp?.sectors ?? []).map((s) => ({ slug: s.sectorSlug, name: s.sectorName }));
     industries.sort((a, b) => (a.slug === primary.sectorSlug ? -1 : b.slug === primary.sectorSlug ? 1 : 0));
+    const best = new Map<string, { weight: number; label: string }>();
+    for (const a of page.appearances) {
+      const had = best.get(a.sectorSlug);
+      if (!had || a.weight > had.weight) best.set(a.sectorSlug, { weight: a.weight, label: a.zoneLabel });
+    }
     out = {
       ticker,
       name: page.name,
-      mcapCr: parseCr(page.supplier.f?.mcap ?? sup.f?.mcap),
+      mcapCr: parseCrore(page.supplier.f?.mcap ?? sup.f?.mcap),
       pe: peOf(page.supplier.f?.kpi ?? sup.f?.kpi),
       role: primary.role,
       layer: primary.zoneLabel,
       industries,
+      layerIn: Object.fromEntries([...best].map(([slug, x]) => [slug, x.label])),
     };
   }
   stockCache.set(ticker, out);

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { IpoGrid } from "@/components/ipo/IpoGrid";
-import { listIpoDecks } from "@/lib/ipo-content";
+import { cachedIpoDeck, ipoCards } from "@/lib/analysis-props";
 import { ensureFinancials } from "@/lib/financials/load";
 
 export const metadata: Metadata = {
@@ -25,7 +25,9 @@ export const metadata: Metadata = {
 export default async function IposPage({ searchParams }: { searchParams: Promise<{ ipo?: string }> }) {
   await ensureFinancials();
   const { ipo } = await searchParams;
-  const ipos = listIpoDecks();
+  // Cards only; a deck loads when opened, except the one a ?ipo= link opens (see analysis-props.ts).
+  const ipos = ipoCards();
+  const initialDeck = ipo ? (cachedIpoDeck(ipo) ?? undefined) : undefined;
   return (
     <>
       <SiteHeader />
@@ -38,7 +40,7 @@ export default async function IposPage({ searchParams }: { searchParams: Promise
             selling, how it prices against listed peers and the risk factors that matter.
           </p>
         </div>
-        <IpoGrid ipos={ipos} initial={ipo} />
+        <IpoGrid ipos={ipos} initial={ipo} initialDeck={initialDeck} />
         <p className="text-xs text-ink-soft">
           Compiled from offer documents filed with SEBI and the exchanges, and from dated public reporting. Price bands, issue sizes and
           dates can change until the final prospectus. Not investment advice.

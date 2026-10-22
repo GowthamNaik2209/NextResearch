@@ -80,15 +80,17 @@ export function isChartRange(v: string | null): v is ChartRange {
 // REITs (KRT, BAGMANE) have no plain `.NS` symbol at all. NSE Emerge (SME) stocks have the same
 // problem with their "SM" series (`<T>-SM.NS`). So a quote is only accepted when it is fresh
 // (see isFreshQuote), and otherwise we fall through to those series and then to BSE.
-// Charts need history, which the RR symbols lack (they start at the series switch), so charts
-// try `.NS`, the SME series, then `.BO`, and accept the first series that is itself up to date.
+// Charts try the same symbols in the same order, so a REIT's chart comes from the RR series its
+// quote does whenever that series covers the range. The RR symbols lack older history (they start
+// at the series switch), so for longer ranges yahooSeries keeps one only as a fallback and moves
+// on to `.BO`; the chart footnote then names the other exchange.
 // (Checked against every listed ticker in the content, Oct 2026 - see the audit in the PR notes.)
 // Content tickers that aren't the company's exchange symbol: ADC India (formerly Krone
 // Communications) is BSE-only as ADCINDIA; Screener still resolves the content ticker.
 const YAHOO_ALIAS: Record<string, string> = { KRONECOMM: "ADCINDIA.BO" };
 const withAlias = (ticker: string, list: string[]) => (YAHOO_ALIAS[ticker] ? [YAHOO_ALIAS[ticker], ...list] : list);
 const quoteSymbols = (ticker: string) => withAlias(ticker, [`${ticker}.NS`, `${ticker}-RR.NS`, `${ticker}-SM.NS`, `${ticker}.BO`]);
-const chartSymbols = (ticker: string) => withAlias(ticker, [`${ticker}.NS`, `${ticker}-SM.NS`, `${ticker}.BO`]);
+const chartSymbols = quoteSymbols;
 const exchangeOf = (symbol: string): Exchange => (symbol.endsWith(".BO") ? "BSE" : "NSE");
 // The symbol that last gave a fresh quote/chart, tried first next time so a REIT doesn't cost
 // three upstream calls per refresh. Per server instance; a miss just re-walks the list.

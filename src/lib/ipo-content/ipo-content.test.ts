@@ -39,3 +39,28 @@ test("an NSE peer shows the same figures as its industry and policy pages", () =
       if (p.supplier) assert.deepEqual(p.supplier.f && { ...p.supplier.f, note: null }, { ...f, note: null }, `${d.slug}: ${p.ticker} pop-up record`);
     }
 });
+
+// The authored chip ("Opens 21 Oct") is written once; the stage must follow the dated timeline.
+const day = (s: string) => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
+
+test("an IPO's stage and chip follow its dates, not the authored text", () => {
+  const jio = (d: string) => getIpo("jio-platforms", day(d))!.status;
+  assert.deepEqual([jio("2026-10-20").stage, jio("2026-10-20").label], ["upcoming", "Opens 21 Oct"]);
+  assert.deepEqual([jio("2026-10-22").stage, jio("2026-10-22").label], ["open", "Open · closes 23 Oct"]);
+  assert.deepEqual([jio("2026-10-25").stage, jio("2026-10-25").label], ["upcoming", "Closed · lists 28 Oct"]);
+  assert.equal(jio("2026-10-29").stage, "listed");
+  // No dated window to go by: the authored stage stays.
+  assert.equal(getIpo("oyo", day("2027-06-01"))!.status.stage, "approved");
+});
+
+test("no IPO chip promises an opening date that has passed", () => {
+  for (const d of ["2026-10-22", "2026-10-24", "2026-11-15"])
+    for (const r of listIpos(day(d))) {
+      const m = r.status.label.match(/^Opens (\d{1,2}) (\w{3})/);
+      if (m) assert.ok(Date.parse(`${m[1]} ${m[2]} 2026 UTC`) >= day(d), `${r.slug} on ${d}: "${r.status.label}"`);
+    }
+  // Sorted on the live stage.
+  const order = { open: 0, upcoming: 1, approved: 2, filed: 3, listed: 4 } as const;
+  const stages = listIpoDecks(day("2026-10-22")).map((r) => order[r.status.stage]);
+  assert.deepEqual(stages, [...stages].sort((a, b) => a - b));
+});

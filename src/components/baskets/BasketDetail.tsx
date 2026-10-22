@@ -1,7 +1,7 @@
 "use client";
 
 import { InfoTip } from "@/components/InfoTip";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ChartRange } from "@/lib/live/yahoo";
@@ -9,15 +9,21 @@ import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import type { BasketStock } from "@/lib/baskets/industry";
 import { StockLink } from "@/components/stock/StockLink";
 import { BasketBreakdown, type BreakdownTab } from "./BasketBreakdown";
-import { BasketChart, MAX_CHART_STOCKS, defaultSelection, pct, stockLine, useSiteTheme, type ChartSelection, type CompareBasket } from "./BasketChart";
-import { DASHARRAY } from "@/components/research/SectorCharts";
+import { BasketChart, MAX_CHART_STOCKS, defaultSelection, stockLine, type ChartSelection, type CompareBasket } from "./BasketChart";
+import { DASHARRAY } from "@/components/charts/palette";
+import { useSiteTheme } from "@/lib/theme";
+import { croreShort, fmtMonth, inr, NA, signedPct } from "@/lib/format";
+import { signedPts } from "@/lib/baskets/fmt";
+import { MAX_BASKET_STOCKS } from "@/lib/baskets/limits";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { ReturnCards, picksKey } from "./ReturnCards";
 import { BasketStats } from "./BasketStats";
 import { BasketAnalysis } from "./BasketAnalysis";
 import { MINI_SEG, PANEL, PANEL_TITLE, Panel } from "./Panel";
 import { IndustryChips } from "./IndustryChips";
 import { basketCreateError } from "./NewBasketButton";
-import { loadSeries, savedBasketQuery, type Load } from "./series";
+import { industrySeriesKey, savedBasketQuery } from "./series";
+import { useSeries } from "./use-series";
 import { basketWeights } from "@/lib/baskets/backtest";
 import { targetWeights } from "@/lib/baskets/rebalance";
 import {
@@ -74,9 +80,8 @@ function copyNow(text: string): Promise<boolean> {
 
 // Only the market beside the basket; indices and other baskets are a "Compare with" pick on the chart.
 const NIFTY_ONLY = [{ key: "b:nifty50", label: "Nifty 50" }];
-
-// Market cap in Rs Cr, short: 1,74,575 Cr -> "1.75L Cr", 8,420 -> "8,420 Cr".
-const crore = (v: number) => (v >= 100_000 ? `${(v / 100_000).toFixed(2)}L Cr` : `${Math.round(v).toLocaleString("en-IN")} Cr`);
+/** A 0-1 share as a percentage, one decimal. */
+const pct1 = (share: number) => `${(share * 100).toFixed(1)}%`;
 
 const RANGES: { id: ChartRange; long: string }[] = [
   { id: "1M", long: "1 month" },
@@ -86,7 +91,6 @@ const RANGES: { id: ChartRange; long: string }[] = [
   { id: "3Y", long: "3 years" },
   { id: "5Y", long: "5 years" },
 ];
-const MAX_STOCKS = 75;
 // The page's own URL keeps a strategy other than the basket's default, so a link reopens it.
 // "wt" for the weighting, so it can't clash with a host page's "w". cap and lcap belonged to the
 // removed Capped weighting: still cleared, so an old link's are tidied away.
@@ -103,11 +107,21 @@ function schemeShares(stocks: BasketStock[], scheme: WeightScheme, custom?: Reco
   return new Map([...raw].map(([t, v]) => [t, v / sum]));
 }
 
+// Desktop (Tailwind's lg) or not, read live: the statistics panel is mounted once, in the column
+// that is showing, rather than twice with one copy hidden by CSS. Unknown (null) on the server.
+const LG = "(min-width: 64rem)";
+const onLgChange = (f: () => void) => {
+  const mq = window.matchMedia(LG);
+  mq.addEventListener("change", f);
+  return () => mq.removeEventListener("change", f);
+};
+const useWide = () => useSyncExternalStore(onLgChange, () => window.matchMedia(LG).matches, () => null);
+
 type Sort = "contribution" | "return" | "weight" | "pe" | "mcap" | "name";
 const SORTS: { id: Sort; label: string }[] = [
   { id: "contribution", label: "Contribution" },
   { id: "return", label: "Return" },
-  { id: "weight", label: "Weight" },
+  { id: "weight", label: "Weight now" },
   { id: "pe", label: "P/E (low first)" },
   { id: "mcap", label: "Market cap" },
   { id: "name", label: "Name" },
@@ -170,6 +184,11 @@ export function BasketDetail(p: BasketDetailProps) {
   // The rebalanced basket's chart also draws it bought and held, unless switched off.
   const [vsHeld, setVsHeld] = useState(true);
   const [stocks, setStocks] = useState(p.stocks);
+  // The latest list, for a save's reply that lands after more taps.
+  const stocksRef = useRef(stocks);
+  useEffect(() => {
+    stocksRef.current = stocks;
+  }, [stocks]);
   const [name, setName] = useState(p.name);
   const [isPublic, setIsPublic] = useState(p.isPublic);
   // An empty basket of yours opens in editing, so the picker stays up while you fill it.
@@ -185,10 +204,15 @@ export function BasketDetail(p: BasketDetailProps) {
   const [stockView, setStockView] = useState<"charts" | "list">("list");
   const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>("contribution");
   const [busy, setBusy] = useState(false);
+  // Create basket: "creating" while the server saves it, then "opening" while its page loads.
+  const [createStep, setCreateStep] = useState<"creating" | "opening" | null>(null);
+  // The confirm dialogs: sharing by link, and deleting.
+  const [confirm, setConfirm] = useState<"share" | "delete" | null>(null);
+  // "Link copied" on the button for a moment after a copy.
+  const [copied, setCopied] = useState(false);
   // Bumped by Retry, so the stats and analysis panels drop a failed load too.
   const [reload, setReload] = useState(0);
   const [note, setNote] = useState<string | null>(null);
-  const [loads, setLoads] = useState<Record<string, Load>>({});
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the view the URL asked for once on mount
@@ -238,14 +262,14 @@ export function BasketDetail(p: BasketDetailProps) {
 
   const tickers = useMemo(() => stocks.map((s) => s.ticker), [stocks]);
   const keyFor = (q: string) =>
-    p.mode === "industry" ? `x:sector=${p.id}&${q}` : p.mode === "idea" || draft ? picksKey(tickers, q) ?? `x:tickers=&${q}` : `x:${savedBasketQuery(p.id, q, tickers)}`;
+    p.mode === "industry" ? industrySeriesKey(p.id, q) : p.mode === "idea" || draft ? picksKey(tickers, q) ?? `x:tickers=&${q}` : `x:${savedBasketQuery(p.id, q, tickers)}`;
   const basketKey = keyFor(sq);
   // The same basket at the same weights, bought and held: the rebalanced one's comparison.
   const heldKey = rebalanced ? keyFor(strategyQuery({ ...strategy, rebalance: "never" })) : null;
   // Industry baskets compared alongside run the same strategy; custom weights are this basket's
   // own stocks', so those run at equal weights.
   const compareSq = weighting === "custom" ? strategyQuery({ ...strategy, weighting: "equal", weights: undefined }) : sq;
-  const compareKey = p.compareSlug && !(p.mode === "industry" && p.compareSlug === p.id) ? `x:sector=${p.compareSlug}&${compareSq}` : null;
+  const compareKey = p.compareSlug && !(p.mode === "industry" && p.compareSlug === p.id) ? industrySeriesKey(p.compareSlug, compareSq) : null;
   // Kept here, above the chart, so the reader's picks outlive weighting, range and view switches.
   const compareIndustries = p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id));
   // A stock's industries with this basket's own first on an industry basket (Bharat Forge sits in
@@ -280,20 +304,9 @@ export function BasketDetail(p: BasketDetailProps) {
   const tableScope = scope === "picks" && pickedKey ? "picks" : "all";
   const tableKey = tableScope === "picks" && pickedKey && !picksAll ? pickedKey : basketKey;
 
-  // The basket's own backtest feeds the stock rows and the left list (the cards load their lines
+  // The basket's own backtest feeds the stock rows and the side list (the cards load their lines
   // themselves); the picks' backtest feeds the table when it shows just the picks.
-  useEffect(() => {
-    if (!tickers.length) return;
-    for (const key of new Set([basketKey, tableKey])) {
-      const id = `${key}|${range}`;
-      if (loads[id]) continue;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the backtest as loading, then fetches it
-      setLoads((m) => ({ ...m, [id]: { status: "loading" } }));
-      loadSeries(key, range).then((r) => setLoads((m) => ({ ...m, [id]: r })));
-    }
-  }, [basketKey, tableKey, range, loads, tickers.length]);
-
-  const at = (key: string) => loads[`${key}|${range}`];
+  const { get: at, retry: retryLoad } = useSeries(tickers.length ? [basketKey, tableKey] : [], range, { reload });
   const bt = at(basketKey);
   const btData = bt?.status === "ok" ? bt.data : null;
   const holdings = new Map((btData?.holdings ?? []).map((h) => [h.ticker, h]));
@@ -315,23 +328,45 @@ export function BasketDetail(p: BasketDetailProps) {
   });
 
   // ---- owner actions ----
-  const patch = async (body: Record<string, unknown>) => {
+  // Every change is sent in order, one after the other (a quick add then remove can't reach the
+  // server the other way round), and the page shows "Saving…" until the last one is back. The
+  // stock list changes at once on a tap; a reply only replaces it when it is the reply to the
+  // latest change, so an earlier reply can never bring back a stock taken off since.
+  type Saved = { name: string; items: { ticker: string }[] };
+  const queue = useRef<Promise<unknown>>(Promise.resolve());
+  const inFlight = useRef(0);
+  const itemsSeq = useRef(0);
+  const patch = (body: Record<string, unknown>): Promise<Saved | null> => {
+    inFlight.current++;
     setBusy(true);
     setNote(null);
-    try {
-      const res = await fetch(`/api/baskets/${p.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      if (!res.ok) throw new Error();
-      return (await res.json()) as { name: string; items: { ticker: string }[] };
-    } catch {
-      setNote("Couldn’t save that change. Check your connection and try again.");
-      return null;
-    } finally {
-      setBusy(false);
-    }
+    const run = queue.current.then(async () => {
+      try {
+        const res = await fetch(`/api/baskets/${p.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        if (!res.ok) throw new Error();
+        return (await res.json()) as Saved;
+      } catch {
+        setNote("Couldn’t save that change. Check your connection and try again.");
+        return null;
+      } finally {
+        if (--inFlight.current === 0) setBusy(false);
+      }
+    });
+    queue.current = run;
+    return run;
   };
   const universe = useMemo(() => new Map((p.universe ?? []).map((s) => [s.ticker, s])), [p.universe]);
-  const syncItems = (res: { items: { ticker: string }[] } | null) => {
-    if (res) setStocks(res.items.map((i) => byTicker.get(i.ticker) ?? universe.get(i.ticker)).filter((s): s is BasketStock => !!s));
+  // An add or remove: the list already shows it; the server's list is applied only from the reply
+  // to the latest one (the server may have left out a stock past the limit). A failed latest
+  // change reloads the basket as saved, so the page never shows what the server doesn't have.
+  const patchItems = async (body: Record<string, unknown>) => {
+    const seq = ++itemsSeq.current;
+    let res = await patch(body);
+    if (seq !== itemsSeq.current) return;
+    if (!res) res = await fetch(`/api/baskets/${p.id}`).then((r) => (r.ok ? (r.json() as Promise<Saved>) : null), () => null);
+    if (!res || seq !== itemsSeq.current) return;
+    const known = new Map([...universe, ...stocksRef.current.map((s) => [s.ticker, s] as const)]);
+    setStocks(res.items.map((i) => known.get(i.ticker)).filter((s): s is BasketStock => !!s));
   };
   // Custom weights follow the stocks: a new one gets an equal share and the rest shrink in
   // proportion; one taken off leaves the rest in proportion, scaled back up to 100%.
@@ -344,7 +379,7 @@ export function BasketDetail(p: BasketDetailProps) {
     return next;
   };
   const add = async (list: string[]) => {
-    const fresh = list.filter((t) => !byTicker.has(t)).slice(0, MAX_STOCKS - stocks.length);
+    const fresh = list.filter((t) => !byTicker.has(t)).slice(0, MAX_BASKET_STOCKS - stocks.length);
     if (!fresh.length) return;
     setStocks((s) => [...s, ...fresh.map((t) => universe.get(t)!).filter(Boolean)]);
     const weights = weighting === "custom" ? { weights: reweigh(addToWeights(customEdit ?? {}, fresh, takenOff.current)) } : {};
@@ -360,7 +395,7 @@ export function BasketDetail(p: BasketDetailProps) {
       }
       return { ...sel, picks };
     });
-    if (!draft) syncItems(await patch({ add: fresh, ...weights }));
+    if (!draft) await patchItems({ add: fresh, ...weights });
   };
   const remove = async (t: string) => {
     setStocks((s) => s.filter((x) => x.ticker !== t));
@@ -376,7 +411,7 @@ export function BasketDetail(p: BasketDetailProps) {
       if (next) picks[next.ticker] = slot;
       return { ...sel, picks };
     });
-    if (!draft) syncItems(await patch({ remove: [t], ...weights }));
+    if (!draft) await patchItems({ remove: [t], ...weights });
   };
   const setWeight = async (w: WeightScheme) => {
     if (w === "custom") setWeightsOpen(true);
@@ -407,43 +442,74 @@ export function BasketDetail(p: BasketDetailProps) {
     setNote((n) => (n === blockedNote ? null : n));
   };
   const resetToEqual = () => editWeights(toPercents(schemeShares(stocks, "equal")));
+  // Weights typed but not yet sent (the 700ms wait): leaving the page sends them at once, so the
+  // last edit is never lost to a navigation.
+  const unsent = useRef<Record<string, number> | null>(null);
   useEffect(() => {
-    if (!ownsWeights || weighting !== "custom" || !strategy.weights) return;
+    // Nothing to send (or an add/remove already sent these weights): nothing waits to be flushed.
+    if (!ownsWeights || weighting !== "custom" || !strategy.weights) return void (unsent.current = null);
     const q = weightsParam(strategy.weights);
-    if (q === savedRef.current) return;
+    if (q === savedRef.current) return void (unsent.current = null);
     const w = strategy.weights;
+    unsent.current = w;
     const timer = setTimeout(() => {
       savedRef.current = q;
+      unsent.current = null;
       patch({ weights: w });
     }, 700);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- saves when the weights change, nothing else
   }, [ownsWeights, weighting, strategy.weights]);
-  // Copies the link at once (still inside the tap: Safari refuses a clipboard write that comes
-  // after a network wait), then makes the basket viewable by link if it isn't yet.
+  useEffect(() => {
+    // keepalive lets the request finish after the page is gone (a tab closed, a link followed).
+    const flush = () => {
+      const w = unsent.current;
+      if (!w) return;
+      unsent.current = null;
+      fetch(`/api/baskets/${p.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ weights: w }), keepalive: true }).catch(() => {});
+    };
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, [p.id]);
+  // Sharing: a private basket asks first (what "shared by link" means), then copies the link inside
+  // that tap (Safari refuses a clipboard write that comes after a network wait) and opens it to
+  // anyone with the link. A shared one just copies. The button says "Link copied" for a moment.
+  const shareUrl = () => `${window.location.origin}/baskets/${p.id}`;
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showCopied = (ok: boolean) => {
+    if (!ok) return setNote(`Copy this link to share it: ${shareUrl()}`);
+    setCopied(true);
+    if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    copiedTimer.current = setTimeout(() => setCopied(false), 2500);
+  };
+  const copyLink = async () => showCopied(await copyNow(shareUrl()));
   const share = async () => {
-    const url = `${window.location.origin}/baskets/${p.id}`;
-    const copied = copyNow(url);
-    if (!isPublic) {
-      const res = await patch({ isPublic: true });
-      if (!res) return setNote("Couldn’t share it right now. Try again.");
-      setIsPublic(true);
-    }
-    setNote((await copied) ? "Link copied. Anyone with it can view this basket." : `Copy this link to share it: ${url}`);
+    const copiedOk = copyNow(shareUrl());
+    setConfirm(null);
+    const res = await patch({ isPublic: true });
+    if (!res) return setNote("Couldn’t share it right now. Try again.");
+    setIsPublic(true);
+    const ok = await copiedOk;
+    showCopied(ok);
+    if (ok) setNote("Link copied. Anyone with it can view this basket; “Make private” in the ⋯ menu stops that.");
   };
   const unshare = async () => {
     if (await patch({ isPublic: false })) {
       setIsPublic(false);
-      setNote("Only you can see this basket now.");
+      setNote("Private again: only you can see this basket. The old link no longer opens it.");
     }
   };
+  const [deleting, setDeleting] = useState(false);
   const destroy = async () => {
-    if (!window.confirm(`Delete “${name}”? This can’t be undone.`)) return;
-    setBusy(true);
+    setDeleting(true);
     const res = await fetch(`/api/baskets/${p.id}`, { method: "DELETE" }).catch(() => null);
     if (res?.ok) router.push("/baskets");
     else {
-      setBusy(false);
+      setDeleting(false);
+      setConfirm(null);
       setNote("Couldn’t delete the basket right now.");
     }
   };
@@ -474,16 +540,23 @@ export function BasketDetail(p: BasketDetailProps) {
   }, [p.isOwner]);
 
   const canEdit = (p.mode === "saved" && p.isOwner) || draft;
-  // Create basket: saves the stocks picked so far under the name typed (numbered by the server if taken).
+  // Create basket: saves the stocks picked so far under the name typed (numbered by the server if
+  // taken). It needs a name, at least one stock and, when custom, weights that total 100%; until
+  // then the button is off and the line under it says what is missing.
+  const createBlocker = !tickers.length ? "Add at least one stock to create the basket." : !name.trim() ? "Name your basket to create it." : customBlocked ? blockedNote : null;
   const createDraft = async () => {
-    if (!tickers.length) return;
-    if (customBlocked) return setNote(blockedNote);
+    if (createBlocker) return setNote(createBlocker);
     setBusy(true);
+    setCreateStep("creating");
     setNote(null);
-    const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tickers, name: name.trim() || undefined, weighting: savedWeighting, ...savedWeights }) }).catch(() => null);
+    const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tickers, name: name.trim(), weighting: savedWeighting, ...savedWeights }) }).catch(() => null);
     const json = res ? await res.json().catch(() => null) : null;
-    if (res?.ok && json?.id) return router.push(withStrategy(`/baskets/${json.id}`));
+    if (res?.ok && json?.id) {
+      setCreateStep("opening");
+      return router.push(withStrategy(`/baskets/${json.id}`));
+    }
     setBusy(false);
+    setCreateStep(null);
     if (res?.status === 401) return router.push(`/login?next=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`);
     setNote(json?.error === "limit" ? basketCreateError(json) : "Couldn’t create the basket right now. Try again.");
   };
@@ -495,12 +568,13 @@ export function BasketDetail(p: BasketDetailProps) {
       initialIndustry={p.compareSlug}
       watchlist={p.watchlist}
       have={new Set(tickers)}
-      full={stocks.length >= MAX_STOCKS}
+      full={stocks.length >= MAX_BASKET_STOCKS}
       onAdd={add}
       onRemove={draft ? remove : undefined}
     />
   );
   const Title = p.titleAs ?? "h1";
+  const statusId = useId();
   // Desktop shows the chart and the stock table together; phones switch between them. CSS
   // decides (max-lg:hidden), so a resize or rotation across the breakpoint needs no event.
   const theme = useSiteTheme();
@@ -514,13 +588,10 @@ export function BasketDetail(p: BasketDetailProps) {
   const ctlLabel = "text-[10px] font-semibold uppercase tracking-wider text-ink-soft";
   // Headings under the basket's name: h2 on its own page, h3 where the basket is itself an h2.
   const heading = Title === "h2" ? "h3" : "h2";
+  // Retry: the table's backtest, and every panel's failed load with it (reload).
   const retry = () => {
     setReload((n) => n + 1);
-    setLoads((m) => {
-      const rest = { ...m };
-      delete rest[`${tableKey}|${range}`];
-      return rest;
-    });
+    retryLoad(tableKey);
   };
 
   const WEIGHT_HELP: Record<WeightScheme, string> = {
@@ -553,7 +624,7 @@ export function BasketDetail(p: BasketDetailProps) {
       ))}
     </div>
   );
-  // The settings the chosen weighting or rebalancing takes: caps, or the drift band.
+  // The setting the drift rule takes: its band.
   const numSelect = (label: string, value: number, choices: number[], unit: string, set: (v: number) => void) => (
     <label className="flex items-center gap-1">
       <span className={ctlLabel}>{label}</span>
@@ -576,23 +647,19 @@ export function BasketDetail(p: BasketDetailProps) {
   // A target weight wide enough for the band's example to have a lower trigger above zero.
   const bandEx = Math.max(20, strategy.band * 2);
   const strategySettings = strategy.rebalance === "drift" && (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      {strategy.rebalance === "drift" && (
-        <span className="flex items-center gap-1.5">
-          {numSelect("Band", strategy.band, BAND_CHOICES, " pts", (v) => pickStrategy({ ...strategy, band: v }))}
-          <InfoTip label="What the drift band means">
-            <p>
-              Rebalance when any stock is more than <b>{strategy.band} pts above or below</b> its target weight. Every stock then goes back
-              to its target at the next day&rsquo;s close.
-            </p>
-            <p className="mt-1.5 text-ink-soft">
-              Example: a {bandEx}% target triggers above {bandEx + strategy.band}% or below {bandEx - strategy.band}%. A stock whose target is
-              {" "}{strategy.band}% or less can only trigger on the way up.
-            </p>
-          </InfoTip>
-        </span>
-      )}
-    </div>
+    <span className="flex items-center gap-1.5">
+      {numSelect("Band", strategy.band, BAND_CHOICES, " pts", (v) => pickStrategy({ ...strategy, band: v }))}
+      <InfoTip label="What the drift band means">
+        <p>
+          Rebalance when any stock is more than <b>{strategy.band} pts above or below</b> its target weight. Every stock then goes back
+          to its target at the next day&rsquo;s close.
+        </p>
+        <p className="mt-1.5 text-ink-soft">
+          Example: a {bandEx}% target triggers above {bandEx + strategy.band}% or below {bandEx - strategy.band}%. A stock whose target is
+          {" "}{strategy.band}% or less can only trigger on the way up.
+        </p>
+      </InfoTip>
+    </span>
   );
   const rangeControl = (
     <div className={MINI_SEG} role="group" aria-label="Time range">
@@ -623,7 +690,7 @@ export function BasketDetail(p: BasketDetailProps) {
     const ex = tData?.excluded?.find((e) => e.ticker === t);
     if (!ex) return null;
     if (ex.reason === "zero") return "Set to 0%";
-    return ex.reason === "late" && ex.from ? `Listed ${new Date(ex.from).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}, not in this period` : "No price data";
+    return ex.reason === "late" && ex.from ? `Listed ${fmtMonth(ex.from)}, not in this period` : "No price data";
   };
   const removeButton = (s: BasketStock, small = false) => (
     <button
@@ -646,8 +713,10 @@ export function BasketDetail(p: BasketDetailProps) {
     );
   };
   // Below lg the statistics sit in the results column; from lg, compact in the side column.
+  const wide = useWide();
   const stats = (compact: boolean) =>
-    stocks.length > 0 && (
+    stocks.length > 0 &&
+    wide === compact && (
       <BasketStats range={range} basketKey={basketKey} name={name} strategy={strategy} stocks={stocks} compact={compact} heading={heading} reload={reload} scope={tableScope === "picks" ? "whole basket" : undefined} />
     );
   const narrowStats = stocks.length > 0 && <div className="flex min-w-0 flex-col lg:hidden">{stats(false)}</div>;
@@ -720,8 +789,8 @@ export function BasketDetail(p: BasketDetailProps) {
           </div>
           <div className="flex flex-none flex-wrap items-center gap-2">
             {draft ? (
-              <button type="button" onClick={createDraft} disabled={busy || !tickers.length} aria-disabled={customBlocked || undefined} className={btnPri}>
-                {busy ? "Creating…" : tickers.length ? `Create basket (${tickers.length})` : "Create basket"}
+              <button type="button" onClick={createDraft} disabled={busy || !!createBlocker} aria-describedby={statusId} className={btnPri}>
+                {createStep === "opening" ? "Opening…" : createStep ? "Creating…" : tickers.length ? `Create basket (${tickers.length})` : "Create basket"}
               </button>
             ) : canEdit ? (
               <>
@@ -737,8 +806,8 @@ export function BasketDetail(p: BasketDetailProps) {
                 >
                   {editing ? "Done" : "Edit stocks"}
                 </button>
-                <button type="button" onClick={share} disabled={busy} className={btnSec}>
-                  {isPublic ? "Copy link" : "Share"}
+                <button type="button" onClick={isPublic ? copyLink : () => setConfirm("share")} disabled={busy && !isPublic} className={btnSec}>
+                  {copied ? "Link copied ✓" : isPublic ? "Copy link" : "Share"}
                 </button>
               </>
             ) : p.mode === "idea" ? (
@@ -761,8 +830,8 @@ export function BasketDetail(p: BasketDetailProps) {
               <MoreMenu
                 items={[
                   { label: "Rename", onSelect: () => setRenaming(true) },
-                  ...(isPublic ? [{ label: "Stop sharing", onSelect: unshare }] : []),
-                  { label: "Delete basket", onSelect: destroy, danger: true },
+                  isPublic ? { label: "Make private", onSelect: unshare } : { label: "Share by link…", onSelect: () => setConfirm("share") },
+                  { label: "Delete basket…", onSelect: () => setConfirm("delete"), danger: true },
                 ]}
               />
             )}
@@ -809,10 +878,16 @@ export function BasketDetail(p: BasketDetailProps) {
             </div>
           )}
         </div>
-        {(canEdit || note) && (
+        {(canEdit || note || copied) && (
           // Owners keep this line reserved, so "Saving…" coming and going doesn't shift the page.
-          <p role="status" className={"text-xs text-ink-soft empty:hidden " + (canEdit && !draft ? "min-h-4" : "")}>
-            {busy && canEdit ? (draft ? "Creating…" : "Saving…") : (note ?? (draft && !tickers.length ? "Pick an industry below and add its stocks." : null))}
+          <p id={statusId} role="status" className={"text-xs text-ink-soft empty:hidden " + (canEdit && !draft ? "min-h-4" : "")}>
+            {draft && createStep
+              ? createStep === "opening"
+                ? "Saved. Opening your basket…"
+                : "Creating your basket…"
+              : busy && canEdit && !draft
+                ? "Saving…"
+                : (note ?? (draft ? (!tickers.length ? "Open the Stocks list below and add stocks; switch Industry to mix in others." : createBlocker) : null))}
           </p>
         )}
       </header>
@@ -853,11 +928,11 @@ export function BasketDetail(p: BasketDetailProps) {
           {stocks.length === 0 ? (
             <div className={PANEL + " p-8 text-center text-sm text-ink-soft"}>
               {draft ? (
-                "Pick an industry above and add its stocks. The returns and chart fill in as you go."
+                "No stocks yet. Open the Stocks list above to add the industry’s stocks, or switch Industry to pick from another. The returns and chart fill in as you go."
               ) : canEdit ? (
                 <>
-                  This basket is empty. <span className="lg:hidden">Pick an industry above and add its stocks.</span>
-                  <span className="hidden lg:inline">Pick an industry on the right and add its stocks.</span>
+                  This basket is empty. <span className="lg:hidden">Add stocks with the picker above.</span>
+                  <span className="hidden lg:inline">Add stocks with the picker on the right.</span>
                 </>
               ) : (
                 "This basket has no stocks yet."
@@ -911,8 +986,8 @@ export function BasketDetail(p: BasketDetailProps) {
                 infoLabel="About the holdings"
                 info={
                   <>
-                    <b>Wt</b>: the stock&rsquo;s share of the basket now. <b>Return</b>: its own price change. <b>Pts</b>: what it added to the
-                    basket&rsquo;s return. <b>Breakdown</b> shows the same as charts.
+                    <b>Target</b>: the share it was bought at (your custom % when Custom). <b>Now</b>: its share today, after the price moves.{" "}
+                    <b>Return</b>: its own price change. <b>Pts</b>: what it added to the basket&rsquo;s return.
                   </>
                 }
                 tools={
@@ -955,7 +1030,7 @@ export function BasketDetail(p: BasketDetailProps) {
                     {/* Phones: one compact row per stock, sorted from the menu. */}
                     <div className="flex items-center justify-between gap-2 border-b border-line/70 px-3 py-1.5 text-[11px] text-ink-soft sm:hidden">
                       <span className="text-balance">
-                        <b className="font-semibold">wt</b> share now · <b className="font-semibold">pts</b> added to the return
+                        <b className="font-semibold">target → now</b> share · <b className="font-semibold">pts</b> added to the return
                       </span>
                       <label className="flex items-center gap-1.5">
                         <span className="sr-only">Sort by</span>
@@ -985,28 +1060,27 @@ export function BasketDetail(p: BasketDetailProps) {
                                 <span className="font-mono">{s.ticker}</span> · {s.layer}
                               </div>
                               <div className="font-mono text-[11px] text-ink-soft">
-                                P/E {s.pe != null ? s.pe.toFixed(1) : "—"} · <span className="whitespace-nowrap">{s.mcapCr != null ? `₹${crore(s.mcapCr)}` : "mcap —"}</span>
+                                P/E {s.pe != null ? `${s.pe.toFixed(1)}x` : NA} · <span className="whitespace-nowrap">{s.mcapCr != null ? croreShort(s.mcapCr) : `mcap ${NA}`}</span>
                               </div>
                               <IndustryChips industries={industriesOf(s)} className="mt-1" />
                             </div>
                             <div className="flex-none text-right">
                               {h ? (
                                 <>
-                                  <div className={"font-mono text-[13px] font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{pct(h.ret)}</div>
-                                  <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft">wt {(h.endWeight * 100).toFixed(1)}%</div>
-                                  <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft">
-                                    {h.contribution >= 0 ? "+" : "−"}
-                                    {Math.abs(h.contribution).toFixed(2)} pts
+                                  <div className={"font-mono text-[13px] font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{signedPct(h.ret)}</div>
+                                  <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft" title="Target share → share now">
+                                    {pct1(h.weight)} → {pct1(h.endWeight)}
                                   </div>
+                                  <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft">{signedPts(h.contribution, 2)} pts</div>
                                 </>
                               ) : ex ? (
                                 <div className="max-w-[7rem] text-[11px] leading-snug text-ink-soft">{ex}</div>
                               ) : (
-                                <div className="font-mono text-sm text-ink-soft">{tbt?.status === "error" ? "—" : "…"}</div>
+                                <div className="font-mono text-sm text-ink-soft">{tbt?.status === "error" ? NA : "…"}</div>
                               )}
                               {since != null && (
                                 <div className="font-mono text-[11px] text-ink-soft">
-                                  {pct(since)}
+                                  {signedPct(since)}
                                   <span className="block font-sans">since added</span>
                                 </div>
                               )}
@@ -1025,7 +1099,10 @@ export function BasketDetail(p: BasketDetailProps) {
                               <span className="sr-only">Chart line</span>
                             </th>
                             {sortHead("name", "Stock", false)}
-                            {sortHead("weight", "Wt")}
+                            <th scope="col" title="The share it was bought at (your custom % when Custom)" className="whitespace-nowrap px-2 py-1.5 text-right font-semibold">
+                              Target
+                            </th>
+                            {sortHead("weight", "Now")}
                             {sortHead("return", "Return")}
                             {sortHead("contribution", "Pts")}
                             {sortHead("pe", "P/E")}
@@ -1074,21 +1151,19 @@ export function BasketDetail(p: BasketDetailProps) {
                                 </td>
                                 {h ? (
                                   <>
-                                    <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{(h.endWeight * 100).toFixed(1)}%</td>
-                                    <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{pct(h.ret)}</td>
-                                    <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (h.contribution >= 0 ? "text-pos" : "text-danger")}>
-                                      {h.contribution >= 0 ? "+" : "−"}
-                                      {Math.abs(h.contribution).toFixed(2)}
-                                    </td>
+                                    <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono text-ink-soft">{pct1(h.weight)}</td>
+                                    <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{pct1(h.endWeight)}</td>
+                                    <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{signedPct(h.ret)}</td>
+                                    <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (h.contribution >= 0 ? "text-pos" : "text-danger")}>{signedPts(h.contribution, 2)}</td>
                                   </>
                                 ) : (
-                                  <td colSpan={3} className="px-2 py-1.5 text-right text-[11px] text-ink-soft">
-                                    {ex ?? (tbt?.status === "error" ? "—" : "…")}
+                                  <td colSpan={4} className="px-2 py-1.5 text-right text-[11px] text-ink-soft">
+                                    {ex ?? (tbt?.status === "error" ? NA : "…")}
                                   </td>
                                 )}
-                                <td className="px-2 py-1.5 text-right font-mono">{s.pe != null ? s.pe.toFixed(1) : "—"}</td>
-                                <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{s.mcapCr != null ? Math.round(s.mcapCr).toLocaleString("en-IN") : "—"}</td>
-                                {sinceShown && <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (since == null ? "text-ink-soft" : since >= 0 ? "text-pos" : "text-danger")}>{since != null ? pct(since) : "—"}</td>}
+                                <td className="px-2 py-1.5 text-right font-mono">{s.pe != null ? `${s.pe.toFixed(1)}x` : NA}</td>
+                                <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{inr(s.mcapCr)}</td>
+                                {sinceShown && <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (since == null ? "text-ink-soft" : since >= 0 ? "text-pos" : "text-danger")}>{signedPct(since)}</td>}
                                 {canEdit && editing && <td className="px-1 py-1">{removeButton(s, true)}</td>}
                               </tr>
                             );
@@ -1097,7 +1172,8 @@ export function BasketDetail(p: BasketDetailProps) {
                       </table>
                     </div>
                     <p className="border-t border-line/70 px-3 py-1.5 text-[11px] text-ink-soft">
-                      Return over the past {rangeLong} · <b className="font-semibold">wt</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} now ·{" "}
+                      Return over the past {rangeLong} · <b className="font-semibold">target</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} when bought,{" "}
+                      <b className="font-semibold">now</b> after the price moves ·{" "}
                       <b className="font-semibold">pts</b> what it added to {tableScope === "picks" ? "your picks’" : "the basket’s"} return · P/E and market cap from our last data update
                     </p>
                   </>
@@ -1146,6 +1222,7 @@ export function BasketDetail(p: BasketDetailProps) {
             <Panel heading={heading} title={`In this basket (${stocks.length})`} className="flex min-h-0 flex-col" bodyClassName="flex min-h-0 flex-col">
               <p className="px-3 pt-1.5 text-[11px] leading-snug text-ink-soft">
                 {picked.length > 0 ? "The mark beside a stock is its line on the chart. " : ""}Add or take off lines with the chart&rsquo;s Stocks menu.
+                {canEdit && editing ? " Remove stocks from the Holdings table." : ""}
               </p>
               <ul className="max-h-[22rem] divide-y divide-line/70 overflow-y-auto overscroll-contain px-3 py-1">
                 {/* Stocks on the chart first (in the order their lines were given), then the rest A to Z. */}
@@ -1167,8 +1244,7 @@ export function BasketDetail(p: BasketDetailProps) {
                           {s.name}
                           {slot != null && <span className="sr-only"> (on the chart)</span>}
                         </StockLink>
-                        <span className={"flex-none font-mono text-[11px] " + (!h ? "text-ink-soft" : h.ret >= 0 ? "text-pos" : "text-danger")}>{h ? pct(h.ret) : "—"}</span>
-                        {canEdit && editing && removeButton(s, true)}
+                        <span className={"flex-none font-mono text-[11px] " + (!h ? "text-ink-soft" : h.ret >= 0 ? "text-pos" : "text-danger")}>{h ? signedPct(h.ret) : NA}</span>
                       </li>
                     );
                   })}
@@ -1177,6 +1253,17 @@ export function BasketDetail(p: BasketDetailProps) {
           )}
         </aside>
       </div>
+      {canEdit && !draft && (
+        <>
+          <ConfirmDialog open={confirm === "share"} title="Share this basket by link?" confirmLabel="Share and copy link" onConfirm={share} onCancel={() => setConfirm(null)}>
+            <p>Anyone with the link can open this basket and see its stocks, weights and backtest. It isn&rsquo;t listed anywhere or shown in search, and they can&rsquo;t change it.</p>
+            <p className="mt-2">You can make it private again at any time from the ⋯ menu.</p>
+          </ConfirmDialog>
+          <ConfirmDialog open={confirm === "delete"} title={`Delete “${name}”?`} confirmLabel={deleting ? "Deleting…" : "Delete basket"} danger busy={deleting} onConfirm={destroy} onCancel={() => setConfirm(null)}>
+            This can&rsquo;t be undone.{isPublic ? " Its shared link will stop working." : ""}
+          </ConfirmDialog>
+        </>
+      )}
     </div>
   );
 }
@@ -1258,7 +1345,7 @@ function CustomWeights({
         {bad.size
           ? "Type a number from 0 to 100 in each box."
           : ok
-          ? "The backtest uses these weights."
+          ? "The backtest uses these target weights (the Holdings table's Target column)."
           : `Total is ${total.toFixed(1)}%: ${off > 0 ? `add ${off.toFixed(1)}%` : `take off ${(-off).toFixed(1)}%`} to make 100%. The backtest waits until then.`}
       </p>
       {/* Phones list every stock (the × closes the panel); wider screens scroll a long list inside. */}
@@ -1476,7 +1563,7 @@ function StockPicker({
               Stocks
               <InfoTip label="How to add stocks">
                 Pick an industry, then add its stocks one by one or all at once. Switching industry keeps adding to the same basket, so one basket can
-                mix several (up to {MAX_STOCKS} stocks).
+                mix several (up to {MAX_BASKET_STOCKS} stocks).
               </InfoTip>
             </span>
             <button
@@ -1535,7 +1622,8 @@ function StockPicker({
                         {s.name}
                       </div>
                       <div className="truncate text-[11px] text-ink-soft">
-                        <span className="font-mono">{s.ticker}</span> · {s.layer}
+                        {/* Its layer in this industry (Bharat Forge reads as an EV part here, not artillery). */}
+                        <span className="font-mono">{s.ticker}</span> · {s.layerIn?.[industry] ?? s.layer}
                       </div>
                     </div>
                     {inIt && onRemove ? (
@@ -1561,7 +1649,7 @@ function StockPicker({
           </div>
         )}
       </div>
-      {full && <p className="text-xs text-ink-soft">This basket is full ({MAX_STOCKS} stocks). Remove one to add another.</p>}
+      {full && <p className="text-xs text-ink-soft">This basket is full ({MAX_BASKET_STOCKS} stocks). Remove one to add another.</p>}
 
       {liked.length > 0 && (
         <div>

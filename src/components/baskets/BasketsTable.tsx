@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
-import { seriesStats, relativeStats } from "@/lib/baskets/stats";
+import { basketFigures, seriesStats, type BasketFigures } from "@/lib/baskets/stats";
+import { NA, signedPct } from "@/lib/format";
+import { signedPts } from "@/lib/baskets/fmt";
 import { Panel } from "./Panel";
-import { loadSeries, savedBasketQuery } from "./series";
+import { industrySeriesKey, loadSeries, savedBasketQuery } from "./series";
 import { heldStrategy, strategyQuery } from "@/lib/baskets/strategy";
 
 // The Baskets page's dense tables: one row per basket with its 1Y return, deepest fall and lead
 // over the Nifty 50. Figures load in the browser after the page shows, through the same series
 // loader (and keys) the basket pages use, so opening a row reuses the backtest it just ran.
 // A shared queue keeps at most a few backtests in flight (an account may keep 50 baskets).
+// The industry rows' figures can arrive already worked out by the server (`seed`), so the table
+// shows them with the page instead of after a dozen backtests in the browser.
 
 /** A saved basket of the viewer's, as the page hands it over (plain, serializable). */
 export type SavedRow = { kind: "saved"; id: string; name: string; isPublic: boolean; weighting: "equal" | "mcap" | "custom"; weights?: Record<string, number> | null; tickers: string[]; names: string[] };
@@ -18,14 +22,16 @@ export type SavedRow = { kind: "saved"; id: string; name: string; isPublic: bool
 export type IndustryRow = { kind: "industry"; slug: string; name: string; category: "sector" | "policy"; count: number };
 export type BasketRow = SavedRow | IndustryRow;
 
-type Fig = { ret: number; maxDd: number; vs: number };
+type Fig = BasketFigures;
 type Entry = "loading" | "error" | Fig;
+/** Figures the server already has: by series key, and the Nifty 50's own 1Y return. */
+export type TableSeed = { figs: Record<string, Fig>; benchRet: number | null };
 
 const RANGE = "1Y" as const;
 const BENCH = "b:nifty50";
 const MAX_INFLIGHT = 4;
 
-const keyOf = (r: BasketRow) => (r.kind === "saved" ? `x:${savedBasketQuery(r.id, strategyQuery(heldStrategy(r.weighting, r.weights ?? undefined)), r.tickers)}` : `x:sector=${r.slug}&w=equal`);
+const keyOf = (r: BasketRow) => (r.kind === "saved" ? `x:${savedBasketQuery(r.id, strategyQuery(heldStrategy(r.weighting, r.weights ?? undefined)), r.tickers)}` : industrySeriesKey(r.slug));
 const hrefOf = (r: BasketRow) => (r.kind === "saved" ? `/baskets/${r.id}` : `/baskets/industry/${r.slug}`);
 const countOf = (r: BasketRow) => (r.kind === "saved" ? r.tickers.length : r.count);
 
@@ -36,7 +42,7 @@ const figs = new Map<string, Entry>();
 const listed = new Map<string, string>();
 const queue: string[] = [];
 let inflight = 0;
-let bench: "loading" | "error" | { ret: number; points: { t: string; c: number }[] } = "loading";
+let bench: "loading" | "error" | { ret: number } = "loading";
 let benchStarted = false;
 let version = 0;
 const subs = new Set<() => void>();
@@ -55,7 +61,8 @@ function startBench() {
   benchStarted = true;
   loadSeries(BENCH, RANGE).then((l) => {
     const st = l.status === "ok" ? seriesStats(l.data.points) : null;
-    bench = l.status === "ok" && st ? { ret: st.ret, points: l.data.points } : "error";
+    // A figure the server sent stays: it is the one the rows' leads were measured against.
+    if (bench === "loading" || bench === "error") bench = l.status === "ok" && st ? { ret: st.ret } : "error";
     emit();
   });
 }
@@ -66,12 +73,8 @@ function pump() {
     inflight++;
     Promise.all([loadSeries(key, RANGE), loadSeries(BENCH, RANGE)])
       .then(([l, b]) => {
-        const st = l.status === "ok" ? seriesStats(l.data.points) : null;
-        if (l.status !== "ok" || !st) return figs.set(key, "error");
-        // The lead over the Nifty across the basket's own dates (its last close on or before each).
-        const rel = b.status === "ok" ? relativeStats(l.data.points, b.data.points) : null;
-        const benchRet = rel?.benchRet ?? (typeof bench === "object" ? bench.ret : null);
-        figs.set(key, { ret: st.ret, maxDd: st.maxDd, vs: benchRet == null ? NaN : st.ret - benchRet });
+        const fig = l.status === "ok" ? basketFigures(l.data.points, b.status === "ok" ? b.data.points : null) : null;
+        figs.set(key, fig ?? "error");
       })
       .catch(() => figs.set(key, "error"))
       .finally(() => {
@@ -80,6 +83,15 @@ function pump() {
         pump();
       });
   }
+}
+
+/** Figures the server worked out, into the store (a row the browser already measured keeps its own). */
+function seedStore(seed: TableSeed) {
+  for (const [k, f] of Object.entries(seed.figs)) {
+    const e = figs.get(k);
+    if (!e || e === "error") figs.set(k, f);
+  }
+  if (seed.benchRet != null && typeof bench !== "object") bench = { ret: seed.benchRet };
 }
 
 function request(keys: string[]) {
@@ -94,14 +106,19 @@ function request(keys: string[]) {
 
 // ---- formatting ----
 
-const signed = (v: number, unit: string) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}${unit}`;
-const tone = (v: number) => (v > 0 ? "text-pos" : v < 0 ? "text-danger" : "text-ink-soft");
+const signed = (v: number, unit: string) => (unit === "%" ? signedPct(v) : `${signedPts(v)}${unit}`);
+const tone = (v: number) => (Number(v.toFixed(1)) > 0 ? "text-pos" : Number(v.toFixed(1)) < 0 ? "text-danger" : "text-ink-soft");
 
-function Num({ entry, pick, unit }: { entry: Entry | undefined; pick: (f: Fig) => number; unit: string }) {
-  if (!entry || entry === "loading") return <span className="text-ink-soft">…</span>;
-  if (entry === "error") return <span className="text-ink-soft">—</span>;
+/** A figure still being worked out: a shimmering bar the width of a number, so the table never looks empty. */
+const Pending = () => (
+  <span role="img" aria-label="Loading" className="ml-auto inline-block h-3 w-10 animate-pulse rounded bg-line/80 align-middle" />
+);
+
+function Num({ entry, pick, unit }: { entry: Entry | undefined; pick: (f: Fig) => number | null; unit: string }) {
+  if (!entry || entry === "loading") return <Pending />;
+  if (entry === "error") return <span className="text-ink-soft">{NA}</span>;
   const v = pick(entry);
-  if (!Number.isFinite(v)) return <span className="text-ink-soft">—</span>;
+  if (v == null || !Number.isFinite(v)) return <span className="text-ink-soft">{NA}</span>;
   return <span className={tone(v)}>{signed(v, unit)}</span>;
 }
 
@@ -130,30 +147,51 @@ const PHONE_SORTS: SortState[] = (["ret", "vs", "dd", "count", "name"] as Sort[]
 // the sub-line, and the sort menu still sorts by both), so a row fits 360px without sideways scroll.
 const GRID = "grid grid-cols-[minmax(0,1fr)_4rem_4.25rem] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_4.5rem]";
 
-export function BasketsTable({ rows, sort, onSort, label }: { rows: BasketRow[]; sort: SortState | null; onSort: (s: SortState) => void; label: string }) {
+export function BasketsTable({
+  rows,
+  sort,
+  onSort,
+  label,
+  seed,
+  deferred = false,
+}: {
+  rows: BasketRow[];
+  sort: SortState | null;
+  onSort: (s: SortState) => void;
+  label: string;
+  seed?: TableSeed;
+  /** The server is still working the figures out: show the rows loading, fetch nothing yet. */
+  deferred?: boolean;
+}) {
   const keys = useMemo(() => rows.map(keyOf), [rows]);
   // Bumps as figures arrive, so the rows (and a sort by them) re-read the store.
   const v = useSyncExternalStore(subscribe, getVersion, getVersion);
+  // Before the effect below puts the server's figures in the store, read them from the props.
+  const entryOf = (key: string): Entry | undefined => {
+    const e = figs.get(key);
+    return e && e !== "loading" ? e : (seed?.figs[key] ?? e);
+  };
 
   useEffect(() => {
     rows.forEach((r, i) => listed.set(keys[i], r.name));
+    if (seed) seedStore(seed);
     emit();
-    request(keys);
+    if (!deferred) request(keys);
     return () => {
       keys.forEach((k) => listed.delete(k));
       emit();
     };
-  }, [rows, keys]);
+  }, [rows, keys, seed, deferred]);
 
   const sorted = useMemo(() => {
     const items = rows.map((r, i) => ({ r, key: keys[i] }));
     if (!sort) return items;
     const { by, dir } = sort;
     const sign = dir === "desc" ? -1 : 1;
-    const num = (key: string, f: (x: Fig) => number) => {
-      const e = figs.get(key);
-      const v = e && typeof e === "object" ? f(e) : NaN;
-      return Number.isFinite(v) ? v : null;
+    const num = (key: string, f: (x: Fig) => number | null) => {
+      const e = entryOf(key);
+      const v = e && typeof e === "object" ? f(e) : null;
+      return v != null && Number.isFinite(v) ? v : null;
     };
     const val = (x: { r: BasketRow; key: string }) =>
       by === "ret" ? num(x.key, (f) => f.ret) : by === "dd" ? num(x.key, (f) => f.maxDd) : by === "vs" ? num(x.key, (f) => f.vs) : countOf(x.r);
@@ -165,8 +203,8 @@ export function BasketsTable({ rows, sort, onSort, label }: { rows: BasketRow[];
       if (va == null || vb == null) return va == null && vb == null ? a.r.name.localeCompare(b.r.name) : va == null ? 1 : -1;
       return sign * (va - vb) || a.r.name.localeCompare(b.r.name);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- v: re-sort as figures arrive
-  }, [rows, keys, sort, v]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- v: re-sort as figures arrive (entryOf reads the store and seed)
+  }, [rows, keys, sort, v, seed]);
 
   const head = (id: Sort, text: string, place: string) => {
     const on = sort?.by === id ? sort : null;
@@ -235,7 +273,7 @@ export function BasketsTable({ rows, sort, onSort, label }: { rows: BasketRow[];
         </div>
         <ul role="rowgroup">
           {sorted.map(({ r, key }) => {
-            const e = figs.get(key);
+            const e = entryOf(key);
             const n = countOf(r);
             const badge =
               r.kind === "saved"
@@ -317,32 +355,40 @@ export function BasketsPanel({
   rows,
   initialSort = null,
   tools,
+  seed,
+  deferred,
   children,
 }: {
   title: string;
   rows: BasketRow[];
   initialSort?: Sort | null;
   tools?: ReactNode;
+  /** Figures the server already worked out (the industry rows). */
+  seed?: TableSeed;
+  /** The server is still working them out (the page's loading state). */
+  deferred?: boolean;
   children?: ReactNode;
 }) {
   const [sort, setSort] = useState<SortState | null>(initialSort && { by: initialSort, dir: firstDir(initialSort) });
   const has = rows.length > 0;
   return (
     <Panel label={title} tools={tools}>
-      {has ? <BasketsTable rows={rows} sort={sort} onSort={setSort} label={title} /> : <div className="px-3 py-3 text-xs leading-relaxed text-ink-soft">{children}</div>}
+      {has ? <BasketsTable rows={rows} sort={sort} onSort={setSort} label={title} seed={seed} deferred={deferred} /> : <div className="px-3 py-3 text-xs leading-relaxed text-ink-soft">{children}</div>}
     </Panel>
   );
 }
 
 // ---- the summary strip ----
 
-export function BasketsSummary({ mineCount }: { mineCount: number | null }) {
+export function BasketsSummary({ mineCount, benchRet = null }: { mineCount: number | null; /** The Nifty's 1Y return the server measured the rows against. */ benchRet?: number | null }) {
   useSyncExternalStore(subscribe, getVersion, getVersion);
   useEffect(() => startBench(), []);
   const all = [...listed.keys()];
-  const done = all.map((k) => figs.get(k)).filter((e): e is Fig => !!e && typeof e === "object" && Number.isFinite(e.vs));
-  const pending = all.filter((k) => figs.get(k) === "loading").length;
-  const beat = done.filter((f) => f.vs > 0).length;
+  const done = all.map((k) => figs.get(k)).filter((e): e is Fig => !!e && typeof e === "object" && e.vs != null && Number.isFinite(e.vs));
+  // Rows not yet asked for (the server is still working on them) count as loading too.
+  const pending = all.filter((k) => !figs.has(k) || figs.get(k) === "loading").length;
+  const nifty = typeof bench === "object" ? bench : benchRet != null ? { ret: benchRet } : bench;
+  const beat = done.filter((f) => (f.vs ?? 0) > 0).length;
   let best: { name: string; ret: number } | null = null;
   for (const k of all) {
     const e = figs.get(k);
@@ -356,13 +402,13 @@ export function BasketsSummary({ mineCount }: { mineCount: number | null }) {
       <div className={cell}>
         <dt className={head}>Nifty 50 · 1Y</dt>
         <dd className="font-mono text-sm font-bold tabular-nums">
-          {bench === "loading" ? <span className="text-ink-soft">…</span> : bench === "error" ? <span className="text-ink-soft">—</span> : <span className={tone(bench.ret)}>{signed(bench.ret, "%")}</span>}
+          {nifty === "loading" ? <Pending /> : nifty === "error" ? <span className="text-ink-soft">{NA}</span> : <span className={tone(nifty.ret)}>{signed(nifty.ret, "%")}</span>}
         </dd>
       </div>
       <div className={cell}>
         <dt className={head}>Beat the Nifty · 1Y</dt>
         <dd className="font-mono text-sm font-bold tabular-nums text-ink">
-          {all.length === 0 ? "—" : `${beat} of ${done.length}`}
+          {all.length === 0 ? NA : `${beat} of ${done.length}`}
           {pending > 0 && <span className="ml-1 font-sans text-[10px] font-normal text-ink-soft">({pending} loading)</span>}
         </dd>
       </div>
@@ -378,7 +424,7 @@ export function BasketsSummary({ mineCount }: { mineCount: number | null }) {
               </span>
             </>
           ) : (
-            <span className="font-mono text-ink-soft">{pending ? "…" : "—"}</span>
+            pending ? <Pending /> : <span className="font-mono text-ink-soft">{NA}</span>
           )}
         </dd>
       </div>

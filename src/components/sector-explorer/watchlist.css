@@ -1,0 +1,37 @@
+/* The watchlist heart's hit area. Its base look (.watch-btn, .watch-heart) is in globals.css; these
+   rules are more specific (.watch-wrap > .watch-btn) so they win over it.
+
+   globals.css enlarges the tap area with a 40x40 ::after centred on the 23x23 heart. Inline in a
+   row, that invisible square reached over the text beside it ("Direct supplier · Medium" in the
+   explorer), so a tap meant for the row toggled the watchlist instead. Now the hit area is the
+   button's own box: a mouse gets the small heart as drawn, a finger gets a real 40x40 button
+   with a larger heart, which takes its own room in the row, so nothing overlaps it. */
+.watch-wrap > .watch-btn::after {
+  inset: 0;
+  top: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  transform: none;
+}
+@media (pointer: coarse) {
+  .watch-wrap > .watch-btn {
+    width: 40px;
+    height: 40px;
+    margin-left: 0;
+    /* Lets the bigger button sit inside a row's padding instead of making every row taller. */
+    margin-block: -8px;
+    flex: none;
+  }
+  .watch-wrap > .watch-btn .watch-heart {
+    width: 21px;
+    height: 21px;
+  }
+}
+/* A tap is saving: the heart already shows the new state; this just stops it looking idle. */
+.watch-wrap > .watch-btn.pending {
+  cursor: progress;
+}
+.watch-wrap > .watch-btn.pending .watch-heart {
+  opacity: 0.75;
+}

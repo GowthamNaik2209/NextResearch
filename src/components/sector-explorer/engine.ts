@@ -10,6 +10,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { SectorDef, SectorZone } from "@/lib/sector-content";
+import { readTheme } from "@/lib/theme";
 
 export type ExplorerDom = {
   stage: HTMLDivElement;
@@ -33,6 +34,8 @@ export type ExplorerCallbacks = {
   // (layer 0, default camera view), so the shell can mark that view active again.
   onZoneChange: (zoneId: string | null, reset?: boolean) => void;
   onDeepDiveStageChange: (stage: number | null) => void;
+  // Once, after the first frames are on screen (model drawn, labels placed).
+  onReady?: () => void;
 };
 
 // Scenario overlay: zone id -> how hard it is hit (1-3) and whether it helps or hurts.
@@ -65,6 +68,10 @@ type ZoneRuntime = {
   tag: HTMLButtonElement;
   line: SVGLineElement;
   tagLine: SVGLineElement;
+  // This frame's measurements (updateCallouts reads them all before it writes anything).
+  tw: number;
+  th: number;
+  boxRect: DOMRect | null;
 };
 
 export function mountExplorer(
@@ -101,7 +108,11 @@ export function mountExplorer(
   controls.dampingFactor = 0.08;
   controls.minDistance = 1.2;
   controls.maxDistance = 17;
-  controls.maxPolarAngle = Math.PI * 0.495;
+  // Keeps the camera above the floor; an authored view from below (EV "Under") lifts it while
+  // parked there (see flyTo), otherwise the clamp flattened it into a ground-level side view.
+  const FLOOR_POLAR = Math.PI * 0.495;
+  controls.maxPolarAngle = FLOOR_POLAR;
+  let floorAfterFlight = false;
   controls.target.set(0, 0.55, 0);
   controls.addEventListener("start", () => {
     shot = null;
@@ -244,7 +255,7 @@ export function mountExplorer(
   gridMat.transparent = true;
   const fog = scene.fog as THREE.Fog;
   const applyGridTheme = () => {
-    const light = document.documentElement.getAttribute("data-theme") === "light";
+    const light = readTheme() === "light";
     gridMat.opacity = light ? 0.16 : 1;
     fog.color.setHex(light ? 0xd3d9e0 : 0x141c28);
     scene.environmentIntensity = light ? 0.7 : 0.55;
@@ -313,8 +324,9 @@ export function mountExplorer(
 
   // Each part is its own element so CSS can keep the crumb on one line and truncate only
   // the system's name (labels are authored text, so they go in as textContent, not HTML).
-  // The nodes are built once and updated in place: rebuilding them while a pick's layer tween
-  // ran swapped the \u2715 out from under a click (and moved it), so an early \u2715 did nothing.
+  // The nodes are built once and updated in place (applyLevel runs every frame of a tween).
+  // No close button here: the system closes from the panel's × (the sheet handle's on phones),
+  // and a second × in the crumb did the same thing.
   let crumbKey = "";
   let crumb: { layer: HTMLElement; zoneParts: HTMLElement[]; zone: HTMLElement } | null = null;
   function crumbNodes() {
@@ -327,12 +339,7 @@ export function mountExplorer(
     };
     const layer = el("span", "bc-layer", "");
     const zone = el("b", "bc-zone", "");
-    const back = el("button", "bc-back", "\u2715") as HTMLButtonElement;
-    back.type = "button";
-    back.title = "Back to product";
-    back.setAttribute("aria-label", "Clear selection");
-    back.addEventListener("click", () => selectZone(null));
-    const zoneParts = [el("span", "bc-sep", "\u203a"), zone, back];
+    const zoneParts = [el("span", "bc-sep", "\u203a"), zone];
     dom.breadcrumb.replaceChildren(el("b", "bc-root", "Product"), el("span", "bc-sep bc-root", "\u203a"), layer, ...zoneParts);
     crumb = { layer, zoneParts, zone };
     return crumb;
@@ -426,7 +433,7 @@ export function mountExplorer(
     tagLine.setAttribute("stroke-width", "1.25");
     tagLeaders.appendChild(tagLine);
 
-    zones.set(z.id, { def: z, marker, ring, box, tag, line, tagLine });
+    zones.set(z.id, { def: z, marker, ring, box, tag, line, tagLine, tw: 0, th: 0, boxRect: null });
   }
 
   function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
@@ -704,7 +711,13 @@ export function mountExplorer(
     const v = sector.views.find((x) => x.id === viewId) as (SectorDef["views"][number] & { layer?: number }) | undefined;
     if (!v) return;
     focusReturn = null;
-    shot = { pos: v.pos, target: v.target, fit: isFitView(v.id) };
+    // A view from under the floor shows the whole underside, so it is framed like an overview.
+    const fromBelow = v.pos[1] < 0;
+    // Leaving it, the floor clamp waits for the flight to land: applied at once, it would snap
+    // the camera from under the model up to the horizon.
+    if (fromBelow) controls.maxPolarAngle = Math.PI * 0.97;
+    floorAfterFlight = !fromBelow && controls.maxPolarAngle !== FLOOR_POLAR;
+    shot = { pos: v.pos, target: v.target, fit: isFitView(v.id) || fromBelow };
     // A view about one layer (e.g. "Underground") also peels the model to that layer.
     if (v.layer != null && v.layer >= 0 && v.layer < sector.layerNames.length) {
       exitDeepDive();
@@ -820,21 +833,20 @@ export function mountExplorer(
   renderer.domElement.addEventListener("pointermove", onPointerMove);
 
   // ---- callout positioning (every frame) ----
+  // Scratch vector for per-frame maths: this runs for every system on every frame, so allocating
+  // here meant thousands of short-lived objects a second for the garbage collector.
+  const scratch = new THREE.Vector3();
+  let lastViewBox = "";
   function updateCallouts() {
+    // Every layout read happens first, then every write. Reading a size or position after a style
+    // write makes the browser lay the page out again, and that used to happen once per system per
+    // frame (each tag's offsetWidth / each callout's rect read right after the previous one moved).
     const stageRect = stage.getBoundingClientRect();
     const w = stageRect.width,
       h = stageRect.height;
-    leaderSvg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-
     const inset = measureSheetInset(stageRect);
-    if (Math.abs(inset - sheetInset) > 0.5) {
-      sheetInset = inset;
-      applyViewOffset();
-    }
-    const visibleH = h - sheetInset;
-
-    // Phone tags are anchored to their 3D markers, which often sit close together; stack them
-    // so none overlaps. Most important first (selected, then scenario-hit) so they keep their spot.
+    // Phones/tablets show the tags over the model; wider screens the callout rails (one or the
+    // other is display:none, so only the visible set is measured and positioned).
     const phoneTags = mobileTags.offsetParent !== null;
     const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
     if (phoneTags) {
@@ -844,16 +856,39 @@ export function mountExplorer(
         if (r.width) placed.push({ x0: r.left - stageRect.left, x1: r.right - stageRect.left, y0: r.top - stageRect.top, y1: r.bottom - stageRect.top });
       });
     }
+    for (const zr of zones.values()) {
+      if (phoneTags) {
+        zr.tw = zr.tag.offsetWidth;
+        zr.th = zr.tag.offsetHeight;
+      } else zr.boxRect = zr.box.getBoundingClientRect();
+    }
+
+    // ---- writes only from here ----
+    const viewBox = `0 0 ${w} ${h}`;
+    if (viewBox !== lastViewBox) {
+      lastViewBox = viewBox;
+      leaderSvg.setAttribute("viewBox", viewBox);
+    }
+    if (Math.abs(inset - sheetInset) > 0.5) {
+      sheetInset = inset;
+      applyViewOffset();
+    }
+    const visibleH = h - sheetInset;
+
+    // Phone tags are anchored to their 3D markers, which often sit close together; stack them
+    // so none overlaps. Most important first (selected, then scenario-hit) so they keep their spot.
     const rank = (zr: ZoneRuntime) => (currentZoneId === zr.def.id ? 0 : impact?.[zr.def.id] ? 1 : 2);
-    const ordered = phoneTags ? [...zones.values()].sort((a, b) => rank(a) - rank(b)) : [...zones.values()];
+    const ordered = phoneTags ? [...zones.values()].sort((a, b) => rank(a) - rank(b)) : zones.values();
     // Phones label every system (the user wants the whole map visible); with one selected the
     // others stay readable but lighter (isDimmed). Tags are stacked so none overlap.
     const EDGE = 8;
+    // De-emphasised, not faded out: the other systems' names must stay readable (about 3:1 or
+    // better over the model) so the next one can be picked without closing this one first.
+    const DIM_OPACITY = "0.72";
 
     for (const zr of ordered) {
       const z = zr.def;
-      const v = new THREE.Vector3(z.pos[0], z.pos[1], z.pos[2]);
-      v.project(camera);
+      const v = scratch.set(z.pos[0], z.pos[1], z.pos[2]).project(camera);
       const behind = v.z > 1;
       let px = (v.x * 0.5 + 0.5) * w;
       let py = (-v.y * 0.5 + 0.5) * h;
@@ -865,65 +900,65 @@ export function mountExplorer(
       const isSelected = currentZoneId === z.id;
       const isDimmed = isDimmedZone(z.id);
 
-      const tagHidden = offscreen;
-      const mx = px,
-        my = py;
-      let crowded = false;
-      if (phoneTags && !tagHidden) {
-        const tagScale = isSelected ? 1.08 : 1;
-        // .mtag is drawn at translate(-50%, -138%) of its left/top point.
-        const tw = zr.tag.offsetWidth * tagScale;
-        const th = zr.tag.offsetHeight * tagScale;
-        // At least EDGE px from the stage's sides.
-        px = Math.max(Math.min(w / 2, EDGE + tw / 2), Math.min(Math.max(w / 2, w - EDGE - tw / 2), px));
-        const xMin = Math.min(w / 2, EDGE + tw / 2),
-          xMax = Math.max(w / 2, w - EDGE - tw / 2);
-        const rectAt = (x: number, y: number) => ({ x0: x - tw / 2 - 2, x1: x + tw / 2 + 2, y0: y - 1.38 * th - 2, y1: y - 0.38 * th + 2 });
-        const overlap = (r: ReturnType<typeof rectAt>) =>
-          placed.reduce((s, p) => s + Math.max(0, Math.min(r.x1, p.x1) - Math.max(r.x0, p.x0)) * Math.max(0, Math.min(r.y1, p.y1) - Math.max(r.y0, p.y0)), 0);
-        // Find the free slot nearest the marker: a row up or down, or a nudge sideways (cheaper
-        // than a row, since a sideways tag still sits over its marker). The most important tags
-        // (selected, scenario-hit) were placed first. If nothing is free, take the slot that
-        // overlaps least - every tag stays at full strength (labels never fade unless a
-        // system is picked) and lies under the placed ones.
-        const rowH = th + 3;
-        let best: { x: number; y: number; r: ReturnType<typeof rectAt>; over: number; score: number } | null = null;
-        for (let k = -8; k <= 8; k++) {
-          for (const sx of [0, 0.35, -0.35, 0.7, -0.7]) {
-            const x = Math.max(xMin, Math.min(xMax, px + sx * tw));
-            const y = py + k * rowH;
-            const r = rectAt(x, y);
-            if (r.y0 < EDGE || r.y1 > visibleH - EDGE) continue;
-            const cost = Math.abs(k) * rowH + Math.abs(x - px) * 0.6 + (k < 0 ? 0 : 2);
-            const over = overlap(r);
-            const score = over > 0 ? 1e6 + over + cost * 4 : cost;
-            if (!best || score < best.score) best = { x, y, r, over, score };
+      if (phoneTags) {
+        const tagHidden = offscreen;
+        const mx = px,
+          my = py;
+        let crowded = false;
+        if (!tagHidden) {
+          const tagScale = isSelected ? 1.08 : 1;
+          // .mtag is drawn at translate(-50%, -138%) of its left/top point.
+          const tw = zr.tw * tagScale;
+          const th = zr.th * tagScale;
+          // At least EDGE px from the stage's sides.
+          px = Math.max(Math.min(w / 2, EDGE + tw / 2), Math.min(Math.max(w / 2, w - EDGE - tw / 2), px));
+          const xMin = Math.min(w / 2, EDGE + tw / 2),
+            xMax = Math.max(w / 2, w - EDGE - tw / 2);
+          const rectAt = (x: number, y: number) => ({ x0: x - tw / 2 - 2, x1: x + tw / 2 + 2, y0: y - 1.38 * th - 2, y1: y - 0.38 * th + 2 });
+          const overlap = (r: ReturnType<typeof rectAt>) =>
+            placed.reduce((s, p) => s + Math.max(0, Math.min(r.x1, p.x1) - Math.max(r.x0, p.x0)) * Math.max(0, Math.min(r.y1, p.y1) - Math.max(r.y0, p.y0)), 0);
+          // Find the free slot nearest the marker: a row up or down, or a nudge sideways (cheaper
+          // than a row, since a sideways tag still sits over its marker). The most important tags
+          // (selected, scenario-hit) were placed first. If nothing is free, take the slot that
+          // overlaps least - every tag stays at full strength (labels never fade unless a
+          // system is picked) and lies under the placed ones.
+          const rowH = th + 3;
+          let best: { x: number; y: number; r: ReturnType<typeof rectAt>; over: number; score: number } | null = null;
+          for (let k = -8; k <= 8; k++) {
+            for (const sx of [0, 0.35, -0.35, 0.7, -0.7]) {
+              const x = Math.max(xMin, Math.min(xMax, px + sx * tw));
+              const y = py + k * rowH;
+              const r = rectAt(x, y);
+              if (r.y0 < EDGE || r.y1 > visibleH - EDGE) continue;
+              const cost = Math.abs(k) * rowH + Math.abs(x - px) * 0.6 + (k < 0 ? 0 : 2);
+              const over = overlap(r);
+              const score = over > 0 ? 1e6 + over + cost * 4 : cost;
+              if (!best || score < best.score) best = { x, y, r, over, score };
+            }
+          }
+          if (best) {
+            placed.push(best.r);
+            px = best.x;
+            py = best.y;
+            crowded = best.over > 0 && !isSelected;
           }
         }
-        if (best) {
-          placed.push(best.r);
-          px = best.x;
-          py = best.y;
-          crowded = best.over > 0 && !isSelected;
-        }
-      }
-      // Hidden tags still sit inside the stage, so they never widen its scrollable area.
-      px = Math.max(0, Math.min(w, px));
-      zr.tag.style.left = px + "px";
-      zr.tag.style.top = py + "px";
-      zr.tag.classList.toggle("selected", isSelected);
-      zr.tag.classList.toggle("dimmed", isDimmed);
-      const tagShown = labelsVisible && !tagHidden;
-      zr.tag.style.opacity = tagShown ? (isDimmed ? "0.28" : "1") : "0";
-      zr.tag.style.zIndex = isSelected ? "3" : crowded ? "1" : "2";
-      zr.tag.style.pointerEvents = tagShown ? "auto" : "none";
-      zr.tag.tabIndex = tagShown ? 0 : -1;
-      zr.tag.setAttribute("aria-hidden", String(!tagShown));
-      if (phoneTags) {
+        // Hidden tags still sit inside the stage, so they never widen its scrollable area.
+        px = Math.max(0, Math.min(w, px));
+        zr.tag.style.left = px + "px";
+        zr.tag.style.top = py + "px";
+        zr.tag.classList.toggle("selected", isSelected);
+        zr.tag.classList.toggle("dimmed", isDimmed);
+        const tagShown = labelsVisible && !tagHidden;
+        zr.tag.style.opacity = tagShown ? (isDimmed ? DIM_OPACITY : "1") : "0";
+        zr.tag.style.zIndex = isSelected ? "3" : crowded ? "1" : "2";
+        zr.tag.style.pointerEvents = tagShown ? "auto" : "none";
+        zr.tag.tabIndex = tagShown ? 0 : -1;
+        zr.tag.setAttribute("aria-hidden", String(!tagShown));
         // Leader from the marker to the nearest point of the tag's lower (or upper) edge,
         // drawn only when the tag had to move clear of its usual spot just above the marker.
-        const tw = zr.tag.offsetWidth,
-          th = zr.tag.offsetHeight;
+        const tw = zr.tw,
+          th = zr.th;
         const below = my > py - 0.38 * th;
         const ax = Math.max(px - tw / 2 + 6, Math.min(px + tw / 2 - 6, mx));
         const ay = below ? py - 0.38 * th : py - 1.38 * th;
@@ -932,10 +967,12 @@ export function mountExplorer(
         zr.tagLine.setAttribute("y1", String(my));
         zr.tagLine.setAttribute("x2", String(ax));
         zr.tagLine.setAttribute("y2", String(ay));
-        zr.tagLine.setAttribute("opacity", String(tagShown && far ? (isDimmed ? 0.18 : 0.75) : 0));
+        zr.tagLine.setAttribute("opacity", String(tagShown && far ? (isDimmed ? 0.4 : 0.75) : 0));
+        continue;
       }
 
-      const boxRect = zr.box.getBoundingClientRect();
+      const boxRect = zr.boxRect;
+      if (!boxRect) continue;
       let anchorX: number, anchorY: number;
       if (z.side === "left") {
         anchorX = boxRect.right - stageRect.left;
@@ -957,13 +994,13 @@ export function mountExplorer(
       zr.line.setAttribute("y2", String(py));
       const active = isSelected || hoveredZoneId === z.id;
       zr.line.setAttribute("stroke-width", active ? "2.5" : "1.5");
-      zr.line.setAttribute("opacity", String(offscreen ? 0 : active ? 0.95 : isDimmed ? 0.12 : 0.45));
+      zr.line.setAttribute("opacity", String(offscreen ? 0 : active ? 0.95 : isDimmed ? 0.2 : 0.45));
       zr.line.setAttribute("stroke-dasharray", active ? "none" : "3 3");
       zr.box.classList.toggle("selected", isSelected);
       zr.box.classList.toggle("dimmed", isDimmed);
       zr.box.classList.toggle("off", offscreen);
       const boxShown = labelsVisible && !offscreen;
-      zr.box.style.opacity = boxShown ? (isDimmed ? "0.32" : "1") : "0";
+      zr.box.style.opacity = boxShown ? (isDimmed ? DIM_OPACITY : "1") : "0";
       zr.box.style.pointerEvents = boxShown ? "auto" : "none";
       zr.box.tabIndex = boxShown ? 0 : -1;
       zr.box.setAttribute("aria-hidden", String(!boxShown));
@@ -972,8 +1009,11 @@ export function mountExplorer(
   }
 
   // ---- animation loop ----
+  // Camera distance (scene units) from which a marker is drawn at full size; see the marker loop.
+  const MARKER_FULL_SIZE_AT = 3.5;
   const timer = new THREE.Timer();
   let rafId = 0;
+  let frames = 0;
   function animate() {
     rafId = requestAnimationFrame(animate);
     timer.update();
@@ -999,7 +1039,11 @@ export function mountExplorer(
       const isDimmed = isDimmedZone(m.userData.zoneId as string);
       const sev = (m.userData.impactSeverity as number) || 0;
       const s = selected ? 1.6 : m.userData.zoneId === hoveredZoneId ? 1.3 : 1.0 + sev * 0.25;
-      m.scale.lerp(new THREE.Vector3(s, s, s), 0.2);
+      // Markers are sized for the overview distances. Closer than that (a cockpit view, a deep
+      // zoom) they shrink with the distance so they keep roughly their overview size on screen,
+      // instead of becoming discs that fill a third of the stage.
+      const near = THREE.MathUtils.clamp(camera.position.distanceTo(m.position) / MARKER_FULL_SIZE_AT, 0.15, 1);
+      m.scale.lerp(scratch.setScalar(s * near), 0.2);
       const mat = m.material as THREE.MeshBasicMaterial;
       const targetOp = isDimmed ? 0.22 : 1;
       mat.opacity += (targetOp - mat.opacity) * 0.2;
@@ -1028,7 +1072,13 @@ export function mountExplorer(
       }
       camera.position.lerpVectors(camAnim.startPos, camAnim.endPos, ease);
       controls.target.lerpVectors(camAnim.startTarget, camAnim.endTarget, ease);
-      if (t >= 1) camAnim = null;
+      if (t >= 1) {
+        camAnim = null;
+        if (floorAfterFlight) {
+          floorAfterFlight = false;
+          controls.maxPolarAngle = FLOOR_POLAR;
+        }
+      }
     }
 
     controls.update();
@@ -1039,6 +1089,8 @@ export function mountExplorer(
     fog.near = Math.max(10 * k, camDist - 3);
     fog.far = Math.max(23 * k, camDist + 12);
     renderer.render(scene, camera);
+    // Two frames in: the first places the labels, the second draws them where they belong.
+    if (++frames === 2) callbacks.onReady?.();
   }
 
   applyLevel(0);
@@ -1059,16 +1111,26 @@ export function mountExplorer(
     renderer.domElement.removeEventListener("pointerup", onPointerUp);
     renderer.domElement.removeEventListener("pointermove", onPointerMove);
     controls.dispose();
+    // Materials don't free their textures (the models' canvas textures: signs, screens, the
+    // data centre's LED strips, contact shadows), so dispose every texture a material holds too.
+    const textures = new Set<THREE.Texture>();
     scene.traverse((o) => {
       const mesh = o as THREE.Mesh;
       if (mesh.geometry) mesh.geometry.dispose();
       if (mesh.material) {
         const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-        mats.forEach((m) => m.dispose());
+        mats.forEach((m) => {
+          for (const v of Object.values(m)) if ((v as THREE.Texture | null)?.isTexture) textures.add(v as THREE.Texture);
+          m.dispose();
+        });
       }
     });
+    textures.forEach((t) => t.dispose());
     envRT.dispose();
     renderer.dispose();
+    // Hand the WebGL context back now rather than whenever it is garbage collected: browsers cap
+    // live contexts (about 16), and moving between explorers would otherwise pile them up.
+    renderer.forceContextLoss();
     if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
     tagLeaders.remove();
     for (const zr of zones.values()) {

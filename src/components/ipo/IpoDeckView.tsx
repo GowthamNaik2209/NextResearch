@@ -6,7 +6,18 @@ import { IPO_SLIDES } from "./IpoSlides";
 
 // One IPO's ten-slide deck in the shared pop-up presentation. The footer's main link is the
 // offer document itself; an IPO that belongs to a sector we map also links that sector's page.
-export function IpoDeckView({ deck, onClose, initialSlide = 0 }: { deck: IpoDeck; onClose: () => void; initialSlide?: number }) {
+export function IpoDeckView({
+  deck,
+  onClose,
+  initialSlide = 0,
+  urlParam,
+}: {
+  deck: IpoDeck;
+  onClose: () => void;
+  initialSlide?: number;
+  /** Name the deck in the URL while open (?ipo=<slug>); see Presentation. */
+  urlParam?: string;
+}) {
   const doc = deck.sources[0];
   return (
     <Presentation
@@ -26,6 +37,7 @@ export function IpoDeckView({ deck, onClose, initialSlide = 0 }: { deck: IpoDeck
       extra={() => (deck.sectorSlug ? { href: `/sector/${deck.sectorSlug}`, label: "Industry page" } : undefined)}
       onClose={onClose}
       initialSlide={initialSlide}
+      urlParam={urlParam ? { name: urlParam, value: deck.slug } : undefined}
     />
   );
 }

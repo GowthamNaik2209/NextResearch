@@ -5,39 +5,47 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SearchEntry } from "@/lib/sector-content/stats";
 
-// Match on the label, the short-name aliases (ticker, "l&t") and the sub-line, in that order.
-// Aliases count only as a whole match or, from three letters on, a prefix: "be" should not
-// surface every company whose initials happen to start with B-E.
+// Lower is better. The label leads: an exact name, then a name that starts with the term, then
+// one with a word that does ("steel" -> "Tata Steel"), then anywhere in it. Aliases (ticker,
+// "l&t") count as a whole match or, from three letters on, a prefix: "be" should not surface every
+// company whose initials happen to start with B-E. The sub-line (sector names) comes last.
 function score(e: SearchEntry, term: string): number {
   const l = e.label.toLowerCase();
-  if (l.startsWith(term) || e.aliases?.includes(term)) return 0;
-  if (l.includes(term) || (term.length >= 3 && e.aliases?.some((a) => a.startsWith(term)))) return 1;
-  if (e.sub.toLowerCase().includes(term)) return 2;
+  if (l === term || e.aliases?.includes(term)) return 0;
+  if (l.startsWith(term)) return 1;
+  if (l.split(/[\s/&(),.-]+/).some((w) => w.startsWith(term))) return 2;
+  if (l.includes(term) || (term.length >= 3 && e.aliases?.some((a) => a.startsWith(term)))) return 3;
+  if (e.sub.toLowerCase().includes(term)) return 4;
   return 9;
 }
 
-// Themes (industries and policies) first, then IPOs, then companies.
+// Within a score: themes (industries and policies), then IPOs, then companies; then A-Z.
 const KIND_ORDER: Record<SearchEntry["kind"], number> = { sector: 0, ipo: 1, company: 2 };
 const KIND_LABEL: Record<SearchEntry["kind"], string> = { sector: "Theme", ipo: "IPO", company: "Company" };
+/** Results shown before "Show all": enough to scan, short enough to fit under the box on a phone. */
+const FIRST = 8;
 
 export function HeroSearch({ index }: { index: SearchEntry[] }) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  // "Show all N results" lifts the cap until the term changes.
+  const [all, setAll] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const listId = useId();
 
   const term = q.trim().toLowerCase();
-  const results = useMemo(() => {
+  const matches = useMemo(() => {
     if (term.length < 2) return [];
     return index
       .map((e) => ({ e, score: score(e, term) }))
       .filter((x) => x.score < 9)
-      .sort((a, b) => a.score - b.score || KIND_ORDER[a.e.kind] - KIND_ORDER[b.e.kind])
-      .slice(0, 8)
+      .sort((a, b) => a.score - b.score || KIND_ORDER[a.e.kind] - KIND_ORDER[b.e.kind] || a.e.label.localeCompare(b.e.label))
       .map((x) => x.e);
   }, [term, index]);
+  const results = all ? matches : matches.slice(0, FIRST);
+  const hidden = matches.length - results.length;
   const showList = open && term.length >= 2;
 
   // Close on a click or tap anywhere outside the box and its results.
@@ -76,6 +84,10 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
   };
 
   const optionId = (i: number) => `${listId}-opt-${i}`;
+  // Keep the arrow-key highlight in view once the list scrolls ("Show all").
+  useEffect(() => {
+    if (active >= 0) document.getElementById(`${listId}-opt-${active}`)?.scrollIntoView({ block: "nearest" });
+  }, [active, listId]);
 
   return (
     <div ref={rootRef} className="relative w-full max-w-xl">
@@ -92,6 +104,7 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
             setQ(e.target.value);
             setOpen(true);
             setActive(-1);
+            setAll(false);
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
@@ -109,7 +122,8 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
         />
       </div>
       {showList && (
-        <ul id={listId} role="listbox" aria-label="Search results" className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-line bg-panel shadow-xl">
+        <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-line bg-panel shadow-xl">
+        <ul id={listId} role="listbox" aria-label="Search results" className="max-h-[min(60vh,32rem)] overflow-y-auto overscroll-contain">
           {results.length === 0 && (
             <li role="presentation" className="px-4 py-3 text-sm text-ink-soft">
               No match — try a sector name, a ticker or part of a company name.
@@ -122,7 +136,7 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
                 tabIndex={-1}
                 onClick={() => setOpen(false)}
                 onMouseEnter={() => setActive(i)}
-                className={"flex items-center justify-between gap-3 px-4 py-2.5 " + (i === active ? "bg-panel-2" : "hover:bg-panel-2")}
+                className={"flex items-center justify-between gap-3 px-4 py-2.5 " + (i === active ? "bg-accent/10 shadow-[inset_3px_0_0_var(--accent)]" : "hover:bg-panel-2")}
               >
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-semibold text-ink">{r.label}</span>
@@ -135,6 +149,16 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
             </li>
           ))}
         </ul>
+        {hidden > 0 && (
+          <button
+            type="button"
+            onClick={() => setAll(true)}
+            className="block w-full border-t border-line px-4 py-2.5 text-left text-xs font-semibold text-accent hover:bg-panel-2"
+          >
+            Show all {matches.length} results
+          </button>
+        )}
+        </div>
       )}
     </div>
   );

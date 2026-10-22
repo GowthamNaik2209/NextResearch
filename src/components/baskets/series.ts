@@ -1,13 +1,13 @@
-"use client";
-
 import type { ChartRange, PricePoint } from "@/lib/live/yahoo";
 import type { BacktestExcluded, BacktestHolding } from "@/lib/baskets/backtest";
 import type { Rebalance } from "@/lib/baskets/rebalance";
-import type { Strategy } from "@/lib/baskets/strategy";
+import { shortHash, type Strategy } from "@/lib/baskets/strategy";
 
 // One client-side loader for every line a basket page draws, keyed like the Analysis charts:
 // "s:TICKER" a stock, "b:id" an index, "x:<query>" a basket backtest (?sector=, ?id= or ?tickers=).
-// Loaded series survive switching views and ranges; a request still running is shared.
+// Loaded series survive switching views and ranges; a request still running is shared. A failed
+// load is not kept, so asking again (Retry) fetches it afresh. Components read it through
+// useSeries (use-series.ts).
 export type Series = {
   points: PricePoint[];
   holdings?: BacktestHolding[];
@@ -31,11 +31,8 @@ const urlFor = (key: string, range: ChartRange) => {
   return `/api/baskets/backtest?${id}&range=${range}`;
 };
 
-export const cachedSeries = (key: string, range: ChartRange) => loaded.get(`${key}|${range}`);
-
-export function loadSeries(key: string, range: ChartRange, fresh = false): Promise<Load> {
+export function loadSeries(key: string, range: ChartRange): Promise<Load> {
   const id = `${key}|${range}`;
-  if (fresh) loaded.delete(id);
   const hit = loaded.get(id);
   if (hit) return Promise.resolve({ status: "ok", data: hit });
   let p = inflight.get(id);
@@ -58,7 +55,8 @@ export function loadSeries(key: string, range: ChartRange, fresh = false): Promi
  * response the browser cached for the old composition (private baskets are cached for a minute).
  */
 export function savedBasketQuery(id: string, strategy: string, tickers: string[]) {
-  let h = 0;
-  for (const ch of [...tickers].sort().join(",")) h = (h * 31 + ch.charCodeAt(0)) | 0;
-  return `id=${encodeURIComponent(id)}&${strategy}&v=${(h >>> 0).toString(36)}`;
+  return `id=${encodeURIComponent(id)}&${strategy}&v=${shortHash([...tickers].sort().join(","))}`;
 }
+
+/** An industry basket's backtest key: every listed stock it maps, under a strategy ("w=equal" by default). */
+export const industrySeriesKey = (slug: string, strategy = "w=equal") => `x:sector=${slug}&${strategy}`;

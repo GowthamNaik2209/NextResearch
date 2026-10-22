@@ -47,9 +47,21 @@ export default async function SectorExplorePage({ params }: { params: Promise<{ 
       {/* SectorExplorer reads ?zone=/&company=/&tour= via useSearchParams for deep
           linking and the guided tour — Next requires a Suspense boundary around any
           client component that does, even one rendered from a static page like this. */}
-      <Suspense fallback={null}>
+      <Suspense fallback={<ExplorerLoading />}>
         <SectorExplorer slug={slug} figures={figures} userEmail={user?.email ?? null} displayName={displayName} />
       </Suspense>
+    </div>
+  );
+}
+
+// Shown until the explorer's script has loaded (useSearchParams makes it render on the client
+// only, so the server sends just this). On a phone that can take a while; a blank screen read
+// as broken.
+function ExplorerLoading() {
+  return (
+    <div role="status" className="flex flex-1 items-center justify-center gap-2 bg-bg text-sm text-ink-soft">
+      <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
+      Loading the 3D explorer…
     </div>
   );
 }

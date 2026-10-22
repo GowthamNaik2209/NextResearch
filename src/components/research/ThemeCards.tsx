@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { NA, croreShort } from "@/lib/format";
 
 // The Analysis "Deep dive" view: one card per industry or policy (it used to be the landing page's
 // Themes grid). The card opens the industry's page; its Charts button switches the Analysis block
@@ -24,9 +25,6 @@ export type ComingSoonSector = { icon: string; name: string; tagline: string; ca
 export type ThemeTab = "sector" | "policy" | "ipo";
 /** Fired by the hero's theme window to open the Analysis block's Deep dive on a tab ("all" from "Browse deep dives"). */
 export const THEME_TAB_EVENT = "nr-theme-tab";
-
-const fmtCr = (cr: number | null) =>
-  cr == null ? "–" : cr >= 100000 ? `₹${(cr / 100000).toFixed(1)}L Cr` : `₹${Math.round(cr).toLocaleString("en-IN")} Cr`;
 
 // Shown as the Revenue stat's tooltip: what the sum does and does not include (insights.ts).
 const REVENUE_NOTE =
@@ -80,9 +78,9 @@ export function ThemeCards({
           <p className="text-sm leading-relaxed text-ink-soft">{s.tagline}</p>
           <dl className="mt-auto grid grid-cols-3 gap-2 border-t border-line pt-3">
             {[
-              ["Revenue", fmtCr(s.combinedRevenueCr), REVENUE_NOTE],
-              ["Median P/E", s.medianPe != null ? `${s.medianPe.toFixed(1)}x` : "–"],
-              ["Median ROCE", s.medianRoce != null ? `${s.medianRoce.toFixed(1)}%` : "–"],
+              ["Revenue", croreShort(s.combinedRevenueCr), REVENUE_NOTE],
+              ["Median P/E", s.medianPe != null ? `${s.medianPe.toFixed(1)}x` : NA],
+              ["Median ROCE", s.medianRoce != null ? `${s.medianRoce.toFixed(1)}%` : NA],
             ].map(([k, v, note]) => (
               <div key={k} title={note} className={note ? "relative z-10" : undefined}>
                 <dt className="text-[10px] uppercase tracking-wide text-ink-soft">{k}</dt>
@@ -92,7 +90,8 @@ export function ThemeCards({
           </dl>
           <div className="flex gap-2 font-mono text-[11px] text-ink-soft">
             <span>
-              <b className="text-ink">{s.zones}</b> layers
+              {/* `zones` counts the map's systems (zones), not its 3-5 peel-away layers. */}
+              <b className="text-ink">{s.zones}</b> systems
             </span>
             <span>·</span>
             <span>

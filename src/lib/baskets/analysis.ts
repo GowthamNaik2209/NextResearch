@@ -3,6 +3,7 @@
 // date-based window and capture on monthly returns. Series may be daily (1M-2Y) or weekly (3Y/5Y);
 // nothing here assumes a bar frequency. Pure (no fetching, no DOM), so it is unit-tested on its own.
 import type { PricePoint } from "./backtest";
+import { geoMean } from "./stats";
 
 const DAY = 86_400_000;
 const daysBetween = (a: string, b: string) => Math.round((Date.parse(b) - Date.parse(a)) / DAY);
@@ -171,12 +172,11 @@ export function monthlyCapture(basket: PricePoint[], bench: PricePoint[]): Month
     const b = bMap.get(m.year * 12 + m.month);
     return b == null ? [] : [{ a: m.ret / 100, b: b / 100 }];
   });
-  const geo = (xs: number[]) => Math.pow(xs.reduce((n, x) => n * (1 + x), 1), 1 / xs.length) - 1;
   const capture = (up: boolean) => {
     const sel = pairs.filter((p) => (up ? p.b > 0 : p.b < 0));
     if (!sel.length) return { v: null, n: 0 };
-    const b = geo(sel.map((p) => p.b));
-    return { v: b === 0 ? null : (geo(sel.map((p) => p.a)) / b) * 100, n: sel.length };
+    const b = geoMean(sel.map((p) => p.b));
+    return { v: b === 0 ? null : (geoMean(sel.map((p) => p.a)) / b) * 100, n: sel.length };
   };
   const up = capture(true);
   const down = capture(false);

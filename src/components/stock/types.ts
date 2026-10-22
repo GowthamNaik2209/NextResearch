@@ -13,8 +13,6 @@ export type StockApi = {
   newsLive: boolean;
   /** Every supply chain this company appears in (null when it is in just one is handled by the UI). */
   footprint: CompanyFootprint | null;
-  /** % change over the 1Y price history the Chart tab draws (closed on the live quote); null if unavailable. */
-  return1y?: number | null;
   /** Date of the seed snapshot the UI falls back to ("25 Sep 2026"). */
   seedAsOf?: string;
 };

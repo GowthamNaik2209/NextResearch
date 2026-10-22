@@ -1,11 +1,12 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { Fragment, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { PricePoint } from "@/lib/baskets/backtest";
 import { periodsPerYear } from "@/lib/baskets/stats";
 import { alignTo, captureIsGood, drawdownEpisodes, monthlyCapture, monthlyMatrix, rollingReturn, underwater } from "@/lib/baskets/analysis";
-import { loadSeries, type Load } from "./series";
+import { fmtDay, NA, pct, signedPct } from "@/lib/format";
+import { useSeries } from "./use-series";
 import { MINI_SEG, Panel, miniSegBtn } from "./Panel";
 
 // Backtest analysis under the stats grid: how deep and how long the basket fell (underwater
@@ -22,11 +23,8 @@ const VIEWS: { id: View; label: string }[] = [
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const LONG_RANGES: ChartRange[] = ["2Y", "3Y", "5Y", "MAX"];
 
-const signed = (v: number, dp = 1) => {
-  const r = Number(v.toFixed(dp));
-  return `${r > 0 ? "+" : r < 0 ? "−" : ""}${Math.abs(r).toFixed(dp)}%`;
-};
-const day = (t: string) => new Date(t).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit", timeZone: "UTC" });
+const signed = signedPct;
+const day = (t: string) => fmtDay(t, { short: true });
 const tone = (v: number | null | undefined) => (v == null ? "text-ink-soft" : v >= 0 ? "text-pos" : "text-danger");
 
 export function BasketAnalysis({
@@ -48,25 +46,10 @@ export function BasketAnalysis({
   /** Bumped by the page's Retry: forgets a failed load so the panel tries again. */
   reload?: number;
 }) {
-  const [loads, setLoads] = useState<Record<string, Load>>({});
-  const [seen, setSeen] = useState(reload);
-  if (reload !== seen) {
-    setSeen(reload);
-    setLoads((m) => Object.fromEntries(Object.entries(m).filter(([, l]) => l.status !== "error")));
-  }
   const [view, setView] = useState<View>("dd");
-  useEffect(() => {
-    for (const key of [basketKey, benchKey]) {
-      const id = `${key}|${range}`;
-      if (loads[id]) continue;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the series as loading, then fetches it
-      setLoads((m) => ({ ...m, [id]: { status: "loading" } }));
-      loadSeries(key, range).then((r) => setLoads((m) => ({ ...m, [id]: r })));
-    }
-  }, [basketKey, benchKey, range, loads]);
-
-  const b = loads[`${basketKey}|${range}`];
-  const n = loads[`${benchKey}|${range}`];
+  const { get } = useSeries([basketKey, benchKey], range, { reload });
+  const b = get(basketKey);
+  const n = get(benchKey);
   const points = useMemo(() => (b?.status === "ok" ? b.data.points.filter((p) => p.c > 0) : null), [b]);
   const bench = useMemo(() => (n?.status === "ok" ? n.data.points.filter((p) => p.c > 0) : n?.status === "error" ? [] : null), [n]);
 
@@ -200,7 +183,8 @@ function MonthlyView({ points, bench, benchName }: { points: PricePoint[]; bench
     const pctMix = Math.round(10 + Math.min(Math.abs(v) / scale, 1) * 55);
     return `color-mix(in srgb, ${v >= 0 ? "var(--pos)" : "var(--danger)"} ${pctMix}%, var(--panel))`;
   };
-  const fmt = (v: number) => `${v < 0 && Math.abs(v) >= 0.05 ? "−" : ""}${Math.abs(v).toFixed(1)}`;
+  // Cells are tight: the number alone (no "+" or "%"), a fall in red with a typographic minus.
+  const fmt = (v: number) => pct(v).replace("%", "");
 
   return (
     <div>
@@ -233,8 +217,8 @@ function MonthlyView({ points, bench, benchName }: { points: PricePoint[]; bench
                       })()}
                   </td>
                 ))}
-                <td className={"border-l border-line px-1.5 py-1 text-right font-semibold " + tone(r.total)}>{r.total == null ? "—" : fmt(r.total)}</td>
-                <td className={"px-1.5 py-1 text-right " + tone(r.benchTotal)}>{r.benchTotal == null ? "—" : fmt(r.benchTotal)}</td>
+                <td className={"border-l border-line px-1.5 py-1 text-right font-semibold " + tone(r.total)}>{r.total == null ? NA : fmt(r.total)}</td>
+                <td className={"px-1.5 py-1 text-right " + tone(r.benchTotal)}>{r.benchTotal == null ? NA : fmt(r.benchTotal)}</td>
               </tr>
             ))}
           </tbody>
@@ -289,7 +273,7 @@ function CaptureView({ points, bench, benchName }: { points: PricePoint[]; bench
   const lo = Math.min(0, ...vals);
   const hi = Math.max(150, ...vals) * 1.05;
   const x = (v: number) => ((v - lo) / (hi - lo)) * 100;
-  const pct = (v: number) => `${Math.round(v) < 0 ? "−" : ""}${Math.abs(Math.round(v))}%`;
+  const whole = (v: number) => pct(v, 0);
 
   return (
     <div className="px-3 py-2">
@@ -297,7 +281,7 @@ function CaptureView({ points, bench, benchName }: { points: PricePoint[]; bench
         {bars.map((bar) => (
           <div key={bar.label} className="grid grid-cols-[5.5rem_minmax(0,1fr)_3.5rem] items-center gap-2 text-[11px]">
             <span className="text-ink-soft">{bar.label}</span>
-            <div className="relative h-4 rounded-sm bg-bg" title={bar.v == null ? "No such months in the range" : `${pct(bar.v)} ${bar.help}`}>
+            <div className="relative h-4 rounded-sm bg-bg" title={bar.v == null ? "No such months in the range" : `${whole(bar.v)} ${bar.help}`}>
               {bar.v != null && (
                 <div
                   className="absolute inset-y-0 rounded-sm"
@@ -307,7 +291,7 @@ function CaptureView({ points, bench, benchName }: { points: PricePoint[]; bench
               {lo < 0 && <div className="absolute inset-y-[-3px] w-px bg-ink-soft" style={{ left: `${x(0)}%` }} aria-hidden />}
               <div className="absolute inset-y-[-3px] w-px bg-ink" style={{ left: `${x(100)}%` }} aria-hidden />
             </div>
-            <span className={"text-right font-mono font-semibold " + (bar.v == null ? "text-ink-soft" : bar.good(bar.v) ? "text-pos" : "text-danger")}>{bar.v == null ? "—" : pct(bar.v)}</span>
+            <span className={"text-right font-mono font-semibold " + (bar.v == null ? "text-ink-soft" : bar.good(bar.v) ? "text-pos" : "text-danger")}>{bar.v == null ? NA : whole(bar.v)}</span>
           </div>
         ))}
         <div className="grid grid-cols-[5.5rem_minmax(0,1fr)_3.5rem] gap-2 text-[10px] text-ink-soft">
@@ -409,7 +393,7 @@ function LineChart({ dates, series, height = 150 }: { dates: string[]; series: L
     setHover(Math.max(0, Math.min(last, Math.round(((e.clientX - r.left) / r.width) * last))));
   };
   const at = hover ?? last;
-  const fmt = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(1)}%`;
+  const fmt = (v: number) => signedPct(v);
   const ticks = [hi, 0, lo].filter((v, i, a) => a.indexOf(v) === i && (v === 0 || Math.abs(v) > (hi - lo) * 0.12));
 
   return (
@@ -422,7 +406,7 @@ function LineChart({ dates, series, height = 150 }: { dates: string[]; series: L
             <span key={s.name} className="inline-flex items-center gap-1">
               <span className="inline-block h-0.5 w-3" style={{ background: s.color }} aria-hidden />
               <span className="text-ink-soft">{s.name}</span>
-              <span className="font-mono font-semibold text-ink">{v == null ? "—" : fmt(v)}</span>
+              <span className="font-mono font-semibold text-ink">{v == null ? NA : fmt(v)}</span>
             </span>
           );
         })}
@@ -437,7 +421,7 @@ function LineChart({ dates, series, height = 150 }: { dates: string[]; series: L
           onPointerLeave={(e) => e.pointerType === "mouse" && setHover(null)}
           onPointerCancel={() => setHover(null)}
           role="img"
-          aria-label={series.map((s) => `${s.name} ${s.values[last] == null ? "—" : fmt(s.values[last]!)}`).join(", ")}
+          aria-label={series.map((s) => `${s.name} ${s.values[last] == null ? NA : fmt(s.values[last]!)}`).join(", ")}
         >
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="absolute inset-0 h-full w-full overflow-visible">
             {ticks.map((v) => (

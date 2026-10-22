@@ -9,6 +9,9 @@ import { getCompanyPage, listCompanyPages, primaryAppearance } from "@/lib/secto
 import { NOT_FOUND_METADATA, SITE_URL, jsonLd } from "@/lib/site";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { ensureFinancials } from "@/lib/financials/load";
+import { FISCAL_YEARS } from "@/lib/financials/rows";
+import { croreShort, inr, pct } from "@/lib/format";
+import { fmtPrice, mergeStats } from "@/components/stock/merge";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
 export const revalidate = 900;
@@ -17,8 +20,9 @@ export const revalidate = 900;
 // supply chain, who it sits next to, and the seed financials. The live numbers stay in the
 // stock pop-up (opened from here); this page is the crawlable summary that links into it.
 
-const FISCAL_YEARS = ["FY22", "FY23", "FY24", "FY25", "FY26"];
-const inr = (v: number) => `₹${v.toLocaleString("en-IN")} Cr`;
+const FY_LABELS = FISCAL_YEARS.map((y) => `FY${String(y).slice(-2)}`);
+// Table cells: Indian grouping with the typographic minus for a loss year.
+const crCell = (v: number | null | undefined) => (v != null && v < 0 ? `−${inr(-v)}` : inr(v));
 const listJoin = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 // Phones show the latest three years so the table never needs a sideways swipe.
 const PHONE_YEARS = 3;
@@ -54,7 +58,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   if (!c) notFound();
   const { supplier, appearances } = c;
   const f = supplier.f;
-  const kpi = f?.kpi ?? [];
+  // The same snapshot figures, through the same reader, as the stock pop-up (mergeStats).
+  const s0 = mergeStats(f, null);
   const sectorNames = [...new Set(appearances.map((a) => a.sectorName))];
   const multiSector = sectorNames.length > 1;
   // The supplier record (role, strengths, risks) is the one from the company's strongest link
@@ -63,12 +68,12 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const asOf = f?.asOf ?? supplier.sourceDate ?? dataAsOf();
 
   const stats = [
-    { label: "Market cap", value: f?.mcap?.replace("Rs ", "₹") },
-    { label: "Price", value: f?.price?.replace("Rs ", "₹") },
-    { label: "P/E", value: kpi[0] != null ? `${kpi[0]}x` : undefined },
-    { label: "ROCE", value: kpi[3] != null ? `${kpi[3]}%` : undefined },
-    { label: "ROE", value: kpi[4] != null ? `${kpi[4]}%` : undefined },
-    { label: "Dividend yield", value: kpi[2] != null ? `${kpi[2]}%` : undefined },
+    { label: "Market cap", value: s0.marketCapCr != null ? croreShort(s0.marketCapCr) : undefined },
+    { label: "Price", value: s0.snapshotPrice != null ? fmtPrice(s0.snapshotPrice) : undefined },
+    { label: "P/E", value: s0.pe != null ? `${s0.pe.toFixed(1)}x` : undefined },
+    { label: "ROCE", value: s0.roce != null ? pct(s0.roce) : undefined },
+    { label: "ROE", value: s0.roe != null ? pct(s0.roe) : undefined },
+    { label: "Dividend yield", value: s0.divYield != null ? pct(s0.divYield, 2) : undefined },
   ].filter((s): s is { label: string; value: string } => !!s.value);
 
   const rev = f?.rev ?? [];
@@ -79,18 +84,16 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-10 px-5 py-14">
         <div>
+          {/* Every company page: "Companies / <its primary theme>" (multi-theme companies used to
+              drop the theme, so pages differed). */}
           <nav className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
             <Link href="/companies" className="tap-y hover:text-accent">
               Companies
             </Link>{" "}
-            {!multiSector && (
-              <>
-                /{" "}
-                <Link href={`/sector/${appearances[0].sectorSlug}`} className="tap-y hover:text-accent">
-                  {appearances[0].sectorName}
-                </Link>
-              </>
-            )}
+            /{" "}
+            <Link href={`/sector/${primary.sectorSlug}`} className="tap-y hover:text-accent">
+              {primary.sectorName}
+            </Link>
           </nav>
           <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -101,11 +104,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
                 {multiSector ? `${primary.sectorName}: ${primary.role}` : primary.role}
               </p>
-              {multiSector && (
-                <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">
-                  Mapped in {sectorNames.length} themes: {listJoin(sectorNames)}.
-                </p>
-              )}
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">
+                Mapped in {sectorNames.length} theme{sectorNames.length > 1 ? "s" : ""}: {listJoin(sectorNames)}.
+              </p>
             </div>
             {supplier.dataStatus && (
               <span className="rounded-full border border-amber/40 bg-amber/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-ink">
@@ -127,7 +128,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             </div>
             {/* These are the seed snapshot, not live - say so, since the live card one click below will differ. */}
             <p className="mt-2 text-xs text-ink-soft">
-              Snapshot as of {asOf}. Open the live card below for current figures.
+              Company snapshot as of {asOf}: the same figures in the live card, baskets and watchlist. The live card updates only the price
+              and chart.
             </p>
           </section>
         )}
@@ -139,7 +141,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         >
           <div>
             <p className="text-sm font-semibold text-ink">Live price, chart and full financials</p>
-            <p className="mt-1 text-xs text-ink-soft">Opens the company card with current market data and statements.</p>
+            <p className="mt-1 text-xs text-ink-soft">Opens the company card with the live price, chart, news and statements.</p>
           </div>
           <span className="flex-none rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg">Open &rarr;</span>
         </OpenStockCard>
@@ -208,8 +210,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                 <thead className="bg-panel-2 text-[10px] uppercase tracking-widest text-ink-soft">
                   <tr>
                     <th className="px-3 py-2 text-left sm:px-4">₹ Cr</th>
-                    {FISCAL_YEARS.map((y, i) => (
-                      <th key={y} className={"px-3 py-2 text-right sm:px-4 " + (i < FISCAL_YEARS.length - PHONE_YEARS ? "hidden sm:table-cell" : "")}>
+                    {FY_LABELS.map((y, i) => (
+                      <th key={y} className={"px-3 py-2 text-right sm:px-4 " + (i < FY_LABELS.length - PHONE_YEARS ? "hidden sm:table-cell" : "")}>
                         {y}
                       </th>
                     ))}
@@ -222,9 +224,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                   ].map((row) => (
                     <tr key={row.label} className="border-t border-line">
                       <td className="px-3 py-2 font-sans text-ink-soft sm:px-4">{row.label}</td>
-                      {FISCAL_YEARS.map((y, i) => (
-                        <td key={y} className={"px-3 py-2 text-right text-ink sm:px-4 " + (i < FISCAL_YEARS.length - PHONE_YEARS ? "hidden sm:table-cell" : "")}>
-                          {row.vals[i] != null ? row.vals[i]!.toLocaleString("en-IN") : "—"}
+                      {FY_LABELS.map((y, i) => (
+                        <td key={y} className={"px-3 py-2 text-right text-ink sm:px-4 " + (i < FY_LABELS.length - PHONE_YEARS ? "hidden sm:table-cell" : "")}>
+                          {crCell(row.vals[i])}
                         </td>
                       ))}
                     </tr>
@@ -234,7 +236,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             </div>
             {rev[rev.length - 1] != null && (
               <p className="mt-2 text-xs text-ink-soft">
-                Latest-year revenue {inr(rev[rev.length - 1]!)} ({FISCAL_YEARS[FISCAL_YEARS.length - 1]}, company-wide).
+                Latest-year revenue {croreShort(rev[rev.length - 1])} ({FY_LABELS[FY_LABELS.length - 1]}, company-wide).
                 <span className="sm:hidden"> Wider screens show FY22 onwards.</span>
               </p>
             )}
@@ -283,10 +285,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                   "@type": "BreadcrumbList",
                   itemListElement: [
                     { "@type": "ListItem", position: 1, name: "Companies", item: `${SITE_URL}/companies` },
-                    ...(multiSector
-                      ? []
-                      : [{ "@type": "ListItem", position: 2, name: appearances[0].sectorName, item: `${SITE_URL}/sector/${appearances[0].sectorSlug}` }]),
-                    { "@type": "ListItem", position: multiSector ? 2 : 3, name: c.name, item: `${SITE_URL}/company/${slug}` },
+                    { "@type": "ListItem", position: 2, name: primary.sectorName, item: `${SITE_URL}/sector/${primary.sectorSlug}` },
+                    { "@type": "ListItem", position: 3, name: c.name, item: `${SITE_URL}/company/${slug}` },
                   ],
                 },
               ],

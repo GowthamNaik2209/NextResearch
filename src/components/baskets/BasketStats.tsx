@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { ChartRange } from "@/lib/live/yahoo";
 import { relativeStats, seriesStats } from "@/lib/baskets/stats";
 import { basketCsv, csvFileName, type CsvStock } from "@/lib/baskets/csv";
 import { isPlainHold, rebalanceLabel, strategyShort, weightingLabel, type Strategy } from "@/lib/baskets/strategy";
-import { loadSeries, type Load } from "./series";
+import { fmtDay, fmtMonth, NA, pct, signedPct } from "@/lib/format";
+import { useSeries } from "./use-series";
 
 // The stats grid under the return cards: risk and return of the basket's backtest over the
 // chosen range and strategy (named in the title), how it moved against the Nifty 50 and, when it
@@ -13,24 +14,11 @@ import { loadSeries, type Load } from "./series";
 // CSV export sits in its header because it writes out exactly these numbers and the holdings.
 const BENCH = { key: "b:nifty50", name: "Nifty 50" };
 
-const monthName = (m: string) =>
-  new Date(`${m}-01T00:00:00Z`).toLocaleDateString("en-IN", {
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-const day = (t: string) =>
-  new Date(t).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "2-digit",
-    timeZone: "UTC",
-  });
-// Signed on the rounded figure, so a tiny loss never reads "−0.0%".
-const signed = (v: number, dp = 1) => {
-  const r = Number(v.toFixed(dp));
-  return `${r > 0 ? "+" : r < 0 ? "−" : ""}${Math.abs(r).toFixed(dp)}%`;
-};
+const monthName = (m: string) => fmtMonth(`${m}-01T00:00:00Z`);
+const day = (t: string) => fmtDay(t, { short: true });
+const signed = signedPct;
+// A ratio with a typographic minus, never "−0.00".
+const ratio = (v: number) => signedPct(v, 2).replace("%", "").replace("+", "");
 
 const nb = (t: string) => t.replace(/ /g, "\u00a0");
 
@@ -58,24 +46,9 @@ export function BasketStats({
   /** Bumped by the page's Retry: forgets a failed load so the panel tries again. */
   reload?: number;
 }) {
-  const [loads, setLoads] = useState<Record<string, Load>>({});
-  const [seen, setSeen] = useState(reload);
-  if (reload !== seen) {
-    setSeen(reload);
-    setLoads((m) => Object.fromEntries(Object.entries(m).filter(([, l]) => l.status !== "error")));
-  }
-  useEffect(() => {
-    for (const key of [basketKey, BENCH.key]) {
-      const id = `${key}|${range}`;
-      if (loads[id]) continue;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the series as loading, then fetches it
-      setLoads((m) => ({ ...m, [id]: { status: "loading" } }));
-      loadSeries(key, range).then((r) => setLoads((m) => ({ ...m, [id]: r })));
-    }
-  }, [basketKey, range, loads]);
-
-  const b = loads[`${basketKey}|${range}`];
-  const n = loads[`${BENCH.key}|${range}`];
+  const { get } = useSeries([basketKey, BENCH.key], range, { reload });
+  const b = get(basketKey);
+  const n = get(BENCH.key);
   const basket = b?.status === "ok" ? b.data : null;
   const bench = n?.status === "ok" ? n.data.points : null;
   const s = useMemo(() => (basket ? seriesStats(basket.points) : null), [basket]);
@@ -134,14 +107,14 @@ export function BasketStats({
         },
         {
           label: "CAGR",
-          value: s.cagr != null ? signed(s.cagr) : "—",
+          value: signed(s.cagr),
           sub: s.cagr == null ? "under a year" : undefined,
           cls: tone(s.cagr),
           help: "Compound growth per year. Not shown under a year, where annualising misleads.",
         },
         {
           label: "Volatility",
-          value: s.vol != null ? `${s.vol.toFixed(1)}%` : "—",
+          value: pct(s.vol),
           sub: "annualised",
           help: `Standard deviation of ${freq} returns, scaled to a year.`,
         },
@@ -155,49 +128,49 @@ export function BasketStats({
         },
         {
           label: "Sortino",
-          value: s.sortino != null ? s.sortino.toFixed(2).replace("-", "−") : "—",
+          value: s.sortino != null ? ratio(s.sortino) : NA,
           sub: "target 0%",
           help: "Annualised return per unit of downside volatility (only falling bars count). Higher is better; above 1 is good.",
         },
         {
           label: `Beta · ${BENCH.name}`,
-          value: r?.beta != null ? r.beta.toFixed(2).replace("-", "−") : n?.status === "error" ? "—" : "…",
+          value: r?.beta != null ? ratio(r.beta) : n?.status === "error" ? NA : "…",
           help: `How much the basket moves for a 1% move in the ${BENCH.name}. Above 1 swings more than the market.`,
         },
         {
           label: "Up capture",
-          value: r?.upCapture != null ? `${r.upCapture.toFixed(0)}%` : "—",
+          value: pct(r?.upCapture, 0),
           help: `How much of the ${BENCH.name}'s rise the basket took, on the ${freq} bars the index went up. Above 100% beats it.`,
         },
         {
           label: "Down capture",
-          value: r?.downCapture != null ? `${r.downCapture.toFixed(0)}%` : "—",
+          value: pct(r?.downCapture, 0),
           help: `How much of the ${BENCH.name}'s fall the basket took, on the bars the index went down. Below 100% loses less.`,
         },
         {
           label: "Best month",
-          value: s.bestMonth ? signed(s.bestMonth.ret) : "—",
+          value: signed(s.bestMonth?.ret),
           sub: s.bestMonth ? monthName(s.bestMonth.month) : undefined,
           cls: tone(s.bestMonth?.ret),
           help: "Best calendar month, from one month-end close to the next.",
         },
         {
           label: "Worst month",
-          value: s.worstMonth ? signed(s.worstMonth.ret) : "—",
+          value: signed(s.worstMonth?.ret),
           sub: s.worstMonth ? monthName(s.worstMonth.month) : undefined,
           cls: tone(s.worstMonth?.ret),
           help: "Worst calendar month, from one month-end close to the next.",
         },
         {
           label: BENCH.name,
-          value: r ? signed(r.benchRet) : "—",
+          value: signed(r?.benchRet),
           sub: "same dates",
           cls: tone(r?.benchRet),
           help: `The ${BENCH.name}'s own change over the basket's dates (price index, no dividends).`,
         },
         {
           label: "Months up",
-          value: s.months ? `${s.upMonths}/${s.months}` : "—",
+          value: s.months ? `${s.upMonths}/${s.months}` : NA,
           sub: s.months ? `${Math.round((s.upMonths / s.months) * 100)}% of months` : "under a month",
           help: "Calendar months the basket ended higher than the month before, out of the months in the range.",
         },
@@ -206,13 +179,13 @@ export function BasketStats({
           : [
               {
                 label: "Turnover",
-                value: basket?.turnover != null ? `${basket.turnover.toFixed(0)}%` : "—",
+                value: pct(basket?.turnover, 0),
                 sub: basket?.turnover != null && years ? `${(basket.turnover / years).toFixed(0)}% a year` : "one way, total",
                 help: "Share of the basket bought and sold to get back to the target weights, counted one way and added up over every rebalance. Each 100% means trading the whole basket once.",
               },
               {
                 label: "Trades",
-                value: basket?.trades != null ? String(basket.trades) : "—",
+                value: basket?.trades != null ? String(basket.trades) : NA,
                 sub: `${basket?.rebalances?.length ?? 0} rebalance${basket?.rebalances?.length === 1 ? "" : "s"}`,
                 help: "Buys and sells across all the rebalances (the first day's purchase not counted). No costs are taken off the return: brokerage, taxes and slippage would lower it.",
               },

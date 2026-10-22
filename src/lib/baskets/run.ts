@@ -3,10 +3,10 @@
 // strategy. Cached per basket composition and strategy.
 import { cached } from "@/lib/live/cache";
 import { getChartWithFallback, type ChartRange } from "@/lib/live/yahoo";
-import { basketWeights, runBacktest, splitHeld, type BacktestExcluded, type BacktestHolding, type PricePoint } from "./backtest";
+import { basketWeights, runBacktest, slackDaysFor, splitHeld, type BacktestExcluded, type BacktestHolding, type PricePoint } from "./backtest";
 import { basketStock } from "./industry";
 import { runRebalanced, targetWeights, type Rebalance } from "./rebalance";
-import { isPlainHold, strategyQuery, type Strategy } from "./strategy";
+import { isPlainHold, shortHash, strategyQuery, type Strategy } from "./strategy";
 
 /** A saved basket's own weighting (layer-balanced lives only in the page's URL). */
 export type Weighting = "equal" | "mcap" | "custom";
@@ -55,13 +55,12 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
   // weightings that read them.
   const plain = isPlainHold(strategy);
   const sorted = stocks.map((s) => s.ticker).sort();
-  const byLayer = layers && (strategy.weighting === "layer") ? `:L${layerHash(sorted.map((t) => layers.get(t) ?? ""))}` : "";
+  const byLayer = layers && (strategy.weighting === "layer") ? `:L${shortHash(sorted.map((t) => layers.get(t) ?? "").join("|"))}` : "";
   const key = `basket3:${plain ? strategy.weighting : strategyQuery(strategy)}:${range}:${sorted.join(",")}${byLayer}`;
   const ttl = range === "3Y" || range === "5Y" || range === "MAX" ? 60 * 60 * 1000 : 5 * 60 * 1000;
   return cached(key, ttl, async () => {
     const series = await mapLimit(stocks, CONCURRENCY, (s) => getChartWithFallback(s.ticker, range).catch(() => null));
-    // Weekly bars on 3Y/5Y can start up to a week later than a daily-range stock would.
-    const slackDays = range === "3Y" || range === "5Y" || range === "MAX" ? 35 : 10;
+    const slackDays = slackDaysFor(range);
     // Equal and market cap weigh the whole list, as they always have (a missing market cap gets
     // the list's median); custom and layer-balanced weigh only the stocks actually held, so a stock
     // with no prices can't leave its layer short or its share unspent.
@@ -93,9 +92,3 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
     return { range, weighting: strategy.weighting, strategy, ...result, last };
   });
 }
-
-const layerHash = (xs: string[]) => {
-  let h = 0;
-  for (const ch of xs.join("|")) h = (h * 31 + ch.charCodeAt(0)) | 0;
-  return (h >>> 0).toString(36);
-};

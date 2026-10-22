@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth";
 
 /** Site-wide footer, including the "information only, not advice" disclaimer. */
-export function SiteFooter() {
+export async function SiteFooter() {
+  // Shares the header's per-request lookup (getCurrentUser is cache()d), so this costs nothing.
+  const user = await getCurrentUser();
   return (
     <footer className="border-t border-line bg-panel">
       <div className="mx-auto max-w-6xl px-5 py-10">
@@ -16,7 +19,8 @@ export function SiteFooter() {
             <Link href="/connections" className="inline-flex items-center hover:text-ink pointer-coarse:min-h-9">Connected companies</Link>
             <Link href="/baskets" className="inline-flex items-center hover:text-ink pointer-coarse:min-h-9">Baskets</Link>
             <Link href="/watchlist" className="inline-flex items-center hover:text-ink pointer-coarse:min-h-9">Watchlist</Link>
-            <Link href="/login" className="inline-flex items-center hover:text-ink pointer-coarse:min-h-9">Log in</Link>
+            {/* Signed in, the Watchlist and Baskets links above are the account's pages; "Log in" was a dead end. */}
+            {!user && <Link href="/login" className="inline-flex items-center hover:text-ink pointer-coarse:min-h-9">Log in</Link>}
           </nav>
         </div>
         <p className="mt-8 max-w-3xl text-[11px] leading-relaxed text-ink-soft">

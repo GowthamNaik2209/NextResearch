@@ -1,19 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import type { Deck } from "@/lib/sector-content/reports";
-import { ResearchDeck } from "./ResearchDeck";
+import { useCallback, useState } from "react";
+import { LazyResearchDeck, intentProps, prefetchReport } from "./LazyDecks";
 
-// A button that opens a sector's research deck in the slide pop-up. `deck` is built
-// on the server (buildDeck) so this client component never imports sector content.
-export function OpenReportButton({ deck, className = "", children }: { deck: Deck; className?: string; children: React.ReactNode }) {
+// A button that opens a sector's research deck in the slide pop-up. The deck loads when the
+// button is hovered or pressed (/docs/deck/<slug>), so the page doesn't carry it.
+export function OpenReportButton({ slug, className = "", children }: { slug: string; className?: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" className={className}>
+      <button type="button" onClick={() => setOpen(true)} {...intentProps(() => prefetchReport(slug))} aria-haspopup="dialog" className={className}>
         {children}
       </button>
-      {open && <ResearchDeck deck={deck} onClose={() => setOpen(false)} />}
+      {open && <LazyResearchDeck slug={slug} onClose={close} />}
     </>
   );
 }

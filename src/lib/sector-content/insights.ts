@@ -3,8 +3,19 @@
 // database's company table, cached by src/lib/financials/load.ts) and the curated
 // headlines in the extracted seed data.
 import extracted from "../../../prisma/seed-source/extracted.json";
-import { getSector, listCompanyFinancials, listSectors, tickerForSupplier, type SectorWithSlug } from "./index";
+import {
+  getSector,
+  isSideLink,
+  linkStrength,
+  listCompanyFinancials,
+  listSectors,
+  parseCrore,
+  primarySector,
+  tickerForSupplier,
+  type SectorWithSlug,
+} from "./index";
 import { memoByFinancials } from "@/lib/financials/store";
+import { signedPct } from "@/lib/format";
 
 
 export type CompanyMetrics = {
@@ -29,16 +40,12 @@ export type CompanyMetrics = {
   screenOut: boolean;
 };
 
+// Centrality scale (0-1) for the thresholds below (CORE_CENTRALITY) and the news feed's weighting;
+// side links (lenders, enablers: isSideLink) count a tenth. Which sector a company is shown under
+// is not decided here but by primarySector() in ./index, shared with the company page and pop-up.
 const STRENGTH_WEIGHT = { high: 1, medium: 0.2, low: 0.03 } as const;
-// Lenders, software and other enablers sit beside the chain rather than in it.
-const SIDE_TYPES = new Set(["enabler", "indirect_supplier"]);
 
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
-const parseRs = (s?: string | null) => {
-  if (!s) return null;
-  const n = parseFloat(s.replace(/[^0-9.]/g, ""));
-  return Number.isFinite(n) ? n : null;
-};
 
 // Every listed company in one sector, once per ticker (a few sectors list one company under two
 // keys for two roles, e.g. HAL as prime and as MRO). Centrality is the ticker's strongest link.
@@ -50,11 +57,7 @@ function buildSectorMetrics(s: SectorWithSlug): CompanyMetrics[] {
     for (const l of z.suppliers) {
       const k = typeof l === "string" ? l : l.key;
       if (!zoneOf.has(k)) zoneOf.set(k, z.id);
-      // Bare-key links (sectors not yet carrying exposure data) count as central.
-      const w =
-        typeof l === "string" || !l.exposureStrength
-          ? 1
-          : STRENGTH_WEIGHT[l.exposureStrength] * (l.exposureType && SIDE_TYPES.has(l.exposureType) ? 0.1 : 1);
+      const w = STRENGTH_WEIGHT[linkStrength(l)] * (isSideLink(l) ? 0.1 : 1);
       const t = s.suppliers[k] ? tickerForSupplier(s.suppliers[k]) : k;
       centralityOf.set(t, Math.max(centralityOf.get(t) ?? 0, w));
     }
@@ -66,7 +69,7 @@ function buildSectorMetrics(s: SectorWithSlug): CompanyMetrics[] {
     const ticker = tickerForSupplier(sup);
     if (seen.has(ticker)) continue;
     seen.add(ticker);
-    const price = parseRs(f.price);
+    const price = parseCrore(f.price);
     const hi = num(f.range?.[1]);
     const rev = f.rev ?? [];
     const last = rev[rev.length - 1];
@@ -86,7 +89,7 @@ function buildSectorMetrics(s: SectorWithSlug): CompanyMetrics[] {
       revenueCr: num(last),
       revGrowthPct: last != null && prev ? ((last - prev) / prev) * 100 : null,
       pctFrom52wHigh: price != null && hi ? ((price - hi) / hi) * 100 : null,
-      mcapCr: parseRs(f.mcap),
+      mcapCr: parseCrore(f.mcap),
       centrality: centralityOf.get(ticker) ?? 1,
       screenOut: !!f.screenOut,
     });
@@ -110,15 +113,16 @@ export function sectorCompanyMetrics(slug: string): CompanyMetrics[] {
 }
 
 // One row per listed company across the platform (ideas, the all-themes news feed): a company in
-// several sectors or policies appears once, under the one most central to it - Bharat Forge under
-// the industry it mainly supplies, not a policy it touches at low strength. Ties keep the earlier
-// sector, so industries come before the policies that reuse their companies.
+// several sectors or policies appears once, under its home sector (primarySector) - Bharat Forge
+// under the industry it mainly supplies, not a policy it touches at low strength - the same one its
+// company page and stock pop-up describe it by.
 export const listCompanyMetrics = memoByFinancials((): CompanyMetrics[] => {
   const best = new Map<string, CompanyMetrics>();
   for (const s of listSectors().filter((x) => !x.muted))
     for (const c of sectorMetrics(s)) {
       const prev = best.get(c.ticker);
-      if (!prev || c.centrality > prev.centrality) best.set(c.ticker, c);
+      const home = primarySector(c.ticker);
+      if (!prev || (c.sectorSlug === home && prev.sectorSlug !== home)) best.set(c.ticker, c);
     }
   return [...best.values()];
 });
@@ -163,11 +167,11 @@ export type Idea = {
 
 const top = (cs: CompanyMetrics[], n = 5) => cs.slice(0, n);
 const fmt1 = (v: number) => v.toFixed(1);
-const pct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}%`;
+const pct = (v: number) => signedPct(v, 0);
 
 // Rule-based screens, not recommendations: each states its rule so the list is
-// reproducible, and ranks purely on one reported number.
-export function buildIdeas(): Idea[] {
+// reproducible, and ranks purely on one reported number. Cached until new figures are installed.
+export const buildIdeas = memoByFinancials((): Idea[] => {
   // Side-exposed companies (Coal India bidding for the magnet scheme) would be labelled with a
   // theme their own business isn't about, so screens use companies central to some theme.
   const cs = listCompanyMetrics().filter((c) => !c.screenOut && c.centrality >= CORE_CENTRALITY);
@@ -211,7 +215,7 @@ export function buildIdeas(): Idea[] {
       rows: top(sorted((c) => c.divYield, -1, (c) => (c.roce ?? 0) > 10)).map((c) => row(c, `${c.divYield!.toFixed(2)}%`)),
     },
   ].filter((i) => i.rows.length > 0);
-}
+});
 
 /** The date of the latest figures in the company table, e.g. "20 Oct 2026". */
 export function dataAsOf(): string {

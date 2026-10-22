@@ -4,7 +4,8 @@ import type { getPlatformStats } from "@/lib/sector-content/stats";
 export function StatsStrip({ stats }: { stats: ReturnType<typeof getPlatformStats> }) {
   const items: [number, string][] = [
     [stats.sectors, "industries & policies mapped"],
-    [stats.zones, "value-chain layers"],
+    // Zones: the systems a map is split into (the 3-5 peel-away layers are something else).
+    [stats.zones, "value-chain systems"],
     [stats.companies, "companies profiled"],
     [stats.listed, "listed on Indian exchanges"],
   ];

@@ -19,7 +19,7 @@ can be saved, shared by link, versioned and re-run.
 |---|---|
 | **Universe** | A basket (yours, an industry's, an idea), an industry layer ("EV battery cells"), a policy's beneficiaries, your watchlist |
 | **Selection** | All; top / bottom *N* by a ranking; those passing a filter |
-| **Weighting** | Equal, market cap, inverse volatility, capped (max % per stock or per layer), exposure-weighted (by our exposure strength) |
+| **Weighting** | Built: equal, market cap, custom (each stock's % set by hand), layer-balanced. Ideas: inverse volatility, capped (max % per stock or per layer), exposure-weighted (by our exposure strength) |
 | **Schedule** | Never (buy and hold, today), monthly, quarterly, on drift (when a stock moves > *x* points off its target weight) |
 | **Exits & risk** | Stop-loss per stock, trailing stop, basket-level trend filter (to cash below the 200-day average), max drawdown circuit breaker, re-entry rule |
 
@@ -33,21 +33,32 @@ can't trade on the price it just saw.
 ### A. Rebalancing (built: the basket page's Weight and Rebalance controls)
 
 Built in src/lib/baskets/rebalance.ts (pure, unit-tested) and src/lib/baskets/strategy.ts (the
-query string that names a strategy: `w=equal|mcap|capped|layer`, `cap`, `lcap`,
-`rb=never|monthly|quarterly|drift`, `band`). Calendar rebalances trade at the close of the first
-bar of the new month or quarter; the drift rule trades the bar after the drift is seen. Turnover
-and trade counts are reported (and each rebalance in the CSV); costs are not yet taken off.
-Saved baskets still store only equal or market cap; any other strategy lives in the page URL
-until a `Strategy` model (or columns on `Basket`) is migrated.
+query string that names a strategy: `w=equal|mcap|custom|layer`, `cw=TICKER:40,TICKER:60` for
+custom weights, `rb=never|monthly|quarterly|drift`, `band`). The page's own URL writes the
+weighting as `wt` so it can't clash with a host page's parameters. Calendar rebalances trade at
+the close of the first bar of the new month or quarter; the drift rule trades the bar after the
+drift is seen. Turnover and trade counts are reported (and each rebalance in the CSV); costs are
+not yet taken off.
+
+**Custom weights** (each stock's target %, totalling 100) replaced the earlier *Capped* weighting.
+Old links with `w=capped` still open, read as market cap; their `cap` and `lcap` parameters are
+cleared from the URL. Adding a stock gives it an equal share (or back the % it had, if it was taken
+off this visit) and shrinks the rest in proportion; removing one scales the rest back up to 100%.
+
+**What a saved basket stores:** `Basket.weighting` (EQUAL or MCAP) plus `Basket.customWeighting`
+(true when custom) and each `BasketItem.weight` (its custom %). The weights are kept when the
+owner switches to Equal or M-cap, so switching back to Custom restores them. Layer-balanced and
+every rebalancing rule still live only in the page URL until a `Strategy` model is migrated.
 
 
 1. **Equal weight, rebalanced monthly / quarterly.** The simplest improvement over buy-and-hold:
    trims winners, tops up laggards. Compare side by side with the held version.
 2. **Drift band.** Rebalance only when any stock is more than 5 points off target. Fewer trades
    than a calendar rebalance.
-3. **Capped market cap.** Market-cap weights, but no stock above 15% and no layer above 35%,
-   so one giant (M&M, L&T) doesn't become the basket.
-4. **Layer-balanced.** Equal weight *per value-chain layer*, then equal within it. A balanced bet
+3. **Custom weights** (built). Each stock's % set by hand, saved with the basket. It replaced an
+   earlier *capped market cap* weighting (no stock above 15%, no layer above 35%), which could
+   come back as a preset that fills in custom weights.
+4. **Layer-balanced** (built, URL only). Equal weight *per value-chain layer*, then equal within it. A balanced bet
    on the whole chain instead of whichever layer has the most listed names. Unique to us.
 
 ### B. Rotation and ranking (price only; needs stored daily history)

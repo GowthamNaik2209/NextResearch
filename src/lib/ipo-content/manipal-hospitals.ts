@@ -17,7 +17,7 @@ export const manipalHospitals: IpoReport = {
     stage: "listed",
     label: "Listed 5 Aug",
     detail:
-      "The Rs 9,275 Cr issue was subscribed ~4.9x (QIB 8.25x, NII 1.02x) and listed at Rs 652 on NSE, 10.5% above the Rs 590 issue price; it traded near Rs 642 in mid-Oct 2026, so the deck now tracks the post-listing story (debt paydown, Sahyadri integration, new-bed ramp-up).",
+      "The Rs 9,275 Cr issue was subscribed ~4.9x (QIB 8.25x, NII 1.02x) and listed at Rs 652 on NSE, 10.5% above the Rs 590 issue price; the deck now tracks the post-listing story (debt paydown, Sahyadri integration, new-bed ramp-up).",
   },
   timeline: [
     { date: "23 Mar 2026", event: "DRHP filed with SEBI (Rs 8,000 Cr fresh + 4.32 crore-share OFS)", done: true },
@@ -38,7 +38,7 @@ export const manipalHospitals: IpoReport = {
     priceBand: "Rs 560-590 (priced at Rs 590)",
     lotSize: "25 shares (Rs 14,750 at the upper band)",
     faceValue: "Rs 2",
-    valuation: "~Rs 77,607 Cr market cap at the upper band; ~Rs 84,500 Cr in mid-Oct 2026 (Screener)",
+    valuation: "~Rs 77,607 Cr market cap at the upper band",
     valuationCr: 77607,
     reservation: "QIB 75% · NII 15% · Retail 10%",
     exchanges: "NSE, BSE",
@@ -57,7 +57,7 @@ export const manipalHospitals: IpoReport = {
   stance: {
     label: "Listed: execution story",
     tone: "neutral",
-    line: "Scale and specialty mix are best-in-class, but the stock prices in a lot (~95x trailing earnings) while leverage, Sahyadri integration and new-bed ramp-up weigh on near-term margins.",
+    line: "Scale and specialty mix are best-in-class, but the stock trades at a premium to listed peers while leverage, Sahyadri integration and new-bed ramp-up weigh on near-term margins.",
   },
   keyStats: [
     { label: "Issue size", value: "Rs 9,275 Cr", sub: "Rs 8,000 Cr fresh + Rs 1,275 Cr OFS" },
@@ -124,7 +124,7 @@ export const manipalHospitals: IpoReport = {
       { label: "Large private chains' share, FY26", value: "~20%", tone: "pos" },
       { label: "Beds per 10,000 people, FY26", value: "~16 national, ~14 non-metro", tone: "pos" },
       { label: "Inpatient share of market value", value: "71-72%", tone: "neutral" },
-      { label: "Listed peers' P/E (Oct 2026)", value: "~41-58x", tone: "neg" },
+      { label: "Listed peers' valuations", value: "See the peer table", tone: "neutral" },
     ],
   },
 
@@ -189,7 +189,7 @@ export const manipalHospitals: IpoReport = {
     { name: "Medanta (Global Health)", ticker: "MEDANTA", note: "Gurugram-led, high-acuity, expanding in north and east" },
   ],
   valuationNote:
-    "At Rs 590, the IPO valued Manipal at ~Rs 77,600 Cr, about 76-85x FY26 earnings and ~35x EV/EBITDA, against 66-75x for Apollo, Max and Fortis at the time (FundsIndia, ICICI Direct, Angel One). In mid-Oct 2026 it trades at ~Rs 84,500 Cr and ~95x trailing P/E, above every listed peer in the table.",
+    "At Rs 590, the IPO valued Manipal at ~Rs 77,600 Cr, about 76-85x FY26 earnings and ~35x EV/EBITDA, against 66-75x for Apollo, Max and Fortis at the time (FundsIndia, ICICI Direct, Angel One). Since listing it has traded at a premium to the listed peers in the table.",
 
   strengths: [
     { title: "Unmatched bed scale and metro leadership", body: "Largest pan-India network by beds and the only private chain leading three metros (Bengaluru, Kolkata, Pune) by bed capacity, per Crisil." },
@@ -201,7 +201,7 @@ export const manipalHospitals: IpoReport = {
     { risk: "Karnataka concentration: ~46% of FY26 revenue came from one state.", mitigant: "Share is falling fast (60% in FY24) as Sahyadri, East India and NCR grow.", severity: "medium" },
     { risk: "High leverage after the Sahyadri deal; FY26 net debt ~3.7x EBITDA and finance costs of Rs 864 Cr.", mitigant: "IPO proceeds repay ~Rs 5,550 Cr; net debt fell to ~2.8x EBITDA by Jun 2026.", severity: "high" },
     { risk: "Integration and margin dilution from acquisitions and new hospitals (Q1 FY27 EBITDA margin 24.2% vs 26.5%).", mitigant: "Ex-Sahyadri margin was 25.0% and Sahyadri ARPOB is rising (+14.7% YoY).", severity: "medium" },
-    { risk: "Valuation leaves little room for error at ~95x trailing earnings.", mitigant: "Earnings should rise as NCD interest falls away and new beds mature.", severity: "high" },
+    { risk: "Valuation leaves little room for error: the stock trades at a premium to listed peers.", mitigant: "Earnings should rise as NCD interest falls away and new beds mature.", severity: "high" },
     { risk: "Clinical negligence claims and regulatory price controls on procedures and consumables.", mitigant: "41 NABH-accredited hospitals and insurance cover; payor mix is half insurance.", severity: "low" },
   ],
 

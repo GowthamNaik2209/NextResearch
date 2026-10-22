@@ -2,8 +2,7 @@
 // src/lib/sector-content/products.ts: the content's companies (names, roles, sector
 // links) and the curated news - no figures, which live only in the database. Run it
 // when products.ts gains sectors or companies, then `npm run db:seed` to sync company
-// rows. extract-source-data.mjs + artifact-data-slice.js are stale and only reflect
-// the original port.
+// rows.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

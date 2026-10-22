@@ -13,14 +13,18 @@ import {
   type Time,
 } from "lightweight-charts";
 import type { ChartData, ChartRange, OhlcData, Quote } from "@/lib/live/yahoo";
-import { fmtNum, fmtSigned, withLiveQuote } from "./merge";
+import { fmtNum, fmtPrice, fmtSigned, withLiveQuote } from "./merge";
 import { barFor, fmtVolume, withLiveBar, type OhlcBar } from "@/lib/live/ohlc-format";
 import { ZOOM_OPTIONS, ZoomControls, useChartZoom } from "@/components/charts/ChartZoom";
+import { cssVar, useSiteTheme } from "@/lib/theme";
+import { fmtDay, fmtMonth } from "@/lib/format";
 
 const RANGES: { id: ChartRange; label: string; long: string }[] = [
   { id: "1M", label: "1M", long: "1 month" },
   { id: "6M", label: "6M", long: "6 months" },
   { id: "1Y", label: "1Y", long: "1 year" },
+  // Same periods as the basket charts (BasketDetail), plus "All" for a single stock.
+  { id: "2Y", label: "2Y", long: "2 years" },
   { id: "3Y", label: "3Y", long: "3 years" },
   { id: "5Y", label: "5Y", long: "5 years" },
   { id: "MAX", label: "All", long: "lifetime" },
@@ -31,12 +35,8 @@ type Mode = "line" | "candles";
 // (null on Screener's fallback, which carries closes only).
 type Entry = { line: ChartData; ohlc: OhlcData | null };
 
-// lightweight-charts needs concrete colours (no CSS var()), so read the live
-// theme tokens off <html> and convert for the gradient fill.
-function cssVar(name: string, fallback: string) {
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return v || fallback;
-}
+// lightweight-charts needs concrete colours (no CSS var()), so the theme tokens are read off
+// <html> (cssVar) and converted for the gradient fill.
 function withAlpha(hex: string, a: number) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex);
   if (!m) return hex;
@@ -45,8 +45,8 @@ function withAlpha(hex: string, a: number) {
 }
 
 const getJson = <T,>(url: string) => fetch(url).then((r) => (r.ok ? (r.json() as Promise<T>) : Promise.reject(r)));
-const fmtDay = (t: string) => new Date(t).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-const fmtMonth = (t: string) => new Date(t).toLocaleDateString("en-IN", { month: "short", year: "numeric" });
+// Bars are dated "YYYY-MM-DD" (IST trading days); fmtDay/fmtMonth read them in UTC, so a viewer
+// west of UTC no longer sees each bar labelled with the previous day.
 
 export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | null }) {
   const [range, setRange] = useState<ChartRange>("1Y");
@@ -65,6 +65,8 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
   const candleRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const volRef = useRef<ISeriesApi<"Histogram"> | null>(null);
   const cacheRef = useRef(new Map<ChartRange, Entry>());
+  // Re-colours the chart when the light/dark toggle flips while the pop-up is open.
+  const theme = useSiteTheme();
 
   const pick = useCallback((r: ChartRange) => {
     setRange(r);
@@ -198,11 +200,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
     chart.applyOptions({ rightPriceScale: { scaleMargins: { top: 0.1, bottom: volOn ? 0.24 : 0.03 } } });
     paint();
     if (home) chart.timeScale().setVisibleLogicalRange(home);
-    // Follow a live light/dark toggle while the pop-up is open.
-    const mo = new MutationObserver(paint);
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => mo.disconnect();
-  }, [data, points, bars, candles, volOn, status, up, home]);
+  }, [data, points, bars, candles, volOn, status, up, home, theme]);
 
   const zoom = useChartZoom(chartRef, boxRef, home);
 
@@ -287,13 +285,13 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
             change width as the crosshair moves, and the controls must not move with them. */}
         <div className="relative flex flex-wrap items-end justify-between gap-3">
           <div className="order-1">
-            <div className="font-mono text-3xl font-bold text-ink">{shown ? `₹${fmtNum(shown.c)}` : "—"}</div>
+            <div className="font-mono text-3xl font-bold text-ink">{shown ? fmtPrice(shown.c) : "—"}</div>
             <div className="mt-0.5 font-mono text-xs text-ink-soft">{shownDate}</div>
           </div>
           <div className="order-3 flex basis-full flex-wrap items-center gap-2 lg:absolute lg:bottom-0 lg:left-1/2 lg:w-max lg:-translate-x-1/2 lg:flex-nowrap">{controls}</div>
           {change != null && changePct != null && (
             <div className={"order-2 text-right font-mono text-sm font-semibold tabular-nums " + (shownUp ? "text-pos" : "text-danger")}>
-              {shownUp ? "▲" : "▼"} {fmtNum(Math.abs(change))} (
+              {shownUp ? "▲" : "▼"} {Math.abs(change).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (
               {range === "MAX" && first && shown && shown.c / first.c >= 10 ? `${fmtNum(shown.c / first.c, 0)}×` : fmtSigned(changePct, 2)})
               <div className="text-[11px] font-normal text-ink-soft">{hover && first ? `since ${fmtDay(first.t)}` : range === "MAX" && first ? `since ${fmtMonth(first.t)}` : `past ${RANGES.find((r) => r.id === range)?.long}`}</div>
             </div>

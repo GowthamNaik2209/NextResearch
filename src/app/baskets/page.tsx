@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -7,6 +8,9 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { basketStock, listIndustryBaskets } from "@/lib/baskets/industry";
 import { BasketsPanel, BasketsSummary, type IndustryRow, type SavedRow } from "@/components/baskets/BasketsTable";
+import { industrySeriesKey } from "@/components/baskets/series";
+import { toSaved } from "@/lib/baskets/store";
+import { industryFigures } from "@/lib/baskets/industry-figures";
 import { ensureFinancials } from "@/lib/financials/load";
 
 export const metadata = {
@@ -24,7 +28,7 @@ export default async function BasketsPage() {
   let mineFailed = false;
   const mine = user
     ? await prisma.basket
-        .findMany({ where: { userId: user.id }, include: { items: { select: { ticker: true, weight: true } } }, orderBy: { createdAt: "desc" } })
+        .findMany({ where: { userId: user.id }, include: { items: { orderBy: { addedAt: "asc" } } }, orderBy: { createdAt: "desc" } })
         .catch((e: unknown) => {
           console.error("[baskets] loading the user's baskets failed", e);
           mineFailed = true;
@@ -34,19 +38,23 @@ export default async function BasketsPage() {
 
   // Plain rows for the tables (figures load in the browser). Tickers the content no longer lists
   // are left out, as on the basket page, so both read the same backtest.
-  const mineRows: SavedRow[] = mine.map((b) => {
+  // The weighting and weights read as the basket page reads them (toSaved), so a row and its page
+  // backtest the same basket.
+  const mineRows: SavedRow[] = mine.map((row) => {
+    const b = toSaved(row, user?.id ?? null);
     const stocks = b.items.map((i) => basketStock(i.ticker)).filter((s) => s !== null);
     return {
       kind: "saved",
       id: b.id,
       name: b.name,
       isPublic: b.isPublic,
-      weighting: b.customWeighting ? "custom" : b.weighting === "MCAP" ? "mcap" : "equal",
-      weights: b.customWeighting ? Object.fromEntries(b.items.filter((i) => i.weight != null).map((i) => [i.ticker, i.weight!])) : null,
+      weighting: b.weighting,
+      weights: b.weighting === "custom" ? b.weights : null,
       tickers: stocks.map((s) => s.ticker),
       names: stocks.map((s) => s.name),
     };
   });
+  const mineCount = user && !mineFailed ? mine.length : null;
   const industryRows: IndustryRow[] = listIndustryBaskets().map((b) => ({ kind: "industry", slug: b.slug, name: b.name, category: b.category, count: b.stocks.length }));
 
   return (
@@ -120,11 +128,31 @@ export default async function BasketsPage() {
             </div>
             <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock each industry or policy maps, equal weight.</p>
           </div>
-          <BasketsSummary mineCount={user && !mineFailed ? mine.length : null} />
-          <BasketsPanel title="All industries & policies" rows={industryRows} initialSort="ret" />
+          {/* The figures are worked out on the server and stream in; until then the rows show loading. */}
+          <Suspense
+            fallback={
+              <>
+                <BasketsSummary mineCount={mineCount} />
+                <BasketsPanel title="All industries & policies" rows={industryRows} initialSort="ret" deferred />
+              </>
+            }
+          >
+            <IndustryTable rows={industryRows} mineCount={mineCount} />
+          </Suspense>
         </section>
       </main>
       <SiteFooter />
+    </>
+  );
+}
+
+async function IndustryTable({ rows, mineCount }: { rows: IndustryRow[]; mineCount: number | null }) {
+  const { figs, benchRet } = await industryFigures();
+  const seed = { figs: Object.fromEntries(Object.entries(figs).map(([slug, f]) => [industrySeriesKey(slug), f])), benchRet };
+  return (
+    <>
+      <BasketsSummary mineCount={mineCount} benchRet={benchRet} />
+      <BasketsPanel title="All industries & policies" rows={rows} initialSort="ret" seed={seed} />
     </>
   );
 }

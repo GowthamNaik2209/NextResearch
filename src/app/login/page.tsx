@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { login, loginWithGoogle } from "@/app/auth/actions";
 import { SiteHeader } from "@/components/SiteHeader";
+import { redirect } from "next/navigation";
 import { safeNext } from "@/lib/safe-next";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = { title: "Log in", robots: { index: false, follow: true } };
 
@@ -12,6 +14,10 @@ export default async function LoginPage({
 }) {
   const { error, next: rawNext } = await searchParams;
   const next = safeNext(rawNext);
+  // Already signed in: the form has nothing to do, so go where they were heading (a safe,
+  // same-site ?next=, else home).
+  // (Never back to /login or /signup themselves, which would loop.)
+  if (await getCurrentUser()) redirect(/^\/(login|signup)(\/|\?|$)/.test(next) ? "/" : next);
   const signupHref = next === "/" ? "/signup" : `/signup?next=${encodeURIComponent(next)}`;
 
   return (

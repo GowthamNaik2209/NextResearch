@@ -54,6 +54,9 @@ export function periodsPerYear(points: PricePoint[]): number {
   return 252;
 }
 
+/** Geometric mean of bar returns (fractions): the steady per-bar rate that compounds to the same total. */
+export const geoMean = (xs: number[]) => Math.pow(xs.reduce((n, x) => n * (1 + x), 1), 1 / xs.length) - 1;
+
 const returns = (points: PricePoint[]) => points.slice(1).map((p, i) => p.c / points[i].c - 1);
 const mean = (xs: number[]) => xs.reduce((n, x) => n + x, 0) / xs.length;
 
@@ -122,6 +125,21 @@ export function seriesStats(points: PricePoint[]): SeriesStats | null {
   };
 }
 
+/** A basket row's headline figures: return, deepest fall and lead over the benchmark (pts). */
+export type BasketFigures = { ret: number; maxDd: number; vs: number | null };
+
+/**
+ * The figures the Baskets tables show, from a backtest's points and the benchmark's. The lead is
+ * measured over the basket's own dates (the benchmark's last close on or before each), as the
+ * basket page's stats grid measures it, so the two read the same.
+ */
+export function basketFigures(points: PricePoint[], bench: PricePoint[] | null): BasketFigures | null {
+  const st = seriesStats(points);
+  if (!st) return null;
+  const rel = bench ? relativeStats(points, bench) : null;
+  return { ret: st.ret, maxDd: st.maxDd, vs: rel ? st.ret - rel.benchRet : null };
+}
+
 /**
  * The line against a benchmark over the line's own dates. The benchmark is read at each of those
  * dates (its last close on or before it), so an index on a different holiday calendar still lines up.
@@ -153,9 +171,8 @@ export function relativeStats(points: PricePoint[], bench: PricePoint[]): Relati
   const capture = (up: boolean) => {
     const idx = rb.map((x, i) => (up ? x > 0 : x < 0) ? i : -1).filter((i) => i >= 0);
     if (!idx.length) return null;
-    const geo = (xs: number[]) => Math.pow(xs.reduce((n, x) => n * (1 + x), 1), 1 / xs.length) - 1;
-    const b = geo(idx.map((i) => rb[i]));
-    return b === 0 ? null : (geo(idx.map((i) => ra[i])) / b) * 100;
+    const b = geoMean(idx.map((i) => rb[i]));
+    return b === 0 ? null : (geoMean(idx.map((i) => ra[i])) / b) * 100;
   };
 
   const benchRet = (aligned[aligned.length - 1].b / aligned[0].b - 1) * 100;

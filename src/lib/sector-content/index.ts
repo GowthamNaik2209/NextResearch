@@ -20,10 +20,10 @@ export type SectorView = {
 };
 
 // Provenance of a piece of *static* authored content (industry/domain/component
-// narrative, or a company's exposure classification) — the content-layer sibling
-// of the `DataStatus` enum on the DB-backed `Company` model (prisma/schema.prisma),
-// which covers financial/KPI figures instead. Every field using this must render
-// visibly ("Demo data", "Unverified", etc.) wherever it's shown — never silently.
+// narrative, or a company's exposure classification). It covers the authored text only:
+// company figures carry their own source and snapshot date (SupplierFinancials.asOf).
+// Every field using this must render visibly ("Demo data", "Unverified", etc.)
+// wherever it's shown — never silently.
 export type DataStatus = "demo" | "user_generated" | "unverified" | "verified" | "source_required";
 
 // How a company relates to a specific component/layer — one company can have a
@@ -251,19 +251,84 @@ export function tickerForSupplier(sup: SectorSupplier): string {
   return sup.f?.ticker ?? syntheticTicker(sup.name);
 }
 
-// Listed ticker -> supplier record (plain data), first sector that has it. Used wherever a
-// company is shown outside the 3D explorer (watchlist) and as the allowlist for the live
-// stock API routes, which proxy third-party sites and so must only serve tickers we cover.
+// ---- A company's home: the one sector and record that describe it ----
 // A company in several sectors (L&T: naval, aerospace, real estate…) has one supplier record per
-// sector, each with that sector's role/strengths/risks. Pick the record from its strongest link
-// (high > medium > low; side links like lenders rank lower), so the stock pop-up and the
-// company page describe it the same way. Same weighting as companies.ts primaryAppearance().
+// sector, each with that sector's role/strengths/risks. Every surface that shows the company once
+// (stock pop-up, company page, landing ideas, basket stocks) must pick the same one, so they all
+// read the weights below and primarySector().
+
+const STRENGTH_POINTS: Record<ExposureStrength, number> = { high: 3, medium: 2, low: 1 };
+
+/** A link's exposure strength. A link without one counts as high: the company was placed in that layer as one of its suppliers. */
+export function linkStrength(link: SectorCompanyLink): ExposureStrength {
+  return companyLinkExposure(link).exposureStrength ?? "high";
+}
+
+/** Lenders, software and other enablers sit beside the chain rather than in it. */
+export function isSideLink(link: SectorCompanyLink): boolean {
+  const { exposureType } = companyLinkExposure(link);
+  return exposureType === "enabler" || exposureType === "indirect_supplier";
+}
+
+/** Points for a strength (high 3, medium 2, low 1; none counts as high, as in linkStrength). */
+export function strengthPoints(strength: ExposureStrength | undefined): number {
+  return STRENGTH_POINTS[strength ?? "high"];
+}
+
+/** How central one link is to the company: high > medium > low, and a side link ranks half a step below a direct one. */
 export function linkWeight(link: SectorCompanyLink): number {
-  const { exposureType, exposureStrength } = companyLinkExposure(link);
-  return (
-    (exposureStrength ? { high: 3, medium: 2, low: 1 }[exposureStrength] : 3) -
-    (exposureType === "enabler" || exposureType === "indirect_supplier" ? 0.5 : 0)
-  );
+  return STRENGTH_POINTS[linkStrength(link)] - (isSideLink(link) ? 0.5 : 0);
+}
+
+type Home = { slug: string; key: string; weight: number };
+let homeByTicker: Map<string, Home> | null = null;
+
+// Strongest link wins; ties keep the earlier sector (industries come before the policies that reuse
+// their companies) and the earlier zone. Muted sectors only count for a company found nowhere else,
+// and a listed supplier linked from no zone resolves to its first record.
+function homes(): Map<string, Home> {
+  if (homeByTicker) return homeByTicker;
+  const best = new Map<string, Home>();
+  const ordered = [...SECTOR_KEYS.filter((k) => !PRODUCTS[k].muted), ...SECTOR_KEYS.filter((k) => PRODUCTS[k].muted)];
+  for (const slug of ordered) {
+    const sector = PRODUCTS[slug];
+    for (const z of sector.zones)
+      for (const link of z.suppliers) {
+        const key = companyLinkKey(link);
+        const sup = sector.suppliers[key];
+        const t = sup?.f?.ticker;
+        if (!sup?.listed || !t) continue;
+        const weight = linkWeight(link) - (sector.muted ? 100 : 0);
+        const prev = best.get(t);
+        if (!prev || weight > prev.weight) best.set(t, { slug, key, weight });
+      }
+  }
+  for (const slug of ordered)
+    for (const [key, sup] of Object.entries(PRODUCTS[slug].suppliers)) {
+      const t = sup.f?.ticker;
+      if (sup.listed && t && !best.has(t)) best.set(t, { slug, key, weight: -Infinity });
+    }
+  return (homeByTicker = best);
+}
+
+/** The sector (slug) and supplier key that describe a listed company everywhere it is shown once. */
+export function primaryLink(ticker: string): { slug: string; key: string } | null {
+  const h = homes().get(ticker);
+  return h ? { slug: h.slug, key: h.key } : null;
+}
+
+/** The sector or policy slug a listed company is shown under when it is shown once. */
+export function primarySector(ticker: string): string | null {
+  return homes().get(ticker)?.slug ?? null;
+}
+
+// Listed ticker -> its home supplier record (plain data). Used wherever a company is shown outside
+// the 3D explorer (watchlist, stock pop-up) and as the allowlist for the live stock API routes,
+// which proxy third-party sites and so must only serve tickers we cover.
+export function findSupplierByTicker(ticker: string): SectorSupplier | null {
+  assertFiguresLoaded();
+  const h = homes().get(ticker);
+  return h ? PRODUCTS[h.slug].suppliers[h.key] : null;
 }
 
 // The one record of a listed company's figures (the company table in the database, loaded by
@@ -281,31 +346,4 @@ export function listCompanyFinancials(): SupplierFinancials[] {
 export function parseCrore(s: string | null | undefined): number | null {
   const n = s ? parseFloat(s.replace(/[^\d.]/g, "")) : NaN;
   return Number.isFinite(n) ? n : null;
-}
-
-let supplierByTicker: Map<string, SectorSupplier> | null = null;
-export function findSupplierByTicker(ticker: string): SectorSupplier | null {
-  assertFiguresLoaded();
-  if (!supplierByTicker) {
-    const best = new Map<string, { sup: SectorSupplier; w: number }>();
-    for (const slug of SECTOR_KEYS) {
-      const sector = PRODUCTS[slug];
-      for (const z of sector.zones) {
-        for (const link of z.suppliers) {
-          const sup = sector.suppliers[companyLinkKey(link)];
-          const t = sup?.f?.ticker;
-          if (!sup?.listed || !t) continue;
-          const w = linkWeight(link);
-          if (!best.has(t) || w > best.get(t)!.w) best.set(t, { sup, w });
-        }
-      }
-      // Listed suppliers not linked from any zone still resolve (first one wins).
-      for (const sup of Object.values(sector.suppliers)) {
-        const t = sup.f?.ticker;
-        if (sup.listed && t && !best.has(t)) best.set(t, { sup, w: -1 });
-      }
-    }
-    supplierByTicker = new Map([...best].map(([t, b]) => [t, b.sup]));
-  }
-  return supplierByTicker.get(ticker) ?? null;
 }

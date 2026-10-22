@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type { ChartRange } from "@/lib/live/yahoo";
-import { pct } from "./BasketChart";
-import { loadSeries, type Load } from "./series";
+import { fmtMonth, NA, signedPct } from "@/lib/format";
+import { slackDaysFor } from "@/lib/baskets/backtest";
+import { signedPts } from "@/lib/baskets/fmt";
+import { useSeries } from "./use-series";
 
 // The return cards above a basket chart: the basket itself, the stocks picked in the chart
 // (backtested together as their own basket) and the benchmarks, each gap stated against the
@@ -24,7 +25,6 @@ export function picksKey(tickers: string[], strategy: string): string | null {
 
 // The figure a card displays, so the gap between two cards matches their numbers (−5.4 vs −5.5 is 0.1).
 const shown = (v: number) => Number(v.toFixed(Math.abs(v) >= 100 ? 0 : 1));
-const monthYear = (t: string) => new Date(t).toLocaleDateString("en-IN", { month: "short", year: "numeric" });
 
 export function ReturnCards({
   range,
@@ -41,21 +41,7 @@ export function ReturnCards({
   /** The basket pages' flat strip (full width, square cells); the Analysis charts keep the cards. */
   dense?: boolean;
 }) {
-  const [loads, setLoads] = useState<Record<string, Load>>({});
-  // One string of every key, so a re-render with the same lines doesn't re-run the effect.
-  const sig = [basket.key, ...(picks ? [picks.key] : []), ...benches.map((b) => b.key)].join("\n");
-
-  useEffect(() => {
-    for (const key of sig.split("\n")) {
-      const id = `${key}|${range}`;
-      if (loads[id]) continue;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the card's series as loading, then fetches it
-      setLoads((m) => ({ ...m, [id]: { status: "loading" } }));
-      loadSeries(key, range).then((r) => setLoads((m) => ({ ...m, [id]: r })));
-    }
-  }, [sig, range, loads]);
-
-  const at = (key: string) => loads[`${key}|${range}`];
+  const { get: at, retry } = useSeries([basket.key, picks?.key, ...benches.map((b) => b.key)], range);
   const ret = (key: string) => {
     const l = at(key);
     if (l?.status !== "ok" || l.data.points.length < 2) return null;
@@ -68,7 +54,7 @@ export function ReturnCards({
     const l = at(key);
     const b = at(basket.key);
     if (l?.status !== "ok" || b?.status !== "ok" || !l.data.points.length || !b.data.points.length) return null;
-    const slack = (range === "3Y" || range === "5Y" ? 35 : 10) * 86_400_000;
+    const slack = slackDaysFor(range) * 86_400_000;
     const from = l.data.points[0].t;
     return Date.parse(from) - Date.parse(b.data.points[0].t) > slack ? from : null;
   };
@@ -77,7 +63,9 @@ export function ReturnCards({
     return {
       value: late ? null : ret(line.key),
       loading: at(line.key)?.status === "loading" || !at(line.key),
-      note: late ? `history only from ${monthYear(late)}` : line.note,
+      failed: at(line.key)?.status === "error",
+      onRetry: () => retry(line.key),
+      note: late ? `history only from ${fmtMonth(late)}` : line.note,
     };
   };
 
@@ -91,12 +79,14 @@ export function ReturnCards({
   const cols = count >= 4 ? "grid-cols-2 sm:grid-cols-4" : count === 3 ? "grid-cols-3" : "grid-cols-2";
   return (
     <section aria-label="Backtest summary" className={(dense ? "grid gap-2 " : "grid max-w-3xl gap-2 sm:gap-3 ") + cols}>
-      <Stat label={basket.label} value={b.value} loading={b.loading} note={basket.note} strong dense={dense} />
+      <Stat label={basket.label} value={b.value} loading={b.loading} failed={b.failed} onRetry={b.onRetry} note={basket.note} strong dense={dense} />
       {picks && p && (
         <Stat
           label={picks.label}
           value={p.value}
           loading={p.loading}
+          failed={p.failed}
+          onRetry={p.onRetry}
           who="picks"
           diff={gap(p.value, true)}
           note={p.note}
@@ -106,7 +96,7 @@ export function ReturnCards({
       )}
       {benches.map((line) => {
         const c = card(line);
-        return <Stat key={line.key} label={line.label} value={c.value} loading={c.loading} note={c.note} diff={gap(c.value, false)} dense={dense} />;
+        return <Stat key={line.key} label={line.label} value={c.value} loading={c.loading} failed={c.failed} onRetry={c.onRetry} note={c.note} diff={gap(c.value, false)} dense={dense} />;
       })}
     </section>
   );
@@ -116,13 +106,36 @@ export function ReturnCards({
 // Compact on purpose: three of these share one row on a phone. The gap is one short line,
 // signed: on the picks card it is the picks against the basket, on an index card the basket
 // against that index.
-function Stat({ label, value, loading, diff, note, title, strong, dense, who = "basket" }: { label: string; value: number | null; loading: boolean; diff?: number | null; note?: string; title?: string; strong?: boolean; dense?: boolean; who?: "basket" | "picks" }) {
+function Stat({
+  label,
+  value,
+  loading,
+  failed,
+  onRetry,
+  diff,
+  note,
+  title,
+  strong,
+  dense,
+  who = "basket",
+}: {
+  label: string;
+  value: number | null;
+  loading: boolean;
+  failed?: boolean;
+  onRetry?: () => void;
+  diff?: number | null;
+  note?: string;
+  title?: string;
+  strong?: boolean;
+  dense?: boolean;
+  who?: "basket" | "picks";
+}) {
   // "pts" only from sm: a phone's third-of-a-row card has room for the number alone.
   const pts =
     diff == null ? null : (
       <>
-        {diff > 0 ? "+" : "−"}
-        {Math.abs(diff).toFixed(1)}
+        {signedPts(diff)}
         <span className="hidden sm:inline"> pts</span>
       </>
     );
@@ -130,7 +143,14 @@ function Stat({ label, value, loading, diff, note, title, strong, dense, who = "
     <div title={title} className={"min-w-0 border " + (dense ? "rounded-md px-2.5 py-1.5 sm:px-3 " : "rounded-xl px-2.5 py-2 sm:p-3 ") + (strong ? "border-accent bg-accent/5" : "border-line bg-panel")}>
       {/* Labels and gaps wrap rather than cut off: a phone's third of a row is about 100px. */}
       <div className="text-[10px] leading-snug text-ink-soft sm:text-[11px]">{label}</div>
-      <div className={"mt-0.5 font-mono text-base font-bold sm:text-lg " + (value == null ? "text-ink-soft" : value >= 0 ? "text-pos" : "text-danger")}>{value != null ? pct(value) : loading ? "…" : "—"}</div>
+      <div className={"mt-0.5 font-mono text-base font-bold sm:text-lg " + (value == null ? "text-ink-soft" : value >= 0 ? "text-pos" : "text-danger")}>
+        {value != null ? signedPct(value) : loading ? <span role="img" aria-label="Loading" className="inline-block h-4 w-14 animate-pulse rounded bg-line/70 align-middle" /> : NA}
+      </div>
+      {failed && onRetry && (
+        <button type="button" onClick={onRetry} className="text-[10px] font-semibold text-accent underline sm:text-[11px]">
+          Retry
+        </button>
+      )}
       {diff != null && (
         <div className="text-[10px] leading-snug text-ink-soft sm:text-[11px]">
           {Math.abs(diff) < 0.05 ? (

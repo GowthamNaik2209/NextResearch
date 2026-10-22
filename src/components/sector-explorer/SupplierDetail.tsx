@@ -75,21 +75,37 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
       {supplier.listed && (
         <>
           <div className="flex items-center justify-between gap-3">
-            <span className="text-[11px] text-ink-soft">{api?.quote ? `${api.quote.exchange} · ${quoteTiming(api.quote)}` : loading ? "Fetching live price…" : "Last known price"}</span>
+            {/* Live only when the quote is in; until then (or if it never comes) the price is the
+                company table's snapshot, so say so with its date rather than "live". */}
+            <span className="text-[11px] text-ink-soft">
+              {api?.quote
+                ? `${api.quote.exchange} · ${quoteTiming(api.quote)}`
+                : `Price as of ${supplier.f?.asOf ?? "last refresh"}${loading ? " · fetching live…" : ""}`}
+            </span>
             <PriceTag price={stats.price} quote={api?.quote ?? null} size="sm" />
           </div>
-          <div role="group" aria-label="Open stock details" className="grid grid-cols-4 gap-1 sm:gap-1.5">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                aria-haspopup="dialog"
-                onClick={() => setOpenTab(t.id)}
-                className="rounded-md bg-accent px-0.5 py-1.5 text-[10px] font-semibold tracking-tight text-bg transition hover:opacity-90 sm:rounded-lg sm:px-1 sm:py-2 sm:text-xs sm:tracking-normal pointer-coarse:min-h-9"
-              >
-                {t.label}
-              </button>
-            ))}
+          {/* Same pill bar as the stock pop-up's tabs. The card itself shows the summary, so that
+              pill is the lit one; every pill opens the full pop-up on its tab. */}
+          <div role="group" aria-label="Open stock details" className="flex gap-1">
+            {TABS.map((t) => {
+              const current = t.id === "summary";
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-current={current || undefined}
+                  title={`Open ${t.label.toLowerCase()} in the stock pop-up`}
+                  onClick={() => setOpenTab(t.id)}
+                  className={
+                    "flex-auto whitespace-nowrap rounded-full border px-2 py-1.5 text-xs font-semibold transition-colors pointer-coarse:min-h-10 " +
+                    (current ? "border-accent bg-accent text-bg" : "border-line text-ink-soft hover:border-accent hover:bg-panel-2 hover:text-ink")
+                  }
+                >
+                  {t.label}
+                </button>
+              );
+            })}
           </div>
         </>
       )}

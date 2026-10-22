@@ -146,6 +146,13 @@ export function toPercents(w: Map<string, number> | Record<string, number>): Rec
   return Object.fromEntries(tenths.map((x) => [x.t, x.base / 10]));
 }
 
+/** A short, stable hash of a string (base 36), for cache keys that change with a basket's makeup. */
+export function shortHash(s: string): string {
+  let h = 0;
+  for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) | 0;
+  return (h >>> 0).toString(36);
+}
+
 /** Sum of the weights, to one decimal (floating-point noise taken off). */
 export const weightsTotal = (w: Record<string, number>) => Math.round(Object.values(w).reduce((a, b) => a + b, 0) * 10) / 10;
 /** Custom weights are usable once they add up to 100% (to a tenth) and none is negative. */

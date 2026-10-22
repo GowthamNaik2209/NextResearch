@@ -28,6 +28,13 @@ export type BacktestResult = {
 
 const DAY = 86_400_000;
 
+/**
+ * How much later than the earliest line a line may start and still count as there from day one.
+ * Weekly bars (3Y and longer) can start up to a week after a daily-range one, so they get more.
+ * The backtest, the chart and the return cards all use this, so they agree on who is "late".
+ */
+export const slackDaysFor = (range: string) => (range === "3Y" || range === "5Y" || range === "MAX" ? 35 : 10);
+
 export type BacktestInput = { ticker: string; weight: number; points: PricePoint[] | null };
 export type HeldInput = { ticker: string; weight: number; points: PricePoint[] };
 

@@ -13,7 +13,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { OpenReportButton } from "@/components/research/OpenReport";
-import { buildDeck } from "@/lib/sector-content/reports";
+import { cachedDeck } from "@/lib/analysis-props";
 import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
 import { companySlug, sectorCompanies, sectorCompanyCounts } from "@/lib/sector-content/companies";
 import { NOT_FOUND_METADATA, SITE_URL, jsonLd, midSentence } from "@/lib/site";
@@ -92,12 +92,18 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
     })
     .filter((x, i, all) => x.company && all.findIndex((y) => tickerForSupplier(y.company) === tickerForSupplier(x.company)) === i);
 
-  const deck = buildDeck(sector.slug);
+  // The end manufacturers have their own section above, so the full list below skips them
+  // (it used to show each of them twice) and points back up instead.
+  const integratorTickers = new Set(integratorCompanies.map(({ company }) => tickerForSupplier(company)));
+  const otherCompanies = companies.filter((c) => !integratorTickers.has(c.ticker));
+  const integratorsShown = companies.length - otherCompanies.length;
+
+  const deck = cachedDeck(sector.slug);
 
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-12 px-5 py-14">
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-12 px-5 py-14">
         <div>
           <Link href="/docs" className="tap-target text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
             &larr; All deep dives
@@ -141,7 +147,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
             </Link>
           )}
           {deck && (
-            <OpenReportButton deck={deck} className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink">
+            <OpenReportButton slug={deck.slug} className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink">
               Read curated report
             </OpenReportButton>
           )}
@@ -186,13 +192,15 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
         {sector.featuredSignals && sector.featuredSignals.length > 0 && (
           <section>
             <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">What to watch</h2>
-            <div className="mt-3 flex flex-wrap gap-2">
+            {/* Plain text, not pills: bordered chips read as buttons, and these aren't links. */}
+            <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-ink">
               {sector.featuredSignals.map((signal) => (
-                <span key={signal} className="rounded-full border border-line bg-panel-2 px-3 py-1 text-xs text-ink-soft">
+                <li key={signal} className="flex items-baseline gap-2">
+                  <span aria-hidden className="h-1.5 w-1.5 flex-none translate-y-[-1px] rounded-full bg-accent" />
                   {signal}
-                </span>
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
         )}
 
@@ -219,18 +227,19 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                   </p>
                 </div>
               );
-              return zoneId ? (
-                <Link key={item.id} href={`/sector/${sector.slug}/explore?zone=${encodeURIComponent(zoneId)}`} className="block">
+              // Every card opens the map, like its neighbours: on its first component when the
+              // area has one mapped, else on the whole model.
+              const href = zoneId ? `/sector/${sector.slug}/explore?zone=${encodeURIComponent(zoneId)}` : `/sector/${sector.slug}/explore`;
+              return (
+                <Link key={item.id} href={href} className="block">
                   {card}
                 </Link>
-              ) : (
-                <div key={item.id}>{card}</div>
               );
             })}
           </div>
 
           {integratorZone && integratorCompanies.length > 0 && (
-            <div className="mt-6 rounded-2xl border border-line bg-panel-2 p-5">
+            <div id="integrators" className="mt-6 scroll-mt-20 rounded-2xl border border-line bg-panel-2 p-5">
               <h3 className="text-xs font-bold uppercase tracking-widest text-ink-soft">
                 {sector.integratorHeading ?? <>End manufacturers &amp; integrators</>}
               </h3>
@@ -262,12 +271,19 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                         </span>
                       </div>
                       <p className="mt-1 text-xs leading-relaxed text-ink-soft">{company.role}</p>
-                      <Link
-                        href={`/sector/${sector.slug}/explore?zone=${encodeURIComponent(integratorZone.id)}&company=${encodeURIComponent(key)}`}
-                        className="tap-y mt-2 inline-block text-[11px] text-accent hover:underline"
-                      >
-                        View in the map &rarr;
-                      </Link>
+                      <div className="mt-2 flex flex-wrap gap-x-4">
+                        <Link
+                          href={`/sector/${sector.slug}/explore?zone=${encodeURIComponent(integratorZone.id)}&company=${encodeURIComponent(key)}`}
+                          className="tap-y inline-block text-[11px] text-accent hover:underline"
+                        >
+                          View in the map &rarr;
+                        </Link>
+                        {ticker && (
+                          <Link href={`/company/${companySlug(ticker)}`} className="tap-y inline-block text-[11px] font-semibold text-accent hover:underline">
+                            Company page &rarr;
+                          </Link>
+                        )}
+                      </div>
                     </OpenStockCard>
                   );
                 })}
@@ -312,21 +328,27 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
           <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Companies in this theme</h2>
           <p className="mt-1 text-xs text-ink-soft">
             {companies.length} companies, {listedCompanies.length} listed.
+            {integratorsShown > 0 && (
+              <>
+                {" "}
+                The {integratorsShown} {sector.integratorHeading ? midSentence(sector.integratorHeading) : "end manufacturers & integrators"} are{" "}
+                <a href="#integrators" className="text-accent hover:underline">
+                  listed above
+                </a>
+                .
+              </>
+            )}
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {companies.map(({ key, ticker: cardTicker, supplier: company, roles, zones }) => {
+            {otherCompanies.map(({ key, ticker: cardTicker, supplier: company, roles, zones }) => {
               const ticker = company.listed ? cardTicker : null;
+              // A tap anywhere on the card opens the stock pop-up (one action for the whole card);
+              // the company page is the separate, labelled link at the bottom.
               return (
-                <OpenStockCard key={key} ticker={cardTicker} supplier={company} className="rounded-xl border border-line bg-panel p-4 transition hover:border-accent">
+                <OpenStockCard key={key} ticker={cardTicker} supplier={company} className="flex flex-col rounded-xl border border-line bg-panel p-4 transition hover:border-accent">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-sm font-semibold text-ink">
-                      {ticker ? (
-                        <Link href={`/company/${companySlug(ticker)}`} className="tap-y hover:text-accent hover:underline">
-                          {company.name}
-                        </Link>
-                      ) : (
-                        company.name
-                      )}
+                      {company.name}
                       {ticker && <WatchlistButton ticker={ticker} name={company.name} />}
                     </h3>
                     <span
@@ -363,6 +385,11 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                         </Link>
                       ))}
                     </div>
+                  )}
+                  {ticker && (
+                    <Link href={`/company/${companySlug(ticker)}`} className="tap-y mt-3 self-start text-[11px] font-semibold text-accent hover:underline">
+                      Company page &rarr;
+                    </Link>
                   )}
                 </OpenStockCard>
               );

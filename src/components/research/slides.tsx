@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { croreShort } from "@/lib/format";
 import type { Deck, DeckCompany, Tone } from "@/lib/sector-content/reports";
 import type { PestleKey, SeriesPoint } from "@/lib/sector-content/reports/types";
 import {
@@ -11,6 +12,7 @@ import {
   outlookTitle,
   overviewTitle,
   pestleTitle,
+  rupee,
   scorecardTitle,
   valueChainTitle,
 } from "./headlines";
@@ -76,6 +78,30 @@ export function ToneIcon({ tone, className = "" }: { tone: Tone; className?: str
   );
 }
 
+// A snapshot/ratio table's value cell. The arrow is inline text glued to the value's first word,
+// so when a long value wraps on a phone the arrow stays beside it instead of floating at the
+// cell's left edge (an inline-flex box put "▲" a column away from "38.9%" on the OYO deck).
+export function ToneValueCell({ tone, value }: { tone?: Tone; value: string }) {
+  const v = rupee(value);
+  const sp = v.indexOf(" ");
+  const [first, rest] = sp < 0 ? [v, ""] : [v.slice(0, sp), v.slice(sp)];
+  return (
+    <td className={"px-4 py-2 text-right font-mono font-semibold tabular-nums " + (tone ? TONE_TEXT[tone] : "text-ink")}>
+      {tone && tone !== "neutral" ? (
+        <>
+          <span className="whitespace-nowrap">
+            <ToneIcon tone={tone} className="mr-1.5 inline-block align-[-0.05em]" />
+            {first}
+          </span>
+          {rest}
+        </>
+      ) : (
+        v
+      )}
+    </td>
+  );
+}
+
 export function ToneBadge({ tone, label }: { tone: Tone; label?: string }) {
   return (
     <span className={"inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide " + TONE_TEXT[tone]}>
@@ -115,7 +141,8 @@ export function Panel({ className = "", children }: { className?: string; childr
 }
 
 export const inr = (n: number, digits = 0) => n.toLocaleString("en-IN", { maximumFractionDigits: digits, minimumFractionDigits: digits });
-const fmtCr = (n: number | null) => (n == null ? "—" : n >= 100000 ? `Rs ${inr(n / 100000, 2)} L Cr` : `Rs ${inr(n)} Cr`);
+// Rupee crore in the site's one style ("₹8,420 Cr", "₹1.75L Cr"), as on every other page.
+const fmtCr = (n: number | null) => croreShort(n);
 const fmtPct = (n: number | null) => (n == null ? "—" : `${n.toFixed(1)}%`);
 const shortTicker = (c: DeckCompany) => `NSE: ${c.ticker}`;
 
@@ -156,7 +183,7 @@ function SummarySlide({ deck }: SlideProps) {
             {r.keyStats.map((s) => (
               <div key={s.label} className="rounded-xl border border-line bg-bg/70 p-3.5">
                 <div className="text-[10px] font-semibold uppercase tracking-wide text-ink-soft">{s.label}</div>
-                <div className="mt-1 font-display text-xl font-bold text-ink sm:text-2xl">{s.value}</div>
+                <div className="mt-1 font-display text-xl font-bold text-ink sm:text-2xl">{rupee(s.value)}</div>
                 {s.sub && <div className="mt-0.5 text-[11px] leading-snug text-ink-soft">{s.sub}</div>}
               </div>
             ))}
@@ -283,12 +310,7 @@ function OverviewSlide({ deck }: SlideProps) {
                 {o.snapshot.map((row) => (
                   <tr key={row.label} className="border-b border-line last:border-0">
                     <td className="px-4 py-2 text-ink-soft">{row.label}</td>
-                    <td className={"px-4 py-2 text-right font-mono font-semibold tabular-nums " + (row.tone ? TONE_TEXT[row.tone] : "text-ink")}>
-                      <span className="inline-flex items-center gap-1.5">
-                        {row.tone && row.tone !== "neutral" && <ToneIcon tone={row.tone} />}
-                        {row.value}
-                      </span>
-                    </td>
+                    <ToneValueCell tone={row.tone} value={row.value} />
                   </tr>
                 ))}
               </tbody>
@@ -637,7 +659,7 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
         </table>
       </Panel>
       <p className="mt-3 text-[10.5px] text-ink-soft">
-        Sorted by revenue growth; rows marked &ldquo;small base&rdquo; started under Rs 100 Cr, which inflates percentage growth. Growth windows differ where a company lacks five reported years; under three years of history no CAGR is shown. Net margin is for the latest fiscal year, while P/E is on trailing-twelve-month profit{rows.some(ttmMismatch) ? " (* marks a company whose TTM profit is positive although its latest fiscal year was a loss)" : ""}. Net margin can include one-offs (e.g. demerger gains). Revenue and net profit are company-wide (not only this segment), from the seed financials behind each stock pop-up; tap a name for live figures.
+        Sorted by revenue growth; rows marked &ldquo;small base&rdquo; started under ₹100 Cr, which inflates percentage growth. Growth windows differ where a company lacks five reported years; under three years of history no CAGR is shown. Net margin is for the latest fiscal year, while P/E is on trailing-twelve-month profit{rows.some(ttmMismatch) ? " (* marks a company whose TTM profit is positive although its latest fiscal year was a loss)" : ""}. Net margin can include one-offs (e.g. demerger gains). Revenue and net profit are company-wide (not only this segment), from the seed financials behind each stock pop-up; tap a name for live figures.
       </p>
       <SlideFoot deck={deck} source="Company filings via Screener.in seed data" />
     </>
@@ -735,7 +757,8 @@ function OutlookSlide({ deck }: SlideProps) {
       <section className="mt-5">
         <h4 className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">Further reading</h4>
         <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {r.reading.map((l) => (
+          {/* Each link once (a repeated URL also gave React a duplicate key). */}
+          {r.reading.filter((l, i, all) => all.findIndex((x) => x.url === l.url) === i).map((l) => (
             <li key={l.url}>
               <a
                 href={l.url}

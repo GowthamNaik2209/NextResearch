@@ -23,7 +23,7 @@ export default async function ConnectionsPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-5 py-14">
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-5 py-14">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight text-ink">Connected companies</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
@@ -40,7 +40,8 @@ export default async function ConnectionsPage() {
               <>
                 <span className="w-6 flex-none font-mono text-xs text-ink-soft">{i + 1}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-ink">{c.name}</span>
+                  {/* Wraps on phones: "CG Power and Industrial So…" hid which company it was. */}
+                  <span className="block text-sm font-semibold leading-snug text-ink">{c.name}</span>
                   <span className="font-mono text-xs text-ink-soft">{c.ticker}</span>
                 </span>
                 <span className="flex-none text-right">
@@ -58,7 +59,7 @@ export default async function ConnectionsPage() {
                 ) : (
                   <div className="flex items-center gap-3">{head}</div>
                 )}
-                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {c.sectors.map((s) => (
                     <Link key={s.sectorSlug} href={s.href} className="rounded-lg border border-line bg-panel-2 px-3 py-2 transition-colors hover:border-accent">
                       <div className="text-xs font-semibold text-ink">{s.sectorName}</div>

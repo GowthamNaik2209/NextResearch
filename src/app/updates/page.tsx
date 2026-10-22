@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { NewsFeed } from "@/components/NewsFeed";
+import { ThemeChips } from "./ThemeChips";
 import { listSectors } from "@/lib/sector-content";
 import { ensureFinancials } from "@/lib/financials/load";
 
@@ -17,11 +18,6 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
   const sectors = listSectors().filter((s) => !s.muted);
   // Ignore an unknown ?sector= value rather than showing an empty feed.
   const active = sectors.find((s) => s.slug === sector)?.slug;
-  // On phones the active chip moves next to "All sectors" (CSS order) so it stays in view in
-  // the sideways-scrolling row.
-  const chip = (isActive: boolean) =>
-    "tap-y flex-none whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs font-semibold " +
-    (isActive ? "border-accent bg-accent text-bg max-sm:-order-1" : "border-line bg-panel text-ink-soft hover:text-ink");
 
   return (
     <>
@@ -33,16 +29,7 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
             The latest headlines on the companies we cover, newest first. Each one links to the original source.
           </p>
         </div>
-        {/* Phones: one sideways-scrolling row (11+ chips wrapped to ~9 rows and filled the first
-            screen); from sm they wrap as before. The row bleeds to the screen edges. */}
-        <nav aria-label="Filter by theme" className="scrollbar-none -mx-5 flex gap-2 overflow-x-auto px-5 pb-1 pointer-coarse:pt-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
-          <Link href="/updates" className={chip(!active) + " max-sm:-order-2"}>All themes</Link>
-          {sectors.map((s) => (
-            <Link key={s.slug} href={`/updates?sector=${s.slug}`} className={chip(active === s.slug)} aria-current={active === s.slug ? "page" : undefined}>
-              {s.name}
-            </Link>
-          ))}
-        </nav>
+        <ThemeChips sectors={sectors.map((s) => ({ slug: s.slug, name: s.name }))} active={active} />
         {/* key: switching sector shows the skeleton again instead of the previous list */}
         <NewsFeed key={active ?? "all"} sectorSlug={active} limit={30} />
         <p className="text-xs text-ink-soft">

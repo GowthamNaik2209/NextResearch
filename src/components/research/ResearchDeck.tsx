@@ -5,7 +5,18 @@ import { Presentation } from "./Presentation";
 import { SLIDES } from "./slides";
 
 // One sector's ten-slide research deck in the shared pop-up presentation.
-export function ResearchDeck({ deck, onClose, initialSlide = 0 }: { deck: Deck; onClose: () => void; initialSlide?: number }) {
+export function ResearchDeck({
+  deck,
+  onClose,
+  initialSlide = 0,
+  urlParam,
+}: {
+  deck: Deck;
+  onClose: () => void;
+  initialSlide?: number;
+  /** Name the deck in the URL while open (?report=<slug>); see Presentation. */
+  urlParam?: string;
+}) {
   const isPolicy = deck.category === "policy";
   return (
     <Presentation
@@ -24,6 +35,7 @@ export function ResearchDeck({ deck, onClose, initialSlide = 0 }: { deck: Deck; 
       extra={(i) => SLIDES[i].extra?.(deck)}
       onClose={onClose}
       initialSlide={initialSlide}
+      urlParam={urlParam ? { name: urlParam, value: deck.slug } : undefined}
     />
   );
 }

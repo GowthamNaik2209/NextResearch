@@ -214,8 +214,7 @@ export const zetwerk: IpoReport = {
   },
   sources: [
     { title: "Zetwerk Manufacturing Businesses Limited - RHP", source: "SEBI", url: "https://www.sebi.gov.in/filings/public-issues/oct-2026/zetwerk-manufacturing-businesses-limited-rhp_105195.html", year: "2026" },
-    { title: "Zetwerk IPO date, price, issue details and financials", source: "Chittorgarh", url: "https://www.chittorgarh.com/ipo/zetwerk-ipo/3091/", year: "2026" },
-    { title: "Zetwerk IPO: subscription status and dates", source: "Chittorgarh", url: "https://www.chittorgarh.com/ipo/zetwerk-ipo/3091/", year: "2026" },
+    { title: "Zetwerk IPO: dates, price, subscription status and financials", source: "Chittorgarh", url: "https://www.chittorgarh.com/ipo/zetwerk-ipo/3091/", year: "2026" },
     { title: "Zetwerk files updated IPO papers with SEBI for Rs 2,600 crore fresh issue", source: "Business Today", url: "https://www.businesstoday.in/markets/ipo-corner/story/zetwerk-files-updated-ipo-papers-with-sebi-for-rs-2600-crore-fresh-issue-549165-2026-08-14", year: "2026" },
     { title: "Dixon Technologies consolidated financials", source: "Screener", url: "https://www.screener.in/company/DIXON/consolidated/", year: "2026" },
     { title: "Waaree Energies consolidated financials", source: "Screener", url: "https://www.screener.in/company/WAAREEENER/consolidated/", year: "2026" },

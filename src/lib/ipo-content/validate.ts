@@ -58,7 +58,15 @@ export function validateIpo(r: IpoReport): string[] {
   }
   for (const y of r.financials.years) need(y.revenue > 0, `financials ${y.label}: revenue must be positive`);
   for (const s of r.sources) need(/^https:\/\//.test(s.url), `source "${s.title}" needs an https URL`);
+  // The deck lists sources by URL (also the React key), so one page is cited once.
+  const urls = r.sources.map((s) => s.url);
+  need(new Set(urls).size === urls.length, `sources: a URL is listed twice (${urls.filter((u, i) => urls.indexOf(u) !== i).join(", ")})`);
   const all = JSON.stringify(r);
+  // Issue-price and listing-day facts are history and stay; a quoted current price or market cap
+  // ("trades at ~Rs 84,500 Cr") goes stale in days. Listed peers' figures come from the table.
+  const live = all.match(/\b(closed at|trades at|trading at|traded (near|at))\s+~?Rs\s?[\d,.]+[^"]{0,40}\b20\d\d|\b(mid-|on \d{1,2} )?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* 20\d\d\b[^".]{0,30}\b(trades|traded|closed) (at|near) ~?Rs|\b(trades|traded|closed) (at|near) ~?Rs[^".]{0,40}\bin (mid-|early |late )?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* 20\d\d/);
+  need(!live, `quotes a current price or market cap ("${live?.[0]}") - those go stale; point to the peer table instead`);
+  need(!/P\/E[^"]{0,20}\((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* 20\d\d\)/.test(all), "quotes peers' P/E as of a month - the peer table carries their current figures");
   need(!/TODO|TBD|lorem|XXX/i.test(all), "placeholder text left in the deck");
   return p;
 }

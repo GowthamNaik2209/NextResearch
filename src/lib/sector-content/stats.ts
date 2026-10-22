@@ -5,8 +5,12 @@ import { listComingSoonSectors, listSectors, tickerForSupplier } from "./index";
 import { sectorNumbers } from "./insights";
 import { companySlug, sectorCompanyCounts } from "./companies";
 import { listIpos } from "../ipo-content";
+import { memoByFinancials } from "@/lib/financials/store";
+import { croreShort } from "@/lib/format";
 
-export function getPlatformStats() {
+// The builders below walk every sector on each call, so each is cached until new company figures
+// are installed (memoByFinancials). Results are shared: never mutate them.
+export const getPlatformStats = memoByFinancials(() => {
   const sectors = listSectors().filter((s) => !s.muted);
   const tickers = new Set<string>();
   const listedTickers = new Set<string>();
@@ -20,7 +24,7 @@ export function getPlatformStats() {
     }
   }
   return { sectors: sectors.length, zones, companies: tickers.size, listed: listedTickers.size };
-}
+});
 
 export type SearchEntry = {
   kind: "sector" | "ipo" | "company";
@@ -41,8 +45,15 @@ function initials(name: string): string | null {
 
 // One flat index shipped to the hero search box: every live sector, then every company ONCE
 // (a company mapped in several sectors lists them all in its sub-line). Listed companies open
-// their company page (which links to each sector's map); unlisted ones deep-link into the map.
+// their company page (which links to each sector's map); unlisted ones deep-link into the map. IPOs come last, with their status as of today.
 export function buildSearchIndex(): SearchEntry[] {
+  return [
+    ...contentIndex(),
+    ...listIpos().map((r): SearchEntry => ({ kind: "ipo", label: `${r.name} IPO`, sub: `IPO · ${r.status.label}`, href: `/ipos?ipo=${r.slug}`, aliases: [r.name.toLowerCase(), "ipo", "ipos"] })),
+  ];
+}
+
+const contentIndex = memoByFinancials((): SearchEntry[] => {
   const sectors = listSectors().filter((x) => !x.muted);
   const out: SearchEntry[] = sectors.map((s) => ({
     kind: "sector" as const,
@@ -86,12 +97,8 @@ export function buildSearchIndex(): SearchEntry[] {
       aliases: [...new Set(aliases)],
     });
   }
-  // Upcoming IPOs open their deck on the IPOs page.
-  for (const r of listIpos()) {
-    out.push({ kind: "ipo", label: `${r.name} IPO`, sub: `IPO · ${r.status.label}`, href: `/ipos?ipo=${r.slug}`, aliases: [r.name.toLowerCase(), "ipo", "ipos"] });
-  }
   return out;
-}
+});
 
 // The hero's theme window: three rows per tab. Industries lead with the featured one, then the
 // most recently added; policies the live ones, newest first, then those coming soon; IPOs the next
@@ -99,7 +106,8 @@ export function buildSearchIndex(): SearchEntry[] {
 export function buildHeroThemeRows(featuredSlug?: string) {
   type Row = import("@/components/landing/ThemeWindow").ThemeRow;
   const live = listSectors().filter((s) => !s.muted);
-  const listedCount = (slug: string) => buildSectorCards().find((c) => c.slug === slug)?.listed ?? 0;
+  const cards = buildSectorCards();
+  const listedCount = (slug: string) => cards.find((c) => c.slug === slug)?.listed ?? 0;
   const themeRow = (s: (typeof live)[number]): Row => ({
     key: s.slug,
     icon: s.icon,
@@ -122,7 +130,7 @@ export function buildHeroThemeRows(featuredSlug?: string) {
     .slice(0, 3)
     .map((r): Row => {
       const i = r.issue;
-      const size = i.totalCr != null ? `Rs ${Math.round(i.totalCr).toLocaleString("en-IN")} Cr` : r.sectorLabel;
+      const size = i.totalCr != null ? croreShort(i.totalCr) : r.sectorLabel;
       return { key: r.slug, icon: r.icon, name: r.name, sub: size, chip: r.status.label, chipTone: r.status.stage === "open" || r.status.stage === "upcoming" ? "live" : "accent", href: `/ipos?ipo=${r.slug}`, ipoSlug: r.slug };
     });
   return { sector, policy, ipo };
@@ -131,8 +139,8 @@ export function buildHeroThemeRows(featuredSlug?: string) {
 // One card per sector for the Analysis Deep dive. ThemeCards is a Client Component, so only plain
 // serializable fields cross the boundary - notably not `build`, each sector's three.js
 // geometry function (see explore/page.tsx for the same constraint).
-export function buildSectorCards() {
-  return listSectors().map((s) => {
+export const buildSectorCards = memoByFinancials(() =>
+  listSectors().map((s) => {
     return {
       slug: s.slug,
       icon: s.icon,
@@ -144,5 +152,5 @@ export function buildSectorCards() {
       ...sectorCompanyCounts(s),
       ...sectorNumbers(s.slug),
     };
-  });
-}
+  }),
+);

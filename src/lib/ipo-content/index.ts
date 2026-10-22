@@ -3,6 +3,8 @@
 // serializable data for the client slide viewer (components/ipo).
 import { companyFinancials, findSupplierByTicker, parseCrore, type SectorSupplier } from "../sector-content";
 import type { IpoReport, IpoStage } from "./types";
+import { memoByFinancials } from "@/lib/financials/store";
+import { istToday, liveIpoStatus } from "@/components/ipo/status";
 import { jioPlatforms } from "./jio-platforms";
 import { nse } from "./nse";
 import { zepto } from "./zepto";
@@ -18,13 +20,18 @@ const IPOS: IpoReport[] = [zetwerk, jioPlatforms, parasHealthcare, zepto, phonep
 
 // Nearest to listing first: open, then dated, then approved, then filed; recent listings last.
 const STAGE_ORDER: Record<IpoStage, number> = { open: 0, upcoming: 1, approved: 2, filed: 3, listed: 4 };
+const byStage = (a: { status: { stage: IpoStage } }, b: { status: { stage: IpoStage } }) => STAGE_ORDER[a.status.stage] - STAGE_ORDER[b.status.stage];
 
-export function listIpos(): IpoReport[] {
-  return [...IPOS].sort((a, b) => STAGE_ORDER[a.status.stage] - STAGE_ORDER[b.status.stage]);
+// The authored stage and chip ("Opens 21 Oct") are written once and go stale; every read rolls them
+// forward to `today` (IST) from the dated timeline (liveIpoStatus), keeping the authored ones when
+// the timeline has no dated opening, closing or listing to go by.
+export function listIpos(today = istToday()): IpoReport[] {
+  return IPOS.map((r) => liveIpoStatus(r, today)).sort(byStage);
 }
 
-export function getIpo(slug: string): IpoReport | null {
-  return IPOS.find((r) => r.slug === slug) ?? null;
+export function getIpo(slug: string, today = istToday()): IpoReport | null {
+  const r = IPOS.find((x) => x.slug === slug);
+  return r ? liveIpoStatus(r, today) : null;
 }
 
 // After the join every peer has all three figures (null when unknown). `asOf` is the shared table's
@@ -51,6 +58,10 @@ export function buildIpoDeck(r: IpoReport): IpoDeck {
   };
 }
 
-export function listIpoDecks(): IpoDeck[] {
-  return listIpos().map(buildIpoDeck);
+// The peer join reads the company table, so it is rebuilt only when new figures are installed; the
+// status is rolled forward on every call, as it depends on the day, not the figures.
+const joinedDecks = memoByFinancials(() => IPOS.map(buildIpoDeck));
+
+export function listIpoDecks(today = istToday()): IpoDeck[] {
+  return joinedDecks().map((d) => liveIpoStatus(d, today)).sort(byStage);
 }

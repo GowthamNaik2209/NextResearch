@@ -10,6 +10,7 @@ import {
   type SectorZone,
 } from "@/lib/sector-content";
 import { WatchlistButton } from "./WatchlistButton";
+import { NA, croreShort } from "@/lib/format";
 
 type Props = {
   sector: SectorDef;
@@ -39,18 +40,18 @@ export function CompanyComparison({ sector, zone, onClose }: Props) {
   // Ordered by exposure/impact correlation, not cumulative company revenue —
   // a company's total top-line says little about this one segment (most of
   // these companies don't disclose segment-level revenue at all, per their
-  // own `risks` entries). exposureStrength is the authored stand-in: low first
-  // (this segment barely moves the needle for them), high last (a shock to
-  // this segment would hit their stock hard). Revenue only breaks ties within
-  // the same tier, and only as a secondary, not the sort basis itself.
+  // own `risks` entries). exposureStrength is the authored stand-in: most exposed
+  // first (a shock to this segment would hit their stock hardest - the rows a reader
+  // came for), least exposed last. Revenue only breaks ties within the same tier,
+  // larger first, and only as a secondary, not the sort basis itself.
   const sortedRows = [...rows].sort((a, b) => {
     const ra = a.exposure.exposureStrength ? STRENGTH_RANK[a.exposure.exposureStrength] : 0;
     const rb = b.exposure.exposureStrength ? STRENGTH_RANK[b.exposure.exposureStrength] : 0;
-    if (ra !== rb) return ra - rb;
+    if (ra !== rb) return rb - ra;
     if (a.revenue == null && b.revenue == null) return 0;
     if (a.revenue == null) return 1;
     if (b.revenue == null) return -1;
-    return a.revenue - b.revenue;
+    return b.revenue - a.revenue;
   });
 
   return (
@@ -66,8 +67,8 @@ export function CompanyComparison({ sector, zone, onClose }: Props) {
           </button>
         </div>
         <p className="fine" style={{ padding: "0 18px" }}>
-          Ordered by exposure to this segment, ascending &mdash; least correlated first, most exposed (highest likely
-          stock impact if something happened to it) last.
+          Most exposed to this segment first (the biggest likely stock impact if something happened to it), least
+          exposed last.
         </p>
         <div className="compare-table-wrap">
           <table className="compare-table">
@@ -76,7 +77,7 @@ export function CompanyComparison({ sector, zone, onClose }: Props) {
                 <th>Company</th>
                 <th>Exposure</th>
                 <th>Role</th>
-                <th>Revenue (Rs Cr, company-wide)</th>
+                <th>Revenue (company-wide)</th>
                 <th>Main risk</th>
                 <th>Data status</th>
               </tr>
@@ -101,7 +102,7 @@ export function CompanyComparison({ sector, zone, onClose }: Props) {
                     </td>
                     <td className="fine">{supplier.role}</td>
                     <td>
-                      {!supplier.listed ? "—" : revenue != null ? `${revenue.toLocaleString("en-IN")} (FY${LATEST_FY})` : "n/a"}
+                      {!supplier.listed || revenue == null ? NA : `${croreShort(revenue)} (FY${LATEST_FY})`}
                     </td>
                     <td className="fine">{supplier.risks?.[0] ?? "—"}</td>
                     <td>

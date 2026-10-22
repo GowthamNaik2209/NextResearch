@@ -6,6 +6,7 @@ import {
   companyLinkKey,
   linkWeight,
   listSectors,
+  primaryLink,
   tickerForSupplier,
   EXPOSURE_TYPE_LABEL,
   type ExposureStrength,
@@ -23,8 +24,7 @@ export type CompanyAppearance = {
   companyKey: string;
   role: string;
   exposure?: string;
-  // How central this layer is to the company: high > medium > low strength, and side links
-  // (enablers, indirect suppliers) rank below direct ones. Picks the company's primary role.
+  // How central this layer is to the company (linkWeight in ./index).
   weight: number;
   supplier: SectorSupplier; // this sector's record (role, strengths, risks)
   peers: { name: string; slug: string | null }[];
@@ -90,9 +90,15 @@ function build(): Map<string, CompanyPage> {
   return bySlug;
 }
 
-// The appearance that best describes the company: its strongest link (first one on ties).
+// The appearance that best describes the company: its home record (primaryLink in ./index, shared
+// with the stock pop-up and the landing screens), else its strongest link (first one on ties).
 export function primaryAppearance(p: CompanyPage): CompanyAppearance {
-  return p.appearances.reduce((best, a) => (a.weight > best.weight ? a : best), p.appearances[0]);
+  const home = primaryLink(p.ticker);
+  const pool =
+    p.appearances.filter((a) => a.sectorSlug === home?.slug && a.companyKey === home.key).concat(
+      p.appearances.filter((a) => a.sectorSlug === home?.slug),
+    );
+  return (pool.length ? pool : p.appearances).reduce((best, a) => (a.weight > best.weight ? a : best));
 }
 
 export function listCompanyPages(): CompanyPage[] {

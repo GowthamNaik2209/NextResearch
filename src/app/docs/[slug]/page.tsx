@@ -6,7 +6,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { OpenReportButton } from "@/components/research/OpenReport";
 import { getSector, listSectorSlugs } from "@/lib/sector-content";
 import { getResearchForSector } from "@/lib/sector-content/docs";
-import { buildDeck } from "@/lib/sector-content/reports";
+import { cachedDeck } from "@/lib/analysis-props";
 import { NOT_FOUND_METADATA, midSentence } from "@/lib/site";
 import { ensureFinancials } from "@/lib/financials/load";
 
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const sector = getSector(slug);
   if (!sector) return NOT_FOUND_METADATA;
-  const deck = buildDeck(slug);
+  const deck = cachedDeck(slug);
   const title = `${deck?.report.title ?? sector.name} — research report`;
   return {
     title,
@@ -38,7 +38,7 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
   const { slug } = await params;
   const sector = getSector(slug);
   if (!sector) notFound();
-  const deck = buildDeck(slug);
+  const deck = cachedDeck(slug);
   // The deck's own reading list first, then any hub links it does not already include.
   const seen = new Set(deck?.report.reading.map((l) => l.url));
   const links = [...(deck?.report.reading ?? []), ...getResearchForSector(slug).filter((l) => !seen.has(l.url))];
@@ -47,7 +47,8 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-5 py-14">
+      {/* The site-wide 6xl container keeps the left edge in line with the header; the reading column stays narrow. */}
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-5 py-14 [&>*]:max-w-3xl">
         <div>
           <Link href="/docs" className="tap-target text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
             &larr; All reports
@@ -72,7 +73,7 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
               <h2 className="mt-1 font-display text-lg font-bold text-ink">{deck.report.title}</h2>
               <p className="mt-1 text-sm text-ink-soft">{deck.report.stance.line}</p>
             </div>
-            <OpenReportButton deck={deck} className="flex-none whitespace-nowrap rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90">
+            <OpenReportButton slug={deck.slug} className="flex-none whitespace-nowrap rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90">
               Read curated report &rarr;
             </OpenReportButton>
           </section>

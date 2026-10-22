@@ -1,5 +1,6 @@
 // Basket ideas: ready-made stock lists, re-ranked from the latest prices and the maps. The pure
 // rules live here (tested in ideas.test.ts); ideas-data.ts feeds them each day's price history.
+import { fmtMonth, signedPct } from "@/lib/format";
 import type { ChartRange } from "@/lib/live/yahoo";
 
 const DAY = 86_400_000;
@@ -82,9 +83,9 @@ const LIST_N = 12;
 const QUALITY_MIN_MCAP_CR = 1000;
 const IPO_WINDOW_DAYS = 730;
 
-const pctTxt = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}%`;
+const pctTxt = (v: number) => signedPct(v);
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
-const monthYear = (t: string) => new Date(t).toLocaleDateString("en-IN", { month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
+const monthYear = (t: string) => fmtMonth(t);
 
 /** Every idea for the day. An idea with no stocks (no price data yet, say) is left out. */
 export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: number): Idea[] {

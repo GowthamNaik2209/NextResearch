@@ -35,7 +35,7 @@ export const nse: IpoReport = {
     priceBand: "Rs 1,700 - 1,785 (priced at Rs 1,785)",
     lotSize: "8 shares (Rs 14,280)",
     faceValue: "Rs 1",
-    valuation: "Rs 4.42 lakh Cr market cap at the Rs 1,785 issue price (247.5 crore shares); ~Rs 4.33 lakh Cr at Rs 1,749 on 16 Oct 2026",
+    valuation: "Rs 4.42 lakh Cr market cap at the Rs 1,785 issue price (247.5 crore shares)",
     valuationCr: 441788,
     reservation: "QIB 50% · NII 15% · Retail 35% of the net offer; employee portion with Rs 170 discount",
     exchanges: "BSE only (an exchange cannot list on itself)",
@@ -199,7 +199,7 @@ export const nse: IpoReport = {
     { name: "CAMS", ticker: "CAMS", note: "Mutual-fund registrar and transfer agent." },
   ],
   valuationNote:
-    "At the Rs 1,785 issue price NSE was valued at 42.9x FY26 diluted EPS of Rs 41.62 (35x on annualised Q1 FY27), below BSE's P/E (see the table) despite far larger scale and share. On 16 Oct 2026 it closed at Rs 1,749 (market cap Rs 4,32,989 Cr), which is ~42x the same FY26 EPS and ~41x trailing twelve-month profit to Jun 2026 (~Rs 10,500 Cr). Screener showed 47.1x that day; that figure implies trailing profit of only ~Rs 9,200 Cr, below reported FY26 PAT, so it is not comparable with the EPS-based multiples here.",
+    "At the Rs 1,785 issue price NSE was valued at 42.9x FY26 diluted EPS of Rs 41.62 (35x on annualised Q1 FY27), below BSE's P/E (see the table) despite far larger scale and share. Since listing, its multiple moves with the share price; the peer table carries the listed peers' current figures.",
 
   strengths: [
     { title: "Dominant market share", body: "93% of cash equities and ~99.8% of equity futures, plus the world's largest derivatives franchise by contracts - network effects that are hard to dislodge." },

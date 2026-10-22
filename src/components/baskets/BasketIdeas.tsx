@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Idea } from "@/lib/baskets/ideas";
-import { pct } from "./BasketChart";
+import { fmtDay, signedPct } from "@/lib/format";
 import { MINI_SEG, miniSegBtn, PANEL } from "./Panel";
 
 // The Baskets page's ideas: today's lists, fetched after the page shows (the first build of the
@@ -12,7 +12,6 @@ import { MINI_SEG, miniSegBtn, PANEL } from "./Panel";
 type CardIdea = Omit<Idea, "stocks"> & { stocks: { ticker: string; name: string; stat: string }[] };
 type State = { status: "loading" } | { status: "error" } | { status: "ok"; asOf: string; ideas: CardIdea[] };
 
-const dayOf = (iso: string) => new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
 
 export function BasketIdeas() {
   const [state, setState] = useState<State>({ status: "loading" });
@@ -32,11 +31,28 @@ export function BasketIdeas() {
 
   if (state.status === "loading") {
     return (
-      <div aria-busy className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        <span className="sr-only">Loading today&rsquo;s basket ideas…</span>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-36 animate-pulse rounded-md bg-line/60" />
-        ))}
+      // The first build of the day reads every stock's prices, so this can take a few seconds:
+      // the cards' outline shows at once, with a line saying what is happening.
+      <div aria-busy className="flex flex-col gap-2">
+        <p role="status" className="text-[11px] text-ink-soft">
+          Ranking today&rsquo;s lists from the latest closes…
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className={PANEL + " flex h-36 flex-col gap-2 p-3"}>
+              <div className="flex justify-between gap-2">
+                <div className="h-4 w-32 animate-pulse rounded bg-line/70" />
+                <div className="h-4 w-12 animate-pulse rounded bg-line/70" />
+              </div>
+              <div className="h-3 w-full animate-pulse rounded bg-line/50" />
+              <div className="mt-auto flex flex-col gap-1.5">
+                <div className="h-3 w-3/4 animate-pulse rounded bg-line/50" />
+                <div className="h-3 w-2/3 animate-pulse rounded bg-line/50" />
+                <div className="h-3 w-1/2 animate-pulse rounded bg-line/50" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -91,7 +107,7 @@ export function BasketIdeas() {
           </li>
         ))}
       </ul>
-      <p className="text-[10px] text-ink-soft sm:text-[11px]">Lists as of {dayOf(state.asOf)}, re-ranked each day from the latest closes. Past returns, not a recommendation.</p>
+      <p className="text-[10px] text-ink-soft sm:text-[11px]">Lists as of {fmtDay(state.asOf)}, re-ranked each day from the latest closes. Past returns, not a recommendation.</p>
     </div>
   );
 }
@@ -108,7 +124,7 @@ function IdeaCard({ idea, title, switcher }: { idea: CardIdea; title?: string; s
         </h3>
         {idea.ret != null && (
           <span className="flex-none text-right">
-            <span className={"block font-mono text-sm font-bold tabular-nums " + (idea.ret >= 0 ? "text-pos" : "text-danger")}>{pct(idea.ret)}</span>
+            <span className={"block font-mono text-sm font-bold tabular-nums " + (idea.ret >= 0 ? "text-pos" : "text-danger")}>{signedPct(idea.ret)}</span>
             <span className="block text-[10px] text-ink-soft">{idea.retLabel}</span>
           </span>
         )}

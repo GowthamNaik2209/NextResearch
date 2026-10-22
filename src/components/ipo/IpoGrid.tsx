@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { IpoDeck } from "@/lib/ipo-content";
-import { IpoDeckView } from "./IpoDeckView";
-import { StageChip } from "./IpoSlides";
+import type { IpoCard as IpoCardData } from "@/lib/analysis-props";
+import { LazyIpoDeck, dropDeepLinkParam, intentProps, prefetchIpo } from "@/components/research/LazyDecks";
+import { StageChip } from "./StageChip";
 import { fmtCr } from "./headlines";
 
 // Grid of upcoming-IPO cards (landing page's IPOs tab, the reading list, /ipos). A click opens
-// the IPO's deck as a pop-up; `?ipo=<slug>` opens one directly and stays in sync while open.
-export function IpoGrid({ ipos, initial }: { ipos: IpoDeck[]; initial?: string }) {
+// the IPO's deck as a pop-up (loaded then, see LazyDecks); `?ipo=<slug>` opens one directly
+// (its deck comes with the page as `initialDeck`) and stays in sync while open.
+export function IpoGrid({ ipos, initial, initialDeck }: { ipos: IpoCardData[]; initial?: string; initialDeck?: IpoDeck }) {
   const [openSlug, setOpenSlug] = useState<string | null>(null);
   const open = ipos.find((d) => d.slug === openSlug) ?? null;
 
@@ -18,17 +20,15 @@ export function IpoGrid({ ipos, initial }: { ipos: IpoDeck[]; initial?: string }
   useEffect(() => {
     if (appliedInitial.current || !initial) return;
     appliedInitial.current = true;
+    if (!ipos.some((d) => d.slug === initial)) return;
+    dropDeepLinkParam("ipo");
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from the URL on mount
-    if (ipos.some((d) => d.slug === initial)) setOpenSlug(initial);
+    setOpenSlug(initial);
   }, [ipos, initial]);
 
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const had = url.searchParams.has("ipo");
-    if (openSlug) url.searchParams.set("ipo", openSlug);
-    else url.searchParams.delete("ipo");
-    if (openSlug || had) window.history.replaceState(window.history.state, "", url);
-  }, [openSlug]);
+
+  // Stable, so the deck's Esc/Back handlers don't re-subscribe on every render.
+  const closeDeck = useCallback(() => setOpenSlug(null), []);
 
   // Recent listings stay for a few weeks after their debut, in their own group below the pipeline.
   const groups = [
@@ -48,12 +48,12 @@ export function IpoGrid({ ipos, initial }: { ipos: IpoDeck[]; initial?: string }
           </div>
         </section>
       ))}
-      {open && <IpoDeckView deck={open} onClose={() => setOpenSlug(null)} />}
+      {open && <LazyIpoDeck key={open.slug} slug={open.slug} initialDeck={initialDeck} onClose={closeDeck} urlParam="ipo" />}
     </div>
   );
 }
 
-function IpoCard({ deck, onOpen }: { deck: IpoDeck; onOpen: () => void }) {
+function IpoCard({ deck, onOpen }: { deck: IpoCardData; onOpen: () => void }) {
   // Compact figures from the numeric fields; the authored strings (with their caveats) are for the deck.
   const i = deck.issue;
   const size = i.totalCr != null ? fmtCr(i.totalCr) : i.freshCr ? `${fmtCr(i.freshCr)} +\u00a0OFS` : i.ofsCr ? `${fmtCr(i.ofsCr)} OFS` : "OFS only";
@@ -65,6 +65,7 @@ function IpoCard({ deck, onOpen }: { deck: IpoDeck; onOpen: () => void }) {
     <button
       type="button"
       onClick={onOpen}
+      {...intentProps(() => prefetchIpo(deck.slug))}
       aria-haspopup="dialog"
       className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-panel text-left transition hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_18px_40px_-24px_rgba(0,0,0,0.5)]"
     >

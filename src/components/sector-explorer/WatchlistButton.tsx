@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { returnToStockPath } from "@/lib/safe-next";
+import "./watchlist.css";
 
 type Props = { ticker: string; name?: string };
 
@@ -24,26 +25,37 @@ function loadTickers(): Promise<Set<string>> {
   if (tickersCache) return Promise.resolve(tickersCache);
   if (!inFlight) {
     inFlight = fetch("/api/watchlist")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`watchlist ${r.status}`);
+        return r.json();
+      })
       .then((data: { tickers?: string[]; signedIn?: boolean }) => {
         tickersCache = new Set(data.tickers ?? []);
         signedIn = typeof data.signedIn === "boolean" ? data.signedIn : null;
         return tickersCache;
       })
       .catch(() => {
-        tickersCache = new Set();
+        // Not cached: a failed load (network blip, a 500) would otherwise show every heart empty
+        // for the rest of the visit. The next heart to mount, or the next tap, tries again.
+        inFlight = null;
         signedIn = null;
-        return tickersCache;
+        return new Set<string>();
       });
   }
   return inFlight;
 }
 
 function setLiked(ticker: string, liked: boolean) {
-  if (!tickersCache) tickersCache = new Set();
+  const notifyAll = () => listeners.forEach((notify) => notify());
+  // Never start a cache from one ticker (every other heart would read "not saved" for the rest
+  // of the visit): with no list loaded, load the real one instead.
+  if (!tickersCache) {
+    void loadTickers().then(notifyAll);
+    return;
+  }
   if (liked) tickersCache.add(ticker);
   else tickersCache.delete(ticker);
-  listeners.forEach((notify) => notify());
+  notifyAll();
 }
 
 // A signed-out tap on the heart remembers the ticker here before sending them to sign up /
@@ -101,7 +113,9 @@ export async function saveToWatchlist(ticker: string): Promise<boolean> {
 
 export function WatchlistButton({ ticker, name }: Props) {
   const [, setTick] = useState(0);
-  const [loading, setLoading] = useState(false);
+  // A tap is being saved. The heart already shows the new state (optimistic); this only stops
+  // a second tap from racing the first and marks the button busy for assistive tech.
+  const [pending, setPending] = useState(false);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [justLiked, setJustLiked] = useState(false);
   const liked = tickersCache?.has(ticker) ?? false;
@@ -118,8 +132,9 @@ export function WatchlistButton({ ticker, name }: Props) {
   const toggle = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (loading) return;
-      setLoading(true);
+      if (pending) return;
+      setPending(true);
+      let flipped: boolean | null = null; // the state shown optimistically, to undo on failure
       try {
         // Usually already loaded on mount; awaiting covers a tap before that finished. A cached
         // "signed out" may predate a login finished by client-side navigation (module state
@@ -134,49 +149,58 @@ export function WatchlistButton({ ticker, name }: Props) {
           setNeedsAuth(true);
           return;
         }
+        // The list couldn't be read, so we can't tell an add from a remove: leave it for a retry.
+        if (!tickersCache) return;
         const wasLiked = tickersCache?.has(ticker) ?? false;
-        const res = wasLiked
-          ? await fetch(`/api/watchlist?ticker=${encodeURIComponent(ticker)}`, { method: "DELETE" })
-          : await fetch("/api/watchlist", {
+        // Fill (or empty) the heart now: the save can take a few seconds (it fetches a live
+        // price for priceAtAdd), and a heart that doesn't react invites a second tap.
+        flipped = !wasLiked;
+        setLiked(ticker, flipped);
+        if (flipped) {
+          // Instagram-style pop only plays on the like action, not on unlike
+          // or on mount with an already-liked ticker.
+          setJustLiked(true);
+          setTimeout(() => setJustLiked(false), 450);
+        }
+        const res = await (wasLiked
+          ? fetch(`/api/watchlist?ticker=${encodeURIComponent(ticker)}`, { method: "DELETE" })
+          : fetch("/api/watchlist", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ ticker }),
-            });
-        if (res.status === 401) {
+            })
+        ).catch(() => null);
+        if (res?.ok) {
+          setNeedsAuth(false);
+          flipped = null;
+        } else if (res?.status === 401) {
           // Session expired since the page loaded.
           signedIn = false;
           setNeedsAuth(true);
-        } else if (res.ok) {
-          setNeedsAuth(false);
-          setLiked(ticker, !wasLiked);
-          // Instagram-style pop only plays on the like action, not on unlike
-          // or on mount with an already-liked ticker.
-          if (!wasLiked) {
-            setJustLiked(true);
-            setTimeout(() => setJustLiked(false), 450);
-          }
         }
       } finally {
-        setLoading(false);
+        // Anything but a success puts the heart back the way it was.
+        if (flipped !== null) setLiked(ticker, !flipped);
+        setPending(false);
       }
     },
-    [ticker, loading]
+    [ticker, pending]
   );
 
   return (
     <span className="watch-wrap">
       <button
         type="button"
-        // tap-target (globals.css): an invisible 40x40 hit area around the 23x23 heart, so
-        // the rows it sits in keep their height but a thumb still reliably hits it.
-        className={"watch-btn" + (liked ? " active" : "") + (justLiked ? " pop" : "")}
+        // The visible heart stays small on a mouse; on touch screens the button itself is the
+        // 40x40 target (watchlist.css), so its tap area never reaches over the text beside it.
+        className={"watch-btn" + (liked ? " active" : "") + (justLiked ? " pop" : "") + (pending ? " pending" : "")}
         onClick={toggle}
-        disabled={loading}
+        aria-busy={pending || undefined}
         aria-pressed={liked}
         aria-label={liked ? `Remove ${ticker} from watchlist` : `Add ${ticker} to watchlist`}
         title={liked ? "Remove from watchlist" : "Add to watchlist"}
       >
-        <svg viewBox="0 0 24 24" width="17" height="17" className="watch-heart">
+        <svg viewBox="0 0 24 24" width="17" height="17" className="watch-heart" aria-hidden>
           <path d="M12 21s-7.5-4.6-10.2-9.3C.1 8.9 1 5.3 4.3 4.1c2.3-.8 4.6.1 5.9 2 .5.7 1.4 1.9 1.8 2.5.4-.6 1.3-1.8 1.8-2.5 1.3-1.9 3.6-2.8 5.9-2 3.3 1.2 4.2 4.8 2.5 7.6C19.5 16.4 12 21 12 21z" />
         </svg>
       </button>
