@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Idea } from "@/lib/baskets/ideas";
+import { pct } from "./BasketChart";
 import { MINI_SEG, miniSegBtn, PANEL } from "./Panel";
 
 // The Baskets page's ideas: today's lists, fetched after the page shows (the first build of the
 // day reads every stock's prices). "Top performers" is one card with a switch for its period.
+// Each figure is the idea's own backtest, formatted as its page's return card formats it.
 type CardIdea = Omit<Idea, "stocks"> & { stocks: { ticker: string; name: string; stat: string }[] };
 type State = { status: "loading" } | { status: "error" } | { status: "ok"; asOf: string; ideas: CardIdea[] };
 
-const pct = (v: number) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}%`;
 const dayOf = (iso: string) => new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
 
 export function BasketIdeas() {

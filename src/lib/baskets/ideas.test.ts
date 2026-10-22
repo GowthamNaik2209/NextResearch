@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildIdeas, priceStat, type IdeaStockInfo, type PriceSnapshot } from "./ideas";
+import { buildIdeas, priceStat, withBacktestReturns, type IdeaStockInfo, type PriceSnapshot } from "./ideas";
+import { runBacktest } from "./backtest";
 
 const DAY = 86_400_000;
 const NOW = Date.parse("2026-10-19T12:00:00Z");
@@ -71,4 +72,41 @@ test("across industries needs three or more maps", () => {
 test("recent listings roll with today's date, newest first", () => {
   const ideas = buildIdeas([info("OLD"), info("NEW"), info("NEWER")], snap({ OLD: st(5, 900), NEW: st(5, 500), NEWER: st(undefined, 60) }), NOW);
   assert.deepEqual(ideas.find((i) => i.id === "recent-ipos")!.stocks.map((s) => s.ticker), ["NEWER", "NEW"]);
+});
+
+test("a card's figure is its page's backtest, not the snapshot's average", () => {
+  // The snapshot ranks on weekly closes; the page backtests daily closes from the range's first day.
+  const ideas = buildIdeas([info("A", { industries: 3 }), info("B", { industries: 4 })], snap({ A: st(10), B: st(40) }), NOW);
+  const daily = {
+    A: [{ t: ago(366), c: 100 }, { t: ago(200), c: 150 }, { t: ago(0), c: 130 }],
+    B: [{ t: ago(366), c: 50 }, { t: ago(0), c: 110 }],
+  };
+  const backtests = Object.fromEntries(
+    ideas.map((i) => {
+      const r = runBacktest(i.stocks.map((s) => ({ ticker: s.ticker, weight: 1, points: daily[s.ticker as "A" | "B"] })), 10);
+      // The page's return card: last value over first.
+      return [i.id, { ret: (r.points[r.points.length - 1].c / r.points[0].c - 1) * 100, holdings: r.holdings }];
+    }),
+  );
+  const out = withBacktestReturns(ideas, backtests);
+  const cross = out.find((i) => i.id === "cross-industry")!;
+  near(cross.ret!, 75); // (30% + 120%) / 2, where the snapshot said 25%
+  assert.equal(cross.retLabel, "1Y");
+  const top = out.find((i) => i.id === "top-1y")!;
+  near(top.ret!, 75);
+  // Rows show the backtest's own return per stock, highest first.
+  assert.deepEqual(top.stocks, [
+    { ticker: "B", stat: "+120%" },
+    { ticker: "A", stat: "+30.0%" },
+  ]);
+});
+
+test("a card with no backtest shows no figure rather than another calculation's", () => {
+  const ideas = buildIdeas([info("A", { industries: 3 })], snap({ A: st(10) }), NOW);
+  const out = withBacktestReturns(ideas, {});
+  assert.ok(out.every((i) => i.ret === null));
+  assert.deepEqual(
+    out.find((i) => i.id === "top-1y")!.stocks,
+    ideas.find((i) => i.id === "top-1y")!.stocks,
+  );
 });

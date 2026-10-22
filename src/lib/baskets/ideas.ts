@@ -56,7 +56,7 @@ export type Idea = {
   /** The range the idea's chart opens on. */
   range: ChartRange;
   stocks: IdeaStock[];
-  /** The list's equal-weight return over `retLabel` (an equal-weight buy-and-hold basket returns the average). */
+  /** The list's equal-weight return over `retLabel`: the average here, then the page's own backtest for the cards (withBacktestReturns). */
   ret: number | null;
   retLabel: string;
 };
@@ -82,7 +82,7 @@ const LIST_N = 12;
 const QUALITY_MIN_MCAP_CR = 1000;
 const IPO_WINDOW_DAYS = 730;
 
-const pctTxt = (v: number) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}%`;
+const pctTxt = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}%`;
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
 const monthYear = (t: string) => new Date(t).toLocaleDateString("en-IN", { month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
 
@@ -173,4 +173,27 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
   });
 
   return ideas.filter((i) => i.stocks.length > 0);
+}
+
+/** What a card needs from the idea's own backtest: the basket's return and each held stock's. */
+export type IdeaBacktest = { ret: number; holdings: { ticker: string; ret: number }[] };
+
+/**
+ * The cards' figures from the same backtest the idea's page runs (bought at equal weights on the
+ * first day of `range` and held), so the card and the page show one number. A top-performers row
+ * shows that backtest's own return for the stock, highest first. With no backtest the figure is
+ * left out rather than shown from a different calculation.
+ */
+export function withBacktestReturns(ideas: Idea[], backtests: Record<string, IdeaBacktest | null>): Idea[] {
+  return ideas.map((idea) => {
+    const bt = backtests[idea.id];
+    if (!bt) return { ...idea, ret: null, retLabel: idea.range };
+    const own = new Map(bt.holdings.map((h) => [h.ticker, h.ret]));
+    const stocks = idea.id.startsWith("top-")
+      ? idea.stocks
+          .map((s) => (own.has(s.ticker) ? { ...s, stat: pctTxt(own.get(s.ticker)!) } : s))
+          .sort((a, b) => (own.get(b.ticker) ?? -Infinity) - (own.get(a.ticker) ?? -Infinity))
+      : idea.stocks;
+    return { ...idea, stocks, ret: bt.ret, retLabel: idea.range };
+  });
 }
