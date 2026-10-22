@@ -153,12 +153,19 @@ export type MonthlyCapture = {
   downMonths: number;
   /** Months the line returned more than the benchmark, of the months both have. */
   beat: number;
+  /** Months the line itself rose: the stats grid's "Months up", over the same months. */
+  lineUp: number;
   months: number;
 };
 
-/** Up/down capture and months beating the benchmark, on calendar-month returns aligned by month. */
+/**
+ * Up/down capture and months beating the benchmark, on calendar-month returns aligned by month.
+ * Months are counted as the stats grid counts them: each from the previous month's last close,
+ * so the first (partial) month of the range is left out and "of N months" matches "Months up".
+ */
 export function monthlyCapture(basket: PricePoint[], bench: PricePoint[]): MonthlyCapture {
-  const a = monthlyReturns(basket);
+  const startKey = basket.length ? Number(basket[0].t.slice(0, 4)) * 12 + Number(basket[0].t.slice(5, 7)) - 1 : null;
+  const a = monthlyReturns(basket).filter((m) => m.year * 12 + m.month !== startKey);
   const bMap = new Map(monthlyReturns(alignTo(basket, bench)).map((m) => [m.year * 12 + m.month, m.ret]));
   const pairs = a.flatMap((m) => {
     const b = bMap.get(m.year * 12 + m.month);
@@ -179,6 +186,17 @@ export function monthlyCapture(basket: PricePoint[], bench: PricePoint[]): Month
     upMonths: up.n,
     downMonths: down.n,
     beat: pairs.filter((p) => p.a > p.b).length,
+    lineUp: pairs.filter((p) => p.a > 0).length,
     months: pairs.length,
   };
+}
+
+/**
+ * Whether a capture figure is good for the holder, judged on the whole percent shown so a bar
+ * reading "100%" is never coloured as a miss: taking at least all of the rise (up), or at most
+ * all of the fall (down).
+ */
+export function captureIsGood(kind: "up" | "down", v: number): boolean {
+  const shown = Math.round(v);
+  return kind === "up" ? shown >= 100 : shown <= 100;
 }
