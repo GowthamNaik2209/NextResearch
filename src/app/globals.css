@@ -157,6 +157,12 @@ select {
   transition: transform 0.12s, color 0.15s, background 0.15s;
   position: relative;
 }
+/* Touch screens: room between the heart's 40px tap area and a name link's (tap-y) beside it. */
+@media (pointer: coarse) {
+  .watch-btn {
+    margin-left: 9px;
+  }
+}
 /* The visible icon stays small (17x17 svg + 3px padding = 23x23) so it doesn't
    blow out the row heights it's inlined into (chips, tables, card headers) —
    but a 23x23 hit area is well under the ~40x40 minimum for a reliable touch

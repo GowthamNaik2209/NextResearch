@@ -80,13 +80,13 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-10 px-5 py-14">
         <div>
           <nav className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
-            <Link href="/companies" className="hover:text-accent">
+            <Link href="/companies" className="tap-y hover:text-accent">
               Companies
             </Link>{" "}
             {!multiSector && (
               <>
                 /{" "}
-                <Link href={`/sector/${appearances[0].sectorSlug}`} className="hover:text-accent">
+                <Link href={`/sector/${appearances[0].sectorSlug}`} className="tap-y hover:text-accent">
                   {appearances[0].sectorName}
                 </Link>
               </>
@@ -155,7 +155,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
               <div key={`${a.sectorSlug}:${a.zoneId}`} className="rounded-2xl border border-line bg-panel p-5">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h3 className="text-sm font-semibold text-ink">
-                    <Link href={`/sector/${a.sectorSlug}`} className="hover:text-accent hover:underline">
+                    <Link href={`/sector/${a.sectorSlug}`} className="tap-y hover:text-accent hover:underline">
                       {a.sectorName}
                     </Link>{" "}
                     <span className="text-ink-soft">&rsaquo; {a.zoneLabel}</span>
@@ -170,13 +170,13 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                 {a.peers.length > 0 && (
                   <div className="mt-3">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">Other companies in this layer</p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
+                    <div className="mt-2 flex flex-wrap gap-1.5 pointer-coarse:gap-y-4">
                       {a.peers.map((p) =>
                         p.slug ? (
                           <Link
                             key={p.name}
                             href={`/company/${p.slug}`}
-                            className="rounded-full border border-line px-2.5 py-0.5 text-xs text-ink hover:border-accent hover:text-accent"
+                            className="tap-y rounded-full border border-line px-2.5 py-0.5 text-xs text-ink hover:border-accent hover:text-accent"
                           >
                             {p.name}
                           </Link>
@@ -191,7 +191,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                 )}
                 <Link
                   href={`/sector/${a.sectorSlug}/explore?zone=${encodeURIComponent(a.zoneId)}&company=${encodeURIComponent(a.companyKey)}`}
-                  className="mt-4 inline-block text-xs font-semibold text-accent hover:underline"
+                  className="tap-y mt-4 inline-block text-xs font-semibold text-accent hover:underline pointer-coarse:mt-5"
                 >
                   View in the 3D map &rarr;
                 </Link>
