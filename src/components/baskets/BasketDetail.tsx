@@ -14,7 +14,7 @@ import { DASHARRAY } from "@/components/research/SectorCharts";
 import { ReturnCards, picksKey } from "./ReturnCards";
 import { BasketStats } from "./BasketStats";
 import { BasketAnalysis } from "./BasketAnalysis";
-import { MINI_SEG, PANEL, Panel } from "./Panel";
+import { MINI_SEG, PANEL, PANEL_TITLE, Panel } from "./Panel";
 import { IndustryChips } from "./IndustryChips";
 import { basketCreateError } from "./NewBasketButton";
 import { loadSeries, savedBasketQuery, type Load } from "./series";
@@ -160,6 +160,9 @@ export function BasketDetail(p: BasketDetailProps) {
   const [customEdit, setCustomEdit] = useState<Record<string, number> | null>(() => (p.weighting === "custom" ? savedCustom(p.stocks) : null));
   // What the server last stored for a saved basket's custom weights (by query value), so an edit saves once.
   const savedRef = useRef<string | null>(p.weighting === "custom" ? weightsParam(savedCustom(p.stocks)) : null);
+  // The custom weights panel: open when Custom is picked, closed with its × once they total 100%
+  // (and on a basket that opens already custom); tapping Custom again opens it.
+  const [weightsOpen, setWeightsOpen] = useState(p.weighting !== "custom");
   const weighting = strategy.weighting;
   const sq = strategyQuery(strategy);
   const rebalanced = strategy.rebalance !== "never";
@@ -371,6 +374,7 @@ export function BasketDetail(p: BasketDetailProps) {
     if (!draft) syncItems(await patch({ remove: [t], ...weights }));
   };
   const setWeight = async (w: WeightScheme) => {
+    if (w === "custom") setWeightsOpen(true);
     if (w === weighting) return;
     if (w !== "custom") {
       pickStrategy({ ...strategy, weighting: w, weights: undefined });
@@ -765,7 +769,7 @@ export function BasketDetail(p: BasketDetailProps) {
               <ul className="flex flex-col gap-1">
                 <li><b>Equal</b>: every stock the same share.</li>
                 <li><b>M-cap</b>: bigger companies get more, by market cap.</li>
-                <li><b>Custom</b>: you set each stock&rsquo;s %; they must total 100%.{ownsWeights ? " Saved with the basket." : ""}</li>
+                <li><b>Custom</b>: you set each stock&rsquo;s %; they must total 100%.{ownsWeights ? " Saved with the basket." : ""} Tap Custom again to change them.</li>
                 <li><b>Layers</b>: each value-chain layer the same share, split equally between its stocks.</li>
               </ul>
             </InfoTip>
@@ -809,8 +813,8 @@ export function BasketDetail(p: BasketDetailProps) {
       {/* Create basket: the industry and its stocks, like the Analysis charts' industry picker. */}
       {draft && <div className={PANEL + " px-3 py-2.5 sm:px-4"}>{picker("bar")}</div>}
 
-      {weighting === "custom" && stocks.length > 0 && (
-        <CustomWeights heading={heading} stocks={stocks} values={customEdit ?? {}} onChange={editWeights} onReset={resetToEqual} saves={ownsWeights} />
+      {weighting === "custom" && stocks.length > 0 && (weightsOpen || customBlocked) && (
+        <CustomWeights heading={heading} stocks={stocks} values={customEdit ?? {}} onChange={editWeights} onReset={resetToEqual} onClose={() => setWeightsOpen(false)} saves={ownsWeights} />
       )}
 
       <div className="flex min-w-0 flex-col gap-2 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
@@ -1169,6 +1173,7 @@ function CustomWeights({
   values,
   onChange,
   onReset,
+  onClose,
   saves,
 }: {
   heading: "h2" | "h3";
@@ -1176,33 +1181,48 @@ function CustomWeights({
   values: Record<string, number>;
   onChange: (next: Record<string, number>) => void;
   onReset: () => void;
+  /** Hides the panel (shown only once the weights total 100%). */
+  onClose: () => void;
   /** A saved basket of yours: the weights are kept with it. */
   saves: boolean;
 }) {
   const total = weightsTotal(Object.fromEntries(stocks.map((s) => [s.ticker, values[s.ticker] ?? 0])));
   const off = Math.round((100 - total) * 10) / 10;
   const ok = Math.abs(off) < 0.05;
+  const H = heading;
   return (
-    <Panel
-      heading={heading}
-      title={`Custom weights · ${stocks.length} stock${stocks.length > 1 ? "s" : ""}`}
-      label="Custom weights"
-      infoLabel="About custom weights"
-      info={
-        <>
-          Type each stock&rsquo;s share of the basket; together they must make 100%. Rebalancing trades back to these.
-          {saves ? " Saved with the basket." : ""}
-        </>
-      }
-      tools={
-        <>
-          <span className={"font-mono text-[11px] font-semibold " + (ok ? "text-pos" : "text-danger")}>Total {total.toFixed(1)}%</span>
-          <button type="button" onClick={onReset} className="inline-flex min-h-9 items-center rounded border border-line bg-bg px-2 text-[11px] font-semibold text-ink hover:border-accent sm:min-h-6 pointer-coarse:min-h-9">
-            Reset to equal
+    <Panel label="Custom weights">
+      {/* The × sits top right on its own, so on a phone it stays beside the title while the total
+          and Reset wrap underneath. */}
+      <div className="flex items-start gap-2 border-b border-line px-3 py-1">
+        <div className="flex min-h-8 min-w-0 flex-1 flex-wrap items-center justify-between gap-x-2 gap-y-1">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <H className={PANEL_TITLE}>{`Custom weights · ${stocks.length} stock${stocks.length > 1 ? "s" : ""}`}</H>
+            <InfoTip label="About custom weights">
+              Type each stock&rsquo;s share of the basket; together they must make 100%. Rebalancing trades back to these.
+              {saves ? " Saved with the basket." : ""} Close with × and tap Custom to open them again.
+            </InfoTip>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className={"font-mono text-[11px] font-semibold " + (ok ? "text-pos" : "text-danger")}>Total {total.toFixed(1)}%</span>
+            <button type="button" onClick={onReset} className="inline-flex min-h-9 items-center rounded border border-line bg-bg px-2 text-[11px] font-semibold text-ink hover:border-accent sm:min-h-6 pointer-coarse:min-h-9">
+              Reset to equal
+            </button>
+          </div>
+        </div>
+        {ok && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close custom weights"
+            className="mt-0.5 flex h-8 w-8 flex-none items-center justify-center rounded border border-line text-ink-soft hover:border-accent hover:text-ink pointer-coarse:h-9 pointer-coarse:w-9"
+          >
+            <svg aria-hidden width="10" height="10" viewBox="0 0 12 12">
+              <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
           </button>
-        </>
-      }
-    >
+        )}
+      </div>
       <p role="status" className={"px-3 pt-1.5 text-[11px] leading-snug " + (ok ? "text-ink-soft" : "font-semibold text-danger")}>
         {ok
           ? "The backtest uses these weights."
@@ -1238,7 +1258,8 @@ function WeightInput({ label, value, onCommit }: { label: string; value: number;
         type="text"
         inputMode="decimal"
         aria-label={label}
-        value={text ?? String(value)}
+        // What's being typed, unless the value moved underneath it (Reset to equal, a stock added).
+        value={text != null && (read(text) == null || read(text) === value) ? text : String(value)}
         onChange={(e) => {
           setText(e.target.value);
           const n = read(e.target.value);
