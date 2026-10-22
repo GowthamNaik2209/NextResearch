@@ -6,7 +6,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { OpenReportButton } from "@/components/research/OpenReport";
 import { getSector, listSectorSlugs } from "@/lib/sector-content";
 import { getResearchForSector } from "@/lib/sector-content/docs";
-import { cachedDeck } from "@/lib/analysis-props";
+import { buildDeck } from "@/lib/sector-content/reports";
 import { NOT_FOUND_METADATA, midSentence } from "@/lib/site";
 import { ensureFinancials } from "@/lib/financials/load";
 
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const sector = getSector(slug);
   if (!sector) return NOT_FOUND_METADATA;
-  const deck = cachedDeck(slug);
+  const deck = buildDeck(slug);
   const title = `${deck?.report.title ?? sector.name} — research report`;
   return {
     title,
@@ -38,7 +38,7 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
   const { slug } = await params;
   const sector = getSector(slug);
   if (!sector) notFound();
-  const deck = cachedDeck(slug);
+  const deck = buildDeck(slug);
   // The deck's own reading list first, then any hub links it does not already include.
   const seen = new Set(deck?.report.reading.map((l) => l.url));
   const links = [...(deck?.report.reading ?? []), ...getResearchForSector(slug).filter((l) => !seen.has(l.url))];

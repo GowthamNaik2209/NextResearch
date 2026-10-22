@@ -6,20 +6,20 @@ export const parasHealthcare: IpoReport = {
   legalName: "Paras Healthcare Limited",
   icon: "PH",
   sectorLabel: "Hospitals & healthcare services",
-  tagline: "A North India and Bihar hospital chain lists at ~Rs 7,500 Cr after turning profitable in FY26",
+  tagline: "A North India and Bihar hospital chain lists at ~₹7,500 Cr after turning profitable in FY26",
   asOf: "Oct 2026",
 
   status: {
     stage: "upcoming",
     label: "Opens 21 Oct",
     detail:
-      "Price band of Rs 660-693 fixed on 15 Oct (PTI via Free Press Journal); anchor book on 19 Oct, subscription 21-23 Oct, allotment 26 Oct and listing on BSE and NSE expected 28 Oct (Chittorgarh, tentative).",
+      "Price band of ₹660-693 fixed on 15 Oct (PTI via Free Press Journal); anchor book on 19 Oct, subscription 21-23 Oct, allotment 26 Oct and listing on BSE and NSE expected 28 Oct (Chittorgarh, tentative).",
   },
   timeline: [
-    { date: "Jul 2024", event: "First DRHP filed (Rs 400 Cr fresh + OFS); SEBI nod Oct 2024, allowed to lapse", done: true },
-    { date: "4 Jun 2026", event: "Fresh DRHP filed for up to Rs 1,800 Cr (Rs 500 Cr fresh + Rs 1,300 Cr OFS)", done: true },
+    { date: "Jul 2024", event: "First DRHP filed (₹400 Cr fresh + OFS); SEBI nod Oct 2024, allowed to lapse", done: true },
+    { date: "4 Jun 2026", event: "Fresh DRHP filed for up to ₹1,800 Cr (₹500 Cr fresh + ₹1,300 Cr OFS)", done: true },
     { date: "Aug 2026", event: "SEBI observations received (batch cleared 24-28 Aug)", done: true },
-    { date: "15 Oct 2026", event: "Price band Rs 660-693 announced; issue cut to Rs 1,450 Cr", done: true },
+    { date: "15 Oct 2026", event: "Price band ₹660-693 announced; issue cut to ₹1,450 Cr", done: true },
     { date: "19 Oct 2026", event: "Anchor investor bidding", done: false },
     { date: "21 Oct 2026", event: "Issue opens", done: false },
     { date: "23 Oct 2026", event: "Issue closes; allotment 26 Oct (tentative)", done: false },
@@ -27,15 +27,15 @@ export const parasHealthcare: IpoReport = {
   ],
 
   issue: {
-    size: "Rs 1,450 Cr (at upper band)",
+    size: "₹1,450 Cr (at upper band)",
     totalCr: 1450,
     freshCr: 500,
     ofsCr: 950,
     ofsShares: "1.37 crore shares",
-    priceBand: "Rs 660 - 693",
-    lotSize: "21 shares (Rs 14,553 at upper band)",
-    faceValue: "Rs 1",
-    valuation: "~Rs 7,498 Cr post-issue market cap at the upper band (10,82,01,194 shares)",
+    priceBand: "₹660 - 693",
+    lotSize: "21 shares (₹14,553 at upper band)",
+    faceValue: "₹1",
+    valuation: "~₹7,498 Cr post-issue market cap at the upper band (10,82,01,194 shares)",
     valuationCr: 7498,
     reservation: "QIB 75% · NII 15% · Retail 10% (Regulation 6(2) issue)",
     exchanges: "BSE, NSE",
@@ -49,15 +49,15 @@ export const parasHealthcare: IpoReport = {
     line: "Occupancy and margins are rising fast after two loss years, but at ~160x FY26 earnings the price already assumes that the newer hospitals keep ramping up; on revenue it is cheaper than listed peers.",
   },
   keyStats: [
-    { label: "Issue size", value: "Rs 1,450 Cr", sub: "Rs 500 Cr fresh + Rs 950 Cr offer for sale" },
-    { label: "Valuation at upper band", value: "~Rs 7,498 Cr", sub: "~160x FY26 EPS; ~4.7x FY26 revenue" },
-    { label: "Revenue, FY26", value: "Rs 1,606 Cr", sub: "+24.1% YoY; PAT Rs 43.8 Cr after two loss years" },
+    { label: "Issue size", value: "₹1,450 Cr", sub: "₹500 Cr fresh + ₹950 Cr offer for sale" },
+    { label: "Valuation at upper band", value: "~₹7,498 Cr", sub: "~160x FY26 EPS; ~4.7x FY26 revenue" },
+    { label: "Revenue, FY26", value: "₹1,606 Cr", sub: "+24.1% YoY; PAT ₹43.8 Cr after two loss years" },
     { label: "Bed capacity, Jun 2026", value: "2,211 beds", sub: "8 hospitals; occupancy 69.7% in Q1 FY27" },
   ],
   thesis: [
     {
       title: "Occupancy is finally filling the beds",
-      body: "Occupancy rose from 50.8% in FY25 to 61.8% in FY26 and 69.7% in Q1 FY27, which doubled EBITDA to Rs 336 Cr in FY26 (20.9% of revenue from operations vs 12.1% in FY25) and turned a Rs 58 Cr loss into a Rs 44 Cr profit.",
+      body: "Occupancy rose from 50.8% in FY25 to 61.8% in FY26 and 69.7% in Q1 FY27, which doubled EBITDA to ₹336 Cr in FY26 (20.9% of revenue from operations vs 12.1% in FY25) and turned a ₹58 Cr loss into a ₹44 Cr profit.",
     },
     {
       title: "First mover in under-served regions",
@@ -65,7 +65,7 @@ export const parasHealthcare: IpoReport = {
     },
     {
       title: "An IPO that cuts debt",
-      body: "Rs 375 Cr of the Rs 500 Cr fresh issue repays borrowings of the company and its Srinagar subsidiary, against total borrowings of Rs 854 Cr at Mar 2026; the remaining Rs 950 Cr is an exit by the promoter and PE investor Commelina.",
+      body: "₹375 Cr of the ₹500 Cr fresh issue repays borrowings of the company and its Srinagar subsidiary, against total borrowings of ₹854 Cr at Mar 2026; the remaining ₹950 Cr is an exit by the promoter and PE investor Commelina.",
     },
   ],
 
@@ -76,8 +76,8 @@ export const parasHealthcare: IpoReport = {
       "The model is capital-light by hospital-chain standards: six of the eight hospitals are on leased premises, five run on revenue-share or long-term leases and one is a public-private partnership. Two new hospitals (300 beds in Gurugram in FY27, 500 beds in Ludhiana in FY28) take capacity to 3,011 beds.",
     ],
     segments: [
-      { title: "Gurugram flagship", metric: "235 beds · 83.9% occupancy", body: "The oldest and most mature hospital, with FY26 ARPOB of Rs 70,926 a day, about 1.5x the group average; the only hospital in a metro market." },
-      { title: "Bihar and Jharkhand (Patna, Darbhanga, Ranchi)", metric: "565 operational beds", body: "Patna is the largest hospital (309 beds, 73.2% occupancy); Darbhanga runs at an ARPOB under Rs 20,000. Ranchi sits in a subsidiary that is still loss-making." },
+      { title: "Gurugram flagship", metric: "235 beds · 83.9% occupancy", body: "The oldest and most mature hospital, with FY26 ARPOB of ₹70,926 a day, about 1.5x the group average; the only hospital in a metro market." },
+      { title: "Bihar and Jharkhand (Patna, Darbhanga, Ranchi)", metric: "565 operational beds", body: "Patna is the largest hospital (309 beds, 73.2% occupancy); Darbhanga runs at an ARPOB under ₹20,000. Ranchi sits in a subsidiary that is still loss-making." },
       { title: "North India tier-2 (Panchkula, Udaipur, Kanpur, Srinagar)", metric: "702 operational beds", body: "Panchkula runs at 67.6% occupancy, but Srinagar (36.1%) and Kanpur (31.0%) are still ramping up, which is where most of the remaining operating leverage lies." },
       { title: "CONGOR specialties", metric: "74.7% of FY26 revenue", body: "Cardiac, oncology, neuro, gastro, orthopaedics and renal care; oncology is the largest at 21.6%. Surgeries rose to 39,687 in FY26 from 30,219 in FY24." },
       { title: "Expansion pipeline", metric: "+800 beds by FY28", body: "A 300-bed hospital in Gurugram (FY27) and a 500-bed hospital in Ludhiana (FY28), raising bed capacity to 3,011 by Mar 2028." },
@@ -95,12 +95,12 @@ export const parasHealthcare: IpoReport = {
 
   industry: {
     narrative: [
-      "CRISIL, in the report commissioned for the DRHP, sizes India's healthcare delivery market at ~Rs 7.0 lakh Cr in FY25 and Rs 7.6-7.8 lakh Cr in FY26, growing 10-12% a year to Rs 11.2-12.2 lakh Cr by FY30. In-patient care is 71-72% of the value.",
-      "North India is expected to reach Rs 3.6-3.8 lakh Cr by FY30, about a third of the national market, and Bihar plus Jharkhand Rs 0.4-0.5 lakh Cr. Health-insurance penetration rose from 35% in FY19 to 41% in FY24, but government schemes such as PM-JAY remain a large payor in these states.",
+      "CRISIL, in the report commissioned for the DRHP, sizes India's healthcare delivery market at ~₹7.0L Cr in FY25 and ₹7.6-7.8L Cr in FY26, growing 10-12% a year to ₹11.2-12.2L Cr by FY30. In-patient care is 71-72% of the value.",
+      "North India is expected to reach ₹3.6-3.8L Cr by FY30, about a third of the national market, and Bihar plus Jharkhand ₹0.4-0.5L Cr. Health-insurance penetration rose from 35% in FY19 to 41% in FY24, but government schemes such as PM-JAY remain a large payor in these states.",
     ],
     chart: {
       title: "India healthcare delivery market",
-      unit: "Rs lakh Cr",
+      unit: "₹ lakh Cr",
       source: "CRISIL report in the Paras Healthcare DRHP (FY26E and FY30P are mid-points of the ranges given)",
       points: [
         { label: "FY20", value: 4.4 },
@@ -111,8 +111,8 @@ export const parasHealthcare: IpoReport = {
     },
     snapshot: [
       { label: "Market growth, FY25-30P (CRISIL)", value: "10-12% CAGR", tone: "pos" },
-      { label: "North India market, FY30P", value: "Rs 3.6-3.8 lakh Cr", tone: "neutral" },
-      { label: "Bihar + Jharkhand market, FY30P", value: "Rs 0.4-0.5 lakh Cr", tone: "neutral" },
+      { label: "North India market, FY30P", value: "₹3.6-3.8L Cr", tone: "neutral" },
+      { label: "Bihar + Jharkhand market, FY30P", value: "₹0.4-0.5L Cr", tone: "neutral" },
       { label: "In-patient share of market, FY25", value: "71-72%", tone: "neutral" },
       { label: "Health-insurance penetration, FY24", value: "41% (35% in FY19)", tone: "pos" },
     ],
@@ -126,7 +126,7 @@ export const parasHealthcare: IpoReport = {
       { label: "FY26", revenue: 1606, ebitda: 336, pat: 44 },
       { label: "Q1 FY27", revenue: 470, ebitda: 113, pat: 50, partial: true },
     ],
-    note: "Revenue grew at a 19.3% CAGR over FY24-26 and EBITDA at 47.4% as newer hospitals filled up; Q1 FY27 revenue rose 27.7% YoY. Q1 FY27 PAT of Rs 49.7 Cr includes a Rs 16.2 Cr deferred-tax credit (Sushil Finance), and aggregators such as Chittorgarh show total income (Rs 1,628.8 Cr in FY26), not revenue from operations.",
+    note: "Revenue grew at a 19.3% CAGR over FY24-26 and EBITDA at 47.4% as newer hospitals filled up; Q1 FY27 revenue rose 27.7% YoY. Q1 FY27 PAT of ₹49.7 Cr includes a ₹16.2 Cr deferred-tax credit (Sushil Finance), and aggregators such as Chittorgarh show total income (₹1,628.8 Cr in FY26), not revenue from operations.",
   },
 
   kpi: {
@@ -142,13 +142,13 @@ export const parasHealthcare: IpoReport = {
   },
   ratios: [
     { label: "EBITDA margin on revenue from operations, FY26", value: "20.9% (24.0% in Q1 FY27)", tone: "pos" },
-    { label: "ARPOB, FY26", value: "Rs 47,398 / day (Rs 49,352 in Q1 FY27)", tone: "neutral" },
+    { label: "ARPOB, FY26", value: "₹47,398 / day (₹49,352 in Q1 FY27)", tone: "neutral" },
     { label: "RoNW, FY26", value: "12.98% (-18.73% in FY25)", tone: "neutral" },
     { label: "ROCE, FY26", value: "10.76%", tone: "neutral" },
-    { label: "Net worth, Jun 2026", value: "Rs 445 Cr", tone: "neutral" },
-    { label: "Total borrowings, Mar 2026", value: "Rs 854 Cr (excl. leases)", tone: "neg" },
+    { label: "Net worth, Jun 2026", value: "₹445 Cr", tone: "neutral" },
+    { label: "Total borrowings, Mar 2026", value: "₹854 Cr (excl. leases)", tone: "neg" },
     { label: "Debt / equity incl. leases, FY26", value: "3.53x (2.16x excl. leases)", tone: "neg" },
-    { label: "Diluted EPS, FY26", value: "Rs 4.34 (~160x at upper band)", tone: "neutral" },
+    { label: "Diluted EPS, FY26", value: "₹4.34 (~160x at upper band)", tone: "neutral" },
   ],
 
   useOfProceeds: [
@@ -156,7 +156,7 @@ export const parasHealthcare: IpoReport = {
     { label: "Invest in subsidiary PMHPL (Srinagar hospital) to repay its debt", valueCr: 54.1 },
   ],
   proceedsNote:
-    "Of the Rs 500 Cr fresh issue, Rs 375 Cr goes to debt repayment; the balance, after issue expenses, is for general corporate purposes (capped at 25% of gross proceeds). The Rs 950 Cr OFS goes to the selling shareholders, not the company. No pre-IPO placement was done, so the share count is unchanged from the DRHP.",
+    "Of the ₹500 Cr fresh issue, ₹375 Cr goes to debt repayment; the balance, after issue expenses, is for general corporate purposes (capped at 25% of gross proceeds). The ₹950 Cr OFS goes to the selling shareholders, not the company. No pre-IPO placement was done, so the share count is unchanged from the DRHP.",
   shareholding: [
     { holder: "Dr Dharminder Kumar Nagar (promoter)", pct: 72.8 },
     { holder: "Commelina Ltd (PE investor)", pct: 16.44 },
@@ -164,9 +164,9 @@ export const parasHealthcare: IpoReport = {
     { holder: "Axis New Opportunities AIF - Series II", pct: 3.63 },
   ],
   sellers: [
-    { name: "Dr Dharminder Kumar Nagar (promoter)", detail: "Up to Rs 300 Cr; average cost Rs 2.35 a share. His stake falls from 72.8% to ~64% post-issue." },
-    { name: "Commelina Ltd", detail: "Up to Rs 650 Cr (Rs 800 Cr in the DRHP); average cost Rs 114.15 a share; has a nominee director on the board." },
-    { name: "360 ONE funds (dropped)", detail: "Were to sell Rs 200 Cr in the DRHP at a Rs 237 cost, but are not named as sellers in the final Rs 950 Cr OFS." },
+    { name: "Dr Dharminder Kumar Nagar (promoter)", detail: "Up to ₹300 Cr; average cost ₹2.35 a share. His stake falls from 72.8% to ~64% post-issue." },
+    { name: "Commelina Ltd", detail: "Up to ₹650 Cr (₹800 Cr in the DRHP); average cost ₹114.15 a share; has a nominee director on the board." },
+    { name: "360 ONE funds (dropped)", detail: "Were to sell ₹200 Cr in the DRHP at a ₹237 cost, but are not named as sellers in the final ₹950 Cr OFS." },
   ],
 
   peers: [
@@ -177,18 +177,18 @@ export const parasHealthcare: IpoReport = {
     { name: "Jupiter Life Line Hospitals", ticker: "JLHL", note: "Western India chain of similar revenue." },
   ],
   valuationNote:
-    "At ~Rs 7,500 Cr Paras trades at ~4.7x FY26 revenue, below all five listed peers on sales (Jupiter is the closest), but at ~160x FY26 earnings, above every listed peer's P/E (see the table). Annualising the Q1 FY27 profit, which was helped by a tax credit, brings the post-issue P/E to ~38x (Chittorgarh).",
+    "At ~₹7,500 Cr Paras trades at ~4.7x FY26 revenue, below all five listed peers on sales (Jupiter is the closest), but at ~160x FY26 earnings, above every listed peer's P/E (see the table). Annualising the Q1 FY27 profit, which was helped by a tax credit, brings the post-issue P/E to ~38x (Chittorgarh).",
 
   strengths: [
     { title: "Early mover in North India, Bihar and Jharkhand", body: "Among the largest private providers in these regions, with hospitals in cities such as Patna, Darbhanga and Ranchi where few corporate chains operate." },
     { title: "High-acuity specialty mix", body: "CONGOR specialties make up ~75% of revenue and the network has 559 ICU beds, which supports higher revenue per bed than general care." },
-    { title: "Capital-efficient expansion", body: "Leases, revenue-share deals and a PPP keep the gross block at Rs 7.6 Mn per bed of capacity, and the newer hospitals add revenue without a fresh land outlay." },
+    { title: "Capital-efficient expansion", body: "Leases, revenue-share deals and a PPP keep the gross block at ₹7.6 Mn per bed of capacity, and the newer hospitals add revenue without a fresh land outlay." },
     { title: "Doctor-led management with a turnaround underway", body: "Promoter Dr Dharminder Kumar Nagar has been with the company since 2003; EBITDA more than doubled in FY26 as occupancy recovered." },
   ],
   risks: [
-    { risk: "Losses at newer hospitals: the Ranchi and Plus Medicare (Srinagar) subsidiaries lost Rs 52 Cr in FY26, and the group lost money in FY24 and FY25", mitigant: "Losses are narrowing (Rs 87 Cr in FY24) and occupancy at newer sites is rising", severity: "high" },
+    { risk: "Losses at newer hospitals: the Ranchi and Plus Medicare (Srinagar) subsidiaries lost ₹52 Cr in FY26, and the group lost money in FY24 and FY25", mitigant: "Losses are narrowing (₹87 Cr in FY24) and occupancy at newer sites is rising", severity: "high" },
     { risk: "Dependence on government schemes (41% of FY26 revenue), where empanelments have been suspended or restricted in the past and payments can be slow", mitigant: "Self-pay and insurance still make up ~59% of revenue", severity: "medium" },
-    { risk: "Leverage: debt to equity of 3.53x including leases, and six of eight hospitals on leased premises", mitigant: "Rs 375 Cr of the fresh issue repays debt", severity: "medium" },
+    { risk: "Leverage: debt to equity of 3.53x including leases, and six of eight hospitals on leased premises", mitigant: "₹375 Cr of the fresh issue repays debt", severity: "medium" },
     { risk: "Staff attrition of 60% in FY26 (82% for nurses) and dependence on senior clinicians", mitigant: "Doctor-led management and retention programmes; attrition fell from 66.7% in FY25", severity: "medium" },
     { risk: "Valuation leaves little room: ~160x trailing earnings for a company that only turned profitable in FY26", mitigant: "Cheaper than peers on price-to-sales if margins keep expanding", severity: "medium" },
   ],

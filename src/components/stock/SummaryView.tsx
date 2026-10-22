@@ -94,11 +94,12 @@ export function SummaryView({
         <Label>
           Key stats <span className="font-normal normal-case tracking-normal">— company snapshot {asOf}</span>
         </Label>
-        <div className="mt-2 grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+        {/* The explorer's side panel is ~400px wide at any viewport, so it keeps three columns. */}
+        <div className={"mt-2 grid grid-cols-3 gap-1.5" + (compact ? "" : " sm:grid-cols-5")}>
           {chips.map(([k, v, opt]) => (
             <div key={k} className={"rounded-lg border border-line bg-panel-2 px-2.5 py-2" + (opt ? " max-[640px]:hidden" : "")}>
               <div className="text-[9px] uppercase tracking-wide text-ink-soft">{k}</div>
-              <div className={"mt-0.5 font-mono text-[13px] font-semibold " + (v === "n/m" ? "text-ink-soft" : "text-ink")} title={v === "n/m" ? "Not meaningful for a REIT" : undefined}>
+              <div className={"mt-0.5 whitespace-nowrap font-mono text-[13px] font-semibold " + (v === "n/m" ? "text-ink-soft" : "text-ink")} title={v === "n/m" ? "Not meaningful for a REIT" : undefined}>
                 {v}
               </div>
             </div>

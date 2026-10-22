@@ -13,8 +13,8 @@ export const semiconductors: SectorReport = {
   },
   keyStats: [
     { label: "India chip demand, 2024", value: "~$45-50 bn", sub: "approx. (IESA / Counterpoint)" },
-    { label: "ISM first-phase outlay", value: "Rs 76,000 Cr", sub: "approved Dec 2021" },
-    { label: "Approved fab/OSAT projects", value: "10", sub: "~Rs 1.6 lakh Cr investment" },
+    { label: "ISM first-phase outlay", value: "₹76,000 Cr", sub: "approved Dec 2021" },
+    { label: "Approved fab/OSAT projects", value: "10", sub: "~₹1.6L Cr investment" },
     { label: "Chips imported", value: ">90%", sub: "first local packaging ramping" },
   ],
   thesis: [
@@ -50,20 +50,20 @@ export const semiconductors: SectorReport = {
     {
       date: "Aug 2025",
       title: "Four more projects approved",
-      body: "Cabinet cleared ~Rs 4,600 Cr of units incl. SiCSem's silicon-carbide fab in Odisha and OSATs in Punjab and Andhra Pradesh, taking the tally to ten.",
+      body: "Cabinet cleared ~₹4,600 Cr of units incl. SiCSem's silicon-carbide fab in Odisha and OSATs in Punjab and Andhra Pradesh, taking the tally to ten.",
       impact: "pos",
       tag: "Policy",
     },
     {
       date: "May 2025",
       title: "HCL-Foxconn OSAT at Jewar",
-      body: "A ~Rs 3,700 Cr display-driver chip unit near Noida Airport was approved, adding a north-India cluster.",
+      body: "A ~₹3,700 Cr display-driver chip unit near Noida Airport was approved, adding a north-India cluster.",
       impact: "pos",
       tag: "Capacity",
     },
     {
       date: "Mar 2025",
-      title: "Rs 22,919 Cr components scheme",
+      title: "₹22,919 Cr components scheme",
       body: "The Electronics Component Manufacturing Scheme backs passive parts, PCBs and modules, deepening local demand next to the OSATs.",
       impact: "pos",
       tag: "Policy",
@@ -71,7 +71,7 @@ export const semiconductors: SectorReport = {
     {
       date: "Feb 2024",
       title: "Tata fab and three OSATs cleared",
-      body: "Cabinet approved Tata-PSMC's Rs 91,000 Cr Dholera fab, Tata's Assam OSAT and the CG Power-Renesas OSAT at Sanand.",
+      body: "Cabinet approved Tata-PSMC's ₹91,000 Cr Dholera fab, Tata's Assam OSAT and the CG Power-Renesas OSAT at Sanand.",
       impact: "pos",
       tag: "Capacity",
     },
@@ -118,7 +118,7 @@ export const semiconductors: SectorReport = {
 
   drivers: [
     { title: "Fiscal incentives", metric: "~70-75% of capex", body: "Central 50% pari-passu support plus state top-ups make India one of the cheapest places to build a fab or OSAT." },
-    { title: "Local electronics demand", metric: "~Rs 11 lakh Cr", body: "Electronics production (FY25, approx.) led by phones creates a captive buyer base for packaged chips." },
+    { title: "Local electronics demand", metric: "~₹11L Cr", body: "Electronics production (FY25, approx.) led by phones creates a captive buyer base for packaged chips." },
     { title: "China+1 supply chains", metric: "Mature nodes", body: "Auto, industrial and power customers want non-China capacity for legacy and power chips." },
     { title: "Design talent", metric: "~20% of designers", body: "Global chip firms already run large design centres in India, feeding fabless and services growth." },
   ],
@@ -162,7 +162,7 @@ export const semiconductors: SectorReport = {
   },
 
   beneficiaries: [
-    { key: "kaynes", tier: "core", why: "Rs 3,300 Cr Sanand OSAT with ISM support plus in-house EMS demand for its chips." },
+    { key: "kaynes", tier: "core", why: "₹3,300 Cr Sanand OSAT with ISM support plus in-house EMS demand for its chips." },
     { key: "cgpower", tier: "core", why: "Sanand OSAT JV with Renesas and Stars; pilot line already shipping samples." },
     { key: "spelsemi", tier: "direct", why: "India's only listed legacy pure-play OSAT; small but a direct capacity proxy." },
     { key: "moschip", tier: "direct", why: "Fabless ASIC/SoC design services; benefits from DLI scheme and global outsourcing." },
@@ -176,7 +176,7 @@ export const semiconductors: SectorReport = {
 
   companyNews: [
     { key: "cgpower", date: "Aug 2025", development: "Inaugurated the pilot line at its Sanand OSAT, ahead of the main plant.", impact: "First listed company to produce packaged chips in India under ISM.", tone: "pos" },
-    { key: "kaynes", date: "Sep 2024", development: "Cabinet approved its Rs 3,307 Cr OSAT at Sanand; first chips followed in 2025-26.", impact: "Gives listed investors a second OSAT pure play integrated with EMS.", tone: "pos" },
+    { key: "kaynes", date: "Sep 2024", development: "Cabinet approved its ₹3,307 Cr OSAT at Sanand; first chips followed in 2025-26.", impact: "Gives listed investors a second OSAT pure play integrated with EMS.", tone: "pos" },
     { key: "dixon", date: "2025-26", development: "Expanded into display and camera modules via JVs under component incentives.", impact: "Deepens local component demand that future Indian chips can serve.", tone: "pos" },
     { key: "moschip", date: "2025-26", development: "Grew design-services revenue strongly with larger ASIC and embedded programmes.", impact: "Shows India's design layer monetizing ahead of manufacturing.", tone: "pos" },
     { key: "spelsemi", date: "2025-26", development: "Revenue stayed small and losses persisted as large new OSATs came up.", impact: "Scale and customer qualification matter more than being first.", tone: "neg" },

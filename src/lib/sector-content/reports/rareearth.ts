@@ -3,7 +3,7 @@ import type { SectorReport } from "./types";
 export const rareearth: SectorReport = {
   slug: "rareearth",
   title: "India Rare-Earth Magnets (REPM)",
-  subtitle: "The Rs 7,280 crore bet on making sintered NdFeB magnets at home",
+  subtitle: "The ₹7,280 Cr bet on making sintered NdFeB magnets at home",
   asOf: "Oct 2026",
 
   stance: {
@@ -12,7 +12,7 @@ export const rareearth: SectorReport = {
     line: "A strategic scheme with real money per kilo, but listed exposure is thin and winners are not named yet; magnet users gain supply security before any maker earns from it.",
   },
   keyStats: [
-    { label: "Scheme outlay", value: "Rs 7,280 Cr", sub: "Rs 6,450 Cr sales incentive + Rs 750 Cr capex subsidy + Rs 80 Cr administration (Cabinet, 26 Nov 2025)" },
+    { label: "Scheme outlay", value: "₹7,280 Cr", sub: "₹6,450 Cr sales incentive + ₹750 Cr capex subsidy + ₹80 Cr administration (Cabinet, 26 Nov 2025)" },
     { label: "Target capacity", value: "6,000 t/yr", sub: "5 winners, 600-1,200 t each" },
     { label: "Bids received", value: "20", sub: "technical bids opened 13 Aug 2026 (MHI)" },
     { label: "China share of sintered magnets", value: "~94%", sub: "of world output, 2024 (IEA)" },
@@ -20,7 +20,7 @@ export const rareearth: SectorReport = {
   thesis: [
     {
       title: "A new industry, paid per kilo",
-      body: "Winners earn their quoted incentive - at most Rs 2,150 per kg of magnets sold, and at most 40% of sales - for five years after a two-year build: up to Rs 1,290 crore for a 1,200-tonne plant, plus a capital subsidy of up to Rs 150 crore. Only magnets made from NdPr oxide in India qualify.",
+      body: "Winners earn their quoted incentive - at most ₹2,150 per kg of magnets sold, and at most 40% of sales - for five years after a two-year build: up to ₹1,290 Cr for a 1,200-tonne plant, plus a capital subsidy of up to ₹150 Cr. Only magnets made from NdPr oxide in India qualify.",
     },
     {
       title: "Listed exposure is thin and binary",
@@ -71,7 +71,7 @@ export const rareearth: SectorReport = {
     {
       date: "Nov 2025",
       title: "Cabinet clears the scheme as China pauses curbs",
-      body: "The Cabinet approved the Rs 7,280 crore REPM scheme on 26 Nov 2025 (notified 15 Dec). The same month China suspended its October 2025 export-control expansion for a year, to 10 Nov 2026; the April 2025 licensing regime stayed.",
+      body: "The Cabinet approved the ₹7,280 Cr REPM scheme on 26 Nov 2025 (notified 15 Dec). The same month China suspended its October 2025 export-control expansion for a year, to 10 Nov 2026; the April 2025 licensing regime stayed.",
       impact: "pos",
       tag: "Policy",
     },
@@ -81,12 +81,12 @@ export const rareearth: SectorReport = {
     narrative: [
       "Sintered NdFeB magnets are the strongest permanent magnets made. They sit in EV traction motors, e-scooter hub motors, wind generators, missiles and electronics. China makes about 94% of them and refines more than 90% of the rare earths they need (IEA).",
       "India has large rare-earth reserves (about 6.9 million tonnes of oxide per USGS; 7.23 million tonnes in monazite per the government) but almost no oxide-to-magnet industry, so nearly all magnets are imported - about 93% of FY25 permanent-magnet tonnage came from China. China's 2025 export licences cut Indian e-scooter output within weeks, which turned a niche input into a policy priority.",
-      "The REPM scheme funds five integrated plants (oxide to metal to alloy to magnet) totalling 6,000 tonnes a year. It sits alongside the National Critical Mineral Mission (Rs 16,300 crore, Jan 2025), a Rs 1,500 crore recycling incentive (Sep 2025) and the Budget 2026-27 Rare Earth Corridors.",
+      "The REPM scheme funds five integrated plants (oxide to metal to alloy to magnet) totalling 6,000 tonnes a year. It sits alongside the National Critical Mineral Mission (₹16,300 Cr, Jan 2025), a ₹1,500 Cr recycling incentive (Sep 2025) and the Budget 2026-27 Rare Earth Corridors.",
     ],
     chart: {
       title: "Maximum sales-linked incentive per winner, by allotted capacity",
-      unit: "Rs crore over 5 years",
-      source: "MHI REPM scheme terms: Rs 2,150/kg cap x capacity x 5 years (Rs 645 Cr at 600 t, Rs 1,290 Cr at 1,200 t)",
+      unit: "₹ Cr over 5 years",
+      source: "MHI REPM scheme terms: ₹2,150/kg cap x capacity x 5 years (₹645 Cr at 600 t, ₹1,290 Cr at 1,200 t)",
       points: [
         { label: "600 t", value: 645 },
         { label: "700 t", value: 752.5 },
@@ -111,23 +111,23 @@ export const rareearth: SectorReport = {
     { stage: "Mining (beach sand & hard rock)", zoneIds: ["beach_sand", "hardrock"], margin: "By-product of titanium minerals", moat: "high", note: "Monazite is a regulated atomic mineral handled by state-owned IREL; hard-rock deposits (GMDC) are at pilot stage." },
     { stage: "Separation to oxides", zoneIds: ["separation"], margin: "Thin outside China", moat: "high", note: "The real chokepoint: chemistry-heavy, regulated and dominated by China; IREL is India's only scale player." },
     { stage: "Metal & alloy", zoneIds: ["metal_alloy"], margin: "Captive inside magnet makers", moat: "medium", note: "Almost no commercial Indian capacity; know-how sits with NFTDC, BARC and foreign partners." },
-    { stage: "Magnet making & recycling", zoneIds: ["magnet_making", "recycling"], margin: "Scheme pays up to Rs 2,150/kg", moat: "medium", note: "Incentive-backed for five years; long-run economics depend on matching Chinese prices." },
+    { stage: "Magnet making & recycling", zoneIds: ["magnet_making", "recycling"], margin: "Scheme pays up to ₹2,150/kg", moat: "medium", note: "Incentive-backed for five years; long-run economics depend on matching Chinese prices." },
     { stage: "Motors & end products", zoneIds: ["ev_motors", "ev_2w", "wind", "defence"], margin: "Magnets are a small cost share", moat: "low", note: "Users gain supply security, not magnet margins; some are designing magnets out (ferrite motors)." },
   ],
 
   drivers: [
     { title: "Supply risk from China", metric: "Pause ends 10 Nov 2026", body: "April 2025 licensing is still in force and the tougher October 2025 controls are only suspended; every new curb strengthens the case for local supply." },
     { title: "EV and two-wheeler demand", metric: "Demand ~2x by 2030", body: "The government expects India's magnet use to double from 2025 to 2030, led by electric vehicles; the 2025 shortage showed how exposed e-scooters are." },
-    { title: "A full policy stack", metric: "Rs 25,000 Cr+", body: "REPM (Rs 7,280 crore), the National Critical Mineral Mission (Rs 16,300 crore) and the recycling scheme (Rs 1,500 crore) fund mining, processing, magnets and recycling together." },
+    { title: "A full policy stack", metric: "₹25,000 Cr+", body: "REPM (₹7,280 Cr), the National Critical Mineral Mission (₹16,300 Cr) and the recycling scheme (₹1,500 Cr) fund mining, processing, magnets and recycling together." },
     { title: "Defence indigenisation", metric: "US cut-off 1 Jan 2027", body: "Chinese licences exclude defence uses, and from 2027 US defence rules bar magnets mined or processed in China, pushing allies to build their own." },
   ],
   mix: {
     title: "REPM scheme outlay by component",
     source: "Union Cabinet approval, 26 Nov 2025; scheme notification S.O. 5800(E), 15 Dec 2025",
     slices: [
-      { label: "Sales-linked incentive (Rs 6,450 Cr)", value: 88.6 },
-      { label: "Capital subsidy (Rs 750 Cr)", value: 10.3 },
-      { label: "Administration (Rs 80 Cr)", value: 1.1 },
+      { label: "Sales-linked incentive (₹6,450 Cr)", value: 88.6 },
+      { label: "Capital subsidy (₹750 Cr)", value: 10.3 },
+      { label: "Administration (₹80 Cr)", value: 1.1 },
     ],
   },
 
@@ -159,7 +159,7 @@ export const rareearth: SectorReport = {
   },
 
   beneficiaries: [
-    { key: "microns20", tier: "core", why: "The only small-cap listed bidder; a win (Rs 645-1,290 crore of incentives) would be large against Rs 954 crore of FY26 revenue. Binary." },
+    { key: "microns20", tier: "core", why: "The only small-cap listed bidder; a win (₹645-1,290 Cr of incentives) would be large against ₹954 Cr of FY26 revenue. Binary." },
     { key: "lt", tier: "core", why: "Bidder with engineering depth and captive demand from its EV motor business; magnets would be a tiny part of L&T." },
     { key: "gmdc", tier: "direct", why: "Most direct listed route into Indian rare-earth feedstock (Ambadungar, BARC technology); its rare-earth business is still pre-revenue - today's revenue is lignite and other minerals." },
     { key: "sona", tier: "direct", why: "Largest magnet importer among Indian motor makers; gains most from a local second source." },

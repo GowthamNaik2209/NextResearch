@@ -9,9 +9,9 @@ export const ECMS_SCENARIOS: Scenario[] = [
   {
     id: "ecms-reopen",
     title: "ECMS reopens with the bigger budget",
-    blurb: "The Rs 40,000 crore outlay funds a fresh application window",
+    blurb: "The ₹40,000 Cr outlay funds a fresh application window",
     story:
-      "Budget 2026-27 lifted ECMS from Rs 22,919 crore to Rs 40,000 crore after approvals overshot the investment target. If MeitY reopens Segments A-C (modules, boards, passives) with the extra money, a second wave of PCB, HDI and module plants gets funded. Companies that already have approved plants gain scale and customers first; materials and equipment makers see a bigger capex wave behind them.",
+      "Budget 2026-27 lifted ECMS from ₹22,919 Cr to ₹40,000 Cr after approvals overshot the investment target. If MeitY reopens Segments A-C (modules, boards, passives) with the extra money, a second wave of PCB, HDI and module plants gets funded. Companies that already have approved plants gain scale and customers first; materials and equipment makers see a bigger capex wave behind them.",
     effect: "tailwind",
     impacts: [
       S("hdi", 3, "HDI/flex is the priority hybrid segment and the biggest gap"),

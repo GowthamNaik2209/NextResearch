@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { IpoGrid } from "@/components/ipo/IpoGrid";
-import { cachedIpoDeck, ipoCards } from "@/lib/analysis-props";
+import { getIpoDeck, ipoCards } from "@/lib/analysis-props";
 import { ensureFinancials } from "@/lib/financials/load";
 
 export const metadata: Metadata = {
@@ -27,7 +27,7 @@ export default async function IposPage({ searchParams }: { searchParams: Promise
   const { ipo } = await searchParams;
   // Cards only; a deck loads when opened, except the one a ?ipo= link opens (see analysis-props.ts).
   const ipos = ipoCards();
-  const initialDeck = ipo ? (cachedIpoDeck(ipo) ?? undefined) : undefined;
+  const initialDeck = ipo ? (getIpoDeck(ipo) ?? undefined) : undefined;
   return (
     <>
       <SiteHeader />

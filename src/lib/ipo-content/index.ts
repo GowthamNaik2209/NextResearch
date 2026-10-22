@@ -4,7 +4,7 @@
 import { companyFinancials, findSupplierByTicker, parseCrore, type SectorSupplier } from "../sector-content";
 import type { IpoReport, IpoStage } from "./types";
 import { memoByFinancials } from "@/lib/financials/store";
-import { istToday, liveIpoStatus } from "@/components/ipo/status";
+import { istToday, liveIpoStatus } from "./status";
 import { jioPlatforms } from "./jio-platforms";
 import { nse } from "./nse";
 import { zepto } from "./zepto";

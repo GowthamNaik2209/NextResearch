@@ -6,38 +6,38 @@ export const zetwerk: IpoReport = {
   legalName: "Zetwerk Manufacturing Businesses Limited",
   icon: "ZET",
   sectorLabel: "Contract manufacturing & industrial supply",
-  tagline: "An asset-light manufacturing platform raises Rs 5,012 Cr at ~Rs 25,583 Cr, still loss-making",
+  tagline: "An asset-light manufacturing platform raises ₹5,012 Cr at ~₹25,583 Cr, still loss-making",
   asOf: "Oct 2026",
 
   status: {
     stage: "upcoming",
     label: "Closed · lists 23 Oct",
     detail:
-      "Bidding ran 15-19 Oct after a Rs 2,251 Cr anchor book. It closed about 3.1x subscribed (QIB 4.7x, NII 1.5x, retail 0.8x, per Chittorgarh's final-day count), so retail demand fell short while institutions took more than their share. Allotment is due 21 Oct and listing on BSE and NSE 23 Oct (tentative).",
+      "Bidding ran 15-19 Oct after a ₹2,251 Cr anchor book. It closed about 3.1x subscribed (QIB 4.7x, NII 1.5x, retail 0.8x, per Chittorgarh's final-day count), so retail demand fell short while institutions took more than their share. Allotment is due 21 Oct and listing on BSE and NSE 23 Oct (tentative).",
   },
   timeline: [
     { date: "Mar 2026", event: "Confidential pre-filing of the draft offer document with SEBI", done: true },
     { date: "9 Jul 2026", event: "SEBI final observation letter", done: true },
-    { date: "14 Aug 2026", event: "UDRHP-I made public (Rs 2,600 Cr fresh + 9.68 crore-share OFS)", done: true },
-    { date: "11 Oct 2026", event: "RHP filed; fresh issue raised to Rs 2,830 Cr, OFS to 14.45 crore shares", done: true },
-    { date: "14 Oct 2026", event: "Anchor book: Rs 2,251 Cr", done: true },
+    { date: "14 Aug 2026", event: "UDRHP-I made public (₹2,600 Cr fresh + 9.68 crore-share OFS)", done: true },
+    { date: "11 Oct 2026", event: "RHP filed; fresh issue raised to ₹2,830 Cr, OFS to 14.45 crore shares", done: true },
+    { date: "14 Oct 2026", event: "Anchor book: ₹2,251 Cr", done: true },
     { date: "15 Oct 2026", event: "Issue opens", done: true },
     { date: "19 Oct 2026", event: "Issue closes, about 3.1x subscribed; allotment 21 Oct (tentative)", done: true },
     { date: "23 Oct 2026", event: "Listing on BSE and NSE (tentative)", done: false },
   ],
 
   issue: {
-    size: "Rs 5,012 Cr (at upper band)",
+    size: "₹5,012 Cr (at upper band)",
     totalCr: 5012,
     freshCr: 2830,
     ofsCr: 2182,
     ofsShares: "14.45 crore shares",
-    priceBand: "Rs 143 - 151",
-    lotSize: "99 shares (Rs 14,949 at upper band)",
-    faceValue: "Rs 1",
-    valuation: "~Rs 25,583 Cr post-issue market cap at the upper band (169.43 crore shares)",
+    priceBand: "₹143 - 151",
+    lotSize: "99 shares (₹14,949 at upper band)",
+    faceValue: "₹1",
+    valuation: "~₹25,583 Cr post-issue market cap at the upper band (169.43 crore shares)",
     valuationCr: 25583,
-    reservation: "QIB 75% · NII 15% · Retail 10% of the net offer; plus 7 lakh shares for employees at a Rs 14 discount",
+    reservation: "QIB 75% · NII 15% · Retail 10% of the net offer; plus 7 lakh shares for employees at a ₹14 discount",
     exchanges: "BSE, NSE",
     leadManagers: [
       "Kotak Mahindra Capital",
@@ -57,38 +57,38 @@ export const zetwerk: IpoReport = {
     line: "Revenue and the manufacturing order book are growing fast, but adjusted EBITDA margin is under 3%, operating cash flow is negative and the group still reports losses; ~1.6x sales is cheap only if margins rise from here.",
   },
   keyStats: [
-    { label: "Issue size", value: "Rs 5,012 Cr", sub: "Rs 2,830 Cr fresh + Rs 2,182 Cr offer for sale" },
-    { label: "Valuation at upper band", value: "~Rs 25,583 Cr", sub: "~1.6x FY26 revenue; ~61x FY26 adj. EBITDA" },
-    { label: "Revenue, FY26", value: "Rs 15,913 Cr", sub: "+40.4% YoY; adj. EBITDA margin 2.65%" },
-    { label: "Manufacturing order book", value: "Rs 13,062 Cr", sub: "Jun 2026; Rs 6,170 Cr at Mar 2024" },
+    { label: "Issue size", value: "₹5,012 Cr", sub: "₹2,830 Cr fresh + ₹2,182 Cr offer for sale" },
+    { label: "Valuation at upper band", value: "~₹25,583 Cr", sub: "~1.6x FY26 revenue; ~61x FY26 adj. EBITDA" },
+    { label: "Revenue, FY26", value: "₹15,913 Cr", sub: "+40.4% YoY; adj. EBITDA margin 2.65%" },
+    { label: "Manufacturing order book", value: "₹13,062 Cr", sub: "Jun 2026; ₹6,170 Cr at Mar 2024" },
   ],
   thesis: [
     {
-      title: "A manufacturing platform at Rs 15,900 Cr scale",
-      body: "Zetwerk takes orders for custom industrial goods and routes them to a network of third-party suppliers and its own plants in India, the US and Mexico. FY26 revenue from continuing operations rose 40.4% to Rs 15,913 Cr and Q1 FY27 grew 55.4%.",
+      title: "A manufacturing platform at ₹15,900 Cr scale",
+      body: "Zetwerk takes orders for custom industrial goods and routes them to a network of third-party suppliers and its own plants in India, the US and Mexico. FY26 revenue from continuing operations rose 40.4% to ₹15,913 Cr and Q1 FY27 grew 55.4%.",
     },
     {
       title: "Energy products are the growth engine",
-      body: "Energy products (solar structures, transformers and power equipment) grew 87% to Rs 6,508 Cr in FY26 and are ~69% of manufacturing revenue; the manufacturing order book doubled from Rs 6,170 Cr (Mar 2024) to Rs 13,062 Cr (Jun 2026).",
+      body: "Energy products (solar structures, transformers and power equipment) grew 87% to ₹6,508 Cr in FY26 and are ~69% of manufacturing revenue; the manufacturing order book doubled from ₹6,170 Cr (Mar 2024) to ₹13,062 Cr (Jun 2026).",
     },
     {
       title: "A clean-up IPO",
-      body: "Rs 2,160 Cr of the fresh issue repays debt at the company and nine subsidiaries, against Rs 1,942 Cr of borrowings at Jun 2026; the loss-making civil infrastructure business has been classified as discontinued and put up for sale.",
+      body: "₹2,160 Cr of the fresh issue repays debt at the company and nine subsidiaries, against ₹1,942 Cr of borrowings at Jun 2026; the loss-making civil infrastructure business has been classified as discontinued and put up for sale.",
     },
   ],
 
   business: {
     narrative: [
-      "Zetwerk, which began operations in 2018 under founders Amrit Pratik Acharya and Srinath Ramakkrushnan, sells custom manufactured goods as a principal: it contracts with the customer, designs or sources the part, and has it made by third-party suppliers or in its own facilities, coordinated through its Zetwerk OS software. It has cumulatively delivered goods worth Rs 74,374 Cr of GMV.",
+      "Zetwerk, which began operations in 2018 under founders Amrit Pratik Acharya and Srinath Ramakkrushnan, sells custom manufactured goods as a principal: it contracts with the customer, designs or sources the part, and has it made by third-party suppliers or in its own facilities, coordinated through its Zetwerk OS software. It has cumulatively delivered goods worth ₹74,374 Cr of GMV.",
       "It reports two continuing segments. The Manufacturing Business (59% of FY26 revenue) makes energy products, precision components and capital goods, with a 6.0% segment EBITDA margin. The Ecosystem Business (Terra91, ~41%) trades industrial commodities such as steel, aluminium, copper, zinc and bitumen at thin margins.",
       "Most revenue is domestic (82.5% India in FY26); the US contributed 14.3%, down from 21.5% in FY24 after US tariffs on Indian solar piles hit orders. The civil infrastructure works segment (water pipelines, rail track) was discontinued in FY26 and is being sold.",
     ],
     segments: [
-      { title: "Energy products", metric: "Rs 6,508 Cr FY26 revenue", body: "Solar module mounting structures, transformers and transmission and power equipment; +87% in FY26 and the largest part of the order book." },
-      { title: "Precision products", metric: "Rs 1,397 Cr FY26 revenue", body: "High-tolerance components and electronics sub-assemblies for consumer electronics, automotive and aerospace customers." },
-      { title: "Capital goods", metric: "Rs 1,464 Cr FY26 revenue", body: "Heavy fabricated equipment and industrial machinery for oil and gas, chemicals, metals and mining projects." },
-      { title: "Ecosystem Business (Terra91)", metric: "~Rs 6,539 Cr FY26 revenue", body: "Sale of industrial commodities - ferrous and non-ferrous metals, petrochemicals and bitumen - to manufacturers; high volume, low margin." },
-      { title: "Civil infrastructure (discontinued)", metric: "Rs 642 Cr FY26 loss", body: "Water pipeline and rail-track construction, shut and put up for sale in 2026; it carried a Rs 453 Cr impairment and further bad-debt provisions in Q1 FY27." },
+      { title: "Energy products", metric: "₹6,508 Cr FY26 revenue", body: "Solar module mounting structures, transformers and transmission and power equipment; +87% in FY26 and the largest part of the order book." },
+      { title: "Precision products", metric: "₹1,397 Cr FY26 revenue", body: "High-tolerance components and electronics sub-assemblies for consumer electronics, automotive and aerospace customers." },
+      { title: "Capital goods", metric: "₹1,464 Cr FY26 revenue", body: "Heavy fabricated equipment and industrial machinery for oil and gas, chemicals, metals and mining projects." },
+      { title: "Ecosystem Business (Terra91)", metric: "~₹6,539 Cr FY26 revenue", body: "Sale of industrial commodities - ferrous and non-ferrous metals, petrochemicals and bitumen - to manufacturers; high volume, low margin." },
+      { title: "Civil infrastructure (discontinued)", metric: "₹642 Cr FY26 loss", body: "Water pipeline and rail-track construction, shut and put up for sale in 2026; it carried a ₹453 Cr impairment and further bad-debt provisions in Q1 FY27." },
     ],
     mix: {
       title: "Share of FY26 revenue from continuing operations",
@@ -104,13 +104,13 @@ export const zetwerk: IpoReport = {
 
   industry: {
     narrative: [
-      "The Redseer report commissioned for the RHP sizes India's manufacturing procurement of durable goods (production equipment plus materials consumed by end-use industries) at Rs 17.4 lakh Cr in FY26, up from Rs 9.4 lakh Cr in FY21, and projects Rs 37.5-42.6 lakh Cr by FY31. The US market is three times larger but growing far more slowly.",
+      "The Redseer report commissioned for the RHP sizes India's manufacturing procurement of durable goods (production equipment plus materials consumed by end-use industries) at ₹17.4L Cr in FY26, up from ₹9.4L Cr in FY21, and projects ₹37.5-42.6L Cr by FY31. The US market is three times larger but growing far more slowly.",
       "Growth is led by electrical equipment, consumer electronics and energy and power equipment, helped by PLI schemes, the China+1 shift and grid and renewable investment. The RHP states there is no listed company in India or abroad with the same model, so the nearest comparables are EMS, solar and transmission-equipment makers.",
     ],
     chart: {
       title: "India's manufacturing procurement of durable goods",
-      unit: "Rs lakh Cr",
-      source: "Redseer report in the Zetwerk RHP (Exhibit 11): FY21, FY26 and FY31P (midpoint of Rs 37.5-42.6 lakh Cr); the RHP gives no other years",
+      unit: "₹ lakh Cr",
+      source: "Redseer report in the Zetwerk RHP (Exhibit 11): FY21, FY26 and FY31P (midpoint of ₹37.5-42.6L Cr); the RHP gives no other years",
       points: [
         { label: "FY21", value: 9.42 },
         { label: "FY26", value: 17.37 },
@@ -119,9 +119,9 @@ export const zetwerk: IpoReport = {
     },
     snapshot: [
       { label: "India durable-goods procurement, FY21-26", value: "~13% CAGR", tone: "pos" },
-      { label: "India durable-goods procurement, FY31P", value: "Rs 37.5-42.6 lakh Cr", tone: "pos" },
-      { label: "US durable-goods procurement, FY26", value: "Rs 53.1 lakh Cr, ~3% CAGR", tone: "neutral" },
-      { label: "Manufacturing FDI into India, FY25", value: "Rs 1.62 lakh Cr, +18%", tone: "pos" },
+      { label: "India durable-goods procurement, FY31P", value: "₹37.5-42.6L Cr", tone: "pos" },
+      { label: "US durable-goods procurement, FY26", value: "₹53.1L Cr, ~3% CAGR", tone: "neutral" },
+      { label: "Manufacturing FDI into India, FY25", value: "₹1.62L Cr, +18%", tone: "pos" },
       { label: "Listed peers with the same model (per RHP)", value: "None in India or globally", tone: "neutral" },
     ],
   },
@@ -134,12 +134,12 @@ export const zetwerk: IpoReport = {
       { label: "FY26", revenue: 15913, ebitda: 421, pat: -1606 },
       { label: "Q1 FY27", revenue: 4118, ebitda: 103, pat: -733, partial: true },
     ],
-    note: "EBITDA is adjusted (before share-based pay and exceptional items). PAT includes the discontinued civil infrastructure business (FY26 loss Rs 642 Cr) and a Rs 836 Cr non-cash FY26 charge on share-conversion ratios; the continuing-operations loss before exceptional items and tax fell from Rs 427 Cr in FY24 to Rs 81 Cr in FY26. Chittorgarh shows total income (Rs 16,101 Cr in FY26), not revenue from operations.",
+    note: "EBITDA is adjusted (before share-based pay and exceptional items). PAT includes the discontinued civil infrastructure business (FY26 loss ₹642 Cr) and a ₹836 Cr non-cash FY26 charge on share-conversion ratios; the continuing-operations loss before exceptional items and tax fell from ₹427 Cr in FY24 to ₹81 Cr in FY26. Chittorgarh shows total income (₹16,101 Cr in FY26), not revenue from operations.",
   },
 
   kpi: {
     title: "Manufacturing order book",
-    unit: "Rs Cr",
+    unit: "₹ Cr",
     source: "RHP KPI table; Business Today (UDRHP-I) for Mar 2024 and Mar 2026",
     points: [
       { label: "Mar 2024", value: 6170 },
@@ -152,9 +152,9 @@ export const zetwerk: IpoReport = {
     { label: "Gross margin, FY26", value: "12.1% (7.7% in FY24)", tone: "neutral" },
     { label: "Adjusted EBITDA margin, FY26", value: "2.65% (2.51% in Q1 FY27)", tone: "neg" },
     { label: "Manufacturing segment EBITDA margin, FY26", value: "6.0%", tone: "neutral" },
-    { label: "Operating cash flow, FY26", value: "-Rs 682 Cr (-Rs 506 Cr in Q1 FY27)", tone: "neg" },
-    { label: "Net worth, Jun 2026", value: "Rs 4,094 Cr", tone: "neutral" },
-    { label: "Total borrowings, Jun 2026", value: "Rs 1,942 Cr", tone: "neutral" },
+    { label: "Operating cash flow, FY26", value: "-₹682 Cr (-₹506 Cr in Q1 FY27)", tone: "neg" },
+    { label: "Net worth, Jun 2026", value: "₹4,094 Cr", tone: "neutral" },
+    { label: "Total borrowings, Jun 2026", value: "₹1,942 Cr", tone: "neutral" },
     { label: "Top 10 customers, FY26", value: "35.9% of revenue", tone: "neg" },
     { label: "Price / sales at upper band (FY26)", value: "~1.6x", tone: "pos" },
   ],
@@ -164,7 +164,7 @@ export const zetwerk: IpoReport = {
     { label: "Invest in nine subsidiaries to repay their borrowings", valueCr: 860 },
   ],
   proceedsNote:
-    "Rs 2,160 Cr of the Rs 2,830 Cr fresh issue repays debt in FY27. The balance, after issue expenses, funds unidentified acquisitions and general corporate purposes (together capped at 35% of gross proceeds). The Rs 2,182 Cr OFS goes to selling shareholders, not the company.",
+    "₹2,160 Cr of the ₹2,830 Cr fresh issue repays debt in FY27. The balance, after issue expenses, funds unidentified acquisitions and general corporate purposes (together capped at 35% of gross proceeds). The ₹2,182 Cr OFS goes to selling shareholders, not the company.",
   shareholding: [
     { holder: "Greenoaks Capital funds", pct: 19.62 },
     { holder: "Founders Amrit Acharya & Srinath Ramakkrushnan (promoters)", pct: 15.86 },
@@ -176,12 +176,12 @@ export const zetwerk: IpoReport = {
     { holder: "Other investors, employees and ESOPs", pct: 24.83 },
   ],
   sellers: [
-    { name: "Lightspeed (three funds)", detail: "2.83 crore shares, ~Rs 427 Cr at the upper band" },
-    { name: "Peak XV Partners (two funds)", detail: "2.34 crore shares, ~Rs 353 Cr" },
-    { name: "Creovate Innovation (promoter group)", detail: "2.30 crore shares, ~Rs 347 Cr" },
-    { name: "Founders Amrit Pratik Acharya and Srinath Ramakkrushnan", detail: "1.42 crore shares each, ~Rs 215 Cr each; promoters fall to ~11% post-issue" },
-    { name: "Kae Capital Fund II", detail: "1.26 crore shares, ~Rs 190 Cr" },
-    { name: "Accel India V and other sellers", detail: "Accel 1.20 crore shares (~Rs 181 Cr); other selling shareholders 1.68 crore shares (~Rs 254 Cr), taking the OFS to 14.45 crore shares" },
+    { name: "Lightspeed (three funds)", detail: "2.83 crore shares, ~₹427 Cr at the upper band" },
+    { name: "Peak XV Partners (two funds)", detail: "2.34 crore shares, ~₹353 Cr" },
+    { name: "Creovate Innovation (promoter group)", detail: "2.30 crore shares, ~₹347 Cr" },
+    { name: "Founders Amrit Pratik Acharya and Srinath Ramakkrushnan", detail: "1.42 crore shares each, ~₹215 Cr each; promoters fall to ~11% post-issue" },
+    { name: "Kae Capital Fund II", detail: "1.26 crore shares, ~₹190 Cr" },
+    { name: "Accel India V and other sellers", detail: "Accel 1.20 crore shares (~₹181 Cr); other selling shareholders 1.68 crore shares (~₹254 Cr), taking the OFS to 14.45 crore shares" },
   ],
 
   peers: [
@@ -191,16 +191,16 @@ export const zetwerk: IpoReport = {
     { name: "Skipper", ticker: "SKIPPER", note: "Transmission towers and engineering products." },
   ],
   valuationNote:
-    "At ~Rs 25,583 Cr Zetwerk is valued at ~1.6x FY26 revenue: close to Dixon, below Waaree and far below Kaynes on sales (see the table). But it has no earnings to put on a P/E and ~41% of revenue is low-margin commodity trading; on adjusted EBITDA the multiple is ~61x.",
+    "At ~₹25,583 Cr Zetwerk is valued at ~1.6x FY26 revenue: close to Dixon, below Waaree and far below Kaynes on sales (see the table). But it has no earnings to put on a P/E and ~41% of revenue is low-margin commodity trading; on adjusted EBITDA the multiple is ~61x.",
 
   strengths: [
     { title: "Asset-light, multi-sector platform", body: "A network of third-party suppliers plus 20+ own facilities lets Zetwerk take orders across energy, electronics, aerospace and capital goods without building every plant itself." },
-    { title: "Growing order book", body: "Manufacturing order book of Rs 13,062 Cr at Jun 2026, about 1.4x FY26 manufacturing revenue, with new orders of Rs 15,393 Cr in FY26." },
+    { title: "Growing order book", body: "Manufacturing order book of ₹13,062 Cr at Jun 2026, about 1.4x FY26 manufacturing revenue, with new orders of ₹15,393 Cr in FY26." },
     { title: "Technology layer (Zetwerk OS)", body: "Proprietary software that runs supplier matching, quality control and order tracking across a network of 10,000+ suppliers." },
     { title: "Exposure to India's capex and energy build-out", body: "Energy products ride solar and grid investment, and the China+1 shift brings global buyers to Indian suppliers; 1,802 customers in FY26." },
   ],
   risks: [
-    { risk: "Continuing losses and negative operating cash flow in every period shown (FY26 -Rs 682 Cr), with the discontinued civil business still taking provisions", mitigant: "Rs 2,160 Cr of debt repayment and the exit from civil infrastructure", severity: "high" },
+    { risk: "Continuing losses and negative operating cash flow in every period shown (FY26 -₹682 Cr), with the discontinued civil business still taking provisions", mitigant: "₹2,160 Cr of debt repayment and the exit from civil infrastructure", severity: "high" },
     { risk: "Thin margins: 2.65% adjusted EBITDA margin, with ~41% of revenue from commodity trading exposed to metal-price swings", mitigant: "Manufacturing segment earns ~6% EBITDA and its share is rising", severity: "high" },
     { risk: "Dependence on third-party suppliers for quality, capacity and timely delivery", mitigant: "Zetwerk OS quality controls and a mix of owned facilities", severity: "medium" },
     { risk: "Customer concentration: top 10 customers were 35.9% of FY26 revenue", mitigant: "Customer base widened to 1,802 in FY26", severity: "medium" },

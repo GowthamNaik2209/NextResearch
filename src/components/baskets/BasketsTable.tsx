@@ -55,6 +55,11 @@ const subscribe = (f: () => void) => {
   return () => subs.delete(f);
 };
 const getVersion = () => version;
+// The store lives in the browser only, and may already hold figures when a table hydrates (the
+// page's loading state ran first). Until hydration is done, render what the server rendered: the
+// server's seed, or loading.
+const noSub = () => () => {};
+const useHydrated = () => useSyncExternalStore(noSub, () => true, () => false);
 
 function startBench() {
   if (benchStarted) return;
@@ -167,7 +172,9 @@ export function BasketsTable({
   // Bumps as figures arrive, so the rows (and a sort by them) re-read the store.
   const v = useSyncExternalStore(subscribe, getVersion, getVersion);
   // Before the effect below puts the server's figures in the store, read them from the props.
+  const hydrated = useHydrated();
   const entryOf = (key: string): Entry | undefined => {
+    if (!hydrated) return seed?.figs[key];
     const e = figs.get(key);
     return e && e !== "loading" ? e : (seed?.figs[key] ?? e);
   };
@@ -204,7 +211,7 @@ export function BasketsTable({
       return sign * (va - vb) || a.r.name.localeCompare(b.r.name);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- v: re-sort as figures arrive (entryOf reads the store and seed)
-  }, [rows, keys, sort, v, seed]);
+  }, [rows, keys, sort, v, seed, hydrated]);
 
   const head = (id: Sort, text: string, place: string) => {
     const on = sort?.by === id ? sort : null;
@@ -383,11 +390,12 @@ export function BasketsPanel({
 export function BasketsSummary({ mineCount, benchRet = null }: { mineCount: number | null; /** The Nifty's 1Y return the server measured the rows against. */ benchRet?: number | null }) {
   useSyncExternalStore(subscribe, getVersion, getVersion);
   useEffect(() => startBench(), []);
-  const all = [...listed.keys()];
+  const hydrated = useHydrated();
+  const all = hydrated ? [...listed.keys()] : [];
   const done = all.map((k) => figs.get(k)).filter((e): e is Fig => !!e && typeof e === "object" && e.vs != null && Number.isFinite(e.vs));
   // Rows not yet asked for (the server is still working on them) count as loading too.
   const pending = all.filter((k) => !figs.has(k) || figs.get(k) === "loading").length;
-  const nifty = typeof bench === "object" ? bench : benchRet != null ? { ret: benchRet } : bench;
+  const nifty = hydrated && typeof bench === "object" ? bench : benchRet != null ? { ret: benchRet } : hydrated ? bench : "loading";
   const beat = done.filter((f) => (f.vs ?? 0) > 0).length;
   let best: { name: string; ret: number } | null = null;
   for (const k of all) {
@@ -408,7 +416,7 @@ export function BasketsSummary({ mineCount, benchRet = null }: { mineCount: numb
       <div className={cell}>
         <dt className={head}>Beat the Nifty · 1Y</dt>
         <dd className="font-mono text-sm font-bold tabular-nums text-ink">
-          {all.length === 0 ? NA : `${beat} of ${done.length}`}
+          {all.length === 0 ? (hydrated ? NA : <Pending />) : `${beat} of ${done.length}`}
           {pending > 0 && <span className="ml-1 font-sans text-[10px] font-normal text-ink-soft">({pending} loading)</span>}
         </dd>
       </div>
@@ -424,7 +432,7 @@ export function BasketsSummary({ mineCount, benchRet = null }: { mineCount: numb
               </span>
             </>
           ) : (
-            pending ? <Pending /> : <span className="font-mono text-ink-soft">{NA}</span>
+            pending || !hydrated ? <Pending /> : <span className="font-mono text-ink-soft">{NA}</span>
           )}
         </dd>
       </div>

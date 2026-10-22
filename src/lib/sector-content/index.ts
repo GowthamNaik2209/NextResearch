@@ -111,7 +111,7 @@ export type SupplierFinancials = {
   ticker: string;
   rev?: (number | null)[]; // 5 fiscal years FY22..FY26, Rs Cr
   np?: (number | null)[]; // net profit, same years
-  mcap?: string | null; // "Rs 1,74,575 Cr"
+  mcap?: string | null; // "Rs 1,74,575 Cr" (the table's own label; shown as ₹ by the UI)
   price?: string | null; // "Rs 166"
   note?: string | null;
   cagr?: (number | null)[] | null; // stock price CAGR [1y, 3y, 5y], %
@@ -342,8 +342,9 @@ export function listCompanyFinancials(): SupplierFinancials[] {
   return listFinancials();
 }
 
-/** "Rs 1,12,682 Cr" -> 112682. */
+/** A crore figure as a number: "Rs 1,12,682 Cr" or "₹8,420 Cr" -> the number; "₹1.75L Cr" / "Rs 1.75 lakh crore" -> 175000. */
 export function parseCrore(s: string | null | undefined): number | null {
   const n = s ? parseFloat(s.replace(/[^\d.]/g, "")) : NaN;
-  return Number.isFinite(n) ? n : null;
+  if (!Number.isFinite(n)) return null;
+  return /\d\s?(L|lakh)\b/i.test(s!) ? n * 100_000 : n;
 }

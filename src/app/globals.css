@@ -157,28 +157,31 @@ select {
   transition: transform 0.12s, color 0.15s, background 0.15s;
   position: relative;
 }
-/* Touch screens: room between the heart's 40px tap area and a name link's (tap-y) beside it. */
+/* Hit area = the button's own box. A 40x40 ::after centred on the 23x23 heart used to reach over
+   the text beside it ("Direct supplier · Medium" in an explorer row), so a tap meant for the row
+   toggled the watchlist. A mouse gets the heart as drawn; a finger gets a real 40x40 button with a
+   larger heart, which takes its own room in the row (negative block margins keep rows from growing
+   by sitting it in their padding), so nothing overlaps it. */
 @media (pointer: coarse) {
   .watch-btn {
-    margin-left: 9px;
+    width: 40px;
+    height: 40px;
+    margin-left: 0;
+    margin-block: -8px;
+    flex: none;
+  }
+  .watch-btn .watch-heart {
+    width: 21px;
+    height: 21px;
   }
 }
-/* The visible icon stays small (17x17 svg + 3px padding = 23x23) so it doesn't
-   blow out the row heights it's inlined into (chips, tables, card headers) —
-   but a 23x23 hit area is well under the ~40x40 minimum for a reliable touch
-   target. This invisible pseudo-element enlarges the *tappable* area to 40x40
-   without affecting layout: it's absolutely positioned (out of flow) and
-   centered over the button, and generated content on an element is part of
-   that element's hit-test box, so a tap anywhere in the 40x40 square still
-   registers as a click on the button itself. */
-.watch-btn::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 40px;
-  height: 40px;
-  transform: translate(-50%, -50%);
+/* A tap is saving: the heart already shows the new state (optimistic); this only stops it
+   looking idle. */
+.watch-btn.pending {
+  cursor: progress;
+}
+.watch-btn.pending .watch-heart {
+  opacity: 0.75;
 }
 .watch-btn:hover {
   color: var(--danger);

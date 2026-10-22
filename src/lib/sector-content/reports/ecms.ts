@@ -12,19 +12,19 @@ export const ecms: SectorReport = {
     line: "Approvals have beaten every target; the next 18 months decide whether the PCB, module and laminate plants run full and profitably.",
   },
   keyStats: [
-    { label: "ECMS outlay", value: "Rs 40,000 Cr", sub: "up from Rs 22,919 Cr (Budget 2026-27)" },
-    { label: "Approved investment", value: "Rs 69,548 Cr", sub: "106 projects by 17 Aug 2026 (MeitY)" },
-    { label: "Expected production", value: "Rs 5.34 lakh Cr", sub: "vs Rs 4.57 lakh Cr target (MeitY)" },
+    { label: "ECMS outlay", value: "₹40,000 Cr", sub: "up from ₹22,919 Cr (Budget 2026-27)" },
+    { label: "Approved investment", value: "₹69,548 Cr", sub: "106 projects by 17 Aug 2026 (MeitY)" },
+    { label: "Expected production", value: "₹5.34L Cr", sub: "vs ₹4.57L Cr target (MeitY)" },
     { label: "Component imports, FY26", value: "~US$40bn", sub: "of which ICs ~US$30bn (CRISIL)" },
   ],
   thesis: [
     {
       title: "Assembly built the base; components are the profit pool",
-      body: "India makes ~Rs 6.27 lakh crore of phones a year but adds only ~18-20% of their value. ECMS pays 1-10% of extra sales or 25% of capex to make boards, modules, enclosures, passives and materials here.",
+      body: "India makes ~₹6.27L Cr of phones a year but adds only ~18-20% of their value. ECMS pays 1-10% of extra sales or 25% of capex to make boards, modules, enclosures, passives and materials here.",
     },
     {
       title: "Listed EMS firms are integrating backwards",
-      body: "Kaynes (Rs 3,280 Cr across HDI, PCB, laminate, camera), Amber (Rs 4,200 Cr of PCB plants), Syrma and Dixon (camera and display JVs) turn from assemblers into component makers - with higher margins if yields come through.",
+      body: "Kaynes (₹3,280 Cr across HDI, PCB, laminate, camera), Amber (₹4,200 Cr of PCB plants), Syrma and Dixon (camera and display JVs) turn from assemblers into component makers - with higher margins if yields come through.",
     },
     {
       title: "Materials and equipment are the second wave",
@@ -42,28 +42,28 @@ export const ecms: SectorReport = {
     },
     {
       date: "17 Aug 2026",
-      title: "Fifth tranche: 31 projects, Rs 7,877 Cr",
-      body: "Included India's first acetylene black (PCBL) and electrolyte additives (Acutaas), Jyoti CNC's Rs 1,021 Cr capital-goods plan and a Rs 1,033 Cr Wipro laminate expansion. Totals reached 106 projects and Rs 69,548 Cr; 38 projects are producing.",
+      title: "Fifth tranche: 31 projects, ₹7,877 Cr",
+      body: "Included India's first acetylene black (PCBL) and electrolyte additives (Acutaas), Jyoti CNC's ₹1,021 Cr capital-goods plan and a ₹1,033 Cr Wipro laminate expansion. Totals reached 106 projects and ₹69,548 Cr; 38 projects are producing.",
       impact: "pos",
       tag: "Approvals",
     },
     {
       date: "Mar 2026",
       title: "Fourth tranche brings first SMD passives",
-      body: "29 projects worth Rs 7,104 Cr, including tantalum polymer capacitors, Lohum's Rs 700 Cr rare-earth magnet project (approved, not yet built; MeitY called it India's first magnet plant starting from rare-earth oxides) and Dixon's Rs 1,100 Cr display-module plant. Dixon's HKC display JV cleared Press Note 3 on 9 Mar.",
+      body: "29 projects worth ₹7,104 Cr, including tantalum polymer capacitors, Lohum's ₹700 Cr rare-earth magnet project (approved, not yet built; MeitY called it India's first magnet plant starting from rare-earth oxides) and Dixon's ₹1,100 Cr display-module plant. Dixon's HKC display JV cleared Press Note 3 on 9 Mar.",
       impact: "pos",
       tag: "Approvals",
     },
     {
       date: "Feb 2026",
-      title: "Budget lifts the outlay to Rs 40,000 Cr",
-      body: "Union Budget 2026-27 raised ECMS from Rs 22,919 Cr after applications (249 received) and approvals ran well ahead of the original investment target.",
+      title: "Budget lifts the outlay to ₹40,000 Cr",
+      body: "Union Budget 2026-27 raised ECMS from ₹22,919 Cr after applications (249 received) and approvals ran well ahead of the original investment target.",
       impact: "pos",
       tag: "Budget",
     },
     {
       date: "2 Jan 2026",
-      title: "Third tranche: Rs 41,863 Cr in one go",
+      title: "Third tranche: ₹41,863 Cr in one go",
       body: "22 projects including Samsung Display, Foxconn (Yuzhan), Tata Electronics and Motherson enclosures, Hindalco extrusions, AT&S and Ascent-K PCBs, ATL cells and Wipro laminate.",
       impact: "pos",
       tag: "Approvals",
@@ -71,7 +71,7 @@ export const ecms: SectorReport = {
     {
       date: "27 Oct 2025",
       title: "First seven projects approved",
-      body: "Rs 5,532 Cr for Kaynes Circuits (HDI and multi-layer PCB, laminate, camera modules), Syrma (multi-layer PCB), Ascent Circuits (multi-layer PCB) and SRF (capacitor film).",
+      body: "₹5,532 Cr for Kaynes Circuits (HDI and multi-layer PCB, laminate, camera modules), Syrma (multi-layer PCB), Ascent Circuits (multi-layer PCB) and SRF (capacitor film).",
       impact: "pos",
       tag: "Approvals",
     },
@@ -81,11 +81,11 @@ export const ecms: SectorReport = {
     narrative: [
       "The Electronics Component Manufacturing Scheme was approved by the Cabinet on 28 Mar 2025 and notified on 8 Apr 2025. It runs FY26-FY32 (six years plus an optional gestation year) and pays three ways: a turnover-linked incentive on extra sales, a 25% capex subsidy, or a hybrid of both for priority parts like HDI boards and SMD passives.",
       "Windows for modules, boards and passives closed on 30 Sep 2025; the supply-chain and capital-equipment window stays open until 30 Apr 2027. One percentage point of the turnover rate (five of the 25% capex) is withheld unless employment targets are met.",
-      "Approvals now exceed the scheme's investment (Rs 59,350 Cr) and production targets, but employment (74,628 vs 91,600) lags, and most big plants are still starting up.",
+      "Approvals now exceed the scheme's investment (₹59,350 Cr) and production targets, but employment (74,628 vs 91,600) lags, and most big plants are still starting up.",
     ],
     chart: {
       title: "ECMS approved investment, cumulative",
-      unit: "Rs '000 Cr",
+      unit: "₹ '000 Cr",
       source: "MeitY / PIB tranche announcements (Oct 2025 - Aug 2026)",
       points: [
         { label: "Oct 25", value: 5.5 },
@@ -99,7 +99,7 @@ export const ecms: SectorReport = {
       { label: "Projects approved (17 Aug 2026)", value: "106 in 15 states", tone: "pos" },
       { label: "Projects in production", value: "38 (16 under construction)", tone: "neutral" },
       { label: "Direct jobs approved vs target", value: "74,628 vs 91,600", tone: "neg" },
-      { label: "Phone production, FY26", value: "~Rs 6.27 lakh Cr", tone: "pos" },
+      { label: "Phone production, FY26", value: "~₹6.27L Cr", tone: "pos" },
       { label: "Domestic value addition (GTRI)", value: "~18-20%", tone: "neg" },
       { label: "Capital-equipment window closes", value: "30 Apr 2027", tone: "neutral" },
     ],
@@ -114,14 +114,14 @@ export const ecms: SectorReport = {
   ],
 
   drivers: [
-    { title: "Phone and laptop assembly", metric: "Rs 6.27 lakh Cr phones, FY26", body: "Every phone assembled here is a customer for local enclosures, HDI boards, camera and display modules and cells." },
+    { title: "Phone and laptop assembly", metric: "₹6.27L Cr phones, FY26", body: "Every phone assembled here is a customer for local enclosures, HDI boards, camera and display modules and cells." },
     { title: "Component demand", metric: "US$240bn by 2030 (CII)", body: "CII sees India's demand for components and sub-assemblies rising from ~US$45.5bn to US$240bn by 2030 if electronics output reaches US$500bn." },
     { title: "Incentive design", metric: "1-10% of extra sales / 25% capex", body: "Paid only on delivered incremental sales or capex, with an employment-linked slice - money follows real production." },
     { title: "China+1 sourcing", metric: "~US$40bn imports, FY26", body: "Brands want non-China supply for US and European markets; import substitution is a large, visible pool." },
   ],
   mix: {
     title: "ECMS approved investment by tranche",
-    source: "MeitY / PIB (Rs 69,548 Cr total, to 17 Aug 2026)",
+    source: "MeitY / PIB (₹69,548 Cr total, to 17 Aug 2026)",
     slices: [
       { label: "Oct 2025 (7 projects)", value: 8 },
       { label: "Nov 2025 (17 projects)", value: 10 },
@@ -159,8 +159,8 @@ export const ecms: SectorReport = {
   },
 
   beneficiaries: [
-    { key: "kaynes", tier: "core", why: "Broadest ECMS footprint (HDI, multi-layer PCB, laminate, camera modules: Rs 3,280 Cr) - but under accounting scrutiny." },
-    { key: "amber", tier: "core", why: "Ascent Circuits and the Ascent-K HDI JV make it the largest listed PCB bet (~Rs 4,200 Cr)." },
+    { key: "kaynes", tier: "core", why: "Broadest ECMS footprint (HDI, multi-layer PCB, laminate, camera modules: ₹3,280 Cr) - but under accounting scrutiny." },
+    { key: "amber", tier: "core", why: "Ascent Circuits and the Ascent-K HDI JV make it the largest listed PCB bet (~₹4,200 Cr)." },
     { key: "syrma", tier: "core", why: "Multi-layer PCB fab in Andhra Pradesh plus camera modules and coils." },
     { key: "dixon", tier: "core", why: "Camera, display and optical-transceiver JVs feed its own phone and TV assembly." },
     { key: "acutaas", tier: "direct", why: "Electrolyte additives approved; battery chemicals already in commercial supply." },
@@ -173,9 +173,9 @@ export const ecms: SectorReport = {
 
   companyNews: [
     { key: "kaynes", date: "Aug 2026", development: "Its Chennai PCB plant was described as set to go live within about a month as the fifth tranche was announced.", impact: "The first large ECMS board fab to start - a test of yields and customer uptake.", tone: "pos" },
-    { key: "acutaas", date: "Aug 2026", development: "ECMS approval for its Jhagadia electrolyte-additives plant: Rs 119 Cr eligible investment, up to 25% incentive through FY31.", impact: "Chemicals companies join the electronics supply chain via battery materials.", tone: "pos" },
+    { key: "acutaas", date: "Aug 2026", development: "ECMS approval for its Jhagadia electrolyte-additives plant: ₹119 Cr eligible investment, up to 25% incentive through FY31.", impact: "Chemicals companies join the electronics supply chain via battery materials.", tone: "pos" },
     { key: "amber", date: "Jun 2026", development: "Broke ground on the Ascent-K HDI/flex PCB plant near Jewar and signed a cooperation pact with Germany's Schweizer Electronic.", impact: "Shows HDI capacity moving from approval to construction with European know-how.", tone: "pos" },
-    { key: "srf", date: "May 2026", development: "Commissioned phase 1 of its capacitor-grade BOPP film line at Indore (~Rs 277 Cr).", impact: "First local supply of the dielectric film inside film capacitors.", tone: "pos" },
+    { key: "srf", date: "May 2026", development: "Commissioned phase 1 of its capacitor-grade BOPP film line at Indore (~₹277 Cr).", impact: "First local supply of the dielectric film inside film capacitors.", tone: "pos" },
     { key: "dixon", date: "Mar 2026", development: "HKC display-module JV cleared under Press Note 3 (9 Mar) and Dixon Display got ECMS approval (30 Mar).", impact: "Unlocks the template for Chinese-partnered module plants.", tone: "pos" },
     { key: "kaynes", date: "Dec 2025", development: "Kotak Institutional Equities flagged accounting and disclosure inconsistencies in the FY25 annual report; the company disputed them.", impact: "Governance scrutiny now sits alongside the sector's highest-profile ECMS growth story.", tone: "neg" },
   ],

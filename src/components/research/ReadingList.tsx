@@ -7,7 +7,6 @@ import type { IpoDeck } from "@/lib/ipo-content";
 import type { DeckCard, IpoCard } from "@/lib/analysis-props";
 import { IpoGrid } from "@/components/ipo/IpoGrid";
 import { InfoTip } from "@/components/InfoTip";
-import { rupee } from "./headlines";
 import { LazyResearchDeck, dropDeepLinkParam, intentProps, prefetchReport } from "./LazyDecks";
 import type { ChartsIndustry } from "@/components/baskets/IndustryChartsView";
 import type { CompareBasket } from "@/components/baskets/BasketChart";
@@ -111,7 +110,6 @@ export function ReadingList({
     if (appliedInitial.current || !initial || !decks.some((d) => d.slug === initial)) return;
     appliedInitial.current = true;
     dropDeepLinkParam("report");
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from the URL on mount
     setOpenSlug(initial);
   }, [decks, initial]);
 
@@ -264,7 +262,7 @@ function ReportCard({ deck, onOpen }: { deck: DeckCard; onOpen: () => void }) {
           {r.keyStats.map((s) => (
             <span key={s.label} className="rounded-lg border border-line bg-bg/60 p-2.5">
               <span className="block text-[9.5px] uppercase leading-tight tracking-wide text-ink-soft">{s.label}</span>
-              <span className="mt-0.5 block font-display text-base font-bold text-ink">{rupee(s.value)}</span>
+              <span className="mt-0.5 block font-display text-base font-bold text-ink">{s.value}</span>
             </span>
           ))}
         </span>

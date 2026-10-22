@@ -27,14 +27,14 @@ const TYPED_FIGURE: [RegExp, string][] = [
   [/P\/E\s*(of\s*|above\s*|below\s*)?\(?~?\d/i, "a P/E"],
   [/~?\d+(\.\d+)?x\s*(earnings|EPS|trailing|P\/E|book)\b/i, "a valuation multiple"],
   [/\b(valuation|multiple)\s*\(~?\d+(\.\d+)?x?\)/i, "a valuation multiple"],
-  [/market[ -]?(cap|value|capitali[sz]ation)\b[^.;]{0,15}~?Rs\s?[\d,]/i, "a market cap"],
-  [/Rs\s?[\d,.]+\s*(crore|Cr)\s*market[ -]?(cap|value)/i, "a market cap"],
+  [/market[ -]?(cap|value|capitali[sz]ation)\b[^.;]{0,15}~?(Rs\s?|₹)[\d,]/i, "a market cap"],
+  [/(Rs\s?|₹)[\d,.]+\s*L?\s*(crore|Cr)\s*market[ -]?(cap|value)/i, "a market cap"],
   [/(?<!unsold )\b(stock|shares|share price)\b[^.;]{0,40}\b(down|up|fell|rose|gained|lost|dropped|slid|declined|rallied)\s*~?\d+(\.\d+)?%/i, "a share-price move"],
   [/\b(stock|shares)\s*[-−+]\d+%/i, "a share-price move"],
   [/\b(stock|share)\b[^.;]{0,20}\bCAGR\b[^.;]{0,10}\d+%/i, "a share-price return"],
   [/\b(down|up)\s*~?\d+%\s*(in a year|over the past year)/i, "a one-year return"],
   [/\bRO(C)?E\b[^.;]{0,10}~?\d+(\.\d+)?%/, "a ROCE/ROE"],
-  [/52[- ]?(week|W)\b[^.;]{0,30}Rs\s?[\d,]/i, "a 52-week price"],
+  [/52[- ]?(week|W)\b[^.;]{0,30}(Rs\s?|₹)[\d,]/i, "a 52-week price"],
 ];
 
 // Every string in an authored object, with its path; skips the figures (`f`) and 3D builders.

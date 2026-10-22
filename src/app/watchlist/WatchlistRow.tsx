@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import type { SectorSupplier } from "@/lib/sector-content";
-import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
+import { WatchlistButton, isWatched, subscribeWatchlist } from "@/components/sector-explorer/WatchlistButton";
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
 
 // One watchlist row with its own heart, so a stock can be removed right here. Every heart for a
 // ticker shares one state (WatchlistButton), so removing it from the row's pop-up flips this
-// row's heart too; the row watches that heart and collapses to a "removed" line at once - no
-// reload - with the heart still there to put it back.
+// row's heart too; the row follows that shared state and collapses to a "removed" line at once -
+// no reload - with the heart still there to put it back.
 export function WatchlistRow({
   ticker,
   name,
@@ -22,28 +22,19 @@ export function WatchlistRow({
   className: string;
   children: React.ReactNode;
 }) {
-  const heartRef = useRef<HTMLSpanElement>(null);
+  // null until the shared list has loaded; only a saved -> not saved change means "removed".
+  const liked = useSyncExternalStore(subscribeWatchlist, () => isWatched(ticker), () => null);
+  const [prevLiked, setPrevLiked] = useState(liked);
   const [removed, setRemoved] = useState(false);
-
-  useEffect(() => {
-    const btn = heartRef.current?.querySelector("button");
-    if (!btn) return;
-    // The heart starts unpressed until the shared list loads, so only a pressed -> unpressed
-    // change means "removed".
-    let wasLiked = btn.getAttribute("aria-pressed") === "true";
-    const mo = new MutationObserver(() => {
-      const liked = btn.getAttribute("aria-pressed") === "true";
-      if (liked) setRemoved(false);
-      else if (wasLiked) setRemoved(true);
-      wasLiked = liked;
-    });
-    mo.observe(btn, { attributes: true, attributeFilter: ["aria-pressed"] });
-    return () => mo.disconnect();
-    // The heart moves between the two layouts below (a new button), so watch the new one.
-  }, [removed]);
+  if (liked !== prevLiked) {
+    // Adjusting state while rendering (React's pattern for reacting to a changed value).
+    setPrevLiked(liked);
+    if (liked) setRemoved(false);
+    else if (prevLiked === true && liked === false) setRemoved(true);
+  }
 
   const heart = (
-    <span ref={heartRef} className="flex-none">
+    <span className="flex-none">
       <WatchlistButton ticker={ticker} name={name} />
     </span>
   );

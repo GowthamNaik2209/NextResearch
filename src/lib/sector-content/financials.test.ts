@@ -18,7 +18,7 @@ const rows = listSectors().flatMap((sector) =>
 );
 
 // The figures that must agree; `note` may carry sector-specific context on top of the company note.
-const figures = ({ note: _note, ...rest }: SupplierFinancials) => JSON.stringify(rest);
+const figures = (f: SupplierFinancials) => JSON.stringify({ ...f, note: undefined });
 
 test("a ticker carries the same financials in every sector", () => {
   const byTicker = new Map<string, { where: string; f: SupplierFinancials }[]>();

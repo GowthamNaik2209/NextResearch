@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { returnToStockPath } from "@/lib/safe-next";
-import "./watchlist.css";
 
 type Props = { ticker: string; name?: string };
 
@@ -57,6 +56,17 @@ function setLiked(ticker: string, liked: boolean) {
   else tickersCache.delete(ticker);
   notifyAll();
 }
+
+// For code outside the heart that follows the same shared state (the /watchlist rows collapse
+// when their stock is un-hearted anywhere on the page). `isWatched` is null until the list loads.
+export function subscribeWatchlist(onChange: () => void): () => void {
+  listeners.add(onChange);
+  void loadTickers().then(onChange);
+  return () => {
+    listeners.delete(onChange);
+  };
+}
+export const isWatched = (ticker: string): boolean | null => (tickersCache ? tickersCache.has(ticker) : null);
 
 // A signed-out tap on the heart remembers the ticker here before sending them to sign up /
 // log in; ReturnToStock finishes the save once they're back on the page with ?stock=TICKER.
@@ -192,7 +202,7 @@ export function WatchlistButton({ ticker, name }: Props) {
       <button
         type="button"
         // The visible heart stays small on a mouse; on touch screens the button itself is the
-        // 40x40 target (watchlist.css), so its tap area never reaches over the text beside it.
+        // 40x40 target (globals.css), so its tap area never reaches over the text beside it.
         className={"watch-btn" + (liked ? " active" : "") + (justLiked ? " pop" : "") + (pending ? " pending" : "")}
         onClick={toggle}
         aria-busy={pending || undefined}

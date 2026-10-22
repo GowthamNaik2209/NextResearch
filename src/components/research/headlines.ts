@@ -14,7 +14,7 @@ export const listJoin = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.
  * Authored figures written "Rs 4.42 lakh Cr" / "Rs 1.13 L Cr" in the site's style ("₹4.42L Cr"),
  * for the headline numbers on cards and slides. The authored copy itself still says "Rs".
  */
-export const rupee = (t: string) => t.replace(/\bRs\.?\s?(?=[~\d(])/g, "₹").replace(/(\d)\s?(?:lakh|L) Cr\b/g, "$1L Cr");
+export const rupee = (t: string) => t.replace(/\bRs\.?\s?(?=[~\d(])/g, "₹").replace(/(\d)\s?(?:lakh|L) (?:Cr|crore)\b/g, "$1L Cr");
 
 // Small counts read better as words in a headline ("one flags a risk", not "1 flags a risk").
 const WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];

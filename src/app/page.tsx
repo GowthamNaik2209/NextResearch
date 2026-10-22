@@ -1,10 +1,11 @@
 import { listSectors } from "@/lib/sector-content";
-import { dataAsOfRange } from "@/lib/sector-content/insights";
+import { buildIdeas, dataAsOfRange } from "@/lib/sector-content/insights";
+import { buildHeroThemeRows, buildSearchIndex, getPlatformStats } from "@/lib/sector-content/stats";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ReadingList } from "@/components/research/ReadingList";
 import { getCurrentUser } from "@/lib/auth";
-import { analysisProps, analysisView, cachedHeroThemeRows, cachedIdeas, cachedPlatformStats, cachedSearchIndex } from "@/lib/analysis-props";
+import { analysisProps, analysisView } from "@/lib/analysis-props";
 import { IdeasSection } from "@/components/IdeasSection";
 import { Hero } from "@/components/landing/Hero";
 import { StatsStrip } from "@/components/landing/StatsStrip";
@@ -32,8 +33,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <SiteHeader />
       <main className="flex-1">
         <section className="border-b border-line">
-          <Hero featured={featured} searchIndex={cachedSearchIndex()} themeRows={cachedHeroThemeRows(featured?.slug)} />
-          <StatsStrip stats={cachedPlatformStats()} />
+          <Hero featured={featured} searchIndex={buildSearchIndex()} themeRows={buildHeroThemeRows(featured?.slug)} />
+          <StatsStrip stats={getPlatformStats()} />
         </section>
 
         {featured && <FeaturedThesis sector={featured} />}
@@ -56,7 +57,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </section>
 
         <section className="mx-auto max-w-6xl px-5 pb-20">
-          <IdeasSection ideas={cachedIdeas()} asOf={dataAsOfRange()} />
+          <IdeasSection ideas={buildIdeas()} asOf={dataAsOfRange()} />
         </section>
 
         <UpdatesSection />

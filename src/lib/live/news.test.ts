@@ -39,7 +39,8 @@ test("parseGoogleNewsRss drops price-prediction spam, future-dated and malformed
 
 test("formatNewsDate is relative for today and absolute afterwards", () => {
   assert.equal(formatNewsDate(NOW - 20 * 60_000, NOW), "Just now");
-  assert.equal(formatNewsDate(NOW - 5 * 3_600_000, NOW), "5h ago");
+  // (Not exactly 5h: NOW - 5h is 07:00:00 GMT, the date-only stamp tested below.)
+  assert.equal(formatNewsDate(NOW - 5 * 3_600_000 - 60_000, NOW), "5h ago");
   assert.match(formatNewsDate(Date.parse("2026-10-02T00:00:00Z"), NOW), /^2 Oct 2026$/);
 });
 
@@ -257,7 +258,7 @@ test("stamps without a real time (Google's 07:00 GMT, curated midnights) show th
 test("headline ages are recomputed on the viewer's clock, curated month-only dates are kept", () => {
   const ts = NOW - 30 * 60_000;
   assert.equal(newsAgeLabel("3h ago", ts, NOW), "Just now", "a stale cached label is replaced");
-  assert.equal(newsAgeLabel("Just now", NOW - 5 * 3_600_000, NOW), "5h ago");
+  assert.equal(newsAgeLabel("Just now", NOW - 5 * 3_600_000 - 60_000, NOW), "5h ago");
   assert.equal(newsAgeLabel("Mar 2026", Date.parse("2026-03-01"), NOW), "Mar 2026");
   assert.equal(newsAgeLabel("5h ago", NOW - 30 * 3_600_000, NOW), formatNewsDate(NOW - 30 * 3_600_000, NOW));
 });

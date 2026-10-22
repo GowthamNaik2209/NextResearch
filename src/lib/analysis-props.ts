@@ -8,62 +8,18 @@
 // its one deck or the baskets in the page, so it opens without a round trip.
 import { listIndustryBaskets } from "@/lib/baskets/industry";
 import { listComingSoonSectors, listSectors } from "@/lib/sector-content";
-import { buildHeroThemeRows, buildSearchIndex, buildSectorCards, getPlatformStats } from "@/lib/sector-content/stats";
-import { buildIdeas } from "@/lib/sector-content/insights";
+import { buildSectorCards } from "@/lib/sector-content/stats";
 import { buildDeck, type Deck } from "@/lib/sector-content/reports";
 import { BENCHMARKS, MARKET_BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listIpoDecks, type IpoDeck } from "@/lib/ipo-content";
 import { memoByFinancials } from "@/lib/financials/store";
-import { liveIpoStatus } from "@/components/ipo/status";
-import { croreShort } from "@/lib/format";
 import type { ChartsIndustry } from "@/components/baskets/IndustryChartsView";
 
-// ---- Per-request builders, cached until the company table is reinstalled ----
-// Each of these walks every sector (or every deck) and was re-run on every request.
+// The builders used here (buildDeck, listIpoDecks, buildSectorCards, ...) memoise themselves per
+// installed company table, and listIpoDecks rolls each IPO's status forward to today.
 
-const deckCache = memoByFinancials(() => new Map<string, Deck | null>());
-/** buildDeck, cached per slug. The result is shared: never mutate it. */
-export function cachedDeck(slug: string): Deck | null {
-  const m = deckCache();
-  if (!m.has(slug)) m.set(slug, buildDeck(slug));
-  return m.get(slug)!;
-}
-const ipoDecks = memoByFinancials(listIpoDecks);
-/** Every IPO deck, with its status chip rolled forward to today. */
-export const cachedIpoDecks = (): IpoDeck[] => ipoDecks().map((d) => liveIpoStatus(d));
-export const cachedIpoDeck = (slug: string): IpoDeck | null => {
-  const d = ipoDecks().find((x) => x.slug === slug);
-  return d ? liveIpoStatus(d) : null;
-};
-export const cachedSectorCards = memoByFinancials(buildSectorCards);
-export const cachedPlatformStats = memoByFinancials(getPlatformStats);
-export const cachedIdeas = memoByFinancials(buildIdeas);
-
-const searchIndex = memoByFinancials(buildSearchIndex);
-/** The hero search index, with each IPO's status as of today (the index itself is cached). */
-export function cachedSearchIndex() {
-  const live = new Map(cachedIpoDecks().map((d) => [`/ipos?ipo=${d.slug}`, d.status.label]));
-  return searchIndex().map((e) => (e.kind === "ipo" && live.has(e.href) ? { ...e, sub: `IPO · ${live.get(e.href)}` } : e));
-}
-
-const heroRows = memoByFinancials(() => new Map<string, ReturnType<typeof buildHeroThemeRows>>());
-/** The hero's theme window rows; IPO chips and sizes follow today's status and the site's ₹ format. */
-export function cachedHeroThemeRows(featuredSlug?: string) {
-  const m = heroRows();
-  const key = featuredSlug ?? "";
-  if (!m.has(key)) m.set(key, buildHeroThemeRows(featuredSlug));
-  const rows = m.get(key)!;
-  const ipos = new Map(cachedIpoDecks().map((d) => [d.slug, d]));
-  return {
-    ...rows,
-    ipo: rows.ipo.map((r) => {
-      const d = r.ipoSlug ? ipos.get(r.ipoSlug) : undefined;
-      if (!d) return r;
-      const open = d.status.stage === "open" || d.status.stage === "upcoming";
-      return { ...r, chip: d.status.label, chipTone: open ? ("live" as const) : ("accent" as const), sub: d.issue.totalCr != null ? croreShort(d.issue.totalCr) : r.sub };
-    }),
-  };
-}
+/** One IPO deck, status as of today. */
+export const getIpoDeck = (slug: string): IpoDeck | null => listIpoDecks().find((d) => d.slug === slug) ?? null;
 
 // ---- Card-sized props ----
 
@@ -81,7 +37,7 @@ export type IpoCard = Pick<IpoDeck, "slug" | "name" | "icon" | "sectorLabel" | "
 const deckCards = memoByFinancials((): DeckCard[] =>
   listSectors()
     .filter((s) => !s.muted)
-    .map((s) => cachedDeck(s.slug))
+    .map((s) => buildDeck(s.slug))
     .filter((d): d is Deck => d !== null)
     .map((d) => ({
       slug: d.slug,
@@ -94,7 +50,7 @@ const deckCards = memoByFinancials((): DeckCard[] =>
 );
 
 export function ipoCards(): IpoCard[] {
-  return cachedIpoDecks().map(({ slug, name, icon, sectorLabel, tagline, status, issue }) => ({
+  return listIpoDecks().map(({ slug, name, icon, sectorLabel, tagline, status, issue }) => ({
     slug,
     name,
     icon,
@@ -120,10 +76,10 @@ export function analysisProps({ report, ipo, view }: { report?: string; ipo?: st
   const decks = deckCards();
   return {
     decks,
-    initialDeck: report && decks.some((d) => d.slug === report) ? (cachedDeck(report) ?? undefined) : undefined,
+    initialDeck: report && decks.some((d) => d.slug === report) ? (buildDeck(report) ?? undefined) : undefined,
     ipos: ipoCards(),
-    initialIpoDeck: ipo ? (cachedIpoDeck(ipo) ?? undefined) : undefined,
-    sectorCards: cachedSectorCards(),
+    initialIpoDeck: ipo ? (getIpoDeck(ipo) ?? undefined) : undefined,
+    sectorCards: buildSectorCards(),
     comingSoon: listComingSoonSectors(),
     baskets: analysisView(view) === "charts" ? chartBaskets() : undefined,
     industries: baskets.map(({ slug, name, icon }) => ({ slug, name, icon })),

@@ -5,7 +5,6 @@ import type { IpoDeck, IpoPeer } from "@/lib/ipo-content";
 import type { Tone } from "@/lib/ipo-content/types";
 import type { OpenableStock } from "@/components/research/Presentation";
 import { BarChart, Chip, MixChart, Panel, SlideHead, TONE_LABEL, TONE_TEXT, ToneBadge, ToneIcon, ToneValueCell } from "@/components/research/slides";
-import { rupee } from "@/components/research/headlines";
 import { StageChip } from "./StageChip";
 import { businessTitle, financialsTitle, fmtCr, industryTitle, issueTitle, kpiTitle, peersTitle, proceedsTitle, revenueGrowth, risksTitle } from "./headlines";
 
@@ -43,9 +42,8 @@ function Foot({ deck, source }: { deck: IpoDeck; source?: string }) {
 const Eyebrow = ({ children, className = "" }: { children: ReactNode; className?: string }) => (
   <p className={"mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft " + className}>{children}</p>
 );
-// Writes the authored "Rs 25,583 Cr" as "₹25,583 Cr" and glues units to their number, so a narrow
-// card never wraps "Cr" alone.
-const keepUnits = (t: string) => rupee(t).replace(/ (lakh|Cr|bn|mn)\b/g, "\u00a0$1");
+// Glues units to their number ("₹25,583 Cr", "10.3 lakh Cr") so a narrow card never wraps "Cr" alone.
+const keepUnits = (t: string) => t.replace(/ (lakh|Cr|bn|mn)\b/g, "\u00a0$1");
 const fmtPct = (n: number | null) => (n == null ? "—" : `${n.toFixed(1)}%`);
 // Holder colours: four distinct hues, then the same hues lighter, then grey for the remainder.
 const HOLDER_COLORS = [
@@ -106,7 +104,7 @@ function SummarySlide({ deck }: SlideProps) {
         {glance.map(([k, v], n) => (
           <div key={k} className={"min-w-0 p-3 " + (n % 2 ? "border-l border-line " : "") + (n >= 2 ? "border-t border-line lg:border-t-0 " : "") + (n === 2 ? "lg:border-l" : "")}>
             <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">{k}</dt>
-            <dd className="mt-0.5 text-[13px] font-semibold leading-snug text-ink">{rupee(v)}</dd>
+            <dd className="mt-0.5 text-[13px] font-semibold leading-snug text-ink">{v}</dd>
           </div>
         ))}
       </dl>

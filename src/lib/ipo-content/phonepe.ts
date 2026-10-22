@@ -22,7 +22,7 @@ export const phonepe: IpoReport = {
     { date: "8 Jan 2026", event: "SEBI final observation letter (per the UDRHP)", done: true },
     { date: "21 Jan 2026", event: "UDRHP-I filed: OFS of 5.07 crore shares, no fresh issue", done: true },
     { date: "16 Mar 2026", event: "IPO paused on market volatility", done: true },
-    { date: "15 Oct 2026", event: "UPI MDR of 0.4% on merchant payments above Rs 2,000 takes effect", done: true },
+    { date: "15 Oct 2026", event: "UPI MDR of 0.4% on merchant payments above ₹2,000 takes effect", done: true },
     { date: "Dec 2026", event: "Updated papers with FY26 numbers expected (Inc42, sources)", done: false },
     { date: "Feb-Mar 2027", event: "Targeted listing window (reported, unconfirmed)", done: false },
   ],
@@ -35,8 +35,8 @@ export const phonepe: IpoReport = {
     ofsShares: "5.07 crore shares (50,660,446), ~9.8% of fully diluted equity",
     priceBand: null,
     lotSize: null,
-    faceValue: "Rs 1",
-    valuation: "~US$10bn sought per Inc42 (Sep 2026); ~Rs 95,000 Cr at ~Rs 95/US$ (94.92 on 16 Oct 2026). Earlier reports: US$9-10.5bn (Mar 2026), ~US$15bn targeted around filing",
+    faceValue: "₹1",
+    valuation: "~US$10bn sought per Inc42 (Sep 2026); ~₹95,000 Cr at ~₹95/US$ (94.92 on 16 Oct 2026). Earlier reports: US$9-10.5bn (Mar 2026), ~US$15bn targeted around filing",
     valuationCr: 95000,
     reservation: "QIB at least 75% · NII up to 15% · Retail up to 10% (Reg 6(2), loss-making issuer)",
     exchanges: "NSE, BSE",
@@ -59,23 +59,23 @@ export const phonepe: IpoReport = {
     line: "PhonePe owns India's payment habit (65.8 crore registered users, ~47% of UPI volume) but earns little per transaction; MDR, lending distribution and the 30% volume cap decide what that scale is worth.",
   },
   keyStats: [
-    { label: "Revenue from operations, FY25", value: "Rs 7,115 Cr", sub: "+40.5%; FY26 Rs 7,921 Cr (+11.5%)" },
-    { label: "Adjusted EBITDA, FY25", value: "Rs 1,477 Cr", sub: "20.8% margin; H1 FY26 6.5%" },
+    { label: "Revenue from operations, FY25", value: "₹7,115 Cr", sub: "+40.5%; FY26 ₹7,921 Cr (+11.5%)" },
+    { label: "Adjusted EBITDA, FY25", value: "₹1,477 Cr", sub: "20.8% margin; H1 FY26 6.5%" },
     { label: "UPI volume share, Sep 2025", value: "46.85%", sub: "NPCI; 47.07% in Apr 2026" },
     { label: "Offer for sale", value: "5.07 crore shares", sub: "Walmart sells ~9%, keeps control" },
   ],
   thesis: [
     {
       title: "India's largest payments franchise comes to market",
-      body: "PhonePe has led customer-initiated UPI every month since Dec 2020 and processed Rs 132.7 lakh Cr of customer payments in FY25. No listed Indian company offers the same reach.",
+      body: "PhonePe has led customer-initiated UPI every month since Dec 2020 and processed ₹132.7L Cr of customer payments in FY25. No listed Indian company offers the same reach.",
     },
     {
       title: "Payments are the funnel; distribution is the profit pool",
-      body: "Lending and insurance distribution rose from 1% of revenue in FY23 to 11.6% in H1 FY26, and merchant payments to 30.8%. The new UPI MDR on merchant payments above Rs 2,000 (from 15 Oct 2026) adds a direct monetisation lever.",
+      body: "Lending and insurance distribution rose from 1% of revenue in FY23 to 11.6% in H1 FY26, and merchant payments to 30.8%. The new UPI MDR on merchant payments above ₹2,000 (from 15 Oct 2026) adds a direct monetisation lever.",
     },
     {
       title: "An exit, not a capital raise",
-      body: "All proceeds go to Walmart, Microsoft and Tiger Global. Pricing will hinge on how investors treat ~Rs 2,400 Cr of yearly ESOP costs and the NPCI 30% market-share cap.",
+      body: "All proceeds go to Walmart, Microsoft and Tiger Global. Pricing will hinge on how investors treat ~₹2,400 Cr of yearly ESOP costs and the NPCI 30% market-share cap.",
     },
   ],
 
@@ -87,22 +87,22 @@ export const phonepe: IpoReport = {
     segments: [
       {
         title: "Consumer Payments",
-        metric: "Rs 2,200 Cr, H1 FY26 (56% of revenue)",
+        metric: "₹2,200 Cr, H1 FY26 (56% of revenue)",
         body: "UPI P2P and P2M, bill payments and recharges; 30.1 crore monthly active users and 5,340 crore customer transactions in H1 FY26.",
       },
       {
         title: "Merchant Payments",
-        metric: "Rs 1,206 Cr, H1 FY26 (31%)",
-        body: "QR acceptance, SmartSpeakers and payment gateway for 4.7 crore merchants; Rs 8.5 lakh Cr merchant TPV in H1 FY26.",
+        metric: "₹1,206 Cr, H1 FY26 (31%)",
+        body: "QR acceptance, SmartSpeakers and payment gateway for 4.7 crore merchants; ₹8.5L Cr merchant TPV in H1 FY26.",
       },
       {
         title: "Lending & Insurance Distribution",
-        metric: "Rs 453 Cr, H1 FY26 (12%)",
+        metric: "₹453 Cr, H1 FY26 (12%)",
         body: "Loans sourced for banks and NBFCs and insurance sold as a broker; more than doubled YoY and the main margin lever.",
       },
       {
         title: "New Platforms",
-        metric: "Rs 60 Cr, H1 FY26 (1.5%)",
+        metric: "₹60 Cr, H1 FY26 (1.5%)",
         body: "Share.Market stock broking and Indus Appstore; the Pincode shopping app was shut after Sep 2025.",
       },
     ],
@@ -120,8 +120,8 @@ export const phonepe: IpoReport = {
 
   industry: {
     narrative: [
-      "UPI is India's default way to pay. Volumes rose from 46 billion transactions in FY22 to 242 billion in FY26, worth Rs 314 lakh Cr; Redseer (in the UDRHP) says UPI made up 87% of consumer payment value in FY25 and expects digital consumer payments to grow 15-18% a year to FY30.",
-      "The market is a near-duopoly: in Apr 2026 PhonePe had 47.1% of UPI volume, Google Pay 33.5% and Paytm 8.1%. NPCI's proposed 30% cap per app has been deferred to 31 Dec 2026, and from 15 Oct 2026 merchants pay 0.4% MDR on UPI payments above Rs 2,000 (about 96% of P2M payments stay free).",
+      "UPI is India's default way to pay. Volumes rose from 46 billion transactions in FY22 to 242 billion in FY26, worth ₹314L Cr; Redseer (in the UDRHP) says UPI made up 87% of consumer payment value in FY25 and expects digital consumer payments to grow 15-18% a year to FY30.",
+      "The market is a near-duopoly: in Apr 2026 PhonePe had 47.1% of UPI volume, Google Pay 33.5% and Paytm 8.1%. NPCI's proposed 30% cap per app has been deferred to 31 Dec 2026, and from 15 Oct 2026 merchants pay 0.4% MDR on UPI payments above ₹2,000 (about 96% of P2M payments stay free).",
     ],
     chart: {
       title: "UPI transactions",
@@ -136,10 +136,10 @@ export const phonepe: IpoReport = {
       ],
     },
     snapshot: [
-      { label: "UPI value, FY26", value: "Rs 314 lakh Cr (+21%)", tone: "pos" },
+      { label: "UPI value, FY26", value: "₹314L Cr (+21%)", tone: "pos" },
       { label: "UPI volume share, Apr 2026", value: "PhonePe 47.1% · Google Pay 33.5% · Paytm 8.1%" },
       { label: "NPCI volume cap", value: "30% per app; deferred to 31 Dec 2026", tone: "neg" },
-      { label: "UPI MDR from 15 Oct 2026", value: "0.4% on P2M above Rs 2,000, cap Rs 300", tone: "pos" },
+      { label: "UPI MDR from 15 Oct 2026", value: "0.4% on P2M above ₹2,000, cap ₹300", tone: "pos" },
       { label: "Digital consumer payments growth", value: "15-18% CAGR to FY30 (Redseer)" },
     ],
   },
@@ -152,7 +152,7 @@ export const phonepe: IpoReport = {
       { label: "FY25", revenue: 7115, ebitda: 1477, pat: -1727 },
       { label: "H1 FY26", revenue: 3918, ebitda: 254, pat: -1444, partial: true },
     ],
-    note: "Reported losses are driven by non-cash ESOP charges (Rs 2,283 Cr in FY25, Rs 2,391 Cr in FY26). H1 FY26 margins fell after the rent-payment exit and the Aug 2025 gaming ban. Audited FY26 (not yet in an offer document): revenue Rs 7,921 Cr and a loss of Rs 2,792 Cr after a Rs 685 Cr Indus Appstore impairment and Pincode losses; adjusted EBITDA for FY26 is not yet disclosed.",
+    note: "Reported losses are driven by non-cash ESOP charges (₹2,283 Cr in FY25, ₹2,391 Cr in FY26). H1 FY26 margins fell after the rent-payment exit and the Aug 2025 gaming ban. Audited FY26 (not yet in an offer document): revenue ₹7,921 Cr and a loss of ₹2,792 Cr after a ₹685 Cr Indus Appstore impairment and Pincode losses; adjusted EBITDA for FY26 is not yet disclosed.",
   },
 
   kpi: {
@@ -169,12 +169,12 @@ export const phonepe: IpoReport = {
   ratios: [
     { label: "Adjusted EBITDA margin", value: "20.8% FY25 · 6.5% H1 FY26", tone: "neg" },
     { label: "Restated RoNW, FY25", value: "-18.4%", tone: "neg" },
-    { label: "Net worth, Sep 2025", value: "Rs 9,539 Cr" },
+    { label: "Net worth, Sep 2025", value: "₹9,539 Cr" },
     { label: "Borrowings", value: "Nil", tone: "pos" },
-    { label: "Customer TPV, FY25", value: "Rs 132.7 lakh Cr (+32%)", tone: "pos" },
-    { label: "Merchant TPV, FY25", value: "Rs 15.0 lakh Cr" },
+    { label: "Customer TPV, FY25", value: "₹132.7L Cr (+32%)", tone: "pos" },
+    { label: "Merchant TPV, FY25", value: "₹15.0L Cr" },
     { label: "Monthly active users, Sep 2025", value: "30.1 crore" },
-    { label: "ESOP expense, FY26", value: "Rs 2,391 Cr (non-cash)" },
+    { label: "ESOP expense, FY26", value: "₹2,391 Cr (non-cash)" },
   ],
 
   useOfProceeds: [],
@@ -204,7 +204,7 @@ export const phonepe: IpoReport = {
     { name: "Angel One", ticker: "ANGELONE", note: "Benchmark for Share.Market broking" },
   ],
   valuationNote:
-    "A ~US$10bn (~Rs 95,000 Cr) valuation is ~13.4x FY25 revenue of Rs 7,115 Cr, the last full year in the offer document (~12x audited FY26 revenue of Rs 7,921 Cr): close to Paytm's sales multiple (now profitable) and well above Policybazaar's (see the table).",
+    "A ~US$10bn (~₹95,000 Cr) valuation is ~13.4x FY25 revenue of ₹7,115 Cr, the last full year in the offer document (~12x audited FY26 revenue of ₹7,921 Cr): close to Paytm's sales multiple (now profitable) and well above Policybazaar's (see the table).",
 
   strengths: [
     {
@@ -217,11 +217,11 @@ export const phonepe: IpoReport = {
     },
     {
       title: "Owned, low-cost technology",
-      body: "Its own data centres (~Rs 3,373 Cr invested since 2016) keep server cost near Rs 0.06 per transaction, per the company.",
+      body: "Its own data centres (~₹3,373 Cr invested since 2016) keep server cost near ₹0.06 per transaction, per the company.",
     },
     {
       title: "Strong balance sheet and backer",
-      body: "No borrowings, Rs 9,539 Cr net worth and Walmart as controlling shareholder after the IPO.",
+      body: "No borrowings, ₹9,539 Cr net worth and Walmart as controlling shareholder after the IPO.",
     },
   ],
   risks: [
@@ -236,8 +236,8 @@ export const phonepe: IpoReport = {
       severity: "medium",
     },
     {
-      risk: "Reported losses persist (FY26 Rs 2,792 Cr) because of large ESOP charges and write-offs.",
-      mitigant: "Adjusted EBITDA has been positive since FY24, and the company put FY26 normalised loss at Rs 1,377 Cr.",
+      risk: "Reported losses persist (FY26 ₹2,792 Cr) because of large ESOP charges and write-offs.",
+      mitigant: "Adjusted EBITDA has been positive since FY24, and the company put FY26 normalised loss at ₹1,377 Cr.",
       severity: "medium",
     },
     {

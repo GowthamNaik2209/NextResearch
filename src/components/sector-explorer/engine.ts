@@ -1010,7 +1010,7 @@ export function mountExplorer(
 
   // ---- animation loop ----
   // Camera distance (scene units) from which a marker is drawn at full size; see the marker loop.
-  const MARKER_FULL_SIZE_AT = 3.5;
+  const MARKER_FULL_SIZE_AT = 6;
   const timer = new THREE.Timer();
   let rafId = 0;
   let frames = 0;
@@ -1042,8 +1042,12 @@ export function mountExplorer(
       // Markers are sized for the overview distances. Closer than that (a cockpit view, a deep
       // zoom) they shrink with the distance so they keep roughly their overview size on screen,
       // instead of becoming discs that fill a third of the stage.
-      const near = THREE.MathUtils.clamp(camera.position.distanceTo(m.position) / MARKER_FULL_SIZE_AT, 0.15, 1);
-      m.scale.lerp(scratch.setScalar(s * near), 0.2);
+      const near = THREE.MathUtils.clamp(camera.position.distanceTo(m.position) / MARKER_FULL_SIZE_AT, 0.02, 1);
+      // Only the emphasis (pick/hover/impact) eases; the distance factor applies at once, so a
+      // marker never shows up huge for the first frames of a close-up.
+      const eased = ((m.userData.ease as number | undefined) ?? 1) + (s - ((m.userData.ease as number | undefined) ?? 1)) * 0.2;
+      m.userData.ease = eased;
+      m.scale.setScalar(eased * near);
       const mat = m.material as THREE.MeshBasicMaterial;
       const targetOp = isDimmed ? 0.22 : 1;
       mat.opacity += (targetOp - mat.opacity) * 0.2;

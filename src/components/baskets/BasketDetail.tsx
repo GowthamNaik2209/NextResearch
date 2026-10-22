@@ -80,6 +80,7 @@ function copyNow(text: string): Promise<boolean> {
 
 // Only the market beside the basket; indices and other baskets are a "Compare with" pick on the chart.
 const NIFTY_ONLY = [{ key: "b:nifty50", label: "Nifty 50" }];
+const stocksWord = (n: number) => `${n} stock${n === 1 ? "" : "s"}`;
 /** A 0-1 share as a percentage, one decimal. */
 const pct1 = (share: number) => `${(share * 100).toFixed(1)}%`;
 
@@ -867,7 +868,7 @@ export function BasketDetail(p: BasketDetailProps) {
             {rangeControl}
           </div>
           {strategySettings}
-          {stocks.length > 0 && <span className="hidden font-mono text-[11px] text-ink-soft sm:inline">{stocks.length} stocks</span>}
+          {stocks.length > 0 && <span className="hidden font-mono text-[11px] text-ink-soft sm:inline">{stocksWord(stocks.length)}</span>}
           {stocks.length > 0 && (
             <div role="tablist" aria-label="View" className={MINI_SEG + " ml-auto lg:hidden"}>
               {(["stocks", "chart"] as const).map((v) => (
@@ -981,7 +982,7 @@ export function BasketDetail(p: BasketDetailProps) {
               <Panel
                 heading={heading}
                 className={onlyOn("stocks")}
-                title={`Holdings · ${tableScope === "picks" ? `your ${picked.length} picks` : `${stocks.length} stocks`}`}
+                title={`Holdings · ${tableScope === "picks" ? `your ${picked.length} pick${picked.length === 1 ? "" : "s"}` : stocksWord(stocks.length)}`}
                 label="Stocks in this basket"
                 infoLabel="About the holdings"
                 info={

@@ -10,7 +10,6 @@ import type { StockTab } from "@/components/stock/types";
 import { PriceTag } from "@/components/stock/PriceTag";
 import { SummaryView } from "@/components/stock/SummaryView";
 import { StockModal } from "@/components/stock/StockModal";
-import { quoteTiming } from "@/lib/live/freshness";
 
 type Props = {
   sector: SectorDef;
@@ -74,15 +73,11 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
       </div>
       {supplier.listed && (
         <>
+          {/* PriceTag labels the price itself: "live · <time>" from a fresh quote, else
+              "snapshot <date>" (the company table's figure). */}
           <div className="flex items-center justify-between gap-3">
-            {/* Live only when the quote is in; until then (or if it never comes) the price is the
-                company table's snapshot, so say so with its date rather than "live". */}
-            <span className="text-[11px] text-ink-soft">
-              {api?.quote
-                ? `${api.quote.exchange} · ${quoteTiming(api.quote)}`
-                : `Price as of ${supplier.f?.asOf ?? "last refresh"}${loading ? " · fetching live…" : ""}`}
-            </span>
-            <PriceTag price={stats.price} quote={api?.quote ?? null} size="sm" />
+            <span className="text-[11px] text-ink-soft">{api?.quote ? api.quote.exchange : "Price"}</span>
+            <PriceTag price={stats.price} quote={api?.quote ?? null} size="sm" asOf={stats.asOf} />
           </div>
           {/* Same pill bar as the stock pop-up's tabs. The card itself shows the summary, so that
               pill is the lit one; every pill opens the full pop-up on its tab. */}

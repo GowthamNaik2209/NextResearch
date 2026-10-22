@@ -16,6 +16,7 @@ import type { ChartData, ChartRange, OhlcData, Quote } from "@/lib/live/yahoo";
 import { fmtNum, fmtPrice, fmtSigned, withLiveQuote } from "./merge";
 import { barFor, fmtVolume, withLiveBar, type OhlcBar } from "@/lib/live/ohlc-format";
 import { ZOOM_OPTIONS, ZoomControls, useChartZoom } from "@/components/charts/ChartZoom";
+import { tickLabel } from "@/components/charts/ticks";
 import { cssVar, useSiteTheme } from "@/lib/theme";
 import { fmtDay, fmtMonth } from "@/lib/format";
 
@@ -131,7 +132,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
       rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.1, bottom: 0.03 } },
       // Fixed edges: dragging or zooming out stops at the first and last bar instead of opening
       // blank space beside the history.
-      timeScale: { borderVisible: false, timeVisible: false, lockVisibleTimeRangeOnResize: true, fixLeftEdge: true, fixRightEdge: true },
+      timeScale: { borderVisible: false, timeVisible: false, lockVisibleTimeRangeOnResize: true, fixLeftEdge: true, fixRightEdge: true, tickMarkFormatter: tickLabel },
       crosshair: { mode: CrosshairMode.Magnet },
       // Pinch / Ctrl + wheel zooms; a plain wheel or vertical swipe still scrolls the pop-up.
       ...ZOOM_OPTIONS,

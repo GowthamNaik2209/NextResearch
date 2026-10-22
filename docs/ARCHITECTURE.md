@@ -207,7 +207,7 @@ after checking no watchlist references it (children cascade).
 | `/sector/[slug]` | server | Sector overview; company cards open the stock pop-up directly |
 | `/sector/[slug]/explore` | server shell + client | 3D explorer; deep links via `?zone=&company=&scenario=` |
 | `/company/[slug]`, `/companies` | server | One indexable page per listed company; A-Z list |
-| `/updates`, `/docs`, `/docs/[slug]` | server | Live news feed (filter `?sector=`); Analysis (nav label; route stays `/docs`): Reports view = 10-slide research deck per sector in a pop-up (`?report=<slug>` opens one); Charts view = `SectorCharts`, an industry's listed stocks vs its index, Nifty 50 and Sensex, rebased to % change (`?view=charts&sector=<slug>`) |
+| `/updates`, `/docs`, `/docs/[slug]` | server | Live news feed (filter `?sector=`); Analysis (nav label; route stays `/docs`): Reports view = 10-slide research deck per sector in a pop-up (`?report=<slug>` opens one); Charts view = `IndustryChartsView` (the industry basket's `BasketDetail`: its stocks vs the industry index and Nifty 50, rebased to % change; loaded only when opened) (`?view=charts&sector=<slug>`) |
 | `/ipos` | server | Upcoming-IPO decks (`?ipo=<slug>` opens one; also works on `/` and `/docs`) |
 | `/connections` | server | Companies present in 2+ supply chains, ranked by footprint (`sector-content/exposure.ts`) |
 | `/watchlist` | server | Auth required; rows open the stock pop-up |

@@ -448,6 +448,8 @@
  width:40px; height:40px;
  }
  .panel-wrap.collapsed .panel-close-btn{ display:none }
+ /* Closed sheet: only its handle shows; the content's first line peeking under it read as clutter. */
+ .panel-wrap.collapsed .panel{ visibility:hidden }
  /* The rule above pins the panel sheet's close button inside its handle; the Compare
     modal reuses the same button class and must keep it in its own header row. */
  .compare-head .panel-close-btn{ position:static; transform:none }

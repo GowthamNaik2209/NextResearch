@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
-import { ColorType, CrosshairMode, LineSeries, LineStyle, TickMarkType, createChart, type IChartApi, type ISeriesApi, type Time } from "lightweight-charts";
+import { ColorType, CrosshairMode, LineSeries, LineStyle, createChart, type IChartApi, type ISeriesApi, type Time } from "lightweight-charts";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import { StockLink } from "@/components/stock/StockLink";
@@ -9,6 +9,7 @@ import { ZOOM_OPTIONS, ZoomControls, useChartZoom } from "@/components/charts/Ch
 import { onSharedGrid, sharedInterval } from "@/lib/live/ohlc-format";
 import { DASHARRAY, SLOTS, STYLE, type Dash } from "@/components/charts/palette";
 import { MenuButton, Switch } from "@/components/charts/controls";
+import { tickLabel } from "@/components/charts/ticks";
 import { cssVar, useSiteTheme, type SiteTheme } from "@/lib/theme";
 import { axisPct, fmtDay, fmtMonth, NA, signedPct } from "@/lib/format";
 import { slackDaysFor } from "@/lib/baskets/backtest";
@@ -30,19 +31,6 @@ const MAX_COMPARE = 3;
 const COMPARE_DASH: Dash[] = ["long", "dash", "dot"];
 
 type Line = { key: string; name: string; note?: string; color: string; token?: string; width: 2 | 3; dash: Dash; stock?: string };
-
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-/**
- * The time axis' labels: a year where the year turns, a short month otherwise, and a day only
- * with its month ("12 Oct"), never a bare "12". The library's own labels follow the browser's
- * locale ("Sept") and print a lone day number where a short range ends mid-month.
- */
-function tickLabel(time: Time, type: TickMarkType): string {
-  const d = typeof time === "string" ? new Date(`${time}T00:00:00Z`) : typeof time === "number" ? new Date(time * 1000) : new Date(Date.UTC(time.year, time.month - 1, time.day));
-  if (type === TickMarkType.Year) return String(d.getUTCFullYear());
-  if (type === TickMarkType.Month) return MONTHS[d.getUTCMonth()];
-  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
-}
 
 /** What the reader has switched on: indices, other industry baskets, and stocks (ticker → palette slot). */
 export type ChartSelection = { benches: string[]; compare: string[]; picks: Record<string, number> };

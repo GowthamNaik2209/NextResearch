@@ -13,7 +13,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { OpenReportButton } from "@/components/research/OpenReport";
-import { cachedDeck } from "@/lib/analysis-props";
+import { buildDeck } from "@/lib/sector-content/reports";
 import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
 import { companySlug, sectorCompanies, sectorCompanyCounts } from "@/lib/sector-content/companies";
 import { NOT_FOUND_METADATA, SITE_URL, jsonLd, midSentence } from "@/lib/site";
@@ -98,7 +98,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
   const otherCompanies = companies.filter((c) => !integratorTickers.has(c.ticker));
   const integratorsShown = companies.length - otherCompanies.length;
 
-  const deck = cachedDeck(sector.slug);
+  const deck = buildDeck(sector.slug);
 
   return (
     <>

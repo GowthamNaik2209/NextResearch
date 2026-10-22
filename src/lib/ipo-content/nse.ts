@@ -6,38 +6,38 @@ export const nse: IpoReport = {
   legalName: "National Stock Exchange of India Limited",
   icon: "NSE",
   sectorLabel: "Stock exchange & market infrastructure",
-  tagline: "India's dominant exchange, now listed on BSE after a Rs 22,563 Cr pure OFS",
+  tagline: "India's dominant exchange, now listed on BSE after a ₹22,563 Cr pure OFS",
   asOf: "Oct 2026",
 
   status: {
     stage: "listed",
     label: "Listed 24 Sep",
     detail:
-      "The IPO is complete: priced at Rs 1,785 (top of the Rs 1,700-1,785 band), subscribed 5.71x, and listed on BSE on 24 Sep 2026 at Rs 1,800; the size was cut from ~14.89 crore shares in the DRHP (reported as ~Rs 30,000 Cr) to 12.64 crore shares (Rs 22,563 Cr) in the RHP. Next watch-points are the anchor lock-in expiries on 21 Oct and 20 Dec 2026.",
+      "The IPO is complete: priced at ₹1,785 (top of the ₹1,700-1,785 band), subscribed 5.71x, and listed on BSE on 24 Sep 2026 at ₹1,800; the size was cut from ~14.89 crore shares in the DRHP (reported as ~₹30,000 Cr) to 12.64 crore shares (₹22,563 Cr) in the RHP. Next watch-points are the anchor lock-in expiries on 21 Oct and 20 Dec 2026.",
   },
   timeline: [
     { date: "30 Jan 2026", event: "SEBI no-objection for the IPO", done: true },
     { date: "17 Jun 2026", event: "DRHP filed: OFS of up to 14.89 crore shares", done: true },
     { date: "4 Sep 2026", event: "SEBI observation letter reported (one report says 21 Aug)", done: true },
-    { date: "11 Sep 2026", event: "RHP on SEBI site; 12.64 crore shares, band Rs 1,700-1,785", done: true },
-    { date: "16 Sep 2026", event: "Anchor book: Rs 6,746 Cr", done: true },
+    { date: "11 Sep 2026", event: "RHP on SEBI site; 12.64 crore shares, band ₹1,700-1,785", done: true },
+    { date: "16 Sep 2026", event: "Anchor book: ₹6,746 Cr", done: true },
     { date: "17-21 Sep 2026", event: "Subscription: 5.71x overall, QIB 12.68x", done: true },
-    { date: "24 Sep 2026", event: "Listed on BSE at Rs 1,800 (+0.8%)", done: true },
+    { date: "24 Sep 2026", event: "Listed on BSE at ₹1,800 (+0.8%)", done: true },
     { date: "21 Oct 2026", event: "Lock-in ends for 50% of anchor shares", done: false },
   ],
 
   issue: {
-    size: "Rs 22,563 Cr (final, pure OFS)",
+    size: "₹22,563 Cr (final, pure OFS)",
     totalCr: 22563,
     freshCr: 0,
     ofsCr: 22563,
     ofsShares: "12.64 crore shares (DRHP: up to 14.89 crore)",
-    priceBand: "Rs 1,700 - 1,785 (priced at Rs 1,785)",
-    lotSize: "8 shares (Rs 14,280)",
-    faceValue: "Rs 1",
-    valuation: "Rs 4.42 lakh Cr market cap at the Rs 1,785 issue price (247.5 crore shares)",
+    priceBand: "₹1,700 - 1,785 (priced at ₹1,785)",
+    lotSize: "8 shares (₹14,280)",
+    faceValue: "₹1",
+    valuation: "₹4.42L Cr market cap at the ₹1,785 issue price (247.5 crore shares)",
     valuationCr: 441788,
-    reservation: "QIB 50% · NII 15% · Retail 35% of the net offer; employee portion with Rs 170 discount",
+    reservation: "QIB 50% · NII 15% · Retail 35% of the net offer; employee portion with ₹170 discount",
     exchanges: "BSE only (an exchange cannot list on itself)",
     leadManagers: [
       "Kotak Mahindra Capital",
@@ -69,9 +69,9 @@ export const nse: IpoReport = {
     line: "A near-monopoly with 50%+ margins and ~33% RoE, but FY26 profit fell and its options share is sliding to BSE; the flat listing suggests the price already reflects the franchise.",
   },
   keyStats: [
-    { label: "Issue size", value: "Rs 22,563 Cr", sub: "100% OFS; NSE receives nothing" },
-    { label: "Market cap at issue price", value: "Rs 4.42 lakh Cr", sub: "~42.9x FY26 EPS of Rs 41.62" },
-    { label: "Revenue from operations, FY26", value: "Rs 16,601 Cr", sub: "-3.1% YoY; PAT Rs 10,302 Cr (-15.5%)" },
+    { label: "Issue size", value: "₹22,563 Cr", sub: "100% OFS; NSE receives nothing" },
+    { label: "Market cap at issue price", value: "₹4.42L Cr", sub: "~42.9x FY26 EPS of ₹41.62" },
+    { label: "Revenue from operations, FY26", value: "₹16,601 Cr", sub: "-3.1% YoY; PAT ₹10,302 Cr (-15.5%)" },
     { label: "Equity options share, Q1 FY27", value: "68.5%", sub: "of premium turnover; 96.9% in FY24" },
   ],
   thesis: [
@@ -96,9 +96,9 @@ export const nse: IpoReport = {
       "Costs are mostly fixed technology, staff and regulatory contributions, so operating EBITDA margins run at 65-80%. FY26 profit fell as SEBI's derivatives rules cut options volumes and a co-location settlement provision was booked.",
     ],
     segments: [
-      { title: "Equity derivatives (options)", metric: "~Rs 9,996 Cr, 60.2% of revenue", body: "Index and stock options charged on premium; the largest and most regulation-sensitive revenue line. Market share 74.7% in FY26, 68.5% in Q1 FY27." },
-      { title: "Equity futures", metric: "99.79% market share", body: "Near-total share of futures turnover (Rs 394 lakh Cr industry, FY26); about 8.3% of revenue." },
-      { title: "Cash equities and other trading", metric: "92.99% cash share", body: "Cash market (Rs 261 lakh Cr turnover in FY26), currency, commodity, debt and mutual-fund platforms." },
+      { title: "Equity derivatives (options)", metric: "~₹9,996 Cr, 60.2% of revenue", body: "Index and stock options charged on premium; the largest and most regulation-sensitive revenue line. Market share 74.7% in FY26, 68.5% in Q1 FY27." },
+      { title: "Equity futures", metric: "99.79% market share", body: "Near-total share of futures turnover (₹394L Cr industry, FY26); about 8.3% of revenue." },
+      { title: "Cash equities and other trading", metric: "92.99% cash share", body: "Cash market (₹261L Cr turnover in FY26), currency, commodity, debt and mutual-fund platforms." },
       { title: "Listing, data, index and colocation", metric: "~21% of revenue", body: "3,005 listed entities, Nifty index licensing, market data feeds and colocation/connectivity - steadier, less volume-linked income." },
     ],
     mix: {
@@ -115,8 +115,8 @@ export const nse: IpoReport = {
 
   industry: {
     narrative: [
-      "India's investor base has roughly doubled in three years: demat accounts went from ~11.4 crore in Mar 2023 to ~22.4 crore by Mar 2026, and NSE's unique registered investors reached 13.24 crore by Jun 2026. Market cap of NSE-listed companies was Rs 474 lakh Cr at 30 Jun 2026.",
-      "The RHP's industry report projects cash-market turnover growing 14-16% a year to Rs 473-507 lakh Cr by FY30. Derivatives are the swing factor: SEBI's 2024-25 risk-mitigation rules (fewer weekly expiries, larger lot sizes) and higher STT cut options notional volumes, while BSE has won share with its Sensex options.",
+      "India's investor base has roughly doubled in three years: demat accounts went from ~11.4 crore in Mar 2023 to ~22.4 crore by Mar 2026, and NSE's unique registered investors reached 13.24 crore by Jun 2026. Market cap of NSE-listed companies was ₹474L Cr at 30 Jun 2026.",
+      "The RHP's industry report projects cash-market turnover growing 14-16% a year to ₹473-507L Cr by FY30. Derivatives are the swing factor: SEBI's 2024-25 risk-mitigation rules (fewer weekly expiries, larger lot sizes) and higher STT cut options notional volumes, while BSE has won share with its Sensex options.",
     ],
     chart: {
       title: "Demat accounts in India",
@@ -135,7 +135,7 @@ export const nse: IpoReport = {
       { label: "NSE options premium share, FY24 to Q1 FY27 (RHP)", value: "96.9% to 68.5%", tone: "neg" },
       { label: "Unique registered investors, Jun 2026", value: "13.24 crore", tone: "pos" },
       { label: "Global equity-derivatives contracts share", value: "51.18%", tone: "pos" },
-      { label: "Cash turnover forecast, FY30 (RHP industry report)", value: "Rs 473-507 lakh Cr", tone: "neutral" },
+      { label: "Cash turnover forecast, FY30 (RHP industry report)", value: "₹473-507L Cr", tone: "neutral" },
     ],
   },
 
@@ -147,7 +147,7 @@ export const nse: IpoReport = {
       { label: "FY26", revenue: 16601, ebitda: 11098, pat: 10302 },
       { label: "Q1 FY27", revenue: 4560, ebitda: 3594, pat: 3120, partial: true },
     ],
-    note: "EBITDA is operating EBITDA excluding other income (Angel One; FY25 derived from its stated -12.25% change, FY24 not found). Sources that include treasury income show far higher EBITDA (Rs 14,519-14,691 Cr in FY26). FY26 PAT includes a ~Rs 1,201 Cr gain on the NSDL stake sale and a Rs 1,391 Cr co-location settlement provision.",
+    note: "EBITDA is operating EBITDA excluding other income (Angel One; FY25 derived from its stated -12.25% change, FY24 not found). Sources that include treasury income show far higher EBITDA (₹14,519-14,691 Cr in FY26). FY26 PAT includes a ~₹1,201 Cr gain on the NSDL stake sale and a ₹1,391 Cr co-location settlement provision.",
   },
 
   kpi: {
@@ -165,16 +165,16 @@ export const nse: IpoReport = {
     { label: "Operating EBITDA margin, FY26", value: "66.9% (78.8% in Q1 FY27)", tone: "pos" },
     { label: "PAT margin on total income, FY26", value: "~55%", tone: "pos" },
     { label: "RoE, FY26", value: "33.0%", tone: "pos" },
-    { label: "Net worth, Jun 2026", value: "Rs 34,984 Cr", tone: "neutral" },
-    { label: "Cash and equivalents, Mar 2026", value: "Rs 32,312 Cr", tone: "pos" },
-    { label: "Diluted EPS, FY26", value: "Rs 41.62", tone: "neutral" },
+    { label: "Net worth, Jun 2026", value: "₹34,984 Cr", tone: "neutral" },
+    { label: "Cash and equivalents, Mar 2026", value: "₹32,312 Cr", tone: "pos" },
+    { label: "Diluted EPS, FY26", value: "₹41.62", tone: "neutral" },
     { label: "P/E at issue price (FY26)", value: "42.9x", tone: "neutral" },
     { label: "P/B at issue price (Mar 2026 NAV)", value: "~13.8x", tone: "neg" },
   ],
 
   useOfProceeds: [],
   proceedsNote:
-    "Pure offer for sale: all Rs 22,563 Cr went to the 23 selling shareholders; NSE received no money and its share count (247.5 crore) is unchanged. The listing mainly gives existing holders an exit and a market price; NSE bore no new dilution.",
+    "Pure offer for sale: all ₹22,563 Cr went to the 23 selling shareholders; NSE received no money and its share count (247.5 crore) is unchanged. The listing mainly gives existing holders an exit and a market price; NSE bore no new dilution.",
   shareholding: [
     { holder: "LIC", pct: 10.72 },
     { holder: "SBI and SBI Capital Markets", pct: 7.56 },
@@ -184,12 +184,12 @@ export const nse: IpoReport = {
     { holder: "Other institutions and individuals", pct: 61.01 },
   ],
   sellers: [
-    { name: "State Bank of India", detail: "1.60 crore shares, ~Rs 2,850 Cr" },
-    { name: "Canada Pension Plan Investment Board", detail: "1.19 crore shares, ~Rs 2,119 Cr" },
-    { name: "Aranda Investments (Mauritius)", detail: "1.12 crore shares, ~Rs 2,007 Cr" },
-    { name: "MS Strategic (Mauritius)", detail: "1.10 crore shares, ~Rs 1,963 Cr" },
-    { name: "New India Assurance", detail: "1.05 crore shares, ~Rs 1,874 Cr" },
-    { name: "SBI Capital Markets", detail: "0.88 crore shares, ~Rs 1,567 Cr" },
+    { name: "State Bank of India", detail: "1.60 crore shares, ~₹2,850 Cr" },
+    { name: "Canada Pension Plan Investment Board", detail: "1.19 crore shares, ~₹2,119 Cr" },
+    { name: "Aranda Investments (Mauritius)", detail: "1.12 crore shares, ~₹2,007 Cr" },
+    { name: "MS Strategic (Mauritius)", detail: "1.10 crore shares, ~₹1,963 Cr" },
+    { name: "New India Assurance", detail: "1.05 crore shares, ~₹1,874 Cr" },
+    { name: "SBI Capital Markets", detail: "0.88 crore shares, ~₹1,567 Cr" },
   ],
 
   peers: [
@@ -199,18 +199,18 @@ export const nse: IpoReport = {
     { name: "CAMS", ticker: "CAMS", note: "Mutual-fund registrar and transfer agent." },
   ],
   valuationNote:
-    "At the Rs 1,785 issue price NSE was valued at 42.9x FY26 diluted EPS of Rs 41.62 (35x on annualised Q1 FY27), below BSE's P/E (see the table) despite far larger scale and share. Since listing, its multiple moves with the share price; the peer table carries the listed peers' current figures.",
+    "At the ₹1,785 issue price NSE was valued at 42.9x FY26 diluted EPS of ₹41.62 (35x on annualised Q1 FY27), below BSE's P/E (see the table) despite far larger scale and share. Since listing, its multiple moves with the share price; the peer table carries the listed peers' current figures.",
 
   strengths: [
     { title: "Dominant market share", body: "93% of cash equities and ~99.8% of equity futures, plus the world's largest derivatives franchise by contracts - network effects that are hard to dislodge." },
-    { title: "Exceptional profitability", body: "Operating EBITDA margin of 67-79% and RoE of ~33% with no debt need; Rs 32,312 Cr of cash at Mar 2026." },
+    { title: "Exceptional profitability", body: "Operating EBITDA margin of 67-79% and RoE of ~33% with no debt need; ₹32,312 Cr of cash at Mar 2026." },
     { title: "Structural growth in investor participation", body: "Unique investors rose from 3.1 crore (Mar 2020) to 13.2 crore (Jun 2026), lifting cash volumes, listings and data income." },
     { title: "Diversified ecosystem", body: "Clearing, Nifty indices, data, colocation and listing businesses add less volume-linked revenue alongside trading." },
   ],
   risks: [
     { risk: "Dependence on equity options: 60% of revenue, exposed to SEBI curbs, STT changes and retail pull-back", mitigant: "Cash, futures and non-transaction revenue are growing; Q1 FY27 revenue still rose 13%", severity: "high" },
     { risk: "Loss of options share to BSE (96.9% in FY24 to 68.5% in Q1 FY27)", mitigant: "NSE still holds over two-thirds of premium and near-total futures share", severity: "high" },
-    { risk: "Unresolved co-location and dark-fibre cases; proposed settlement of ~Rs 1,491 Cr and pending Supreme Court appeals", mitigant: "Rs 1,391 Cr already provided in FY26; settlement reportedly approved internally by SEBI", severity: "medium" },
+    { risk: "Unresolved co-location and dark-fibre cases; proposed settlement of ~₹1,491 Cr and pending Supreme Court appeals", mitigant: "₹1,391 Cr already provided in FY26; settlement reportedly approved internally by SEBI", severity: "medium" },
     { risk: "Technology outages or cyber incidents at a systemically important exchange", mitigant: "Large tech spend and regulator-mandated resilience standards", severity: "medium" },
     { risk: "Share supply: anchor lock-ins end 21 Oct and 20 Dec 2026, and pre-IPO holders' 6-month lock-in ends in Mar 2027", mitigant: "Many large holders (e.g. LIC) are long-term institutions", severity: "low" },
   ],

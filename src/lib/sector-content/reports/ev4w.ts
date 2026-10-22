@@ -36,13 +36,13 @@ export const ev4w: SectorReport = {
     {
       date: "2026",
       title: "Mass-market EV launches widen choice",
-      body: "Maruti's e Vitara, Tata's Harrier.ev and Mahindra's XEV/BE line-up put credible EVs in the Rs 15-30 lakh SUV band where Indian demand is concentrated.",
+      body: "Maruti's e Vitara, Tata's Harrier.ev and Mahindra's XEV/BE line-up put credible EVs in the ₹15-30 lakh SUV band where Indian demand is concentrated.",
       impact: "pos",
       tag: "Demand",
     },
     {
       date: "Nov 2025",
-      title: "Rs 7,280 Cr rare-earth magnet scheme",
+      title: "₹7,280 Cr rare-earth magnet scheme",
       body: "Cabinet approved incentives for ~6,000 tpa of integrated sintered rare-earth permanent magnet capacity, after China's April 2025 export licensing disrupted motor supply.",
       impact: "pos",
       tag: "Policy",
@@ -64,7 +64,7 @@ export const ev4w: SectorReport = {
     {
       date: "Jun 2025",
       title: "SPMEPCI guidelines notified",
-      body: "Global OEMs committing Rs 4,150 Cr+ of local investment may import CBUs at 15% duty (vs 70-110%) with localization targets of 25% in 3 years and 50% in 5.",
+      body: "Global OEMs committing ₹4,150 Cr+ of local investment may import CBUs at 15% duty (vs 70-110%) with localization targets of 25% in 3 years and 50% in 5.",
       impact: "pos",
       tag: "Policy",
     },
@@ -80,7 +80,7 @@ export const ev4w: SectorReport = {
   overview: {
     narrative: [
       "India sells ~4.4-4.5 million passenger vehicles a year; electric cars are still a small slice but the fastest-growing one, led by compact and mid-size SUVs rather than hatchbacks.",
-      "Unlike China, India's EV policy is now production-led rather than subsidy-led: PM E-DRIVE (Rs 10,900 Cr) funds buses, two/three-wheelers and charging, while cars get support through PLI-Auto, PLI-ACC and lower GST.",
+      "Unlike China, India's EV policy is now production-led rather than subsidy-led: PM E-DRIVE (₹10,900 Cr) funds buses, two/three-wheelers and charging, while cars get support through PLI-Auto, PLI-ACC and lower GST.",
       "The binding constraints are upstream - cells, magnets and power chips - plus public fast-charging density outside the top metros.",
     ],
     chart: {
@@ -120,7 +120,7 @@ export const ev4w: SectorReport = {
     { title: "Falling battery costs", metric: "~$100/kWh", body: "LFP pack prices near $100/kWh bring EV total cost of ownership below petrol within 3-4 years for typical urban use." },
     { title: "Model availability", metric: "25+ models", body: "From 3-4 credible nameplates in FY21 to 25+ across price bands, including Maruti, Hyundai, Mahindra and Tata SUVs." },
     { title: "Fleet & ride-hailing", metric: "~15% of e-PV", body: "Commercial fleets and cab aggregators electrify first on running-cost savings, giving base-load volume." },
-    { title: "Production-linked incentives", metric: "Rs 44,000 Cr+", body: "PLI-Auto (Rs 25,938 Cr) and PLI-ACC (Rs 18,100 Cr) reward domestic value addition rather than vehicle sales." },
+    { title: "Production-linked incentives", metric: "₹44,000 Cr+", body: "PLI-Auto (₹25,938 Cr) and PLI-ACC (₹18,100 Cr) reward domestic value addition rather than vehicle sales." },
   ],
   mix: {
     title: "e-PV market share by OEM, FY26 (approx.)",
@@ -139,7 +139,7 @@ export const ev4w: SectorReport = {
       { point: "Dependence on China for cells and rare earths makes supply exposed to geopolitics.", impact: "neg" },
     ],
     economic: [
-      { point: "Lower running cost (~Rs 1-1.5/km vs Rs 6-7/km petrol) drives fleet and high-usage adoption.", impact: "pos" },
+      { point: "Lower running cost (~₹1-1.5/km vs ₹6-7/km petrol) drives fleet and high-usage adoption.", impact: "pos" },
       { point: "GST 2.0 cut on small ICE cars narrows the EV upfront-price advantage.", impact: "neg" },
     ],
     social: [
@@ -185,11 +185,11 @@ export const ev4w: SectorReport = {
   risks: [
     { risk: "Rare-earth / cell supply shock from China", mitigant: "Magnet scheme, PLI-ACC giga-plants, magnet-free motor designs", severity: "high" },
     { risk: "Price war erodes OEM and supplier margins", mitigant: "Localization lowers cost; scale players gain share", severity: "medium" },
-    { risk: "Slow charging build-out outside metros", mitigant: "PM E-DRIVE Rs 2,000 Cr for chargers; OEM-led networks", severity: "medium" },
+    { risk: "Slow charging build-out outside metros", mitigant: "PM E-DRIVE ₹2,000 Cr for chargers; OEM-led networks", severity: "medium" },
     { risk: "PLI-ACC delays leave cells imported for longer", mitigant: "Penalty clauses; private projects outside PLI", severity: "medium" },
   ],
   outlook: {
-    bull: "Penetration reaches 12-15% by FY30 as sub-Rs 10 lakh EVs arrive and cell localization cuts pack cost below $80/kWh.",
+    bull: "Penetration reaches 12-15% by FY30 as sub-₹10 lakh EVs arrive and cell localization cuts pack cost below $80/kWh.",
     base: "Penetration of ~8-10% by FY30 (~6-7 lakh units/yr) with suppliers localizing motors, harnesses and packs.",
     bear: "Tax parity with small ICE cars and supply shocks stall penetration around 5-6%.",
   },

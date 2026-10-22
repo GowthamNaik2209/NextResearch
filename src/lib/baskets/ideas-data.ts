@@ -3,7 +3,7 @@
 // shared by every server instance, and rebuilt in the background a few hours after it was made,
 // so the lists follow each trading day without a visitor waiting on ~260 price histories.
 import { unstable_cache } from "next/cache";
-import { listSectors, companyLinkKey, companyLinkExposure, findSupplierByTicker } from "@/lib/sector-content";
+import { listSectors, companyLinkKey, companyLinkExposure, findSupplierByTicker, strengthPoints } from "@/lib/sector-content";
 import { HISTORY_FROM, getChartWithFallback, getSymbolChart } from "@/lib/live/yahoo";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listBasketUniverse } from "./industry";
@@ -32,8 +32,6 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
   return out;
 }
 
-const STRENGTH = { high: 3, medium: 2, low: 1 } as const;
-
 /** What the rules need from the maps, per listed stock. */
 export function ideaStockInfo(): IdeaStockInfo[] {
   // Each stock's strongest place in a layer with only one or two listed suppliers.
@@ -44,9 +42,8 @@ export function ideaStockInfo(): IdeaStockInfo[] {
       for (const link of z.suppliers) {
         const t = s.suppliers[companyLinkKey(link)]?.listed ? s.suppliers[companyLinkKey(link)]?.f?.ticker : undefined;
         if (!t) continue;
-        const { exposureStrength } = companyLinkExposure(link);
-        // The older maps carry no strength: a company placed in a layer is read as medium.
-        listed.set(t, Math.max(listed.get(t) ?? 0, exposureStrength ? STRENGTH[exposureStrength] : 2));
+        // The site's one link-strength scale (a link with no rating counts as high, as everywhere else).
+        listed.set(t, Math.max(listed.get(t) ?? 0, strengthPoints(companyLinkExposure(link).exposureStrength)));
       }
       if (listed.size === 0 || listed.size > 2) continue;
       for (const [t, strength] of listed) {
@@ -58,6 +55,7 @@ export function ideaStockInfo(): IdeaStockInfo[] {
       }
     }
   }
+  const policySlugs = new Set(listSectors().filter((x) => x.category === "policy").map((x) => x.slug));
   return listBasketUniverse().map((st) => {
     const f = findSupplierByTicker(st.ticker)?.f;
     const roce = f?.kpi?.[3];
@@ -67,7 +65,8 @@ export function ideaStockInfo(): IdeaStockInfo[] {
       mcapCr: st.mcapCr,
       roce: typeof roce === "number" && Number.isFinite(roce) ? roce : null,
       screenOut: f?.screenOut,
-      industries: st.industries.length,
+      // Industries only: a policy map (PLI, ALMM) isn't another industry the company sells into.
+      industries: st.industries.filter((i) => !policySlugs.has(i.slug)).length,
       notIpo: /\b(REIT|InvIT)\b|Trust\b/i.test(st.name) || st.ticker in HISTORY_FROM,
       scarce: scarce.get(st.ticker) ?? null,
     };
@@ -105,7 +104,7 @@ export const getIdeas = unstable_cache(
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },
-  ["basket-ideas-v5"],
+  ["basket-ideas-v6"],
   { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
 );
 

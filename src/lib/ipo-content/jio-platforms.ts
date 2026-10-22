@@ -7,19 +7,19 @@ export const jioPlatforms: IpoReport = {
   icon: "JIO",
   sectorLabel: "Telecom & digital services",
   sectorSlug: "telecom5g",
-  tagline: "India's largest mobile operator lists at ~Rs 10.3 lakh crore to cut telecom debt",
+  tagline: "India's largest mobile operator lists at ~₹10.3L Cr to cut telecom debt",
   asOf: "Oct 2026",
 
   status: {
     stage: "upcoming",
     label: "Opens 21 Oct",
     detail:
-      "RHP dated 14 Oct 2026 (posted on SEBI 15 Oct) fixes the band at Rs 1,065-1,119; anchor book on 19 Oct, subscription 21-23 Oct, allotment 26 Oct and listing on BSE and NSE expected 28 Oct (Chittorgarh; Outlook Money reports 29 Oct).",
+      "RHP dated 14 Oct 2026 (posted on SEBI 15 Oct) fixes the band at ₹1,065-1,119; anchor book on 19 Oct, subscription 21-23 Oct, allotment 26 Oct and listing on BSE and NSE expected 28 Oct (Chittorgarh; Outlook Money reports 29 Oct).",
   },
   timeline: [
     { date: "19 Jun 2026", event: "DRHP filed with SEBI", done: true },
     { date: "28 Aug 2026", event: "SEBI observation letter received", done: true },
-    { date: "14 Oct 2026", event: "RHP filed with RoC Gujarat; band Rs 1,065-1,119", done: true },
+    { date: "14 Oct 2026", event: "RHP filed with RoC Gujarat; band ₹1,065-1,119", done: true },
     { date: "19 Oct 2026", event: "Anchor investor bidding", done: false },
     { date: "21 Oct 2026", event: "Issue opens", done: false },
     { date: "23 Oct 2026", event: "Issue closes", done: false },
@@ -28,17 +28,17 @@ export const jioPlatforms: IpoReport = {
   ],
 
   issue: {
-    size: "Rs 30,213 Cr (at upper band)",
+    size: "₹30,213 Cr (at upper band)",
     totalCr: 30213,
     freshCr: 30213,
     ofsCr: 0,
-    priceBand: "Rs 1,065 - 1,119",
-    lotSize: "12 shares (Rs 13,428 at upper band)",
-    faceValue: "Rs 10",
-    valuation: "~Rs 10.3 lakh Cr post-issue market cap at the upper band (9,20,90,30,830 shares)",
+    priceBand: "₹1,065 - 1,119",
+    lotSize: "12 shares (₹13,428 at upper band)",
+    faceValue: "₹10",
+    valuation: "~₹10.3L Cr post-issue market cap at the upper band (9,20,90,30,830 shares)",
     valuationCr: 1030491,
     reservation:
-      "QIB 50% · NII 15% · Retail 35% of the net offer; plus up to Rs 500 Cr for employees (Rs 54 discount) and up to Rs 2,500 Cr for RIL shareholders",
+      "QIB 50% · NII 15% · Retail 35% of the net offer; plus up to ₹500 Cr for employees (₹54 discount) and up to ₹2,500 Cr for RIL shareholders",
     exchanges: "BSE, NSE",
     leadManagers: [
       "Kotak Mahindra Capital",
@@ -70,23 +70,23 @@ export const jioPlatforms: IpoReport = {
     line: "A highly profitable market leader whose IPO mostly repays debt; at ~33x FY26 earnings it is priced close to Bharti Airtel, so returns hinge on tariff hikes and new revenue lines rather than a listing discount.",
   },
   keyStats: [
-    { label: "Issue size", value: "Rs 30,213 Cr", sub: "all fresh shares; India's largest IPO" },
-    { label: "Valuation at upper band", value: "~Rs 10.3 lakh Cr", sub: "~33x FY26 EPS of Rs 33.62" },
-    { label: "Revenue, FY26", value: "Rs 1,46,885 Cr", sub: "+14.6% YoY; EBITDA margin 51.9%" },
-    { label: "Customers, Jun 2026", value: "533.3 mn", sub: "RJIL; ARPU ~Rs 214 (Q4 FY26 exit)" },
+    { label: "Issue size", value: "₹30,213 Cr", sub: "all fresh shares; India's largest IPO" },
+    { label: "Valuation at upper band", value: "~₹10.3L Cr", sub: "~33x FY26 EPS of ₹33.62" },
+    { label: "Revenue, FY26", value: "₹1.47L Cr", sub: "+14.6% YoY; EBITDA margin 51.9%" },
+    { label: "Customers, Jun 2026", value: "533.3 mn", sub: "RJIL; ARPU ~₹214 (Q4 FY26 exit)" },
   ],
   thesis: [
     {
       title: "The cash engine of India's mobile market",
-      body: "Jio earned Rs 76,255 Cr of EBITDA and Rs 30,049 Cr of profit in FY26 on Rs 1.47 lakh Cr of revenue. Operating cash flow of Rs 77,556 Cr now comfortably covers capex, so the 5G build-out phase is giving way to free cash flow.",
+      body: "Jio earned ₹76,255 Cr of EBITDA and ₹30,049 Cr of profit in FY26 on ₹1.47L Cr of revenue. Operating cash flow of ₹77,556 Cr now comfortably covers capex, so the 5G build-out phase is giving way to free cash flow.",
     },
     {
       title: "Tariffs, not subscribers, drive the next leg",
-      body: "With ~39% of India's mobile users already on its network, growth comes from ARPU (Rs 182 in FY24 to ~Rs 214 by FY26 exit), home broadband (13 mn+ AirFiber homes) and enterprise/AI services, not from adding phones.",
+      body: "With ~39% of India's mobile users already on its network, growth comes from ARPU (₹182 in FY24 to ~₹214 by FY26 exit), home broadband (13 mn+ AirFiber homes) and enterprise/AI services, not from adding phones.",
     },
     {
       title: "A clean, debt-reduction IPO",
-      body: "There is no offer for sale: Rs 27,500 Cr of the proceeds prepays borrowings of Reliance Jio Infocomm. Existing investors such as Meta, Google, KKR and PIF are not selling in this issue, and Reliance stays in control at ~64.5% post-issue.",
+      body: "There is no offer for sale: ₹27,500 Cr of the proceeds prepays borrowings of Reliance Jio Infocomm. Existing investors such as Meta, Google, KKR and PIF are not selling in this issue, and Reliance stays in control at ~64.5% post-issue.",
     },
   ],
 
@@ -97,7 +97,7 @@ export const jioPlatforms: IpoReport = {
       "The model is high fixed cost and high operating leverage: spectrum and network are largely built, so each tariff increase or extra GB sold drops mostly into EBITDA, which is why margin rose from 50.1% in FY25 to 51.9% in FY26.",
     ],
     segments: [
-      { title: "Mobile connectivity (RJIL)", metric: "533.3 mn customers", body: "Prepaid and postpaid 4G/5G mobile services; India's largest operator by subscribers, with ARPU of ~Rs 214 at FY26 exit and 42.3 GB monthly data per user." },
+      { title: "Mobile connectivity (RJIL)", metric: "533.3 mn customers", body: "Prepaid and postpaid 4G/5G mobile services; India's largest operator by subscribers, with ARPU of ~₹214 at FY26 exit and 42.3 GB monthly data per user." },
       { title: "5G network", metric: "268 mn 5G users", body: "Standalone 5G users at Mar 2026 after 77 mn additions in FY26; 5G traffic is now monetised through higher-priced plans rather than free unlimited offers." },
       { title: "Home broadband (AirFiber & fibre)", metric: "13 mn+ homes", body: "Fixed-wireless AirFiber and JioFiber connections; the DRHP frames an addressable footprint of ~100 mn homes, a longer runway than mobile." },
       { title: "Enterprise, digital & AI", metric: "12.3% of revenue", body: "Non-RJIL subsidiaries covering enterprise connectivity, cloud, devices, platforms and the Jamnagar AI data-centre plan (first 120 MW phase targeted for end-2026)." },
@@ -115,7 +115,7 @@ export const jioPlatforms: IpoReport = {
   industry: {
     narrative: [
       "India is a three-private-player mobile market: Jio and Airtel together hold roughly 77% of mobile subscribers, Vodafone Idea is shrinking in relative terms, and BSNL/MTNL hold ~7%. TRAI counted 1,312 mn wireless subscribers in Aug 2026.",
-      "Data use keeps compounding - wireless traffic grew 24.7% in FY26 to ~285 exabytes - but price per GB fell 10.6% to Rs 8.02, so revenue growth depends on tariff increases and moving users to higher plans. Industry wireless ARPU rose only 3.6% to Rs 181 in FY26.",
+      "Data use keeps compounding - wireless traffic grew 24.7% in FY26 to ~285 exabytes - but price per GB fell 10.6% to ₹8.02, so revenue growth depends on tariff increases and moving users to higher plans. Industry wireless ARPU rose only 3.6% to ₹181 in FY26.",
     ],
     chart: {
       title: "India wireless data traffic",
@@ -132,8 +132,8 @@ export const jioPlatforms: IpoReport = {
       { label: "Wireless subscribers, Aug 2026 (TRAI)", value: "1,312 mn", tone: "neutral" },
       { label: "Jio mobile subscribers, Aug 2026 (TRAI)", value: "508.4 mn (~39%)", tone: "pos" },
       { label: "Airtel mobile subscribers, Aug 2026 (TRAI)", value: "491.6 mn (~38%)", tone: "neutral" },
-      { label: "Industry wireless ARPU, FY26 (TRAI)", value: "Rs 180.73, +3.6%", tone: "neutral" },
-      { label: "Revenue per GB, FY26 (TRAI)", value: "Rs 8.02, -10.6%", tone: "neg" },
+      { label: "Industry wireless ARPU, FY26 (TRAI)", value: "₹180.73, +3.6%", tone: "neutral" },
+      { label: "Revenue per GB, FY26 (TRAI)", value: "₹8.02, -10.6%", tone: "neg" },
       { label: "Broadband subscribers, Mar 2026 (TRAI)", value: "1,066 mn, +12.9%", tone: "pos" },
     ],
   },
@@ -146,7 +146,7 @@ export const jioPlatforms: IpoReport = {
       { label: "FY26", revenue: 146885, ebitda: 76255, pat: 30049 },
       { label: "Q1 FY27", revenue: 39173, ebitda: 20865, pat: 7764, partial: true },
     ],
-    note: "Revenue grew ~16% a year over FY24-26 and PAT ~18%; Q1 FY27 revenue rose 11.8% YoY. Chittorgarh's table shows PAT incl. minorities (Rs 30,053 Cr FY26) and total income (Rs 1,49,759 Cr), slightly different from the revenue-from-operations and PAT figures used here.",
+    note: "Revenue grew ~16% a year over FY24-26 and PAT ~18%; Q1 FY27 revenue rose 11.8% YoY. Chittorgarh's table shows PAT incl. minorities (₹30,053 Cr FY26) and total income (₹1.5L Cr), slightly different from the revenue-from-operations and PAT figures used here.",
   },
 
   kpi: {
@@ -164,16 +164,16 @@ export const jioPlatforms: IpoReport = {
     { label: "EBITDA margin, FY26", value: "51.9%", tone: "pos" },
     { label: "PAT margin, FY26", value: "20.5%", tone: "pos" },
     { label: "RoNW, FY26", value: "9.4%", tone: "neutral" },
-    { label: "Net worth, Jun 2026", value: "Rs 3,41,779 Cr", tone: "neutral" },
-    { label: "Total borrowings, Jun 2026", value: "Rs 61,372 Cr (Rs 70,781 Cr Mar 2026)", tone: "neutral" },
-    { label: "Basic EPS, FY26", value: "Rs 33.62", tone: "neutral" },
+    { label: "Net worth, Jun 2026", value: "₹3.42L Cr", tone: "neutral" },
+    { label: "Total borrowings, Jun 2026", value: "₹61,372 Cr (₹70,781 Cr Mar 2026)", tone: "neutral" },
+    { label: "Basic EPS, FY26", value: "₹33.62", tone: "neutral" },
     { label: "P/E at upper band (FY26)", value: "~33.3x", tone: "neutral" },
     { label: "P/B at upper band", value: "~3.0x", tone: "neutral" },
   ],
 
   useOfProceeds: [{ label: "Prepay borrowings of Reliance Jio Infocomm", valueCr: 27500 }],
   proceedsNote:
-    "All Rs 30,213 Cr (at the upper band) is fresh capital; Rs 27,500 Cr goes to prepaying RJIL debt and the balance, after issue expenses, to general corporate purposes. Prepayment would cut borrowings of Rs 61,372 Cr (Jun 2026) by close to half and lower interest cost. No existing shareholder sells; Reliance's stake falls from 66.43% to about 64.48% through dilution.",
+    "All ₹30,213 Cr (at the upper band) is fresh capital; ₹27,500 Cr goes to prepaying RJIL debt and the balance, after issue expenses, to general corporate purposes. Prepayment would cut borrowings of ₹61,372 Cr (Jun 2026) by close to half and lower interest cost. No existing shareholder sells; Reliance's stake falls from 66.43% to about 64.48% through dilution.",
   shareholding: [
     { holder: "Reliance Industries (promoter)", pct: 66.43 },
     { holder: "Meta (Jaadhu Holdings)", pct: 9.98 },
@@ -191,12 +191,12 @@ export const jioPlatforms: IpoReport = {
     { name: "Indus Towers", ticker: "INDUSTOWER", note: "Tower infrastructure supplier to all operators." },
   ],
   valuationNote:
-    "At ~Rs 10.3 lakh Cr Jio is valued at ~33x FY26 earnings and ~7x FY26 revenue: a modest P/E discount to Bharti Airtel but a higher sales multiple (see the table), reflecting Jio's higher margin and smaller non-India exposure.",
+    "At ~₹10.3L Cr Jio is valued at ~33x FY26 earnings and ~7x FY26 revenue: a modest P/E discount to Bharti Airtel but a higher sales multiple (see the table), reflecting Jio's higher margin and smaller non-India exposure.",
 
   strengths: [
     { title: "Market leadership at scale", body: "India's largest operator with 533 mn customers and the largest 5G base, giving it the lowest cost per GB and pricing leadership in tariff rounds." },
-    { title: "High and rising margins", body: "EBITDA margin of ~52% and PAT of Rs 30,049 Cr in FY26, with operating leverage as the network is already built out." },
-    { title: "Self-funding cash flow", body: "FY26 operating cash flow of Rs 77,556 Cr against investing outflow of Rs 43,591 Cr; the IPO further de-levers RJIL." },
+    { title: "High and rising margins", body: "EBITDA margin of ~52% and PAT of ₹30,049 Cr in FY26, with operating leverage as the network is already built out." },
+    { title: "Self-funding cash flow", body: "FY26 operating cash flow of ₹77,556 Cr against investing outflow of ₹43,591 Cr; the IPO further de-levers RJIL." },
     { title: "Reliance ecosystem and strategic investors", body: "Distribution through Reliance retail, plus long-term partners Meta and Google, support new services in broadband, enterprise and AI." },
   ],
   risks: [
@@ -204,13 +204,13 @@ export const jioPlatforms: IpoReport = {
     { risk: "Competition and tariff discipline: a price war or delayed tariff hikes would stall ARPU growth", mitigant: "Market is consolidated into two strong private players; recent hikes have held", severity: "medium" },
     { risk: "Related-party dependence on Reliance group entities, including prepaid distribution and shared services", mitigant: "Arrangements are disclosed in the RHP and governed by related-party approval rules after listing", severity: "medium" },
     { risk: "Concentration: RJIL produced 94.9% of FY26 EBITDA, so any network outage, cyberattack or supplier problem hits group earnings directly", mitigant: "Pan-India redundant network; non-RJIL businesses are growing", severity: "medium" },
-    { risk: "Heavy capex for 5G, broadband and AI data centres could eat into free cash flow", mitigant: "Operating cash flow of Rs 77,556 Cr in FY26 funds capex internally", severity: "low" },
+    { risk: "Heavy capex for 5G, broadband and AI data centres could eat into free cash flow", mitigant: "Operating cash flow of ₹77,556 Cr in FY26 funds capex internally", severity: "low" },
   ],
 
   outlook: {
     bull: "Two more tariff rounds lift ARPU towards Airtel's level, home broadband and enterprise/AI scale up, and debt prepayment lifts EPS - earnings compound 15%+ a year and the stock re-rates toward Airtel's multiple.",
     base: "Revenue grows ~12-14% a year on ARPU and broadband, margins hold near 52%, and the stock tracks earnings from a valuation already close to Airtel's.",
-    bear: "Tariff hikes stall under regulatory or competitive pressure, AI/data-centre capex rises, and a ~Rs 10 lakh Cr valuation leaves little room - the stock de-rates toward the sector median.",
+    bear: "Tariff hikes stall under regulatory or competitive pressure, AI/data-centre capex rises, and a ~₹10L Cr valuation leaves little room - the stock de-rates toward the sector median.",
   },
   sources: [
     { title: "Jio Platforms Limited - RHP (abridged prospectus)", source: "SEBI", url: "https://www.sebi.gov.in/filings/public-issues/oct-2026/jio-platforms-limited-rhp_105274.html", year: "2026" },

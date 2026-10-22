@@ -25,7 +25,7 @@ export const RAREEARTH_SCENARIOS: Scenario[] = [
     title: "Scheme winners named",
     blurb: "MHI picks the five beneficiaries and IREL allocates oxide",
     story:
-      "The ministry opens financial bids and names up to five winners for 6,000 tonnes a year, each with a sales-linked incentive of up to Rs 2,150 per kg for five years after a two-year build, and 500 tonnes a year of IREL NdPr oxide shared by the three lowest bidders. Winners get a funded path to a new business; for a small-cap like 20 Microns that is large relative to its size, for L&T or Coal India it is a footnote. Buyers gain a visible second source from about 2028, and upstream separation and alloy capacity has to follow.",
+      "The ministry opens financial bids and names up to five winners for 6,000 tonnes a year, each with a sales-linked incentive of up to ₹2,150 per kg for five years after a two-year build, and 500 tonnes a year of IREL NdPr oxide shared by the three lowest bidders. Winners get a funded path to a new business; for a small-cap like 20 Microns that is large relative to its size, for L&T or Coal India it is a footnote. Buyers gain a visible second source from about 2028, and upstream separation and alloy capacity has to follow.",
     effect: "tailwind",
     impacts: [
       { zone: "magnet_making", severity: 3, why: "Allotted tonnes, incentive per kg and IREL oxide define the winners" },

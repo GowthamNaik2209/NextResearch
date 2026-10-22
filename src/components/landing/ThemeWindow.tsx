@@ -58,6 +58,18 @@ export function ThemeWindow({ rows }: { rows: Record<ThemeTab, ThemeRow[]> }) {
   const [openIpo, setOpenIpo] = useState<string | null>(null);
   const closeIpo = useCallback(() => setOpenIpo(null), []);
 
+  // Shareable while open, like the IPO grids (?ipo=<slug>); removed again on close.
+  useEffect(() => {
+    if (!openIpo) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("ipo", openIpo);
+    window.history.replaceState(window.history.state, "", url);
+    return () => {
+      const u = new URL(window.location.href);
+      u.searchParams.delete("ipo");
+      window.history.replaceState(window.history.state, "", u);
+    };
+  }, [openIpo]);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const pick = (t: ThemeTab) => {

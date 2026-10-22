@@ -63,7 +63,7 @@ export const energy: SectorReport = {
     },
     {
       date: "Jun 2025",
-      title: "Rs 5,400 Cr VGF for 30 GWh of BESS",
+      title: "₹5,400 Cr VGF for 30 GWh of BESS",
       body: "Ministry of Power approved viability gap funding for 30 GWh of battery storage, on top of the 4 GWh scheme of 2023.",
       impact: "pos",
       tag: "Storage",
@@ -100,7 +100,7 @@ export const energy: SectorReport = {
     snapshot: [
       { label: "Solar capacity, Mar 2025", value: "~106 GW", tone: "pos" },
       { label: "Coal PLF, FY25", value: "~69%", tone: "neutral" },
-      { label: "Solar bid tariffs", value: "~Rs 2.5/kWh", tone: "pos" },
+      { label: "Solar bid tariffs", value: "~₹2.5/kWh", tone: "pos" },
       { label: "ALMM module vs cell capacity", value: "~100 vs ~25 GW", tone: "neutral" },
       { label: "Pumped storage operating", value: "~5-7 GW", tone: "neg" },
       { label: "Discom AT&C losses, FY24", value: "~16%", tone: "neg" },
@@ -140,7 +140,7 @@ export const energy: SectorReport = {
       { point: "State discoms are politically pressed to keep tariffs low, which delays payments and PPA signing.", impact: "neg" },
     ],
     economic: [
-      { point: "Solar-plus-storage now bids near Rs 3-4.5/kWh, competitive with new coal.", impact: "pos" },
+      { point: "Solar-plus-storage now bids near ₹3-4.5/kWh, competitive with new coal.", impact: "pos" },
       { point: "Projects are capital-heavy; higher interest rates quickly hit IPP returns.", impact: "neg" },
     ],
     social: [
@@ -175,10 +175,10 @@ export const energy: SectorReport = {
   ],
 
   companyNews: [
-    { key: "bhel", date: "FY25", development: "Booked record order inflows of ~Rs 90,000 Cr+, mostly coal BTG sets.", impact: "Confirms the thermal revival; execution speed is now the bottleneck.", tone: "pos" },
+    { key: "bhel", date: "FY25", development: "Booked record order inflows of ~₹90,000 Cr+, mostly coal BTG sets.", impact: "Confirms the thermal revival; execution speed is now the bottleneck.", tone: "pos" },
     { key: "jswEnergy", date: "Mar 2025", development: "Completed the ~4.7 GW O2 Power renewable acquisition.", impact: "Shows consolidation in RE IPPs as scale lowers capital costs.", tone: "pos" },
     { key: "adaniGreenEnergy", date: "2025", development: "Operational capacity crossed ~15 GW, led by the Khavda park in Gujarat.", impact: "Giga-scale parks set the cost benchmark for solar and wind tariffs.", tone: "pos" },
-    { key: "ntpc", date: "Nov 2024", development: "Listed NTPC Green Energy via a ~Rs 10,000 Cr IPO.", impact: "Gives the PSU leader a separate vehicle to fund 60 GW of RE by 2032.", tone: "pos" },
+    { key: "ntpc", date: "Nov 2024", development: "Listed NTPC Green Energy via a ~₹10,000 Cr IPO.", impact: "Gives the PSU leader a separate vehicle to fund 60 GW of RE by 2032.", tone: "pos" },
     { key: "tataPowerEnergy", date: "2024-25", development: "Commissioned its 4.3 GW cell and module plant in Tirunelveli.", impact: "Early domestic cell supply ahead of ALMM-II requirements.", tone: "pos" },
     { key: "waareeEnergy", date: "2025", development: "US launched anti-dumping probes on Indian-origin modules while Waaree expands US output.", impact: "Export margins are at risk; more supply may turn back to India.", tone: "neg" },
   ],

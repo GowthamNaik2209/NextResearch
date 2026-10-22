@@ -12,15 +12,15 @@ export const semicon2: SectorReport = {
     line: "MPMS gives phone assemblers five more years of incentives; Semicon 2.0's chip payoff is real but slow, and most of it sits in unlisted companies.",
   },
   keyStats: [
-    { label: "Semicon 2.0 outlay", value: "Rs 1,27,500 Cr", sub: "Cabinet, 15 Jul 2026 (ISM)" },
-    { label: "MPMS outlay", value: "Rs 62,500 Cr", sub: "FY27-FY31; notified 21 Aug 2026" },
+    { label: "Semicon 2.0 outlay", value: "₹1.27L Cr", sub: "Cabinet, 15 Jul 2026 (ISM)" },
+    { label: "MPMS outlay", value: "₹62,500 Cr", sub: "FY27-FY31; notified 21 Aug 2026" },
     { label: "Smartphone exports, FY26", value: "~US$29bn", sub: "~75% iPhones (Commerce data, est.)" },
-    { label: "Semicon 1.0 chip plants", value: "12 approved", sub: ">Rs 1.64 lakh Cr; 5 producing (ISM)" },
+    { label: "Semicon 1.0 chip plants", value: "12 approved", sub: ">₹1.64L Cr; 5 producing (ISM)" },
   ],
   thesis: [
     {
       title: "MPMS is the near-term money, for assemblers",
-      body: "It pays 2.25-5% on phone sales, counted brand by brand, but only once a brand grows: it must sell Rs 5,000 crore more than in FY26 in FY27, and the hurdle rises by Rs 5,000 crore each year. So growth - mostly exports - decides who earns. Dixon and the iPhone assemblers (Foxconn, Tata Electronics) are first in line; brokerages see only a small margin lift, but volume stays in India.",
+      body: "It pays 2.25-5% on phone sales, counted brand by brand, but only once a brand grows: it must sell ₹5,000 Cr more than in FY26 in FY27, and the hurdle rises by ₹5,000 Cr each year. So growth - mostly exports - decides who earns. Dixon and the iPhone assemblers (Foxconn, Tata Electronics) are first in line; brokerages see only a small margin lift, but volume stays in India.",
     },
     {
       title: "The 1.5% sourcing bonus links phones to chips",
@@ -64,14 +64,14 @@ export const semicon2: SectorReport = {
     {
       date: "21 Aug 2026",
       title: "MPMS notified, two tracks",
-      body: "Track 1 is open to makers with Rs 10,000 crore of FY26 turnover; each brand must then beat its FY26 sales by Rs 5,000 crore in FY27 (hurdle rising Rs 5,000 crore a year) and earns 2.25-5% on eligible sales; Track 2 (Indian brands, Rs 1,000 crore turnover) pays 5% plus 3% for design and R&D. Both get up to 1.5% for local sourcing.",
+      body: "Track 1 is open to makers with ₹10,000 Cr of FY26 turnover; each brand must then beat its FY26 sales by ₹5,000 Cr in FY27 (hurdle rising ₹5,000 Cr a year) and earns 2.25-5% on eligible sales; Track 2 (Indian brands, ₹1,000 Cr turnover) pays 5% plus 3% for design and R&D. Both get up to 1.5% for local sourcing.",
       impact: "pos",
       tag: "Policy",
     },
     {
       date: "15 Jul 2026",
       title: "Cabinet clears both schemes",
-      body: "Semicon 2.0 (Rs 1,27,500 crore) and MPMS (Rs 62,500 crore) were approved together. EMS stocks rallied the next day: Dixon rose 4-7%, Cyient DLM ~3%, Kaynes ~2%.",
+      body: "Semicon 2.0 (₹1.27L Cr) and MPMS (₹62,500 Cr) were approved together. EMS stocks rallied the next day: Dixon rose 4-7%, Cyient DLM ~3%, Kaynes ~2%.",
       impact: "pos",
       tag: "Policy",
     },
@@ -96,11 +96,11 @@ export const semicon2: SectorReport = {
       ],
     },
     snapshot: [
-      { label: "Mobile phone production, FY25", value: "Rs 5.45 lakh Cr (Economic Survey)", tone: "pos" },
+      { label: "Mobile phone production, FY25", value: "₹5.45L Cr (Economic Survey)", tone: "pos" },
       { label: "Smartphone exports, Q1 FY27", value: "US$9.84bn, +23% YoY", tone: "pos" },
       { label: "Local value addition under phone PLI", value: "~18-19% vs 35-40% target", tone: "neg" },
       { label: "MPMS max incentive (Track 1 / Track 2)", value: "6.5% / 9.5% of eligible sales", tone: "neutral" },
-      { label: "Semicon 2.0 support, silicon fab", value: "40% of capex (min Rs 20,000 Cr)", tone: "pos" },
+      { label: "Semicon 2.0 support, silicon fab", value: "40% of capex (min ₹20,000 Cr)", tone: "pos" },
       { label: "First commercial wafer fab", value: "Tata-PSMC Dholera, guided mid-2028", tone: "neutral" },
     ],
   },
@@ -115,13 +115,13 @@ export const semicon2: SectorReport = {
   ],
 
   drivers: [
-    { title: "MPMS incentives", metric: "Rs 62,500 Cr over 5 years", body: "2.25-5% on phone sales growth, up to 6.5% with local sourcing; Indian brands up to 9.5%." },
-    { title: "Export programmes", metric: "~US$29bn in FY26", body: "iPhones are ~three-quarters of smartphone exports; exports are the only way most assemblers clear MPMS's rising Rs 5,000-crore-a-year growth hurdle." },
+    { title: "MPMS incentives", metric: "₹62,500 Cr over 5 years", body: "2.25-5% on phone sales growth, up to 6.5% with local sourcing; Indian brands up to 9.5%." },
+    { title: "Export programmes", metric: "~US$29bn in FY26", body: "iPhones are ~three-quarters of smartphone exports; exports are the only way most assemblers clear MPMS's rising ₹5,000-crore-a-year growth hurdle." },
     { title: "Chip capex support", metric: "25-40% of capex", body: "Semicon 2.0 co-funds fabs (40%), compound fabs and advanced packaging (35%), legacy packaging (25%) and tools and materials (30%)." },
     { title: "Indian chip demand", metric: "~US$90bn by 2030", body: "NITI Aayog projects ~19% a year growth to about US$90bn by 2030 and over US$200bn by 2035." },
   ],
   mix: {
-    title: "Semicon 1.0 approved investment by type (12 projects, ~Rs 1.64 lakh Cr)",
+    title: "Semicon 1.0 approved investment by type (12 projects, ~₹1.64L Cr)",
     source: "Cabinet approvals as reported by PIB/ISM; Crystal Matrix and Suchi counted together",
     slices: [
       { label: "Silicon wafer fab (Tata-PSMC)", value: 55.6 },
@@ -173,14 +173,14 @@ export const semicon2: SectorReport = {
   companyNews: [
     { key: "lt", date: "Sep 2026", development: "L&T Semiconductor showed 40 products incl. a 1,200V SiC MOSFET and agreed with Tata Electronics to explore Indian fabrication and packaging.", impact: "An Indian fabless company lining up Indian manufacturing - the full loop Semicon 2.0 is meant to create.", tone: "pos" },
     { key: "dixon", date: "Aug 2026", development: "CLSA cut Dixon to Underperform after MPMS details, saying much of its sales may miss the hurdle without exports; JPMorgan stayed Overweight.", impact: "Shows MPMS rewards export growth, not domestic volume alone.", tone: "neutral" },
-    { key: "cgpower", date: "Jul 2026", development: "The Prime Minister inaugurated CG Semi's Rs 7,600 crore chip-packaging plant at Sanand on 4 Jul 2026.", impact: "A listed company now runs an operating Indian chip plant; ramp-up losses are the near-term cost.", tone: "pos" },
+    { key: "cgpower", date: "Jul 2026", development: "The Prime Minister inaugurated CG Semi's ₹7,600 Cr chip-packaging plant at Sanand on 4 Jul 2026.", impact: "A listed company now runs an operating Indian chip plant; ramp-up losses are the near-term cost.", tone: "pos" },
     { key: "amber", date: "Jun 2026", development: "Signed to make smartphones for Oppo, OnePlus and Realme: trial production Q4 FY27, about 8 million phones in year one.", impact: "A new assembler entering phones ahead of MPMS widens the supplier base beyond Dixon.", tone: "pos" },
-    { key: "archean", date: "May 2026", development: "Subsidiary SiCSem signed its fiscal-support agreement with the India Semiconductor Mission for the ~Rs 2,066 crore Odisha SiC fab.", impact: "First compound-semiconductor fab moves from approval to funded build.", tone: "pos" },
+    { key: "archean", date: "May 2026", development: "Subsidiary SiCSem signed its fiscal-support agreement with the India Semiconductor Mission for the ~₹2,066 Cr Odisha SiC fab.", impact: "First compound-semiconductor fab moves from approval to funded build.", tone: "pos" },
     { key: "kaynes", date: "Mar 2026", development: "Kaynes Semicon began commercial production at Sanand, India's second operating chip-packaging plant, making power modules for autos and industry.", impact: "Proof that Indian mid-caps can run OSATs; the test now is utilisation and customer wins.", tone: "pos" },
   ],
 
   risks: [
-    { risk: "Brands miss MPMS's growth hurdle (Rs 5,000 crore over FY26 sales in FY27, rising Rs 5,000 crore a year) if exports stall or US tariffs hit", mitigant: "New anchor customers (Vivo JV, Oppo), Samsung flagship production in Noida", severity: "high" },
+    { risk: "Brands miss MPMS's growth hurdle (₹5,000 Cr over FY26 sales in FY27, rising ₹5,000 Cr a year) if exports stall or US tariffs hit", mitigant: "New anchor customers (Vivo JV, Oppo), Samsung flagship production in Noida", severity: "high" },
     { risk: "Chip-plant delays (Dholera already moved to mid-2028) and slow customer qualification", mitigant: "Foreign technology partners, six-year support tenure, OSATs starting first", severity: "high" },
     { risk: "Incentives passed through to brands, leaving assemblers' margins thin", mitigant: "Sourcing bonus and in-house modules let assemblers keep more", severity: "medium" },
     { risk: "Listed exposure stays small: most chip plants and brands are unlisted", mitigant: "Possible IPOs (Bharat FIH approved by SEBI) and listed suppliers scaling", severity: "medium" },

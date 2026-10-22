@@ -71,7 +71,7 @@ export const solarmodules: SectorReport = {
     {
       date: "Feb 2024",
       title: "PM Surya Ghar rooftop scheme launched",
-      body: "A Rs 75,021 Cr scheme for 1 crore rooftop homes requires domestic (DCR) cells and modules, a large retail channel for listed makers.",
+      body: "A ₹75,021 Cr scheme for 1 crore rooftop homes requires domestic (DCR) cells and modules, a large retail channel for listed makers.",
       impact: "pos",
       tag: "Demand",
     },
@@ -80,7 +80,7 @@ export const solarmodules: SectorReport = {
   overview: {
     narrative: [
       "India has ~130 GW of installed solar and targets 500 GW of non-fossil capacity by 2030, implying 40-50 GW of solar additions a year. Demand is set by targets and tenders, not by ALMM.",
-      "ALMM, alongside 40% basic customs duty on modules and the Rs 24,000 Cr PLI for high-efficiency modules, turned India from an importer of Chinese panels into a module-surplus market within four years.",
+      "ALMM, alongside 40% basic customs duty on modules and the ₹24,000 Cr PLI for high-efficiency modules, turned India from an importer of Chinese panels into a module-surplus market within four years.",
       "The gap is upstream: cell capacity is a fraction of module capacity, and polysilicon and wafers are almost entirely imported. List-II and List-III are designed to close it.",
     ],
     chart: {
@@ -100,7 +100,7 @@ export const solarmodules: SectorReport = {
     },
     snapshot: [
       { label: "BCD on modules / cells", value: "40% / 25%", tone: "neutral" },
-      { label: "PLI for HE modules", value: "Rs 24,000 Cr", tone: "pos" },
+      { label: "PLI for HE modules", value: "₹24,000 Cr", tone: "pos" },
       { label: "Module vs cell capacity", value: "~4-5x gap", tone: "neg" },
       { label: "Domestic module premium", value: "Narrowing", tone: "neg" },
       { label: "Cell ALMM mandate", value: "From Jun 2026", tone: "pos" },
@@ -120,8 +120,8 @@ export const solarmodules: SectorReport = {
   drivers: [
     { title: "Mandated domestic sourcing", metric: "ALMM I + II", body: "Government-linked, rooftop and net-metered projects must buy listed modules, and from June 2026 listed cells." },
     { title: "Renewable build-out", metric: "500 GW by 2030", body: "The non-fossil target needs 40-50 GW of solar a year, set by SECI, NTPC and state tenders." },
-    { title: "Rooftop and farm schemes", metric: "Rs 75,021 Cr", body: "PM Surya Ghar and PM-KUSUM require DCR modules, giving listed makers a retail and agri channel." },
-    { title: "Production incentives and duties", metric: "Rs 24,000 Cr", body: "The high-efficiency module PLI and 40%/25% customs duties reward integrated capacity over imports." },
+    { title: "Rooftop and farm schemes", metric: "₹75,021 Cr", body: "PM Surya Ghar and PM-KUSUM require DCR modules, giving listed makers a retail and agri channel." },
+    { title: "Production incentives and duties", metric: "₹24,000 Cr", body: "The high-efficiency module PLI and 40%/25% customs duties reward integrated capacity over imports." },
   ],
   mix: {
     title: "Solar capacity additions by segment, FY25 (approx.)",

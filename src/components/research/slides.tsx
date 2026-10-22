@@ -12,7 +12,6 @@ import {
   outlookTitle,
   overviewTitle,
   pestleTitle,
-  rupee,
   scorecardTitle,
   valueChainTitle,
 } from "./headlines";
@@ -82,7 +81,7 @@ export function ToneIcon({ tone, className = "" }: { tone: Tone; className?: str
 // so when a long value wraps on a phone the arrow stays beside it instead of floating at the
 // cell's left edge (an inline-flex box put "▲" a column away from "38.9%" on the OYO deck).
 export function ToneValueCell({ tone, value }: { tone?: Tone; value: string }) {
-  const v = rupee(value);
+  const v = value;
   const sp = v.indexOf(" ");
   const [first, rest] = sp < 0 ? [v, ""] : [v.slice(0, sp), v.slice(sp)];
   return (
@@ -183,7 +182,7 @@ function SummarySlide({ deck }: SlideProps) {
             {r.keyStats.map((s) => (
               <div key={s.label} className="rounded-xl border border-line bg-bg/70 p-3.5">
                 <div className="text-[10px] font-semibold uppercase tracking-wide text-ink-soft">{s.label}</div>
-                <div className="mt-1 font-display text-xl font-bold text-ink sm:text-2xl">{rupee(s.value)}</div>
+                <div className="mt-1 font-display text-xl font-bold text-ink sm:text-2xl">{s.value}</div>
                 {s.sub && <div className="mt-0.5 text-[11px] leading-snug text-ink-soft">{s.sub}</div>}
               </div>
             ))}
