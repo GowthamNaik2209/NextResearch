@@ -11,11 +11,16 @@ function createClient() {
   // three at once). Idle connections close after 10s so a frozen or idle instance gives its slots
   // back instead of holding them until the pooler times them out; a new connection is refused after
   // 10s rather than hanging a request. Use the transaction pooler (:6543) for DATABASE_URL (.env.example).
+  // `next build` collects page data in ~7 worker processes at once, each loading the company table
+  // (one findMany fans out into a query per relation), so there each worker gets one connection:
+  // 7 x 5 overflowed the session pooler's 15-client limit and failed the build.
+  const building = process.env.NEXT_PHASE === "phase-production-build";
   const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL,
-    max: 5,
+    max: building ? 1 : 5,
     idleTimeoutMillis: 10_000,
-    connectionTimeoutMillis: 10_000,
+    // A build queues behind the other workers for the pooler's slots, so it waits longer.
+    connectionTimeoutMillis: building ? 60_000 : 10_000,
   });
   return new PrismaClient({ adapter });
 }

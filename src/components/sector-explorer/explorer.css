@@ -176,7 +176,6 @@
  width:18px; height:18px; border-radius:50%; border:2px solid var(--line); border-top-color:var(--accent);
  animation:nr-spin .8s linear infinite;
  }
- @keyframes nr-spin{ to{ transform:rotate(360deg) } }
  @media (prefers-reduced-motion: reduce){ .stage-loading .spinner{ animation-duration:2.4s } }
  .toolbar{
  position:absolute; bottom:14px; left:50%; transform:translateX(-50%); z-index:5;
@@ -568,3 +567,6 @@
  .nr-explorer :is(.reset-btn, .controls-btn){ width:40px; height:40px }
  .nr-explorer input[type="range"]{ height:36px }
 }
+
+/* Keyframes can't live inside the nested .nr-explorer block (the CSS compiler drops them there). */
+@keyframes nr-spin { to { transform: rotate(360deg) } }
