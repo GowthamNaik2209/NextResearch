@@ -15,6 +15,8 @@ function resolveSiteUrl(): string {
 export const SITE_URL = resolveSiteUrl();
 export const SITE_NAME = "NextResearch";
 export const SITE_TAGLINE = "Supply-chain research for India's public markets";
+export const INSTAGRAM_URL = "https://www.instagram.com/nextresearch.app/";
+export const CONTACT_EMAIL = "queries@nextresearchapp.com";
 // No list of themes here: a hand-typed list drifted from the content (this is read at import time,
 // before the content can be). Pages that name the themes use themeNames() below.
 export const SITE_DESCRIPTION =
