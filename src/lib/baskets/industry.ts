@@ -8,6 +8,8 @@ import { getCompanyFootprint } from "@/lib/sector-content/exposure";
 import { sectorBenchmarks, type Benchmark } from "@/lib/sector-content/benchmarks";
 import { memoByFinancials } from "@/lib/financials/store";
 import { oneOffReason } from "./outliers";
+import { projectionFor } from "./projection-data";
+import type { StockProjection } from "./projection";
 
 export { MAX_BASKET_STOCKS, MAX_BASKETS_PER_USER } from "./limits";
 
@@ -29,6 +31,8 @@ export type BasketStock = {
   /** Why its figures have a one-off year (./outliers.ts), when they do: it is left out of the
    * rule-based baskets and screens, and marked "one-off" where a user adds it. Absent otherwise. */
   oneOff?: string;
+  /** Its 1- and 2-year price projection, or why it is left out (./projection.ts; docs/PROJECTIONS.md). */
+  proj?: StockProjection;
 };
 
 export type IndustryBasket = {
@@ -79,6 +83,7 @@ export function basketStock(ticker: string): BasketStock | null {
     };
     const oneOff = oneOffReason(page.supplier.f ?? sup.f);
     if (oneOff) out.oneOff = oneOff;
+    out.proj = projectionFor(ticker, primary.sectorSlug);
   }
   stockCache.set(ticker, out);
   return out;

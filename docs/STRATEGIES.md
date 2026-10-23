@@ -85,6 +85,12 @@ industry and policy slugs by `src/lib/baskets/picked-from.ts`), so its layer lab
 was picked in after a reload (Bharat Forge picked from EV reads "Electric motor & e-axle"). With none,
 a stock reads in the basket's `sourceSector`, else its home industry.
 
+**Projections** (built Oct 2026; design and model in docs/PROJECTIONS.md): a switch beside Weighting
+and Rebalancing turns every panel from the past backtest to a 1- or 2-year projection from today (Bear,
+Base, Bull; exit at own or industry P/E). It reads the same selection, weights and picks, so ticking
+lines, Your picks and custom weights work the same with it on; stocks with under 3 years of results
+are left out and their share spread over the rest. Settings live in the URL (`proj`, `ph`, `ps`, `pe`).
+
 **Layer-balanced weighting was removed** (owner's call, Oct 2026): the Weighting control is Equal ·
 M-cap · Custom. It only ever lived in the URL (saved baskets store EQUAL, MCAP or custom, so no data
 changed); an old link with `w=layer` (or `wt=layer`) opens at equal weight.

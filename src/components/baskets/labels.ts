@@ -13,7 +13,7 @@ const PERIOD: Record<string, string> = { "1M": "1 month", "6M": "6 months", "1Y"
 /** "past 1 year" for a range code. */
 export const pastPeriod = (range: ChartRange) => `past ${PERIOD[range] ?? range}`;
 
-const WEIGHTING_WORDS = { equal: "equal weight", mcap: "market-cap weight", custom: "custom weights" } as const;
+export const WEIGHTING_WORDS = { equal: "equal weight", mcap: "market-cap weight", custom: "custom weights" } as const;
 
 /** "equal weight, not rebalanced" / "custom weights, rebalanced monthly" / "equal weight, rebalanced at 5-pt drift". */
 export function basisLabel(s: Strategy): string {

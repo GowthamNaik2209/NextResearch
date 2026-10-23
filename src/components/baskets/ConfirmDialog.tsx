@@ -12,6 +12,7 @@ export function ConfirmDialog({
   confirmLabel,
   danger = false,
   busy = false,
+  notice = false,
   onConfirm,
   onCancel,
 }: {
@@ -23,6 +24,8 @@ export function ConfirmDialog({
   danger?: boolean;
   /** The action is running: both buttons wait. */
   busy?: boolean;
+  /** A note to acknowledge, not a choice: one button (the confirm label), no Cancel. */
+  notice?: boolean;
   /** Runs inside the tap, so it may copy to the clipboard (Safari refuses a copy after a wait). */
   onConfirm: () => void;
   onCancel: () => void;
@@ -56,6 +59,7 @@ export function ConfirmDialog({
         </h2>
         <div className="text-sm leading-relaxed text-ink-soft">{children}</div>
         <div className="flex flex-wrap justify-end gap-2 pt-1">
+          {!notice && (
           <button
             type="button"
             // A delete starts on Cancel, so a stray Enter doesn't delete.
@@ -66,6 +70,7 @@ export function ConfirmDialog({
           >
             Cancel
           </button>
+          )}
           <button
             type="button"
             autoFocus={!danger}

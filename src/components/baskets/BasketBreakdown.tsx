@@ -29,6 +29,7 @@ export function BasketBreakdown({
   byIndustry,
   tab,
   onTab,
+  ahead = false,
 }: {
   holdings: BacktestHolding[];
   stockOf: (ticker: string) => BasketStock | undefined;
@@ -40,7 +41,10 @@ export function BasketBreakdown({
   /** The open tab, kept by the page so it survives the charts reloading (range or weighting changes). */
   tab: Tab;
   onTab: (t: Tab) => void;
+  /** A projection (Projections on): `rangeLong` is the horizon ahead ("1 year") and the words look forward. */
+  ahead?: boolean;
 }) {
+  const over = ahead ? `the next ${rangeLong}` : `the past ${rangeLong}`;
   const nameOf = (t: string) => stockOf(t)?.name ?? t;
   const industryOf = (t: string) => stockOf(t)?.industries[0]?.name ?? null;
   const whose = picks ? "your picks\u2019" : "the basket\u2019s";
@@ -55,28 +59,30 @@ export function BasketBreakdown({
 
   const view = {
     contribution: {
-      headline: contributionHeadline(holdings, nameOf, whose),
-      sub: `What each stock added to ${whose} return over the past ${rangeLong}, in percentage points.`,
+      headline: contributionHeadline(holdings, nameOf, whose, ahead),
+      sub: `What each stock ${ahead ? "adds" : "added"} to ${whose} ${ahead ? "projected " : ""}return over ${over}, in percentage points.`,
       rows: contributionRows(holdings),
       unit: "pts",
       legend: true,
     },
     returns: {
-      headline: returnHeadline(holdings, rangeLong),
-      sub: `Each stock's own price change over the past ${rangeLong}.`,
+      headline: returnHeadline(holdings, rangeLong, ahead),
+      sub: ahead ? `Each stock's own projected price change over ${over}.` : `Each stock's own price change over ${over}.`,
       rows: returnRows(holdings),
       unit: "%",
       legend: false,
     },
     weights: {
-      headline: weightHeadline(holdings, nameOf, picks ? "your picks" : "the basket"),
-      sub: `Share of ${picks ? "your picks" : "the basket"} at the end, against its target. Winners grow, losers shrink.`,
+      headline: weightHeadline(holdings, nameOf, picks ? "your picks" : "the basket", ahead),
+      sub: ahead
+        ? `Share of ${picks ? "your picks" : "the basket"} at the end of ${over} if held, against today's target (left-out stocks' share spread over the rest).`
+        : `Share of ${picks ? "your picks" : "the basket"} at the end, against its target. Winners grow, losers shrink.`,
       rows: weightRows(holdings),
       unit: "%",
       legend: false,
     },
     industries: {
-      headline: industryHeadline(inds, whose),
+      headline: industryHeadline(inds, whose, ahead),
       sub: `Contribution by each stock's main industry, in percentage points.`,
       rows: inds,
       unit: "pts",
@@ -103,18 +109,18 @@ export function BasketBreakdown({
           {view.rows.some((r) => r.kind !== "gap" && r.value >= 0) && (
             <span className="flex items-center gap-1.5">
               <span aria-hidden className="h-2.5 w-2.5 rounded-sm bg-pos" />
-              Added
+              {ahead ? "Adds" : "Added"}
             </span>
           )}
           {view.rows.some((r) => r.kind !== "gap" && r.value < 0) && (
             <span className="flex items-center gap-1.5">
               <span aria-hidden className="h-2.5 w-2.5 rounded-sm bg-danger" />
-              Took away
+              {ahead ? "Takes away" : "Took away"}
             </span>
           )}
         </div>
       )}
-      {active === "weights" ? <WeightBars rows={view.rows} stockOf={stockOf} /> : <Bars rows={view.rows} unit={view.unit} stockOf={stockOf} />}
+      {active === "weights" ? <WeightBars rows={view.rows} stockOf={stockOf} ahead={ahead} /> : <Bars rows={view.rows} unit={view.unit} stockOf={stockOf} />}
     </section>
   );
 }
@@ -184,7 +190,7 @@ function Bars({ rows, unit, stockOf }: { rows: BarRow[]; unit: string; stockOf: 
 // Weights now as bars on a faint track, with a dashed marker at the weight each started on (a
 // key above says so; at equal weights the markers line up). Scaled to the single stocks, so a
 // combined "others" row (which can be large) doesn't flatten them.
-function WeightBars({ rows, stockOf }: { rows: BarRow[]; stockOf: (t: string) => BasketStock | undefined }) {
+function WeightBars({ rows, stockOf, ahead = false }: { rows: BarRow[]; stockOf: (t: string) => BasketStock | undefined; ahead?: boolean }) {
   const stocks = rows.filter((r) => r.kind === "stock");
   const max = Math.max(1, ...(stocks.length ? stocks : rows).flatMap((r) => (r.kind === "gap" ? [] : [r.value, r.start ?? 0])));
   const at = (v: number) => `${Math.min(100, (v / max) * 100)}%`;
@@ -195,11 +201,11 @@ function WeightBars({ rows, stockOf }: { rows: BarRow[]; stockOf: (t: string) =>
     <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-soft">
       <span className="flex items-center gap-1.5">
         <span aria-hidden className="h-2.5 w-4 rounded-sm bg-accent/70" />
-        Weight now
+        {ahead ? "Weight at the end" : "Weight now"}
       </span>
       <span className="flex items-center gap-1.5">
         <span aria-hidden className="h-3.5 border-l-2 border-dashed border-ink-soft" />
-        {same ? `Where each started (${starts[0].toFixed(1)}% each)` : "Where it started"}
+        {ahead ? (same ? `Today (${starts[0].toFixed(1)}% each)` : "Today") : same ? `Where each started (${starts[0].toFixed(1)}% each)` : "Where it started"}
       </span>
     </div>
     <ul className="flex flex-col gap-1.5">

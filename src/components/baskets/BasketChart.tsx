@@ -4,6 +4,9 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch, t
 import { ColorType, CrosshairMode, LineSeries, LineStyle, createChart, type IChartApi, type ISeriesApi, type Time } from "lightweight-charts";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
+import type { BasketCaseReturns } from "@/lib/baskets/projection-data";
+import { SCENARIOS } from "@/lib/baskets/projection";
+import { stockPath, type ProjectionSettings } from "@/lib/baskets/projection-basket";
 import { StockLink } from "@/components/stock/StockLink";
 import { ZOOM_OPTIONS, ZoomControls, useChartZoom } from "@/components/charts/ChartZoom";
 import { onSharedGrid, sharedInterval } from "@/lib/live/ohlc-format";
@@ -21,7 +24,13 @@ export { MAX_CHART_STOCKS, type ChartSelection };
 // A basket's backtest beside the market, its industry's index and other industry baskets, on the
 // Analysis charts' conventions: every line starts at 0% on the first day shown, benchmarks are
 // drawn in ink, stocks in the categorical palette. The basket itself is the thick accent line.
-export type CompareBasket = { slug: string; name: string; icon: string };
+export type CompareBasket = {
+  slug: string;
+  name: string;
+  icon: string;
+  /** Its projected return at each weighting, for every horizon, case and exit (docs/PROJECTIONS.md). */
+  proj?: Record<"equal" | "mcap", BasketCaseReturns>;
+};
 
 // A stock's line: one of six palette colours (slot 6 is kept for the compared industry baskets),
 // solid first, then long-dashed, then dotted, so 18 stocks can be told apart.
@@ -47,6 +56,24 @@ export function defaultSelection(indices: Benchmark[], industries: CompareBasket
   };
 }
 
+/** The chart in Projections mode (docs/PROJECTIONS.md): every line from 0% today, one point a week. */
+export type ChartProjection = {
+  /** "next 1 year". */
+  label: string;
+  settings: ProjectionSettings;
+  /** Compared industry baskets' weighting (equal when this basket is custom). */
+  compareWeighting: "equal" | "mcap";
+  dates: string[];
+  /** % from today per date, by line key: the basket and each projected stock ("s:TICKER"). */
+  values: Record<string, number[]>;
+  /** Why a stock's line isn't projected, by line key ("Left out: 2 years of results (needs 3)"). */
+  why: Record<string, string>;
+  /** The basket's likely range (8 in 10 simulated paths), % per date; null while it can't be worked out. */
+  band: { lo: number[]; hi: number[] } | null;
+};
+const LO = "p:lo";
+const HI = "p:hi";
+
 // The selection is held by the page, not here, so switching strategy, range or the Stocks/Chart
 // view never puts the reader's picks back to the defaults.
 export function BasketChart({
@@ -65,6 +92,7 @@ export function BasketChart({
   onToggleStock,
   onPickAll,
   onPickNone,
+  projection = null,
 }: {
   range: ChartRange;
   rangeLong: string;
@@ -90,6 +118,8 @@ export function BasketChart({
   onPickAll: () => void;
   /** Every stock's line off; the basket, benchmarks and compared baskets stay. */
   onPickNone: () => void;
+  /** Set when Projections is on: the chart runs from today instead of over the past range. */
+  projection?: ChartProjection | null;
 }) {
   const { benches, compare, picks } = selection;
   const setBenches = (f: (b: string[]) => string[]) => onSelection((s) => ({ ...s, benches: f(s.benches) }));
@@ -133,7 +163,12 @@ export function BasketChart({
   }, [menu]);
   const lines: Line[] = useMemo(() => {
     const out: Line[] = [{ key: basketKey, name: basketName, note: "this basket", color: "var(--accent)", token: "--accent", width: 3, dash: "solid" }];
-    if (held) out.push({ key: held.key, name: held.name, note: "same stocks, no rebalancing", color: "var(--accent)", token: "--accent", width: 2, dash: "dot" });
+    // Projections: the basket's likely range in its place, and no unrebalanced line (a projection is held).
+    if (projection?.band) {
+      out.push({ key: HI, name: "Likely range, top", note: "8 in 10 simulated paths are between top and bottom", color: "var(--accent)", token: "--accent", width: 2, dash: "dot" });
+      out.push({ key: LO, name: "Likely range, bottom", note: "1 in 10 are below the bottom, 1 in 10 above the top", color: "var(--accent)", token: "--accent", width: 2, dash: "dot" });
+    }
+    if (held && !projection) out.push({ key: held.key, name: held.name, note: "same stocks, no rebalancing", color: "var(--accent)", token: "--accent", width: 2, dash: "dot" });
     compare.forEach((slug, i) => {
       const b = industries.find((x) => x.slug === slug);
       if (b) out.push({ key: `x:sector=${slug}&${strategy}`, name: `${b.name} basket`, note: "industry basket", color: SLOTS[theme][6], width: 2, dash: COMPARE_DASH[i % 3] });
@@ -149,14 +184,52 @@ export function BasketChart({
       if (slot != null) out.push({ key: `s:${st.ticker}`, name: st.name, note: st.ticker, ...stockLine(theme, slot), width: 2, stock: st.ticker });
     }
     return out;
-  }, [basketKey, basketName, held, compare, industries, strategy, indices, market, benches, stocks, picks, theme]);
+  }, [basketKey, basketName, held, compare, industries, strategy, indices, market, benches, stocks, picks, theme, projection]);
 
-  const { get: loadOf, retry } = useSeries(
-    lines.map((l) => l.key),
-    range,
-  );
+  // Projections draw from the page's figures: nothing to load.
+  const { get: loadOf, retry } = useSeries(projection ? [] : lines.map((l) => l.key), range);
+
+  // Projections: each line's % from today per week, or why it has none (an index, a left-out stock).
+  const projected = useMemo(() => {
+    if (!projection) return null;
+    const steps = projection.dates.length - 1;
+    const { h, scenario, exit } = projection.settings;
+    const values = new Map<string, number[]>();
+    const why = new Map<string, string>();
+    for (const l of lines) {
+      if (l.key === LO || l.key === HI) {
+        if (projection.band) values.set(l.key, l.key === LO ? projection.band.lo : projection.band.hi);
+        continue;
+      }
+      const own = projection.values[l.key];
+      if (own) {
+        values.set(l.key, own);
+        continue;
+      }
+      if (l.key.startsWith("x:sector=")) {
+        const slug = decodeURIComponent(l.key.slice(9).split("&")[0]);
+        const r = industries.find((b) => b.slug === slug)?.proj?.[projection.compareWeighting]?.[exit]?.[`${h}`]?.[SCENARIOS.indexOf(scenario)];
+        if (r != null) values.set(l.key, stockPath(r, steps));
+        else why.set(l.key, "no stock in it has 3 years of results");
+        continue;
+      }
+      why.set(l.key, projection.why[l.key] ?? (l.key.startsWith("b:") ? "not projected: we don’t forecast indices" : "not projected"));
+    }
+    return { values, why };
+  }, [projection, lines, industries]);
 
   const series = useMemo(() => {
+    if (projection && projected) {
+      const dates = projection.dates;
+      const list = lines.flatMap((line) => {
+        const v = projected.values.get(line.key);
+        if (!v || v.length !== dates.length) return [];
+        const values = dates.map((t, k) => ({ time: t as Time, value: v[k] }));
+        return [{ line, values, last: values[values.length - 1].value, late: null as string | null }];
+      });
+      const home = dates.length > 1 && list.length ? { from: 0, to: dates.length - 1 } : null;
+      return { start: dates[0] ?? null, end: dates[dates.length - 1] ?? null, list, home, step: "1wk" as const, short: new Map<string, string>() };
+    }
     const ok = lines.flatMap((l) => {
       const ld = loadOf(l.key);
       return ld?.status === "ok" && ld.data.points.length > 1 ? [{ line: l, points: ld.data.points }] : [];
@@ -186,7 +259,7 @@ export function BasketChart({
     const count = new Set(list.flatMap((s) => s.values.map((v) => v.time as string))).size;
     const home = count > 1 ? { from: 0, to: count - 1 } : null;
     return { start: drawnStart, end: drawnEnd, list, home, step, short: new Map(all.filter(isShort).map((s) => [s.line.key, s.late!])) };
-  }, [lines, loadOf, range]);
+  }, [lines, loadOf, range, projection, projected]);
 
   useEffect(() => {
     const el = boxRef.current;
@@ -271,7 +344,8 @@ export function BasketChart({
   const rows = lines.map((l) => {
     const s = byKey.get(l.key);
     const value = hover ? hover.values[l.key] : s?.last;
-    return { line: l, value: series.short.has(l.key) ? undefined : value, late: s?.late ?? series.short.get(l.key) ?? null, short: series.short.has(l.key), load: loadOf(l.key) };
+    const why = projected?.why.get(l.key) ?? null;
+    return { line: l, value: series.short.has(l.key) || why ? undefined : value, late: s?.late ?? series.short.get(l.key) ?? null, short: series.short.has(l.key) || !!why, load: loadOf(l.key), why };
   });
   // The legend box's height: the rows on plus one spare row, up to five rows (then it scrolls).
   // After the first measure it only grows, and only when the rows no longer fit (then to the rows
@@ -312,7 +386,7 @@ export function BasketChart({
     for (const el of ul.children) ro.observe(el);
     return () => ro.disconnect();
   }, [lines]);
-  const anyLoading = lines.some((l) => loadOf(l.key)?.status !== "ok" && loadOf(l.key)?.status !== "error");
+  const anyLoading = !projection && lines.some((l) => loadOf(l.key)?.status !== "ok" && loadOf(l.key)?.status !== "error");
   const etfs = indices.filter((b) => b.via && benches.includes(b.id));
   const compareCount = compare.length + [...indices, ...market].filter((b) => benches.includes(b.id)).length;
   const q = query.trim().toLowerCase();
@@ -342,10 +416,10 @@ export function BasketChart({
                   <div className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">Indices</div>
                   <div className="mt-1 flex flex-col">
                     {indices.map((b, i) => (
-                      <Switch key={b.id} on={benches.includes(b.id)} onToggle={() => toggleBench(b.id)} label={b.name} sub={b.via ? "Industry index · via ETF" : "Industry index"} swatch={{ color: "var(--ink)", width: 2, dash: i === 0 ? "solid" : "long" }} />
+                      <Switch key={b.id} on={benches.includes(b.id)} onToggle={() => toggleBench(b.id)} label={b.name} sub={(b.via ? "Industry index · via ETF" : "Industry index") + (projection ? " · not projected" : "")} swatch={{ color: "var(--ink)", width: 2, dash: i === 0 ? "solid" : "long" }} />
                     ))}
                     {market.map((b) => (
-                      <Switch key={b.id} on={benches.includes(b.id)} onToggle={() => toggleBench(b.id)} label={b.name} sub="Market" swatch={{ color: "var(--ink-soft)", width: 2, dash: b.id === "sensex" ? "dot" : "dash" }} />
+                      <Switch key={b.id} on={benches.includes(b.id)} onToggle={() => toggleBench(b.id)} label={b.name} sub={projection ? "Market · not projected" : "Market"} swatch={{ color: "var(--ink-soft)", width: 2, dash: b.id === "sensex" ? "dot" : "dash" }} />
                     ))}
                   </div>
                   <div className="mt-3 flex items-baseline justify-between gap-2">
@@ -453,7 +527,7 @@ export function BasketChart({
         <div ref={boxRef} className="h-full w-full" />
         {series.list.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-ink-soft">
-            {anyLoading ? "Backtesting the basket…" : "Couldn’t load price history right now."}
+            {projection ? "No stock in this basket has 3 years of results, so nothing is projected." : anyLoading ? "Backtesting the basket…" : "Couldn’t load price history right now."}
           </div>
         )}
       </div>
@@ -461,14 +535,14 @@ export function BasketChart({
 
       <div>
         <div className="mb-1.5 flex items-baseline justify-between text-[11px] uppercase tracking-wide text-ink-soft">
-          <span>{hover ? `${series.step === "1wk" ? "Week of" : series.step === "1mo" ? "Month of" : "On"} ${fmtDay(hover.t)}` : `Return, past ${rangeLong}`}</span>
+          <span>{hover ? `${series.step === "1wk" ? "Week of" : series.step === "1mo" ? "Month of" : "On"} ${fmtDay(hover.t)}` : projection ? `Projected, ${projection.label}` : `Return, past ${rangeLong}`}</span>
           {anyLoading && series.list.length > 0 && <span className="normal-case tracking-normal">Loading…</span>}
         </div>
         {/* Sized to its rows plus one, only ever growing (see legendH), so switching lines on or off rarely moves what is below. */}
         <ul ref={legendRef} style={{ height: legendH }} className="divide-y divide-line overflow-y-auto overscroll-contain rounded-xl border border-line bg-bg/60">
-          {rows.map(({ line, value, late, short, load }) => {
-            const failed = load?.status === "error";
-            const sub = [line.note, short && late ? `history from ${fmtMonth(late)}, pick a shorter range` : late ? `data from ${fmtMonth(late)}` : null, failed ? "no price data available" : null]
+          {rows.map(({ line, value, late, short, load, why }) => {
+            const failed = !projection && load?.status === "error";
+            const sub = [line.note, why, short && late ? `history from ${fmtMonth(late)}, pick a shorter range` : late ? `data from ${fmtMonth(late)}` : null, failed ? "no price data available" : null]
               .filter(Boolean)
               .join(" · ");
             const mine = line.key === basketKey;
@@ -506,8 +580,16 @@ export function BasketChart({
         </ul>
       </div>
       <p className="text-[11px] leading-relaxed text-ink-soft">
+        {projection ? (
+          <>
+            Weekly steps from the last close, every line from 0% today; each stock grows smoothly to its projected return. The likely range is from 1,000 simulated paths that swing like the basket did over the past year. Indices aren&rsquo;t projected. Model projection from reported financials and past prices, not a forecast or a recommendation.
+          </>
+        ) : (
+          <>
         Closing prices{range === "3Y" || range === "5Y" ? " (weekly)" : ""}, rebased to 0%. Price change only.
         {etfs.length > 0 && ` ${etfs.map((b) => b.name).join(" and ")} via ${etfs.length > 1 ? "ETFs that track them" : "an ETF that tracks it"}.`}
+          </>
+        )}
       </p>
     </div>
   );

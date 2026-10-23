@@ -70,3 +70,10 @@ test("return headline edge wording", () => {
   assert.equal(returnHeadline([h("A", 0, 5)], "1 year"), "The stock rose 5.0% over the past 1 year");
   assert.equal(weightHeadline([h("A", 0, 0, 0.5, 0.6), h("B", 0, 0, 0.5, 0.4)], name, "your picks"), "A Ltd is now 60.0% of your picks, from 50.0% at the start");
 });
+
+test("projection wording looks ahead", () => {
+  assert.equal(returnHeadline([h("A", 0, 10), h("B", 0, -4), h("C", 0, 2)], "1 year", true), "2 of 3 stocks are projected to rise over the next 1 year; the middle one gains 2.0%");
+  assert.equal(returnHeadline([h("A", 0, -5)], "2 years", true), "The stock is projected to fall 5.0% over the next 2 years");
+  assert.equal(weightHeadline([h("A", 0, 0, 0.1, 0.25), h("B", 0, 0, 0.1, 0.05)], name, "the basket", true), "A Ltd would be 25.0% of the basket at the end, from 10.0% today");
+  assert.match(contributionHeadline([h("A", 8), h("B", 1)], name, "the basket\u2019s", true) ?? "", /^A Ltd adds /);
+});

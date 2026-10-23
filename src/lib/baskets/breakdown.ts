@@ -69,7 +69,9 @@ const names = (xs: string[]) => (xs.length === 1 ? xs[0] : `${xs.slice(0, -1).jo
  * One line saying who made the return. When it rose: the fewest stocks (up to three) that added
  * half its points or more. When it fell: the stock that took away the most.
  */
-export function contributionHeadline(h: BacktestHolding[], nameOf: (t: string) => string, whose: string): string | null {
+export function contributionHeadline(h: BacktestHolding[], nameOf: (t: string) => string, whose: string, ahead = false): string | null {
+  // A projection (ahead) reads in the present: "adds", "takes away".
+  const added = (one: boolean) => (ahead ? (one ? "adds" : "add") : "added");
   if (!h.length) return null;
   const total = sum(h.map((x) => x.contribution));
   const sorted = [...h].sort((a, b) => b.contribution - a.contribution);
@@ -85,21 +87,28 @@ export function contributionHeadline(h: BacktestHolding[], nameOf: (t: string) =
     if (acc >= total / 2) {
       const who = lead.length === 1 ? nameOf(lead[0].ticker) : lead.length === 2 ? names(lead.map((x) => nameOf(x.ticker))) : `${lead.length} stocks`;
       // Losers can offset so much that the leaders added more than the whole gain.
-      if (acc > total + 0.05) return `${who} added ${num(acc)} points, more than ${whose} ${num(total)} in all`;
-      return `${who} added ${num(acc)} of ${whose} ${num(total)} points`;
+      const one = lead.length === 1;
+      if (acc > total + 0.05) return `${who} ${added(one)} ${num(acc)} points, more than ${whose} ${num(total)} in all`;
+      return `${who} ${added(one)} ${num(acc)} of ${whose} ${num(total)} points`;
     }
-    return `${h.filter((x) => x.contribution > 0).length} of ${h.length} stocks added to ${whose} ${num(total)}-point gain`;
+    return `${h.filter((x) => x.contribution > 0).length} of ${h.length} stocks ${added(false)} to ${whose} ${num(total)}-point gain`;
   }
   const worst = sorted[sorted.length - 1];
   if (worst.contribution >= 0) return null;
-  return `${nameOf(worst.ticker)} took away the most: ${signed(worst.contribution)} of ${whose} ${signed(total)} points`;
+  return `${nameOf(worst.ticker)} ${ahead ? "takes" : "took"} away the most: ${signed(worst.contribution)} of ${whose} ${signed(total)} points`;
 }
 
-/** How many rose, and the middle stock's return. */
-export function returnHeadline(h: BacktestHolding[], period: string): string | null {
+/** How many rose, and the middle stock's return. `ahead`: a projection over the next `period`. */
+export function returnHeadline(h: BacktestHolding[], period: string, ahead = false): string | null {
   if (!h.length) return null;
   const rets = h.map((x) => x.ret).sort((a, b) => a - b);
   const mid = rets.length % 2 ? rets[(rets.length - 1) / 2] : (rets[rets.length / 2 - 1] + rets[rets.length / 2]) / 2;
+  if (ahead) {
+    if (rets.length === 1) return `The stock is projected to ${mid >= 0 ? "rise" : "fall"} ${num(mid)}% over the next ${period}`;
+    const n = rets.filter((r) => r > 0).length;
+    const who = n === 0 ? `None of the ${h.length} stocks is` : n === h.length ? `All ${h.length} stocks are` : `${n} of ${h.length} stocks are`;
+    return `${who} projected to rise over the next ${period}; the middle one ${mid >= 0 ? "gains" : "loses"} ${num(mid)}%`;
+  }
   if (rets.length === 1) return `The stock ${mid >= 0 ? "rose" : "fell"} ${num(mid)}% over the past ${period}`;
   const up = rets.filter((r) => r > 0).length;
   const rose = up === 0 ? `None of the ${h.length} stocks rose` : up === h.length ? `All ${h.length} stocks rose` : `${up} of ${h.length} stocks rose`;
@@ -107,21 +116,22 @@ export function returnHeadline(h: BacktestHolding[], period: string): string | n
 }
 
 /** The biggest holding now, and where it started. `of`: "the basket" or "your picks". */
-export function weightHeadline(h: BacktestHolding[], nameOf: (t: string) => string, of = "the basket"): string | null {
+export function weightHeadline(h: BacktestHolding[], nameOf: (t: string) => string, of = "the basket", ahead = false): string | null {
   if (!h.length) return null;
   const top = [...h].sort((a, b) => b.endWeight - a.endWeight)[0];
   const now = top.endWeight * 100;
   const was = top.weight * 100;
   if (Math.abs(now - was) < 0.5) return `${nameOf(top.ticker)} is the biggest holding at ${num(now)}%`;
+  if (ahead) return `${nameOf(top.ticker)} would be ${num(now)}% of ${of} at the end, from ${num(was)}% today`;
   return `${nameOf(top.ticker)} is now ${num(now)}% of ${of}, from ${num(was)}% at the start`;
 }
 
 /** The industry that added (or took away) the most. */
-export function industryHeadline(rows: BarRow[], whose: string): string | null {
+export function industryHeadline(rows: BarRow[], whose: string, ahead = false): string | null {
   const groups = rows.filter((r): r is Extract<BarRow, { kind: "group" }> => r.kind === "group");
   if (groups.length < 2) return null;
   const total = sum(groups.map((g) => g.value));
   const lead = total >= 0 ? groups[0] : groups[groups.length - 1];
   const of = total >= 0 && lead.value >= 0 ? `${whose} ${num(total)}` : `${whose} ${signed(total)}`;
-  return `${lead.label} stocks ${lead.value >= 0 ? "added" : "took away"} ${num(lead.value)} of ${of} points`;
+  return `${lead.label} stocks ${lead.value >= 0 ? (ahead ? "add" : "added") : ahead ? "take away" : "took away"} ${num(lead.value)} of ${of} points`;
 }
