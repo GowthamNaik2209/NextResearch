@@ -11,7 +11,7 @@ export const SEMICON2_SCENARIOS: Scenario[] = [
     title: "US tariffs hit India-made phones",
     blurb: "A steep US duty on smartphones assembled in India",
     story:
-      "The US took about 70% of India's smartphone exports in H1 FY26, mostly iPhones. A tariff would cut export volumes, and because MPMS pays only once a brand clears a rising growth hurdle (Rs 5,000 crore over FY26 sales in FY27, more each year), assemblers that rely on exports could miss the hurdle altogether - with knock-on effects for the sub-assembly makers and chip packagers counting on that volume.",
+      "The US took about 70% of India's smartphone exports in H1 FY26, mostly iPhones. A tariff would cut export volumes, and because MPMS pays only once a brand clears a rising growth hurdle (₹5,000 Cr over FY26 sales in FY27, more each year), assemblers that rely on exports could miss the hurdle altogether - with knock-on effects for the sub-assembly makers and chip packagers counting on that volume.",
     effect: "headwind",
     impacts: [
       S("phone_ems", 3, "Export volumes and MPMS eligibility both at risk"),

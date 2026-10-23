@@ -10,7 +10,7 @@ export const oyo: IpoReport = {
   legalName: "PRISM Limited (formerly Oravel Stays Limited)",
   icon: "OYO",
   sectorLabel: "Travel tech & hospitality platforms",
-  tagline: "Asset-light hotel and homes platform, now profitable, raising Rs 6,650 Cr to cut debt",
+  tagline: "Asset-light hotel and homes platform, now profitable, raising ₹6,650 Cr to cut debt",
   asOf: "Oct 2026",
 
   status: {
@@ -20,24 +20,24 @@ export const oyo: IpoReport = {
       "SEBI cleared the confidential filing in early June 2026 (reported 2 Jun; one report cites a 5 Jun observation letter) and the UDRHP-I was filed on 30 Jun; no RHP, price band or issue dates had been announced by mid-Oct 2026, after an August-September window floated in some reports passed.",
   },
   timeline: [
-    { date: "20 Dec 2025", event: "Shareholders approve Rs 6,650 Cr fresh issue", done: true },
+    { date: "20 Dec 2025", event: "Shareholders approve ₹6,650 Cr fresh issue", done: true },
     { date: "Dec 2025", event: "Confidential pre-filing of DRHP with SEBI", done: true },
     { date: "2 Jun 2026", event: "SEBI observations received (reported)", done: true },
     { date: "30 Jun 2026", event: "UDRHP-I filed publicly; 21-day comment period", done: true },
     { date: "Jul 2026", event: "Institutional roadshow begins", done: true },
-    { date: "Aug 2026", event: "FY26 results: PAT Rs 994 Cr in annual report", done: true },
+    { date: "Aug 2026", event: "FY26 results: PAT ₹994 Cr in annual report", done: true },
     { date: "Pending", event: "RHP, price band and issue dates", done: false },
   ],
 
   issue: {
-    size: "Up to Rs 6,650 Cr (fresh issue)",
+    size: "Up to ₹6,650 Cr (fresh issue)",
     totalCr: 6650,
     freshCr: 6650,
     ofsCr: 0,
     priceBand: null,
     lotSize: null,
     faceValue: null,
-    valuation: "Reported US$7-8bn expected valuation (sources cited by Business Standard and Entrackr), ~Rs 66,500-76,000 Cr at ~Rs 95/US$; not a company figure",
+    valuation: "Reported US$7-8bn expected valuation (sources cited by Business Standard and Entrackr), ~₹66,500-76,000 Cr at ~₹95/US$; not a company figure",
     valuationCr: null,
     reservation: null,
     exchanges: "NSE, BSE",
@@ -60,15 +60,15 @@ export const oyo: IpoReport = {
     line: "The business is now profitable and far more global, but profit quality (tax credits), US concentration and legal overhangs need weighing once a price band is set.",
   },
   keyStats: [
-    { label: "Fresh issue", value: "Rs 6,650 Cr", sub: "no OFS; up to Rs 1,330 Cr pre-IPO placement" },
-    { label: "Revenue, FY26", value: "Rs 9,358 Cr", sub: "+50% YoY (annual report, via Inc42)" },
-    { label: "Gross booking value, FY26", value: "Rs 30,683 Cr", sub: "+88.5%, G6 full year" },
+    { label: "Fresh issue", value: "₹6,650 Cr", sub: "no OFS; up to ₹1,330 Cr pre-IPO placement" },
+    { label: "Revenue, FY26", value: "₹9,358 Cr", sub: "+50% YoY (annual report, via Inc42)" },
+    { label: "Gross booking value, FY26", value: "₹30,683 Cr", sub: "+88.5%, G6 full year" },
     { label: "Global storefronts", value: "2.94 lakh", sub: "Dec 2025 (UDRHP-I)" },
   ],
   thesis: [
     {
       title: "From cash-burning aggregator to profitable platform",
-      body: "After a Rs 1,287 Cr loss in FY23, PRISM has reported profits for three years running, reaching Rs 994 Cr in FY26. Part of that is a ~Rs 595-678 Cr deferred-tax credit, so operating profit is the cleaner signal.",
+      body: "After a ₹1,287 Cr loss in FY23, PRISM has reported profits for three years running, reaching ₹994 Cr in FY26. Part of that is a ~₹595-678 Cr deferred-tax credit, so operating profit is the cleaner signal.",
     },
     {
       title: "Now mostly a US and Europe business run from India",
@@ -76,7 +76,7 @@ export const oyo: IpoReport = {
     },
     {
       title: "IPO money goes mainly to debt",
-      body: "Rs 4,987.5 Cr of the Rs 6,650 Cr is earmarked to repay borrowings at Oravel Stays Singapore. Lower interest (FY25 finance cost ~Rs 959 Cr) is the most direct route to higher reported profit.",
+      body: "₹4,987.5 Cr of the ₹6,650 Cr is earmarked to repay borrowings at Oravel Stays Singapore. Lower interest (FY25 finance cost ~₹959 Cr) is the most direct route to higher reported profit.",
     },
   ],
 
@@ -87,14 +87,14 @@ export const oyo: IpoReport = {
       "SoftBank's Vision Fund is the largest shareholder (~40%) and founder Ritesh Agarwal controls ~27% directly and through RA Hospitality. No existing shareholder is selling in the IPO.",
     ],
     segments: [
-      { title: "Hotels (ex-G6)", metric: "GBV Rs 10,939 Cr, FY26 (+36.5%)", body: "22,769 hotel storefronts across India, Southeast Asia, the UK and the Middle East, including 1,573 company-serviced premium hotels in India (Dec 2025)." },
-      { title: "G6 Hospitality (US)", metric: "GBV Rs 14,107 Cr, FY26", body: "Motel 6 and Studio 6, bought in Dec 2024; a franchise-led economy lodging chain that now drives the largest share of bookings." },
-      { title: "Homes (Europe & Australia)", metric: "GBV Rs 5,447 Cr, FY26 (+19.4%)", body: "1.38 lakh managed vacation and short-stay homes under Belvilla, DanCenter, Checkmyguest and MadeComfy." },
+      { title: "Hotels (ex-G6)", metric: "GBV ₹10,939 Cr, FY26 (+36.5%)", body: "22,769 hotel storefronts across India, Southeast Asia, the UK and the Middle East, including 1,573 company-serviced premium hotels in India (Dec 2025)." },
+      { title: "G6 Hospitality (US)", metric: "GBV ₹14,107 Cr, FY26", body: "Motel 6 and Studio 6, bought in Dec 2024; a franchise-led economy lodging chain that now drives the largest share of bookings." },
+      { title: "Homes (Europe & Australia)", metric: "GBV ₹5,447 Cr, FY26 (+19.4%)", body: "1.38 lakh managed vacation and short-stay homes under Belvilla, DanCenter, Checkmyguest and MadeComfy." },
       { title: "Listings", metric: "1.45 lakh listings (Dec 2025)", body: "A subscription model in Europe where property owners pay a fixed fee to be listed; small in bookings but adds to storefront count." },
     ],
     mix: {
       title: "Revenue from operations by stream, 9M FY26",
-      source: "UDRHP-I risk factor 2 (nine months to 31 Dec 2025, revenue Rs 6,941 Cr); other operating revenue derived as the balance",
+      source: "UDRHP-I risk factor 2 (nine months to 31 Dec 2025, revenue ₹6,941 Cr); other operating revenue derived as the balance",
       slices: [
         { label: "Accommodation sold on its own account", value: 54.91 },
         { label: "Booking commissions and franchise royalties", value: 31.91 },
@@ -105,13 +105,13 @@ export const oyo: IpoReport = {
 
   industry: {
     narrative: [
-      "The 1Lattice report in the UDRHP-I sizes India's hospitality market at Rs 4.1 lakh crore (US$47.8bn) in CY25, growing 12.4% a year to Rs 7.4 lakh crore by CY30. India is under-served: ~590,000 room nights per million people versus ~3.77 million in the US.",
+      "The 1Lattice report in the UDRHP-I sizes India's hospitality market at ₹4.1L Cr (US$47.8bn) in CY25, growing 12.4% a year to ₹7.4L Cr by CY30. India is under-served: ~590,000 room nights per million people versus ~3.77 million in the US.",
       "PRISM ranks first in India by hotel storefronts, but most of its bookings are now in the mature US economy-lodging and European vacation-rental markets, where growth comes from taking share rather than market expansion.",
     ],
     chart: {
       title: "India hospitality market",
-      unit: "Rs lakh Cr",
-      source: "1Lattice report in the PRISM UDRHP-I (CY22 Rs 2.9 trillion, CY25 Rs 4.1 trillion, CY30P Rs 7.4 trillion)",
+      unit: "₹ lakh Cr",
+      source: "1Lattice report in the PRISM UDRHP-I (CY22 ₹2.9 trillion, CY25 ₹4.1 trillion, CY30P ₹7.4 trillion)",
       points: [
         { label: "CY22", value: 2.9 },
         { label: "CY25", value: 4.1 },
@@ -135,12 +135,12 @@ export const oyo: IpoReport = {
       { label: "FY25", revenue: 6252.83, ebitda: 953.43, pat: 244.82 },
       { label: "FY26", revenue: 9358, ebitda: 2594, pat: 994.2 },
     ],
-    note: "FY26 is not yet from an offer document and its EBITDA may be on a different basis (another report puts FY25 at Rs 1,083.5 Cr against the UDRHP's Rs 953 Cr). FY26 PAT includes a deferred-tax credit reported as Rs 595 Cr (Inc42) or Rs 678 Cr (other reports); FY25 also had a ~Rs 734 Cr tax credit.",
+    note: "FY26 is not yet from an offer document and its EBITDA may be on a different basis (another report puts FY25 at ₹1,083.5 Cr against the UDRHP's ₹953 Cr). FY26 PAT includes a deferred-tax credit reported as ₹595 Cr (Inc42) or ₹678 Cr (other reports); FY25 also had a ~₹734 Cr tax credit.",
   },
 
   kpi: {
     title: "Global gross booking value",
-    unit: "Rs Cr",
+    unit: "₹ Cr",
     source: "UDRHP-I (FY23-FY25, as reported by IPOCentral); FY26 annual report via Inc42",
     points: [
       { label: "FY23", value: 10175.68 },
@@ -164,7 +164,7 @@ export const oyo: IpoReport = {
     { label: "General corporate purposes (balance)", valueCr: 1662.5 },
   ],
   proceedsNote:
-    "The issue is entirely fresh, so all money goes to the company. A pre-IPO placement of up to Rs 1,330 Cr, if done, would reduce the fresh issue by the same amount. General corporate purposes are shown as the balance; the UDRHP-I mentions R&D, possible acquisitions and working capital.",
+    "The issue is entirely fresh, so all money goes to the company. A pre-IPO placement of up to ₹1,330 Cr, if done, would reduce the fresh issue by the same amount. General corporate purposes are shown as the balance; the UDRHP-I mentions R&D, possible acquisitions and working capital.",
   shareholding: [
     { holder: "SoftBank (SVF India Holdings)", pct: 40.04 },
     { holder: "Ritesh Agarwal (direct + RA Hospitality)", pct: 26.71 },
@@ -182,7 +182,7 @@ export const oyo: IpoReport = {
     { name: "Yatra Online", ticker: "YATRA", note: "Online travel agency; closest listed platform peer in India" },
   ],
   valuationNote:
-    "At the reported US$7-8bn (~Rs 66,500-76,000 Cr at ~Rs 95/US$; the rupee closed at 94.92 on 16 Oct 2026), PRISM would be priced at roughly 7-8x FY26 revenue and ~67-76x FY26 reported PAT (higher excluding the tax credit): below Indian Hotels on sales but above every listed hotel owner on P/E (see the table). Peers are asset-heavy hotel owners, so they are only a partial comparison.",
+    "At the reported US$7-8bn (~₹66,500-76,000 Cr at ~₹95/US$; the rupee closed at 94.92 on 16 Oct 2026), PRISM would be priced at roughly 7-8x FY26 revenue and ~67-76x FY26 reported PAT (higher excluding the tax credit): below Indian Hotels on sales but above every listed hotel owner on P/E (see the table). Peers are asset-heavy hotel owners, so they are only a partial comparison.",
 
   strengths: [
     { title: "Global scale with an asset-light model", body: "About 2.94 lakh storefronts in 35+ countries without owning real estate, so growth needs little capital beyond technology and sales." },
@@ -191,7 +191,7 @@ export const oyo: IpoReport = {
     { title: "India cost base, Western prices", body: "About 76% of employees are in India while most revenue is earned in the US and Europe, which supports operating leverage." },
   ],
   risks: [
-    { risk: "Profit quality: FY25 and FY26 PAT were lifted by large deferred-tax credits, and interest costs remain heavy.", mitigant: "IPO proceeds repay ~Rs 4,988 Cr of debt; EBITDA more than doubled in FY26.", severity: "high" },
+    { risk: "Profit quality: FY25 and FY26 PAT were lifted by large deferred-tax credits, and interest costs remain heavy.", mitigant: "IPO proceeds repay ~₹4,988 Cr of debt; EBITDA more than doubled in FY26.", severity: "high" },
     { risk: "US concentration through G6, including human-trafficking lawsuits against motel operators.", mitigant: "G6 is franchise-led; homes and India hotels diversify bookings.", severity: "medium" },
     { risk: "Zostel dispute could force PRISM to transfer up to ~7% of its shares.", mitigant: "Matter is still in courts; disclosed as a contingent risk.", severity: "medium" },
     { risk: "Possible CCI antitrust penalty in India and a tax dispute involving SoftBank.", mitigant: "Disclosed in the offer document; outcomes not yet determined.", severity: "medium" },

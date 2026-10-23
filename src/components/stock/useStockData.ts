@@ -49,7 +49,7 @@ export function fetchSupplier(ticker: string): Promise<SectorSupplier | null> {
   return p;
 }
 
-// `data` stays null on any failure — every consumer falls back to the static seed figures
+// `data` stays null on any failure — every consumer falls back to the company-table figures
 // rather than showing an error.
 export function useStockData(ticker: string, enabled: boolean) {
   const [state, setState] = useState(() => {

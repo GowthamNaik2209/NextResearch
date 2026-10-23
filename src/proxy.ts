@@ -1,9 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { stagingSkipLogin } from "@/lib/staging-user";
 
 const PROTECTED_PREFIXES = ["/watchlist", "/account"];
 
 export async function proxy(request: NextRequest) {
+  // Staging test mode: everyone is the test user, so there's no session to refresh or check.
+  if (stagingSkipLogin()) return NextResponse.next({ request });
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

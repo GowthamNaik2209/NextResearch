@@ -13,8 +13,8 @@ export const naval: SectorReport = {
   },
   keyStats: [
     { label: "Ships under construction", value: "~60", sub: "in Indian yards (Navy, 2025)" },
-    { label: "Defence production, FY25", value: "Rs 1.51 lakh Cr", sub: "record; ~18% YoY (MoD)" },
-    { label: "Defence exports, FY25", value: "Rs 23,622 Cr", sub: "up ~12% YoY (MoD)" },
+    { label: "Defence production, FY25", value: "₹1.51L Cr", sub: "record; ~18% YoY (MoD)" },
+    { label: "Defence exports, FY25", value: "₹23,622 Cr", sub: "up ~12% YoY (MoD)" },
     { label: "Navy fleet goal", value: "175-200 ships", sub: "by ~2035, from ~140 today" },
   ],
   thesis: [
@@ -35,8 +35,8 @@ export const naval: SectorReport = {
   developments: [
     {
       date: "Sep 2025",
-      title: "Rs 69,725 Cr shipbuilding package",
-      body: "Cabinet approved financial assistance, a Rs 25,000 Cr Maritime Development Fund and a cluster-development scheme to scale Indian yards and docks.",
+      title: "₹69,725 Cr shipbuilding package",
+      body: "Cabinet approved financial assistance, a ₹25,000 Cr Maritime Development Fund and a cluster-development scheme to scale Indian yards and docks.",
       impact: "pos",
       tag: "Policy",
     },
@@ -49,7 +49,7 @@ export const naval: SectorReport = {
     },
     {
       date: "Jul 2025",
-      title: "DAC clears ~Rs 1.05 lakh Cr of AoNs",
+      title: "DAC clears ~₹1.05L Cr of AoNs",
       body: "Approvals included mine countermeasure vessels, naval surface-to-air missiles and autonomous underwater vessels, all under indigenous categories.",
       impact: "pos",
       tag: "Orders",
@@ -57,7 +57,7 @@ export const naval: SectorReport = {
     {
       date: "Apr 2025",
       title: "26 Rafale-M deal signed with France",
-      body: "The ~Rs 63,000 Cr government-to-government deal for carrier fighters includes local manufacturing and MRO work for Indian suppliers.",
+      body: "The ~₹63,000 Cr government-to-government deal for carrier fighters includes local manufacturing and MRO work for Indian suppliers.",
       impact: "neutral",
       tag: "Procurement",
     },
@@ -71,7 +71,7 @@ export const naval: SectorReport = {
     {
       date: "Jan 2025",
       title: "MDL-TKMS picked for P-75I talks",
-      body: "MoD moved to negotiate the six-submarine AIP programme (approx. Rs 70,000 Cr+) with Mazagon Dock and Germany's TKMS after the rival bid was found non-compliant.",
+      body: "MoD moved to negotiate the six-submarine AIP programme (approx. ₹70,000 Cr+) with Mazagon Dock and Germany's TKMS after the rival bid was found non-compliant.",
       impact: "pos",
       tag: "Submarines",
     },
@@ -85,7 +85,7 @@ export const naval: SectorReport = {
     ],
     chart: {
       title: "India defence production (all segments)",
-      unit: "Rs '000 Cr",
+      unit: "₹ '000 Cr",
       source: "Ministry of Defence / DDP; FY29P is the government target",
       points: [
         { label: "FY20", value: 79 },
@@ -98,7 +98,7 @@ export const naval: SectorReport = {
       ],
     },
     snapshot: [
-      { label: "Defence capital outlay, FY26 BE", value: "~Rs 1.80 lakh Cr", tone: "pos" },
+      { label: "Defence capital outlay, FY26 BE", value: "~₹1.80L Cr", tone: "pos" },
       { label: "Share of capital buys from India", value: "~75%", tone: "pos" },
       { label: "Typical frigate build time", value: "6-8 years", tone: "neutral" },
       { label: "Listed shipyard order books", value: "~4-8x revenue", tone: "pos" },
@@ -117,9 +117,9 @@ export const naval: SectorReport = {
 
   drivers: [
     { title: "Fleet expansion", metric: "175-200 ships", body: "Navy targets a larger fleet by ~2035 to cover the Indian Ocean, replacing ageing frigates, minesweepers and submarines." },
-    { title: "Submarine programmes", metric: "Rs 70,000 Cr+", body: "P-75I conventional submarines and follow-on Scorpenes are among the largest single shipbuilding contracts in the pipeline." },
+    { title: "Submarine programmes", metric: "₹70,000 Cr+", body: "P-75I conventional submarines and follow-on Scorpenes are among the largest single shipbuilding contracts in the pipeline." },
     { title: "Indigenization rules", metric: "~75% domestic", body: "A rising share of the capital acquisition budget is earmarked for Indian industry, with positive lists banning imports of many items." },
-    { title: "Exports & commercial", metric: "Rs 23,622 Cr", body: "Defence exports and the commercial shipbuilding push give yards a second order stream beyond the Indian Navy." },
+    { title: "Exports & commercial", metric: "₹23,622 Cr", body: "Defence exports and the commercial shipbuilding push give yards a second order stream beyond the Indian Navy." },
   ],
   mix: {
     title: "Union defence budget split, FY26 BE (approx.)",
@@ -177,7 +177,7 @@ export const naval: SectorReport = {
     { key: "grse", date: "Aug 2025", development: "INS Himgiri, its first P-17A stealth frigate, was commissioned.", impact: "Proves a second yard can deliver frontline frigates, widening Navy capacity.", tone: "pos" },
     { key: "lt_naval", date: "Jan 2025", development: "L&T-Navantia bid for P-75I was reported non-compliant.", impact: "Private yards stay second-tier on submarines for now.", tone: "neg" },
     { key: "cochinshipyard", date: "2025", development: "Signed a cooperation pact with Korea's HD Hyundai on shipbuilding and design.", impact: "Brings large-yard know-how that can lift capacity and productivity.", tone: "pos" },
-    { key: "bharatforge_naval", date: "2025", development: "Won a Rs 425 Cr MoD contract for 12 Indian Navy turbine generators.", impact: "Shows ship machinery shifting from imports to Indian private suppliers.", tone: "pos" },
+    { key: "bharatforge_naval", date: "2025", development: "Won a ₹425 Cr MoD contract for 12 Indian Navy turbine generators.", impact: "Shows ship machinery shifting from imports to Indian private suppliers.", tone: "pos" },
   ],
 
   risks: [

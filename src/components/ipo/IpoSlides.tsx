@@ -2,9 +2,11 @@
 
 import type { ReactNode } from "react";
 import type { IpoDeck, IpoPeer } from "@/lib/ipo-content";
-import type { IpoStage, Tone } from "@/lib/ipo-content/types";
+import type { Tone } from "@/lib/ipo-content/types";
 import type { OpenableStock } from "@/components/research/Presentation";
-import { BarChart, Chip, MixChart, Panel, SlideHead, TONE_LABEL, TONE_TEXT, ToneBadge, ToneIcon } from "@/components/research/slides";
+import { BarChart, Chip, MixChart, Panel, SlideHead, TONE_LABEL, TONE_TEXT, ToneBadge, ToneIcon, ToneValueCell } from "@/components/research/slides";
+import { NA, croreShort, inr, signedPct } from "@/lib/format";
+import { StageChip } from "./StageChip";
 import { businessTitle, financialsTitle, fmtCr, industryTitle, issueTitle, kpiTitle, peersTitle, proceedsTitle, revenueGrowth, risksTitle } from "./headlines";
 
 // The ten slides of an IPO deck: a DRHP read the way an analyst would brief it - the issue,
@@ -29,22 +31,6 @@ export const IPO_SLIDES: IpoSlideDef[] = [
 
 // ---------- shared pieces ----------
 
-export const STAGE_TEXT: Record<IpoStage, string> = {
-  open: "bg-pos text-bg",
-  upcoming: "bg-accent text-bg",
-  approved: "border border-accent text-accent",
-  filed: "border border-line text-ink-soft",
-  listed: "bg-panel-2 text-ink",
-};
-
-export function StageChip({ deck, className = "" }: { deck: Pick<IpoDeck, "status">; className?: string }) {
-  return (
-    <span className={"inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide " + STAGE_TEXT[deck.status.stage] + " " + className}>
-      {deck.status.label}
-    </span>
-  );
-}
-
 function Foot({ deck, source }: { deck: IpoDeck; source?: string }) {
   return (
     <p className="mt-auto pt-5 text-[10.5px] leading-relaxed text-ink-soft">
@@ -57,7 +43,7 @@ function Foot({ deck, source }: { deck: IpoDeck; source?: string }) {
 const Eyebrow = ({ children, className = "" }: { children: ReactNode; className?: string }) => (
   <p className={"mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft " + className}>{children}</p>
 );
-// Glues units to their number ("Rs 25,583 Cr", "10.3 lakh Cr") so a narrow card never wraps "Cr" alone.
+// Glues units to their number ("₹25,583 Cr", "10.3 lakh Cr") so a narrow card never wraps "Cr" alone.
 const keepUnits = (t: string) => t.replace(/ (lakh|Cr|bn|mn)\b/g, "\u00a0$1");
 const fmtPct = (n: number | null) => (n == null ? "—" : `${n.toFixed(1)}%`);
 // Holder colours: four distinct hues, then the same hues lighter, then grey for the remainder.
@@ -73,9 +59,58 @@ const HOLDER_COLORS = [
 ];
 const shade = (i: number) => HOLDER_COLORS[i] ?? "var(--line)";
 
+// A listed deck's own figures today, from the company table (same source and date as the peers and
+// every industry page), against the authored issue price. Nothing here is typed into the deck.
+function NowListed({ deck, openStock, className = "" }: SlideProps & { className?: string }) {
+  const n = deck.now;
+  if (!n) return null;
+  const tone: Tone = n.vsIssuePct == null ? "neutral" : n.vsIssuePct > 0 ? "pos" : n.vsIssuePct < 0 ? "neg" : "neutral";
+  const cells: [string, ReactNode, string?][] = [
+    ["Share price", n.price != null ? `₹${inr(n.price)}` : NA],
+    n.vsBasis === "band-top"
+      ? // No final issue price authored yet: measured against the band's top, and labelled so.
+        ["vs top of price band", <span key="v" className={TONE_TEXT[tone]}>{signedPct(n.vsIssuePct)}</span>, `Top of price band ₹${inr(n.bandTop)}`]
+      : ["vs issue price", <span key="v" className={TONE_TEXT[tone]}>{signedPct(n.vsIssuePct)}</span>, n.issuePrice != null ? `Issue price ₹${inr(n.issuePrice)}` : undefined],
+    // The company table's figure as it stands; the offer document's valuation (its own share count,
+    // at the band's top) is a different source, so it is named as such rather than reconciled.
+    ["Market cap", keepUnits(croreShort(n.mcapCr)), deck.issue.valuationCr != null ? `${keepUnits(croreShort(deck.issue.valuationCr))} at the issue (offer document)` : undefined],
+    ["P/E", n.pe != null ? `${n.pe.toFixed(1)}x` : NA, "Trailing earnings"],
+  ];
+  return (
+    <Panel className={"border-accent p-4 " + className}>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-accent">
+          Now listed · {n.ticker}
+        </p>
+        <p className="text-[10.5px] text-ink-soft">as of {n.asOf ?? deck.asOf}</p>
+      </div>
+      <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-3 lg:grid-cols-4">
+        {cells.map(([k, v, sub]) => (
+          <div key={k} className="min-w-0">
+            <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">{k}</dt>
+            <dd className="mt-0.5 font-display text-lg font-bold leading-tight text-ink tabular-nums">{v}</dd>
+            {sub && <dd className="text-[10.5px] leading-snug text-ink-soft">{sub}</dd>}
+          </div>
+        ))}
+      </dl>
+      <p className="mt-2.5 text-[10.5px] leading-snug text-ink-soft">
+        Price, market cap and P/E: Screener.in, as of {n.asOf ?? deck.asOf} - the same figures as the peer table and every industry page. {n.vsBasis === "band-top" ? "Price band" : "Issue price"} and valuation at the issue from the offer document, which can count shares differently.
+        {n.supplier && (
+          <>
+            {" "}
+            <button type="button" onClick={() => openStock({ ticker: n.ticker, supplier: n.supplier! })} className="font-semibold text-accent hover:underline" aria-haspopup="dialog">
+              Live price and news &rsaquo;
+            </button>
+          </>
+        )}
+      </p>
+    </Panel>
+  );
+}
+
 // ---------- 1. Summary ----------
 
-function SummarySlide({ deck }: SlideProps) {
+function SummarySlide({ deck, openStock }: SlideProps) {
   const i = deck.issue;
   const glance: [string, string][] = [
     ["Price band", i.priceBand ?? "Not yet set"],
@@ -123,6 +158,8 @@ function SummarySlide({ deck }: SlideProps) {
           </div>
         ))}
       </dl>
+
+      <NowListed deck={deck} openStock={openStock} className="mt-3" />
 
       <Eyebrow className="mt-6">Why this IPO matters</Eyebrow>
       <ol className="grid grid-cols-1 gap-2.5 lg:grid-cols-3">
@@ -316,12 +353,7 @@ function IndustrySlide({ deck }: SlideProps) {
               {o.snapshot.map((row) => (
                 <tr key={row.label} className="border-b border-line last:border-0">
                   <td className="px-4 py-2 text-ink-soft">{row.label}</td>
-                  <td className={"px-4 py-2 text-right font-mono font-semibold tabular-nums " + (row.tone ? TONE_TEXT[row.tone] : "text-ink")}>
-                    <span className="inline-flex items-center gap-1.5">
-                      {row.tone && row.tone !== "neutral" && <ToneIcon tone={row.tone} />}
-                      {row.value}
-                    </span>
-                  </td>
+                  <ToneValueCell tone={row.tone} value={row.value} />
                 </tr>
               ))}
             </tbody>
@@ -430,7 +462,7 @@ function FinChart({ deck }: { deck: IpoDeck }) {
             <span className="h-2.5 w-2.5 rounded-sm" style={barFill("var(--ink-soft)", true)} /> Part-year
           </span>
         )}
-        <span>Rs Cr</span>
+        <span>₹ Cr</span>
       </figcaption>
     </figure>
   );
@@ -452,7 +484,7 @@ function FinancialsSlide({ deck }: SlideProps) {
           <table className="w-full text-[11px] sm:text-[12px]">
             <thead>
               <tr className="border-b border-line bg-panel-2 text-left text-[9.5px] uppercase tracking-wider text-ink-soft">
-                <th className="px-1.5 py-2.5 sm:px-3 font-semibold">Rs Cr</th>
+                <th className="px-1.5 py-2.5 sm:px-3 font-semibold">₹ Cr</th>
                 {ys.map((y) => (
                   <th key={y.label} className="px-1.5 py-2.5 sm:px-3 text-right font-semibold">
                     {y.label}
@@ -522,12 +554,7 @@ function KpiSlide({ deck }: SlideProps) {
               {deck.ratios.map((row) => (
                 <tr key={row.label} className="border-b border-line last:border-0">
                   <td className="px-4 py-2 text-ink-soft">{row.label}</td>
-                  <td className={"px-4 py-2 text-right font-mono font-semibold tabular-nums " + (row.tone ? TONE_TEXT[row.tone] : "text-ink")}>
-                    <span className="inline-flex items-center gap-1.5">
-                      {row.tone && row.tone !== "neutral" && <ToneIcon tone={row.tone} />}
-                      {row.value}
-                    </span>
-                  </td>
+                  <ToneValueCell tone={row.tone} value={row.value} />
                 </tr>
               ))}
             </tbody>
@@ -571,7 +598,7 @@ function ProceedsSlide({ deck }: SlideProps) {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Panel className="p-4 sm:p-5">
           <h4 className="font-display text-sm font-semibold text-ink">{uses.length ? "Objects of the fresh issue" : "No fresh issue"}</h4>
-          {uses.length ? <p className="mb-4 text-[10.5px] text-ink-soft">Rs Cr{fresh ? `, of a ${fmtCr(fresh)} fresh issue` : ""}</p> : null}
+          {uses.length ? <p className="mb-4 text-[10.5px] text-ink-soft">₹ Cr{fresh ? `, of a ${fmtCr(fresh)} fresh issue` : ""}</p> : null}
           {uses.length ? (
             <ul className="space-y-3">
               {uses.map((u) => (
@@ -686,6 +713,7 @@ function PeersSlide({ deck, openStock }: SlideProps) {
           {v != null && lastRev && <span className="font-mono text-ink-soft">{(v / lastRev.revenue).toFixed(1)}x {lastRev.label} sales</span>}
         </div>
       </Panel>
+      <NowListed deck={deck} openStock={openStock} className="mb-3" />
       {/* Phone and tablet: cards; lg up: a table (it needs ~760px). */}
       <ul className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:hidden">
         {rows.map((p) => (
@@ -749,7 +777,7 @@ function PeersSlide({ deck, openStock }: SlideProps) {
 
 // ---------- 9. Strengths & risks ----------
 
-const SEVERITY = { high: "text-danger", medium: "text-amber", low: "text-ink-soft" } as const;
+const SEVERITY = { high: "text-danger", medium: "text-amber-ink", low: "text-ink-soft" } as const;
 const RISK_ORDER = { high: 0, medium: 1, low: 2 } as const;
 
 function RisksSlide({ deck }: SlideProps) {
@@ -819,7 +847,8 @@ function OutlookSlide({ deck }: SlideProps) {
       <section className="mt-5">
         <Eyebrow>Offer document & sources</Eyebrow>
         <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {deck.sources.map((l) => (
+          {/* Each link once (a repeated URL also gave React a duplicate key). */}
+          {deck.sources.filter((l, i, all) => all.findIndex((x) => x.url === l.url) === i).map((l) => (
             <li key={l.url}>
               <a href={l.url} target="_blank" rel="noopener noreferrer" className="group flex h-full items-start gap-3 rounded-xl border border-line bg-panel p-3.5 transition hover:border-accent">
                 <span className="min-w-0 flex-1">

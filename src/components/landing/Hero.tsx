@@ -4,7 +4,6 @@ import type { SectorWithSlug } from "@/lib/sector-content";
 import type { SearchEntry } from "@/lib/sector-content/stats";
 import { BrowseThemesButton, ThemeWindow, type ThemeRow } from "./ThemeWindow";
 import type { ThemeTab } from "@/components/research/ThemeCards";
-import type { IpoDeck } from "@/lib/ipo-content";
 
 type Props = {
   /** The industry linked from "Try the 3D map" (and listed first in the theme window). */
@@ -12,11 +11,9 @@ type Props = {
   searchIndex: SearchEntry[];
   /** Rows for the theme window on the right (buildHeroThemeRows). */
   themeRows: Record<ThemeTab, ThemeRow[]>;
-  /** IPO decks the window's IPO rows open in place. */
-  ipos: IpoDeck[];
 };
 
-export function Hero({ featured, searchIndex, themeRows, ipos }: Props) {
+export function Hero({ featured, searchIndex, themeRows }: Props) {
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-5 py-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:py-24">
       <div className="min-w-0">
@@ -43,7 +40,7 @@ export function Hero({ featured, searchIndex, themeRows, ipos }: Props) {
           </Link>
         </div>
       </div>
-      <ThemeWindow rows={themeRows} ipos={ipos} />
+      <ThemeWindow rows={themeRows} />
     </div>
   );
 }

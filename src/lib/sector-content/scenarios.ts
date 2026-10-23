@@ -464,7 +464,7 @@ export const SCENARIOS: Record<string, Scenario[]> = {
         "The RBI raised the repo rate to 5.50% in October 2026 and shifted to 'calibrated tightening'. Further hikes pass through to repo-linked home loans within a quarter, raising EMIs and cutting what buyers can borrow. Mid-income and affordable housing feel it first; luxury buyers less so. Lenders reprice loans faster than deposits at first, but growth and asset quality soften. Landlords see cap rates and REIT yields drift up.",
       effect: "headwind",
       impacts: [
-        S("residential", 3, "Higher EMIs slow bookings, especially in the sub-Rs 1 Cr segment"),
+        S("residential", 3, "Higher EMIs slow bookings, especially in the sub-₹1 Cr segment"),
         S("finance", 2, "Slower disbursements and more stress in affordable loans; repo-linked loans reprice up quickly"),
         S("sales", 2, "Fewer transactions mean less brokerage and fewer portal leads"),
         S("land", 2, "Developers slow land buying and new joint-development deals"),

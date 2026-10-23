@@ -1,6 +1,4 @@
-.nr-explorer {
-
- /* --panel-2 (not just --panel) matters here even though explorer.css's own
+/* --panel-2 (not just --panel) matters here even though explorer.css's own
     rules never read it directly - Tailwind-styled descendants inside the
     explorer (UserMenu, the watchlist heart link) compile to `var(--color-panel-2)`,
     which is itself `var(--panel-2)` at :root, resolved live against whatever
@@ -10,16 +8,20 @@
     those elements silently pick up the page's light/dark theme regardless of
     the canvas's own always-dark-or-grey palette. Every token below must keep
     matching its globals.css counterpart for the same reason. */
+.nr-explorer {
  --bg:#0C1110; --panel:#121A17; --panel-2:#18231F; --ink:#EEF2EA; --ink-soft:#93A399;
- --line:#25342D; --grid:#1A2721; --accent:#F0B53F; --amber:#E08A3C; --danger:#E8705E;
+ --line:#25342D; --grid:#1A2721; --accent:#F0B53F; --amber:#E08A3C; --amber-ink:#EB9A52; --danger:#E8705E;
  --chip:#1B2823; --callout-bg:rgba(12,17,16,.88); --callout-bg-strong:rgba(12,17,16,.92); --shadow:0 20px 50px -24px rgba(0,0,0,.7);
- color-scheme: dark;
-
- *{box-sizing:border-box}
  background:var(--bg); color:var(--ink);
  font-family:'IBM Plex Sans',Arial,sans-serif;
  display:flex; flex-direction:column;
  height:100%;
+}
+/* The tokens and base styles above are a rule of their own, with no nested rules: in a block that
+   also nests rules, the CSS compiler dropped the declarations written before the first nested
+   rule, so in dark mode the explorer's tokens (label backgrounds, chips) were undefined. */
+.nr-explorer {
+ *{box-sizing:border-box}
  h1,h2,h3{font-family:'Space Grotesk',Arial,sans-serif; margin:0}
  .mono{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums}
 
@@ -42,7 +44,7 @@
  border-radius:5px; padding:3px 7px; white-space:nowrap; font-family:'Space Grotesk',Arial,sans-serif;
  }
  .brand .brand-mark{ display:none }
- header h1{ font-size:15px; letter-spacing:1.6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:0 1 auto }
+ header h1{ font-size:15px; letter-spacing:1.6px; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:0 1 auto }
  header .sub{ font-size:12px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1 1 0 }
  header .badge{ flex:none; white-space:nowrap }
  header .badge .short{ display:none }
@@ -113,6 +115,8 @@
  .zone-more-btn.open .chev{ transform:rotate(180deg) }
  .zone-btns{ display:none; flex-direction:column; gap:5px }
  .zone-btns.expanded{ display:flex }
+ /* Desktop: a long Systems list scrolls inside itself rather than running off the rail. */
+ @media (min-width:1001px){ .zone-btns.expanded{ max-height:min(440px, 52vh); overflow-y:auto; padding-right:2px } }
  .zone-btn{
  display:flex; align-items:center; gap:8px; width:100%; text-align:left;
  background:var(--chip); border:1px solid var(--line); border-radius:7px; padding:7px 9px;
@@ -163,13 +167,16 @@
  }
  .controls-btn.on{ background:var(--accent); border-color:var(--accent); color:var(--bg) }
  .breadcrumb b{color:var(--accent); font-weight:600}
- .breadcrumb button{ flex:none;
- background:none; border:none; color:var(--ink); font-size:11px; font-weight:600; cursor:pointer;
- display:flex; align-items:center; justify-content:center; gap:4px; font-family:inherit; padding:0 0 0 8px; border-left:1px solid var(--line);
- position:relative;
+ /* Until the engine's first frames are up (building a model can take seconds on a phone). */
+ .stage-loading{
+ position:absolute; inset:0; z-index:6; display:flex; align-items:center; justify-content:center; gap:10px;
+ font-size:12.5px; font-weight:600; color:var(--ink-soft); pointer-events:none;
  }
- /* The glyph is small; enlarge the tappable area (>=40px) without changing layout. */
- .breadcrumb button::after{ content:""; position:absolute; top:50%; left:50%; width:40px; height:40px; transform:translate(-50%,-50%) }
+ .stage-loading .spinner{
+ width:18px; height:18px; border-radius:50%; border:2px solid var(--line); border-top-color:var(--accent);
+ animation:nr-spin .8s linear infinite;
+ }
+ @media (prefers-reduced-motion: reduce){ .stage-loading .spinner{ animation-duration:2.4s } }
  .toolbar{
  position:absolute; bottom:14px; left:50%; transform:translateX(-50%); z-index:5;
  display:flex; align-items:center; gap:8px; background:var(--callout-bg-strong); border:1px solid var(--line);
@@ -195,8 +202,14 @@
  }
  .panel-handle{ display:none }
  .panel-wrap{ position:relative }
- .panel-close-side{ position:absolute; top:12px; right:12px; z-index:2 }
- .panel-close-side + .panel h2{ padding-right:44px }
+ /* Side panel's title bar: the system's name and its close, outside the scrolling area. The
+    in-panel copy of the name (.zone-title) is for the phone sheet, which hides this bar. */
+ .panel-bar{
+ flex:none; display:flex; align-items:center; justify-content:space-between; gap:10px;
+ padding:12px 12px 12px 18px; border-bottom:1px solid var(--line);
+ }
+ .panel-bar h2{ font-size:16.5px; line-height:1.3; min-width:0 }
+ .panel .zone-title{ display:none }
  /* Base look for the "x" close button shared by the mobile panel sheet (see the
     @media max-width:1000px block below, which only overrides position to pin it
     inside the handle) and CompanyComparison's modal header, which renders this
@@ -212,7 +225,17 @@
  flex:1; min-height:0; background:transparent; border:none;
  padding:18px; overflow-y:auto; display:flex; flex-direction:column; gap:14px;
  }
- .panel-empty{ margin:auto; text-align:center; color:var(--ink-soft); font-size:13px; padding:20px; line-height:1.6 }
+ .panel-intro{ font-size:12.5px; color:var(--ink-soft); line-height:1.55 }
+ /* Nothing picked: the model's systems as a list (layer and listed-company count under each). */
+ .sys-list{ display:flex; flex-direction:column; gap:5px; margin-top:6px }
+ .sys-row{
+ display:grid; grid-template-columns:auto 1fr; column-gap:9px; align-items:center; width:100%; text-align:left;
+ background:var(--chip); border:1px solid var(--line); border-radius:8px; padding:8px 10px;
+ color:var(--ink); font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer;
+ }
+ .sys-row:hover{ border-color:var(--zc, var(--accent)) }
+ .sys-row .dot{ width:8px; height:8px; border-radius:50%; background:var(--zc, var(--accent)); grid-row:span 2 }
+ .sys-row small{ grid-column:2; font-size:10.5px; font-weight:400; color:var(--ink-soft); margin-top:1px }
  .panel h2{ font-size:16.5px; line-height:1.3 }
  .zc-tag{ display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:8px; vertical-align:middle }
  .role{ font-size:12.5px; color:var(--ink-soft); line-height:1.5 }
@@ -223,10 +246,11 @@
  cursor:pointer; font-size:12.5px; font-weight:600; display:flex; align-items:center; justify-content:space-between; gap:8px;
  }
  .chip:hover{border-color:var(--accent)}
- .chip.active{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--chip))}
+ .chip.active{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 6%, var(--chip))}
  .badge{ font-size:9.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; padding:2px 6px; border-radius:5px }
- .badge.listed{ background:color-mix(in srgb, var(--accent) 22%, var(--chip)); color:var(--accent) }
- .badge.unlisted{ background:color-mix(in srgb, var(--amber) 22%, var(--chip)); color:var(--amber) }
+ /* Light tints so the label text keeps 4.5:1 contrast (also on an active chip). */
+ .badge.listed{ background:color-mix(in srgb, var(--accent) 14%, var(--chip)); color:var(--accent) }
+ .badge.unlisted{ background:color-mix(in srgb, var(--amber) 14%, var(--chip)); color:var(--amber-ink) }
  .supplier-detail{ border-top:1px solid var(--line); padding-top:12px; display:flex; flex-direction:column; gap:12px }
  .supplier-head{ display:flex; align-items:flex-start; gap:10px }
  .supplier-head-title{ flex:1; min-width:0 }
@@ -270,12 +294,26 @@
  background:var(--callout-bg-strong); border:1.5px solid var(--zc, var(--line)); border-radius:7px;
  padding:3px 8px; font-family:'Space Grotesk',Arial,sans-serif; font-weight:700; font-size:10.5px; line-height:1.3;
  color:var(--ink); white-space:nowrap; backdrop-filter:blur(4px); transition:transform .15s, opacity .2s;
- max-width:min(150px, 40vw); overflow:hidden; text-overflow:ellipsis; margin:0;
+ max-width:min(150px, 40vw); display:flex; margin:0;
  /* Hidden until the engine's first frame decides which tags show (it sets opacity inline every
     frame), so the full set doesn't flash on load before the current-layer filter applies. */
  opacity:0;
  }
+ .mtag-t{ min-width:0; overflow:hidden; text-overflow:ellipsis }
  .mtag.selected{ background:color-mix(in srgb, var(--zc) 32%, var(--callout-bg-strong)); transform:translate(-50%,-138%) scale(1.08); max-width:calc(100% - 24px) }
+ /* Tablets have the width for longer names before truncating. */
+ @media (min-width:600px){ .mtag{ max-width:240px } }
+ /* Touch: a taller hit area around each tag (they are ~22px tall) without changing the look.
+    Kept modest so the areas of tags stacked one row apart barely overlap. */
+ @media (pointer: coarse){
+ .mtag::after{ content:""; position:absolute; inset:-7px -4px }
+ }
+ /* Another system is picked: still readable over any part of the model (solid backing, softer
+    text and border) rather than faded out, which lost them over pale surfaces in dark mode. */
+ .mtag.dimmed, .callout.dimmed{
+ color:var(--ink-soft); background:var(--callout-bg-strong);
+ border-color:color-mix(in srgb, var(--zc, var(--line)) 40%, var(--line));
+ }
  .deepdive-btn{
  margin-top:2px; background:color-mix(in srgb, var(--accent) 14%, var(--chip)); border:1px solid var(--accent);
  color:var(--ink); font-family:inherit; font-weight:700; font-size:12px; padding:9px 12px; border-radius:8px; cursor:pointer;
@@ -323,6 +361,14 @@
  @media (max-width: 1280px) and (min-width: 1001px){
  .panel-wrap{ width:380px }
  }
+ /* 1001-1200 (a landscape tablet, a small laptop): narrower rail and panel and smaller callouts,
+    so the stage isn't a ~465px strip with labels covering most of the model. */
+ @media (max-width: 1200px) and (min-width: 1001px){
+ .rail{ width:156px }
+ .panel-wrap{ width:320px }
+ .callout{ font-size:12px; padding:6px 9px }
+ .rail-left .callout, .rail-right .callout{ max-width:150px }
+ }
 
  /* ===== Phone header (the stage/panel layout for phones and tablets follows) ===== */
  @media (max-width: 700px){
@@ -353,8 +399,12 @@
     left the canvas ~250px wide next to an empty panel. ===== */
  /* With the phone controls menu open, labels on the model would show through its glass. */
  &.controls-open .mobile-tags{ opacity:0; pointer-events:none }
- /* Phones/tablets close from the bottom sheet's handle instead. */
- @media (max-width: 1000px){ .panel-close-side{ display:none } }
+ /* Portrait tablets: the sector name may take two lines rather than being cut off. */
+ @media (max-width: 1000px) and (min-width: 701px){
+ header h1{ font-size:13px; letter-spacing:1px; line-height:1.2; white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden }
+ }
+ /* Phones/tablets close from the bottom sheet's handle instead, and the name heads the sheet. */
+ @media (max-width: 1000px){ .panel-bar{ display:none } .panel .zone-title{ display:block } }
  @media (max-width: 1000px){
  .callout-rail.rail-left, .callout-rail.rail-right, .callout-rail.rail-top, .callout-rail.rail-bottom, .leader-svg{ display:none }
  .mobile-tags{ display:block }
@@ -410,6 +460,9 @@
  /* Opened by a pick: only the top ~40% of the screen's height shows, so the selected part
     stays visible above it (the engine frames the camera on that strip). */
  .panel-wrap.peek{ transform:translateY(max(0px, calc(100% - 40vh))) }
+ /* In the peek the system's description is held to three lines so its companies show up in
+    that first strip rather than below the fold (it shows in full once the sheet is expanded). */
+ .panel-wrap.peek .zdesc{ display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden }
  .panel-handle{
  display:flex; align-items:center; justify-content:center; gap:8px; position:relative; flex:none;
  padding:14px 52px 10px; cursor:pointer; border-bottom:1px solid var(--line); touch-action:none; user-select:none;
@@ -425,6 +478,8 @@
  width:40px; height:40px;
  }
  .panel-wrap.collapsed .panel-close-btn{ display:none }
+ /* Closed sheet: only its handle shows; the content's first line peeking under it read as clutter. */
+ .panel-wrap.collapsed .panel{ visibility:hidden }
  /* The rule above pins the panel sheet's close button inside its handle; the Compare
     modal reuses the same button class and must keep it in its own header row. */
  .compare-head .panel-close-btn{ position:static; transform:none }
@@ -432,6 +487,9 @@
  }
 
 }
+
+.nr-explorer { color-scheme: dark }
+:root[data-theme="light"] .nr-explorer { color-scheme: light }
 
 /* Light mode: the explorer's own chrome (header/rail/panel) matches the same
    light palette as the rest of the app now - it's the 3D stage specifically
@@ -442,8 +500,8 @@
    .nr-explorer's base declaration above for why that matters for
    Tailwind-styled descendants. */
 :root[data-theme="light"] .nr-explorer {
- --bg:#F8F4EA; --panel:#EFE9D9; --panel-2:#E5DEC9; --ink:#14201A; --ink-soft:#5B6A60;
- --line:#D4CAB0; --grid:#DDD5BD; --accent:#0F5C4A; --amber:#A8650A; --danger:#B73A2C; --chip:#E8E1CD; --callout-bg:rgba(248,244,234,.9); --callout-bg-strong:rgba(248,244,234,.95);
+ --bg:#F8F4EA; --panel:#EFE9D9; --panel-2:#E5DEC9; --ink:#14201A; --ink-soft:#536157;
+ --line:#D4CAB0; --grid:#DDD5BD; --accent:#0F5C4A; --amber:#A8650A; --amber-ink:#7A4703; --danger:#AC3628; --chip:#E8E1CD; --callout-bg:rgba(248,244,234,.9); --callout-bg-strong:rgba(248,244,234,.95);
 }
 /* The stage viewport in light mode: a pale, cool studio-grey sweep (like a
    product-photography backdrop) - light enough to sit with the cream chrome,
@@ -500,3 +558,15 @@
   .scn-pill{ bottom:auto; top:52px; left:12px; transform:none }
  }
 }
+
+/* Touch screens: rail controls at least 36px tall for a reliable tap - on phones and tablets,
+   and on a tablet held sideways, which gets the desktop rail. Mouse users keep the dense rail. */
+@media (pointer: coarse) {
+ .nr-explorer :is(.layer-btn, .view-btn, .zone-more-btn, .zone-btn, .scn-btn, .compare-btn){ min-height:36px }
+ /* The stage's round zoom-out and controls buttons: a full 40px target for a thumb. */
+ .nr-explorer :is(.reset-btn, .controls-btn){ width:40px; height:40px }
+ .nr-explorer input[type="range"]{ height:36px }
+}
+
+/* Keyframes can't live inside the nested .nr-explorer block (the CSS compiler drops them there). */
+@keyframes nr-spin { to { transform: rotate(360deg) } }

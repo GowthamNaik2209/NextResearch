@@ -47,7 +47,8 @@ export function renderOgCard({ kicker, title, subtitle, stats = [], chips = [] }
                 fontWeight: 700,
               }}
             >
-              NR
+              {/* The site header's mark is a single "N"; the share card matches it. */}
+              N
             </div>
             <div style={{ fontSize: 30, fontWeight: 700 }}>{SITE_NAME}</div>
           </div>

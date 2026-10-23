@@ -8,12 +8,18 @@ import { getSector, listSectorSlugs } from "@/lib/sector-content";
 import { getResearchForSector } from "@/lib/sector-content/docs";
 import { buildDeck } from "@/lib/sector-content/reports";
 import { NOT_FOUND_METADATA, midSentence } from "@/lib/site";
+import { ensureFinancials } from "@/lib/financials/load";
 
-export function generateStaticParams() {
+// Figures come from the database; re-render on the same clock as the cached table (load.ts).
+export const revalidate = 900;
+
+export async function generateStaticParams() {
+  await ensureFinancials();
   return listSectorSlugs().map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  await ensureFinancials();
   const { slug } = await params;
   const sector = getSector(slug);
   if (!sector) return NOT_FOUND_METADATA;
@@ -28,6 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function SectorDocsPage({ params }: { params: Promise<{ slug: string }> }) {
+  await ensureFinancials();
   const { slug } = await params;
   const sector = getSector(slug);
   if (!sector) notFound();
@@ -40,9 +47,10 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-5 py-14">
+      {/* The site-wide 6xl container keeps the left edge in line with the header; the reading column stays narrow. */}
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-5 py-14 [&>*]:max-w-3xl">
         <div>
-          <Link href="/docs" className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
+          <Link href="/docs" className="tap-target text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
             &larr; All reports
           </Link>
           <div className="mt-4 flex items-center gap-3">
@@ -65,7 +73,7 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
               <h2 className="mt-1 font-display text-lg font-bold text-ink">{deck.report.title}</h2>
               <p className="mt-1 text-sm text-ink-soft">{deck.report.stance.line}</p>
             </div>
-            <OpenReportButton deck={deck} className="flex-none whitespace-nowrap rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90">
+            <OpenReportButton slug={deck.slug} className="flex-none whitespace-nowrap rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90">
               Read curated report &rarr;
             </OpenReportButton>
           </section>

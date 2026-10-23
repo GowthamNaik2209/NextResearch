@@ -19,7 +19,6 @@ const eslintConfig = defineConfig([
     // Policy content in the same untyped authored shape, split out of products.ts per policy.
     "src/lib/sector-content/policies/*.ts",
     "!src/lib/sector-content/policies/*.extras.ts",
-    "prisma/seed-source/artifact-data-slice.js",
   ]),
 ]);
 

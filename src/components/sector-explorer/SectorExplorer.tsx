@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   companyLinkExposure,
   companyLinkKey,
@@ -10,7 +10,9 @@ import {
   tickerForSupplier,
   EXPOSURE_TYPE_LABEL,
   EXPOSURE_STRENGTH_LABEL,
+  type SupplierFinancials,
 } from "@/lib/sector-content";
+import { installFinancials } from "@/lib/financials/store";
 import { listScenarios, scenarioCompanies, scenarioZoneImpacts } from "@/lib/sector-content/scenarios";
 import { mountExplorer, type ExplorerController, type ExplorerDom, type ImpactMap } from "./engine";
 import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
@@ -39,12 +41,17 @@ function useSpeechSupported(): boolean {
 
 type Props = {
   slug: string;
+  // This sector's company figures by ticker, from the database (the explore page loads them).
+  figures: Record<string, SupplierFinancials>;
   userEmail?: string | null;
   displayName?: string | null;
 };
 
-export function SectorExplorer({ slug, userEmail = null, displayName = null }: Props) {
+export function SectorExplorer({ slug, figures, userEmail = null, displayName = null }: Props) {
   const searchParams0 = useSearchParams();
+  // Fill this sector's suppliers (`f`) before anything below reads them. Idempotent (the same
+  // figures land in the same places), so running it during render is safe.
+  useMemo(() => installFinancials(figures, { partial: true }), [figures]);
   // Looked up here (client bundle) rather than passed as a prop from the server
   // page — the sector object carries three.js geometry-building functions, which
   // can't cross the server/client boundary as React props. The page's own
@@ -65,8 +72,16 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   const layerButtonRefs = useRef(new Map<number, HTMLButtonElement>());
   const controllerRef = useRef<ExplorerController | null>(null);
 
-  const [currentZoneId, setCurrentZoneId] = useState<string | null>(null);
-  const [currentSupplier, setCurrentSupplier] = useState<string | null>(null);
+  // Seeded from a deep link (?zone=&company=, validated as in the mount effect below), so the URL
+  // sync's first run doesn't strip them before the mount effect applies them.
+  const [currentZoneId, setCurrentZoneId] = useState<string | null>(() => {
+    const id = searchParams0.get("zone");
+    return id && sector.zones.some((z) => z.id === id) ? id : null;
+  });
+  const [currentSupplier, setCurrentSupplier] = useState<string | null>(() => {
+    const key = searchParams0.get("company");
+    return key && sector.zones.some((z) => z.id === searchParams0.get("zone")) && sector.suppliers[key] ? key : null;
+  });
   const [activeView, setActiveView] = useState<string>(sector.defaultView || sector.views[0]?.id);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   // Phones/tablets: the open sheet starts at a "peek" height so the picked part stays in
@@ -81,6 +96,10 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   const [isControlsOpen, setIsControlsOpen] = useState(false);
   const [deepStage, setDeepStage] = useState<number | null>(null);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
+  // False until the engine has drawn its first frames (model built, labels placed). Building a
+  // model can take seconds on a phone, and the stage was a blank canvas meanwhile.
+  const [isSceneReady, setIsSceneReady] = useState(false);
+  const zoneListRef = useRef<HTMLDivElement>(null);
   // Phone/tablet controls overlay: a tap anywhere outside it closes it (not just its own
   // button). When that tap lands on the 3D stage or the bottom sheet it is used up by the
   // close - the rest of that same press (its pointerup/click, or a touch gesture it starts)
@@ -140,7 +159,6 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   // was when the loop started, since the closure isn't re-created per render.
   const isMutedRef = useRef(false);
 
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -213,6 +231,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     ) {
       return;
     }
+    setIsSceneReady(false);
     const dom: ExplorerDom = {
       stage: stageRef.current,
       leaderSvg: leaderSvgRef.current,
@@ -237,6 +256,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
         setIsComparisonOpen(false);
       },
       onDeepDiveStageChange: setDeepStage,
+      onReady: () => setIsSceneReady(true),
     });
     controllerRef.current = controller;
     setDeepStage(null);
@@ -307,8 +327,14 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   // One-way sync: selection state -> URL. Never reads searchParams back into state
   // here (that's the effect above, once, on mount) — doing so would turn this into
   // a loop, each URL update re-triggering a read that triggers another update.
+  // The native history API, not router.replace: a router navigation re-renders the page on the
+  // server (auth, figures) on every pick, while replaceState only rewrites the address bar
+  // (Next keeps useSearchParams in step). Replace, not push: picks don't pile up history entries,
+  // so Back still leaves the explorer, as before. The state argument must be null, not the
+  // current entry's: Next only records the new URL in its own history state when the call carries
+  // none of its own, and without that, Back then Forward restored the picks but not the URL.
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(window.location.search);
     if (currentZoneId) params.set("zone", currentZoneId);
     else params.delete("zone");
     if (currentSupplier) params.set("company", currentSupplier);
@@ -317,7 +343,8 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     else params.delete("scenario");
     params.delete("tour");
     const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    const url = query ? `${pathname}?${query}` : pathname;
+    if (url !== window.location.pathname + window.location.search) window.history.replaceState(null, "", url);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentZoneId, currentSupplier, scenarioId]);
 
@@ -339,6 +366,28 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
   // A zone with exactly one supplier auto-opens it (mirrors the original) — derived
   // at render time rather than synced via an effect, so there's no extra render pass.
   const effectiveSupplier = currentSupplier ?? (zoneSupplierKeys.length === 1 ? zoneSupplierKeys[0] : null);
+
+  // Outside tap closes an open Systems / What-if list (owner rule for every menu); Esc does too.
+  useEffect(() => {
+    if (!isZoneMenuOpen && !isScenarioMenuOpen) return;
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Element | null;
+      if (!t?.closest("#nrSystemsList, .zone-more-btn:not(.scn-more)")) setIsZoneMenuOpen(false);
+      if (!t?.closest("#nrScenarioList, .scn-more")) setIsScenarioMenuOpen(false);
+    };
+    window.addEventListener("pointerdown", onDown, { capture: true });
+    return () => window.removeEventListener("pointerdown", onDown, { capture: true });
+  }, [isZoneMenuOpen, isScenarioMenuOpen]);
+
+  // Desktop: the open Systems list can run past the bottom of the rail; bring it into view.
+  useEffect(() => {
+    if (!isZoneMenuOpen) return;
+    const raf = requestAnimationFrame(() => {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      zoneListRef.current?.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [isZoneMenuOpen]);
 
   // Manual interaction anywhere in the explorer cancels an in-progress guided
   // tour — the tour is a suggestion, not a lock, so any deliberate click wins.
@@ -443,15 +492,41 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
     else startTour();
   }, [isTouring, startTour, stopTour]);
 
+  // Esc steps back one thing at a time, topmost first: the Compare table, then the picked
+  // company's card, then the open system (back to the whole model), then the scenario, then an
+  // open Systems / What-if list. Pop-ups that own the keyboard (the stock pop-up, the sign-up
+  // prompt, the header menus, the phone controls overlay) handle their own Esc, so it is left
+  // to them while they are open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || e.defaultPrevented) return;
+      if ((e.target as Element | null)?.closest?.("input, textarea, select")) return;
+      if (isComparisonOpen) return setIsComparisonOpen(false);
+      if (isControlsOpen || document.querySelector('[aria-modal="true"]:not(.compare-box)')) return;
+      if (document.querySelector('.nr-explorer header [aria-expanded="true"]')) return;
+      if (currentSupplier && zoneSupplierKeys.length > 1) return setCurrentSupplier(null);
+      if (currentZoneId) return handleSelectZone(null);
+      if (scenarioId) return handlePickScenario(null);
+      if (isZoneMenuOpen || isScenarioMenuOpen) {
+        setIsZoneMenuOpen(false);
+        setIsScenarioMenuOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   return (
     <div className={"nr-explorer" + (isControlsOpen ? " controls-open" : "")}>
       <header>
         <div className="title-block">
-          <Link href="/" className="brand" style={{ textDecoration: "none" }} aria-label="NextResearch home">
+          <Link href="/" className="brand tap-target" style={{ textDecoration: "none" }} aria-label="NextResearch home">
             <span className="brand-full">NextResearch</span>
             <span className="brand-mark" aria-hidden>N</span>
           </Link>
-          <h1>{sector.headerTitle}</h1>
+          {/* The sector's own name, as on its overview page and across the site (the authored
+              headerTitle strings mixed "EV ANATOMY" with "RARE-EARTH MAGNETS (REPM)"). */}
+          <h1 title={sector.name}>{sector.name}</h1>
           {sector.dataStatus && (
             <span className={"badge " + (sector.dataStatus === "demo" ? "unlisted" : "listed")} title={sector.dataStatus === "demo" ? "From publicly available information" : undefined}>
               {sector.dataStatus === "demo" ? "Public data" : sector.dataStatus.replace(/_/g, " ")}
@@ -459,7 +534,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
           )}
         </div>
         <div className="right">
-          <Link href={`/sector/${sector.slug}`} className="hdr-btn" aria-label="Back to overview" title="Back to overview">
+          <Link href={`/sector/${sector.slug}`} className="hdr-btn tap-target" aria-label="Back to overview" title="Back to overview">
             &larr;<span className="lbl"> Overview</span>
           </Link>
           <div className="status" title="Drag to orbit · scroll to zoom">
@@ -471,7 +546,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
           <MobileMenu hideFrom="min-[1001px]:hidden" />
           <Link
             href="/watchlist"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
+            className="tap-target flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
             aria-label="Watchlist"
             title="Watchlist"
           >
@@ -572,11 +647,8 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                   </button>
                 ))}
               </div>
-              {scenario && (
-                <button className="scn-clear" onClick={() => handlePickScenario(null)}>
-                  Clear scenario
-                </button>
-              )}
+              {/* No separate "Clear scenario" here: the lit scenario toggles off, and the stage's
+                  "What if: … ×" pill clears it from anywhere. */}
             </>
           )}
 
@@ -596,7 +668,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
               &#9662;
             </span>
           </button>
-          <div id="nrSystemsList" className={"zone-btns" + (isZoneMenuOpen ? " expanded" : "")}>
+          <div id="nrSystemsList" ref={zoneListRef} className={"zone-btns" + (isZoneMenuOpen ? " expanded" : "")}>
             {sector.zones.map((z) => {
               const isSelected = currentZoneId === z.id;
               const isDimmed = !!currentZoneId && !isSelected;
@@ -671,6 +743,12 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
             </button>
           )}
           <div className="stage-grid-overlay" />
+          {!isSceneReady && (
+            <div className="stage-loading" role="status">
+              <span className="spinner" aria-hidden />
+              Loading the 3D model…
+            </div>
+          )}
           <svg className="leader-svg" ref={leaderSvgRef} />
           <div className="callout-rail rail-left" ref={railLeftRef} />
           <div className="callout-rail rail-right" ref={railRightRef} />
@@ -761,12 +839,20 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
               &times;
             </button>
           </div>
-          {/* Side-panel close (wider screens; phones close from the sheet handle). Closing the
-              system returns the model to its opening state, like the breadcrumb's ✕. */}
+          {/* Side panel (wider screens): the system's name and its close in a bar that stays put
+              while the panel scrolls - floating over the panel, the × covered the company card's
+              "next" arrow once the card scrolled up. Phones close from the sheet handle instead.
+              Closing the system returns the model to its opening state. */}
           {zone && (
-            <button className="panel-close-btn panel-close-side" type="button" aria-label={`Close ${zone.label}`} onClick={closePanel}>
-              &times;
-            </button>
+            <div className="panel-bar">
+              <h2>
+                <span className="zc-tag" style={{ background: zone.color }} />
+                {zone.label}
+              </h2>
+              <button className="panel-close-btn" type="button" aria-label={`Close ${zone.label}`} onClick={closePanel}>
+                &times;
+              </button>
+            </div>
           )}
           <div
             className="panel"
@@ -780,9 +866,6 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
             {!zone && scenario ? (
               <>
                 <h2>{scenario.title}</h2>
-                <button className="scn-clear" onClick={() => handlePickScenario(null)}>
-                  &times; Clear scenario
-                </button>
                 <p className="zdesc">{scenario.story}</p>
                 <div>
                   <div className="chart-label">Layers touched</div>
@@ -830,13 +913,45 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                 </p>
               </>
             ) : !zone ? (
-              <p className="panel-empty">
-                Click a highlighted component to see its function and suppliers — or use Layers / Systems to look
-                inside first.
-              </p>
+              // Nothing picked: rather than one sentence in an empty column, an index of the model -
+              // every system with its layer and how many listed companies it holds, one click away.
+              <>
+                <p className="panel-intro">
+                  Pick a part on the model, or a system below, to see what it does and who supplies it. Layers peel the
+                  model open.
+                </p>
+                <div>
+                  <div className="chart-label">Systems in this model</div>
+                  <div className="sys-list">
+                    {sector.zones.map((z) => {
+                      const listed = z.suppliers.filter((link) => sector.suppliers[companyLinkKey(link)]?.listed).length;
+                      const layer = z.layer != null ? sector.layerNames[z.layer] : null;
+                      return (
+                        <button
+                          key={z.id}
+                          type="button"
+                          className="sys-row"
+                          style={{ ["--zc" as string]: z.color } as React.CSSProperties}
+                          onClick={() => handleSelectZone(z.id)}
+                          onMouseEnter={() => controllerRef.current?.setHover(z.id)}
+                          onMouseLeave={() => controllerRef.current?.setHover(null)}
+                        >
+                          <span className="dot" aria-hidden />
+                          <span className="sys-name">{z.label}</span>
+                          <small>
+                            {layer ? `${layer} · ` : ""}
+                            {listed === 1 ? "1 listed" : `${listed} listed`}
+                          </small>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
             ) : (
               <>
-                <h2>
+                {/* Phones/tablets: the bar above is hidden, so the name heads the sheet here. */}
+                <h2 className="zone-title">
                   <span className="zc-tag" style={{ background: zone.color }} />
                   {zone.label}
                 </h2>
@@ -868,7 +983,7 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                       deepStage !== null ? controllerRef.current?.exitDeepDive() : controllerRef.current?.enterDeepDive()
                     }
                   >
-                    {deepStage !== null ? "Back to product" : "Open deep dive ->"}
+                    {deepStage !== null ? "Back to product" : "Open deep dive →"}
                   </button>
                 )}
                 {zoneSupplierKeys.length > 1 && (
@@ -898,7 +1013,8 @@ export function SectorExplorer({ slug, userEmail = null, displayName = null }: P
                       >
                         <span>
                           {s.name}
-                          {s.listed && <WatchlistButton ticker={tickerForSupplier(s)} name={s.name} />}
+                          {/* The open company's heart is on its card below; one per company on screen. */}
+                          {s.listed && effectiveSupplier !== key && <WatchlistButton ticker={tickerForSupplier(s)} name={s.name} />}
                           {exposure?.exposureType && (
                             <span className="fine" style={{ marginLeft: 6 }}>
                               {EXPOSURE_TYPE_LABEL[exposure.exposureType]}

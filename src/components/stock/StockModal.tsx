@@ -48,16 +48,20 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
       <>
         <div className="flex flex-none items-start gap-3 border-b border-line bg-panel px-4 pb-0 pt-4 sm:px-6 sm:pt-5">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h2 className="truncate font-display text-lg font-bold sm:text-xl">{supplier.name}</h2>
-              <WatchlistButton ticker={ticker} name={supplier.name} />
+            {/* Long names wrap rather than being cut ("Samvardhana Motherson…"): the price and ✕ leave
+                the name ~180px on a phone, so no line clamp. */}
+            <div className="flex items-start gap-2">
+              <h2 className="min-w-0 break-words font-display text-base font-bold leading-snug sm:text-xl">{supplier.name}</h2>
+              <span className="flex-none pt-0.5">
+                <WatchlistButton ticker={ticker} name={supplier.name} />
+              </span>
             </div>
             <p className="mt-0.5 truncate text-xs text-ink-soft">
               <span className="font-mono">{supplier.listed ? `${freshQuote(api?.quote)?.exchange ?? "NSE"}: ${ticker}` : "Unlisted"}</span>
               <span className="hidden sm:inline"> · {supplier.role}</span>
             </p>
           </div>
-          {supplier.listed && <PriceTag price={stats.price} quote={freshQuote(api?.quote)} />}
+          {supplier.listed && <PriceTag price={stats.price} quote={freshQuote(api?.quote)} asOf={stats.asOf} />}
           <CloseButton closeRef={closeRef} onClose={onClose} />
         </div>
 
@@ -71,7 +75,10 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
               aria-selected={tab === t.id}
               onClick={() => setTab(t.id)}
               className={
-                "flex-none rounded-full px-2.5 py-1 text-xs font-semibold transition-colors sm:px-4 sm:py-1.5 sm:text-sm " +
+                // The pill style is the reference for stock tabs elsewhere (explorer card). tap-target
+                // grows the pill's hit area to 40px; touch screens (incl. tablets on sm sizing) also
+                // get a 40px-tall pill so the visible target matches.
+                "tap-target flex-none rounded-full px-2.5 py-1 text-xs font-semibold transition-colors sm:px-4 sm:py-1.5 sm:text-sm pointer-coarse:inline-flex pointer-coarse:min-h-10 pointer-coarse:items-center " +
                 (tab === t.id ? "bg-accent text-bg" : "text-ink-soft hover:bg-panel-2 hover:text-ink")
               }
             >
@@ -96,31 +103,62 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
 
 const noopSubscribe = () => () => {};
 
-// Blurred backdrop + raised card, scroll lock, Esc / backdrop-click to close, focus on ✕.
+const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+// Blurred backdrop + raised card, scroll lock, Esc / backdrop-click to close, focus on ✕, Tab kept
+// inside the card, and focus handed back to whatever opened it on close.
 function ModalShell({ label, onClose, children }: { label: string; onClose: () => void; children: (closeRef: React.RefObject<HTMLButtonElement | null>) => React.ReactNode }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  // Parents pass a fresh onClose on every render; reading it through a ref keeps the effect below
+  // mount-only, so a parent re-render no longer re-focuses ✕ or re-toggles the scroll lock.
+  const onCloseRef = useRef(onClose);
   useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
+
+  useEffect(() => {
+    if (!mounted) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") return onCloseRef.current();
+      if (e.key !== "Tab" || !cardRef.current) return;
+      const items = [...cardRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => el.offsetParent !== null || el === document.activeElement);
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const inside = cardRef.current.contains(document.activeElement);
+      if (e.shiftKey && (document.activeElement === first || !inside)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !inside)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKey);
+      // Back to the card or link that opened the pop-up, if it is still on the page.
+      if (opener?.isConnected) opener.focus({ preventScroll: true });
     };
-  }, [onClose]);
+  }, [mounted]);
   // Portals need `document`. ReturnToStock (root layout) can render the skeleton during SSR of a
   // `?stock=` URL, so render nothing on the server / during hydration and portal afterwards.
-  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
   if (!mounted) return null;
 
   return createPortal(
     <div
       className="nr-pop-backdrop fixed inset-0 z-[200] flex items-stretch justify-center sm:items-center sm:p-8"
-      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+      onMouseDown={(e) => e.target === e.currentTarget && onCloseRef.current()}
     >
       <div
+        ref={cardRef}
         role="dialog"
         aria-modal="true"
         aria-label={label}

@@ -46,10 +46,10 @@ export function BasketBreakdown({
   const whose = picks ? "your picks\u2019" : "the basket\u2019s";
   const inds = industryRows(holdings, industryOf);
   const tabs: { id: Tab; label: string }[] = [
-    { id: "contribution", label: "Contribution" },
+    { id: "contribution", label: "Pts added" },
     { id: "returns", label: "Returns" },
     { id: "weights", label: "Weights" },
-    ...(byIndustry && inds.length > 1 ? [{ id: "industries" as const, label: "Industries" }] : []),
+    ...(byIndustry && inds.length > 1 ? [{ id: "industries" as const, label: "By industry" }] : []),
   ];
   const active = tabs.some((t) => t.id === tab) ? tab : "contribution";
 
@@ -70,7 +70,7 @@ export function BasketBreakdown({
     },
     weights: {
       headline: weightHeadline(holdings, nameOf, picks ? "your picks" : "the basket"),
-      sub: `Share of ${picks ? "your picks" : "the basket"} now, against where it started. Winners grow, losers shrink.`,
+      sub: `Share of ${picks ? "your picks" : "the basket"} at the end, against its target. Winners grow, losers shrink.`,
       rows: weightRows(holdings),
       unit: "%",
       legend: false,
@@ -84,9 +84,9 @@ export function BasketBreakdown({
     },
   }[active];
 
-  const seg = (on: boolean) => "min-h-8 rounded-full px-3 text-[11px] font-semibold transition sm:text-xs " + (on ? "bg-accent text-bg" : "text-ink-soft hover:text-ink");
+  const seg = (on: boolean) => "min-h-8 pointer-coarse:min-h-9 rounded-full px-3 text-[11px] font-semibold transition sm:text-xs " + (on ? "bg-accent text-bg" : "text-ink-soft hover:text-ink");
   return (
-    <section aria-label="Breakdown" className="flex flex-col gap-3 rounded-2xl border border-line bg-panel p-4 sm:p-5">
+    <section aria-label="Breakdown" className="flex flex-col gap-3 p-3 sm:p-4">
       <div role="tablist" aria-label="Breakdown" className="-mx-1 flex gap-0.5 overflow-x-auto px-1">
         {tabs.map((t) => (
           <button key={t.id} type="button" role="tab" aria-selected={active === t.id} onClick={() => onTab(t.id)} className={seg(active === t.id) + " flex-none"}>
@@ -95,7 +95,7 @@ export function BasketBreakdown({
         ))}
       </div>
       <div className="border-l-4 border-accent pl-3">
-        {view.headline && <h3 className="font-display text-lg font-bold leading-snug text-ink sm:text-xl">{view.headline}</h3>}
+        {view.headline && <h3 className="text-balance font-display text-lg font-bold leading-snug text-ink sm:text-xl">{view.headline}</h3>}
         <p className="mt-1 text-xs text-ink-soft">{view.sub}</p>
       </div>
       {view.legend && (
@@ -126,17 +126,18 @@ function Label({ row, stockOf }: { row: BarRow; stockOf: (t: string) => BasketSt
   if (row.kind === "group")
     return (
       <span className="block min-w-0 text-right">
-        <span className="block truncate text-xs font-semibold text-ink sm:text-sm">{row.label}</span>
-        <span className="block truncate text-[10px] text-ink-soft">{row.count > 1 ? `${row.count} stocks combined` : "1 stock"}</span>
+        <span className="block text-balance break-words text-xs font-semibold leading-snug text-ink sm:text-sm">{row.label}</span>
+        <span className="block text-[10px] text-ink-soft">{row.count > 1 ? `${row.count} stocks combined` : "1 stock"}</span>
       </span>
     );
   const s = stockOf(row.ticker);
   return (
     <span className="block min-w-0 text-right">
-      <StockLink ticker={row.ticker} className="block truncate text-xs font-semibold text-ink hover:text-accent hover:underline sm:text-sm">
+      {/* Names and layers wrap rather than cut off; the link's tap area reaches 10px above and below. */}
+      <StockLink ticker={row.ticker} className="relative block text-balance break-words text-xs font-semibold leading-snug text-ink before:absolute before:inset-x-0 before:-inset-y-2.5 before:content-[''] hover:text-accent hover:underline sm:text-sm">
         {s?.name ?? row.ticker}
       </StockLink>
-      {s?.layer && <span className="block truncate text-[10px] text-ink-soft">{s.layer}</span>}
+      {s?.layer && <span className="block text-balance break-words text-[10px] leading-snug text-ink-soft">{s.layer}</span>}
     </span>
   );
 }

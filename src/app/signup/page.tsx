@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { signup, loginWithGoogle } from "@/app/auth/actions";
 import { SiteHeader } from "@/components/SiteHeader";
+import { redirect } from "next/navigation";
 import { safeNext } from "@/lib/safe-next";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = { title: "Create an account", robots: { index: false, follow: true } };
 
@@ -12,6 +14,10 @@ export default async function SignupPage({
 }) {
   const { error, checkEmail, next: rawNext } = await searchParams;
   const next = safeNext(rawNext);
+  // Already signed in: the form has nothing to do, so go where they were heading (a safe,
+  // same-site ?next=, else home).
+  // (Never back to /login or /signup themselves, which would loop.)
+  if (await getCurrentUser()) redirect(/^\/(login|signup)(\/|\?|$)/.test(next) ? "/" : next);
   const loginHref = next === "/" ? "/login" : `/login?next=${encodeURIComponent(next)}`;
 
   return (
@@ -85,7 +91,7 @@ export default async function SignupPage({
 
         <p className="mt-6 text-sm text-ink-soft">
           Already have an account?{" "}
-          <Link href={loginHref} className="text-accent hover:underline">
+          <Link href={loginHref} className="tap-target text-accent hover:underline">
             Log in
           </Link>
         </p>

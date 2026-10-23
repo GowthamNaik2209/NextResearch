@@ -7,6 +7,7 @@ import {
   companyLinkExposure,
   companyLinkKey,
   listSectors,
+  strengthPoints,
   tickerForSupplier,
   type ExposureStrength,
   type ExposureType,
@@ -32,8 +33,6 @@ export type CompanyFootprint = {
   name: string;
   sectors: FootprintSector[];
 };
-
-const STRENGTH_POINTS: Record<ExposureStrength, number> = { high: 3, medium: 2, low: 1 };
 
 let cache: Map<string, CompanyFootprint> | null = null;
 
@@ -75,7 +74,7 @@ export function getCompanyFootprint(ticker: string): CompanyFootprint | null {
 /** How concentrated this company's exposure is: total strength points across every layer it sits in. */
 export function footprintScore(fp: CompanyFootprint): number {
   let n = 0;
-  for (const s of fp.sectors) for (const z of s.zones) n += z.exposureStrength ? STRENGTH_POINTS[z.exposureStrength] : 2;
+  for (const s of fp.sectors) for (const z of s.zones) n += strengthPoints(z.exposureStrength);
   return n;
 }
 

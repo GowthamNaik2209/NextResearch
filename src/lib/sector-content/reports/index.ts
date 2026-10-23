@@ -2,7 +2,8 @@
 // (./<slug>.ts) with that sector's live content — zone labels, and the seed
 // financials of every company it names — into one plain `Deck` object that can
 // cross the server/client boundary to the slide viewer (components/research).
-import { getSector, type SectorSupplier } from "../index";
+import { getSector, parseCrore, type SectorSupplier } from "../index";
+import { memoByFinancials } from "@/lib/financials/store";
 import type { SectorReport } from "./types";
 import { ev4w } from "./ev4w";
 import { semiconductors } from "./semiconductors";
@@ -82,10 +83,6 @@ export type Deck = {
 const FIRST_FY = 22;
 const MIN_CAGR_YEARS = 3;
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
-const parseRs = (s?: string) => {
-  const n = s ? parseFloat(s.replace(/[^0-9.]/g, "")) : NaN;
-  return Number.isFinite(n) ? n : null;
-};
 
 function toCompany(key: string, sup: SectorSupplier): DeckCompany {
   const f = sup.f;
@@ -107,7 +104,7 @@ function toCompany(key: string, sup: SectorSupplier): DeckCompany {
     role: sup.role,
     supplier: sup,
     mcap: f?.mcap ?? null,
-    mcapCr: parseRs(f?.mcap),
+    mcapCr: parseCrore(f?.mcap),
     revCr: revLast,
     revYear: last != null ? `FY${FIRST_FY + last}` : null,
     revCagr: cagrOk ? (Math.pow(revLast! / rev[first]!, 1 / span) - 1) * 100 : null,
@@ -120,7 +117,15 @@ function toCompany(key: string, sup: SectorSupplier): DeckCompany {
   };
 }
 
+// Rebuilt only when new company figures are installed. The result is shared: never mutate it.
+const deckCache = memoByFinancials(() => new Map<string, Deck | null>());
 export function buildDeck(slug: string): Deck | null {
+  const m = deckCache();
+  if (!m.has(slug)) m.set(slug, makeDeck(slug));
+  return m.get(slug)!;
+}
+
+function makeDeck(slug: string): Deck | null {
   const report = REPORTS[slug];
   const sector = getSector(slug);
   if (!report || !sector) return null;
@@ -148,8 +153,4 @@ export function buildDeck(slug: string): Deck | null {
     companies,
     news,
   };
-}
-
-export function listReportSlugs(): string[] {
-  return Object.keys(REPORTS);
 }

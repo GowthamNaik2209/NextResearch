@@ -10,35 +10,37 @@ export const manipalHospitals: IpoReport = {
   legalName: "Manipal Health Enterprises Limited",
   icon: "MHE",
   sectorLabel: "Hospitals & healthcare delivery",
-  tagline: "India's largest hospital network by beds, now listed after a Rs 9,275 Cr IPO",
+  tagline: "India's largest hospital network by beds, now listed after a ₹9,275 Cr IPO",
   asOf: "Oct 2026",
+  ticker: "MANIPALHOS",
 
   status: {
     stage: "listed",
     label: "Listed 5 Aug",
     detail:
-      "The Rs 9,275 Cr issue was subscribed ~4.9x (QIB 8.25x, NII 1.02x) and listed at Rs 652 on NSE, 10.5% above the Rs 590 issue price; it traded near Rs 642 in mid-Oct 2026, so the deck now tracks the post-listing story (debt paydown, Sahyadri integration, new-bed ramp-up).",
+      "The ₹9,275 Cr issue was subscribed ~4.9x (QIB 8.25x, NII 1.02x) and listed at ₹652 on NSE, 10.5% above the ₹590 issue price; the deck now tracks the post-listing story (debt paydown, Sahyadri integration, new-bed ramp-up).",
   },
   timeline: [
-    { date: "23 Mar 2026", event: "DRHP filed with SEBI (Rs 8,000 Cr fresh + 4.32 crore-share OFS)", done: true },
+    { date: "23 Mar 2026", event: "DRHP filed with SEBI (₹8,000 Cr fresh + 4.32 crore-share OFS)", done: true },
     { date: "Jul 2026", event: "SEBI observations received (reported early July)", done: true },
-    { date: "23 Jul 2026", event: "RHP filed; price band Rs 560-590, OFS cut to 2.16 crore shares", done: true },
+    { date: "23 Jul 2026", event: "RHP filed; price band ₹560-590, OFS cut to 2.16 crore shares", done: true },
     { date: "28 Jul 2026", event: "Anchor book", done: true },
     { date: "29-31 Jul 2026", event: "Issue open; subscribed ~4.9x", done: true },
-    { date: "5 Aug 2026", event: "Listed on NSE and BSE at Rs 652 (NSE)", done: true },
+    { date: "5 Aug 2026", event: "Listed on NSE and BSE at ₹652 (NSE)", done: true },
     { date: "20 Aug 2026", event: "First results as a listed company (Q1 FY27)", done: true },
   ],
 
   issue: {
-    size: "Rs 9,275 Cr",
+    size: "₹9,275 Cr",
     totalCr: 9275.22,
     freshCr: 8000,
     ofsCr: 1275.22,
     ofsShares: "2.16 crore shares",
-    priceBand: "Rs 560-590 (priced at Rs 590)",
-    lotSize: "25 shares (Rs 14,750 at the upper band)",
-    faceValue: "Rs 2",
-    valuation: "~Rs 77,607 Cr market cap at the upper band; ~Rs 84,500 Cr in mid-Oct 2026 (Screener)",
+    priceBand: "₹560-590 (priced at ₹590)",
+    issuePrice: 590,
+    lotSize: "25 shares (₹14,750 at the upper band)",
+    faceValue: "₹2",
+    valuation: "~₹77,607 Cr market cap at the upper band",
     valuationCr: 77607,
     reservation: "QIB 75% · NII 15% · Retail 10%",
     exchanges: "NSE, BSE",
@@ -57,13 +59,13 @@ export const manipalHospitals: IpoReport = {
   stance: {
     label: "Listed: execution story",
     tone: "neutral",
-    line: "Scale and specialty mix are best-in-class, but the stock prices in a lot (~95x trailing earnings) while leverage, Sahyadri integration and new-bed ramp-up weigh on near-term margins.",
+    line: "Scale and specialty mix are best-in-class, but the stock trades at a premium to listed peers while leverage, Sahyadri integration and new-bed ramp-up weigh on near-term margins.",
   },
   keyStats: [
-    { label: "Issue size", value: "Rs 9,275 Cr", sub: "Rs 8,000 Cr fresh + Rs 1,275 Cr OFS" },
+    { label: "Issue size", value: "₹9,275 Cr", sub: "₹8,000 Cr fresh + ₹1,275 Cr OFS" },
     { label: "Licensed beds", value: "13,037", sub: "49 hospitals, 14 states/UTs (Mar 2026)" },
-    { label: "Revenue, FY26", value: "Rs 10,336 Cr", sub: "+25.4% YoY (RHP)" },
-    { label: "Listing vs issue", value: "+10.5%", sub: "Rs 652 on NSE vs Rs 590" },
+    { label: "Revenue, FY26", value: "₹10,336 Cr", sub: "+25.4% YoY (RHP)" },
+    { label: "Listing vs issue", value: "+10.5%", sub: "₹652 on NSE vs ₹590" },
   ],
   thesis: [
     {
@@ -76,7 +78,7 @@ export const manipalHospitals: IpoReport = {
     },
     {
       title: "The biggest healthcare listing sets a new reference point",
-      body: "At ~Rs 84,500 Cr, Manipal is now the second-most valuable listed hospital chain after Apollo. Its multiple sits well above Apollo, Max and Fortis, so delivery on occupancy and ARPOB will decide the re-rating.",
+      body: "Manipal joined Apollo and Max among the most valuable listed hospital chains (current figures under \"Now listed\"). Its multiple sits well above Apollo, Max and Fortis, so delivery on occupancy and ARPOB will decide the re-rating.",
     },
   ],
 
@@ -88,7 +90,7 @@ export const manipalHospitals: IpoReport = {
     ],
     segments: [
       { title: "Karnataka", metric: "6,404 licensed beds · 46% of FY26 revenue", body: "19 hospitals including 12 in Bengaluru; the original home market and still the profit engine, though its revenue share fell from 60% in FY24." },
-      { title: "Maharashtra & Goa", metric: "13 hospitals · Rs 503 Cr revenue in Q1 FY27", body: "Transformed by the Sahyadri acquisition (Pune); revenue nearly 4x year on year as acquired beds were added." },
+      { title: "Maharashtra & Goa", metric: "13 hospitals · ₹503 Cr revenue in Q1 FY27", body: "Transformed by the Sahyadri acquisition (Pune); revenue nearly 4x year on year as acquired beds were added." },
       { title: "East India", metric: "2,887 licensed beds", body: "10 hospitals in West Bengal, Odisha, Jharkhand and Sikkim from the AMRI and Medica deals; Manipal leads Kolkata by bed capacity." },
       { title: "Rest of India", metric: "1,558 licensed beds · 72% occupancy (Q1 FY27)", body: "7 hospitals including Delhi NCR, Jaipur, Vijayawada and Patiala; the best-occupied region and a target for bolt-on acquisitions." },
     ],
@@ -105,13 +107,13 @@ export const manipalHospitals: IpoReport = {
 
   industry: {
     narrative: [
-      "India's healthcare delivery market was about Rs 7 lakh crore in FY25 and is projected by Crisil (in the RHP) to grow 10-12% a year to Rs 11.2-12.2 lakh crore by FY30, with inpatient care at ~71-72% of value.",
+      "India's healthcare delivery market was about ₹7L Cr in FY25 and is projected by Crisil (in the RHP) to grow 10-12% a year to ₹11.2-12.2L Cr by FY30, with inpatient care at ~71-72% of value.",
       "The market is still fragmented: large private chains hold only ~20% share, and India has ~16 beds per 10,000 people (~14 outside metros). ICRA expects 34,000+ beds to be added over FY26-30, so supply competition in metros is rising.",
     ],
     chart: {
       title: "India healthcare delivery market",
-      unit: "Rs lakh Cr",
-      source: "Crisil report in the Manipal RHP (Figure 9); FY26E and FY30P are midpoints of Rs 7.6-7.8 and Rs 11.2-12.2 lakh Cr",
+      unit: "₹ lakh Cr",
+      source: "Crisil report in the Manipal RHP (Figure 9); FY26E and FY30P are midpoints of ₹7.6-7.8 and ₹11.2-12.2L Cr",
       points: [
         { label: "FY20", value: 4.4 },
         { label: "FY25", value: 7.0 },
@@ -124,7 +126,7 @@ export const manipalHospitals: IpoReport = {
       { label: "Large private chains' share, FY26", value: "~20%", tone: "pos" },
       { label: "Beds per 10,000 people, FY26", value: "~16 national, ~14 non-metro", tone: "pos" },
       { label: "Inpatient share of market value", value: "71-72%", tone: "neutral" },
-      { label: "Listed peers' P/E (Oct 2026)", value: "~41-58x", tone: "neg" },
+      { label: "Listed peers' valuations", value: "See the peer table", tone: "neutral" },
     ],
   },
 
@@ -136,7 +138,7 @@ export const manipalHospitals: IpoReport = {
       { label: "FY26", revenue: 10335.8, ebitda: 2611.2, pat: 916.5 },
       { label: "Q1 FY27", revenue: 3090.6, ebitda: 749.0, pat: 243.4, partial: true },
     ],
-    note: "FY26 PAT fell 15% as finance costs rose to Rs 864 Cr after the Sahyadri acquisition was funded with NCDs; FY25 PAT also included a lower tax charge. Q1 FY27 EBITDA is the company's pre-ESOP measure (the RHP FY26 figure of Rs 2,611 Cr is after Rs 33 Cr of ESOP cost), and Q1 PAT carries Rs 89 Cr of post-tax Sahyadri NCD interest.",
+    note: "FY26 PAT fell 15% as finance costs rose to ₹864 Cr after the Sahyadri acquisition was funded with NCDs; FY25 PAT also included a lower tax charge. Q1 FY27 EBITDA is the company's pre-ESOP measure (the RHP FY26 figure of ₹2,611 Cr is after ₹33 Cr of ESOP cost), and Q1 PAT carries ₹89 Cr of post-tax Sahyadri NCD interest.",
   },
 
   kpi: {
@@ -154,10 +156,10 @@ export const manipalHospitals: IpoReport = {
     { label: "EBITDA margin, FY26", value: "25.3% (27.3% in FY24)", tone: "neutral" },
     { label: "PAT margin, FY26", value: "8.9% (13.1% in FY25)", tone: "neg" },
     { label: "Occupancy, FY26 / Q1 FY27", value: "64.5% / 65.0%", tone: "neutral" },
-    { label: "ARPOB, FY26", value: "Rs 68,938/day (+8.9%)", tone: "pos" },
+    { label: "ARPOB, FY26", value: "₹68,938/day (+8.9%)", tone: "pos" },
     { label: "RoE, FY26", value: "11.5%", tone: "neutral" },
-    { label: "Net worth, Mar 2026", value: "Rs 8,428 Cr", tone: "neutral" },
-    { label: "Total debt, Mar 2026", value: "Rs 12,863 Cr", tone: "neg" },
+    { label: "Net worth, Mar 2026", value: "₹8,428 Cr", tone: "neutral" },
+    { label: "Total debt, Mar 2026", value: "₹12,863 Cr", tone: "neg" },
     { label: "Net debt / EBITDA", value: "3.7x FY26 (incl. leases); 2.8x Jun 2026 post-IPO", tone: "neg" },
   ],
 
@@ -167,7 +169,7 @@ export const manipalHospitals: IpoReport = {
     { label: "Acquire the minority stake in Sahyadri Hospitals", valueCr: 574 },
   ],
   proceedsNote:
-    "Debt repayment is the main use. The RHP figure of Rs 5,552.76 Cr (FundsIndia) is higher than the Rs 5,378 Cr in the DRHP and in some news reports. The balance shown is derived as Rs 8,000 Cr less the two named objects; general corporate purposes are capped at 25% of the gross fresh issue. The Rs 1,275 Cr OFS went to the selling shareholders.",
+    "Debt repayment is the main use. The RHP figure of ₹5,552.76 Cr (FundsIndia) is higher than the ₹5,378 Cr in the DRHP and in some news reports. The balance shown is derived as ₹8,000 Cr less the two named objects; general corporate purposes are capped at 25% of the gross fresh issue. The ₹1,275 Cr OFS went to the selling shareholders.",
   shareholding: [
     { holder: "Promoter group (Temasek entities, Pai family)", pct: 81.9 },
     { holder: "Public and other shareholders", pct: 18.1 },
@@ -189,7 +191,7 @@ export const manipalHospitals: IpoReport = {
     { name: "Medanta (Global Health)", ticker: "MEDANTA", note: "Gurugram-led, high-acuity, expanding in north and east" },
   ],
   valuationNote:
-    "At Rs 590, the IPO valued Manipal at ~Rs 77,600 Cr, about 76-85x FY26 earnings and ~35x EV/EBITDA, against 66-75x for Apollo, Max and Fortis at the time (FundsIndia, ICICI Direct, Angel One). In mid-Oct 2026 it trades at ~Rs 84,500 Cr and ~95x trailing P/E, above every listed peer in the table.",
+    "At ₹590, the IPO valued Manipal at ~₹77,600 Cr, about 76-85x FY26 earnings and ~35x EV/EBITDA, against 66-75x for Apollo, Max and Fortis at the time (FundsIndia, ICICI Direct, Angel One). Since listing it has traded at a premium to the listed peers: the \"Now listed\" panel above carries its current P/E, the table the peers'.",
 
   strengths: [
     { title: "Unmatched bed scale and metro leadership", body: "Largest pan-India network by beds and the only private chain leading three metros (Bengaluru, Kolkata, Pune) by bed capacity, per Crisil." },
@@ -199,9 +201,9 @@ export const manipalHospitals: IpoReport = {
   ],
   risks: [
     { risk: "Karnataka concentration: ~46% of FY26 revenue came from one state.", mitigant: "Share is falling fast (60% in FY24) as Sahyadri, East India and NCR grow.", severity: "medium" },
-    { risk: "High leverage after the Sahyadri deal; FY26 net debt ~3.7x EBITDA and finance costs of Rs 864 Cr.", mitigant: "IPO proceeds repay ~Rs 5,550 Cr; net debt fell to ~2.8x EBITDA by Jun 2026.", severity: "high" },
+    { risk: "High leverage after the Sahyadri deal; FY26 net debt ~3.7x EBITDA and finance costs of ₹864 Cr.", mitigant: "IPO proceeds repay ~₹5,550 Cr; net debt fell to ~2.8x EBITDA by Jun 2026.", severity: "high" },
     { risk: "Integration and margin dilution from acquisitions and new hospitals (Q1 FY27 EBITDA margin 24.2% vs 26.5%).", mitigant: "Ex-Sahyadri margin was 25.0% and Sahyadri ARPOB is rising (+14.7% YoY).", severity: "medium" },
-    { risk: "Valuation leaves little room for error at ~95x trailing earnings.", mitigant: "Earnings should rise as NCD interest falls away and new beds mature.", severity: "high" },
+    { risk: "Valuation leaves little room for error: the stock trades at a premium to listed peers.", mitigant: "Earnings should rise as NCD interest falls away and new beds mature.", severity: "high" },
     { risk: "Clinical negligence claims and regulatory price controls on procedures and consumables.", mitigant: "41 NABH-accredited hospitals and insurance cover; payor mix is half insurance.", severity: "low" },
   ],
 

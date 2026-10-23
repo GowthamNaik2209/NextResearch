@@ -1,12 +1,11 @@
 import { listSectors } from "@/lib/sector-content";
-import { buildHeroThemeRows, buildSearchIndex, getPlatformStats } from "@/lib/sector-content/stats";
 import { buildIdeas, dataAsOfRange } from "@/lib/sector-content/insights";
+import { buildHeroThemeRows, buildSearchIndex, getPlatformStats } from "@/lib/sector-content/stats";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ReadingList } from "@/components/research/ReadingList";
 import { getCurrentUser } from "@/lib/auth";
 import { analysisProps, analysisView } from "@/lib/analysis-props";
-import { listIpoDecks } from "@/lib/ipo-content";
 import { IdeasSection } from "@/components/IdeasSection";
 import { Hero } from "@/components/landing/Hero";
 import { StatsStrip } from "@/components/landing/StatsStrip";
@@ -16,16 +15,17 @@ import { HowItWorks } from "@/components/landing/HowItWorks";
 import { CompanyFeatures } from "@/components/landing/CompanyFeatures";
 import { FaqSection } from "@/components/landing/FaqSection";
 import { ClosingCta } from "@/components/landing/ClosingCta";
+import { ensureFinancials } from "@/lib/financials/load";
 
 // Landing page: a thin composition of section components (src/components/landing/). All the
 // numbers on it come from the sector content via src/lib/sector-content/{stats,insights}.ts.
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ report?: string; ipo?: string; view?: string; sector?: string }> }) {
+  await ensureFinancials();
   const { report, ipo, view, sector } = await searchParams;
   const user = await getCurrentUser();
   const sectors = listSectors();
   // The sector previewed in the hero and featured below: Data Center if it has a thesis,
   // otherwise the first live sector that does.
-  const ipos = listIpoDecks();
   const featured = sectors.find((s) => s.slug === "datacenter" && s.thesisSummary?.length) ?? sectors.find((s) => s.thesisSummary?.length && !s.muted);
 
   return (
@@ -33,7 +33,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <SiteHeader />
       <main className="flex-1">
         <section className="border-b border-line">
-          <Hero featured={featured} searchIndex={buildSearchIndex()} themeRows={buildHeroThemeRows(featured?.slug)} ipos={ipos} />
+          <Hero featured={featured} searchIndex={buildSearchIndex()} themeRows={buildHeroThemeRows(featured?.slug)} />
           <StatsStrip stats={getPlatformStats()} />
         </section>
 
@@ -53,7 +53,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               investors, and a chart backtesting its stocks as a basket you can customise.
             </p>
           </div>
-          <ReadingList {...analysisProps()} signedIn={!!user} initial={report} initialIpo={ipo} initialView={analysisView(view)} initialSector={sector} />
+          <ReadingList {...analysisProps({ report, ipo, view })} signedIn={!!user} initial={report} initialIpo={ipo} initialView={analysisView(view)} initialSector={sector} />
         </section>
 
         <section className="mx-auto max-w-6xl px-5 pb-20">

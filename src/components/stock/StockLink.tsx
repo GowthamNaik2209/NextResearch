@@ -7,7 +7,7 @@ import { returnToStockPath } from "@/lib/safe-next";
 // (pushState: no server round trip, and Back closes the pop-up - expected on phones, where it
 // fills the screen); ReturnToStock in the root layout opens it. The href keeps the page's
 // other params, so a new-tab click lands on the same view with the pop-up open.
-export function StockLink({ ticker, className, children }: { ticker: string; className?: string; children: React.ReactNode }) {
+export function StockLink({ ticker, className, title, children }: { ticker: string; className?: string; title?: string; children: React.ReactNode }) {
   const pathname = usePathname();
   const search = useSearchParams().toString();
   const href = returnToStockPath(pathname, search, ticker);
@@ -15,6 +15,7 @@ export function StockLink({ ticker, className, children }: { ticker: string; cla
     <a
       href={href}
       className={className}
+      title={title}
       onClick={(e) => {
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
         e.preventDefault();

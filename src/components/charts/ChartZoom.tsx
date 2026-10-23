@@ -77,7 +77,7 @@ export function useChartZoom(chartRef: RefObject<IChartApi | null>, boxRef: RefO
 }
 
 const btn =
-  "inline-flex min-h-8 min-w-8 items-center justify-center rounded-full border border-line bg-panel px-2.5 text-xs font-semibold text-ink-soft transition-colors hover:text-ink disabled:opacity-40 disabled:hover:text-ink-soft";
+  "inline-flex min-h-8 min-w-8 items-center pointer-coarse:min-h-9 pointer-coarse:min-w-9 justify-center rounded-full border border-line bg-panel px-2.5 text-xs font-semibold text-ink-soft transition-colors hover:text-ink disabled:opacity-40 disabled:hover:text-ink-soft";
 
 /** − / + / Reset under a chart, with how to zoom by hand. */
 export function ZoomControls({ zoom }: { zoom: ReturnType<typeof useChartZoom> }) {

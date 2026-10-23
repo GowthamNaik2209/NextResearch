@@ -1,6 +1,8 @@
 // Pure helpers shared by the server (lib/live/yahoo.ts) and the stock pop-up (components/stock/
 // merge.ts) - kept out of yahoo.ts so the browser bundle doesn't pull in yahoo-finance2.
 
+import { sep } from "@/lib/format";
+
 const DAY = 86_400_000;
 
 // 6 calendar days covers a weekend plus a couple of exchange holidays (Diwali); a quote older
@@ -18,7 +20,7 @@ export function isFreshQuote(asOf: string | Date | null | undefined, now = Date.
 export function quoteTiming(q: { asOf: string; delayedMin?: number | null }, now = Date.now()): string {
   const t = Date.parse(q.asOf);
   if (Number.isFinite(t) && now - t > 30 * 60_000) {
-    const when = new Date(t).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+    const when = sep(new Date(t).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }));
     return `last trade ${when} IST`;
   }
   return q.delayedMin ? `~${q.delayedMin} min delayed` : "live";

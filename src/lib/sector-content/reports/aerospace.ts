@@ -12,8 +12,8 @@ export const aerospace: SectorReport = {
     line: "Defence indigenisation and global China+1 sourcing compound together; value accrues to qualified suppliers with long-cycle contracts.",
   },
   keyStats: [
-    { label: "Defence production, FY25", value: "~Rs 1.5 lakh Cr", sub: "record high (MoD)" },
-    { label: "Defence exports, FY25", value: "~Rs 23,600 Cr", sub: "~12% YoY growth" },
+    { label: "Defence production, FY25", value: "~₹1.5L Cr", sub: "record high (MoD)" },
+    { label: "Defence exports, FY25", value: "~₹23,600 Cr", sub: "~12% YoY growth" },
     { label: "Aircraft on order", value: "~1,700+", sub: "Indian airlines, approx." },
     { label: "Indian MRO spend sent abroad", value: "~85%", sub: "approx., engines and components" },
   ],
@@ -43,7 +43,7 @@ export const aerospace: SectorReport = {
     {
       date: "Sep 2025",
       title: "HAL signs for 97 more Tejas Mk1A",
-      body: "MoD contracted 97 LCA Mk1A jets worth ~Rs 62,000 Cr, taking Mk1A orders to 180 and extending visibility for HAL and its structures and electronics suppliers.",
+      body: "MoD contracted 97 LCA Mk1A jets worth ~₹62,000 Cr, taking Mk1A orders to 180 and extending visibility for HAL and its structures and electronics suppliers.",
       impact: "pos",
       tag: "Defence",
     },
@@ -78,8 +78,8 @@ export const aerospace: SectorReport = {
     ],
     chart: {
       title: "India defence exports",
-      unit: "Rs Cr",
-      source: "Ministry of Defence (PIB); FY29P is the government's Rs 50,000 Cr target",
+      unit: "₹ Cr",
+      source: "Ministry of Defence (PIB); FY29P is the government's ₹50,000 Cr target",
       points: [
         { label: "FY20", value: 9115 },
         { label: "FY21", value: 8434 },
@@ -96,7 +96,7 @@ export const aerospace: SectorReport = {
       { label: "Indian MRO market", value: "~$2-2.5bn", tone: "neutral" },
       { label: "GST on MRO services", value: "5%", tone: "pos" },
       { label: "Aero-engine localization", value: "Low", tone: "neg" },
-      { label: "Defence export target, FY29", value: "Rs 50,000 Cr", tone: "pos" },
+      { label: "Defence export target, FY29", value: "₹50,000 Cr", tone: "pos" },
     ],
   },
 
@@ -110,7 +110,7 @@ export const aerospace: SectorReport = {
   ],
 
   drivers: [
-    { title: "Defence indigenisation", metric: "Rs 3 lakh Cr", body: "FY29 production target, backed by positive indigenisation lists and ~75% of capital procurement reserved for domestic industry." },
+    { title: "Defence indigenisation", metric: "₹3L Cr", body: "FY29 production target, backed by positive indigenisation lists and ~75% of capital procurement reserved for domestic industry." },
     { title: "Airline fleet expansion", metric: "~1,700+ jets", body: "IndiGo and Air India order books will roughly double India's ~800-aircraft fleet over a decade, lifting MRO and spares demand." },
     { title: "Global China+1 sourcing", metric: "$1bn+ each", body: "Airbus and Boeing annual India sourcing keeps rising as OEMs de-risk supply chains and chase cost." },
     { title: "Engine localization", metric: "F414 / AMCA", body: "GE-HAL F414 co-production and a future AMCA engine pull hot-section parts and special alloys onshore." },
@@ -167,7 +167,7 @@ export const aerospace: SectorReport = {
   ],
 
   companyNews: [
-    { key: "hal_prime", date: "Sep 2025", development: "Signed ~Rs 62,000 Cr contract for 97 Tejas Mk1A fighters.", impact: "Extends order book to well over Rs 1.5 lakh Cr and secures a decade of supplier work.", tone: "pos" },
+    { key: "hal_prime", date: "Sep 2025", development: "Signed ~₹62,000 Cr contract for 97 Tejas Mk1A fighters.", impact: "Extends order book to well over ₹1.5L Cr and secures a decade of supplier work.", tone: "pos" },
     { key: "hal_prime", date: "Nov 2025", development: "Agreed with GE for 113 more F404 engines for Tejas Mk1A.", impact: "Removes a key engine-supply bottleneck for the expanded Tejas programme.", tone: "pos" },
     { key: "azadengineering_aero", date: "2025", development: "Added multi-year blade supply contracts with global aero and energy engine OEMs.", impact: "Shows Indian suppliers moving into hot-section parts, the highest-value engine work.", tone: "pos" },
     { key: "ptcindustries", date: "2025", development: "Ramped its Lucknow aerospace castings and titanium remelting complex.", impact: "Builds rare domestic capacity for aero-grade titanium and superalloy parts.", tone: "pos" },
@@ -182,7 +182,7 @@ export const aerospace: SectorReport = {
     { risk: "Customer concentration on a few OEMs or HAL", mitigant: "Broadening across civil, defence and energy end markets", severity: "medium" },
   ],
   outlook: {
-    bull: "Defence output hits the Rs 3 lakh Cr FY29 target, an Indian engine programme starts, and engine MRO onshores at scale.",
+    bull: "Defence output hits the ₹3L Cr FY29 target, an Indian engine programme starts, and engine MRO onshores at scale.",
     base: "Defence production grows ~12-15% a year and civil exports compound, with qualified suppliers growing revenue 20%+.",
     bear: "Engine supply delays and order slippages push programmes right, compressing returns on new capacity.",
   },

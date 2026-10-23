@@ -8,12 +8,13 @@ export async function SiteHeader() {
   const user = await getCurrentUser();
   const displayName = (user?.user_metadata?.display_name as string | undefined) ?? null;
   // nowrap: at 768px "How it works" and "Analysis" used to break onto two lines.
-  const link = "hidden whitespace-nowrap text-sm font-medium text-ink-soft hover:text-ink md:inline";
+  // Touch tablets (md+, where these show) get 40px-tall links; a mouse keeps the compact look.
+  const link = "tap-y hidden whitespace-nowrap text-sm font-medium text-ink-soft hover:text-ink md:inline-block pointer-coarse:py-2.5";
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-5">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="tap-target flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent font-display text-sm font-bold text-bg">N</span>
           <span className="font-display text-base font-bold tracking-tight text-ink">NextResearch</span>
         </Link>

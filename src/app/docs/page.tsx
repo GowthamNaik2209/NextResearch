@@ -3,14 +3,21 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { ReadingList } from "@/components/research/ReadingList";
 import { getCurrentUser } from "@/lib/auth";
 import { analysisProps, analysisView } from "@/lib/analysis-props";
+import { ensureFinancials } from "@/lib/financials/load";
+import { themeNames } from "@/lib/site";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: "Analysis: deep dives, research reports and stock charts for Indian industries, policies and IPOs",
-  description: "Every industry and policy NextResearch maps - data centres, EVs, chips and phones, electronic components, rare-earth magnets, railways, defence procurement, solar, real estate, pharma and more - as a deep dive into its supply chain and listed companies, a curated 10-slide research report, and a chart backtesting its listed stocks as a basket against the Nifty 50, plus prospectus summaries of upcoming IPOs.",
-  alternates: { canonical: "/docs" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  await ensureFinancials();
+  return {
+    title: "Analysis: deep dives, research reports and stock charts for Indian industries, policies and IPOs",
+    description: `Every industry and policy NextResearch maps - ${themeNames(10)} - as a deep dive into its supply chain and listed companies, a curated 10-slide research report, and a chart backtesting its listed stocks as a basket against the Nifty 50, plus prospectus summaries of upcoming IPOs.`,
+    alternates: { canonical: "/docs" },
+  };
+}
 
 export default async function DocsPage({ searchParams }: { searchParams: Promise<{ report?: string; ipo?: string; view?: string; sector?: string }> }) {
+  await ensureFinancials();
   const { report, ipo, view, sector } = await searchParams;
   const user = await getCurrentUser();
   return (
@@ -28,7 +35,7 @@ export default async function DocsPage({ searchParams }: { searchParams: Promise
           </p>
         </div>
         <ReadingList
-          {...analysisProps()}
+          {...analysisProps({ report, ipo, view })}
           signedIn={!!user}
           initial={report}
           initialIpo={ipo}

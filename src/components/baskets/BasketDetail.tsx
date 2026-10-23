@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { InfoTip } from "@/components/InfoTip";
+import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ChartRange } from "@/lib/live/yahoo";
@@ -8,12 +9,46 @@ import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import type { BasketStock } from "@/lib/baskets/industry";
 import { StockLink } from "@/components/stock/StockLink";
 import { BasketBreakdown, type BreakdownTab } from "./BasketBreakdown";
-import { BasketChart, MAX_CHART_STOCKS, defaultSelection, pct, stockLine, useSiteTheme, type ChartSelection, type CompareBasket } from "./BasketChart";
-import { DASHARRAY } from "@/components/research/SectorCharts";
+import { BasketChart, defaultSelection, stockLine, type CompareBasket } from "./BasketChart";
+import { MAX_CHART_STOCKS, planAdd } from "@/lib/baskets/selection";
+import { useBasketSelection } from "./use-basket-selection";
+import { isWatched, subscribeWatchlist, watchlistSnapshot } from "@/components/sector-explorer/WatchlistButton";
+import { DASHARRAY } from "@/components/charts/palette";
+import { useSiteTheme } from "@/lib/theme";
+import { croreShort, fmtMonth, NA, signedPct } from "@/lib/format";
+import { signedPts } from "@/lib/baskets/fmt";
+import { MAX_BASKET_STOCKS } from "@/lib/baskets/limits";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { ReturnCards, picksKey } from "./ReturnCards";
+import { BasketStats } from "./BasketStats";
+import { BasketAnalysis } from "./BasketAnalysis";
+import { MINI_SEG, PANEL, PANEL_TITLE, Panel } from "./Panel";
 import { IndustryChips } from "./IndustryChips";
+import { OneOffMark } from "./OneOffMark";
+import { MoreBelow, useMoreBelow } from "./MoreBelow";
 import { basketCreateError } from "./NewBasketButton";
-import { loadSeries, savedBasketQuery, type Load } from "./series";
+import { industrySeriesKey, savedBasketQuery } from "./series";
+import { useSeries } from "./use-series";
+import { NOT_REBALANCED, REBALANCE_BUTTON, basisLabel, pastPeriod } from "./labels";
+import { basketWeights } from "@/lib/baskets/backtest";
+import {
+  BAND_CHOICES,
+  REBALANCE_RULES,
+  SCHEME_SHORT,
+  WEIGHT_SCHEMES,
+  customTargets,
+  heldStrategy,
+  isPlainHold,
+  parseStrategy,
+  rebalanceLabel,
+  strategyQuery,
+  toPercents,
+  weightsParam,
+  weightsTotal,
+  weightsValid,
+  type Strategy,
+  type WeightScheme,
+} from "@/lib/baskets/strategy";
 
 // One basket - an industry's (derived from the content) or a saved one - with a Stocks view
 // (holdings, weights, each one's return and share of the basket's return) and a Chart view
@@ -44,8 +79,15 @@ function copyNow(text: string): Promise<boolean> {
   );
 }
 
+/** sessionStorage key prefix: a new basket's chart comparisons, handed from Create basket to its page. */
+const CHART_HANDOFF = "nr-basket-chart:";
 // Only the market beside the basket; indices and other baskets are a "Compare with" pick on the chart.
 const NIFTY_ONLY = [{ key: "b:nifty50", label: "Nifty 50" }];
+const stocksWord = (n: number) => `${n} stock${n === 1 ? "" : "s"}`;
+/** Why a P/E shows "—": the company table has none for it. */
+const NO_PE = "No P/E in our last data update: a loss over the latest twelve months, or none reported";
+/** A 0-1 share as a percentage, one decimal. */
+const pct1 = (share: number) => `${(share * 100).toFixed(1)}%`;
 
 const RANGES: { id: ChartRange; long: string }[] = [
   { id: "1M", long: "1 month" },
@@ -55,13 +97,28 @@ const RANGES: { id: ChartRange; long: string }[] = [
   { id: "3Y", long: "3 years" },
   { id: "5Y", long: "5 years" },
 ];
-const MAX_STOCKS = 75;
+// The page's own URL keeps a strategy other than the basket's default, so a link reopens it.
+// "wt" for the weighting, so it can't clash with a host page's "w". cap and lcap belonged to the
+// removed Capped weighting: still cleared, so an old link's are tidied away.
+const STRATEGY_PARAMS = ["wt", "rb", "band", "cw", "cap", "lcap"];
+const strategyUrlParams = (s: Strategy) => [...new URLSearchParams(strategyQuery(s))].map(([k, v]) => [k === "w" ? "wt" : k, v] as const);
 
-type Sort = "contribution" | "return" | "weight" | "name";
+/** Each stock's share (fractions summing to 1) under a weighting, as the backtest sets it. */
+function schemeShares(stocks: BasketStock[], scheme: WeightScheme, custom?: Record<string, number>): Map<string, number> {
+  if (!stocks.length) return new Map();
+  if (scheme === "custom") return customTargets(stocks.map((s) => s.ticker), custom);
+  const raw = basketWeights(stocks, scheme);
+  const sum = [...raw.values()].reduce((a, b) => a + b, 0);
+  return new Map([...raw].map(([t, v]) => [t, v / sum]));
+}
+
+type Sort = "contribution" | "return" | "weight" | "pe" | "mcap" | "name";
 const SORTS: { id: Sort; label: string }[] = [
-  { id: "contribution", label: "Contribution" },
+  { id: "contribution", label: "Pts added" },
   { id: "return", label: "Return" },
-  { id: "weight", label: "Weight" },
+  { id: "weight", label: "Share now" },
+  { id: "pe", label: "P/E (low first)" },
+  { id: "mcap", label: "Market cap" },
   { id: "name", label: "Name" },
 ];
 
@@ -75,7 +132,9 @@ export type BasketDetailProps = {
   description: string | null;
   stocks: BasketStock[];
   addPrices: Record<string, number | null>;
-  weighting: "equal" | "mcap";
+  weighting: "equal" | "mcap" | "custom";
+  /** A saved basket's custom weights, % per stock (in use, or kept from when it was last custom). */
+  customWeights?: Record<string, number> | null;
   isOwner: boolean;
   isPublic: boolean;
   signedIn: boolean;
@@ -94,14 +153,60 @@ export type BasketDetailProps = {
   titleAs?: "h1" | "h2";
   /** The range the chart opens on (1Y unless an idea ranks over another period). */
   initialRange?: ChartRange;
+  /** A saved basket's tickers the maps no longer list: shown as "No longer listed" rows. */
+  unlisted?: string[];
+  /** A draft: the industry it was copied from, saved with it as its source. A saved basket: its
+   * source industry, the layer labels' fallback for stocks not picked from an industry. */
+  sourceSector?: string | null;
+  /** A line for the status bar on opening (a draft that couldn't take every stock, say). */
+  notice?: string | null;
+  /** Backtest each stock from its listing day: one listed during the period joins on its first
+   * trading day instead of being left out (the Recent listings rule-based basket). */
+  joinAtListing?: boolean;
+  /** A saved basket: the industry each stock was picked from (saved with it), so its layer label
+   * stays the one it was picked in after a reload. */
+  pickedFrom?: Record<string, string>;
+  /** A rule-based basket: the figure each stock was picked on ("ROCE 56%", "PEG 0.80 · P/E 20.1x"),
+   * shown beside it so the list can be checked against its rule. */
+  pickedOn?: Record<string, string>;
 };
 
 export function BasketDetail(p: BasketDetailProps) {
   const router = useRouter();
   const [view, setView] = useState<"stocks" | "chart">("stocks");
   const [range, setRange] = useState<ChartRange>(p.initialRange ?? "1Y");
-  const [weighting, setWeighting] = useState(p.weighting);
-  const [stocks, setStocks] = useState(p.stocks);
+  // How the basket is weighted and rebalanced. Starts as the basket's own weighting, bought and
+  // held; anything else lives in the URL (a saved basket stores equal, market cap or custom).
+  // Custom weights always cover the basket's stocks and total 100: a stock missing one gets the
+  // others' average, then all are scaled to fit.
+  const savedCustom = (list: BasketStock[]) => toPercents(schemeShares(list, "custom", p.customWeights ?? undefined));
+  const [strategy, setStrategy] = useState<Strategy>(() => heldStrategy(p.weighting, p.weighting === "custom" ? savedCustom(p.stocks) : undefined));
+  // The one stock selection every list here reads (lib/baskets/selection.ts): the stocks, the custom
+  // weights as typed (which may not total 100% yet; the backtest keeps the last ones that did, and
+  // they are kept while another weighting is picked, so going back to Custom brings the same split
+  // back), the chart's lines, where each stock was picked from and what was just taken off.
+  // A saved basket or an idea opens with its stocks drawn on the chart (as many as there are line
+  // styles); an industry basket, often 20+ stocks, opens on the benchmarks alone.
+  const { sel, act, current, tickers } = useBasketSelection(() => {
+    const ownIndustry = p.mode === "industry" && p.compareSlug === p.id;
+    const chart = defaultSelection(p.indices, p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id)), p.compareSlug && !ownIndustry ? p.compareSlug : null);
+    if (p.mode !== "industry") chart.picks = Object.fromEntries(p.stocks.slice(0, MAX_CHART_STOCKS).map((s, i) => [s.ticker, i]));
+    return { stocks: p.stocks, unlisted: p.unlisted, custom: p.weighting === "custom" || p.customWeights ? savedCustom(p.stocks) : null, chart, pickedFrom: p.pickedFrom };
+  });
+  const { stocks, confirmed, unlisted, custom: customEdit, chart: chartSel, pickedFrom, picksChosen } = sel;
+  const setCustomEdit = (weights: Record<string, number> | null) => act({ type: "setCustom", weights });
+  // The stocks as one string: lists that keep their order or height while on screen reset on it.
+  const listKey = tickers.join(",");
+  // What the server last stored for a saved basket's custom weights (by query value), so an edit saves once.
+  const savedRef = useRef<string | null>(p.weighting === "custom" ? weightsParam(savedCustom(p.stocks)) : null);
+  // The custom weights panel: open when Custom is picked, closed with its × once they total 100%
+  // (and on a basket that opens already custom); tapping Custom again opens it.
+  const [weightsOpen, setWeightsOpen] = useState(p.weighting !== "custom");
+  const weighting = strategy.weighting;
+  const sq = strategyQuery(strategy);
+  const rebalanced = strategy.rebalance !== "never";
+  // The rebalanced basket's chart also draws it bought and held, unless switched off.
+  const [vsHeld, setVsHeld] = useState(true);
   const [name, setName] = useState(p.name);
   const [isPublic, setIsPublic] = useState(p.isPublic);
   // An empty basket of yours opens in editing, so the picker stays up while you fill it.
@@ -112,19 +217,58 @@ export function BasketDetail(p: BasketDetailProps) {
   // The stock table measures weight and contribution within the whole basket, or (once stocks
   // are picked on the chart) within just those picks, backtested as their own basket.
   const [scope, setScope] = useState<"all" | "picks">("all");
-  // Under the chart: the stocks as bar charts (who made the return, returns, weights,
-  // industries) or as the stock-by-stock list. A Create basket that starts with stocks (an idea's
-  // Edit, the watchlist) opens on the list, where phones have each stock's remove button.
-  const [stockView, setStockView] = useState<"charts" | "list">(p.mode === "draft" && p.stocks.length > 0 ? "list" : "charts");
+  // Under the chart: the stocks as the dense holdings table, or as bar charts (who made the
+  // return, returns, weights, industries).
+  const [stockView, setStockView] = useState<"charts" | "list">("list");
   const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>("contribution");
   const [busy, setBusy] = useState(false);
-  const [note, setNote] = useState<string | null>(null);
-  const [loads, setLoads] = useState<Record<string, Load>>({});
+  // Create basket: "creating" while the server saves it, then "opening" while its page loads.
+  const [createStep, setCreateStep] = useState<"creating" | "opening" | null>(null);
+  // The confirm dialogs: sharing by link, and deleting.
+  const [confirm, setConfirm] = useState<"share" | "delete" | null>(null);
+  // "Link copied" on the button for a moment after a copy.
+  const [copied, setCopied] = useState(false);
+  // Bumped by Retry, so the stats and analysis panels drop a failed load too.
+  const [reload, setReload] = useState(0);
+  const [note, setNote] = useState<string | null>(p.notice ?? null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the view the URL asked for once on mount
     if (new URLSearchParams(window.location.search).get(p.viewParam ?? "view") === "chart") setView("chart");
   }, [p.viewParam]);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (!STRATEGY_PARAMS.some((k) => q.has(k))) return;
+    const s = parseStrategy(q, p.weighting, { w: "wt" });
+    if (s.weighting === "custom") {
+      // A link's weights fitted to the stocks here; none in the link: the basket's own (or equal).
+      const w = s.weights ? toPercents(customTargets(p.stocks.map((x) => x.ticker), s.weights)) : savedCustom(p.stocks);
+      s.weights = w;
+      setCustomEdit(w);
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the strategy a link asked for once on mount
+    setStrategy(s);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once on mount, with the server's props
+  }, [p.weighting]);
+  // A saved basket of yours keeps its custom weights itself, so its URL needn't carry them.
+  const ownsWeights = p.mode === "saved" && p.isOwner;
+  const pickStrategy = (next: Strategy) => {
+    setStrategy(next);
+    const url = new URL(window.location.href);
+    for (const k of STRATEGY_PARAMS) url.searchParams.delete(k);
+    if (!(isPlainHold(next) && next.weighting === p.weighting)) for (const [k, v] of strategyUrlParams(ownsWeights ? { ...next, weights: undefined } : next)) url.searchParams.set(k, v);
+    window.history.replaceState(window.history.state, "", url);
+  };
+  // Carries a strategy onto the page a copy or a new basket opens on. A new saved basket stores
+  // custom weights itself (they go in the create request), so `keepWeights` is only for a draft.
+  const withStrategy = (path: string, keepWeights = false) => {
+    if (isPlainHold(strategy) && strategy.weighting === p.weighting) return path;
+    const q = new URLSearchParams(strategyUrlParams(keepWeights ? strategy : { ...strategy, weights: undefined }) as [string, string][]);
+    return `${path}${path.includes("?") ? "&" : "?"}${q}`;
+  };
+  // What a saved basket stores: equal, market cap or custom (every weighting there is).
+  const savedWeighting = weighting;
+  const savedWeights = weighting === "custom" && strategy.weights ? { weights: strategy.weights } : {};
   const pickView = (v: "stocks" | "chart") => {
     setView(v);
     const url = new URL(window.location.href);
@@ -134,46 +278,67 @@ export function BasketDetail(p: BasketDetailProps) {
     window.history.replaceState(window.history.state, "", url);
   };
 
-  const tickers = useMemo(() => stocks.map((s) => s.ticker), [stocks]);
-  const basketKey =
-    p.mode === "industry" ? `x:sector=${p.id}&w=${weighting}` : p.mode === "idea" || draft ? picksKey(tickers, weighting) ?? `x:tickers=&w=${weighting}` : `x:${savedBasketQuery(p.id, weighting, tickers)}`;
-  const compareKey = p.compareSlug && !(p.mode === "industry" && p.compareSlug === p.id) ? `x:sector=${p.compareSlug}&w=${weighting}` : null;
+  // A saved basket is backtested by its id only for the stocks the server has confirmed: the id
+  // route reads the stocks from the database, so asking for it mid-save would run the old list.
+  // While an add or remove is saving, the same stocks go by list (tickers=), which needs no save.
+  const savedList = confirmed.length === tickers.length && tickers.every((t) => confirmed.includes(t));
+  // Stocks joining on their listing day ride on every backtest of this basket (whole, picks, not
+  // rebalanced), never on the industry baskets compared alongside.
+  const joinQ = p.joinAtListing ? "&join=listing" : "";
+  const keyFor = (q: string) =>
+    p.mode === "industry"
+      ? industrySeriesKey(p.id, q)
+      : p.mode === "idea" || draft || !savedList
+        ? (picksKey(tickers, q + joinQ) ?? `x:tickers=&${q}${joinQ}`)
+        : `x:${savedBasketQuery(p.id, q, confirmed)}`;
+  const basketKey = keyFor(sq);
+  // The same basket at the same weights, bought and held: the rebalanced one's comparison.
+  const heldKey = rebalanced ? keyFor(strategyQuery({ ...strategy, rebalance: "never" })) : null;
+  // Industry baskets compared alongside run the same strategy; custom weights are this basket's
+  // own stocks', so those run at equal weights.
+  const compareSq = weighting === "custom" ? strategyQuery({ ...strategy, weighting: "equal", weights: undefined }) : sq;
   // Kept here, above the chart, so the reader's picks outlive weighting, range and view switches.
   const compareIndustries = p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id));
-  // A saved basket or an idea opens with its stocks drawn on the chart (as many as there are line
-  // styles); an industry basket, often 20+ stocks, opens on the benchmarks alone.
-  const [chartSel, setChartSel] = useState<ChartSelection>(() => {
-    const sel = defaultSelection(p.indices, compareIndustries, compareKey ? p.compareSlug : null);
-    if (p.mode !== "industry") sel.picks = Object.fromEntries(p.stocks.slice(0, MAX_CHART_STOCKS).map((s, i) => [s.ticker, i]));
-    return sel;
-  });
+  // The industry a stock is read in here: the one it was picked from (this visit, or saved with a
+  // basket), else the basket's own (an industry basket's; a saved basket's source industry; a draft's
+  // or an idea's most-held one). Bharat Forge picked from EV reads as an EV part ("Electric motor &
+  // e-axle"), not its home layer in defence; a stock not in that industry keeps its home layer
+  // (its primary industry's).
+  const contextOf = (s: BasketStock) => {
+    const slug = pickedFrom[s.ticker] ?? (p.mode === "industry" ? p.id : p.mode === "saved" ? (p.sourceSector ?? null) : p.compareSlug);
+    return slug && s.layerIn?.[slug] ? slug : null;
+  };
+  const layerOf = (s: BasketStock) => {
+    const slug = contextOf(s);
+    return slug ? s.layerIn[slug] : s.layer;
+  };
+  // Its industries with that one first, so its chip names why it is in the basket.
+  const industriesOf = (s: BasketStock) => {
+    const slug = contextOf(s);
+    const own = slug ? s.industries.find((i) => i.slug === slug) : undefined;
+    return own ? [own, ...s.industries.filter((i) => i !== own)] : s.industries;
+  };
   // The stocks switched on in the chart, backtested together as their own basket (same weighting).
   const picked = useMemo(() => stocks.filter((s) => chartSel.picks[s.ticker] != null), [stocks, chartSel.picks]);
   // Every stock picked is the basket itself: no separate card, and the table needs no second backtest.
   const picksAll = picked.length > 0 && picked.length === stocks.length;
-  const pickedKey = picksKey(
-    picked.map((s) => s.ticker),
-    weighting,
-  );
+  // Lines drawn by default (the first 18 of a long basket, or stocks as they're added) aren't the
+  // reader's choice, so "Your picks" (the return card and the table's scope) waits until they
+  // switch a stock on or off in the chart's Stocks menu.
+  const pickedKey = picksChosen
+    ? picksKey(
+        picked.map((s) => s.ticker),
+        sq + joinQ,
+      )
+    : null;
 
   // With no picks left, the table goes back to the whole basket.
   const tableScope = scope === "picks" && pickedKey ? "picks" : "all";
   const tableKey = tableScope === "picks" && pickedKey && !picksAll ? pickedKey : basketKey;
 
-  // The basket's own backtest feeds the stock rows and the left list (the cards load their lines
+  // The basket's own backtest feeds the stock rows and the side list (the cards load their lines
   // themselves); the picks' backtest feeds the table when it shows just the picks.
-  useEffect(() => {
-    if (!tickers.length) return;
-    for (const key of new Set([basketKey, tableKey])) {
-      const id = `${key}|${range}`;
-      if (loads[id]) continue;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the backtest as loading, then fetches it
-      setLoads((m) => ({ ...m, [id]: { status: "loading" } }));
-      loadSeries(key, range).then((r) => setLoads((m) => ({ ...m, [id]: r })));
-    }
-  }, [basketKey, tableKey, range, loads, tickers.length]);
-
-  const at = (key: string) => loads[`${key}|${range}`];
+  const { get: at, retry: retryLoad } = useSeries(tickers.length ? [basketKey, tableKey] : [], range, { reload });
   const bt = at(basketKey);
   const btData = bt?.status === "ok" ? bt.data : null;
   const holdings = new Map((btData?.holdings ?? []).map((h) => [h.ticker, h]));
@@ -185,6 +350,9 @@ export function BasketDetail(p: BasketDetailProps) {
   const tHoldings = new Map((tData?.holdings ?? []).map((h) => [h.ticker, h]));
   const rows = [...(tableScope === "picks" ? picked : stocks)].sort((a, b) => {
     if (sort === "name") return a.name.localeCompare(b.name);
+    // Stocks with no figure go last either way.
+    if (sort === "pe") return (a.pe ?? Infinity) - (b.pe ?? Infinity);
+    if (sort === "mcap") return (b.mcapCr ?? -1) - (a.mcapCr ?? -1);
     const ha = tHoldings.get(a.ticker);
     const hb = tHoldings.get(b.ticker);
     const v = (h: typeof ha) => (!h ? -Infinity : sort === "return" ? h.ret : sort === "weight" ? h.endWeight : h.contribution);
@@ -192,458 +360,808 @@ export function BasketDetail(p: BasketDetailProps) {
   });
 
   // ---- owner actions ----
-  const patch = async (body: Record<string, unknown>) => {
+  // Every change is sent in order, one after the other (a quick add then remove can't reach the
+  // server the other way round), and the page shows "Saving…" until the last one is back. The
+  // stock list changes at once on a tap; a reply only replaces it when it is the reply to the
+  // latest change, so an earlier reply can never bring back a stock taken off since.
+  type Saved = { name: string; items: { ticker: string }[]; weights?: Record<string, number> | null };
+  const queue = useRef<Promise<unknown>>(Promise.resolve());
+  const inFlight = useRef(0);
+  const itemsSeq = useRef(0);
+  const patch = (body: Record<string, unknown>): Promise<Saved | null> => {
+    inFlight.current++;
     setBusy(true);
     setNote(null);
-    try {
-      const res = await fetch(`/api/baskets/${p.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      if (!res.ok) throw new Error();
-      return (await res.json()) as { name: string; items: { ticker: string }[] };
-    } catch {
-      setNote("Couldn’t save that change. Check your connection and try again.");
-      return null;
-    } finally {
-      setBusy(false);
-    }
+    const run = queue.current.then(async () => {
+      try {
+        const res = await fetch(`/api/baskets/${p.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        if (!res.ok) throw new Error();
+        return (await res.json()) as Saved;
+      } catch {
+        setNote("Couldn’t save that change. Check your connection and try again.");
+        return null;
+      } finally {
+        if (--inFlight.current === 0) setBusy(false);
+      }
+    });
+    queue.current = run;
+    return run;
   };
   const universe = useMemo(() => new Map((p.universe ?? []).map((s) => [s.ticker, s])), [p.universe]);
-  const syncItems = (res: { items: { ticker: string }[] } | null) => {
-    if (res) setStocks(res.items.map((i) => byTicker.get(i.ticker) ?? universe.get(i.ticker)).filter((s): s is BasketStock => !!s));
+  // An add or remove: the list already shows it; the server's list is applied only from the reply
+  // to the latest one (the server may have left out a stock past the limit). A failed latest
+  // change reloads the basket as saved, so the page never shows what the server doesn't have; the
+  // selection then brings back a stock's weight and chart line with it (or drops them), together.
+  const patchItems = async (body: Record<string, unknown>) => {
+    const seq = ++itemsSeq.current;
+    let res = await patch(body);
+    if (seq !== itemsSeq.current) return;
+    if (!res) res = await fetch(`/api/baskets/${p.id}`).then((r) => (r.ok ? (r.json() as Promise<Saved>) : null), () => null);
+    if (!res || seq !== itemsSeq.current) return;
+    const cur = current();
+    const known = new Map<string, BasketStock>([...universe, ...cur.stocks.map((s) => [s.ticker, s] as const), ...Object.values(cur.takenOff).map((o) => [o.stock.ticker, o.stock] as const)]);
+    act({ type: "sync", items: res.items.map((i) => i.ticker), known, weights: weighting === "custom" ? res.weights : null });
+    const w = current().custom;
+    if (weighting === "custom" && w && Object.keys(w).length) reweigh(w);
   };
-  const add = async (list: string[]) => {
-    const fresh = list.filter((t) => !byTicker.has(t)).slice(0, MAX_STOCKS - stocks.length);
+  // Custom weights follow the stocks (the selection keeps them over exactly the stocks in it): a
+  // new one gets an equal share and the rest shrink in proportion; one taken off leaves the rest
+  // in proportion, scaled back up to 100%; one put back gets the % it had.
+  const reweigh = (next: Record<string, number>) => {
+    if (ownsWeights) savedRef.current = weightsParam(next);
+    if (Object.keys(next).length) pickStrategy({ ...strategy, weights: next });
+    return next;
+  };
+  // The weights to send with an add or remove (a custom basket's, after the change).
+  const weightsAfter = () => {
+    const w = current().custom;
+    return weighting === "custom" && w ? { weights: reweigh(w) } : {};
+  };
+  // The industry each of these stocks was picked from, for the server to keep with them (so its
+  // layer label survives a reload). Left out when none was picked from an industry.
+  const pickedFromFor = (list: string[]) => {
+    const from = current().pickedFrom;
+    const keep = list.filter((t) => from[t]);
+    return keep.length ? { pickedFrom: Object.fromEntries(keep.map((t) => [t, from[t]])) } : {};
+  };
+  // Nothing changes while "Create basket" is saving the list or the basket is being deleted.
+  const [deleting, setDeleting] = useState(false);
+  const locked = createStep != null || deleting;
+  const add = async (list: string[], fromIndustry?: string) => {
+    if (locked) return;
+    const { fresh, asked } = planAdd(current().stocks, list.flatMap((t) => (universe.has(t) ? [universe.get(t)!] : [])));
+    // The limit cut some off: say so, rather than quietly adding fewer.
+    if (asked > fresh.length) setNote(`Added ${fresh.length} of ${asked}: a basket holds up to ${MAX_BASKET_STOCKS} stocks.`);
+    else setNote(null);
     if (!fresh.length) return;
-    setStocks((s) => [...s, ...fresh.map((t) => universe.get(t)!).filter(Boolean)]);
-    // New stocks go straight onto the chart while line colours are free.
-    setChartSel((sel) => {
-      const picks = { ...sel.picks };
-      for (const t of fresh) {
-        const used = new Set(Object.values(picks));
-        const slot = [...Array(MAX_CHART_STOCKS).keys()].find((i) => !used.has(i));
-        if (slot == null) break;
-        picks[t] = slot;
-      }
-      return { ...sel, picks };
-    });
-    if (!draft) syncItems(await patch({ add: fresh }));
+    act({ type: "add", stocks: fresh, from: fromIndustry });
+    const weights = weightsAfter();
+    if (!draft) await patchItems({ add: fresh.map((s) => s.ticker), ...weights, ...pickedFromFor(fresh.map((s) => s.ticker)) });
   };
+  // Taking a stock off is soft: it goes at once, with "Removed X · Undo" in the status line.
   const remove = async (t: string) => {
-    setStocks((s) => s.filter((x) => x.ticker !== t));
-    // Its line goes to the first stock not yet on the chart, or waits for the next one added.
-    setChartSel((sel) => {
-      const slot = sel.picks[t];
-      if (slot == null) return sel;
-      const picks = { ...sel.picks };
-      delete picks[t];
-      const next = stocks.find((s) => s.ticker !== t && picks[s.ticker] == null);
-      if (next) picks[next.ticker] = slot;
-      return { ...sel, picks };
-    });
-    if (!draft) syncItems(await patch({ remove: [t] }));
-  };
-  const setWeight = async (w: "equal" | "mcap") => {
-    setWeighting(w);
-    if (p.mode === "saved" && p.isOwner) await patch({ weighting: w });
-  };
-  // Copies the link at once (still inside the tap: Safari refuses a clipboard write that comes
-  // after a network wait), then makes the basket viewable by link if it isn't yet.
-  const share = async () => {
-    const url = `${window.location.origin}/baskets/${p.id}`;
-    const copied = copyNow(url);
-    if (!isPublic) {
-      const res = await patch({ isPublic: true });
-      if (!res) return setNote("Couldn’t share it right now. Try again.");
-      setIsPublic(true);
+    if (locked) return;
+    // A saved stock the maps no longer list: it can only be taken off (no weight, line or Undo).
+    if (current().unlisted.includes(t)) {
+      act({ type: "removeUnlisted", ticker: t });
+      return void (await patchItems({ remove: [t] }));
     }
-    setNote((await copied) ? "Link copied. Anyone with it can view this basket." : `Copy this link to share it: ${url}`);
+    if (!current().stocks.some((s) => s.ticker === t)) return;
+    act({ type: "remove", ticker: t });
+    setNote(null);
+    const weights = weightsAfter();
+    if (!draft) await patchItems({ remove: [t], ...weights });
+  };
+  // Undo brings back every stock taken off while the offer was open (two quick removes are one
+  // Undo), latest first, so each goes back to its place with the weight it had.
+  const undo = async () => {
+    const list = [...current().burst].reverse();
+    if (locked || !list.length) return;
+    for (const t of list) act({ type: "restore", ticker: t });
+    const back = list.filter((t) => current().stocks.some((s) => s.ticker === t));
+    if (!back.length) return;
+    const weights = weightsAfter();
+    if (!draft) await patchItems({ add: back, ...weights, ...pickedFromFor(back) });
+  };
+  // The Undo offer stays a while, then the line goes back to its usual text.
+  const lastRemoved = sel.lastRemoved;
+  useEffect(() => {
+    if (!lastRemoved) return;
+    const timer = setTimeout(() => act({ type: "dismissUndo" }), 12_000);
+    return () => clearTimeout(timer);
+  }, [lastRemoved, act]);
+  const removedName = !lastRemoved ? null : sel.burst.length > 1 ? `${sel.burst.length} stocks` : (sel.takenOff[lastRemoved]?.stock.name ?? lastRemoved);
+  const setWeight = async (w: WeightScheme) => {
+    if (w === "custom") setWeightsOpen(true);
+    if (w === weighting) return;
+    if (w !== "custom") {
+      pickStrategy({ ...strategy, weighting: w, weights: undefined });
+      // A saved basket keeps equal or market cap as its own.
+      if (ownsWeights) await patch({ weighting: w });
+      return;
+    }
+    // Custom brings back the split set before (this visit, or saved with the basket); the first
+    // time, it starts from the weights the basket had a moment ago, so nothing jumps.
+    const start = toPercents(customEdit && tickers.some((t) => customEdit[t] != null) ? customTargets(tickers, customEdit) : schemeShares(stocks, weighting));
+    setCustomEdit(start);
+    pickStrategy({ ...strategy, weighting: "custom", weights: start });
+    if (ownsWeights && stocks.length) {
+      savedRef.current = weightsParam(start);
+      await patch({ weighting: "custom", weights: start });
+    }
+  };
+  // Starting points for the custom weights, worked out from the stocks in the basket right now.
+  const resetTargets = useMemo(
+    () => ({ equal: toPercents(schemeShares(stocks, "equal")), mcap: toPercents(schemeShares(stocks, "mcap")) }),
+    [stocks],
+  );
+  const blockedNote = "Make the custom weights total 100% first.";
+  // One stock's % typed (or a Reset): the backtest follows once they total 100%, and a
+  // saved basket of yours keeps them (a moment after the last keystroke).
+  const editWeights = (next: Record<string, number>) => {
+    setCustomEdit(next);
+    if (!weightsValid(next, tickers)) return;
+    // Reset to market cap shows each share to one decimal; the backtest takes the exact shares, so
+    // it gives the M-cap weighting's figure to the last digit (equal ones snap in customTargets).
+    const isMcap = tickers.every((t) => Math.abs((next[t] ?? 0) - (resetTargets.mcap[t] ?? 0)) < 1e-9);
+    const exact = isMcap ? Object.fromEntries([...schemeShares(stocks, "mcap")].map(([t, v]) => [t, v * 100])) : next;
+    pickStrategy({ ...strategy, weights: exact });
+    setNote((n) => (n === blockedNote ? null : n));
+  };
+  // Weights typed but not yet sent (the 700ms wait): leaving the page sends them at once, so the
+  // last edit is never lost to a navigation.
+  const unsent = useRef<Record<string, number> | null>(null);
+  useEffect(() => {
+    // Nothing to send (or an add/remove already sent these weights): nothing waits to be flushed.
+    if (!ownsWeights || weighting !== "custom" || !strategy.weights) return void (unsent.current = null);
+    const q = weightsParam(strategy.weights);
+    if (q === savedRef.current) return void (unsent.current = null);
+    const w = strategy.weights;
+    unsent.current = w;
+    const timer = setTimeout(() => {
+      savedRef.current = q;
+      unsent.current = null;
+      patch({ weights: w });
+    }, 700);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- saves when the weights change, nothing else
+  }, [ownsWeights, weighting, strategy.weights]);
+  useEffect(() => {
+    // keepalive lets the request finish after the page is gone (a tab closed, a link followed).
+    const flush = () => {
+      const w = unsent.current;
+      if (!w) return;
+      unsent.current = null;
+      fetch(`/api/baskets/${p.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ weights: w }), keepalive: true }).catch(() => {});
+    };
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, [p.id]);
+  // Sharing: a private basket asks first (what "shared by link" means), then copies the link inside
+  // that tap (Safari refuses a clipboard write that comes after a network wait) and opens it to
+  // anyone with the link. A shared one just copies. The button says "Link copied" for a moment.
+  const shareUrl = () => `${window.location.origin}/baskets/${p.id}`;
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showCopied = (ok: boolean) => {
+    if (!ok) return setNote(`Copy this link to share it: ${shareUrl()}`);
+    setCopied(true);
+    if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    copiedTimer.current = setTimeout(() => setCopied(false), 2500);
+  };
+  const copyLink = async () => showCopied(await copyNow(shareUrl()));
+  const share = async () => {
+    const copiedOk = copyNow(shareUrl());
+    setConfirm(null);
+    // The badge and button change at once; a failed save puts them back.
+    setIsPublic(true);
+    const res = await patch({ isPublic: true });
+    if (!res) {
+      setIsPublic(false);
+      return setNote("Couldn’t share it right now. Try again.");
+    }
+    const ok = await copiedOk;
+    showCopied(ok);
+    if (ok) setNote("Link copied. Anyone with it can view this basket; “Make private” in the ⋯ menu stops that.");
   };
   const unshare = async () => {
-    if (await patch({ isPublic: false })) {
-      setIsPublic(false);
-      setNote("Only you can see this basket now.");
-    }
+    setIsPublic(false);
+    if (await patch({ isPublic: false })) setNote("Private again: only you can see this basket. The old link no longer opens it.");
+    else setIsPublic(true);
   };
   const destroy = async () => {
-    if (!window.confirm(`Delete “${name}”? This can’t be undone.`)) return;
-    setBusy(true);
+    setDeleting(true);
     const res = await fetch(`/api/baskets/${p.id}`, { method: "DELETE" }).catch(() => null);
     if (res?.ok) router.push("/baskets");
     else {
-      setBusy(false);
+      setDeleting(false);
+      setConfirm(null);
       setNote("Couldn’t delete the basket right now.");
     }
   };
-  const copy = async () => {
-    const here = `${window.location.pathname}${window.location.search}`;
+  // Custom weights that don't total 100% yet can't be saved as a new basket.
+  const customBlocked = weighting === "custom" && tickers.length > 0 && !weightsValid(customEdit ?? undefined, tickers);
+  // Copy to my baskets opens Create basket with this basket's stocks, name and settings, as an
+  // unsaved draft: nothing is saved until "Create basket" there, so looking never leaves a basket
+  // behind. Signed out, sign in first and come back to the same draft.
+  const copy = () => {
+    if (customBlocked) return setNote(blockedNote);
+    const from = p.mode === "industry" ? `industry:${p.id}` : p.mode === "idea" ? `idea:${p.id}` : `basket:${p.id}`;
+    const to = withStrategy(`/baskets/new?from=${encodeURIComponent(from)}`, true);
     setBusy(true);
-    if (!p.signedIn) return router.push(`/login?next=${encodeURIComponent(here)}`);
-    const body = p.mode === "industry" ? { sector: p.id, weighting } : p.mode === "idea" ? { tickers, name: p.name, weighting } : { copyFrom: p.id };
-    const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
-    const json = res ? await res.json().catch(() => null) : null;
-    if (res?.ok && json?.id) router.push(`/baskets/${json.id}?edit=1`);
-    else {
-      setBusy(false);
-      setNote(json?.error === "limit" ? basketCreateError(json) : "Couldn’t create your copy right now.");
-    }
+    router.push(p.signedIn ? to : `/login?next=${encodeURIComponent(to)}`);
   };
+  useEffect(() => {
+    // A basket just created on Create basket: the chart's comparisons as they were there.
+    if (p.mode !== "saved") return;
+    let got: { benches?: unknown; compare?: unknown } | null = null;
+    try {
+      const raw = sessionStorage.getItem(`${CHART_HANDOFF}${p.id}`);
+      sessionStorage.removeItem(`${CHART_HANDOFF}${p.id}`);
+      got = raw ? JSON.parse(raw) : null;
+    } catch {}
+    if (!got || !Array.isArray(got.benches) || !Array.isArray(got.compare)) return;
+    const benchIds = new Set([...p.indices, ...p.market].map((b) => b.id));
+    const slugs = new Set(p.industries.map((i) => i.slug));
+    const benches = got.benches.filter((b): b is string => typeof b === "string" && benchIds.has(b));
+    const compare = got.compare.filter((c): c is string => typeof c === "string" && slugs.has(c));
+    act({ type: "chart", next: (c) => ({ ...c, benches, compare }) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once on mount
+  }, [p.id]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- a fresh copy opens straight into editing
     if (p.isOwner && new URLSearchParams(window.location.search).get("edit") === "1") setEditing(true);
   }, [p.isOwner]);
 
   const canEdit = (p.mode === "saved" && p.isOwner) || draft;
-  // Create basket: saves the stocks picked so far under the name typed (numbered by the server if taken).
+  // Create basket: saves the stocks picked so far under the name typed (numbered by the server if
+  // taken). It needs a name, at least one stock and, when custom, weights that total 100%; until
+  // then the button is off and the line under it says what is missing.
+  const createBlocker = !tickers.length ? "Add at least one stock to create the basket." : !name.trim() ? "Name your basket to create it." : customBlocked ? blockedNote : null;
   const createDraft = async () => {
-    if (!tickers.length) return;
+    if (createBlocker) return setNote(createBlocker);
     setBusy(true);
+    setCreateStep("creating");
     setNote(null);
-    const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tickers, name: name.trim() || undefined, weighting }) }).catch(() => null);
+    const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tickers, name: name.trim(), weighting: savedWeighting, ...savedWeights, ...pickedFromFor(tickers), ...(p.sourceSector ? { sourceSector: p.sourceSector } : {}) }) }).catch(() => null);
     const json = res ? await res.json().catch(() => null) : null;
-    if (res?.ok && json?.id) return router.push(`/baskets/${json.id}`);
+    if (res?.ok && json?.id) {
+      // What the chart was compared with here goes with it, so the new basket's page opens on the
+      // same lines (its own default would add its industry's index and basket).
+      try {
+        sessionStorage.setItem(`${CHART_HANDOFF}${json.id}`, JSON.stringify({ benches: chartSel.benches, compare: chartSel.compare }));
+      } catch {}
+      setCreateStep("opening");
+      return router.push(withStrategy(`/baskets/${json.id}`));
+    }
     setBusy(false);
+    setCreateStep(null);
     if (res?.status === 401) return router.push(`/login?next=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`);
     setNote(json?.error === "limit" ? basketCreateError(json) : "Couldn’t create the basket right now. Try again.");
   };
-  const picker = (layout: "rail" | "bar") => (
+  // The stock picker (draft and your saved baskets): the same bar in the same place, under the header.
+  const picker = (
     <StockPicker
-      layout={layout}
       universe={p.universe ?? []}
       industries={p.industries}
       initialIndustry={p.compareSlug}
       watchlist={p.watchlist}
       have={new Set(tickers)}
-      full={stocks.length >= MAX_STOCKS}
+      room={MAX_BASKET_STOCKS - stocks.length}
+      locked={locked}
       onAdd={add}
-      onRemove={draft ? remove : undefined}
+      onRemove={remove}
     />
   );
   const Title = p.titleAs ?? "h1";
-  // Desktop shows the chart and the stock table together; phones switch between them.
-  const wide = useWide();
+  const statusId = useId();
+  // Desktop shows the chart and the stock table together; phones switch between them. CSS
+  // decides (max-lg:hidden), so a resize or rotation across the breakpoint needs no event.
   const theme = useSiteTheme();
-  const showChart = wide || view === "chart";
-  const showTable = wide || view === "stocks";
-  const seg = (on: boolean) => "min-h-9 rounded-full px-2.5 text-[11px] font-semibold transition sm:text-xs lg:min-h-8 " + (on ? "bg-accent text-bg" : "text-ink-soft hover:text-ink");
-  const retry = () =>
-    setLoads((m) => {
-      const rest = { ...m };
-      delete rest[`${tableKey}|${range}`];
-      return rest;
-    });
+  const onlyOn = (v: "stocks" | "chart") => (view === v ? "" : "max-lg:hidden");
+  // Dense controls: flat segmented groups with mono labels, at least 36px tall on phones for taps.
+  const segBtn = (on: boolean) =>
+    "min-h-9 border-r border-line px-2 font-mono text-[11px] font-semibold last:border-r-0 sm:min-h-7 sm:px-2.5 pointer-coarse:min-h-9 pointer-coarse:min-w-9 " + (on ? "bg-ink text-bg" : "text-ink-soft hover:text-ink");
+  const btn = "inline-flex min-h-9 items-center justify-center rounded border px-3 text-xs font-semibold disabled:opacity-40 sm:min-h-8 pointer-coarse:min-h-9";
+  const btnPri = btn + " border-accent bg-accent text-bg hover:opacity-90";
+  const btnSec = btn + " border-line bg-bg text-ink hover:border-accent";
+  const ctlLabel = "text-[10px] font-semibold uppercase tracking-wider text-ink-soft";
+  // Headings under the basket's name: h2 on its own page, h3 where the basket is itself an h2.
+  const heading = Title === "h2" ? "h3" : "h2";
+  // Retry: the table's backtest, and every panel's failed load with it (reload).
+  const retry = () => {
+    setReload((n) => n + 1);
+    retryLoad(tableKey);
+  };
 
+  const WEIGHT_HELP: Record<WeightScheme, string> = {
+    equal: "Every stock the same share",
+    mcap: "By market cap",
+    custom: "Set each stock's % yourself",
+  };
   const weightingControl = (
-    // In the rail (lg) the group spans the column, so its halves are made equal.
-    <div className="inline-flex rounded-full border border-line bg-panel p-0.5 lg:grid lg:grid-cols-2" role="group" aria-label="Weighting">
-      {(["equal", "mcap"] as const).map((w) => (
-        <button key={w} type="button" aria-pressed={weighting === w} onClick={() => setWeight(w)} className={seg(weighting === w)}>
-          {w === "equal" ? (
-            <>
-              Equal<span className="hidden lg:inline"> weight</span>
-            </>
-          ) : (
-            <>
-              <span className="lg:hidden">M-cap</span>
-              <span className="hidden lg:inline">Market cap</span>
-            </>
-          )}
+    <div className={MINI_SEG} role="group" aria-label="Weighting">
+      {WEIGHT_SCHEMES.map((w) => (
+        <button key={w} type="button" aria-pressed={weighting === w} onClick={() => setWeight(w)} title={WEIGHT_HELP[w]} className={segBtn(weighting === w)}>
+          {SCHEME_SHORT[w]}
         </button>
       ))}
     </div>
   );
+  const RULE_HELP = {
+    never: "No rebalancing: bought on the first day, then left to move with prices",
+    monthly: "Back to the target weights on the first trading day of each month",
+    quarterly: "Back to the target weights on the first trading day of each quarter",
+    drift: "Back to the target weights once any stock drifts past the band",
+  };
+  const rebalanceControl = (
+    <div className={MINI_SEG} role="group" aria-label="Rebalancing">
+      {REBALANCE_RULES.map((r) => (
+        <button key={r} type="button" aria-pressed={strategy.rebalance === r} onClick={() => pickStrategy({ ...strategy, rebalance: r })} title={RULE_HELP[r]} className={segBtn(strategy.rebalance === r)}>
+          {REBALANCE_BUTTON[r]}
+        </button>
+      ))}
+    </div>
+  );
+  // The setting the drift rule takes: its band.
+  const numSelect = (label: string, value: number, choices: number[], unit: string, set: (v: number) => void) => (
+    <label className="flex items-center gap-1">
+      <span className={ctlLabel}>{label}</span>
+      <select
+        value={value}
+        disabled={!drift}
+        onChange={(e) => set(Number(e.target.value))}
+        className="min-h-9 rounded border border-line bg-bg px-1 font-mono text-[11px] text-ink sm:min-h-7 pointer-coarse:min-h-9"
+      >
+        {[...new Set([...choices, value])]
+          .sort((a, b) => a - b)
+          .map((c) => (
+            <option key={c} value={c}>
+              {c}
+              {unit}
+            </option>
+          ))}
+      </select>
+    </label>
+  );
+  // A target weight wide enough for the band's example to have a lower trigger above zero.
+  const bandEx = Math.max(20, strategy.band * 2);
+  // Always laid out, hidden unless Drift is picked, so picking it never re-wraps the controls row.
+  const drift = strategy.rebalance === "drift";
+  const strategySettings = (
+    <span aria-hidden={!drift || undefined} className={"flex items-center gap-1.5 " + (drift ? "" : "invisible")}>
+      {numSelect("Band", strategy.band, BAND_CHOICES, " pts", (v) => pickStrategy({ ...strategy, band: v }))}
+      <InfoTip label="What the drift band means">
+        <p>
+          Rebalance when any stock is more than <b>{strategy.band} pts above or below</b> its target weight. Every stock then goes back
+          to its target at the next day&rsquo;s close.
+        </p>
+        <p className="mt-1.5 text-ink-soft">
+          Example: a {bandEx}% target triggers above {bandEx + strategy.band}% or below {bandEx - strategy.band}%. A stock whose target is
+          {" "}{strategy.band}% or less can only trigger on the way up.
+        </p>
+      </InfoTip>
+    </span>
+  );
   const rangeControl = (
-    <div className="inline-flex rounded-full border border-line bg-panel p-0.5 lg:grid lg:grid-cols-6" role="group" aria-label="Time range">
+    <div className={MINI_SEG} role="group" aria-label="Time range">
       {RANGES.map((r) => (
-        <button key={r.id} type="button" onClick={() => setRange(r.id)} aria-pressed={range === r.id} className={seg(range === r.id) + " min-w-8 px-1.5 sm:min-w-9 sm:px-2 lg:min-w-0 lg:px-1"}>
+        <button key={r.id} type="button" onClick={() => setRange(r.id)} aria-pressed={range === r.id} className={segBtn(range === r.id) + " min-w-9 sm:min-w-0"}>
           {r.id}
         </button>
       ))}
     </div>
   );
 
+  // The holdings table's sortable headers: numbers sort high to low, P/E low to high, names A to Z.
+  const sortHead = (id: Sort, label: string, right = true) => (
+    <th scope="col" aria-sort={sort === id ? (id === "name" || id === "pe" ? "ascending" : "descending") : "none"} className={"px-2 py-1.5 font-semibold " + (right ? "text-right" : "text-left")}>
+      <button type="button" onClick={() => setSort(id)} className={"tap-y inline-flex min-h-6 items-center whitespace-nowrap uppercase tracking-wider hover:text-ink pointer-coarse:min-h-9 " + (sort === id ? "text-ink" : "")}>
+        {label}
+        {sort === id && <span aria-hidden>{id === "name" || id === "pe" ? " ▲" : " ▼"}</span>}
+      </button>
+    </th>
+  );
+  // A saved basket always has the column: a stock whose price at adding isn't recorded yet shows
+  // "—" with the reason, rather than the column coming and going.
+  const sinceShown = p.mode === "saved";
+  const sinceWhy = (t: string) =>
+    p.addPrices[t] == null
+      ? "The price when it was added isn't recorded yet: it is taken from the live quote a few seconds after adding. Reload to see the move."
+      : "No closing price for it in this range.";
+  const moveSinceAdded = (t: string) => {
+    const added = p.addPrices[t];
+    const last = tData?.last?.[t];
+    return added && last ? (last / added - 1) * 100 : null;
+  };
+  const excludedNote = (t: string) => {
+    const ex = tData?.excluded?.find((e) => e.ticker === t);
+    if (!ex) return null;
+    if (ex.reason === "zero") return "Set to 0%";
+    return ex.reason === "late" && ex.from ? `Listed ${fmtMonth(ex.from)}, not in this period` : "No price data";
+  };
+  const removeButton = (s: { ticker: string; name: string }, small = false) => (
+    <RemoveButton ticker={s.ticker} name={s.name} small={small} disabled={locked} onRemove={remove} />
+  );
+  // While editing toggles, the remove column keeps its width (an empty cell when not editing), so
+  // the table never re-flows under the reader.
+  const showRemove = canEdit && editing;
+  const emptyText = draft
+    ? "No stocks yet. Pick an industry or your watchlist above and add stocks; the returns and chart fill in as you go."
+    : canEdit
+      ? "This basket is empty. Add stocks with the picker above."
+      : "This basket has no stocks yet.";
+  // Table / Breakdown: the body keeps the height it had at the switch (until the stocks change),
+  // so going to the shorter view never pulls the panels below it up.
+  const stockBodyRef = useRef<HTMLDivElement>(null);
+  const [bodyLock, setBodyLock] = useState<{ key: string; h: number } | null>(null);
+  const stockBodyMin = bodyLock?.key === `${listKey}|${range}|${tableScope}` ? bodyLock.h : null;
+  const pickStockView = (v: "charts" | "list") => {
+    if (v === stockView) return;
+    const h = stockBodyRef.current?.offsetHeight;
+    if (h) setBodyLock({ key: `${listKey}|${range}|${tableScope}`, h: Math.max(h, stockBodyMin ?? 0) });
+    setStockView(v);
+  };
+  const lineSwatch = (t: string) => {
+    const slot = chartSel.picks[t];
+    return (
+      <svg aria-hidden width="16" height="6" viewBox="0 0 16 6" className="flex-none">
+        {slot != null && <line x1="1.5" y1="3" x2="14.5" y2="3" stroke={stockLine(theme, slot).color} strokeWidth="2.5" strokeDasharray={DASHARRAY[stockLine(theme, slot).dash]} strokeLinecap="round" />}
+      </svg>
+    );
+  };
+  // Below lg the statistics sit in the results column; from lg, compact in the side column. Both
+  // are rendered and CSS shows one (the side column is lg:flex, this copy lg:hidden), so the server
+  // sends the panel in its place and nothing appears after the page loads.
+  const empty = stocks.length === 0;
+  const stats = (compact: boolean) => (
+    <BasketStats range={range} basketKey={basketKey} name={name} strategy={strategy} stocks={stocks} compact={compact} heading={heading} reload={reload} empty={empty} scope={tableScope === "picks" ? "whole basket" : undefined} />
+  );
+  const narrowStats = <div className="flex min-w-0 flex-col lg:hidden">{stats(false)}</div>;
+  // The side list keeps its order while it is on screen: stocks drawn on the chart first, then A
+  // to Z, worked out again only when stocks come or go (not when a line is switched on or off).
+  const sideOrderNow = () =>
+    [...stocks]
+      .sort((a, b) => {
+        const sa = chartSel.picks[a.ticker];
+        const sb = chartSel.picks[b.ticker];
+        if (sa != null && sb != null) return sa - sb;
+        if (sa != null || sb != null) return sa != null ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      })
+      .map((s) => s.ticker);
+  const [sideOrder, setSideOrder] = useState(() => ({ key: listKey, order: sideOrderNow() }));
+  if (sideOrder.key !== listKey) setSideOrder({ key: listKey, order: sideOrderNow() });
+  const byTickerSide = new Map(stocks.map((s) => [s.ticker, s]));
+  const [tableBoxRef, tableMore] = useMoreBelow<HTMLDivElement>("tbody > tr");
+  const [sideListRef, sideMore] = useMoreBelow<HTMLUListElement>(":scope > li");
+  const sideStocks = sideOrder.order.flatMap((t) => (byTickerSide.has(t) ? [byTickerSide.get(t)!] : []));
+  // What the status line under the header says, most pressing first. Always laid out (one line),
+  // so a message coming or going never moves the page.
+  const statusText =
+    draft && createStep
+      ? createStep === "opening"
+        ? "Saved. Opening your basket…"
+        : "Creating your basket…"
+      : busy && canEdit && !draft
+        ? "Saving…"
+        : (note ??
+          (customBlocked
+            ? "The custom weights don’t total 100%, so the results are still for the last ones that did."
+            : draft
+              ? !tickers.length
+                ? "Pick an industry or your watchlist above and add stocks; switch Industry to mix in others."
+                : createBlocker
+              : null));
   return (
-    <div className="flex min-w-0 flex-col gap-4">
-      {/* Create basket: the industry and its stocks on top, like the Analysis charts' industry picker. */}
-      {draft && picker("bar")}
-    <div className="flex min-w-0 flex-col gap-4 lg:grid lg:grid-cols-[19rem_minmax(0,1fr)] lg:items-start lg:gap-6">
-      {/* Control rail: everything that changes the basket or how it's measured. Phones get it as
-          three compact rows on top; from lg it is a column beside the results that stays in view. */}
-      <aside aria-label="Basket controls" className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:rounded-2xl lg:border lg:border-line lg:bg-panel lg:p-4">
-        {/* Row 1: name, sharing state, more actions */}
-        {draft && <Title className="sr-only">Create a basket</Title>}
-        {draft ? (
-          <input
-            value={name}
-            maxLength={60}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Name your basket"
-            aria-label="Basket name"
-            className="w-full rounded-lg border border-line bg-bg px-3 py-2 font-display text-lg font-bold text-ink placeholder:font-normal placeholder:text-ink-soft focus:border-accent focus:outline-none"
-          />
-        ) : renaming ? (
-          <form
-            className="flex flex-wrap items-center gap-2"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const v = name.trim() || p.name;
-              setName(v);
-              setRenaming(false);
-              // The server may number it ("My basket 2") when another of yours has that name.
-              const res = await patch({ name: v });
-              if (res) {
-                setName(res.name);
-                if (res.name !== v) setNote(`You already have a basket called “${v}”, so this one is “${res.name}”.`);
-              }
-            }}
-          >
-            <input
-              autoFocus
-              value={name}
-              maxLength={60}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") {
-                  setName(p.name);
+    <div className="flex min-w-0 flex-col gap-2">
+      {/* Header strip: the basket's name and actions, then how it is measured. */}
+      <header className={PANEL + " flex flex-col gap-2 px-3 py-2.5 sm:px-4"}>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            {draft && <Title className="sr-only">Create a basket</Title>}
+            {draft ? (
+              <input
+                value={name}
+                maxLength={60}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Name your basket"
+                aria-label="Basket name"
+                className="w-full max-w-md rounded border border-line bg-bg px-2.5 py-1.5 font-display text-lg font-bold text-ink placeholder:font-normal placeholder:text-ink-soft focus:border-accent focus:outline-none"
+              />
+            ) : renaming ? (
+              <form
+                className="flex max-w-md flex-wrap items-center gap-2"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const v = name.trim() || p.name;
+                  setName(v);
                   setRenaming(false);
-                }
-              }}
-              aria-label="Basket name"
-              className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-1.5 font-display text-lg font-bold text-ink focus:border-accent focus:outline-none"
-            />
-            <button type="submit" className="min-h-9 rounded-lg bg-accent px-3 text-sm font-semibold text-bg">
-              Save
-            </button>
-          </form>
-        ) : (
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-              <Title className="min-w-0 break-words font-display text-xl font-bold leading-tight text-ink lg:text-2xl">{name}</Title>
-              {p.mode === "saved" && (
-                <span className={"rounded-full border px-2 py-0.5 text-[11px] font-semibold " + (isPublic ? "border-accent text-accent" : "border-line text-ink-soft")}>
-                  {isPublic ? "Shared by link" : "Private"}
-                </span>
-              )}
-            </div>
-            {canEdit && (
+                  // The server may number it ("My basket 2") when another of yours has that name.
+                  const res = await patch({ name: v });
+                  if (res) {
+                    setName(res.name);
+                    if (res.name !== v) setNote(`You already have a basket called “${v}”, so this one is “${res.name}”.`);
+                  }
+                }}
+              >
+                <input
+                  autoFocus
+                  value={name}
+                  maxLength={60}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      setName(p.name);
+                      setRenaming(false);
+                    }
+                  }}
+                  aria-label="Basket name"
+                  className="min-w-0 flex-1 rounded border border-line bg-bg px-2.5 py-1 font-display text-lg font-bold text-ink focus:border-accent focus:outline-none"
+                />
+                <button type="submit" className={btnPri}>
+                  Save
+                </button>
+              </form>
+            ) : (
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                <Title className="min-w-0 break-words font-display text-lg font-bold leading-tight text-ink sm:text-xl">{name}</Title>
+                {p.mode === "saved" && (
+                  <span className={"rounded border px-1.5 py-px text-[10px] font-semibold " + (isPublic ? "border-accent text-accent" : "border-line text-ink-soft")}>{isPublic ? "Shared by link" : "Private"}</span>
+                )}
+                {/* A rule-based basket is a list picked by a fixed rule, not a pick of ours: the badge says so beside its name. */}
+                {p.mode === "idea" && <span className="rounded border border-line px-1.5 py-px text-[10px] font-semibold text-ink-soft">Rule-based</span>}
+              </div>
+            )}
+            {/* An idea's description is its rule, list date and disclaimer, so it is never cut short. */}
+            {p.description && <p className="max-w-3xl text-pretty text-xs leading-relaxed text-ink-soft">{p.description}</p>}
+          </div>
+          <div className="flex flex-none flex-wrap items-center gap-2">
+            {draft ? (
+              <button type="button" onClick={createDraft} disabled={busy || !!createBlocker} aria-describedby={statusId} className={btnPri}>
+                {createStep === "opening" ? "Opening…" : createStep ? "Creating…" : tickers.length ? `Create basket (${tickers.length})` : "Create basket"}
+              </button>
+            ) : canEdit ? (
+              <>
+                <button
+                  type="button"
+                  // Editing shows the table, where each stock has its remove button.
+                  onClick={() => {
+                    if (!editing) pickStockView("list");
+                    setEditing(!editing);
+                  }}
+                  aria-pressed={editing}
+                  className={editing ? btnPri : btnSec}
+                >
+                  {editing ? "Done" : "Edit stocks"}
+                </button>
+                <button type="button" onClick={isPublic ? copyLink : () => setConfirm("share")} disabled={busy && !isPublic} className={btnSec}>
+                  {copied ? "Link copied ✓" : isPublic ? "Copy link" : "Share"}
+                </button>
+              </>
+            ) : (
+              // Industry, rule-based and shared baskets: one way to make it yours, an unsaved draft on
+              // Create basket with these stocks and settings (signed out, sign in first).
+              <button type="button" onClick={copy} disabled={busy} className={btnPri}>
+                {busy ? "Copying…" : "Copy to my baskets"}
+              </button>
+            )}
+            {canEdit && !draft && (
               <MoreMenu
                 items={[
                   { label: "Rename", onSelect: () => setRenaming(true) },
-                  ...(isPublic ? [{ label: "Stop sharing", onSelect: unshare }] : []),
-                  { label: "Delete basket", onSelect: destroy, danger: true },
+                  isPublic ? { label: "Make private", onSelect: unshare } : { label: "Share by link…", onSelect: () => setConfirm("share") },
+                  { label: "Delete basket…", onSelect: () => setConfirm("delete"), danger: true },
                 ]}
               />
             )}
           </div>
-        )}
-        {/* An idea's description is its rule, list date and disclaimer, so it is never cut short. */}
-        {p.description && <p className={"text-xs leading-relaxed text-ink-soft " + (p.mode === "idea" ? "" : "line-clamp-2 lg:line-clamp-none")}>{p.description}</p>}
-
-        {/* Row 2: the main actions, plus the phone's Stocks / Chart switch */}
-        <div className="flex flex-wrap items-center gap-2">
-          {draft ? (
-            <button type="button" onClick={createDraft} disabled={busy || !tickers.length} className="min-h-9 rounded-lg bg-accent px-4 text-xs font-semibold text-bg hover:opacity-90 disabled:opacity-40 lg:w-full lg:text-sm">
-              {busy ? "Creating…" : tickers.length ? `Create basket (${tickers.length})` : "Create basket"}
-            </button>
-          ) : canEdit ? (
-            <>
-              <button
-                type="button"
-                // Editing shows the list, where phones have each stock's remove button.
-                onClick={() => {
-                  if (!editing) setStockView("list");
-                  setEditing(!editing);
-                }}
-                aria-pressed={editing} className={"min-h-9 rounded-lg px-3 text-xs font-semibold " + (editing ? "bg-accent text-bg" : "border border-line text-ink hover:border-accent")}>
-                {editing ? "Done" : "Edit"}
-              </button>
-              <button type="button" onClick={share} disabled={busy} className="min-h-9 rounded-lg border border-line px-3 text-xs font-semibold text-ink hover:border-accent">
-                {isPublic ? "Copy link" : "Share"}
-              </button>
-            </>
-          ) : p.mode === "idea" ? (
-            // Save keeps the idea as it is; Edit opens it on Create basket to change before saving
-            // (signed out, both go to sign in first).
-            <div className="flex gap-2 lg:w-full">
-              <button type="button" onClick={copy} disabled={busy} className="min-h-9 rounded-lg bg-accent px-3 text-xs font-semibold text-bg hover:opacity-90 lg:flex-1 lg:text-sm">
-                {busy ? "Creating…" : "Save as my basket"}
-              </button>
-              <Link
-                href={`/baskets/new?idea=${encodeURIComponent(p.id)}`}
-                className="inline-flex min-h-9 items-center justify-center rounded-lg border border-line px-3 text-xs font-semibold text-ink hover:border-accent lg:text-sm"
-              >
-                Edit
-              </Link>
-            </div>
-          ) : (
-            <button type="button" onClick={copy} disabled={busy} className="min-h-9 rounded-lg bg-accent px-3 text-xs font-semibold text-bg hover:opacity-90 lg:w-full lg:text-sm">
-              {busy ? "Creating…" : p.mode === "industry" ? "Customise this basket" : "Copy to my baskets"}
-            </button>
-          )}
-          {stocks.length > 0 && (
-            <div role="tablist" aria-label="View" className="ml-auto flex rounded-full border border-line bg-panel p-0.5 lg:hidden">
-              {(["stocks", "chart"] as const).map((v) => (
-                <button key={v} type="button" role="tab" aria-selected={view === v} onClick={() => pickView(v)} className={seg(view === v)}>
-                  {v === "stocks" ? `Stocks (${stocks.length})` : "Chart"}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
-        {(canEdit || note) && (
-          // Owners keep this line reserved, so "Saving…" coming and going doesn't shift the page.
-          <p role="status" className={"text-xs text-ink-soft empty:hidden " + (canEdit && !draft ? "min-h-4" : "")}>
-            {busy && canEdit ? (draft ? "Creating…" : "Saving…") : note ?? (draft && !tickers.length ? "Pick an industry above and add its stocks." : null)}
-          </p>
-        )}
-
-        {/* Row 3: how the backtest is measured. One line on phones, labelled stack in the rail. */}
-        <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-col lg:items-stretch lg:gap-3">
-          <div className="flex flex-col gap-1">
-            <span className="hidden text-[11px] font-bold uppercase tracking-wider text-ink-soft lg:block">Weighting</span>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-line pt-2">
+          <div className="flex items-center gap-1.5">
+            <span className={ctlLabel + " hidden sm:inline"}>Weighting</span>
             {weightingControl}
+            <InfoTip label="What the weightings mean">
+              <ul className="flex flex-col gap-1">
+                <li><b>Equal</b>: every stock the same share.</li>
+                <li><b>M-cap</b>: bigger companies get more, by market cap.</li>
+                <li><b>Custom</b>: you set each stock&rsquo;s %; they must total 100%.{ownsWeights ? " Saved with the basket." : ""} Tap Custom again to change them.</li>
+              </ul>
+            </InfoTip>
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="hidden text-[11px] font-bold uppercase tracking-wider text-ink-soft lg:block">Period</span>
+          <div className="flex items-center gap-1.5">
+            <span className={ctlLabel + " hidden sm:inline"}>Rebalancing</span>
+            {rebalanceControl}
+            <InfoTip label="What the rebalancing rules mean">
+              <p className="mb-1">Rebalancing trades every stock back to its target weight.</p>
+              <ul className="flex flex-col gap-1">
+                <li><b>Never</b>: bought on day one, then left to move with prices.</li>
+                <li><b>Monthly</b> / <b>Quarterly</b>: on the first trading day of each month or quarter.</li>
+                <li><b>Drift</b>: only when a stock moves more than the Band above or below its target.</li>
+              </ul>
+            </InfoTip>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className={ctlLabel + " hidden sm:inline"}>Period</span>
             {rangeControl}
           </div>
-        </div>
-
-        {canEdit && !draft && (editing || stocks.length === 0) && <div>{picker("rail")}</div>}
-
-        {/* In this basket: the holdings at a glance (desktop only; phones have the Stocks view) */}
-        {stocks.length > 0 && (
-          // The list takes the rail's leftover height and scrolls on its own, so the name, buttons
-          // and controls above it never scroll out of view. Its right padding keeps the returns clear
-          // of the scrollbar (an overlay one on Macs draws over the last characters otherwise).
-          <section aria-label="In this basket" className="hidden flex-col gap-1 lg:flex lg:min-h-0 lg:flex-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">In this basket ({stocks.length})</span>
-            <span className="text-[11px] leading-snug text-ink-soft">
-              {picked.length > 0 ? "The mark beside a stock is its line on the chart. " : ""}Add or take off lines with the chart&rsquo;s Stocks menu.
-            </span>
-            <ul className="divide-y divide-line lg:min-h-24 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-3 lg:[scrollbar-gutter:stable]">
-              {/* Stocks on the chart first (in the order their lines were given), then the rest A to Z. */}
-              {[...stocks]
-                .sort((a, b) => {
-                  const sa = chartSel.picks[a.ticker];
-                  const sb = chartSel.picks[b.ticker];
-                  if (sa != null && sb != null) return sa - sb;
-                  if (sa != null || sb != null) return sa != null ? -1 : 1;
-                  return a.name.localeCompare(b.name);
-                })
-                .map((s) => {
-                  const h = holdings.get(s.ticker);
-                  const slot = chartSel.picks[s.ticker];
-                  return (
-                    <li key={s.ticker} className="flex items-center gap-2 py-1.5">
-                      {/* The stock's line (colour and dash) when it is drawn on the chart; an empty slot keeps names aligned. */}
-                      <svg aria-hidden width="16" height="6" viewBox="0 0 16 6" className="flex-none">
-                        {slot != null && (
-                          <line x1="1.5" y1="3" x2="14.5" y2="3" stroke={stockLine(theme, slot).color} strokeWidth="2.5" strokeDasharray={DASHARRAY[stockLine(theme, slot).dash]} strokeLinecap="round" />
-                        )}
-                      </svg>
-                      <StockLink ticker={s.ticker} className={"min-w-0 flex-1 truncate text-xs hover:text-accent hover:underline " + (slot == null ? "text-ink" : "font-semibold text-ink")}>
-                        {s.name}
-                        {slot != null && <span className="sr-only"> (on the chart)</span>}
-                      </StockLink>
-                      <span className={"flex-none font-mono text-[11px] " + (!h ? "text-ink-soft" : h.ret >= 0 ? "text-pos" : "text-danger")}>{h ? pct(h.ret) : "—"}</span>
-                      {canEdit && editing && (
-                        <button type="button" onClick={() => remove(s.ticker)} aria-label={`Remove ${s.name}`} className="flex h-6 w-6 flex-none items-center justify-center rounded-full text-ink-soft hover:bg-danger/10 hover:text-danger">
-                          <svg aria-hidden width="10" height="10" viewBox="0 0 12 12">
-                            <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                          </svg>
-                        </button>
-                      )}
-                    </li>
-                  );
-                })}
-            </ul>
-          </section>
-        )}
-      </aside>
-
-      {/* Results: the return cards, then the chart and the stock-by-stock table */}
-      <div className="flex min-w-0 flex-col gap-4">
-        {!(draft && stocks.length === 0) && (
-        <ReturnCards
-          range={range}
-          basket={{ key: basketKey, label: `This basket · ${range}` }}
-          picks={pickedKey && !picksAll ? { key: pickedKey, label: `Your ${picked.length} pick${picked.length > 1 ? "s" : ""}`, tickers: picked.map((s) => s.ticker), weighting } : null}
-          benches={NIFTY_ONLY}
-        />
-        )}
-
-        {stocks.length === 0 ? (
-          <div className="rounded-2xl border border-line bg-panel p-8 text-center text-sm text-ink-soft">
-            {draft ? (
-              "Pick an industry above and add its stocks. The returns and chart fill in as you go."
-            ) : canEdit ? (
-              <>
-                This basket is empty. <span className="lg:hidden">Pick an industry above and add its stocks.</span>
-                <span className="hidden lg:inline">Pick an industry on the left and add its stocks.</span>
-              </>
-            ) : (
-              "This basket has no stocks yet."
-            )}
+          {strategySettings}
+          <span className="hidden font-mono text-[11px] text-ink-soft sm:inline">{stocksWord(stocks.length)}</span>
+          <div role="tablist" aria-label="View" className={MINI_SEG + " ml-auto lg:hidden"}>
+            {(["stocks", "chart"] as const).map((v) => (
+              <button key={v} type="button" role="tab" aria-selected={view === v} onClick={() => pickView(v)} className={segBtn(view === v) + " font-sans"}>
+                {v === "stocks" ? `Stocks (${stocks.length})` : "Chart"}
+              </button>
+            ))}
           </div>
-        ) : (
+        </div>
+        {/* Reserved in every mode, so "Saving…", a note or the Undo offer never shifts the page. */}
+        <p id={statusId} role="status" className={"flex min-h-4 flex-wrap items-baseline gap-x-2 text-xs " + (customBlocked && !note && !(busy && canEdit) ? "font-semibold text-danger" : "text-ink-soft")}>
+          {removedName && !(draft && createStep) ? (
+            <>
+              <span>
+                Removed <b className="font-semibold text-ink">{removedName}</b>
+                {busy && canEdit && !draft ? " · Saving…" : ""}
+              </span>
+              <button type="button" onClick={undo} disabled={locked} className="font-semibold text-accent underline disabled:opacity-40">
+                Undo
+              </button>
+            </>
+          ) : (
+            statusText
+          )}
+        </p>
+      </header>
+
+      {/* Draft and your own baskets: the stock picker, always in this place (its lists open over the
+          page), so editing never pushes the results down. */}
+      {canEdit && p.universe && <div className={PANEL + " px-3 py-2.5 sm:px-4"}>{picker}</div>}
+
+      {/* Custom weights float over the page (a sheet on phones, a panel at the side on desktop), so
+          opening them never moves the results they change. */}
+      {weighting === "custom" && stocks.length > 0 && (weightsOpen || customBlocked) && (
+        <CustomWeights
+          heading={heading}
+          stocks={stocks}
+          picks={pickedKey && !picksAll ? picked.map((s) => s.ticker) : null}
+          values={customEdit ?? {}}
+          onChange={editWeights}
+          resets={resetTargets}
+          onClose={() => setWeightsOpen(false)}
+          saves={ownsWeights}
+        />
+      )}
+
+      <div className="flex min-w-0 flex-col gap-2 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+
+        {/* Results, in a fixed order whatever the mode: the return strip, the chart, the stock table
+            and the backtest analysis. An empty basket keeps every panel, with its empty state inside. */}
+        <div className="flex min-w-0 flex-col gap-2">
+          {/* Always four cards (placeholders for Your picks and Not rebalanced until they apply), so
+              the strip never changes shape. */}
+          <ReturnCards
+            dense
+            range={range}
+            basket={{ key: empty ? "" : basketKey, label: `This basket · ${range}`, note: empty ? "add stocks to see" : undefined }}
+            picks={pickedKey && !picksAll ? { key: pickedKey, label: `Your ${picked.length} pick${picked.length > 1 ? "s" : ""}`, tickers: picked.map((s) => s.ticker), strategy: basisLabel(strategy) } : null}
+            picksSlot={{ label: "Your picks", note: picksAll ? "all stocks: same as this basket" : "switch stocks on in the chart’s Stocks menu" }}
+            benches={[
+              heldKey && !empty ? { key: heldKey, label: NOT_REBALANCED } : { key: "", label: NOT_REBALANCED, note: rebalanced ? "add stocks to see" : "shown when rebalanced" },
+              ...NIFTY_ONLY,
+            ]}
+          />
+          {view !== "chart" && narrowStats}
+
           <>
-            {showChart && (
-              <section aria-label="Chart" className="rounded-2xl border border-line bg-panel p-4 sm:p-5">
+              <Panel
+                heading={heading}
+                className={onlyOn("chart")}
+                title={
+                  <>
+                    Backtest · <span className="sm:hidden">{range}</span>
+                    <span className="max-sm:hidden">{pastPeriod(range)}</span> · {basisLabel(strategy)}
+                  </>
+                }
+                label={`Backtest chart, ${pastPeriod(range)}, ${basisLabel(strategy)}`}
+                bodyClassName="p-3"
+                infoLabel="About the backtest chart"
+                toolsInline
+                info={
+                  <>
+                    Every line starts at 0% on the first day, so their ends compare directly. <b>Compare with</b> adds up to 3 indices or industry
+                    baskets; <b>Stocks</b> draws single stocks. Pinch, or use + and −, to zoom; drag sideways to move.
+                    {rebalanced && " vs not rebalanced also draws the same basket left unrebalanced."}
+                  </>
+                }
+                tools={
+                  // Laid out even when hidden (not rebalanced), so the header keeps its height.
+                  <button
+                    type="button"
+                    aria-pressed={vsHeld}
+                    aria-hidden={!rebalanced || undefined}
+                    tabIndex={rebalanced ? undefined : -1}
+                    onClick={() => setVsHeld((v) => !v)}
+                    className={MINI_SEG + " " + segBtn(vsHeld) + " items-center font-sans " + (rebalanced && !empty ? "" : "invisible")}
+                  >
+                    vs not rebalanced
+                  </button>
+                }
+              >
+                {/* The chart's own height (menus, plot, legend, footnote), so the first stock added doesn't push the page down. */}
+                {empty ? (
+                  <div className="flex h-[46.75rem] items-center justify-center px-6 text-center text-sm text-ink-soft sm:h-[50.5rem]">{emptyText}</div>
+                ) : (
                 <BasketChart
                   range={range}
                   rangeLong={rangeLong}
                   basketKey={basketKey}
                   basketName={name}
-                  weighting={weighting}
+                  strategy={compareSq}
+                  held={heldKey && vsHeld ? { key: heldKey, name: NOT_REBALANCED } : null}
                   industries={compareIndustries}
                   indices={p.indices}
                   market={p.market}
                   stocks={stocks.map((s) => ({ ticker: s.ticker, name: s.name }))}
                   selection={chartSel}
-                  onSelection={setChartSel}
+                  onSelection={(next) => act({ type: "chart", next })}
+                  onPick={() => act({ type: "choosePicks" })}
                 />
-              </section>
-            )}
-            {showTable && (
-              <section aria-label="Stocks in this basket" className="flex flex-col gap-2">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-ink-soft">
-                  <div role="tablist" aria-label="Show stocks as" className="inline-flex rounded-full border border-line bg-panel p-0.5">
-                    {(["charts", "list"] as const).map((v) => (
-                      <button key={v} type="button" role="tab" aria-selected={stockView === v} onClick={() => setStockView(v)} className={seg(stockView === v)}>
-                        {v === "charts" ? "Charts" : "List"}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                  {pickedKey && (
-                    <div role="group" aria-label="Measure within" className="inline-flex rounded-full border border-line bg-panel p-0.5">
+                )}
+              </Panel>
+              <Panel
+                heading={heading}
+                className={onlyOn("stocks")}
+                title={`${tableScope === "picks" ? `Your ${picked.length} pick${picked.length === 1 ? "" : "s"}` : `Stocks (${stocks.length})`} · ${pastPeriod(range)}`}
+                label="Stocks in this basket"
+                infoLabel="About the stock table"
+                info={
+                  <>
+                    <b>Target %</b>: its share when bought{rebalanced ? " and after each rebalance" : ""} (your % when Custom). <b>Now %</b>: its share at the end, after price moves.{" "}
+                    <b>Return</b>: its own price change. <b>Pts added</b>: what it added to the basket&rsquo;s return.
+                    {p.joinAtListing && (
+                      <span className="mt-1.5 block">
+                        Since listing: each stock&rsquo;s share is set aside on the first day and waits in cash until it lists, so its return runs from
+                        listing and, not rebalanced, its pts added are its target share times that return.
+                      </span>
+                    )}
+                  </>
+                }
+                tools={
+                  <>
+                    {/* Always there; Your picks is off until stocks are picked on the chart. */}
+                    <div role="group" aria-label="Measure within" className={MINI_SEG}>
                       {(["all", "picks"] as const).map((v) => (
-                        <button key={v} type="button" aria-pressed={tableScope === v} onClick={() => setScope(v)} className={seg(tableScope === v)}>
-                          {v === "all" ? "All" : "Your picks"}
+                        <button
+                          key={v}
+                          type="button"
+                          aria-pressed={tableScope === v}
+                          disabled={v === "picks" && !pickedKey}
+                          title={v === "picks" && !pickedKey ? "Switch stocks on in the chart’s Stocks menu first" : undefined}
+                          onClick={() => setScope(v)}
+                          className={segBtn(tableScope === v) + " font-sans disabled:cursor-default disabled:opacity-40"}
+                        >
+                          {v === "all" ? "All stocks" : "Your picks"}
                         </button>
                       ))}
                     </div>
-                  )}
-                  {stockView === "list" && (
-                  <label className="flex items-center gap-1.5">
-                    Sort by
-                    <select aria-label="Sort by" value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="rounded-md border border-line bg-bg px-2 py-1 text-xs text-ink">
-                      {SORTS.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.label}
-                        </option>
+                    <div role="tablist" aria-label="Show stocks as" className={MINI_SEG}>
+                      {(["list", "charts"] as const).map((v) => (
+                        <button key={v} type="button" role="tab" aria-selected={stockView === v} onClick={() => pickStockView(v)} className={segBtn(stockView === v) + " font-sans"}>
+                          {v === "list" ? "Table" : "Breakdown"}
+                        </button>
                       ))}
-                    </select>
-                  </label>
-                  )}
-                  </div>
-                </div>
-                {stockView === "list" && (
-                  <p className="text-[11px] text-ink-soft">
-                    Return over the past {rangeLong} · <b className="font-semibold">wt</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} now ·{" "}
-                    <b className="font-semibold">pts</b> what it added to {tableScope === "picks" ? "your picks\u2019" : "the basket\u2019s"} return
-                  </p>
-                )}
-                {stockView === "charts" ? (
+                    </div>
+                  </>
+                }
+              >
+                {/* The body keeps at least the height it had before a Table / Breakdown switch, so the
+                    panels under it don't jump up when the shorter view shows. */}
+                <div ref={stockBodyRef} style={stockBodyMin ? { minHeight: stockBodyMin } : undefined}>
+                {empty ? (
+                  <div className="flex min-h-48 items-center justify-center px-6 py-8 text-center text-sm text-ink-soft">{emptyText}</div>
+                ) : stockView === "charts" ? (
                   tData ? (
                     <BasketBreakdown
                       holdings={(tData.holdings ?? []).filter((h) => rows.some((s) => s.ticker === h.ticker))}
@@ -655,98 +1173,510 @@ export function BasketDetail(p: BasketDetailProps) {
                       onTab={setBreakdownTab}
                     />
                   ) : tbt?.status !== "error" ? (
-                    <div aria-busy className="h-80 animate-pulse rounded-2xl bg-line/60" />
+                    <div aria-busy className="m-3 h-80 animate-pulse rounded bg-line/50" />
                   ) : null
                 ) : (
-                <ul className="divide-y divide-line rounded-2xl border border-line bg-panel">
-                  {rows.map((s) => {
-                    const h = tHoldings.get(s.ticker);
-                    const ex = tData?.excluded?.find((e) => e.ticker === s.ticker);
-                    const added = p.addPrices[s.ticker];
-                    const last = tData?.last?.[s.ticker];
-                    const since = added && last ? (last / added - 1) * 100 : null;
-                    return (
-                      <li key={s.ticker} className="flex items-start gap-3 px-3 py-3 sm:px-4">
-                        <div className="min-w-0 flex-1">
-                          <StockLink ticker={s.ticker} className="block truncate text-sm font-semibold text-accent hover:underline">
-                            {s.name}
-                          </StockLink>
-                          <div className="mt-0.5 truncate text-xs text-ink-soft">
-                            <span className="font-mono">{s.ticker}</span> · {s.layer}
-                          </div>
-                          <IndustryChips industries={s.industries} className="mt-1.5" />
-                        </div>
-                        <div className="flex-none text-right">
-                          {h ? (
-                            <>
-                              <div className={"font-mono text-sm font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{pct(h.ret)}</div>
-                              <div className="mt-0.5 font-mono text-[11px] text-ink-soft">
-                                wt {(h.endWeight * 100).toFixed(1)}% · {h.contribution >= 0 ? "+" : "−"}
-                                {Math.abs(h.contribution).toFixed(2)} pts
+                  <>
+                    {/* Phones: one compact row per stock, sorted from the menu. */}
+                    <div className="flex items-center justify-between gap-2 border-b border-line/70 px-3 py-1.5 text-[11px] text-ink-soft sm:hidden">
+                      <span className="text-balance">
+                        <b className="font-semibold">target → now</b> share · <b className="font-semibold">pts</b> added to the return
+                      </span>
+                      <label className="flex items-center gap-1.5">
+                        <span className="sr-only">Sort by</span>
+                        <select aria-label="Sort by" value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="min-h-9 rounded border border-line bg-bg px-1.5 text-xs text-ink">
+                          {SORTS.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    <ul className="divide-y divide-line/70 sm:hidden">
+                      {rows.map((s) => {
+                        const h = tHoldings.get(s.ticker);
+                        const ex = excludedNote(s.ticker);
+                        const since = moveSinceAdded(s.ticker);
+                        return (
+                          <li key={s.ticker} className="flex items-start gap-2 px-3 py-2">
+                            <div className="min-w-0 flex-1">
+                              {/* Names wrap rather than cut off; the figures on the right stay narrow to leave them room. */}
+                              <StockLink ticker={s.ticker} className="relative block text-[13px] font-semibold leading-snug text-accent [overflow-wrap:anywhere] before:absolute before:inset-x-0 before:-inset-y-2.5 before:content-[''] hover:underline">
+                                {s.name}
+                              </StockLink>
+                              {/* Balanced, so a long layer never leaves one word on a line of its own. */}
+                              <div className="text-balance text-[11px] leading-snug text-ink-soft">
+                                <span className="font-mono">{s.ticker}</span> · {layerOf(s)}
                               </div>
-                            </>
-                          ) : ex ? (
-                            <div className="max-w-[9rem] text-[11px] leading-snug text-ink-soft">{ex.reason === "late" && ex.from ? `Listed ${new Date(ex.from).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}, not in this period` : "No price data"}</div>
-                          ) : (
-                            <div className="font-mono text-sm text-ink-soft">{tbt?.status === "error" ? "—" : "…"}</div>
-                          )}
-                          {since != null && <div className="mt-0.5 font-mono text-[11px] text-ink-soft">{pct(since)} since added</div>}
-                        </div>
-                        {canEdit && editing && (
-                          <button type="button" onClick={() => remove(s.ticker)} aria-label={`Remove ${s.name}`} className="tap-target -mr-1 flex h-9 w-9 flex-none items-center justify-center rounded-full border border-line text-ink-soft hover:border-danger hover:text-danger lg:hidden">
-                            <svg aria-hidden width="12" height="12" viewBox="0 0 12 12">
-                              <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                            </svg>
-                          </button>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
+                              {p.pickedOn?.[s.ticker] && (
+                                <div className="font-mono text-[11px] text-ink">
+                                  <span className="font-sans text-ink-soft">Picked on </span>
+                                  {p.pickedOn[s.ticker]}
+                                </div>
+                              )}
+                              <div className="font-mono text-[11px] text-ink-soft">
+                                <span title={s.pe == null ? NO_PE : undefined}>P/E {s.pe != null ? `${s.pe.toFixed(1)}x` : NA}</span> · <span className="whitespace-nowrap">{s.mcapCr != null ? croreShort(s.mcapCr) : `mcap ${NA}`}</span>
+                              </div>
+                              {s.oneOff ? (
+                                // Beside the industry chip (a 24-28px line), so the marker never adds a line to the row.
+                                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                  <IndustryChips industries={industriesOf(s)} />
+                                  <span className="text-[11px]">
+                                    <OneOffMark name={s.name} reason={s.oneOff} />
+                                  </span>
+                                </div>
+                              ) : (
+                                <IndustryChips industries={industriesOf(s)} className="mt-1" />
+                              )}
+                            </div>
+                            <div className="flex-none text-right">
+                              {h ? (
+                                <>
+                                  <div className={"font-mono text-[13px] font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{signedPct(h.ret)}</div>
+                                  <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft" title="Target share → share now">
+                                    {pct1(h.weight)} → {pct1(h.endWeight)}
+                                  </div>
+                                  <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft">{signedPts(h.contribution, 2)} pts</div>
+                                </>
+                              ) : ex ? (
+                                <div className="max-w-[7rem] text-[11px] leading-snug text-ink-soft">{ex}</div>
+                              ) : (
+                                <div className="font-mono text-sm text-ink-soft">{tbt?.status === "error" ? NA : "…"}</div>
+                              )}
+                              {sinceShown && (
+                                <div className="font-mono text-[11px] text-ink-soft" title={since == null ? sinceWhy(s.ticker) : undefined}>
+                                  {signedPct(since)}
+                                  <span className="block font-sans">since added</span>
+                                </div>
+                              )}
+                            </div>
+                            {canEdit && (showRemove ? removeButton(s) : <span aria-hidden className="w-9 flex-none" />)}
+                          </li>
+                        );
+                      })}
+                      {tableScope === "all" &&
+                        unlisted.map((t) => (
+                          <li key={t} className="flex items-center gap-2 px-3 py-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="font-mono text-[13px] font-semibold text-ink-soft">{t}</div>
+                              <div className="text-[11px] text-ink-soft">No longer listed in our maps, so it is left out of the backtest.</div>
+                            </div>
+                            {canEdit && (showRemove ? removeButton({ ticker: t, name: t }, false) : <span aria-hidden className="w-9 flex-none" />)}
+                          </li>
+                        ))}
+                    </ul>
+                    {/* From sm: the dense table, sortable by its headers. A long basket scrolls inside a
+                        box about the Breakdown's height (header kept in view, "N more" at the foot),
+                        so switching Table / Breakdown neither moves the panels below nor leaves a
+                        tall empty space under the shorter one. */}
+                    <div className="relative hidden sm:block">
+                    <div ref={tableBoxRef} className="max-h-[36rem] overflow-auto">
+                      <table className="w-full border-collapse text-xs">
+                        <thead className="sticky top-0 z-[1] bg-panel-2 text-[10px] uppercase tracking-wider text-ink-soft">
+                          <tr className="border-b border-line">
+                            <th scope="col" className="w-6 px-0">
+                              <span className="sr-only">Chart line</span>
+                            </th>
+                            {sortHead("name", "Stock", false)}
+                            {p.pickedOn && (
+                              <th scope="col" title="The figure the rule picked this stock on (see the rule above)" className="whitespace-nowrap px-2 py-1.5 text-left font-semibold">
+                                Picked on
+                              </th>
+                            )}
+                            <th scope="col" title={`Its share when bought${rebalanced ? " and after each rebalance" : ""} (your % when Custom)`} className="whitespace-nowrap px-2 py-1.5 text-right font-semibold">
+                              Target %
+                            </th>
+                            {sortHead("weight", "Now %")}
+                            {sortHead("return", "Return")}
+                            {sortHead("contribution", "Pts added")}
+                            {sortHead("pe", "P/E")}
+                            {sortHead("mcap", "M-cap")}
+                            {sinceShown && (
+                              <th scope="col" title="The stock's move since it was added to this basket (from its live price then)" className="whitespace-nowrap px-2 py-1.5 text-right font-semibold">
+                                Since added
+                              </th>
+                            )}
+                            {canEdit && (
+                              <th scope="col" className="w-9 px-1">
+                                <span className="sr-only">Remove</span>
+                              </th>
+                            )}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rows.map((s) => {
+                            const h = tHoldings.get(s.ticker);
+                            const ex = excludedNote(s.ticker);
+                            const since = moveSinceAdded(s.ticker);
+                            const inds = industriesOf(s);
+                            const others = inds.length - 1;
+                            return (
+                              <tr key={s.ticker} className="border-b border-line/60 even:bg-panel-2/30 hover:bg-accent/5">
+                                <td className="pl-2">{lineSwatch(s.ticker)}</td>
+                                <td className="w-full max-w-0 px-2 py-1.5">
+                                  {/* Touch screens: the name is padded to 36px and the line below spaced out so the
+                                      industry link's 36px area (tap-y) does not overlap it. */}
+                                  <StockLink ticker={s.ticker} title={s.name} className="block truncate font-semibold text-accent hover:underline pointer-coarse:py-2.5">
+                                    {s.name}
+                                  </StockLink>
+                                  {/* Wraps rather than cuts off: a tablet held upright has no hover to show a title. */}
+                                  <span className="block text-balance text-[10px] leading-snug text-ink-soft pointer-coarse:mt-3">
+                                    <span className="font-mono">{s.ticker}</span> · {s.oneOff && <><OneOffMark name={s.name} reason={s.oneOff} /> · </>}{layerOf(s)}
+                                    {inds[0] && (
+                                      <>
+                                        {" · "}
+                                        <Link href={`/sector/${inds[0].slug}`} className="tap-y hover:text-accent hover:underline">
+                                          {inds[0].name}
+                                        </Link>
+                                        {others > 0 && <span className="text-accent"> +{others}</span>}
+                                      </>
+                                    )}
+                                  </span>
+                                </td>
+                                {p.pickedOn && <td className="whitespace-nowrap px-2 py-1.5 font-mono text-[11px] text-ink">{p.pickedOn[s.ticker] ?? NA}</td>}
+                                {h ? (
+                                  <>
+                                    <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono text-ink-soft">{pct1(h.weight)}</td>
+                                    <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{pct1(h.endWeight)}</td>
+                                    <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{signedPct(h.ret)}</td>
+                                    <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (h.contribution >= 0 ? "text-pos" : "text-danger")}>{signedPts(h.contribution, 2)}</td>
+                                  </>
+                                ) : (
+                                  <td colSpan={4} className="px-2 py-1.5 text-right text-[11px] text-ink-soft">
+                                    {ex ?? (tbt?.status === "error" ? NA : "…")}
+                                  </td>
+                                )}
+                                <td title={s.pe == null ? NO_PE : undefined} className="px-2 py-1.5 text-right font-mono">{s.pe != null ? `${s.pe.toFixed(1)}x` : NA}</td>
+                                <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{croreShort(s.mcapCr)}</td>
+                                {sinceShown && (
+                                  <td title={since == null ? sinceWhy(s.ticker) : undefined} className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (since == null ? "text-ink-soft" : since >= 0 ? "text-pos" : "text-danger")}>
+                                    {signedPct(since)}
+                                  </td>
+                                )}
+                                {canEdit && <td className="w-9 px-1 py-1">{showRemove && removeButton(s, true)}</td>}
+                              </tr>
+                            );
+                          })}
+                          {tableScope === "all" &&
+                            unlisted.map((t) => (
+                              <tr key={t} className="border-b border-line/60 text-ink-soft">
+                                <td className="pl-2" />
+                                <td className="px-2 py-1.5">
+                                  <span className="block font-mono font-semibold">{t}</span>
+                                  <span className="block text-[10px]">No longer listed in our maps</span>
+                                </td>
+                                <td colSpan={(sinceShown ? 7 : 6) + (p.pickedOn ? 1 : 0)} className="px-2 py-1.5 text-right text-[11px]">
+                                  Left out of the backtest
+                                </td>
+                                {canEdit && <td className="w-9 px-1 py-1">{showRemove && removeButton({ ticker: t, name: t }, true)}</td>}
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <MoreBelow count={tableMore} noun={tableMore === 1 ? "more stock" : "more stocks"} />
+                    </div>
+                    <p className="border-t border-line/70 px-3 py-1.5 text-[11px] text-ink-soft">
+                      Return over the past {rangeLong} · <b className="font-semibold">target</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} when bought{rebalanced ? " and after each rebalance" : ""},{" "}
+                      <b className="font-semibold">now</b> after the price moves ·{" "}
+                      <b className="font-semibold">pts</b> what it added to {tableScope === "picks" ? "your picks’" : "the basket’s"} return · P/E and market cap from our last data update
+                    </p>
+                  </>
                 )}
-                {tbt?.status === "error" && (
-                  <p className="text-xs text-ink-soft">
+                </div>
+                {!empty && tbt?.status === "error" && (
+                  <p className="px-3 pb-2 text-xs text-ink-soft">
                     Couldn&rsquo;t backtest the basket right now.{" "}
                     <button type="button" onClick={retry} className="font-semibold text-accent underline">
                       Retry
                     </button>
                   </p>
                 )}
-              </section>
-            )}
-          </>
-        )}
-
-        <p className="text-[11px] leading-relaxed text-ink-soft">
-          Backtest: bought on the first day of the period at {weighting === "equal" ? "equal weights" : "weights by market cap (today’s, from our last data update, so slightly flattering to winners)"} and held without rebalancing. Price change only, no dividends, costs or taxes. Stocks listed during the period are left out of it. A tracking and research tool, not investment advice.
-          {p.mode === "industry" && (
-            <>
-              {" "}
-              Every listed company on the{" "}
-              <Link href={`/sector/${p.id}`} className="text-accent hover:underline">
-                {p.name.replace(/ basket$/, "")} map
-              </Link>
-              .
+              </Panel>
+              <div className={"flex min-w-0 flex-col " + onlyOn("chart")}>
+                <BasketAnalysis range={range} basketKey={basketKey} heading={heading} reload={reload} empty={empty} />
+              </div>
+              {view === "chart" && narrowStats}
             </>
-          )}
-        </p>
+
+          <p className="text-[11px] leading-relaxed text-ink-soft">
+            How it is backtested: bought on the first day of the period at {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights (a stock with no prices for the period has its share spread over the rest, in proportion)" : "weights by market cap"}
+            {weighting === "mcap" ? " (today’s market caps, from our last data update, so slightly flattering to winners)" : ""}
+            {rebalanced
+              ? `, then ${rebalanceLabel(strategy)}, trading at that day’s close${strategy.rebalance === "drift" ? " (the day after the drift is seen)" : ""}. Turnover and trades are shown, but no brokerage, taxes or slippage are taken off. Price change only, no dividends.`
+              : " and held without rebalancing. Price change only, no dividends, costs or taxes."}{p.joinAtListing
+              ? " Each stock is backtested from its first trading day: its share of the money is set aside on the first day and waits in cash (earning nothing) until the stock lists, then buys it at that close. So its return is since listing, the targets total 100%, and, not rebalanced, each stock adds its target share times its return."
+              : " Stocks listed during the period are left out of it."}{" "}
+            The basket is today&rsquo;s list of stocks, so companies that fell out of the industry before now are missing. A tracking and research tool, not investment advice.
+            {p.mode === "industry" && (
+              <>
+                {" "}
+                Every listed company on the{" "}
+                <Link href={`/sector/${p.id}`} className="tap-y text-accent hover:underline">
+                  {p.name.replace(/ (industry|policy) basket$/, "")} map
+                </Link>
+                .
+              </>
+            )}
+          </p>
+        </div>
+        {/* Side column (from lg, beside the results and kept in view): the statistics and the
+            stocks at a glance. After the results in the page order, so keyboards and screen
+            readers reach the chart and table first. */}
+        <aside aria-label="Basket controls" className="sticky top-20 hidden max-h-[calc(100vh-6rem)] min-w-0 flex-col gap-2 overflow-y-auto lg:flex">
+          {stats(true)}
+          {/* Shrinks with the window down to its header and five rows (the panel's own minimum; the
+              column scrolls below that); the help line sits behind the "i" to leave the rows room. */}
+          <Panel
+            heading={heading}
+            title={`Stocks and chart lines · ${stocks.length}`}
+            info={<>The mark beside a stock is its line on the chart; add or take off lines with the chart&rsquo;s Stocks menu.</>}
+            infoLabel="About the stocks and chart lines"
+            className="flex min-h-[12.75rem] flex-col"
+            bodyClassName="flex min-h-0 flex-col"
+          >
+            {/* As tall as the column allows (24rem), never under five rows (the column scrolls then),
+                with a fade and "N more" over its foot while rows are out of view. Its height
+                depends only on the window, never on the stocks or lines. */}
+            <div className="relative flex min-h-0 flex-col">
+            <ul ref={sideListRef} className="h-[24rem] min-h-0 shrink divide-y divide-line/70 overflow-y-auto overscroll-contain px-3 py-1">
+              {sideStocks.map((s) => {
+                const h = holdings.get(s.ticker);
+                const slot = chartSel.picks[s.ticker];
+                return (
+                  <li key={s.ticker} className="flex min-h-8 items-center gap-2 py-0.5">
+                    {lineSwatch(s.ticker)}
+                    <StockLink ticker={s.ticker} className={"min-w-0 flex-1 truncate text-xs hover:text-accent hover:underline " + (slot == null ? "text-ink" : "font-semibold text-ink")}>
+                      {s.name}
+                      {slot != null && <span className="sr-only"> (on the chart)</span>}
+                    </StockLink>
+                    <span className={"flex-none font-mono text-[11px] " + (!h ? "text-ink-soft" : h.ret >= 0 ? "text-pos" : "text-danger")}>{h ? signedPct(h.ret) : NA}</span>
+                    {canEdit && (showRemove ? removeButton(s, true) : <span aria-hidden className="w-7 flex-none" />)}
+                  </li>
+                );
+              })}
+              {unlisted.map((t) => (
+                <li key={t} className="flex min-h-8 items-center gap-2 py-0.5 text-ink-soft">
+                  <span className="w-4 flex-none" />
+                  <span className="min-w-0 flex-1 truncate text-xs">
+                    <span className="font-mono">{t}</span> · no longer listed
+                  </span>
+                  {canEdit && (showRemove ? removeButton({ ticker: t, name: t }, true) : <span aria-hidden className="w-7 flex-none" />)}
+                </li>
+              ))}
+              {empty && !unlisted.length && <li className="py-2 text-xs text-ink-soft">No stocks yet.</li>}
+            </ul>
+            <MoreBelow count={sideMore} />
+            </div>
+          </Panel>
+        </aside>
       </div>
-    </div>
+      {canEdit && !draft && (
+        <>
+          <ConfirmDialog open={confirm === "share"} title="Share this basket by link?" confirmLabel="Share and copy link" onConfirm={share} onCancel={() => setConfirm(null)}>
+            <p>Anyone with the link can open this basket and see its stocks, weights and backtest. It isn&rsquo;t listed anywhere or shown in search, and they can&rsquo;t change it.</p>
+            <p className="mt-2">You can make it private again at any time from the ⋯ menu.</p>
+          </ConfirmDialog>
+          <ConfirmDialog open={confirm === "delete"} title={`Delete “${name}”?`} confirmLabel={deleting ? "Deleting…" : "Delete basket"} danger busy={deleting} onConfirm={destroy} onCancel={() => setConfirm(null)}>
+            This can&rsquo;t be undone.{isPublic ? " Its shared link will stop working." : ""}
+          </ConfirmDialog>
+        </>
+      )}
     </div>
   );
 }
 
-/** True from the lg breakpoint (1024px) up, where the chart and stock table sit together. */
-function useWide() {
-  const [wide, setWide] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const on = () => setWide(mq.matches);
-    on();
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, []);
-  return wide;
+// The one remove control, the same on every row that stands for a stock in the basket (the
+// picker's list, the stock table and phone list, the side list): an × named "Remove <stock>".
+// Panels close with a "Done" text button instead, so the two are never confused.
+function RemoveButton({ ticker, name, small = false, disabled = false, onRemove }: { ticker: string; name: string; small?: boolean; disabled?: boolean; onRemove: (ticker: string) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onRemove(ticker)}
+      disabled={disabled}
+      aria-label={`Remove ${name}`}
+      title={`Remove ${name} from the basket`}
+      className={
+        (small ? "h-7 w-7 pointer-coarse:h-9 pointer-coarse:w-9" : "tap-target h-9 w-9") +
+        " flex flex-none items-center justify-center rounded border border-line text-ink-soft hover:border-danger hover:text-danger disabled:opacity-40 disabled:hover:border-line disabled:hover:text-ink-soft"
+      }
+    >
+      <svg aria-hidden width="10" height="10" viewBox="0 0 12 12">
+        <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    </button>
+  );
+}
+
+// Custom weighting: each stock's % as a typed number, a running total that has to reach 100% (the
+// backtest keeps the last weights that did until then), and Reset to equal or to market cap.
+function CustomWeights({
+  heading,
+  stocks,
+  values,
+  onChange,
+  resets,
+  onClose,
+  saves,
+  picks,
+}: {
+  heading: "h2" | "h3";
+  stocks: BasketStock[];
+  /** The stocks switched on in the chart (when the reader has picked some, not all): each one's
+   * share of "Your picks", the basket's %s scaled up in proportion. Their %s here don't change. */
+  picks: string[] | null;
+  values: Record<string, number>;
+  onChange: (next: Record<string, number>) => void;
+  /** Equal and market-cap shares of the current stocks, as %s: the two Reset buttons. */
+  resets: { equal: Record<string, number>; mcap: Record<string, number> };
+  /** Hides the panel (shown only once the weights total 100%). */
+  onClose: () => void;
+  /** A saved basket of yours: the weights are kept with it. */
+  saves: boolean;
+}) {
+  // Boxes holding something that isn't a number from 0 to 100 (cleared when they're left).
+  const [bad, setBad] = useState<Set<string>>(() => new Set());
+  const markBad = (t: string, on: boolean) =>
+    setBad((b) => {
+      if (b.has(t) === on) return b;
+      const next = new Set(b);
+      if (on) next.add(t);
+      else next.delete(t);
+      return next;
+    });
+  const total = weightsTotal(Object.fromEntries(stocks.map((s) => [s.ticker, values[s.ticker] ?? 0])));
+  const pickShare = picks ? toPercents(customTargets(picks, values)) : null;
+  const off = Math.round((100 - total) * 10) / 10;
+  const ok = Math.abs(off) < 0.05;
+  const H = heading;
+  return (
+    // Floats over the page (a sheet along the bottom on phones and tablets, a panel at the bottom
+    // right on desktop), so opening and closing it never moves the results it changes.
+    <section
+      aria-label="Custom weights"
+      className={
+        PANEL +
+        " fixed inset-x-0 bottom-0 z-40 flex max-h-[min(60vh,32rem)] flex-col rounded-b-none shadow-[0_-12px_40px_-18px_rgba(0,0,0,0.45)] lg:inset-x-auto lg:bottom-4 lg:right-4 lg:max-h-[70vh] lg:w-[26rem] lg:rounded-md lg:shadow-[0_18px_40px_-18px_rgba(0,0,0,0.45)]"
+      }
+    >
+      <div className="flex items-start gap-2 border-b border-line px-3 py-1">
+        <div className="flex min-h-8 min-w-0 flex-1 flex-wrap items-center justify-between gap-x-2 gap-y-1">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <H className={PANEL_TITLE}>{`Custom weights · ${stocks.length} stock${stocks.length > 1 ? "s" : ""}`}</H>
+            <InfoTip label="About custom weights">
+              Type each stock&rsquo;s share of the basket; together they must make 100%. Rebalancing trades back to these.
+              {saves ? " Saved with the basket." : ""} Close with Done and tap Custom to open them again.
+            </InfoTip>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className={"font-mono text-[11px] font-semibold " + (ok ? "text-pos" : "text-danger")}>Total {total.toFixed(1)}%</span>
+            {(
+              [
+                ["equal", "Reset to equal"],
+                ["mcap", "Reset to market cap"],
+              ] as const
+            ).map(([k, text]) => {
+              // Greyed out while the weights already are that scheme's, so the buttons show where you are.
+              const current = stocks.every((st) => Math.abs((values[st.ticker] ?? 0) - (resets[k][st.ticker] ?? 0)) < 0.05);
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => onChange(resets[k])}
+                  disabled={current}
+                  title={current ? `The weights are ${k === "equal" ? "equal" : "by market cap"} now` : undefined}
+                  className="inline-flex min-h-9 items-center rounded border border-line bg-bg px-2 text-[11px] font-semibold text-ink hover:border-accent disabled:cursor-default disabled:text-ink-soft disabled:hover:border-line sm:min-h-6 pointer-coarse:min-h-9"
+                >
+                  {text}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {/* A text button, so closing the panel never looks like removing a stock. Off until the
+            weights total 100%. */}
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={!ok || bad.size > 0}
+          title={!ok || bad.size > 0 ? "Make the weights total 100% first" : undefined}
+          className="mt-0.5 inline-flex min-h-8 flex-none items-center rounded bg-accent px-3 text-xs font-semibold text-bg hover:opacity-90 disabled:opacity-40 pointer-coarse:min-h-9"
+        >
+          Done
+        </button>
+      </div>
+      <p role="status" className={"px-3 pt-1.5 text-[11px] leading-snug " + (ok && !bad.size ? "text-ink-soft" : "font-semibold text-danger")}>
+        {bad.size
+          ? "Type a number from 0 to 100 in each box."
+          : ok
+          ? "The backtest uses these target weights (the Stocks table's Target % column)."
+          : `Total is ${total.toFixed(1)}%: ${off > 0 ? `add ${off.toFixed(1)}%` : `take off ${(-off).toFixed(1)}%`} to make 100%. The backtest waits until then.`}
+      </p>
+      {/* The list scrolls inside the panel. */}
+      <ul className="grid min-h-0 flex-1 grid-cols-1 content-start gap-x-4 overflow-y-auto overscroll-contain px-3 py-1 sm:grid-cols-2 lg:grid-cols-1">
+        {stocks.map((s) => (
+          <li key={s.ticker} className={"flex items-center gap-2 border-b border-line/60 py-1 " + (pickShare && pickShare[s.ticker] == null ? "opacity-60" : "")}>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-xs font-semibold text-ink" title={s.name}>
+                {s.name}
+              </span>
+              <span className="block truncate text-[10px] text-ink-soft">
+                <span className="font-mono">{s.ticker}</span>
+                {pickShare && (pickShare[s.ticker] != null ? ` · ${pickShare[s.ticker].toFixed(1)}% of your picks` : " · off in your picks")}
+              </span>
+            </span>
+            <WeightInput label={`${s.name} weight, %`} value={values[s.ticker] ?? 0} onCommit={(v) => onChange({ ...values, [s.ticker]: v })} onBad={(b) => markBad(s.ticker, b)} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+// A % field that lets "12." or an empty box sit while typing; any number from 0 to 100 goes up at
+// once (an empty box counts as 0). Anything else is marked, and leaving the box puts the last
+// good value back.
+function WeightInput({ label, value, onCommit, onBad }: { label: string; value: number; onCommit: (v: number) => void; onBad: (bad: boolean) => void }) {
+  const [text, setText] = useState<string | null>(null);
+  const read = (v: string) => {
+    if (v.trim() === "") return 0;
+    const n = Number(v.trim().replace(",", "."));
+    return Number.isFinite(n) && n >= 0 && n <= 100 ? Math.round(n * 100) / 100 : null;
+  };
+  const bad = text != null && read(text) == null;
+  return (
+    <label className="flex flex-none items-center gap-1">
+      <input
+        type="text"
+        inputMode="decimal"
+        aria-label={label}
+        aria-invalid={bad || undefined}
+        // What's being typed, unless the value moved underneath it (a Reset, a stock added).
+        value={text != null && (bad || read(text) === value) ? text : String(value)}
+        onChange={(e) => {
+          setText(e.target.value);
+          const n = read(e.target.value);
+          onBad(n == null);
+          if (n != null) onCommit(n);
+        }}
+        onFocus={(e) => e.target.select()}
+        onBlur={() => {
+          if (bad) onBad(false);
+          setText(null);
+        }}
+        // 16px on phones, so iOS doesn't zoom the page on focus.
+        className={
+          "min-h-9 w-16 rounded border bg-bg px-1.5 text-right font-mono text-base text-ink focus:outline-none sm:min-h-7 sm:text-xs pointer-coarse:min-h-9 " +
+          (bad ? "border-danger focus:border-danger" : "border-line focus:border-accent")
+        }
+      />
+      <span aria-hidden className="font-mono text-[11px] text-ink-soft">
+        %
+      </span>
+    </label>
+  );
 }
 
 // The ⋯ button: less frequent actions (rename, stop sharing, delete), so they don't take a row.
@@ -797,49 +1727,69 @@ function MoreMenu({ items }: { items: { label: string; onSelect: () => void; dan
   );
 }
 
-// Pick stocks to add, industry first: choose an industry, then add from its listed stocks (one by
-// one or all at once). Switching industries keeps adding to the same basket. The watchlist's
-// stocks sit underneath as one-tap chips.
+// The watchlist as the hearts have it right now (shared with every heart on the page), in the
+// order the page was given, then any saved since. Before the hearts' list loads: the page's.
+function useLiveWatchlist(initial: string[]): string[] {
+  const live = useSyncExternalStore(subscribeWatchlist, watchlistSnapshot, () => null);
+  return useMemo(() => {
+    if (live == null) return initial;
+    const now = live ? live.split(",") : [];
+    return [...initial.filter((t) => isWatched(t) !== false), ...now.filter((t) => !initial.includes(t))];
+  }, [live, initial]);
+}
+
+// Pick stocks to add: from an industry (choose it, then add its listed stocks one by one or all at
+// once; switching industries keeps adding to the same basket) or from your watchlist. One bar in
+// a fixed place; the list opens over the page. Every row stands for a stock: "+ Add" when it isn't
+// in the basket, ✓ and the same × as the stock table when it is, so it can be taken off here too.
 function StockPicker({
-  layout = "rail",
   universe,
   industries,
   initialIndustry,
-  watchlist,
+  watchlist: initialWatchlist,
   have,
-  full,
+  room,
+  locked,
   onAdd,
   onRemove,
 }: {
-  /** "rail": stacked in the basket's left column. "bar": one row across the top (Create basket). */
-  layout?: "rail" | "bar";
-  /** When set, a stock already in the basket can be taken off from the list too. */
-  onRemove?: (ticker: string) => void;
   universe: BasketStock[];
   industries: CompareBasket[];
   initialIndustry: string | null;
   watchlist: string[];
   have: Set<string>;
-  full: boolean;
-  onAdd: (tickers: string[]) => void;
+  /** Stocks the basket can still take before its limit. */
+  room: number;
+  /** Nothing can change (the basket is being created). */
+  locked: boolean;
+  /** The stocks, and the industry list they were picked from (none from the watchlist). */
+  onAdd: (tickers: string[], fromIndustry?: string) => void;
+  onRemove: (ticker: string) => void;
 }) {
   const [industry, setIndustry] = useState(() => (initialIndustry && industries.some((i) => i.slug === initialIndustry) ? initialIndustry : (industries[0]?.slug ?? "")));
+  const [source, setSource] = useState<"industry" | "watchlist">("industry");
   const [filter, setFilter] = useState("");
-  // The stocks list is a dropdown: it opens from the Stocks button or on picking an industry,
-  // stays open while adding, and closes on a tap anywhere else or Escape.
+  const listId = useId();
+  const watchlist = useLiveWatchlist(initialWatchlist);
+  // The list is a dropdown over the page: it opens from the Stocks or Watchlist button or on
+  // picking an industry, stays open while adding and taking off, and closes with Done, a tap
+  // anywhere else or Escape.
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
+  const close = () => {
+    setOpen(false);
+    setFilter("");
+  };
   useEffect(() => {
     if (!open) return;
-    // Closing also clears the filter, so the list reopens whole.
-    const close = () => {
+    const shut = () => {
       setOpen(false);
       setFilter("");
     };
     const onDown = (e: PointerEvent) => {
-      if (!boxRef.current?.contains(e.target as Node)) close();
+      if (!boxRef.current?.contains(e.target as Node)) shut();
     };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && shut();
     document.addEventListener("pointerdown", onDown);
     document.addEventListener("keydown", onKey);
     return () => {
@@ -847,9 +1797,20 @@ function StockPicker({
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
-  // Stocks already in the basket list first (as they were when the list opened or the industry
-  // changed, so a row never jumps under a tap), then the rest A to Z.
+  // Stocks already in the basket list first, as they were when the list opened or the industry
+  // changed: the order never changes while it is on screen, so a row never jumps under a tap.
   const [pinned, setPinned] = useState<Set<string>>(() => new Set(have));
+  // The list opened by switching the industry rather than by its button: the button's first tap
+  // then keeps it open (it would otherwise read as a tap that did nothing), a second one closes it.
+  const [openedBySwitch, setOpenedBySwitch] = useState(false);
+  const openOn = (src: "industry" | "watchlist") => {
+    if (!open || src !== source) setPinned(new Set(have));
+    setSource(src);
+    setFilter("");
+    setOpen(!(open && src === source && !openedBySwitch));
+    setOpenedBySwitch(false);
+  };
+  const byTicker = useMemo(() => new Map(universe.map((s) => [s.ticker, s])), [universe]);
   const inIndustry = useMemo(
     () =>
       universe
@@ -857,33 +1818,43 @@ function StockPicker({
         .sort((a, b) => Number(pinned.has(b.ticker)) - Number(pinned.has(a.ticker)) || a.name.localeCompare(b.name)),
     [universe, industry, pinned],
   );
+  const liked = useMemo(() => watchlist.flatMap((t) => (byTicker.has(t) ? [byTicker.get(t)!] : [])), [watchlist, byTicker]);
+  const list = source === "industry" ? inIndustry : liked;
   const f = filter.trim().toLowerCase();
-  const matches = f ? inIndustry.filter((s) => s.name.toLowerCase().includes(f) || s.ticker.toLowerCase().includes(f)) : inIndustry;
+  const matches = f ? list.filter((s) => s.name.toLowerCase().includes(f) || s.ticker.toLowerCase().includes(f)) : list;
   const addable = matches.filter((s) => !have.has(s.ticker));
   const industryName = industries.find((i) => i.slug === industry)?.name ?? "this industry";
+  const listName = source === "industry" ? industryName : "Your watchlist";
   const added = inIndustry.filter((s) => have.has(s.ticker)).length;
-  const bar = layout === "bar";
-  const liked = watchlist.filter((t) => !have.has(t)).map((t) => universe.find((s) => s.ticker === t)).filter((s): s is BasketStock => !!s);
+  const likedIn = liked.filter((s) => have.has(s.ticker)).length;
+  const full = room <= 0;
+  // "Add all" says how many will go in when the basket can't take them all.
+  const addAllLabel = addable.length <= room ? `Add all ${addable.length}` : `Add ${room} of ${addable.length}`;
+  const btn = (on: boolean) =>
+    "flex min-h-[42px] min-w-0 flex-1 items-center justify-between gap-2 rounded-lg border bg-panel px-3 py-2 text-left text-base text-ink sm:text-sm " + (on ? "border-accent" : "border-line");
+  const chevron = (on: boolean) => (
+    <svg aria-hidden width="10" height="6" viewBox="0 0 10 6" className={"flex-none transition-transform " + (on ? "rotate-180" : "")}>
+      <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 
   return (
-    <section
-      aria-label="Add stocks"
-      className={"flex flex-col gap-3 " + (bar ? "max-w-4xl" : "rounded-2xl border border-accent/40 bg-panel p-4 lg:border-0 lg:bg-transparent lg:p-0")}
-    >
+    <section aria-label="Add stocks" className="max-w-4xl">
       <div ref={boxRef} className="relative">
-        <div className={"flex flex-col gap-2 sm:flex-row " + (bar ? "sm:items-center sm:gap-4" : "lg:flex-col")}>
-          {/* In the bar each label sits beside its control, as on the Analysis charts' industry picker. */}
-          <label className={"flex min-w-0 gap-1 " + (bar ? "flex-col sm:flex-1 sm:flex-row sm:items-center sm:gap-2" : "flex-col sm:w-1/2 lg:w-full")}>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+          <label className="flex min-w-0 flex-col gap-1 sm:flex-1 sm:flex-row sm:items-center sm:gap-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">Industry</span>
             <select
               value={industry}
               onChange={(e) => {
                 setIndustry(e.target.value);
+                setSource("industry");
                 setFilter("");
                 setOpen(true);
+                setOpenedBySwitch(true);
                 setPinned(new Set(have));
               }}
-              className={"rounded-lg border border-line px-3 py-2 text-base text-ink sm:text-sm " + (bar ? "min-h-[42px] min-w-0 flex-1 bg-panel font-semibold" : "bg-bg")}
+              className="min-h-[42px] min-w-0 flex-1 rounded-lg border border-line bg-panel px-3 py-2 text-base font-semibold text-ink sm:text-sm"
             >
               {industries.map((i) => (
                 <option key={i.slug} value={i.slug}>
@@ -892,111 +1863,132 @@ function StockPicker({
               ))}
             </select>
           </label>
-          <div className={"flex min-w-0 gap-1 " + (bar ? "flex-col sm:flex-1 sm:flex-row sm:items-center sm:gap-2" : "flex-col sm:w-1/2 lg:w-full")}>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">Stocks</span>
-            <button
-              type="button"
-              onClick={() => {
-                if (!open) setPinned(new Set(have));
-                setOpen(!open);
-              }}
-              aria-haspopup="listbox"
-              aria-expanded={open}
-              aria-controls="add-stock-list"
-              aria-label={`${industryName} stocks: ${inIndustry.length} listed${added > 0 ? `, ${added} in this basket` : ""}`}
-              className={"flex min-h-[42px] items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-base text-ink sm:text-sm " + (bar ? "min-w-0 flex-1 bg-panel " : "bg-bg ") + (open ? "border-accent" : "border-line")}
-            >
-              <span className="truncate">
-                {inIndustry.length} listed{added > 0 ? ` · ${added} in this basket` : ""}
-              </span>
-              <svg aria-hidden width="10" height="6" viewBox="0 0 10 6" className={"flex-none transition-transform " + (open ? "rotate-180" : "")}>
-                <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
+          <div className="flex min-w-0 flex-col gap-1 sm:flex-1 sm:flex-row sm:items-center sm:gap-2">
+            <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-soft">
+              Stocks
+              <InfoTip label="How to add stocks">
+                Pick an industry, then add its stocks one by one or all at once, or add from your watchlist. Switching industry keeps adding to the
+                same basket, so one basket can mix several (up to {MAX_BASKET_STOCKS} stocks). The × on a ticked row takes it off again.
+              </InfoTip>
+            </span>
+            <div className="flex min-w-0 flex-1 gap-2">
+              <button
+                type="button"
+                onClick={() => openOn("industry")}
+                aria-haspopup="listbox"
+                aria-expanded={open && source === "industry"}
+                aria-controls={listId}
+                aria-label={`${industryName} stocks: ${inIndustry.length} listed${added > 0 ? `, ${added} in this basket` : ""}`}
+                className={btn(open && source === "industry")}
+              >
+                {/* Short enough to fit beside the Watchlist button at every width; the full wording is its label. */}
+                <span className="truncate">
+                  {inIndustry.length} listed{added > 0 ? ` · ${added} added` : ""}
+                </span>
+                {chevron(open && source === "industry")}
+              </button>
+              <button
+                type="button"
+                onClick={() => openOn("watchlist")}
+                aria-haspopup="listbox"
+                aria-expanded={open && source === "watchlist"}
+                aria-controls={listId}
+                aria-label={`Your watchlist: ${liked.length} stocks${likedIn > 0 ? `, ${likedIn} in this basket` : ""}`}
+                className={btn(open && source === "watchlist") + " max-w-[11rem] flex-none sm:flex-1"}
+              >
+                <span className="truncate">Watchlist · {liked.length}</span>
+                {chevron(open && source === "watchlist")}
+              </button>
+            </div>
           </div>
         </div>
 
         {open && (
           <div
-            id="add-stock-list"
-            className={"absolute inset-x-0 top-full z-20 mt-1 rounded-xl border border-line bg-panel p-3 shadow-[0_18px_40px_-18px_rgba(0,0,0,0.45)] " + (bar ? "sm:left-auto sm:w-[min(28rem,100%)]" : "lg:static lg:mt-2 lg:bg-bg lg:shadow-none")}
+            id={listId}
+            className="absolute inset-x-0 top-full z-20 mt-1 rounded-xl border border-line bg-panel p-3 shadow-[0_18px_40px_-18px_rgba(0,0,0,0.45)] sm:left-auto sm:w-[min(28rem,100%)]"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wider text-ink-soft">{industryName}</span>
-              {addable.length > 1 && (
-                <button type="button" disabled={full} onClick={() => onAdd(addable.map((s) => s.ticker))} className="flex-none text-xs font-semibold text-accent hover:underline">
-                  Add all {addable.length}
+              <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wider text-ink-soft">{listName}</span>
+              <span className="flex flex-none items-center gap-3">
+                {addable.length > 1 && (
+                  <button
+                    type="button"
+                    disabled={full || locked}
+                    onClick={() => onAdd(addable.map((s) => s.ticker), source === "industry" ? industry : undefined)}
+                    className="-my-2 py-2 text-xs font-semibold text-accent hover:underline disabled:text-ink-soft disabled:no-underline"
+                  >
+                    {addAllLabel}
+                  </button>
+                )}
+                <button type="button" onClick={close} className="inline-flex min-h-8 items-center rounded bg-accent px-3 text-xs font-semibold text-bg hover:opacity-90 pointer-coarse:min-h-9">
+                  Done
                 </button>
-              )}
+              </span>
             </div>
-            {inIndustry.length > 12 && (
+            {/* Laid out whether or not the basket is full, so the list doesn't move when it fills. */}
+            <p className={"mt-1 text-[11px] leading-snug " + (full ? "text-danger" : "text-ink-soft")}>
+              {full ? `This basket is full (${MAX_BASKET_STOCKS} stocks). Take one off to add another.` : `Room for ${room} more · up to ${MAX_BASKET_STOCKS} stocks`}
+            </p>
+            {list.length > 12 && (
               <input
                 type="search"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                placeholder={`Filter ${inIndustry.length} stocks`}
-                aria-label={`Filter ${industryName} stocks`}
+                placeholder={`Filter ${list.length} stocks`}
+                aria-label={`Filter ${listName} stocks`}
                 className="mt-2 w-full rounded-lg border border-line bg-bg px-3 py-1.5 text-base text-ink placeholder:text-ink-soft focus:border-accent focus:outline-none sm:text-sm"
               />
             )}
-            <ul role="listbox" aria-label={`${industryName} stocks`} className="mt-1 max-h-[min(45vh,22rem)] divide-y divide-line overflow-y-auto overscroll-contain">
+            <ul role="listbox" aria-label={`${listName} stocks`} className="mt-1 max-h-[min(45vh,22rem)] divide-y divide-line overflow-y-auto overscroll-contain">
               {matches.map((s) => {
                 const inIt = have.has(s.ticker);
                 return (
-                  <li key={s.ticker} role="option" aria-selected={inIt} className="flex items-center gap-3 py-2">
+                  <li key={s.ticker} role="option" aria-selected={inIt} className="flex min-h-[3.25rem] items-center gap-3 py-1.5">
                     <div className="min-w-0 flex-1">
                       <div className={"truncate text-sm " + (inIt ? "font-semibold text-accent" : "text-ink")}>
                         {inIt && <span aria-hidden>✓ </span>}
                         {s.name}
                       </div>
                       <div className="truncate text-[11px] text-ink-soft">
-                        <span className="font-mono">{s.ticker}</span> · {s.layer}
+                        {/* Its layer in this industry (Bharat Forge reads as an EV part here, not artillery). */}
+                        <span className="font-mono">{s.ticker}</span> · {source === "industry" ? (s.layerIn?.[industry] ?? s.layer) : s.layer}
+                        {inIt && <span className="sr-only"> (in this basket)</span>}
                       </div>
                     </div>
-                    {inIt && onRemove ? (
-                      <button type="button" onClick={() => onRemove(s.ticker)} aria-label={`Remove ${s.name}`} className="min-h-9 flex-none rounded-full border border-line px-3 text-xs font-semibold text-ink-soft hover:border-danger hover:text-danger">
-                        Remove
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled={inIt || full}
-                        onClick={() => onAdd([s.ticker])}
-                        aria-label={inIt ? `${s.name} is in this basket` : `Add ${s.name}`}
-                        className={"min-h-9 flex-none rounded-full px-3 text-xs font-semibold " + (inIt ? "text-ink-soft" : "border border-accent text-accent hover:bg-accent hover:text-bg")}
-                      >
-                        {inIt ? "Added" : "+ Add"}
-                      </button>
+                    {s.oneOff && (
+                      <span className="flex-none text-[11px]">
+                        <OneOffMark name={s.name} reason={s.oneOff} />
+                      </span>
                     )}
+                    {/* The add and remove controls share one slot of the same width, so a row never re-flows. */}
+                    <span className="flex w-[4.5rem] flex-none justify-end">
+                      {inIt ? (
+                        <RemoveButton ticker={s.ticker} name={s.name} disabled={locked} onRemove={onRemove} />
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={full || locked}
+                          onClick={() => onAdd([s.ticker], source === "industry" ? industry : undefined)}
+                          aria-label={`Add ${s.name}`}
+                          className="min-h-9 rounded-full border border-accent px-3 text-xs font-semibold text-accent hover:bg-accent hover:text-bg disabled:border-line disabled:text-ink-soft disabled:hover:bg-transparent"
+                        >
+                          + Add
+                        </button>
+                      )}
+                    </span>
                   </li>
                 );
               })}
-              {matches.length === 0 && <li className="py-2 text-xs text-ink-soft">No {industryName} stock matches &ldquo;{filter}&rdquo;.</li>}
+              {matches.length === 0 && (
+                <li className="py-2 text-xs text-ink-soft">
+                  {f ? <>No {listName} stock matches &ldquo;{filter}&rdquo;.</> : source === "watchlist" ? "Your watchlist is empty. Save stocks with the heart anywhere on the site to see them here." : "No listed stocks in this industry."}
+                </li>
+              )}
             </ul>
           </div>
         )}
       </div>
-      {full && <p className="text-xs text-ink-soft">This basket is full ({MAX_STOCKS} stocks). Remove one to add another.</p>}
-
-      {liked.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">From your watchlist</span>
-            {liked.length > 1 && (
-              <button type="button" disabled={full} onClick={() => onAdd(liked.map((s) => s.ticker))} className="-my-2 px-1 py-2 text-xs font-semibold text-accent hover:underline">
-                Add all {liked.length}
-              </button>
-            )}
-          </div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {liked.map((s) => (
-              <button key={s.ticker} type="button" disabled={full} onClick={() => onAdd([s.ticker])} className="min-h-9 rounded-full border border-line px-3 text-xs text-ink hover:border-accent">
-                + {s.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </section>
   );
 }

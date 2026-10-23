@@ -70,7 +70,7 @@ export function UserMenu({ email, displayName }: Props) {
             <Link
               href="/login"
               onClick={() => setOpen(false)}
-              className="mt-2 block rounded-lg bg-accent px-2 py-1.5 text-center text-xs font-semibold text-bg hover:opacity-90"
+              className="mt-2 block rounded-lg bg-accent px-2 py-1.5 pointer-coarse:py-2.5 text-center text-xs font-semibold text-bg hover:opacity-90"
             >
               Log in
             </Link>
@@ -124,16 +124,16 @@ export function UserMenu({ email, displayName }: Props) {
                 aria-label="Display name"
                 defaultValue={label}
                 autoFocus
-                className="rounded-lg border border-line bg-panel-2 px-2 py-1.5 text-base text-ink outline-none focus:border-accent sm:text-sm"
+                className="rounded-lg border border-line bg-panel-2 px-2 py-1.5 pointer-coarse:py-2.5 text-base text-ink outline-none focus:border-accent sm:text-sm"
               />
               <div className="flex gap-2">
-                <button type="submit" className="flex-1 rounded-lg bg-accent px-2 py-1.5 text-xs font-semibold text-bg hover:opacity-90">
+                <button type="submit" className="flex-1 rounded-lg bg-accent px-2 py-1.5 pointer-coarse:py-2.5 text-xs font-semibold text-bg hover:opacity-90">
                   Save
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditing(false)}
-                  className="flex-1 rounded-lg border border-line px-2 py-1.5 text-xs text-ink-soft hover:border-accent hover:text-ink"
+                  className="flex-1 rounded-lg border border-line px-2 py-1.5 pointer-coarse:py-2.5 text-xs text-ink-soft hover:border-accent hover:text-ink"
                 >
                   Cancel
                 </button>
@@ -148,7 +148,7 @@ export function UserMenu({ email, displayName }: Props) {
               <button
                 type="button"
                 onClick={() => setEditing(true)}
-                className="mt-2 w-full rounded-lg border border-line px-2 py-1.5 text-left text-xs text-ink-soft hover:border-accent hover:text-ink"
+                className="mt-2 w-full rounded-lg border border-line px-2 py-1.5 pointer-coarse:py-2.5 text-left text-xs text-ink-soft hover:border-accent hover:text-ink"
               >
                 Edit name
               </button>
@@ -159,21 +159,21 @@ export function UserMenu({ email, displayName }: Props) {
               <Link
                 href="/watchlist"
                 onClick={() => setOpen(false)}
-                className="mt-1 block rounded-lg border border-line px-2 py-1.5 text-xs text-ink-soft hover:border-accent hover:text-ink"
+                className="mt-1 block rounded-lg border border-line px-2 py-1.5 pointer-coarse:py-2.5 text-xs text-ink-soft hover:border-accent hover:text-ink"
               >
                 My watchlist
               </Link>
               <Link
                 href="/baskets"
                 onClick={() => setOpen(false)}
-                className="mt-1 block rounded-lg border border-line px-2 py-1.5 text-xs text-ink-soft hover:border-accent hover:text-ink"
+                className="mt-1 block rounded-lg border border-line px-2 py-1.5 pointer-coarse:py-2.5 text-xs text-ink-soft hover:border-accent hover:text-ink"
               >
                 My baskets
               </Link>
               <form action={logout} className="mt-1">
                 <button
                   type="submit"
-                  className="w-full rounded-lg border border-line px-2 py-1.5 text-left text-xs text-ink-soft hover:border-danger hover:text-danger"
+                  className="w-full rounded-lg border border-line px-2 py-1.5 pointer-coarse:py-2.5 text-left text-xs text-ink-soft hover:border-danger hover:text-danger"
                 >
                   Log out
                 </button>

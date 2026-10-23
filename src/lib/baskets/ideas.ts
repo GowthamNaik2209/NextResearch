@@ -1,6 +1,9 @@
 // Basket ideas: ready-made stock lists, re-ranked from the latest prices and the maps. The pure
 // rules live here (tested in ideas.test.ts); ideas-data.ts feeds them each day's price history.
+import { fmtMonth, signedPct } from "@/lib/format";
 import type { ChartRange } from "@/lib/live/yahoo";
+import { kpiScreens, type KpiStock } from "./kpi-screens";
+import { ONE_OFF_NOTE } from "./outliers";
 
 const DAY = 86_400_000;
 
@@ -56,21 +59,29 @@ export type Idea = {
   /** The range the idea's chart opens on. */
   range: ChartRange;
   stocks: IdeaStock[];
-  /** The list's equal-weight return over `retLabel` (an equal-weight buy-and-hold basket returns the average). */
+  /** The list's equal-weight return over `retLabel`: the average here, then the page's own backtest for the cards (withBacktestReturns). */
   ret: number | null;
   retLabel: string;
+  /**
+   * Each stock is backtested from its own listing day (Recent listings): one listed during the
+   * range joins the basket on its first trading day at an equal share of the basket then, the others
+   * sold down in proportion to pay for it (backtest.ts, JoinOptions), instead of being left out.
+   */
+  joinAtListing?: boolean;
 };
 
-/** What the rules need about each listed stock, from the maps. */
-export type IdeaStockInfo = {
+/** What the rules need about each listed stock, from the maps and the company table. */
+export type IdeaStockInfo = KpiStock & {
   ticker: string;
   name: string;
   mcapCr: number | null;
   roce: number | null;
-  /** Kept out of screens: latest results dominated by a one-off. */
-  screenOut?: boolean;
-  /** Industries the company is mapped in. */
+  /** Book value per share from the company table (negative when the company owes more than it owns). */
+  book?: number | null;
+  /** Industry maps the company is in (policy maps not counted). */
   industries: number;
+  /** Policy maps (PLI, ALMM…) it is also in: with the industries, the "chains" /connections counts. */
+  policies?: number;
   /** Its price history starts at a listing that wasn't an IPO (a REIT or InvIT, or a demerger). */
   notIpo?: boolean;
   /** Its strongest place in a layer few listed companies supply (null if none). */
@@ -81,13 +92,47 @@ const TOP_N = 10;
 const LIST_N = 12;
 const QUALITY_MIN_MCAP_CR = 1000;
 const IPO_WINDOW_DAYS = 730;
+// The chart ranges a Recent listings backtest can open on, shortest first, with the days each
+// covers: the shortest one reaching back to the earliest listing in the list is used.
+const SINCE_RANGES = [
+  { id: "1M", days: 28 },
+  { id: "6M", days: 180 },
+  { id: "1Y", days: 362 },
+  { id: "2Y", days: IPO_WINDOW_DAYS },
+] as const satisfies readonly { id: ChartRange; days: number }[];
 
-const pctTxt = (v: number) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}%`;
+/** The shortest chart range whose first day is on or before `first` (the earliest listing). */
+export function sinceRange(first: string, now: number): ChartRange {
+  const age = (now - Date.parse(first)) / DAY;
+  return (SINCE_RANGES.find((r) => r.days >= age) ?? SINCE_RANGES[SINCE_RANGES.length - 1]).id;
+}
+
+/** The Recent listings method, in the words its "i" and page use. */
+export const SINCE_LISTING_NOTE =
+  "Each stock is backtested from its first trading day: its equal share of the money is set aside on the first day and waits in cash until it lists, so it adds its share times its return since listing.";
+
+/**
+ * ROCE means something only for a company that earns a profit on positive equity: on negative or
+ * near-zero equity (a loss-making company that owes more than it owns) the ratio can read as 50%+
+ * while the business loses money. So Highest ROCE needs a positive P/E, a profit in the latest year
+ * and a book value that isn't negative.
+ */
+export function roceMeaningful(s: Pick<IdeaStockInfo, "roce" | "pe" | "np" | "book">): boolean {
+  const np = s.np?.[4];
+  return s.roce != null && s.pe != null && s.pe > 0 && (np == null || np > 0) && !(s.book != null && s.book <= 0);
+}
+
+const pctTxt = (v: number) => signedPct(v);
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
-const monthYear = (t: string) => new Date(t).toLocaleDateString("en-IN", { month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
+const monthYear = (t: string) => fmtMonth(t);
 
-/** Every idea for the day. An idea with no stocks (no price data yet, say) is left out. */
-export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: number): Idea[] {
+/**
+ * Every idea for the day. An idea with no stocks (no price data yet, say) is left out. Companies
+ * with a one-off year (outlier, ./outliers.ts) are in none of them: a ranking on distorted figures
+ * (or a price move on a one-off) mostly ranks the one-off. Users can still add them to their own baskets.
+ */
+export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: number): Idea[] {
+  const stocks = all.filter((s) => !s.outlier);
   const stat = (t: string) => snap.stats[t];
   const ret1y = (list: string[]) => mean(list.map((t) => stat(t)?.ret["1Y"]).filter((v): v is number => v != null));
   const ideas: Idea[] = [];
@@ -99,9 +144,9 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
       .slice(0, TOP_N);
     ideas.push({
       id: `top-${p.id.toLowerCase()}`,
-      title: `Top performers · ${p.id}`,
+      title: `Biggest gainers · ${p.id}`,
       blurb: `The ${TOP_N} listed stocks in our maps that rose most over the past ${p.long}.`,
-      rule: `The ${TOP_N} biggest gainers over the past ${p.long} across our maps, re-ranked daily. Past returns, not a recommendation.`,
+      rule: `The ${TOP_N} biggest gainers over the past ${p.long} across our maps, re-ranked daily. ${ONE_OFF_NOTE} Past returns, not a recommendation.`,
       range: p.id,
       stocks: ranked.map((s) => ({ ticker: s.ticker, stat: pctTxt(stat(s.ticker).ret[p.id]!) })),
       ret: mean(ranked.map((s) => stat(s.ticker).ret[p.id]!)),
@@ -110,14 +155,14 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
   }
 
   const quality = stocks
-    .filter((s) => s.roce != null && !s.screenOut && (s.mcapCr ?? 0) >= QUALITY_MIN_MCAP_CR)
+    .filter((s) => roceMeaningful(s) && (s.mcapCr ?? 0) >= QUALITY_MIN_MCAP_CR)
     .sort((a, b) => b.roce! - a.roce! || a.name.localeCompare(b.name))
     .slice(0, LIST_N);
   ideas.push({
     id: "quality",
-    title: "Quality leaders",
+    title: "Highest ROCE",
     blurb: "The highest return on capital employed across every industry we map.",
-    rule: `Highest ROCE in our maps, among companies worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more.`,
+    rule: `Highest ROCE in our maps, among profitable companies (a P/E and a profit in the latest year) with positive book value, worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more: ROCE on a loss or negative equity isn't meaningful. ${ONE_OFF_NOTE}`,
     range: "1Y",
     stocks: quality.map((s) => ({ ticker: s.ticker, stat: `ROCE ${s.roce!.toFixed(0)}%` })),
     ret: ret1y(quality.map((s) => s.ticker)),
@@ -130,9 +175,9 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     .slice(0, LIST_N);
   ideas.push({
     id: "bottlenecks",
-    title: "Bottleneck plays",
+    title: "Scarce suppliers",
     blurb: "Listed companies in supply-chain layers that only one or two listed names supply.",
-    rule: "Companies in supply-chain layers that only one or two listed companies supply, scarcest first.",
+    rule: `Companies in supply-chain layers that only one or two listed companies supply, scarcest first. ${ONE_OFF_NOTE}`,
     range: "1Y",
     stocks: scarce.map((s) => ({ ticker: s.ticker, stat: s.scarce!.listed === 1 ? "sole listed name" : "1 of 2 listed" })),
     ret: ret1y(scarce.map((s) => s.ticker)),
@@ -145,11 +190,11 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     .slice(0, 15);
   ideas.push({
     id: "cross-industry",
-    title: "Across industries",
-    blurb: "Companies that turn up in three or more of our industry maps.",
-    rule: "Companies in three or more of our industry maps, widest reach first.",
+    title: "In 3+ industries",
+    blurb: "Companies that turn up in three or more of our industry maps (policy maps not counted).",
+    rule: `Companies in three or more of our industry maps, widest reach first. ${ONE_OFF_NOTE}`,
     range: "1Y",
-    stocks: cross.map((s) => ({ ticker: s.ticker, stat: `${s.industries} industries` })),
+    stocks: cross.map((s) => ({ ticker: s.ticker, stat: s.policies ? `${s.industries} industries + ${s.policies} ${s.policies === 1 ? "policy" : "policies"}` : `${s.industries} industries` })),
     ret: ret1y(cross.map((s) => s.ticker)),
     retLabel: "1Y",
   });
@@ -161,16 +206,50 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     })
     .sort((a, b) => Date.parse(stat(b.ticker).first) - Date.parse(stat(a.ticker).first))
     .slice(0, 15);
+  const earliest = ipos.reduce<string | null>((m, s) => (!m || stat(s.ticker).first < m ? stat(s.ticker).first : m), null);
   ideas.push({
     id: "recent-ipos",
     title: "Recent listings",
-    blurb: "Companies in our maps that listed in the past two years.",
-    rule: "Listed in the past two years, newest first. REITs, InvITs and demergers left out.",
-    range: "1M",
+    blurb: "Companies in our maps that listed in the past two years, each backtested from its listing day.",
+    rule: `Listed in the past two years, newest first; REITs, InvITs and demergers left out. ${ONE_OFF_NOTE} ${SINCE_LISTING_NOTE}`,
+    range: earliest ? sinceRange(earliest, now) : "1Y",
     stocks: ipos.map((s) => ({ ticker: s.ticker, stat: `listed ${monthYear(stat(s.ticker).first)}` })),
     ret: mean(ipos.map((s) => stat(s.ticker).sinceFirst)),
     retLabel: "since listing",
+    joinAtListing: true,
   });
 
+  // Screens on the company table's figures (kpi-screens.ts): today's list, backtested over the past year.
+  for (const k of kpiScreens(stocks)) {
+    ideas.push({ ...k, range: "1Y", ret: ret1y(k.stocks.map((s) => s.ticker)), retLabel: "1Y" });
+  }
+
   return ideas.filter((i) => i.stocks.length > 0);
+}
+
+/** What a card needs from the idea's own backtest: the basket's return and each held stock's. */
+export type IdeaBacktest = { ret: number; holdings: { ticker: string; ret: number }[] };
+
+/**
+ * The cards' figures from the same backtest the idea's page runs (bought at equal weights on the
+ * first day of `range` and held; Recent listings: each stock from its listing day), so the card and
+ * the page show one number. A top-performers row shows that backtest's own return for the stock,
+ * highest first; a Recent listings row adds the stock's return since its listing. With no backtest
+ * the figure is left out rather than shown from a different calculation.
+ */
+export function withBacktestReturns(ideas: Idea[], backtests: Record<string, IdeaBacktest | null>): Idea[] {
+  return ideas.map((idea) => {
+    const label = idea.joinAtListing ? "since listing" : idea.range;
+    const bt = backtests[idea.id];
+    if (!bt) return { ...idea, ret: null, retLabel: label };
+    const own = new Map(bt.holdings.map((h) => [h.ticker, h.ret]));
+    const stocks = idea.id.startsWith("top-")
+      ? idea.stocks
+          .map((s) => (own.has(s.ticker) ? { ...s, stat: pctTxt(own.get(s.ticker)!) } : s))
+          .sort((a, b) => (own.get(b.ticker) ?? -Infinity) - (own.get(a.ticker) ?? -Infinity))
+      : idea.joinAtListing
+        ? idea.stocks.map((s) => (own.has(s.ticker) ? { ...s, stat: `${s.stat} · ${pctTxt(own.get(s.ticker)!)}` } : s))
+        : idea.stocks;
+    return { ...idea, stocks, ret: bt.ret, retLabel: label };
+  });
 }

@@ -8,7 +8,10 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
+  // The CLI (migrate, db pull, studio) needs a direct or session connection: the transaction
+  // pooler the app uses at runtime can't run migrations. DIRECT_URL when set, else DATABASE_URL,
+  // so a setup with only DATABASE_URL keeps working. The app itself reads only DATABASE_URL.
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DIRECT_URL"] || process.env["DATABASE_URL"],
   },
 });

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getQuote } from "@/lib/live/yahoo";
 import { basketStock, MAX_BASKET_STOCKS } from "./industry";
 import type { Weighting } from "./run";
+import { weightsValid } from "./strategy";
 
 export type SavedBasket = {
   id: string;
@@ -14,7 +15,11 @@ export type SavedBasket = {
   isPublic: boolean;
   isOwner: boolean;
   createdAt: string;
-  items: { ticker: string; priceAtAdd: number | null; addedAt: string }[];
+  /** pickedFrom: the industry slug the stock was picked from (its layer label is read there), or null. */
+  items: { ticker: string; priceAtAdd: number | null; addedAt: string; pickedFrom: string | null }[];
+  /** Custom weights, % per stock: the ones in use, or kept from when the basket was last custom
+   * (so switching to Equal and back doesn't lose them). Null when it never was. */
+  weights: Record<string, number> | null;
 };
 
 type Row = NonNullable<Awaited<ReturnType<typeof loadRow>>>;
@@ -27,20 +32,27 @@ export function toSaved(row: Row, userId: string | null): SavedBasket {
     name: row.name,
     description: row.description,
     sourceSector: row.sourceSector,
-    weighting: row.weighting === "MCAP" ? "mcap" : "equal",
+    weighting: row.customWeighting ? "custom" : row.weighting === "MCAP" ? "mcap" : "equal",
     isPublic: row.isPublic,
     isOwner: row.userId === userId,
     createdAt: row.createdAt.toISOString(),
-    items: row.items.map((i) => ({ ticker: i.ticker, priceAtAdd: i.priceAtAdd ? i.priceAtAdd.toNumber() : null, addedAt: i.addedAt.toISOString() })),
+    items: row.items.map((i) => ({ ticker: i.ticker, priceAtAdd: i.priceAtAdd ? i.priceAtAdd.toNumber() : null, addedAt: i.addedAt.toISOString(), pickedFrom: i.pickedFrom })),
+    weights: row.items.some((i) => i.weight != null) ? Object.fromEntries(row.items.filter((i) => i.weight != null).map((i) => [i.ticker, i.weight!])) : null,
   };
 }
 
 /**
  * A basket the viewer may see: their own, or one its owner has shared. Null otherwise.
  * Wrapped in React's cache(): a basket page's metadata and body share one database read.
+ * An id that can't be one of ours is "not found" without asking the database; a database error is
+ * logged and thrown, so an outage shows as an error rather than as a basket that doesn't exist.
  */
 export const getVisibleBasket = cache(async (id: string, userId: string | null): Promise<SavedBasket | null> => {
-  const row = await loadRow(id).catch(() => null);
+  if (typeof id !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(id)) return null;
+  const row = await loadRow(id).catch((e) => {
+    console.error(`basket ${id}: read failed`, e);
+    throw e;
+  });
   if (!row || (row.userId !== userId && !row.isPublic)) return null;
   return toSaved(row, userId);
 });
@@ -51,6 +63,22 @@ export function cleanTickers(input: unknown): string[] {
   const out: string[] = [];
   for (const t of input) if (typeof t === "string" && !out.includes(t) && basketStock(t)) out.push(t);
   return out.slice(0, MAX_BASKET_STOCKS);
+}
+
+/**
+ * Custom weights from a request, for exactly these tickers: every one a number from 0 to 100 and
+ * together 100% (to a tenth). Null when they aren't, so a bad request never saves half a split.
+ */
+export function cleanWeights(input: unknown, tickers: string[]): Record<string, number> | null {
+  if (!input || typeof input !== "object" || !tickers.length) return null;
+  const src = input as Record<string, unknown>;
+  const out: Record<string, number> = {};
+  for (const t of tickers) {
+    const v = src[t];
+    if (typeof v !== "number" || !Number.isFinite(v) || v < 0 || v > 100) return null;
+    out[t] = Math.round(v * 100) / 100;
+  }
+  return weightsValid(out, tickers) ? out : null;
 }
 
 export const cleanName = (v: unknown, fallback: string) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 60) : fallback);

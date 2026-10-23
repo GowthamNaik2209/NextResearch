@@ -1,9 +1,8 @@
 // Integrity check for the sector/domain/zone/company graph in
 // src/lib/sector-content/products.ts (the data-model upgrade's Domain/Component
 // relational fields: domainId, relatedComponents, relatedDomains, and zone->company
-// links). Mirrors the spirit of prisma/extract-source-data.mjs's own sanity check,
-// but for the frontend content layer that script never touches (it reads from a
-// separate seed-source copy — see that file's header).
+// links), the completeness of every live sector, and that no company figure is typed
+// into the prose (figures come only from the company table - see TYPED_FIGURE below).
 //
 // Run: npm run validate:content
 import { companyLinkKey, listSectors } from "../src/lib/sector-content/index.js";
@@ -17,6 +16,41 @@ let problems = 0;
 function fail(message: string) {
   console.error(message);
   problems++;
+}
+
+// A company's P/E, market cap, ratios and share-price moves live only in the company table (the
+// database), shown with their snapshot date; typed into strengths/risks they drift within weeks
+// ("P/E ~120x" while the table says 130). Write what stays true instead ("rich valuation - see the
+// figures", "the stock has fallen sharply over the past year"). Business history (revenue, profit,
+// order book, "profit fell 36%") and dated news are fine.
+const TYPED_FIGURE: [RegExp, string][] = [
+  [/P\/E\s*(of\s*|above\s*|below\s*)?\(?~?\d/i, "a P/E"],
+  [/~?\d+(\.\d+)?x\s*(earnings|EPS|trailing|P\/E|book)\b/i, "a valuation multiple"],
+  [/\b(valuation|multiple)\s*\(~?\d+(\.\d+)?x?\)/i, "a valuation multiple"],
+  [/market[ -]?(cap|value|capitali[sz]ation)\b[^.;]{0,15}~?(Rs\s?|₹)[\d,]/i, "a market cap"],
+  [/(Rs\s?|₹)[\d,.]+\s*L?\s*(crore|Cr)\s*market[ -]?(cap|value)/i, "a market cap"],
+  [/(?<!unsold )\b(stock|shares|share price)\b[^.;]{0,40}\b(down|up|fell|rose|gained|lost|dropped|slid|declined|rallied)\s*~?\d+(\.\d+)?%/i, "a share-price move"],
+  [/\b(stock|shares)\s*[-−+]\d+%/i, "a share-price move"],
+  [/\b(stock|share)\b[^.;]{0,20}\bCAGR\b[^.;]{0,10}\d+%/i, "a share-price return"],
+  [/\b(down|up)\s*~?\d+%\s*(in a year|over the past year)/i, "a one-year return"],
+  [/\bRO(C)?E\b[^.;]{0,10}~?\d+(\.\d+)?%/, "a ROCE/ROE"],
+  [/52[- ]?(week|W)\b[^.;]{0,30}(Rs\s?|₹)[\d,]/i, "a 52-week price"],
+];
+
+// Every string in an authored object, with its path; skips the figures (`f`) and 3D builders.
+function* strings(v: unknown, path: string): Generator<[string, string]> {
+  if (typeof v === "string") yield [path, v];
+  else if (Array.isArray(v)) for (const [i, x] of v.entries()) yield* strings(x, `${path}[${i}]`);
+  else if (v && typeof v === "object")
+    for (const [k, x] of Object.entries(v)) if (k !== "f" && typeof x !== "function") yield* strings(x, `${path}.${k}`);
+}
+
+function checkTypedFigures(v: unknown, path: string) {
+  for (const [where, text] of strings(v, path))
+    for (const [re, what] of TYPED_FIGURE) {
+      const m = text.match(re);
+      if (m) fail(`${where} types ${what} into the text ("${m[0]}") - it drifts from the company table; say it in words`);
+    }
 }
 
 for (const sector of listSectors()) {
@@ -39,6 +73,11 @@ for (const sector of listSectors()) {
     if (!report) fail(`[${sector.slug}] live sector has no research deck (src/lib/sector-content/reports/)`);
     else validateReport(report, sector).forEach(fail);
   }
+
+  checkTypedFigures({ ...sector, views: undefined }, `[${sector.slug}]`);
+  const deck = getReport(sector.slug);
+  // A deck's dated company headlines are news as reported, not figures.
+  if (deck) checkTypedFigures({ ...deck, companyNews: undefined }, `[${sector.slug}] report`);
 
   const scenarioIds = new Set<string>();
   for (const sc of listScenarios(sector.slug)) {

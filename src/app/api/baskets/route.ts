@@ -2,23 +2,31 @@ import { NextResponse, after } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ensureProfile } from "@/lib/profile";
-import { MAX_BASKETS_PER_USER, getIndustryBasket } from "@/lib/baskets/industry";
-import { cleanName, cleanTickers, fillAddPrices, getVisibleBasket, toSaved } from "@/lib/baskets/store";
+import { MAX_BASKETS_PER_USER, MAX_BASKET_STOCKS, getIndustryBasket } from "@/lib/baskets/industry";
+import { cleanName, cleanTickers, cleanWeights, fillAddPrices, getVisibleBasket, toSaved } from "@/lib/baskets/store";
 import { uniqueName } from "@/lib/baskets/names";
+import { ensureFinancials } from "@/lib/financials/load";
+import { cleanPickedFrom } from "@/lib/baskets/picked-from";
+import { toPercents } from "@/lib/baskets/strategy";
 
 export const maxDuration = 60;
 
 // GET: the signed-in user's baskets, newest first.
 export async function GET() {
+  await ensureFinancials();
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ baskets: [], signedIn: false });
   const rows = await prisma.basket.findMany({ where: { userId: user.id }, include: { items: { orderBy: { addedAt: "asc" } } }, orderBy: { createdAt: "desc" } });
   return NextResponse.json({ baskets: rows.map((r) => toSaved(r, user.id)), signedIn: true });
 }
 
-// POST { name?, tickers? | sector? | copyFrom?, weighting? } - a new basket, empty, from a list
-// of stocks, from an industry basket, or a copy of a basket shared with the viewer.
+// POST { name?, tickers? (+ sourceSector?, pickedFrom?) | sector? | copyFrom?, weighting?, weights? } - a new
+// basket, empty, from a list of stocks, from an industry basket, or a copy of a basket shared with the viewer.
+// weighting "custom" takes weights ({ ticker: % }, totalling 100); without valid ones it is equal.
+// pickedFrom ({ ticker: industry slug }) is the industry each stock was picked from in the picker,
+// kept so its layer label survives a reload; a copy keeps the original's.
 export async function POST(request: Request) {
+  await ensureFinancials();
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "not authenticated" }, { status: 401 });
   const body = await request.json().catch(() => ({}));
@@ -28,10 +36,13 @@ export async function POST(request: Request) {
   let sourceSector: string | null = null;
   let description: string | null = null;
   let weighting: "EQUAL" | "MCAP" = body?.weighting === "mcap" ? "MCAP" : "EQUAL";
+  let custom = body?.weighting === "custom";
+  let wanted: unknown = body?.weights;
+  let pickedFromIn: unknown = body?.pickedFrom;
   if (typeof body?.sector === "string") {
     const ind = getIndustryBasket(body.sector);
     if (!ind) return NextResponse.json({ error: "unknown industry" }, { status: 404 });
-    tickers = ind.stocks.map((s) => s.ticker);
+    tickers = ind.stocks.map((s) => s.ticker).slice(0, MAX_BASKET_STOCKS);
     sourceSector = ind.slug;
     name = cleanName(body?.name, `My ${ind.name} basket`);
   } else if (typeof body?.copyFrom === "string") {
@@ -40,9 +51,18 @@ export async function POST(request: Request) {
     // Only stocks the maps still list: one dropped since the original was made is left behind.
     tickers = cleanTickers(src.items.map((i) => i.ticker));
     sourceSector = src.sourceSector;
+    pickedFromIn = Object.fromEntries(src.items.flatMap((i) => (i.pickedFrom ? [[i.ticker, i.pickedFrom]] : [])));
     description = src.description;
     weighting = src.weighting === "mcap" ? "MCAP" : "EQUAL";
+    // The copy keeps the original's custom weights, or the custom ones the viewer set on it.
+    if (!custom) {
+      custom = src.weighting === "custom";
+      wanted = src.weights;
+    }
     name = cleanName(body?.name, src.isOwner ? `${src.name} (copy)` : src.name).slice(0, 60);
+  } else if (typeof body?.sourceSector === "string") {
+    // A draft copied from an industry basket (Create basket) keeps that industry as its source.
+    sourceSector = getIndustryBasket(body.sourceSector)?.slug ?? null;
   }
 
   // A cap per person, so one account can't fill the shared database with baskets. Their basket
@@ -52,10 +72,30 @@ export async function POST(request: Request) {
   if (mine.length >= MAX_BASKETS_PER_USER) {
     return NextResponse.json({ error: "limit", max: MAX_BASKETS_PER_USER }, { status: 409 });
   }
+  // A copy of a custom basket whose dropped stocks leave it short is scaled back up to 100%.
+  const weights = custom ? (cleanWeights(wanted, tickers) ?? cleanWeights(rescale(wanted, tickers), tickers)) : null;
+  const pickedFrom = cleanPickedFrom(pickedFromIn, tickers);
   const row = await prisma.basket.create({
-    data: { userId: user.id, name: uniqueName(name, mine.map((b) => b.name)), description, sourceSector, weighting, items: { create: tickers.map((ticker) => ({ ticker })) } },
+    data: {
+      userId: user.id,
+      name: uniqueName(name, mine.map((b) => b.name)),
+      description,
+      sourceSector,
+      weighting,
+      customWeighting: !!weights,
+      items: { create: tickers.map((ticker) => ({ ticker, weight: weights?.[ticker] ?? null, pickedFrom: pickedFrom[ticker] ?? null })) },
+    },
   });
   // Live prices take a few seconds for a big basket; the page doesn't wait for them.
   after(() => fillAddPrices(row.id, tickers));
   return NextResponse.json({ id: row.id });
+}
+
+/** Weights for some of these tickers (a copy that lost a stock), scaled to total 100. */
+function rescale(input: unknown, tickers: string[]): Record<string, number> | null {
+  if (!input || typeof input !== "object") return null;
+  const src = input as Record<string, unknown>;
+  const w = tickers.map((t) => (typeof src[t] === "number" && Number.isFinite(src[t]) && (src[t] as number) >= 0 ? (src[t] as number) : null));
+  if (w.some((v) => v == null)) return null;
+  return toPercents(Object.fromEntries(tickers.map((t, i) => [t, w[i]!])));
 }

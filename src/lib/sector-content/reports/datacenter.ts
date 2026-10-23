@@ -14,7 +14,7 @@ export const datacenter: SectorReport = {
   keyStats: [
     { label: "Installed IT capacity, 2025", value: "~1.4 GW", sub: "approx., industry estimates" },
     { label: "Projected capacity, 2030", value: "~4-5 GW", sub: "incl. announced AI campuses" },
-    { label: "Build cost per MW", value: "Rs 45-60 Cr", sub: "approx., shell + electricals + cooling" },
+    { label: "Build cost per MW", value: "₹45-60 Cr", sub: "approx., shell + electricals + cooling" },
     { label: "Share in Mumbai", value: "~50%", sub: "Chennai a distant second" },
   ],
   thesis: [
@@ -28,7 +28,7 @@ export const datacenter: SectorReport = {
     },
     {
       title: "Picks-and-shovels earn first",
-      body: "Roughly half of every Rs of build cost goes to electrical, cooling and backup gear - transformers, switchgear, gensets, UPS and cables made by listed Indian firms.",
+      body: "Roughly half of every rupee of build cost goes to electrical, cooling and backup gear - transformers, switchgear, gensets, UPS and cables made by listed Indian firms.",
     },
   ],
 
@@ -71,7 +71,7 @@ export const datacenter: SectorReport = {
     {
       date: "Mar 2024",
       title: "IndiaAI Mission approved",
-      body: "Cabinet cleared Rs 10,372 Cr over five years; subsidised GPU tenders have since empanelled 30,000+ GPUs with Indian cloud providers.",
+      body: "Cabinet cleared ₹10,372 Cr over five years; subsidised GPU tenders have since empanelled 30,000+ GPUs with Indian cloud providers.",
       impact: "pos",
       tag: "Policy",
     },
@@ -176,7 +176,7 @@ export const datacenter: SectorReport = {
   companyNews: [
     { key: "bhartiairtel", date: "Oct 2025", development: "Airtel's Nxtra named a partner on Google's $15 bn Visakhapatnam AI hub.", impact: "Puts an Indian operator inside a gigawatt hyperscaler build.", tone: "pos" },
     { key: "netweb", date: "2025", development: "Won large sovereign AI infrastructure orders and launched Blackwell-based servers made in India.", impact: "Shows local server assembly can capture part of the AI compute spend.", tone: "pos" },
-    { key: "hitachiEnergy", date: "2024-26", development: "Executing a ~Rs 2,000 Cr capacity expansion in transformers and grid equipment.", impact: "Eases transformer lead times that gate new DC grid connections.", tone: "pos" },
+    { key: "hitachiEnergy", date: "2024-26", development: "Executing a ~₹2,000 Cr capacity expansion in transformers and grid equipment.", impact: "Eases transformer lead times that gate new DC grid connections.", tone: "pos" },
     { key: "cummins", date: "2025-26", development: "Data-centre gensets remain a key driver of high-horsepower power-gen demand.", impact: "Backup power scales directly with MW added.", tone: "pos" },
     { key: "kei", date: "2025-26", development: "Commissioning a greenfield cable plant at Sanand to add HV and EHV capacity.", impact: "More domestic EHV cable supply for campus grid connections.", tone: "pos" },
     { key: "sterliteTech", date: "2025", development: "Demerged its global services arm to focus on optical networking and DC connectivity.", impact: "A cleaner listed play on fiber demand from data centres.", tone: "neutral" },

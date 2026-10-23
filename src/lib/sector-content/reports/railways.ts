@@ -12,7 +12,7 @@ export const railways: SectorReport = {
     line: "Capex is near a record but no longer rising fast; value is moving from civil EPC and wagons to trainsets, Kavach and components.",
   },
   keyStats: [
-    { label: "Railway capex, FY26 BE", value: "~Rs 2.65 lakh Cr", sub: "approx. 4x FY14 levels" },
+    { label: "Railway capex, FY26 BE", value: "~₹2.65L Cr", sub: "approx. 4x FY14 levels" },
     { label: "Broad-gauge electrified", value: "~99%", sub: "of the BG network" },
     { label: "Freight loading, FY25", value: "~1.6 bn t", sub: "second only to China" },
     { label: "Kavach coverage", value: "<5%", sub: "of ~69,000 route km, approx." },
@@ -20,7 +20,7 @@ export const railways: SectorReport = {
   thesis: [
     {
       title: "The spend is large and sticky",
-      body: "Rail capex has run at ~Rs 2.4-2.65 lakh Cr a year since FY24, funded almost entirely by the Centre. It is a policy priority that has survived fiscal tightening.",
+      body: "Rail capex has run at ~₹2.4-2.65L Cr a year since FY24, funded almost entirely by the Centre. It is a policy priority that has survived fiscal tightening.",
     },
     {
       title: "The mix is shifting to trains and safety",
@@ -79,13 +79,13 @@ export const railways: SectorReport = {
 
   overview: {
     narrative: [
-      "Indian Railways runs ~69,000 route km, carries ~700 crore passengers and ~1.6 bn tonnes of freight a year, and earns ~Rs 2.6-2.7 lakh Cr in traffic receipts.",
+      "Indian Railways runs ~69,000 route km, carries ~700 crore passengers and ~1.6 bn tonnes of freight a year, and earns ~₹2.6-2.7L Cr in traffic receipts.",
       "Capex has risen roughly four-fold in a decade, almost all from gross budgetary support; IRFC funds rolling stock, while RVNL, IRCON and private EPC firms build lines.",
       "Operating ratio stays ~98%, so the system relies on the Budget. The next leg is trainsets, metro rolling stock (~1,000 km operational across ~20 cities) and Kavach.",
     ],
     chart: {
       title: "Indian Railways capital expenditure",
-      unit: "Rs '000 Cr",
+      unit: "₹ '000 Cr",
       source: "Union Budget / Ministry of Railways, FY28-30 NextResearch estimates",
       points: [
         { label: "FY20", value: 148 },
@@ -118,7 +118,7 @@ export const railways: SectorReport = {
   ],
 
   drivers: [
-    { title: "Record budget support", metric: "~Rs 2.5 lakh Cr+", body: "Gross budgetary support funds nearly all rail capex, insulating spend from Railways' thin operating surplus." },
+    { title: "Record budget support", metric: "~₹2.5L Cr+", body: "Gross budgetary support funds nearly all rail capex, insulating spend from Railways' thin operating surplus." },
     { title: "Trainset upgrade", metric: "Vande Bharat + sleeper", body: "Orders for chair-car, sleeper and Amrit Bharat trains replace ageing ICF coaches with higher-content trainsets." },
     { title: "Safety mandate", metric: "Kavach 4.0", body: "Train-protection rollout across trunk routes after recent accidents gives signaling vendors a multi-year pipeline." },
     { title: "Urban metro build-out", metric: "~1,000 km live", body: "Metro projects under construction in a dozen-plus cities drive coach, signaling and civil orders." },
@@ -189,7 +189,7 @@ export const railways: SectorReport = {
     { risk: "Supply bottlenecks in wheels and propulsion", mitigant: "Domestic forged wheel plant; localized IGBT and bogie capacity", severity: "low" },
   ],
   outlook: {
-    bull: "Capex climbs past Rs 3 lakh Cr by FY28 with large sleeper, metro and Kavach orders lifting both volumes and margins.",
+    bull: "Capex climbs past ₹3L Cr by FY28 with large sleeper, metro and Kavach orders lifting both volumes and margins.",
     base: "Capex grows ~5-6% a year; trainset, signaling and component makers outgrow EPC and wagon players.",
     bear: "Budget support flattens, order inflow stays thin and L1 pricing erodes margins across the chain.",
   },

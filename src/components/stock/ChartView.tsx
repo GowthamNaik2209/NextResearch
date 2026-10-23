@@ -13,14 +13,19 @@ import {
   type Time,
 } from "lightweight-charts";
 import type { ChartData, ChartRange, OhlcData, Quote } from "@/lib/live/yahoo";
-import { fmtNum, fmtSigned, withLiveQuote } from "./merge";
+import { fmtNum, fmtPrice, fmtSigned, withLiveQuote } from "./merge";
 import { barFor, fmtVolume, withLiveBar, type OhlcBar } from "@/lib/live/ohlc-format";
 import { ZOOM_OPTIONS, ZoomControls, useChartZoom } from "@/components/charts/ChartZoom";
+import { tickLabel } from "@/components/charts/ticks";
+import { cssVar, useSiteTheme } from "@/lib/theme";
+import { fmtDay, fmtMonth } from "@/lib/format";
 
 const RANGES: { id: ChartRange; label: string; long: string }[] = [
   { id: "1M", label: "1M", long: "1 month" },
   { id: "6M", label: "6M", long: "6 months" },
   { id: "1Y", label: "1Y", long: "1 year" },
+  // Same periods as the basket charts (BasketDetail), plus "All" for a single stock.
+  { id: "2Y", label: "2Y", long: "2 years" },
   { id: "3Y", label: "3Y", long: "3 years" },
   { id: "5Y", label: "5Y", long: "5 years" },
   { id: "MAX", label: "All", long: "lifetime" },
@@ -31,12 +36,8 @@ type Mode = "line" | "candles";
 // (null on Screener's fallback, which carries closes only).
 type Entry = { line: ChartData; ohlc: OhlcData | null };
 
-// lightweight-charts needs concrete colours (no CSS var()), so read the live
-// theme tokens off <html> and convert for the gradient fill.
-function cssVar(name: string, fallback: string) {
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return v || fallback;
-}
+// lightweight-charts needs concrete colours (no CSS var()), so the theme tokens are read off
+// <html> (cssVar) and converted for the gradient fill.
 function withAlpha(hex: string, a: number) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex);
   if (!m) return hex;
@@ -44,9 +45,12 @@ function withAlpha(hex: string, a: number) {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 }
 
+// The library hands times back as "YYYY-MM-DD", a business-day object or a UTC timestamp (s).
+const timeToMs = (t: Time): number =>
+  typeof t === "string" ? Date.parse(t) : typeof t === "number" ? t * 1000 : Date.UTC(t.year, t.month - 1, t.day);
 const getJson = <T,>(url: string) => fetch(url).then((r) => (r.ok ? (r.json() as Promise<T>) : Promise.reject(r)));
-const fmtDay = (t: string) => new Date(t).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-const fmtMonth = (t: string) => new Date(t).toLocaleDateString("en-IN", { month: "short", year: "numeric" });
+// Bars are dated "YYYY-MM-DD" (IST trading days); fmtDay/fmtMonth read them in UTC, so a viewer
+// west of UTC no longer sees each bar labelled with the previous day.
 
 export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | null }) {
   const [range, setRange] = useState<ChartRange>("1Y");
@@ -65,6 +69,8 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
   const candleRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const volRef = useRef<ISeriesApi<"Histogram"> | null>(null);
   const cacheRef = useRef(new Map<ChartRange, Entry>());
+  // Re-colours the chart when the light/dark toggle flips while the pop-up is open.
+  const theme = useSiteTheme();
 
   const pick = useCallback((r: ChartRange) => {
     setRange(r);
@@ -129,8 +135,10 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
       rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.1, bottom: 0.03 } },
       // Fixed edges: dragging or zooming out stops at the first and last bar instead of opening
       // blank space beside the history.
-      timeScale: { borderVisible: false, timeVisible: false, lockVisibleTimeRangeOnResize: true, fixLeftEdge: true, fixRightEdge: true },
+      timeScale: { borderVisible: false, timeVisible: false, lockVisibleTimeRangeOnResize: true, fixLeftEdge: true, fixRightEdge: true, tickMarkFormatter: tickLabel },
       crosshair: { mode: CrosshairMode.Magnet },
+      // The crosshair's date label in the site's format (the library's own read "07 Sept '26").
+      localization: { timeFormatter: (t: Time) => fmtDay(timeToMs(t)) },
       // Pinch / Ctrl + wheel zooms; a plain wheel or vertical swipe still scrolls the pop-up.
       ...ZOOM_OPTIONS,
     });
@@ -198,11 +206,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
     chart.applyOptions({ rightPriceScale: { scaleMargins: { top: 0.1, bottom: volOn ? 0.24 : 0.03 } } });
     paint();
     if (home) chart.timeScale().setVisibleLogicalRange(home);
-    // Follow a live light/dark toggle while the pop-up is open.
-    const mo = new MutationObserver(paint);
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => mo.disconnect();
-  }, [data, points, bars, candles, volOn, status, up, home]);
+  }, [data, points, bars, candles, volOn, status, up, home, theme]);
 
   const zoom = useChartZoom(chartRef, boxRef, home);
 
@@ -231,7 +235,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
                 type="button"
                 onClick={() => pick(r.id)}
                 aria-pressed={range === r.id}
-                className={"min-h-8 min-w-9 rounded-full px-2.5 text-xs font-semibold transition-colors " + (range === r.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
+                className={"min-h-8 min-w-9 rounded-full px-2.5 text-xs pointer-coarse:min-h-10 font-semibold transition-colors " + (range === r.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
               >
                 {r.label}
               </button>
@@ -251,7 +255,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
                     aria-disabled={disabled || undefined}
                     title={disabled ? noCandlesNote : undefined}
                     className={
-                      "min-h-8 rounded-full px-3 text-xs font-semibold transition-colors " +
+                      "min-h-8 rounded-full px-3 text-xs font-semibold transition-colors pointer-coarse:min-h-10 " +
                       (on ? "bg-accent text-bg" : disabled ? "cursor-not-allowed text-ink-soft opacity-45" : "text-ink-soft hover:text-ink")
                     }
                   >
@@ -266,7 +270,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
                 role="switch"
                 aria-checked={showVol}
                 onClick={() => setShowVol((v) => !v)}
-                className="flex min-h-9 items-center gap-2 rounded-full px-2 text-xs font-semibold text-ink-soft transition-colors hover:text-ink"
+                className="flex min-h-9 items-center gap-2 rounded-full px-2 text-xs pointer-coarse:min-h-10 font-semibold text-ink-soft transition-colors hover:text-ink"
               >
                 <span aria-hidden className={"relative h-5 w-9 shrink-0 rounded-full border transition-colors " + (showVol ? "border-transparent bg-accent" : "border-line bg-bg")}>
                   <span className={"absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full shadow transition-all " + (showVol ? "left-[18px] bg-bg" : "left-0.5 bg-ink-soft")} />
@@ -287,15 +291,21 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
             change width as the crosshair moves, and the controls must not move with them. */}
         <div className="relative flex flex-wrap items-end justify-between gap-3">
           <div className="order-1">
-            <div className="font-mono text-3xl font-bold text-ink">{shown ? `₹${fmtNum(shown.c)}` : "—"}</div>
+            <div className="font-mono text-3xl font-bold text-ink">{shown ? fmtPrice(shown.c) : "—"}</div>
             <div className="mt-0.5 font-mono text-xs text-ink-soft">{shownDate}</div>
           </div>
           <div className="order-3 flex basis-full flex-wrap items-center gap-2 lg:absolute lg:bottom-0 lg:left-1/2 lg:w-max lg:-translate-x-1/2 lg:flex-nowrap">{controls}</div>
           {change != null && changePct != null && (
             <div className={"order-2 text-right font-mono text-sm font-semibold tabular-nums " + (shownUp ? "text-pos" : "text-danger")}>
-              {shownUp ? "▲" : "▼"} {fmtNum(Math.abs(change))} (
-              {range === "MAX" && first && shown && shown.c / first.c >= 10 ? `${fmtNum(shown.c / first.c, 0)}×` : fmtSigned(changePct, 2)})
-              <div className="text-[11px] font-normal text-ink-soft">{hover && first ? `since ${fmtDay(first.t)}` : range === "MAX" && first ? `since ${fmtMonth(first.t)}` : `past ${RANGES.find((r) => r.id === range)?.long}`}</div>
+              {shownUp ? "▲" : "▼"} {Math.abs(change).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (
+              {range === "MAX" && first && shown && shown.c / first.c >= 10 ? `${fmtNum(shown.c / first.c, 0)}×` : fmtSigned(changePct, 1)})
+              {/* The chart's own move from live price history, which differs from the dated
+                  company-table return on Summary; "live" plus the window keeps the two apart.
+                  One decimal, like every other return in the pop-up. */}
+              <div className="text-[11px] font-normal text-ink-soft">
+                {hover && first ? `Since ${fmtDay(first.t)}` : range === "MAX" && first ? `Since ${fmtMonth(first.t)}` : `Past ${range}`},{" "}
+                <span className="text-pos">live</span>
+              </div>
             </div>
           )}
         </div>

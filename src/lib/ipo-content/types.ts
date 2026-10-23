@@ -34,6 +34,13 @@ export type IpoReport = {
   tagline: string;
   /** Month the content was written against, e.g. "Oct 2026". */
   asOf: string;
+  /**
+   * Once listed: the company's ticker in the shared company table (its NSE symbol; NSE itself, listed
+   * only on BSE, is "NSE"). Required for stage "listed". The deck's "Now listed" figures (price,
+   * market cap, P/E, as of the table's date) come from the table - never type them into the text;
+   * add the company with `scripts/refresh-financials.ts --add=TICKER`.
+   */
+  ticker?: string;
 
   status: {
     stage: IpoStage;
@@ -54,6 +61,8 @@ export type IpoReport = {
     /** Shares offered for sale when the rupee value is not yet fixed, e.g. "11.35 crore shares". */
     ofsShares?: string;
     priceBand: string | null;
+    /** Final issue price in ₹ per share once allotted (history, authored); a listed deck compares today's price with it. Required for stage "listed". */
+    issuePrice?: number;
     lotSize: string | null;
     faceValue: string | null;
     /** Market cap at the upper band, or the reported expected valuation; say which. */
@@ -119,9 +128,9 @@ export type IpoReport = {
   // --- Slide 8: peer valuation ---
   /**
    * 3-6 listed peers (Indian first, global if no Indian peer). `ticker` is the NSE symbol, and an
-   * NSE peer's market cap, revenue and P/E come from the shared company table (sector-content FIN,
+   * NSE peer's market cap, revenue and P/E come from the shared company table (the database,
    * same figures and date as every industry and policy page) - so leave those three out for it and
-   * add the company to FIN instead (`scripts/refresh-financials.ts --add=TICKER`). Only a peer with
+   * add the company to the table instead (`scripts/refresh-financials.ts --add=TICKER`). Only a peer with
    * no NSE listing carries its own figures, as of `asOf`; null when unavailable.
    */
   peers: { name: string; ticker?: string; mcapCr?: number | null; revenueCr?: number | null; pe?: number | null; note: string }[];

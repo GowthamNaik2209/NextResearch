@@ -10,6 +10,12 @@ import type { PestleKey, SeriesPoint } from "@/lib/sector-content/reports/types"
 export const lcFirst = (t: string) => (/^[A-Z][a-z]/.test(t) && !/^[A-Z][a-z]+ [A-Z]/.test(t) ? t[0].toLowerCase() + t.slice(1) : t);
 export const listJoin = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 
+/**
+ * Authored figures written "Rs 4.42 lakh Cr" / "Rs 1.13 L Cr" in the site's style ("₹4.42L Cr"),
+ * for the headline numbers on cards and slides. The authored copy itself still says "Rs".
+ */
+export const rupee = (t: string) => t.replace(/\bRs\.?\s?(?=[~\d(])/g, "₹").replace(/(\d)\s?(?:lakh|L) (?:Cr|crore)\b/g, "$1L Cr");
+
 // Small counts read better as words in a headline ("one flags a risk", not "1 flags a risk").
 const WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
 export const countWord = (n: number) => WORDS[n] ?? String(n);
@@ -108,9 +114,9 @@ export function scorecardTitle(deck: Deck, rows: DeckCompany[]) {
   const top = rows.find((r) => r.revCagr != null && (r.revStart ?? 0) >= 100) ?? rows.find((r) => r.revCagr != null);
   const best = [...rows].filter((r) => r.roce != null).sort((a, b) => b.roce! - a.roce!)[0];
   if (!top) return "How the beneficiaries compare on growth, margins and valuation";
-  // Headline ignores small-base growth (starting revenue under Rs 100 Cr), which reads as a percentage artefact.
+  // Headline ignores small-base growth (starting revenue under ₹100 Cr), which reads as a percentage artefact.
   const firstWithCagr = rows.find((r) => r.revCagr != null);
-  const lead = (top.revStart ?? 0) >= 100 && firstWithCagr && firstWithCagr.key !== top.key ? "Among companies with a Rs 100 Cr+ revenue base, " : "";
+  const lead = (top.revStart ?? 0) >= 100 && firstWithCagr && firstWithCagr.key !== top.key ? "Among companies with a ₹100 Cr+ revenue base, " : "";
   const roce = best && best.key !== top.key ? `; ${best.name} earns the highest return on capital (${best.roce!.toFixed(0)}% ROCE)` : "";
   return `${lead}${top.name} has grown revenue fastest (~${Math.round(top.revCagr!)}% a year)${roce}`;
 }

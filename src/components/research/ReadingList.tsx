@@ -1,14 +1,38 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import type { Deck } from "@/lib/sector-content/reports";
 import type { IpoDeck } from "@/lib/ipo-content";
+import type { DeckCard, IpoCard } from "@/lib/analysis-props";
 import { IpoGrid } from "@/components/ipo/IpoGrid";
-import { ResearchDeck } from "./ResearchDeck";
-import { IndustryChartsView, type ChartsIndustry } from "@/components/baskets/IndustryChartsView";
+import { InfoTip } from "@/components/InfoTip";
+import { LazyResearchDeck, dropDeepLinkParam, intentProps, prefetchReport, useForwardReopen } from "./LazyDecks";
+import type { ChartsIndustry } from "@/components/baskets/IndustryChartsView";
 import type { CompareBasket } from "@/components/baskets/BasketChart";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import { THEME_TAB_EVENT, ThemeCards, type ComingSoonSector, type SectorCard, type ThemeTab } from "./ThemeCards";
+
+// The Charts view (a full basket chart) is not needed for the first paint, so its code loads
+// when the view is picked, or right away on a ?view=charts link.
+const IndustryChartsView = dynamic(() => import("@/components/baskets/IndustryChartsView").then((m) => m.IndustryChartsView), {
+  ssr: false,
+  loading: () => <ChartsLoading />,
+});
+
+// The loading box sits in a wrapper about as tall as the loaded Charts view at each breakpoint
+// (measured on the basket page it renders, a little under so it never ends taller), so the footer
+// doesn't jump from just under the spinner to thousands of pixels down when the view arrives.
+function ChartsLoading() {
+  return (
+    <div className="min-h-[3700px] sm:min-h-[2740px] lg:min-h-[2940px] xl:min-h-[2620px]">
+      <div role="status" className="flex min-h-[420px] items-center justify-center gap-3 rounded-2xl border border-line bg-panel text-sm text-ink-soft">
+        <span aria-hidden className="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-accent" />
+        Loading charts&hellip;
+      </div>
+    </div>
+  );
+}
 
 const TABS = [
   { id: "all", label: "All" },
@@ -31,7 +55,9 @@ type View = (typeof VIEWS)[number]["id"];
 // three; the IPOs tab holds the IPO decks (`?ipo=<slug>` lands on it with that deck open).
 export function ReadingList({
   decks,
+  initialDeck,
   ipos,
+  initialIpoDeck,
   sectorCards,
   comingSoon,
   baskets,
@@ -43,11 +69,16 @@ export function ReadingList({
   initialView = "deep",
   initialSector,
 }: {
-  decks: Deck[];
-  ipos: IpoDeck[];
+  decks: DeckCard[];
+  /** The deck a ?report= link opens, built with the page; any other deck loads when opened. */
+  initialDeck?: Deck;
+  ipos: IpoCard[];
+  /** The IPO deck a ?ipo= link opens, built with the page. */
+  initialIpoDeck?: IpoDeck;
   sectorCards: SectorCard[];
   comingSoon: ComingSoonSector[];
-  baskets: ChartsIndustry[];
+  /** Every industry basket for the Charts view: in the page on a ?view=charts link, else fetched on first use. */
+  baskets?: ChartsIndustry[];
   industries: CompareBasket[];
   market: Benchmark[];
   signedIn: boolean;
@@ -72,22 +103,33 @@ export function ReadingList({
     if (initialView === "charts" && initialSector) toolbarRef.current?.scrollIntoView({ block: "start" });
   }, [initialView, initialSector]);
   const [openSlug, setOpenSlug] = useState<string | null>(null);
+  const closeDeck = useCallback(() => setOpenSlug(null), []);
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>(initialIpo ? "ipo" : "all");
   const open = decks.find((d) => d.slug === openSlug) ?? null;
   const shown = decks.filter((d) => tab === "all" || d.category === tab);
 
   // Opened after mount: the pop-up portals into document.body, which does not exist on the server.
+  // Applied once, so a re-render can't reopen a deck the reader closed.
+  const appliedInitial = useRef(false);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from the URL on mount
-    if (initial && decks.some((d) => d.slug === initial)) setOpenSlug(initial);
+    if (appliedInitial.current || !initial || !decks.some((d) => d.slug === initial)) return;
+    appliedInitial.current = true;
+    dropDeepLinkParam("report");
+    setOpenSlug(initial);
   }, [decks, initial]);
 
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    if (openSlug) url.searchParams.set("report", openSlug);
-    else url.searchParams.delete("report");
-    window.history.replaceState(window.history.state, "", url);
-  }, [openSlug]);
+  // ?report=<slug> is set on the open deck's own history entry (Presentation's urlParam), and
+  // browser Forward onto that entry opens the deck again there (adopt).
+  const [adopt, setAdopt] = useState(false);
+  useForwardReopen(
+    "report",
+    openSlug,
+    (slug) => decks.some((d) => d.slug === slug),
+    (slug) => {
+      setAdopt(true);
+      setOpenSlug(slug);
+    }
+  );
 
   // The hero's theme window picks a tab here too (landing page), opening the Deep dive on it.
   useEffect(() => {
@@ -109,10 +151,30 @@ export function ReadingList({
       url.searchParams.delete("sector");
       url.searchParams.delete("bview");
     }
-    window.history.replaceState(window.history.state, "", url);
+    // Only when it changes: on first load the URL already matches, and a replaceState that early
+    // reaches Next's router before it has initialised ("Router action dispatched before
+    // initialization" and a state update before mount, seen on the landing page).
+    if (url.href !== window.location.href) window.history.replaceState(window.history.state, "", url);
   }, [view]);
 
-  const chartBaskets = baskets.filter((b) => tab === "all" || b.category === tab);
+  // The Charts view's baskets: from the page, or fetched the first time the view is shown.
+  const [loadedBaskets, setLoadedBaskets] = useState<ChartsIndustry[] | null>(baskets ?? null);
+  const [basketsFailed, setBasketsFailed] = useState(false);
+  const needBaskets = view === "charts" && !loadedBaskets;
+  useEffect(() => {
+    if (!needBaskets) return;
+    let live = true;
+    fetch("/docs/baskets")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then(
+        (b: ChartsIndustry[]) => live && setLoadedBaskets(b),
+        () => live && setBasketsFailed(true)
+      );
+    return () => {
+      live = false;
+    };
+  }, [needBaskets]);
+  const chartBaskets = (loadedBaskets ?? []).filter((b) => tab === "all" || b.category === tab);
 
   return (
     <>
@@ -126,12 +188,13 @@ export function ReadingList({
             role="tab"
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
-            className={"rounded-full px-4 py-1.5 text-xs font-semibold transition " + (tab === t.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
+            className={"inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold transition pointer-coarse:min-h-9 " + (tab === t.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
           >
             {t.label}
           </button>
         ))}
       </div>
+      <div className="flex items-center gap-2">
       <div role="tablist" aria-label="View" className="flex gap-1 rounded-full border border-line bg-panel p-1">
         {VIEWS.map((v) => (
           <button
@@ -140,11 +203,16 @@ export function ReadingList({
             role="tab"
             aria-selected={view === v.id}
             onClick={() => setView(v.id)}
-            className={"rounded-full px-4 py-1.5 text-xs font-semibold transition " + (view === v.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
+            className={"inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold transition pointer-coarse:min-h-9 " + (view === v.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
           >
             {v.label}
           </button>
         ))}
+      </div>
+      <InfoTip label="About the three views">
+        <b>Deep dive</b>: each industry&rsquo;s supply chain and who supplies it. <b>Reports</b>: ten-slide summaries for investors.{" "}
+        <b>Charts</b>: its listed stocks backtested as one basket against the Nifty 50.
+      </InfoTip>
       </div>
       </div>
       </div>
@@ -154,6 +222,12 @@ export function ReadingList({
             Charts cover the listed stocks in our industries and policies, so IPOs aren&rsquo;t charted here. Switch to Reports for their prospectus
             summaries.
           </p>
+        ) : !loadedBaskets ? (
+          basketsFailed ? (
+            <p className="rounded-2xl border border-line bg-panel p-6 text-sm text-ink-soft">The charts couldn&rsquo;t load. Check your connection and reload the page.</p>
+          ) : (
+            <ChartsLoading />
+          )
         ) : (
           <IndustryChartsView key={`${tab}:${chartSlug ?? ""}`} baskets={chartBaskets} industries={industries} market={market} signedIn={signedIn} initialSlug={chartSlug} />
         ))}
@@ -161,25 +235,29 @@ export function ReadingList({
       {view === "reports" && tab !== "ipo" && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((d) => (
-            <ReportCard key={d.slug} deck={d} onOpen={() => setOpenSlug(d.slug)} />
+            <ReportCard key={d.slug} deck={d} onOpen={() => {
+              setAdopt(false);
+              setOpenSlug(d.slug);
+            }} />
           ))}
         </div>
       )}
       {view !== "charts" && tab === "all" && <h2 className="mt-4 font-display text-xl font-bold text-ink">IPOs</h2>}
-      {view !== "charts" && (tab === "ipo" || tab === "all") && <IpoGrid ipos={ipos} initial={initialIpo} />}
-      {open && <ResearchDeck deck={open} onClose={() => setOpenSlug(null)} />}
+      {view !== "charts" && (tab === "ipo" || tab === "all") && <IpoGrid ipos={ipos} initial={initialIpo} initialDeck={initialIpoDeck} />}
+      {open && <LazyResearchDeck key={open.slug} slug={open.slug} initialDeck={initialDeck} onClose={closeDeck} urlParam="report" adoptHistoryEntry={adopt} />}
     </>
   );
 }
 
 const TONE_TEXT = { pos: "text-pos", neg: "text-danger", neutral: "text-ink-soft" } as const;
 
-function ReportCard({ deck, onOpen }: { deck: Deck; onOpen: () => void }) {
+function ReportCard({ deck, onOpen }: { deck: DeckCard; onOpen: () => void }) {
   const r = deck.report;
   return (
     <button
       type="button"
       onClick={onOpen}
+      {...intentProps(() => prefetchReport(deck.slug))}
       aria-haspopup="dialog"
       className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-panel text-left transition hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_18px_40px_-24px_rgba(0,0,0,0.5)]"
     >
@@ -203,7 +281,7 @@ function ReportCard({ deck, onOpen }: { deck: Deck; onOpen: () => void }) {
           {r.stance.label}
         </span>
         <span className="grid grid-cols-2 gap-2">
-          {r.keyStats.slice(0, 2).map((s) => (
+          {r.keyStats.map((s) => (
             <span key={s.label} className="rounded-lg border border-line bg-bg/60 p-2.5">
               <span className="block text-[9.5px] uppercase leading-tight tracking-wide text-ink-soft">{s.label}</span>
               <span className="mt-0.5 block font-display text-base font-bold text-ink">{s.value}</span>
@@ -211,7 +289,7 @@ function ReportCard({ deck, onOpen }: { deck: Deck; onOpen: () => void }) {
           ))}
         </span>
         <span className="mt-auto flex items-center justify-between pt-1 text-xs">
-          <span className="text-ink-soft">10 slides · {deck.companies.length} beneficiaries</span>
+          <span className="text-ink-soft">10 slides · {deck.beneficiaries} beneficiaries</span>
           <span className="font-semibold text-accent group-hover:underline">Read curated report &rarr;</span>
         </span>
       </span>

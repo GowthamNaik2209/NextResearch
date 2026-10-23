@@ -12,7 +12,7 @@ export const pharma: SectorReport = {
     line: "India brands, CDMO and specialty look structurally stronger; US-generic earnings face a post-gRevlimid reset and a dated tariff clock.",
   },
   keyStats: [
-    { label: "Indian pharma market, CY2025", value: "~Rs 2.4 lakh Cr", sub: "+8.1% (Pharmarack)" },
+    { label: "Indian pharma market, CY2025", value: "~₹2.4L Cr", sub: "+8.1% (Pharmarack)" },
     { label: "Pharma exports, FY25", value: "US$30.5bn", sub: "+9.4%; FY26 ~flat (Pharmexcil)" },
     { label: "US share of exports", value: "~34%", sub: "largest market (Pharmexcil)" },
     { label: "IPM growth, Aug 2026", value: "+10.7%", sub: "value; units flat (Pharmarack)" },
@@ -57,14 +57,14 @@ export const pharma: SectorReport = {
     {
       date: "Mar 2026",
       title: "Semaglutide goes generic in India",
-      body: "On patent expiry Dr Reddy's, Sun, Zydus, Glenmark, Natco and dozens of others launched generic semaglutide at ~Rs 325-4,200 a month versus ~Rs 8,800-11,000 for the originator - a big volume opportunity with fast price erosion.",
+      body: "On patent expiry Dr Reddy's, Sun, Zydus, Glenmark, Natco and dozens of others launched generic semaglutide at ~₹325-4,200 a month versus ~₹8,800-11,000 for the originator - a big volume opportunity with fast price erosion.",
       impact: "pos",
       tag: "Market",
     },
     {
       date: "Feb 2026",
       title: "Budget launches Biopharma SHAKTI",
-      body: "Union Budget 2026-27 proposed Rs 10,000 crore over five years to build biologics and biosimilars capacity, plus three new NIPERs and upgrades of seven.",
+      body: "Union Budget 2026-27 proposed ₹10,000 Cr over five years to build biologics and biosimilars capacity, plus three new NIPERs and upgrades of seven.",
       impact: "pos",
       tag: "Policy",
     },
@@ -79,7 +79,7 @@ export const pharma: SectorReport = {
 
   overview: {
     narrative: [
-      "India is the world's largest supplier of generic medicines by volume and runs a ~Rs 2.4 lakh crore domestic market. About half of the industry's revenue comes from exports, a third of which go to the US.",
+      "India is the world's largest supplier of generic medicines by volume and runs a ~₹2.4L Cr domestic market. About half of the industry's revenue comes from exports, a third of which go to the US.",
       "Profit pools differ sharply by layer: branded domestic formulations and specialty earn the highest returns, US generics are large but deflationary, and APIs/KSMs swing with Chinese pricing.",
       "The next leg is about moving up the value chain - complex generics, biosimilars, peptides, CDMO and novel drugs - while managing USFDA compliance, US tariffs and China input dependence.",
     ],
@@ -98,10 +98,10 @@ export const pharma: SectorReport = {
       ],
     },
     snapshot: [
-      { label: "IPM size, CY2025 (Pharmarack)", value: "Rs 2,40,672 Cr", tone: "pos" },
+      { label: "IPM size, CY2025 (Pharmarack)", value: "₹2.41L Cr", tone: "pos" },
       { label: "IPM growth, Aug 2026 (Pharmarack)", value: "+10.7% value, units flat", tone: "neutral" },
       { label: "China share of imports, many critical APIs", value: "70%+ (PIB, FY25)", tone: "neg" },
-      { label: "PLI bulk-drug scheme outlay", value: "Rs 6,940 Cr; 48 projects", tone: "pos" },
+      { label: "PLI bulk-drug scheme outlay", value: "₹6,940 Cr; 48 projects", tone: "pos" },
       { label: "US tariff on generics", value: "0% to Jul 2028, then 100%", tone: "neg" },
       { label: "Indian pharma US investment pledges", value: "~US$19bn (May 2026)", tone: "neutral" },
     ],

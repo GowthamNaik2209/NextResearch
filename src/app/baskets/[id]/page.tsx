@@ -7,9 +7,11 @@ import { getCurrentUser } from "@/lib/auth";
 import { basketStock, dominantIndustry } from "@/lib/baskets/industry";
 import { compareProps, pickerProps } from "@/lib/baskets/page-props";
 import { getVisibleBasket } from "@/lib/baskets/store";
+import { ensureFinancials } from "@/lib/financials/load";
 
 // Shared baskets are reachable by link but never indexed: they are a person's own picks.
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  await ensureFinancials();
   const { id } = await params;
   const user = await getCurrentUser();
   const b = await getVisibleBasket(id, user?.id ?? null);
@@ -21,11 +23,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default async function SavedBasketPage({ params }: { params: Promise<{ id: string }> }) {
+  await ensureFinancials();
   const { id } = await params;
   const user = await getCurrentUser();
   const b = await getVisibleBasket(id, user?.id ?? null);
   if (!b) notFound();
   const stocks = b.items.map((i) => basketStock(i.ticker)).filter((s) => s !== null);
+  // Saved stocks the maps no longer list stay visible ("No longer listed") so they can be taken off,
+  // rather than silently vanishing; the backtest leaves them out either way.
+  const unlisted = b.items.map((i) => i.ticker).filter((t) => !basketStock(t));
   const industry = b.sourceSector ?? dominantIndustry(stocks.map((s) => s.ticker));
   const picker = b.isOwner && user ? await pickerProps(user.id) : { universe: null, watchlist: [] };
 
@@ -44,9 +50,13 @@ export default async function SavedBasketPage({ params }: { params: Promise<{ id
           stocks={stocks}
           addPrices={Object.fromEntries(b.items.map((i) => [i.ticker, i.priceAtAdd]))}
           weighting={b.weighting}
+          customWeights={b.weights}
           isOwner={b.isOwner}
           isPublic={b.isPublic}
           signedIn={!!user}
+          unlisted={unlisted}
+          sourceSector={b.sourceSector}
+          pickedFrom={Object.fromEntries(b.items.flatMap((i) => (i.pickedFrom ? [[i.ticker, i.pickedFrom]] : [])))}
           {...picker}
           {...compareProps(industry)}
         />

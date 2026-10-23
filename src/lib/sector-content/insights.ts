@@ -1,9 +1,34 @@
 // Landing-page "numbers" layer: sector aggregates, rule-based idea screens and
-// the news feed — all derived from the authored content + extracted seed data
-// (static, no DB), so the home page stays fast and never depends on a DB call.
+// the news feed — derived from the authored content, the company figures (the
+// database's company table, cached by src/lib/financials/load.ts) and the curated
+// headlines in the extracted seed data.
 import extracted from "../../../prisma/seed-source/extracted.json";
-import { getSector, listSectors, tickerForSupplier, type SectorWithSlug } from "./index";
+import {
+  getSector,
+  isSideLink,
+  linkStrength,
+  listCompanyFinancials,
+  listSectors,
+  parseCrore,
+  primarySector,
+  tickerForSupplier,
+  type SectorWithSlug,
+  type SupplierFinancials,
+} from "./index";
+import { memoByFinancials } from "@/lib/financials/store";
+import { detectOutlier, ONE_OFF_NOTE } from "@/lib/baskets/outliers";
+import { signedPct } from "@/lib/format";
 
+
+// The same guard as the rule-based baskets (baskets/ideas.ts roceMeaningful): ROCE ranks only with a
+// positive P/E, a profit in the latest year and positive book value - a loss-maker with negative
+// equity can show a huge "ROCE" (Tata Teleservices).
+function roceMeaningful(f: SupplierFinancials): boolean {
+  const pe = num(f.kpi?.[0]);
+  const book = num(f.kpi?.[1]);
+  const np = num(f.np?.[4]);
+  return num(f.kpi?.[3]) != null && pe != null && pe > 0 && (np == null || np > 0) && !(book != null && book <= 0);
+}
 
 export type CompanyMetrics = {
   ticker: string;
@@ -23,20 +48,17 @@ export type CompanyMetrics = {
   // 0-1: how central this sector is to the company (its strongest exposure here), used to
   // keep side-exposed mega-caps from crowding a sector's news feed.
   centrality: number;
-  // Latest-year figures distorted by a one-off (see SupplierFinancials.screenOut).
-  screenOut: boolean;
+  // Figures distorted by a one-off year (src/lib/baskets/outliers.ts, shared with the rule-based
+  // baskets): kept out of the stock screens.
+  outlier: boolean;
 };
 
+// Centrality scale (0-1) for the thresholds below (CORE_CENTRALITY) and the news feed's weighting;
+// side links (lenders, enablers: isSideLink) count a tenth. Which sector a company is shown under
+// is not decided here but by primarySector() in ./index, shared with the company page and pop-up.
 const STRENGTH_WEIGHT = { high: 1, medium: 0.2, low: 0.03 } as const;
-// Lenders, software and other enablers sit beside the chain rather than in it.
-const SIDE_TYPES = new Set(["enabler", "indirect_supplier"]);
 
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
-const parseRs = (s?: string) => {
-  if (!s) return null;
-  const n = parseFloat(s.replace(/[^0-9.]/g, ""));
-  return Number.isFinite(n) ? n : null;
-};
 
 // Every listed company in one sector, once per ticker (a few sectors list one company under two
 // keys for two roles, e.g. HAL as prime and as MRO). Centrality is the ticker's strongest link.
@@ -48,11 +70,7 @@ function buildSectorMetrics(s: SectorWithSlug): CompanyMetrics[] {
     for (const l of z.suppliers) {
       const k = typeof l === "string" ? l : l.key;
       if (!zoneOf.has(k)) zoneOf.set(k, z.id);
-      // Bare-key links (sectors not yet carrying exposure data) count as central.
-      const w =
-        typeof l === "string" || !l.exposureStrength
-          ? 1
-          : STRENGTH_WEIGHT[l.exposureStrength] * (l.exposureType && SIDE_TYPES.has(l.exposureType) ? 0.1 : 1);
+      const w = STRENGTH_WEIGHT[linkStrength(l)] * (isSideLink(l) ? 0.1 : 1);
       const t = s.suppliers[k] ? tickerForSupplier(s.suppliers[k]) : k;
       centralityOf.set(t, Math.max(centralityOf.get(t) ?? 0, w));
     }
@@ -64,7 +82,7 @@ function buildSectorMetrics(s: SectorWithSlug): CompanyMetrics[] {
     const ticker = tickerForSupplier(sup);
     if (seen.has(ticker)) continue;
     seen.add(ticker);
-    const price = parseRs(f.price);
+    const price = parseCrore(f.price);
     const hi = num(f.range?.[1]);
     const rev = f.rev ?? [];
     const last = rev[rev.length - 1];
@@ -77,25 +95,28 @@ function buildSectorMetrics(s: SectorWithSlug): CompanyMetrics[] {
       sectorName: s.name,
       href: `/sector/${s.slug}/explore${zone ? `?zone=${encodeURIComponent(zone)}&company=${encodeURIComponent(key)}` : ""}`,
       pe: num(f.kpi?.[0]),
-      roce: num(f.kpi?.[3]),
+      // ROCE ranks only where it means something (see roceMeaningful).
+      roce: roceMeaningful(f) ? num(f.kpi?.[3]) : null,
       divYield: num(f.kpi?.[2]),
       cagr1y: num(f.cagr?.[0]),
       cagr3y: num(f.cagr?.[1]),
       revenueCr: num(last),
       revGrowthPct: last != null && prev ? ((last - prev) / prev) * 100 : null,
       pctFrom52wHigh: price != null && hi ? ((price - hi) / hi) * 100 : null,
-      mcapCr: parseRs(f.mcap),
+      mcapCr: parseCrore(f.mcap),
       centrality: centralityOf.get(ticker) ?? 1,
-      screenOut: !!f.screenOut,
+      outlier: !!detectOutlier(f),
     });
   }
   return out;
 }
 
-const sectorCache = new Map<string, CompanyMetrics[]>();
+// Rebuilt whenever new figures are installed (see memoByFinancials).
+const sectorCache = memoByFinancials(() => new Map<string, CompanyMetrics[]>());
 function sectorMetrics(s: SectorWithSlug): CompanyMetrics[] {
-  let m = sectorCache.get(s.slug);
-  if (!m) sectorCache.set(s.slug, (m = buildSectorMetrics(s)));
+  const c = sectorCache();
+  let m = c.get(s.slug);
+  if (!m) c.set(s.slug, (m = buildSectorMetrics(s)));
   return m;
 }
 
@@ -106,20 +127,19 @@ export function sectorCompanyMetrics(slug: string): CompanyMetrics[] {
 }
 
 // One row per listed company across the platform (ideas, the all-themes news feed): a company in
-// several sectors or policies appears once, under the one most central to it - Bharat Forge under
-// the industry it mainly supplies, not a policy it touches at low strength. Ties keep the earlier
-// sector, so industries come before the policies that reuse their companies.
-let cache: CompanyMetrics[] | null = null;
-export function listCompanyMetrics(): CompanyMetrics[] {
-  if (cache) return cache;
+// several sectors or policies appears once, under its home sector (primarySector) - Bharat Forge
+// under the industry it mainly supplies, not a policy it touches at low strength - the same one its
+// company page and stock pop-up describe it by.
+export const listCompanyMetrics = memoByFinancials((): CompanyMetrics[] => {
   const best = new Map<string, CompanyMetrics>();
   for (const s of listSectors().filter((x) => !x.muted))
     for (const c of sectorMetrics(s)) {
       const prev = best.get(c.ticker);
-      if (!prev || c.centrality > prev.centrality) best.set(c.ticker, c);
+      const home = primarySector(c.ticker);
+      if (!prev || (c.sectorSlug === home && prev.sectorSlug !== home)) best.set(c.ticker, c);
     }
-  return (cache = [...best.values()]);
-}
+  return [...best.values()];
+});
 
 const median = (xs: number[]) => {
   if (xs.length === 0) return null;
@@ -161,14 +181,14 @@ export type Idea = {
 
 const top = (cs: CompanyMetrics[], n = 5) => cs.slice(0, n);
 const fmt1 = (v: number) => v.toFixed(1);
-const pct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}%`;
+const pct = (v: number) => signedPct(v, 0);
 
 // Rule-based screens, not recommendations: each states its rule so the list is
-// reproducible, and ranks purely on one reported number.
-export function buildIdeas(): Idea[] {
+// reproducible, and ranks purely on one reported number. Cached until new figures are installed.
+export const buildIdeas = memoByFinancials((): Idea[] => {
   // Side-exposed companies (Coal India bidding for the magnet scheme) would be labelled with a
   // theme their own business isn't about, so screens use companies central to some theme.
-  const cs = listCompanyMetrics().filter((c) => !c.screenOut && c.centrality >= CORE_CENTRALITY);
+  const cs = listCompanyMetrics().filter((c) => !c.outlier && c.centrality >= CORE_CENTRALITY);
   const row = (c: CompanyMetrics, value: string) => ({ name: c.name, sector: c.sectorName, href: c.href, value });
   const sorted = (f: (c: CompanyMetrics) => number | null, dir: 1 | -1, filter: (c: CompanyMetrics) => boolean = () => true) =>
     cs.filter((c) => f(c) != null && filter(c)).sort((a, b) => dir * ((f(a) as number) - (f(b) as number)));
@@ -176,51 +196,56 @@ export function buildIdeas(): Idea[] {
     {
       id: "quality",
       title: "High return on capital",
-      rule: "Ranked by ROCE, among companies with revenue above ₹1,000 Cr",
+      rule: `Ranked by ROCE, among companies with revenue above ₹1,000 Cr. ${ONE_OFF_NOTE}`,
       metricLabel: "ROCE",
       rows: top(sorted((c) => c.roce, -1, (c) => (c.revenueCr ?? 0) > 1000)).map((c) => row(c, `${fmt1(c.roce!)}%`)),
     },
     {
       id: "growth",
       title: "Fastest revenue growth",
-      rule: "Latest-year revenue growth, among companies with revenue above ₹1,000 Cr in both years",
+      rule: `Latest-year revenue growth, among companies with revenue above ₹1,000 Cr in both years. ${ONE_OFF_NOTE}`,
       metricLabel: "Revenue YoY",
       rows: top(sorted((c) => c.revGrowthPct, -1, (c) => (c.revenueCr ?? 0) > 1000 && c.revenueCr! / (1 + c.revGrowthPct! / 100) > 1000)).map((c) => row(c, pct(c.revGrowthPct!))),
     },
     {
       id: "value",
       title: "Quality at a lower multiple",
-      rule: "Lowest P/E among companies with ROCE above 15% and a positive P/E",
+      rule: `Lowest P/E among companies with ROCE above 15% and a positive P/E. ${ONE_OFF_NOTE}`,
       metricLabel: "P/E",
       rows: top(sorted((c) => c.pe, 1, (c) => (c.pe ?? 0) > 0 && (c.roce ?? 0) > 15)).map((c) => row(c, `${fmt1(c.pe!)}x`)),
     },
     {
       id: "dip",
       title: "Furthest below 52-week high",
-      rule: "Price vs 52-week high, among companies with revenue above ₹1,000 Cr",
+      rule: `Price vs 52-week high, among companies with revenue above ₹1,000 Cr. ${ONE_OFF_NOTE}`,
       metricLabel: "vs 52w high",
       rows: top(sorted((c) => c.pctFrom52wHigh, 1, (c) => (c.revenueCr ?? 0) > 1000)).map((c) => row(c, pct(c.pctFrom52wHigh!))),
     },
     {
       id: "income",
       title: "Highest dividend yield",
-      rule: "Dividend yield, among companies with ROCE above 10%",
+      rule: `Dividend yield, among companies with ROCE above 10%. ${ONE_OFF_NOTE}`,
       metricLabel: "Yield",
       rows: top(sorted((c) => c.divYield, -1, (c) => (c.roce ?? 0) > 10)).map((c) => row(c, `${c.divYield!.toFixed(2)}%`)),
     },
   ].filter((i) => i.rows.length > 0);
+});
+
+/** The date of the latest figures in the company table, e.g. "20 Oct 2026". */
+export function dataAsOf(): string {
+  const dates = listCompanyFinancials().flatMap((f) => (f.asOf ? [f.asOf] : []));
+  return dates.reduce((a, b) => (Date.parse(b) > Date.parse(a) ? b : a), dates[0] ?? "");
 }
 
-export const DATA_AS_OF: string = (extracted as { asOf: string }).asOf;
-
-// Companies are refreshed in batches (each FIN entry carries its own `asOf`), so screens that mix
+// A company the refresh could not read keeps its older snapshot (and date), so screens that mix
 // them state the span: "25 Sep – 16 Oct 2026", or a single date when they all agree.
 export function dataAsOfRange(): string {
   const dates = new Set<string>();
   for (const s of listSectors().filter((x) => !x.muted))
-    for (const sup of Object.values(s.suppliers)) if (sup.listed && sup.f) dates.add(sup.f.asOf ?? DATA_AS_OF);
+    // A company with no market price has no price date (the refresh cannot read it): leave it out.
+    for (const sup of Object.values(s.suppliers)) if (sup.listed && sup.f?.asOf && sup.f.price != null) dates.add(sup.f.asOf);
   const sorted = [...dates].sort((a, b) => Date.parse(a) - Date.parse(b));
-  if (sorted.length <= 1) return sorted[0] ?? DATA_AS_OF;
+  if (sorted.length <= 1) return sorted[0] ?? dataAsOf();
   const [first, last] = [sorted[0], sorted[sorted.length - 1]];
   const sameYear = first.slice(-4) === last.slice(-4);
   return `${sameYear ? first.slice(0, -5) : first} – ${last}`;
@@ -239,9 +264,7 @@ export type NewsItem = {
   url: string;
 };
 
-let newsCache: NewsItem[] | null = null;
-export function listNews(): NewsItem[] {
-  if (newsCache) return newsCache;
+export const listNews = memoByFinancials((): NewsItem[] => {
   const byTicker = new Map<string, CompanyMetrics>();
   for (const c of listCompanyMetrics()) byTicker.set(c.ticker, c);
   const now = Date.now();
@@ -257,8 +280,8 @@ export function listNews(): NewsItem[] {
       items.push({ ticker, company: c.name, sectorSlug: c.sectorSlug, sectorName: c.sectorName, ...it, ts });
     }
   }
-  return (newsCache = items.sort((a, b) => b.ts - a.ts));
-}
+  return items.sort((a, b) => b.ts - a.ts);
+});
 
 export function newsForTickers(tickers: string[]): NewsItem[] {
   const set = new Set(tickers);

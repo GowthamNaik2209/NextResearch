@@ -3,10 +3,10 @@
 // every deck's headlines and check them.
 import type { IpoDeck } from "@/lib/ipo-content";
 import { countWord, growthLine, lcFirst } from "@/components/research/headlines";
+import { croreShort } from "@/lib/format";
 
-const inr = (n: number) => Math.round(n).toLocaleString("en-IN");
-export const fmtCr = (n: number | null | undefined) =>
-  n == null ? "—" : Math.abs(n) >= 100000 ? `Rs ${(n / 100000).toLocaleString("en-IN", { maximumFractionDigits: 2 })} lakh Cr` : `Rs ${inr(n)} Cr`;
+/** Rupee crore in the site's one style: "₹8,420 Cr", "₹1.13L Cr" (src/lib/format.ts). */
+export const fmtCr = (n: number | null | undefined) => croreShort(n);
 
 /** Full fiscal years only: a stub period is not comparable for growth. */
 export const fullYears = (d: IpoDeck) => d.financials.years.filter((y) => !y.partial);
@@ -104,8 +104,8 @@ export function industryTitle(d: IpoDeck) {
   const fmt = (v: number) => (+v.toFixed(v < 100 ? 1 : 0)).toLocaleString("en-IN");
   const year = (l: string) => l.replace(/(\d)[PE]$/, "$1");
   const head = `${c.title} grew ${g.cagr.toFixed(0)}% a year from ${g.a.label} to ${year(g.b.label)}`;
-  // "Rs trillion" / "US$ bn" read as "Rs 62 trillion" / "US$80 bn"; other units follow the number.
-  const m = c.unit.match(/^(Rs|US\$)\s*(.*)$/);
-  const amount = m ? `${m[1] === "Rs" ? "Rs " : "US$"}${fmt(g.end?.value ?? 0)} ${m[2]}` : `${fmt(g.end?.value ?? 0)} ${c.unit}`;
+  // "Rs trillion" / "US$ bn" read as "₹62 trillion" / "US$80 bn"; other units follow the number.
+  const m = c.unit.match(/^(Rs|₹|US\$)\s*(.*)$/);
+  const amount = m ? `${m[1] === "US$" ? "US$" : "₹"}${fmt(g.end?.value ?? 0)} ${m[2]}` : `${fmt(g.end?.value ?? 0)} ${c.unit}`;
   return g.end ? `${head}, and is projected at ${amount} by ${year(g.end.label)}` : head;
 }

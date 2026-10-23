@@ -2,6 +2,7 @@
 // content test. Returns human-readable problems; an empty list means the deck is well formed.
 import { companyFinancials } from "../sector-content";
 import type { IpoReport } from "./types";
+import { authoredStage } from "./index";
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 const near100 = (xs: number[]) => Math.abs(sum(xs) - 100) <= 2;
@@ -34,6 +35,16 @@ export function validateIpo(r: IpoReport): string[] {
     need(peer.mcapCr === undefined && peer.revenueCr === undefined && peer.pe === undefined, `peer ${peer.ticker}: leave out mcapCr/revenueCr/pe - they come from the company table`);
     need(!/\b(Screener|TTM|trailing)\b/i.test(peer.note), `peer ${peer.ticker}: note should say why it compares, not restate figures or their source`);
   }
+  // A listed deck shows its own current figures from the same table, dated, beside the issue price.
+  // Held to the authored stage: listing day rolls the chip forward before anyone can add the ticker.
+  if ((authoredStage(r.slug) ?? r.status.stage) === "listed") {
+    need(r.ticker, `a listed deck must name its ticker (the company table's, e.g. its NSE symbol) - add the company with scripts/refresh-financials.ts --add=TICKER`);
+    need(r.issue.issuePrice != null && r.issue.issuePrice > 0, "a listed deck needs issue.issuePrice (the final issue price, ₹ per share)");
+  }
+  if (r.ticker) {
+    need(companyFinancials(r.ticker), `${r.ticker} (the deck's own ticker) is not in the company table - run scripts/refresh-financials.ts --add=${r.ticker}`);
+    need(!r.peers.some((p) => p.ticker === r.ticker), `${r.ticker} is the deck's own company; it cannot also be a peer`);
+  }
   need(r.strengths.length === 4, "strengths needs exactly 4");
   need(r.risks.length >= 4 && r.risks.length <= 5, "risks needs 4-5");
   need(r.sources.length >= 3 && r.sources.length <= 8, "sources needs 3-8");
@@ -58,7 +69,15 @@ export function validateIpo(r: IpoReport): string[] {
   }
   for (const y of r.financials.years) need(y.revenue > 0, `financials ${y.label}: revenue must be positive`);
   for (const s of r.sources) need(/^https:\/\//.test(s.url), `source "${s.title}" needs an https URL`);
+  // The deck lists sources by URL (also the React key), so one page is cited once.
+  const urls = r.sources.map((s) => s.url);
+  need(new Set(urls).size === urls.length, `sources: a URL is listed twice (${urls.filter((u, i) => urls.indexOf(u) !== i).join(", ")})`);
   const all = JSON.stringify(r);
+  // Issue-price and listing-day facts are history and stay; a quoted current price or market cap
+  // ("trades at ~₹84,500 Cr") goes stale in days. Listed peers' figures come from the table.
+  const live = all.match(/\b(closed at|trades at|trading at|traded (near|at))\s+~?(?:Rs\s?|₹)[\d,.]+[^"]{0,40}\b20\d\d|\b(mid-|on \d{1,2} )?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* 20\d\d\b[^".]{0,30}\b(trades|traded|closed) (at|near) ~?(?:Rs|₹)|\b(trades|traded|closed) (at|near) ~?(?:Rs|₹)[^".]{0,40}\bin (mid-|early |late )?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* 20\d\d/);
+  need(!live, `quotes a current price or market cap ("${live?.[0]}") - those go stale; point to the peer table instead`);
+  need(!/P\/E[^"]{0,20}\((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* 20\d\d\)/.test(all), "quotes peers' P/E as of a month - the peer table carries their current figures");
   need(!/TODO|TBD|lorem|XXX/i.test(all), "placeholder text left in the deck");
   return p;
 }

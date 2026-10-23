@@ -11,7 +11,7 @@ export const DEFENCEPROC_SCENARIOS: Scenario[] = [
     title: "Approvals convert to contracts faster",
     blurb: "DAP 2026 cuts the AoN-to-contract gap",
     story:
-      "In FY26 the DAC approved Rs 6.81 lakh crore of purchases but the MoD signed Rs 2.28 lakh crore of contracts. If the new acquisition procedure (DAP 2026) and fewer trial rounds pull contracts forward, order books fill sooner - most for makers of electronics, missiles and ammunition, whose programmes are already proven.",
+      "In FY26 the DAC approved ₹6.81L Cr of purchases but the MoD signed ₹2.28L Cr of contracts. If the new acquisition procedure (DAP 2026) and fewer trial rounds pull contracts forward, order books fill sooner - most for makers of electronics, missiles and ammunition, whose programmes are already proven.",
     effect: "tailwind",
     impacts: [
       S("radars_ew", 3, "Electronics contracts are mostly indigenous and already trialled - they convert first"),
@@ -41,7 +41,7 @@ export const DEFENCEPROC_SCENARIOS: Scenario[] = [
     title: "Capital budget growth stalls",
     blurb: "FY28 capital outlay rises less than inflation",
     story:
-      "The FY27 budget raised capital acquisition ~24% to Rs 1.85 lakh crore. If fiscal pressure holds the next budget flat, the MoD can sign fewer new contracts and pays more slowly. Existing order books keep revenue going, but new orders and valuations - which assume fast growth - take the hit. Long-gestation platforms get deferred first.",
+      "The FY27 budget raised capital acquisition ~24% to ₹1.85L Cr. If fiscal pressure holds the next budget flat, the MoD can sign fewer new contracts and pays more slowly. Existing order books keep revenue going, but new orders and valuations - which assume fast growth - take the hit. Long-gestation platforms get deferred first.",
     effect: "headwind",
     impacts: [
       S("naval", 3, "Large new ship and submarine deals are easiest to defer"),
@@ -55,9 +55,9 @@ export const DEFENCEPROC_SCENARIOS: Scenario[] = [
   {
     id: "export-surge",
     title: "Defence exports hit the 2029 target early",
-    blurb: "Exports pass Rs 50,000 crore a year",
+    blurb: "Exports pass ₹50,000 Cr a year",
     story:
-      "Exports reached a record Rs 38,424 crore in FY26 (+63%). Wars in Europe and the Middle East keep demand for shells, rockets, guns and air-defence systems high. If exports pass the Rs 50,000 crore target early, makers with export-ready products earn more and depend less on Indian budget timing.",
+      "Exports reached a record ₹38,424 Cr in FY26 (+63%). Wars in Europe and the Middle East keep demand for shells, rockets, guns and air-defence systems high. If exports pass the ₹50,000 Cr target early, makers with export-ready products earn more and depend less on Indian budget timing.",
     effect: "tailwind",
     impacts: [
       S("ammunition", 3, "Shells, rockets and explosives are the largest export lines"),

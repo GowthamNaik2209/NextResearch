@@ -20,11 +20,11 @@ export const realestate: SectorReport = {
   thesis: [
     {
       title: "Big listed developers keep taking share",
-      body: "Housing volumes fell 14% in 2025, but Godrej, Prestige, DLF and Lodha each booked Rs 20,000-34,000 Cr in FY26. Buyers and lenders prefer brands that deliver, and land deals are moving to the developers with cash.",
+      body: "Housing volumes fell 14% in 2025, but Godrej, Prestige, DLF and Lodha each booked ₹20,000-34,000 Cr in FY26. Buyers and lenders prefer brands that deliver, and land deals are moving to the developers with cash.",
     },
     {
       title: "Offices and malls are the steadier profit pool",
-      body: "GCCs keep office leasing at records, so REIT occupancy and rents are rising. Six listed REITs paid Rs 3,136 Cr in Q1 FY27 (Indian REITs Association), and SEBI now treats REIT units as equity, which widens the buyer base.",
+      body: "GCCs keep office leasing at records, so REIT occupancy and rents are rising. Six listed REITs paid ₹3,136 Cr in Q1 FY27 (Indian REITs Association), and SEBI now treats REIT units as equity, which widens the buyer base.",
     },
     {
       title: "Building materials follow handovers, not bookings",
@@ -100,10 +100,10 @@ export const realestate: SectorReport = {
     snapshot: [
       { label: "Avg home price growth, Q3 2026", value: "+7% YoY", tone: "neutral" },
       { label: "Homes launched vs sold, Q3 2026", value: "1.14 vs 1.00 lakh", tone: "neg" },
-      { label: "REIT payouts, Q1 FY27 (6 REITs)", value: "Rs 3,136 Cr", tone: "pos" },
+      { label: "REIT payouts, Q1 FY27 (6 REITs)", value: "₹3,136 Cr", tone: "pos" },
       { label: "Warehousing leasing, H1 2026", value: "36.8 msf, +15%", tone: "pos" },
       { label: "Cement output, FY26 (ICRA)", value: "491 MT, +8.6%", tone: "pos" },
-      { label: "Rs 2-5 Cr home sales, 9M 2026", value: "+19% YoY", tone: "pos" },
+      { label: "₹2-5 Cr home sales, 9M 2026", value: "+19% YoY", tone: "pos" },
     ],
   },
 
@@ -112,15 +112,15 @@ export const realestate: SectorReport = {
     { stage: "Residential developers & sales", zoneIds: ["residential", "sales"], margin: "~25-35% project EBITDA (listed leaders)", moat: "medium", note: "Brand and delivery record drive pricing and pre-sales; profit is booked on completion, years after the sale." },
     { stage: "Offices, malls & warehouses", zoneIds: ["office", "retail", "warehousing"], margin: "~75-85% NOI margin", moat: "high", note: "Prime locations are scarce; long leases with built-in rent increases; REITs pay out at least 90% of cash flow." },
     { stage: "Construction contractors", zoneIds: ["epc"], margin: "~8-12% EBITDA", moat: "low", note: "Fragmented and working-capital heavy; margins depend on escalation clauses and on-time client payments." },
-    { stage: "Cement & steel", zoneIds: ["cement", "steel"], margin: "Cement ~Rs 900-1,200 EBITDA/t", moat: "medium", note: "Scale, limestone reserves and logistics decide cost; prices swing with regional supply." },
+    { stage: "Cement & steel", zoneIds: ["cement", "steel"], margin: "Cement ~₹900-1,200 EBITDA/t", moat: "medium", note: "Scale, limestone reserves and logistics decide cost; prices swing with regional supply." },
     { stage: "Building systems & finishes", zoneIds: ["plumbing", "electricals", "hvac_lifts", "finishes"], margin: "~10-20% EBITDA for branded leaders", moat: "high", note: "Brands and dealer and plumber networks hold share; demand follows handovers and home upgrades." },
   ],
 
   drivers: [
-    { title: "Premium housing", metric: "Rs 2-5 Cr sales +19%", body: "Knight Frank counted 19% more sales in the Rs 2-5 Cr range in Jan-Sep 2026 while sub-Rs 50 lakh sales fell 14%. Listed developers focused on premium projects benefit most." },
+    { title: "Premium housing", metric: "₹2-5 Cr sales +19%", body: "Knight Frank counted 19% more sales in the ₹2-5 Cr range in Jan-Sep 2026 while sub-₹50 lakh sales fell 14%. Listed developers focused on premium projects benefit most." },
     { title: "GCC office demand", metric: "~42% of leasing", body: "Global capability centres took about 42% of 9M 2026 office leasing (CBRE) and 81% of Embassy REIT's Q1 FY27 leasing, keeping vacancy falling in Bengaluru, Hyderabad and Pune." },
-    { title: "REIT growth", metric: "Rs 3.17 lakh Cr AUM", body: "Six listed REITs held over Rs 3.17 lakh Cr of assets in Q1 FY27 (Indian REITs Association). Equity classification and index eligibility widen the buyer base for new listings." },
-    { title: "Home loans", metric: "~Rs 37 lakh Cr", body: "Individual housing loans outstanding reached ~Rs 37 lakh Cr by Sep 2025 (NHB). Affordable HFC loan books grew 17% in FY26 (ICRA), but rising rates now slow the pace." },
+    { title: "REIT growth", metric: "₹3.17L Cr AUM", body: "Six listed REITs held over ₹3.17L Cr of assets in Q1 FY27 (Indian REITs Association). Equity classification and index eligibility widen the buyer base for new listings." },
+    { title: "Home loans", metric: "~₹37L Cr", body: "Individual housing loans outstanding reached ~₹37L Cr by Sep 2025 (NHB). Affordable HFC loan books grew 17% in FY26 (ICRA), but rising rates now slow the pace." },
   ],
   mix: {
     title: "Housing sales by city, Q3 2026 (top 7 cities, ~1.0 lakh units)",
@@ -145,7 +145,7 @@ export const realestate: SectorReport = {
     ],
     social: [
       { point: "Urbanisation, nuclear families and rising incomes keep long-run housing demand high.", impact: "pos" },
-      { point: "Mid- and low-income buyers are being priced out; sub-Rs 50 lakh sales keep shrinking.", impact: "neg" },
+      { point: "Mid- and low-income buyers are being priced out; sub-₹50 lakh sales keep shrinking.", impact: "neg" },
     ],
     technological: [
       { point: "Precast, aluminium formwork and mechanised construction cut build times for large developers.", impact: "pos" },
@@ -162,25 +162,25 @@ export const realestate: SectorReport = {
   },
 
   beneficiaries: [
-    { key: "godrejProp", tier: "core", why: "Largest developer by bookings (Rs 34,171 Cr in FY26); guides Rs 39,000 Cr for FY27 across many cities." },
-    { key: "prestige", tier: "core", why: "FY26 sales up 76% to Rs 30,024 Cr, plus a growing office, mall and hotel portfolio." },
+    { key: "godrejProp", tier: "core", why: "Largest developer by bookings (₹34,171 Cr in FY26); guides ₹39,000 Cr for FY27 across many cities." },
+    { key: "prestige", tier: "core", why: "FY26 sales up 76% to ₹30,024 Cr, plus a growing office, mall and hotel portfolio." },
     { key: "dlf", tier: "core", why: "Large Gurugram land bank with a net-cash developer arm and a large office and mall rental business." },
     { key: "embassyReit", tier: "core", why: "Bengaluru-heavy office REIT; GCCs took 81% of its Q1 FY27 leasing; guides ~10% DPU growth." },
     { key: "knowledgeReit", tier: "direct", why: "India's largest office REIT by asset value; Blackstone and Sattva sponsored." },
     { key: "phoenix", tier: "direct", why: "Leading mall owner; retail consumption grew 32% in Q1 FY27." },
-    { key: "lodha", tier: "direct", why: "MMR and Pune leader with Rs 20,530 Cr FY26 pre-sales and a large Palava land bank." },
+    { key: "lodha", tier: "direct", why: "MMR and Pune leader with ₹20,530 Cr FY26 pre-sales and a large Palava land bank." },
     { key: "ultratech", tier: "indirect", why: "Largest cement maker (~200 MTPA); housing is the biggest end-use." },
     { key: "bajajHfl", tier: "indirect", why: "Fast-growing HFC lending to homebuyers and, through lease-rental and construction loans, to developers." },
     { key: "kajaria", tier: "indirect", why: "Largest tile maker; demand follows home handovers and renovations." },
   ],
 
   companyNews: [
-    { key: "dlf", date: "Jul 2026", development: "Q1 FY27 bookings fell to about Rs 657 Cr as launches were deferred; FY27 guidance kept at Rs 20,000 Cr.", impact: "Bookings are lumpy and depend on launches; even the largest developers are timing launches carefully in a slower market.", tone: "neg" },
-    { key: "embassyReit", date: "Jul 2026", development: "Q1 FY27 NOI rose 17% to Rs 1,020 Cr; occupancy 93% by value; DPU Rs 6.31, up 9%.", impact: "Shows GCC demand reaching REIT rents and payouts.", tone: "pos" },
-    { key: "phoenix", date: "Jul 2026", development: "Mall consumption rose 32% YoY to Rs 4,727 Cr in Q1 FY27; Mall of Asia, Bengaluru nearly doubled.", impact: "Spending at Grade A malls is growing well ahead of overall retail.", tone: "pos" },
-    { key: "godrejProp", date: "May 2026", development: "Record FY26 bookings of Rs 34,171 Cr (+16%) and Rs 7,830 Cr operating cash flow; FY27 guidance of Rs 39,000 Cr.", impact: "Share keeps moving to large listed developers despite a weaker market.", tone: "pos" },
-    { key: "lodha", date: "Apr 2026", development: "FY26 pre-sales rose 16% to Rs 20,530 Cr, slightly below its Rs 21,000 Cr target after March sales were deferred.", impact: "Even leaders missed targets; management shifted its focus to free cash flow.", tone: "neutral" },
-    { key: "ultratech", date: "Jul 2026", development: "Q1 FY27 domestic cement volume rose 13% with EBITDA of Rs 1,214 a tonne; guided to higher fuel costs in Q2.", impact: "Construction volumes are strong, but fuel costs from the West Asia conflict cap margins.", tone: "neutral" },
+    { key: "dlf", date: "Jul 2026", development: "Q1 FY27 bookings fell to about ₹657 Cr as launches were deferred; FY27 guidance kept at ₹20,000 Cr.", impact: "Bookings are lumpy and depend on launches; even the largest developers are timing launches carefully in a slower market.", tone: "neg" },
+    { key: "embassyReit", date: "Jul 2026", development: "Q1 FY27 NOI rose 17% to ₹1,020 Cr; occupancy 93% by value; DPU ₹6.31, up 9%.", impact: "Shows GCC demand reaching REIT rents and payouts.", tone: "pos" },
+    { key: "phoenix", date: "Jul 2026", development: "Mall consumption rose 32% YoY to ₹4,727 Cr in Q1 FY27; Mall of Asia, Bengaluru nearly doubled.", impact: "Spending at Grade A malls is growing well ahead of overall retail.", tone: "pos" },
+    { key: "godrejProp", date: "May 2026", development: "Record FY26 bookings of ₹34,171 Cr (+16%) and ₹7,830 Cr operating cash flow; FY27 guidance of ₹39,000 Cr.", impact: "Share keeps moving to large listed developers despite a weaker market.", tone: "pos" },
+    { key: "lodha", date: "Apr 2026", development: "FY26 pre-sales rose 16% to ₹20,530 Cr, slightly below its ₹21,000 Cr target after March sales were deferred.", impact: "Even leaders missed targets; management shifted its focus to free cash flow.", tone: "neutral" },
+    { key: "ultratech", date: "Jul 2026", development: "Q1 FY27 domestic cement volume rose 13% with EBITDA of ₹1,214 a tonne; guided to higher fuel costs in Q2.", impact: "Construction volumes are strong, but fuel costs from the West Asia conflict cap margins.", tone: "neutral" },
   ],
 
   risks: [

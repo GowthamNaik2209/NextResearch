@@ -15,27 +15,27 @@ export const zepto: IpoReport = {
     stage: "approved",
     label: "SEBI approved · on hold",
     detail:
-      "SEBI's observations came in May 2026 and the UDRHP-I was filed on 8 Jun, but on 1 Aug Zepto announced it would list in two to three quarters and raise ~Rs 1,000 Cr pre-IPO instead (first reported on 30 Jul); reports point to a Feb-May 2027 listing, with the approval reportedly valid until Nov 2027. Reports differ on the exact observation date (most trackers say 8 May) and no RHP or price band exists yet.",
+      "SEBI's observations came in May 2026 and the UDRHP-I was filed on 8 Jun, but on 1 Aug Zepto announced it would list in two to three quarters and raise ~₹1,000 Cr pre-IPO instead (first reported on 30 Jul); reports point to a Feb-May 2027 listing, with the approval reportedly valid until Nov 2027. Reports differ on the exact observation date (most trackers say 8 May) and no RHP or price band exists yet.",
   },
   timeline: [
     { date: "Dec 2025", event: "Confidential pre-filing of the draft prospectus with SEBI", done: true },
     { date: "May 2026", event: "SEBI final observations (8 May per IPO trackers)", done: true },
-    { date: "8 Jun 2026", event: "UDRHP-I filed: Rs 8,010 Cr fresh issue + OFS of 11.35 crore shares", done: true },
-    { date: "1 Aug 2026", event: "IPO deferred; ~Rs 1,000 Cr pre-IPO placement at ~US$4.5bn", done: true },
+    { date: "8 Jun 2026", event: "UDRHP-I filed: ₹8,010 Cr fresh issue + OFS of 11.35 crore shares", done: true },
+    { date: "1 Aug 2026", event: "IPO deferred; ~₹1,000 Cr pre-IPO placement at ~US$4.5bn", done: true },
     { date: "Feb-May 2027", event: "Reported listing window (RHP with updated financials needed first)", done: false },
     { date: "Nov 2027", event: "SEBI approval reportedly lapses if the issue has not opened", done: false },
   ],
 
   issue: {
-    size: "Rs 8,010 Cr fresh + OFS of 11.35 crore shares",
+    size: "₹8,010 Cr fresh + OFS of 11.35 crore shares",
     totalCr: null,
     freshCr: 8010,
     ofsCr: null,
     ofsShares: "11.35 crore shares (113,466,566)",
     priceBand: null,
     lotSize: null,
-    faceValue: "Rs 5",
-    valuation: "~US$4.5bn (~Rs 42,750 Cr at ~Rs 95/US$, 94.92 on 16 Oct 2026) in the reported Aug 2026 pre-IPO round; down from US$7bn in Oct 2025",
+    faceValue: "₹5",
+    valuation: "~US$4.5bn (~₹42,750 Cr at ~₹95/US$, 94.92 on 16 Oct 2026) in the reported Aug 2026 pre-IPO round; down from US$7bn in Oct 2025",
     valuationCr: 42750,
     reservation: "QIB at least 75% · NII up to 15% · Retail up to 10% (Reg 6(2), loss-making issuer)",
     exchanges: "NSE, BSE",
@@ -54,11 +54,11 @@ export const zepto: IpoReport = {
   stance: {
     label: "Growth story, pricing is the test",
     tone: "neutral",
-    line: "Orders and revenue doubled in FY26 and losses per order nearly halved, but the business still burned Rs 4,330 Cr of free cash and the private mark has already fallen ~35% from US$7bn.",
+    line: "Orders and revenue doubled in FY26 and losses per order nearly halved, but the business still burned ₹4,330 Cr of free cash and the private mark has already fallen ~35% from US$7bn.",
   },
   keyStats: [
-    { label: "Revenue from operations, FY26", value: "Rs 22,624 Cr", sub: "+104% YoY (UDRHP)" },
-    { label: "Restated loss, FY26", value: "Rs 5,905 Cr", sub: "vs Rs 4,700 Cr in FY25" },
+    { label: "Revenue from operations, FY26", value: "₹22,624 Cr", sub: "+104% YoY (UDRHP)" },
+    { label: "Restated loss, FY26", value: "₹5,905 Cr", sub: "vs ₹4,700 Cr in FY25" },
     { label: "Orders, FY26", value: "64 crore", sub: "~119.5% CAGR FY24-26" },
     { label: "Dark stores, Mar 2026", value: "1,139", sub: "plus 75 warehouses, all leased" },
   ],
@@ -69,7 +69,7 @@ export const zepto: IpoReport = {
     },
     {
       title: "Unit economics are improving fast",
-      body: "Adjusted EBITDA loss per order fell from Rs 136 in FY25 to Rs 79 in FY26 as orders per store per day rose, and ad income grew to 7.8% of order value. The question is whether this reaches breakeven before cash runs thin.",
+      body: "Adjusted EBITDA loss per order fell from ₹136 in FY25 to ₹79 in FY26 as orders per store per day rose, and ad income grew to 7.8% of order value. The question is whether this reaches breakeven before cash runs thin.",
     },
     {
       title: "A valuation reset already under way",
@@ -85,12 +85,12 @@ export const zepto: IpoReport = {
     segments: [
       {
         title: "Quick-commerce marketplace",
-        metric: "Rs 24,816 Cr NRV, FY26",
+        metric: "₹24,816 Cr NRV, FY26",
         body: "Groceries, fresh produce and general merchandise from 1,139 dark stores in 66 cities; 64 crore orders and 4.8 crore annual transacting users in FY26.",
       },
       {
         title: "Advertising",
-        metric: "Rs 1,636 Cr revenue, FY26",
+        metric: "₹1,636 Cr revenue, FY26",
         body: "Brand ads on the app grew 151% in FY26 to 7.8% of order value (1.1% in FY24), the highest-margin line in the mix.",
       },
       {
@@ -106,7 +106,7 @@ export const zepto: IpoReport = {
     ],
     mix: {
       title: "Revenue from operations, FY26",
-      source: "UDRHP-I via Inc42 (sale of goods Rs 17,588 Cr; sale of services Rs 5,022 Cr)",
+      source: "UDRHP-I via Inc42 (sale of goods ₹17,588 Cr; sale of services ₹5,022 Cr)",
       slices: [
         { label: "Goods sold, including supply-chain sales", value: 77.8 },
         { label: "Services: commissions, delivery fees and ads", value: 22.2 },
@@ -116,13 +116,13 @@ export const zepto: IpoReport = {
 
   industry: {
     narrative: [
-      "Quick commerce is the fastest-growing slice of Indian online retail. Redseer's report in the UDRHP sizes it at ~Rs 96,300 Cr (US$11.3bn) in CY2025, up from ~Rs 13,300 Cr in CY2022, and about 13% of online retail GMV; it projects Rs 5.1-7.1 lakh Cr by CY2030.",
+      "Quick commerce is the fastest-growing slice of Indian online retail. Redseer's report in the UDRHP sizes it at ~₹96,300 Cr (US$11.3bn) in CY2025, up from ~₹13,300 Cr in CY2022, and about 13% of online retail GMV; it projects ₹5.1-7.1L Cr by CY2030.",
       "Three players dominate: by orders in the Mar 2026 quarter Blinkit had ~46%, Zepto ~35% and Instamart ~19%. Flipkart Minutes (1,000+ micro-fulfilment centres) and Amazon Now are now spending to catch up, while the CCI is examining deep-discounting complaints from distributors.",
     ],
     chart: {
       title: "India quick-commerce GMV",
-      unit: "Rs lakh Cr",
-      source: "Redseer report in the Zepto UDRHP-I (Fig. 17a): CY22 ~Rs 13,300 Cr, CY24 US$4.9bn at Redseer's Rs 85/US$, CY25 ~Rs 96,300 Cr; CY30P is the midpoint of Rs 5.1-7.1 lakh Cr",
+      unit: "₹ lakh Cr",
+      source: "Redseer report in the Zepto UDRHP-I (Fig. 17a): CY22 ~₹13,300 Cr, CY24 US$4.9bn at Redseer's ₹85/US$, CY25 ~₹96,300 Cr; CY30P is the midpoint of ₹5.1-7.1L Cr",
       points: [
         { label: "CY22", value: 0.13 },
         { label: "CY24", value: 0.42 },
@@ -131,8 +131,8 @@ export const zepto: IpoReport = {
       ],
     },
     snapshot: [
-      { label: "Market size, CY2025", value: "~Rs 96,300 Cr (US$11.3bn at Rs 85/US$), Redseer in UDRHP" },
-      { label: "Projected size, CY2030", value: "Rs 5.1-7.1 lakh Cr", tone: "pos" },
+      { label: "Market size, CY2025", value: "~₹96,300 Cr (US$11.3bn at ₹85/US$), Redseer in UDRHP" },
+      { label: "Projected size, CY2030", value: "₹5.1-7.1L Cr", tone: "pos" },
       { label: "Share of online retail GMV", value: "~13% in CY2025, 26-30% by CY2030" },
       { label: "Order share, Q4 FY26", value: "Blinkit ~46% · Zepto ~35% · Instamart ~19%" },
       { label: "New entrants", value: "Flipkart Minutes (1,000+ centres), Amazon Now", tone: "neg" },
@@ -147,12 +147,12 @@ export const zepto: IpoReport = {
       { label: "FY25", revenue: 11110, ebitda: -4522, pat: -4700 },
       { label: "FY26", revenue: 22624, ebitda: -5042, pat: -5905 },
     ],
-    note: "Adjusted EBITDA adds back ESOP costs but excludes other income; reported EBITDA was -Rs 1,029 Cr, -Rs 4,154 Cr and -Rs 4,746 Cr. Commentators link part of the FY25 revenue jump to a Jan 2025 change in how Zepto books goods sold, so revenue growth is not a clean proxy for order growth. The quarterly loss eased from ~Rs 1,832 Cr in Q4 FY25 to ~Rs 1,539 Cr in Q4 FY26.",
+    note: "Adjusted EBITDA adds back ESOP costs but excludes other income; reported EBITDA was -₹1,029 Cr, -₹4,154 Cr and -₹4,746 Cr. Commentators link part of the FY25 revenue jump to a Jan 2025 change in how Zepto books goods sold, so revenue growth is not a clean proxy for order growth. The quarterly loss eased from ~₹1,832 Cr in Q4 FY25 to ~₹1,539 Cr in Q4 FY26.",
   },
 
   kpi: {
     title: "Net Receivables Value (order value incl. ads and fees)",
-    unit: "Rs Cr",
+    unit: "₹ Cr",
     source: "UDRHP-I KPIs",
     points: [
       { label: "FY24", value: 5232 },
@@ -162,10 +162,10 @@ export const zepto: IpoReport = {
   },
   ratios: [
     { label: "Adjusted EBITDA / NRV, FY26", value: "-20.3% (FY25: -35.6%)", tone: "neg" },
-    { label: "Adjusted EBITDA per order, FY26", value: "-Rs 79 (FY25: -Rs 136)" },
-    { label: "Free cash flow, FY26", value: "-Rs 4,330 Cr (FY25: -Rs 5,332 Cr)", tone: "neg" },
-    { label: "Cash & investments, Mar 2026", value: "Rs 5,681 Cr; no borrowings" },
-    { label: "Net worth, Mar 2026", value: "Rs 3,560 Cr" },
+    { label: "Adjusted EBITDA per order, FY26", value: "-₹79 (FY25: -₹136)" },
+    { label: "Free cash flow, FY26", value: "-₹4,330 Cr (FY25: -₹5,332 Cr)", tone: "neg" },
+    { label: "Cash & investments, Mar 2026", value: "₹5,681 Cr; no borrowings" },
+    { label: "Net worth, Mar 2026", value: "₹3,560 Cr" },
     { label: "RoNW, FY26", value: "-165.9%", tone: "neg" },
     { label: "Orders per store per day, FY26", value: "1,677 (FY24: 1,325)", tone: "pos" },
     { label: "Annual transacting users, FY26", value: "4.8 crore (+25%)" },
@@ -178,7 +178,7 @@ export const zepto: IpoReport = {
     { label: "Brand marketing via subsidiary Zepto Marketplace", valueCr: 520 },
   ],
   proceedsNote:
-    "The four named objects total Rs 5,209 Cr, deployed over several years after listing. The balance (~Rs 2,800 Cr) goes to unidentified acquisitions (capped at 10% of the fresh issue) and general corporate purposes (capped at 25%), amounts to be fixed at pricing. Any pre-IPO placement (up to Rs 1,602 Cr allowed; ~Rs 1,000 Cr reportedly raised in Aug 2026) reduces the fresh issue. OFS money goes to the selling investors.",
+    "The four named objects total ₹5,209 Cr, deployed over several years after listing. The balance (~₹2,800 Cr) goes to unidentified acquisitions (capped at 10% of the fresh issue) and general corporate purposes (capped at 25%), amounts to be fixed at pricing. Any pre-IPO placement (up to ₹1,602 Cr allowed; ~₹1,000 Cr reportedly raised in Aug 2026) reduces the fresh issue. OFS money goes to the selling investors.",
   shareholding: [
     { holder: "Promoters & promoter group (founders, Lazarus & Vohra trusts)", pct: 19.56 },
     { holder: "Nexus Venture Partners", pct: 13.12 },
@@ -191,8 +191,8 @@ export const zepto: IpoReport = {
     { holder: "Other investors", pct: 31.85 },
   ],
   sellers: [
-    { name: "Nexus Ventures VI", detail: "Up to 5.74 crore shares (avg cost Rs 3.91)" },
-    { name: "Nexus Ventures VII", detail: "Up to 3.04 crore shares (avg cost Rs 23.65)" },
+    { name: "Nexus Ventures VI", detail: "Up to 5.74 crore shares (avg cost ₹3.91)" },
+    { name: "Nexus Ventures VII", detail: "Up to 3.04 crore shares (avg cost ₹23.65)" },
     { name: "Razor Ventures Zepto", detail: "Up to 0.94 crore shares" },
     { name: "Contrary ZEP Holdings", detail: "Up to 0.78 crore shares" },
     { name: "Kaiser Foundation Hospitals", detail: "Up to 0.44 crore shares" },
@@ -205,7 +205,7 @@ export const zepto: IpoReport = {
     { name: "Avenue Supermarts (DMart)", ticker: "DMART", note: "Offline grocery benchmark; profitable, low-cost model" },
   ],
   valuationNote:
-    "At the ~Rs 42,750 Cr pre-IPO mark Zepto trades at ~1.9x FY26 revenue, below Swiggy and Eternal on sales (see the table), both of which also own profitable or scaled food-delivery arms.",
+    "At the ~₹42,750 Cr pre-IPO mark Zepto trades at ~1.9x FY26 revenue, below Swiggy and Eternal on sales (see the table), both of which also own profitable or scaled food-delivery arms.",
 
   strengths: [
     {
@@ -218,17 +218,17 @@ export const zepto: IpoReport = {
     },
     {
       title: "Ads and new lines add margin",
-      body: "Advertising rose to Rs 1,636 Cr and 7.8% of order value in FY26; Cafe, private labels and data products add higher-margin revenue on the same stores.",
+      body: "Advertising rose to ₹1,636 Cr and 7.8% of order value in FY26; Cafe, private labels and data products add higher-margin revenue on the same stores.",
     },
     {
       title: "Debt-free with a cash cushion",
-      body: "Rs 5,681 Cr of cash and investments and no borrowings at Mar 2026, topped up by ~Rs 1,000 Cr pre-IPO in Aug 2026.",
+      body: "₹5,681 Cr of cash and investments and no borrowings at Mar 2026, topped up by ~₹1,000 Cr pre-IPO in Aug 2026.",
     },
   ],
   risks: [
     {
-      risk: "Losses and negative operating cash flow every year since 2021; FY26 restated loss Rs 5,905 Cr.",
-      mitigant: "Loss per order has nearly halved and Q4 FY26 adjusted EBITDA loss was ~Rs 59 per order.",
+      risk: "Losses and negative operating cash flow every year since 2021; FY26 restated loss ₹5,905 Cr.",
+      mitigant: "Loss per order has nearly halved and Q4 FY26 adjusted EBITDA loss was ~₹59 per order.",
       severity: "high",
     },
     {
@@ -237,8 +237,8 @@ export const zepto: IpoReport = {
       severity: "high",
     },
     {
-      risk: "Cash runway: reports put quarterly burn at ~Rs 700 Cr with limited runway before the IPO.",
-      mitigant: "Pre-IPO placement closed in Aug 2026 and the fresh issue would add up to Rs 8,010 Cr.",
+      risk: "Cash runway: reports put quarterly burn at ~₹700 Cr with limited runway before the IPO.",
+      mitigant: "Pre-IPO placement closed in Aug 2026 and the fresh issue would add up to ₹8,010 Cr.",
       severity: "medium",
     },
     {
@@ -247,7 +247,7 @@ export const zepto: IpoReport = {
       severity: "medium",
     },
     {
-      risk: "All 1,139 dark stores and 75 warehouses are leased, and ~Rs 1,735 Cr of proceeds is earmarked for rent.",
+      risk: "All 1,139 dark stores and 75 warehouses are leased, and ~₹1,735 Cr of proceeds is earmarked for rent.",
       mitigant: "Leasing keeps capex light and lets the network shift as demand moves.",
       severity: "low",
     },
@@ -256,7 +256,7 @@ export const zepto: IpoReport = {
   outlook: {
     bull: "Order density keeps rising, adjusted EBITDA turns positive within FY28, and the IPO prices near the pre-IPO mark with room for a re-rating toward Swiggy and Eternal multiples.",
     base: "Listing in H1 2027 at a valuation close to the ~US$4.5bn pre-IPO round, with losses narrowing but cash burn still visible for several quarters.",
-    bear: "Amazon and Flipkart escalate spending, burn stays near Rs 700 Cr a quarter, and the IPO is pushed close to the Nov 2027 deadline or priced below the private round.",
+    bear: "Amazon and Flipkart escalate spending, burn stays near ₹700 Cr a quarter, and the IPO is pushed close to the Nov 2027 deadline or priced below the private round.",
   },
   sources: [
     { title: "Zepto Limited - UDRHP-I (8 Jun 2026)", source: "SEBI", url: "https://www.sebi.gov.in/filings/public-issues/jun-2026/zepto-limited-udrhp1_101929.html", year: "2026" },

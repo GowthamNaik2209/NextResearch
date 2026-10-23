@@ -95,12 +95,28 @@ async function fetchHeadlines(companyName: string): Promise<Headline[] | null> {
   // Quoted name keeps results on-topic; the keyword OR-group biases toward market news.
   const q = `"${companyName}" (shares OR stock OR results OR order OR earnings) when:${MAX_AGE_DAYS}d`;
   const url = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-IN&gl=IN&ceid=IN:en`;
-  try {
-    const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(8000), next: { revalidate: REVALIDATE_S } });
+  // The abort signal covers the request; the race also covers reading the body and Next's data
+  // cache (a /updates request once hung for 50+ minutes), so one stuck upstream can't hold a feed.
+  const load = (async () => {
+    const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), next: { revalidate: REVALIDATE_S } });
     return res.ok ? parseGoogleNewsRss(await res.text()) : null;
-  } catch {
-    return null;
-  }
+  })().catch(() => null);
+  return withDeadline(load, FETCH_TIMEOUT_MS + 1000, null);
+}
+
+const FETCH_TIMEOUT_MS = 8000;
+// A whole feed waits at most this long; companies still loading are left out of this render and
+// keep loading into the cache, so the next visit has them. Keeps /updates from taking 10-15 s
+// (75 companies, 6 at a time) on a cold cache.
+const FEED_BUDGET_MS = 3500;
+
+/** `p`, or `fallback` once `ms` have passed (the promise keeps running). */
+function withDeadline<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<T>((resolve) => {
+    timer = setTimeout(() => resolve(fallback), ms);
+  });
+  return Promise.race([p, timeout]).finally(() => clearTimeout(timer));
 }
 
 // Words too common in company names to identify one on their own ("Bharat", "Industries",
@@ -246,19 +262,40 @@ const toItem = (h: Headline, c: CompanyMetrics): NewsItem => ({
 
 const metricsByTicker = () => new Map(listCompanyMetrics().map((c) => [c.ticker, c]));
 
-/** Run `fn` over `items` with at most `limit` in flight (be polite to the upstream). */
-async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
-  const results: R[] = new Array(items.length);
+/**
+ * Run `fn` over `items` with at most `limit` in flight (be polite to the upstream), returning
+ * whatever has finished after `budgetMs` (unfinished items are left out; they keep running).
+ */
+async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>, budgetMs = FEED_BUDGET_MS): Promise<R[]> {
+  const results: (R | undefined)[] = new Array(items.length);
   let next = 0;
-  await Promise.all(
+  const all = Promise.all(
     Array.from({ length: Math.min(limit, items.length) }, async () => {
       while (next < items.length) {
         const i = next++;
         results[i] = await fn(items[i]);
       }
     })
-  );
-  return results;
+  ).then(() => true);
+  await withDeadline(all, budgetMs, false);
+  return results.filter((r): r is R => r !== undefined);
+}
+
+// Newest first, but no company takes more than its share while others have news: a watchlist
+// feed of eight was all one company's stories once it had a busy week.
+function balanced(items: NewsItem[], limit: number): NewsItem[] {
+  const sorted = [...items].sort((a, b) => b.ts - a.ts);
+  const companies = new Set(sorted.map((n) => n.ticker)).size;
+  const cap = Math.max(2, Math.ceil(limit / Math.max(1, companies)));
+  const count = new Map<string, number>();
+  const first: NewsItem[] = [];
+  const rest: NewsItem[] = [];
+  for (const n of sorted) {
+    const c = count.get(n.ticker) ?? 0;
+    count.set(n.ticker, c + 1);
+    (c < cap ? first : rest).push(n);
+  }
+  return [...first.slice(0, limit), ...rest].slice(0, limit).sort((a, b) => b.ts - a.ts);
 }
 
 // One story, many outlets: "DLF Q2 profit rises 15%" and "DLF Q2 Results: net profit up 15%"
@@ -310,7 +347,7 @@ export async function getCompanyNews(ticker: string, limit = 8): Promise<NewsRes
 export async function getNewsForTickers(tickers: string[], limit = 8): Promise<NewsResult> {
   const byTicker = metricsByTicker();
   const companies = tickers.map((t) => byTicker.get(t)).filter((c): c is CompanyMetrics => !!c);
-  const live = dedupe((await mapPool(companies, 6, liveForCompany)).flat()).sort((a, b) => b.ts - a.ts).slice(0, limit);
+  const live = balanced(dedupe((await mapPool(companies, 6, liveForCompany)).flat()), limit);
   if (live.length > 0) return { items: live, live: true };
   return { items: newsForTickers(tickers).slice(0, limit), live: false };
 }

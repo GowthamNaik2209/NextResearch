@@ -19,15 +19,16 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
-Browsing works with **no setup at all**: the landing page, sector pages, the 3D explorer and
-the live stock data (Yahoo Finance + Screener.in, fetched server-side) need no database and no
-keys. You only need the next step for **login and the watchlist**:
+Every page needs **`DATABASE_URL`** in `.env` (Prisma reads only `.env`; see SETUP.md): company
+figures live only in the database. Pointing it at the shared Supabase project is fine for
+browsing (the app only reads figures). Login and the watchlist also need the Supabase keys:
 
 ```bash
 cp .env.example .env.local   # Supabase URL/key + site URL
-# DATABASE_URL goes in .env (Prisma reads only .env), see SETUP.md
-npx prisma migrate dev && npm run db:seed
 ```
+
+For an isolated local database instead: `npx prisma dev`, `npx prisma migrate deploy`, then copy
+the company table in (`scripts/refresh-financials.ts --add=...`, or a dump of the shared one).
 
 ## Scripts
 
@@ -65,16 +66,28 @@ docs/PLAYBOOK.md            Recipes: add a sector, build a 3D model, QA + releas
 **Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the data flow (what is live, what is
 cached, what falls back to what), conventions, and known gaps.
 
+## Company figures
+
+Price, valuation, ratios and FY22-FY26 revenue/profit for every listed company live only in the
+database (see "Company figures" in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)). To change them:
+
+```bash
+npx tsx scripts/refresh-financials.ts            # dry run: re-read everyone from Screener
+npx tsx scripts/refresh-financials.ts --apply    # write (shared live DB: get a go-ahead first)
+npx tsx scripts/refresh-financials.ts --add=TICKER --apply   # a company we don't cover yet
+```
+
+The site picks new figures up within about half an hour, without a deploy.
+
 ## Refreshing the seed data
 
-`prisma/seed-source/extracted.json` holds the extracted company figures and curated news. It is
-read directly by the app (fallback figures, news feed) and loaded into Postgres by the seed:
+`prisma/seed-source/extracted.json` holds the curated news and the content's company list. It is
+read by the app (fallback news) and loaded into Postgres by the seed (company names, roles,
+sector links - not figures):
 
 ```bash
 npx tsx prisma/extract-source-data.ts   # products.ts -> extracted.json
 npm run db:seed                         # shared live DB: get a go-ahead first
 ```
-
-(`npm run db:extract` still points at the original one-off artifact extractor; don't use it.)
 
 Deployment notes live in `vercel.json` / `SETUP.md`.

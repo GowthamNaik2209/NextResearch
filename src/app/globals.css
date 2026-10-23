@@ -10,6 +10,8 @@
   --grid: #1a2721;
   --accent: #f0b53f;
   --amber: #e08a3c;
+  /* Amber for text (chips, labels); --amber itself stays for chart fills. */
+  --amber-ink: #eb9a52;
   --danger: #e8705e;
   --pos: #5fcf8e;
   /* Third chart series (IPO profit bars): must stay distinct from --accent in each theme. */
@@ -21,19 +23,21 @@
    green accent, deliberately away from the usual cold-blue fintech look.
    Toggled via a `data-theme` attribute on <html> (see ThemeToggle.tsx and the
    inline script in layout.tsx). The 3D explorer mirrors these values in
-   explorer.css's `[data-theme="light"] .nr-explorer` block; keep them in sync. */
+   explorer.css's `[data-theme="light"] .nr-explorer` block; keep them in sync.
+   --ink-soft and --pos are dark enough for 4.5:1 text contrast even on --panel-2. */
 :root[data-theme="light"] {
   --bg: #f8f4ea;
   --panel: #efe9d9;
   --panel-2: #e5dec9;
   --ink: #14201a;
-  --ink-soft: #5b6a60;
+  --ink-soft: #536157;
   --line: #d4cab0;
   --grid: #ddd5bd;
   --accent: #0f5c4a;
   --amber: #a8650a;
-  --danger: #b73a2c;
-  --pos: #1c7a4b;
+  --amber-ink: #7a4703;
+  --danger: #ac3628;
+  --pos: #187043;
   --series-3: var(--amber);
   color-scheme: light;
 }
@@ -54,6 +58,25 @@
   }
 }
 
+/* Touch screens only: grows a link's hit area to at least 36x36px (centred, invisible) for dense
+   lists and chips, so desktop keeps its exact layout. Neighbours above and below need enough room
+   that the enlarged areas do not overlap. Not on an element that clips its overflow (truncate),
+   which would cut the area off. */
+@utility tap-y {
+  position: relative;
+  @media (pointer: coarse) {
+    &::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: max(100%, 36px);
+      height: max(100%, 36px);
+      transform: translate(-50%, -50%);
+    }
+  }
+}
+
 /* Phones: a row of filter chips scrolls sideways instead of wrapping into a wall of rows. */
 @utility scrollbar-none {
   scrollbar-width: none;
@@ -71,6 +94,7 @@
   --color-line: var(--line);
   --color-accent: var(--accent);
   --color-amber: var(--amber);
+  --color-amber-ink: var(--amber-ink);
   --color-danger: var(--danger);
   --color-pos: var(--pos);
   --font-display: var(--font-space-grotesk);
@@ -82,6 +106,14 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans), Arial, sans-serif;
+}
+
+/* Paragraphs avoid leaving one word alone on their last line (browsers without support ignore
+   it). In the base layer, so a text-balance utility still wins. */
+@layer base {
+  p {
+    text-wrap: pretty;
+  }
 }
 
 /* Dropdowns draw their own chevron, inset from the right edge with room for the text, so it
@@ -125,22 +157,31 @@ select {
   transition: transform 0.12s, color 0.15s, background 0.15s;
   position: relative;
 }
-/* The visible icon stays small (17x17 svg + 3px padding = 23x23) so it doesn't
-   blow out the row heights it's inlined into (chips, tables, card headers) —
-   but a 23x23 hit area is well under the ~40x40 minimum for a reliable touch
-   target. This invisible pseudo-element enlarges the *tappable* area to 40x40
-   without affecting layout: it's absolutely positioned (out of flow) and
-   centered over the button, and generated content on an element is part of
-   that element's hit-test box, so a tap anywhere in the 40x40 square still
-   registers as a click on the button itself. */
-.watch-btn::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 40px;
-  height: 40px;
-  transform: translate(-50%, -50%);
+/* Hit area = the button's own box. A 40x40 ::after centred on the 23x23 heart used to reach over
+   the text beside it ("Direct supplier · Medium" in an explorer row), so a tap meant for the row
+   toggled the watchlist. A mouse gets the heart as drawn; a finger gets a real 40x40 button with a
+   larger heart, which takes its own room in the row (negative block margins keep rows from growing
+   by sitting it in their padding), so nothing overlaps it. */
+@media (pointer: coarse) {
+  .watch-btn {
+    width: 40px;
+    height: 40px;
+    margin-left: 0;
+    margin-block: -8px;
+    flex: none;
+  }
+  .watch-btn .watch-heart {
+    width: 21px;
+    height: 21px;
+  }
+}
+/* A tap is saving: the heart already shows the new state (optimistic); this only stops it
+   looking idle. */
+.watch-btn.pending {
+  cursor: progress;
+}
+.watch-btn.pending .watch-heart {
+  opacity: 0.75;
 }
 .watch-btn:hover {
   color: var(--danger);

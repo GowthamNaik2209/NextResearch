@@ -20,8 +20,8 @@ const STEPS: { title: string; body: string; link: { href: string; label: string 
   },
   {
     title: "Make it yours",
-    body: "Customise the basket into your own, save companies to your watchlist and share a basket by link as the story develops.",
-    link: { href: "/baskets", label: "Go to baskets" },
+    body: "Copy the industry basket into your own, save companies to your watchlist and share a basket by link as the story develops.",
+    link: { href: "/baskets", label: "Open Baskets" },
   },
 ];
 
@@ -36,7 +36,7 @@ export function HowItWorks() {
               <span className="font-mono text-xs font-bold text-accent">0{i + 1}</span>
               <h3 className="mt-1 font-display text-base font-semibold text-ink">{s.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-ink-soft">{s.body}</p>
-              <Link href={s.link.href} className="mt-3 self-start py-1 text-xs font-semibold text-accent hover:underline">
+              <Link href={s.link.href} className="tap-target mt-3 self-start py-1 text-xs font-semibold text-accent hover:underline">
                 {s.link.label} &rarr;
               </Link>
             </li>

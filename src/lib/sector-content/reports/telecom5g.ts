@@ -24,7 +24,7 @@ export const telecom5g: SectorReport = {
     },
     {
       title: "Market is now a profitable duopoly-plus",
-      body: "Tariff hikes in Dec 2021 and Jul 2024 (~11-25%) lifted ARPU toward Rs 200-250. Further hikes are the main lever for returns on 5G spend.",
+      body: "Tariff hikes in Dec 2021 and Jul 2024 (~11-25%) lifted ARPU toward ₹200-250. Further hikes are the main lever for returns on 5G spend.",
     },
     {
       title: "Passive infra and fiber are the durable pools",
@@ -71,7 +71,7 @@ export const telecom5g: SectorReport = {
     {
       date: "Jun 2024",
       title: "Muted spectrum auction",
-      body: "The auction raised only ~Rs 11,300 Cr against ~Rs 96,000 Cr on offer, signalling operators already hold enough 5G spectrum.",
+      body: "The auction raised only ~₹11,300 Cr against ~₹96,000 Cr on offer, signalling operators already hold enough 5G spectrum.",
       impact: "neutral",
       tag: "Spectrum",
     },
@@ -81,7 +81,7 @@ export const telecom5g: SectorReport = {
     narrative: [
       "India is the world's second-largest telecom market, with ~116 Cr wireless users and very cheap data. Jio and Airtel dominate; Vi and state-run BSNL trail.",
       "5G launched in Oct 2022 and reached nearly every district within two years, largely on non-standalone (Airtel) and standalone (Jio) networks. Operator capex has since started to taper.",
-      "The next leg is densification, fiber-to-the-site, fixed wireless access and enterprise use cases, while the Rs 12,195 Cr telecom PLI pushes equipment manufacturing onshore.",
+      "The next leg is densification, fiber-to-the-site, fixed wireless access and enterprise use cases, while the ₹12,195 Cr telecom PLI pushes equipment manufacturing onshore.",
     ],
     chart: {
       title: "5G subscriptions in India",
@@ -97,11 +97,11 @@ export const telecom5g: SectorReport = {
       ],
     },
     snapshot: [
-      { label: "Blended ARPU, Airtel / Jio", value: "~Rs 250 / ~Rs 210", tone: "pos" },
+      { label: "Blended ARPU, Airtel / Jio", value: "~₹250 / ~₹210", tone: "pos" },
       { label: "5G share of mobile subs, 2025", value: "~33%", tone: "pos" },
       { label: "Fiberized towers", value: "~40%", tone: "neg" },
-      { label: "Telecom PLI outlay", value: "Rs 12,195 Cr", tone: "neutral" },
-      { label: "BharatNet (amended) outlay", value: "Rs 1.39 lakh Cr", tone: "pos" },
+      { label: "Telecom PLI outlay", value: "₹12,195 Cr", tone: "neutral" },
+      { label: "BharatNet (amended) outlay", value: "₹1.39L Cr", tone: "pos" },
       { label: "Vi balance-sheet stress", value: "High", tone: "neg" },
     ],
   },
@@ -117,9 +117,9 @@ export const telecom5g: SectorReport = {
 
   drivers: [
     { title: "Data consumption", metric: "~25 GB/month", body: "Video and short-form content keep per-user data growing at a double-digit pace, forcing capacity additions." },
-    { title: "ARPU repair", metric: "Rs 300 target", body: "Operators publicly target ~Rs 300 ARPU; each Rs 10 rise adds thousands of crore to industry EBITDA." },
+    { title: "ARPU repair", metric: "₹300 target", body: "Operators publicly target ~₹300 ARPU; each ₹10 rise adds thousands of crore to industry EBITDA." },
     { title: "Fixed wireless & home broadband", metric: "~1 Cr+ FWA homes", body: "Jio AirFiber and Airtel Xstream AirFiber use 5G for home broadband, lifting network utilization." },
-    { title: "Domestic manufacturing push", metric: "Rs 12,195 Cr PLI", body: "Telecom PLI and trusted-source rules favour local makers of fiber, routers, RAN and CPE gear." },
+    { title: "Domestic manufacturing push", metric: "₹12,195 Cr PLI", body: "Telecom PLI and trusted-source rules favour local makers of fiber, routers, RAN and CPE gear." },
   ],
   mix: {
     title: "Wireless subscriber share by operator, 2025 (approx.)",
@@ -177,7 +177,7 @@ export const telecom5g: SectorReport = {
     { key: "tejasnetworks", date: "FY26", development: "Revenue fell sharply as BSNL 4G equipment deliveries wound down after the Sep 2025 launch.", impact: "Shows how lumpy single-customer orders make domestic equipment earnings volatile.", tone: "neg" },
     { key: "bhartiairtel_op", date: "Mar 2025", development: "Signed a deal with SpaceX to distribute Starlink services and equipment.", impact: "Telcos co-opt satellite broadband for rural reach instead of competing with it.", tone: "neutral" },
     { key: "industowers", date: "2025", development: "Bharti Airtel raised its stake above 50%; Indus outlined expansion into select African markets.", impact: "Stronger parent backing; first step to diversify beyond India tenancies.", tone: "neutral" },
-    { key: "altiusinvit", date: "Sep 2024", development: "Completed acquisition of American Tower's India tower business (~Rs 13,300 Cr equity value approx.).", impact: "Consolidates passive infra into two large players with InvIT-style yields.", tone: "pos" },
+    { key: "altiusinvit", date: "Sep 2024", development: "Completed acquisition of American Tower's India tower business (~₹13,300 Cr equity value approx.).", impact: "Consolidates passive infra into two large players with InvIT-style yields.", tone: "pos" },
   ],
 
   risks: [
@@ -187,7 +187,7 @@ export const telecom5g: SectorReport = {
     { risk: "Satcom and Wi-Fi offload reduce rural tower need", mitigant: "Satellite capacity is costly and complements, not replaces, towers", severity: "low" },
   ],
   outlook: {
-    bull: "ARPU passes Rs 300 by FY28 as 5G monetizes via FWA and enterprise, while Vi revives and adds tenancies across towers and fiber.",
+    bull: "ARPU passes ₹300 by FY28 as 5G monetizes via FWA and enterprise, while Vi revives and adds tenancies across towers and fiber.",
     base: "Steady ARPU gains, flat-to-lower capex, and passive infra and fiber growing mid-to-high single digits through FY30P.",
     bear: "Vi weakens further, tariff hikes stall, and equipment makers face an order drought after the 5G and BSNL peaks.",
   },
