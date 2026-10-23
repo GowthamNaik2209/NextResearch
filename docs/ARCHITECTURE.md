@@ -66,6 +66,25 @@ Two rules shape most decisions:
 - `SupplierFinancials` (`supplier.f`) holds the seed figures (5-year revenue, KPIs, price CAGR,
   52-week range). They are an *as of* snapshot (`DATA_AS_OF`) - the offline fallback.
 
+### "Ask NextResearch" assistant - `src/lib/assistant/`
+
+- A chat button in the bottom-right of every page (`components/AssistantWidget.tsx`, mounted in the
+  root layout; hidden on the 3D explorer and the auth pages). Opening it shows 3-5 suggested
+  questions for what the page is about: `contextKeyForPath` maps the page (and `?ipo=`, `?report=`,
+  charts' `?sector=`) to `platform`, `ipos`, `sector:<slug>`, `company:<slug>` or `ipo:<slug>`, and
+  `buildContext` writes the questions and their answers from the same content and `FIN` figures as
+  every other page. New sectors, companies and IPOs get questions automatically.
+- **AI layer, optional:** with `GROQ_API_KEY` set, `ai.ts` asks Groq's free tier (Llama 3.1 8B
+  Instant) to reword an answer from its fact lines. The reply is dropped for the code-written answer
+  if it contains a number not in the facts, advice wording, or fails/times out (free-tier limits
+  included). Questions are a fixed list, so answers are cached per (context, question) in memory and
+  at the CDN - model calls stay bounded however many people use it. Bump `PROMPT_VERSION` when the
+  prompt changes.
+- `assistant.test.ts` builds every context and fails on an empty, overlong or broken answer
+  ("undefined", "NaN") or one whose numbers aren't in its own facts.
+- **Adding a question:** add an `ask(id, question, answer, facts?)` to the context in `index.ts`.
+  Every number in the answer must appear in its facts (the default facts are the answer itself).
+
 ### Upcoming IPOs - `src/lib/ipo-content/`
 
 - One authored `IpoReport` per IPO (`<slug>.ts`, shape and field rules in `types.ts`): the DRHP/RHP
@@ -148,6 +167,7 @@ row behind; delete it only after checking no watchlist references it (children c
 | `/api/stock/[ticker]` | route | `{ quote, fundamentals, news, newsLive, footprint, return1y, seedAsOf }`, `s-maxage=300` |
 | `/api/stock/[ticker]/chart?range=1M\|6M\|1Y\|3Y\|5Y\|MAX` | route | price history |
 | `/api/benchmark/[id]/chart?range=...` | route | index history for the ids in `sector-content/benchmarks.ts` (Nifty 50, Sensex, sector indices; ETF stand-ins where Yahoo has no index history) |
+| `/api/assistant?path=&qs=` / `?ctx=&q=` | route | The assistant's questions for a page (code-written answers) / one answer, AI-reworded when `GROQ_API_KEY` is set; both CDN-cached |
 | `/api/watchlist` | route | GET (returns `signedIn`, always 200) / POST / DELETE; the heart checks GET first so signed-out taps show the prompt without a 401 |
 
 ## Frontend structure
@@ -215,7 +235,7 @@ row behind; delete it only after checking no watchlist references it (children c
   5. Check by eye: landing card + stats, search, `/updates` chips, `/connections` (a company shared
      with another sector must show both), idea screens, `/docs`, the stock pop-up footprint, and the
      explorer on desktop *and* phone.
-  Landing stats, search, news feed, ideas, connections and footprint all derive from the content
+  Landing stats, search, news feed, ideas, connections, footprint and the assistant's questions all derive from the content
   (`!muted`), so nothing else should need a hand edit - if something does, that is a bug to fix.
 - **Add a stock-pop-up tab:** add a view in `components/stock/`, register it in `StockModal`'s
   `TABS`, extend `StockTab` in `types.ts`.
