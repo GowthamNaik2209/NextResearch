@@ -19,7 +19,7 @@ can be saved, shared by link, versioned and re-run.
 |---|---|
 | **Universe** | A basket (yours, an industry's, an idea), an industry layer ("EV battery cells"), a policy's beneficiaries, your watchlist |
 | **Selection** | All; top / bottom *N* by a ranking; those passing a filter |
-| **Weighting** | Built: equal, market cap, custom (each stock's % set by hand), layer-balanced. Ideas: inverse volatility, capped (max % per stock or per layer), exposure-weighted (by our exposure strength) |
+| **Weighting** | Built: equal, market cap, custom (each stock's % set by hand). Ideas: inverse volatility, capped (max % per stock or per layer), exposure-weighted (by our exposure strength) |
 | **Schedule** | Never (buy and hold, today), monthly, quarterly, on drift (when a stock moves > *x* points off its target weight) |
 | **Exits & risk** | Stop-loss per stock, trailing stop, basket-level trend filter (to cash below the 200-day average), max drawdown circuit breaker, re-entry rule |
 
@@ -33,7 +33,7 @@ can't trade on the price it just saw.
 ### A. Rebalancing (built: the basket page's Weighting and Rebalancing controls)
 
 Built in src/lib/baskets/rebalance.ts (pure, unit-tested) and src/lib/baskets/strategy.ts (the
-query string that names a strategy: `w=equal|mcap|custom|layer`, `cw=TICKER:40,TICKER:60` for
+query string that names a strategy: `w=equal|mcap|custom`, `cw=TICKER:40,TICKER:60` for
 custom weights, `rb=never|monthly|quarterly|drift`, `band`). The page's own URL writes the
 weighting as `wt` so it can't clash with a host page's parameters. Calendar rebalances trade at
 the close of the first bar of the new month or quarter; the drift rule trades the bar after the
@@ -41,7 +41,7 @@ drift is seen. Turnover and trade counts are reported (and each rebalance in the
 not yet taken off.
 
 **Names on screen** (src/components/baskets/labels.ts): the controls are *Weighting* (Equal, M-cap,
-Custom, Layers) and *Rebalancing* (Never, Monthly, Quarterly, Drift). Panel titles name the period and
+Custom) and *Rebalancing* (Never, Monthly, Quarterly, Drift). Panel titles name the period and
 the settings in words, built from the live strategy ("Backtest · past 1 year · equal weight, not
 rebalanced"); the unrebalanced comparison line and card are "Not rebalanced". Baskets are called
 *industry* (or *policy*) *baskets* (every listed stock on a map), *rule-based baskets* (the ideas,
@@ -64,8 +64,29 @@ until Create basket. A basket holds up to 75 stocks; an add that would pass that
 
 **What a saved basket stores:** `Basket.weighting` (EQUAL or MCAP) plus `Basket.customWeighting`
 (true when custom) and each `BasketItem.weight` (its custom %). The weights are kept when the
-owner switches to Equal or M-cap, so switching back to Custom restores them. Layer-balanced and
-every rebalancing rule still live only in the page URL until a `Strategy` model is migrated.
+owner switches to Equal or M-cap, so switching back to Custom restores them. Every rebalancing rule
+still lives only in the page URL until a `Strategy` model is migrated. Each `BasketItem.pickedFrom`
+keeps the industry slug the stock was picked from in the stock picker (checked against the content's
+industry and policy slugs by `src/lib/baskets/picked-from.ts`), so its layer label stays the one it
+was picked in after a reload (Bharat Forge picked from EV reads "Electric motor & e-axle"). With none,
+a stock reads in the basket's `sourceSector`, else its home industry.
+
+**Layer-balanced weighting was removed** (owner's call, Oct 2026): the Weighting control is Equal ·
+M-cap · Custom. It only ever lived in the URL (saved baskets store EQUAL, MCAP or custom, so no data
+changed); an old link with `w=layer` (or `wt=layer`) opens at equal weight.
+
+**Stocks joining on their own start date** (`src/lib/baskets/walk.ts`, `JoinOptions` in backtest.ts,
+`join=listing` on the backtest API). A stock may carry a start date (`from`), or with `joinLate` a
+stock whose history starts after the basket's first day (listed during the period) joins on its first
+bar instead of being left out. The honest method chosen: on that bar it is bought at its target share
+among the stocks then held (equal weight: 1/k of the basket with k stocks after it joins), paid for by
+selling the others in proportion to what they are worth then. No money comes in or out, so the
+basket's value is unbroken, each stock's return runs from the day it joined (its "since listing"
+return) and the points each stock added still sum to the basket's return. On a rebalanced basket the
+join is a rebalance to the targets of the stocks then held (counted in turnover). The Recent listings
+rule-based basket uses it: its chart opens on the shortest range reaching back to the earliest listing
+(up to 2Y), its card says "since listing", and each row shows the stock's own return since listing. A
+saved copy doesn't keep this (it backtests every stock from the period's first day).
 
 
 1. **Equal weight, rebalanced monthly / quarterly.** The simplest improvement over buy-and-hold:
@@ -75,8 +96,8 @@ every rebalancing rule still live only in the page URL until a `Strategy` model 
 3. **Custom weights** (built). Each stock's % set by hand, saved with the basket. It replaced an
    earlier *capped market cap* weighting (no stock above 15%, no layer above 35%), which could
    come back as a preset that fills in custom weights.
-4. **Layer-balanced** (built, URL only). Equal weight *per value-chain layer*, then equal within it. A balanced bet
-   on the whole chain instead of whichever layer has the most listed names. Unique to us.
+4. ~~**Layer-balanced**~~ (built, then removed in Oct 2026; old links open at equal weight). Equal
+   weight *per value-chain layer*, then equal within it.
 
 ### B. Rotation and ranking (price only; needs stored daily history)
 
@@ -98,6 +119,26 @@ every rebalancing rule still live only in the page URL until a `Strategy` model 
     high.
 
 ### D. Fundamentals (needs point-in-time financials)
+
+Built as **rule-based baskets** on today's company-table snapshot (`src/lib/baskets/kpi-screens.ts`,
+unit-tested): today's list, backtested over the past year, so the result is "how today's list did",
+not a point-in-time strategy. Each keeps out companies under ₹1,000 Cr, screenOut companies and
+REITs/InvITs, caps the list at 12, ranks by the one figure shown beside each stock and states its
+rule in the card's "i":
+
+- *Consistent compounders*: revenue and net profit up every year FY22→FY26 (FY22 profit ₹25 Cr+),
+  ROCE 15%+; fastest 4-year profit growth first.
+- *Growth at a reasonable price*: P/E ÷ FY23→FY26 profit growth (PEG 1.5 or less), lowest first;
+  profit growth 15%+ a year from ₹25 Cr+ with no loss since FY22, revenue growth 10%+, ROCE 12%+.
+- *Turnarounds*: a net loss in FY22, FY23 or FY24, then profits in FY25 and FY26 (FY26 higher)
+  without shrinking sales; biggest FY26 profit first.
+- *Widening margins*: net margin up most from FY23 to FY26, profitable each year, revenue growing
+  and ₹500 Cr+.
+
+They avoid the landing page's "Stock screens" (highest ROCE, latest-year revenue growth, lowest P/E
+with ROCE above 15%, furthest below the 52-week high, highest dividend yield), so no dividend or
+52-week screen is duplicated here. The point-in-time versions below are still to build:
+
 
 12. **Quality within the chain.** Hold the layer's stocks with ROCE above 15% and debt to equity
     below 1, rebalanced after each results season.

@@ -3,7 +3,7 @@
 // string names a strategy everywhere. The default (equal or market-cap weights, bought once and
 // held) writes the same "w=equal" the backtest has always used, so its URLs and caches are unchanged.
 
-export type WeightScheme = "equal" | "mcap" | "custom" | "layer";
+export type WeightScheme = "equal" | "mcap" | "custom";
 export type RebalanceRule = "never" | "monthly" | "quarterly" | "drift";
 
 export type Strategy = {
@@ -18,7 +18,7 @@ export type Strategy = {
 export const DEFAULT_BAND = 5;
 export const BAND_CHOICES = [2, 5, 10, 20];
 
-export const WEIGHT_SCHEMES: WeightScheme[] = ["equal", "mcap", "custom", "layer"];
+export const WEIGHT_SCHEMES: WeightScheme[] = ["equal", "mcap", "custom"];
 export const REBALANCE_RULES: RebalanceRule[] = ["never", "monthly", "quarterly", "drift"];
 
 export const heldStrategy = (weighting: WeightScheme = "equal", weights?: Record<string, number>): Strategy => ({
@@ -59,12 +59,13 @@ export const weightsParam = (w: Record<string, number>) =>
 /**
  * Reads a strategy from query parameters. `names` maps the weighting to its parameter (the API
  * uses w; the page's own URL uses wt, so it can't clash with a host page's parameters). A missing
- * weighting falls back to `fallback` (a saved basket's own). "capped", a weighting since removed,
- * reads as market cap so old links still open. Custom weights ride in cw ("TCS:40,INFY:60").
+ * weighting falls back to `fallback` (a saved basket's own). Weightings since removed still open
+ * old links: "capped" reads as market cap, "layer" (layer-balanced) as equal weight. Custom weights
+ * ride in cw ("TCS:40,INFY:60").
  */
 export function parseStrategy(q: URLSearchParams, fallback: WeightScheme = "equal", names = { w: "w" }): Strategy {
   const raw = q.get(names.w);
-  const w = raw === "capped" ? "mcap" : raw;
+  const w = raw === "capped" ? "mcap" : raw === "layer" ? "equal" : raw;
   const rb = q.get("rb");
   const weighting = isScheme(w) ? w : fallback;
   const weights = weighting === "custom" ? parseWeights(q.get("cw")) : undefined;
@@ -88,14 +89,13 @@ export function strategyQuery(s: Strategy): string {
 /** Bought once and held at plain equal or market-cap weights: the backtest as it has always been. */
 export const isPlainHold = (s: Strategy) => s.rebalance === "never" && (s.weighting === "equal" || s.weighting === "mcap");
 
-export const SCHEME_SHORT: Record<WeightScheme, string> = { equal: "Equal", mcap: "M-cap", custom: "Custom", layer: "Layers" };
+export const SCHEME_SHORT: Record<WeightScheme, string> = { equal: "Equal", mcap: "M-cap", custom: "Custom" };
 export const RULE_SHORT: Record<RebalanceRule, string> = { never: "Hold", monthly: "Monthly", quarterly: "Quarterly", drift: "Drift" };
 
 export function weightingLabel(s: Strategy): string {
   if (s.weighting === "equal") return "Equal weight";
   if (s.weighting === "mcap") return "Market cap";
-  if (s.weighting === "custom") return "Custom (each stock's % set by hand)";
-  return "Layer-balanced (equal per value-chain layer, equal within)";
+  return "Custom (each stock's % set by hand)";
 }
 
 export function rebalanceLabel(s: Strategy): string {
@@ -104,7 +104,7 @@ export function rebalanceLabel(s: Strategy): string {
   return `rebalanced ${s.rebalance}`;
 }
 
-/** A short name for panel titles: "Equal · held", "Custom · monthly", "Layers · drift 5 pts". */
+/** A short name for panel titles: "Equal · held", "Custom · monthly", "M-cap · drift 5 pts". */
 export function strategyShort(s: Strategy): string {
   const r = s.rebalance === "never" ? "held" : s.rebalance === "drift" ? `drift ${s.band} pts` : s.rebalance;
   return `${SCHEME_SHORT[s.weighting]} · ${r}`;

@@ -7,7 +7,7 @@ import type { BasketStock } from "@/lib/baskets/industry";
 // The basket page's one stock selection (see lib/baskets/selection.ts): state for rendering, plus
 // `current()` for event handlers and a save's reply that lands after more taps (the latest, even
 // before React has re-rendered).
-export function useBasketSelection(init: () => { stocks: BasketStock[]; unlisted?: string[]; custom: Record<string, number> | null; chart: ChartSelection }) {
+export function useBasketSelection(init: () => { stocks: BasketStock[]; unlisted?: string[]; custom: Record<string, number> | null; chart: ChartSelection; pickedFrom?: Record<string, string> }) {
   const [state, dispatch] = useReducer(selectionReducer, undefined, () => initSelection(init()));
   const latest = useRef<SelectionState>(state);
   useEffect(() => {

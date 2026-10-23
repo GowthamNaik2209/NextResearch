@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, cache } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -16,9 +16,12 @@ import { ensureFinancials } from "@/lib/financials/load";
 export const metadata = {
   title: "Stock baskets: build your own from any mix of Indian industries",
   description:
-    "Create a stock basket from any mix of the industries NextResearch maps, from EVs and railways to defence, pharma and real estate, or start from a rule-based basket re-ranked daily: biggest gainers, highest ROCE, scarce suppliers, companies in 3+ industries and recent listings. Each one is backtested against the Nifty 50 and shareable by link.",
+    "Create a stock basket from any mix of the industries NextResearch maps, from EVs and railways to defence, pharma and real estate, or start from a rule-based basket re-ranked daily: biggest gainers, highest ROCE, scarce suppliers, companies in 3+ industries, recent listings, consistent compounders, growth at a reasonable price, turnarounds and widening margins. Each one is backtested against the Nifty 50 and shareable by link.",
   alternates: { canonical: "/baskets" },
 };
+
+// The industry table and the summary strip above it read the same figures: worked out once per request.
+const figures = cache(industryFigures);
 
 export default async function BasketsPage() {
   await ensureFinancials();
@@ -78,7 +81,7 @@ export default async function BasketsPage() {
                 Rule-based baskets
               </h2>
               <InfoTip label="About rule-based baskets">
-                Each list is picked by a fixed rule (past return, ROCE, our maps) and re-ranked daily. Returns shown are past performance, not a
+                Each list is picked by a fixed rule (past return, company figures, our maps) and re-ranked daily; tap a card&rsquo;s i for its rule. Returns shown are past performance, not a
                 recommendation or forecast.
               </InfoTip>
             </div>
@@ -87,7 +90,15 @@ export default async function BasketsPage() {
           <BasketIdeas />
         </section>
 
-        <section aria-labelledby="mine-h" className="mt-4 flex flex-col gap-2">
+        {/* One summary for the two tables below (yours, then industry & policy). The Nifty's figure
+            streams in from the server; the strip shows at its final size meanwhile. */}
+        <div className="mt-4">
+          <Suspense fallback={<BasketsSummary mineCount={mineCount} />}>
+            <Summary mineCount={mineCount} />
+          </Suspense>
+        </div>
+
+        <section aria-labelledby="mine-h" className="mt-2 flex flex-col gap-2">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="min-w-0">
               <h2 id="mine-h" className="font-display text-lg font-bold text-ink sm:text-xl">
@@ -129,15 +140,8 @@ export default async function BasketsPage() {
             <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock on each industry or policy map, at equal weight.</p>
           </div>
           {/* The figures are worked out on the server and stream in; until then the rows show loading. */}
-          <Suspense
-            fallback={
-              <>
-                <BasketsSummary mineCount={mineCount} />
-                <BasketsPanel title="All industries & policies" rows={industryRows} initialSort="ret" deferred />
-              </>
-            }
-          >
-            <IndustryTable rows={industryRows} mineCount={mineCount} />
+          <Suspense fallback={<BasketsPanel title="All industries & policies" rows={industryRows} initialSort="ret" deferred />}>
+            <IndustryTable rows={industryRows} />
           </Suspense>
         </section>
       </main>
@@ -146,13 +150,13 @@ export default async function BasketsPage() {
   );
 }
 
-async function IndustryTable({ rows, mineCount }: { rows: IndustryRow[]; mineCount: number | null }) {
-  const { figs, benchRet } = await industryFigures();
+async function IndustryTable({ rows }: { rows: IndustryRow[] }) {
+  const { figs, benchRet } = await figures();
   const seed = { figs: Object.fromEntries(Object.entries(figs).map(([slug, f]) => [industrySeriesKey(slug), f])), benchRet };
-  return (
-    <>
-      <BasketsSummary mineCount={mineCount} benchRet={benchRet} />
-      <BasketsPanel title="All industries & policies" rows={rows} initialSort="ret" seed={seed} />
-    </>
-  );
+  return <BasketsPanel title="All industries & policies" rows={rows} initialSort="ret" seed={seed} />;
+}
+
+async function Summary({ mineCount }: { mineCount: number | null }) {
+  const { benchRet } = await figures();
+  return <BasketsSummary mineCount={mineCount} benchRet={benchRet} />;
 }

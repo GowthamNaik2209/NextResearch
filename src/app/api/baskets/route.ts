@@ -6,6 +6,7 @@ import { MAX_BASKETS_PER_USER, MAX_BASKET_STOCKS, getIndustryBasket } from "@/li
 import { cleanName, cleanTickers, cleanWeights, fillAddPrices, getVisibleBasket, toSaved } from "@/lib/baskets/store";
 import { uniqueName } from "@/lib/baskets/names";
 import { ensureFinancials } from "@/lib/financials/load";
+import { cleanPickedFrom } from "@/lib/baskets/picked-from";
 import { toPercents } from "@/lib/baskets/strategy";
 
 export const maxDuration = 60;
@@ -19,9 +20,11 @@ export async function GET() {
   return NextResponse.json({ baskets: rows.map((r) => toSaved(r, user.id)), signedIn: true });
 }
 
-// POST { name?, tickers? (+ sourceSector?) | sector? | copyFrom?, weighting?, weights? } - a new basket, empty, from
-// a list of stocks, from an industry basket, or a copy of a basket shared with the viewer.
+// POST { name?, tickers? (+ sourceSector?, pickedFrom?) | sector? | copyFrom?, weighting?, weights? } - a new
+// basket, empty, from a list of stocks, from an industry basket, or a copy of a basket shared with the viewer.
 // weighting "custom" takes weights ({ ticker: % }, totalling 100); without valid ones it is equal.
+// pickedFrom ({ ticker: industry slug }) is the industry each stock was picked from in the picker,
+// kept so its layer label survives a reload; a copy keeps the original's.
 export async function POST(request: Request) {
   await ensureFinancials();
   const user = await getCurrentUser();
@@ -35,6 +38,7 @@ export async function POST(request: Request) {
   let weighting: "EQUAL" | "MCAP" = body?.weighting === "mcap" ? "MCAP" : "EQUAL";
   let custom = body?.weighting === "custom";
   let wanted: unknown = body?.weights;
+  let pickedFromIn: unknown = body?.pickedFrom;
   if (typeof body?.sector === "string") {
     const ind = getIndustryBasket(body.sector);
     if (!ind) return NextResponse.json({ error: "unknown industry" }, { status: 404 });
@@ -47,6 +51,7 @@ export async function POST(request: Request) {
     // Only stocks the maps still list: one dropped since the original was made is left behind.
     tickers = cleanTickers(src.items.map((i) => i.ticker));
     sourceSector = src.sourceSector;
+    pickedFromIn = Object.fromEntries(src.items.flatMap((i) => (i.pickedFrom ? [[i.ticker, i.pickedFrom]] : [])));
     description = src.description;
     weighting = src.weighting === "mcap" ? "MCAP" : "EQUAL";
     // The copy keeps the original's custom weights, or the custom ones the viewer set on it.
@@ -69,6 +74,7 @@ export async function POST(request: Request) {
   }
   // A copy of a custom basket whose dropped stocks leave it short is scaled back up to 100%.
   const weights = custom ? (cleanWeights(wanted, tickers) ?? cleanWeights(rescale(wanted, tickers), tickers)) : null;
+  const pickedFrom = cleanPickedFrom(pickedFromIn, tickers);
   const row = await prisma.basket.create({
     data: {
       userId: user.id,
@@ -77,7 +83,7 @@ export async function POST(request: Request) {
       sourceSector,
       weighting,
       customWeighting: !!weights,
-      items: { create: tickers.map((ticker) => ({ ticker, weight: weights?.[ticker] ?? null })) },
+      items: { create: tickers.map((ticker) => ({ ticker, weight: weights?.[ticker] ?? null, pickedFrom: pickedFrom[ticker] ?? null })) },
     },
   });
   // Live prices take a few seconds for a big basket; the page doesn't wait for them.

@@ -29,7 +29,6 @@ import { industrySeriesKey, savedBasketQuery } from "./series";
 import { useSeries } from "./use-series";
 import { NOT_REBALANCED, REBALANCE_BUTTON, basisLabel, pastPeriod } from "./labels";
 import { basketWeights } from "@/lib/baskets/backtest";
-import { targetWeights } from "@/lib/baskets/rebalance";
 import {
   BAND_CHOICES,
   REBALANCE_RULES,
@@ -102,7 +101,6 @@ const strategyUrlParams = (s: Strategy) => [...new URLSearchParams(strategyQuery
 function schemeShares(stocks: BasketStock[], scheme: WeightScheme, custom?: Record<string, number>): Map<string, number> {
   if (!stocks.length) return new Map();
   if (scheme === "custom") return customTargets(stocks.map((s) => s.ticker), custom);
-  if (scheme === "layer") return targetWeights(stocks, "layer");
   const raw = basketWeights(stocks, scheme);
   const sum = [...raw.values()].reduce((a, b) => a + b, 0);
   return new Map([...raw].map(([t, v]) => [t, v / sum]));
@@ -151,10 +149,17 @@ export type BasketDetailProps = {
   initialRange?: ChartRange;
   /** A saved basket's tickers the maps no longer list: shown as "No longer listed" rows. */
   unlisted?: string[];
-  /** A draft: the industry it was copied from, saved with it as its source. */
+  /** A draft: the industry it was copied from, saved with it as its source. A saved basket: its
+   * source industry, the layer labels' fallback for stocks not picked from an industry. */
   sourceSector?: string | null;
   /** A line for the status bar on opening (a draft that couldn't take every stock, say). */
   notice?: string | null;
+  /** Backtest each stock from its listing day: one listed during the period joins on its first
+   * trading day instead of being left out (the Recent listings rule-based basket). */
+  joinAtListing?: boolean;
+  /** A saved basket: the industry each stock was picked from (saved with it), so its layer label
+   * stays the one it was picked in after a reload. */
+  pickedFrom?: Record<string, string>;
 };
 
 export function BasketDetail(p: BasketDetailProps) {
@@ -177,7 +182,7 @@ export function BasketDetail(p: BasketDetailProps) {
     const ownIndustry = p.mode === "industry" && p.compareSlug === p.id;
     const chart = defaultSelection(p.indices, p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id)), p.compareSlug && !ownIndustry ? p.compareSlug : null);
     if (p.mode !== "industry") chart.picks = Object.fromEntries(p.stocks.slice(0, MAX_CHART_STOCKS).map((s, i) => [s.ticker, i]));
-    return { stocks: p.stocks, unlisted: p.unlisted, custom: p.weighting === "custom" || p.customWeights ? savedCustom(p.stocks) : null, chart };
+    return { stocks: p.stocks, unlisted: p.unlisted, custom: p.weighting === "custom" || p.customWeights ? savedCustom(p.stocks) : null, chart, pickedFrom: p.pickedFrom };
   });
   const { stocks, confirmed, unlisted, custom: customEdit, chart: chartSel, pickedFrom, picksChosen } = sel;
   const setCustomEdit = (weights: Record<string, number> | null) => act({ type: "setCustom", weights });
@@ -252,8 +257,8 @@ export function BasketDetail(p: BasketDetailProps) {
     const q = new URLSearchParams(strategyUrlParams(keepWeights ? strategy : { ...strategy, weights: undefined }) as [string, string][]);
     return `${path}${path.includes("?") ? "&" : "?"}${q}`;
   };
-  // What a saved basket can store: equal, market cap or custom (layer-balanced saves as equal).
-  const savedWeighting = weighting === "mcap" || weighting === "custom" ? weighting : "equal";
+  // What a saved basket stores: equal, market cap or custom (every weighting there is).
+  const savedWeighting = weighting;
   const savedWeights = weighting === "custom" && strategy.weights ? { weights: strategy.weights } : {};
   const pickView = (v: "stocks" | "chart") => {
     setView(v);
@@ -268,11 +273,14 @@ export function BasketDetail(p: BasketDetailProps) {
   // route reads the stocks from the database, so asking for it mid-save would run the old list.
   // While an add or remove is saving, the same stocks go by list (tickers=), which needs no save.
   const savedList = confirmed.length === tickers.length && tickers.every((t) => confirmed.includes(t));
+  // Stocks joining on their listing day ride on every backtest of this basket (whole, picks, not
+  // rebalanced), never on the industry baskets compared alongside.
+  const joinQ = p.joinAtListing ? "&join=listing" : "";
   const keyFor = (q: string) =>
     p.mode === "industry"
       ? industrySeriesKey(p.id, q)
       : p.mode === "idea" || draft || !savedList
-        ? (picksKey(tickers, q) ?? `x:tickers=&${q}`)
+        ? (picksKey(tickers, q + joinQ) ?? `x:tickers=&${q}${joinQ}`)
         : `x:${savedBasketQuery(p.id, q, confirmed)}`;
   const basketKey = keyFor(sq);
   // The same basket at the same weights, bought and held: the rebalanced one's comparison.
@@ -282,12 +290,13 @@ export function BasketDetail(p: BasketDetailProps) {
   const compareSq = weighting === "custom" ? strategyQuery({ ...strategy, weighting: "equal", weights: undefined }) : sq;
   // Kept here, above the chart, so the reader's picks outlive weighting, range and view switches.
   const compareIndustries = p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id));
-  // The industry a stock is read in here: the one it was picked from this visit, else the
-  // basket's own (an industry basket's, a saved basket's source or most-held industry). Bharat
-  // Forge picked from EV reads as an EV part ("Electric motor & e-axle"), not its home layer in
-  // defence; a stock not in that industry keeps its home layer.
+  // The industry a stock is read in here: the one it was picked from (this visit, or saved with a
+  // basket), else the basket's own (an industry basket's; a saved basket's source industry; a draft's
+  // or an idea's most-held one). Bharat Forge picked from EV reads as an EV part ("Electric motor &
+  // e-axle"), not its home layer in defence; a stock not in that industry keeps its home layer
+  // (its primary industry's).
   const contextOf = (s: BasketStock) => {
-    const slug = pickedFrom[s.ticker] ?? (p.mode === "industry" ? p.id : p.compareSlug);
+    const slug = pickedFrom[s.ticker] ?? (p.mode === "industry" ? p.id : p.mode === "saved" ? (p.sourceSector ?? null) : p.compareSlug);
     return slug && s.layerIn?.[slug] ? slug : null;
   };
   const layerOf = (s: BasketStock) => {
@@ -310,7 +319,7 @@ export function BasketDetail(p: BasketDetailProps) {
   const pickedKey = picksChosen
     ? picksKey(
         picked.map((s) => s.ticker),
-        sq,
+        sq + joinQ,
       )
     : null;
 
@@ -399,6 +408,13 @@ export function BasketDetail(p: BasketDetailProps) {
     const w = current().custom;
     return weighting === "custom" && w ? { weights: reweigh(w) } : {};
   };
+  // The industry each of these stocks was picked from, for the server to keep with them (so its
+  // layer label survives a reload). Left out when none was picked from an industry.
+  const pickedFromFor = (list: string[]) => {
+    const from = current().pickedFrom;
+    const keep = list.filter((t) => from[t]);
+    return keep.length ? { pickedFrom: Object.fromEntries(keep.map((t) => [t, from[t]])) } : {};
+  };
   // Nothing changes while "Create basket" is saving the list or the basket is being deleted.
   const [deleting, setDeleting] = useState(false);
   const locked = createStep != null || deleting;
@@ -411,7 +427,7 @@ export function BasketDetail(p: BasketDetailProps) {
     if (!fresh.length) return;
     act({ type: "add", stocks: fresh, from: fromIndustry });
     const weights = weightsAfter();
-    if (!draft) await patchItems({ add: fresh.map((s) => s.ticker), ...weights });
+    if (!draft) await patchItems({ add: fresh.map((s) => s.ticker), ...weights, ...pickedFromFor(fresh.map((s) => s.ticker)) });
   };
   // Taking a stock off is soft: it goes at once, with "Removed X · Undo" in the status line.
   const remove = async (t: string) => {
@@ -432,7 +448,7 @@ export function BasketDetail(p: BasketDetailProps) {
     if (locked || !t) return;
     act({ type: "restore", ticker: t });
     const weights = weightsAfter();
-    if (!draft) await patchItems({ add: [t], ...weights });
+    if (!draft) await patchItems({ add: [t], ...weights, ...pickedFromFor([t]) });
   };
   // The Undo offer stays a while, then the line goes back to its usual text.
   const lastRemoved = sel.lastRemoved;
@@ -447,8 +463,8 @@ export function BasketDetail(p: BasketDetailProps) {
     if (w === weighting) return;
     if (w !== "custom") {
       pickStrategy({ ...strategy, weighting: w, weights: undefined });
-      // A saved basket keeps equal, market cap or custom as its own; layer-balanced stays in the URL.
-      if (ownsWeights && w !== "layer") await patch({ weighting: w });
+      // A saved basket keeps equal or market cap as its own.
+      if (ownsWeights) await patch({ weighting: w });
       return;
     }
     // Custom brings back the split set before (this visit, or saved with the basket); the first
@@ -575,7 +591,7 @@ export function BasketDetail(p: BasketDetailProps) {
     setBusy(true);
     setCreateStep("creating");
     setNote(null);
-    const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tickers, name: name.trim(), weighting: savedWeighting, ...savedWeights, ...(p.sourceSector ? { sourceSector: p.sourceSector } : {}) }) }).catch(() => null);
+    const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tickers, name: name.trim(), weighting: savedWeighting, ...savedWeights, ...pickedFromFor(tickers), ...(p.sourceSector ? { sourceSector: p.sourceSector } : {}) }) }).catch(() => null);
     const json = res ? await res.json().catch(() => null) : null;
     if (res?.ok && json?.id) {
       setCreateStep("opening");
@@ -625,7 +641,6 @@ export function BasketDetail(p: BasketDetailProps) {
     equal: "Every stock the same share",
     mcap: "By market cap",
     custom: "Set each stock's % yourself",
-    layer: "Each value-chain layer the same share, split equally between its stocks",
   };
   const weightingControl = (
     <div className={MINI_SEG} role="group" aria-label="Weighting">
@@ -912,7 +927,6 @@ export function BasketDetail(p: BasketDetailProps) {
                 <li><b>Equal</b>: every stock the same share.</li>
                 <li><b>M-cap</b>: bigger companies get more, by market cap.</li>
                 <li><b>Custom</b>: you set each stock&rsquo;s %; they must total 100%.{ownsWeights ? " Saved with the basket." : ""} Tap Custom again to change them.</li>
-                <li><b>Layers</b>: each value-chain layer the same share, split equally between its stocks.</li>
               </ul>
             </InfoTip>
           </div>
@@ -1311,11 +1325,14 @@ export function BasketDetail(p: BasketDetailProps) {
             </>
 
           <p className="text-[11px] leading-relaxed text-ink-soft">
-            How it is backtested: bought on the first day of the period at {weighting === "equal" ? "equal weights" : weighting === "layer" ? "equal weights per value-chain layer (equal within each)" : weighting === "custom" ? "your custom weights (a stock with no prices for the period has its share spread over the rest, in proportion)" : "weights by market cap"}
+            How it is backtested: bought on the first day of the period at {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights (a stock with no prices for the period has its share spread over the rest, in proportion)" : "weights by market cap"}
             {weighting === "mcap" ? " (today’s market caps, from our last data update, so slightly flattering to winners)" : ""}
             {rebalanced
               ? `, then ${rebalanceLabel(strategy)}, trading at that day’s close${strategy.rebalance === "drift" ? " (the day after the drift is seen)" : ""}. Turnover and trades are shown, but no brokerage, taxes or slippage are taken off. Price change only, no dividends.`
-              : " and held without rebalancing. Price change only, no dividends, costs or taxes."} Stocks listed during the period are left out of it, and the basket is today&rsquo;s list of stocks, so companies that fell out of the industry before now are missing. A tracking and research tool, not investment advice.
+              : " and held without rebalancing. Price change only, no dividends, costs or taxes."}{p.joinAtListing
+              ? " Each stock is backtested from its first trading day: one listed during the period joins the basket then at its share of the stocks held, the others trimmed in proportion to pay for it, so its return is since listing."
+              : " Stocks listed during the period are left out of it."}{" "}
+            The basket is today&rsquo;s list of stocks, so companies that fell out of the industry before now are missing. A tracking and research tool, not investment advice.
             {p.mode === "industry" && (
               <>
                 {" "}

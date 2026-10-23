@@ -6,6 +6,7 @@ import { uniqueName } from "@/lib/baskets/names";
 import { cleanName, cleanTickers, cleanWeights, fillAddPrices, getVisibleBasket } from "@/lib/baskets/store";
 import { addToWeights, removeFromWeights } from "@/lib/baskets/strategy";
 import { ensureFinancials } from "@/lib/financials/load";
+import { cleanPickedFrom } from "@/lib/baskets/picked-from";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -17,7 +18,8 @@ export async function GET(_req: Request, { params }: Ctx) {
   return b ? NextResponse.json(b) : NextResponse.json({ error: "not found" }, { status: 404 });
 }
 
-// PATCH { name?, description?, weighting?, weights?, isPublic?, add?: string[], remove?: string[] } - owner only.
+// PATCH { name?, description?, weighting?, weights?, isPublic?, add?: string[], pickedFrom?: { ticker: slug }, remove?: string[] } - owner only.
+// pickedFrom: the industry each added stock was picked from (kept with it for its layer label).
 // weighting "custom" needs weights ({ ticker: % } for every stock after the add and remove,
 // totalling 100). A custom basket's add or remove without weights keeps the others' proportions.
 //
@@ -84,7 +86,8 @@ export async function PATCH(request: Request, { params }: Ctx) {
 
         await tx.basket.update({ where: { id }, data });
         if (remove.length) await tx.basketItem.deleteMany({ where: { basketId: id, ticker: { in: remove } } });
-        if (add.length) await tx.basketItem.createMany({ data: add.map((ticker) => ({ basketId: id, ticker, weight: set?.[ticker] ?? null })), skipDuplicates: true });
+        const from = cleanPickedFrom(body?.pickedFrom, add);
+        if (add.length) await tx.basketItem.createMany({ data: add.map((ticker) => ({ basketId: id, ticker, weight: set?.[ticker] ?? null, pickedFrom: from[ticker] ?? null })), skipDuplicates: true });
         // Every kept stock's new weight in one statement, rather than one UPDATE per stock.
         if (set && kept.length) {
           const tickers = kept;

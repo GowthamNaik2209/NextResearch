@@ -73,6 +73,7 @@ test("a listed deck shows its own current figures from the company table, agains
     assert.ok(f && d.now, `${d.slug}: ${d.ticker} is not in the company table`);
     const price = parseFloat(f.price!.replace(/[^\d.]/g, ""));
     assert.deepEqual([d.now.price, d.now.mcapCr, d.now.pe, d.now.asOf], [price, parseCrore(f.mcap), f.kpi?.[0] ?? null, f.asOf ?? null], d.slug);
-    assert.equal(d.now.vsIssuePct, (price / d.issue.issuePrice! - 1) * 100, d.slug);
+    // A just-listed deck may name its ticker before its final issue price is confirmed (Zetwerk).
+    assert.equal(d.now.vsIssuePct, d.issue.issuePrice ? (price / d.issue.issuePrice - 1) * 100 : null, d.slug);
   }
 });

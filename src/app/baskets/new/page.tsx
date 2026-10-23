@@ -116,8 +116,11 @@ export default async function NewBasketPage({ searchParams }: { searchParams: Pr
           signedIn
           universe={universe}
           watchlist={watchlist}
-          initialRange={idea?.range}
+          // A saved basket backtests every stock from the period's first day (it doesn't keep "from
+          // listing"), so a copy of Recent listings opens on the usual 1Y rather than its 2Y range.
+          initialRange={idea && !idea.joinAtListing ? idea.range : undefined}
           sourceSector={ind?.slug ?? src?.sourceSector ?? null}
+          pickedFrom={src ? Object.fromEntries(src.items.flatMap((i) => (i.pickedFrom ? [[i.ticker, i.pickedFrom]] : []))) : undefined}
           notice={notice || null}
           {...compareProps(industry)}
         />

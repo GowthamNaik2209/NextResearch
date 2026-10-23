@@ -51,8 +51,11 @@ export function initSelection(o: {
   unlisted?: string[];
   custom: Record<string, number> | null;
   chart: ChartSelection;
+  /** Where each stock was picked from, as saved with the basket (stocks not in it are ignored). */
+  pickedFrom?: Record<string, string>;
 }): SelectionState {
   const stocks = dedupe(o.stocks);
+  const inIt = new Set(stocks.map((s) => s.ticker));
   return {
     stocks,
     confirmed: stocks.map((s) => s.ticker),
@@ -60,7 +63,7 @@ export function initSelection(o: {
     custom: o.custom,
     chart: o.chart,
     picksChosen: false,
-    pickedFrom: {},
+    pickedFrom: Object.fromEntries(Object.entries(o.pickedFrom ?? {}).filter(([t]) => inIt.has(t))),
     takenOff: {},
     lastRemoved: null,
   };

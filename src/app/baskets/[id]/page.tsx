@@ -55,6 +55,8 @@ export default async function SavedBasketPage({ params }: { params: Promise<{ id
           isPublic={b.isPublic}
           signedIn={!!user}
           unlisted={unlisted}
+          sourceSector={b.sourceSector}
+          pickedFrom={Object.fromEntries(b.items.flatMap((i) => (i.pickedFrom ? [[i.ticker, i.pickedFrom]] : [])))}
           {...picker}
           {...compareProps(industry)}
         />

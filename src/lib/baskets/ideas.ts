@@ -2,6 +2,7 @@
 // rules live here (tested in ideas.test.ts); ideas-data.ts feeds them each day's price history.
 import { fmtMonth, signedPct } from "@/lib/format";
 import type { ChartRange } from "@/lib/live/yahoo";
+import { kpiScreens, type KpiStock } from "./kpi-screens";
 
 const DAY = 86_400_000;
 
@@ -60,10 +61,16 @@ export type Idea = {
   /** The list's equal-weight return over `retLabel`: the average here, then the page's own backtest for the cards (withBacktestReturns). */
   ret: number | null;
   retLabel: string;
+  /**
+   * Each stock is backtested from its own listing day (Recent listings): one listed during the
+   * range joins the basket on its first trading day at an equal share of the basket then, the others
+   * sold down in proportion to pay for it (backtest.ts, JoinOptions), instead of being left out.
+   */
+  joinAtListing?: boolean;
 };
 
-/** What the rules need about each listed stock, from the maps. */
-export type IdeaStockInfo = {
+/** What the rules need about each listed stock, from the maps and the company table. */
+export type IdeaStockInfo = KpiStock & {
   ticker: string;
   name: string;
   mcapCr: number | null;
@@ -84,6 +91,24 @@ const TOP_N = 10;
 const LIST_N = 12;
 const QUALITY_MIN_MCAP_CR = 1000;
 const IPO_WINDOW_DAYS = 730;
+// The chart ranges a Recent listings backtest can open on, shortest first, with the days each
+// covers: the shortest one reaching back to the earliest listing in the list is used.
+const SINCE_RANGES = [
+  { id: "1M", days: 28 },
+  { id: "6M", days: 180 },
+  { id: "1Y", days: 362 },
+  { id: "2Y", days: IPO_WINDOW_DAYS },
+] as const satisfies readonly { id: ChartRange; days: number }[];
+
+/** The shortest chart range whose first day is on or before `first` (the earliest listing). */
+export function sinceRange(first: string, now: number): ChartRange {
+  const age = (now - Date.parse(first)) / DAY;
+  return (SINCE_RANGES.find((r) => r.days >= age) ?? SINCE_RANGES[SINCE_RANGES.length - 1]).id;
+}
+
+/** The Recent listings method, in the words its "i" and page use. */
+export const SINCE_LISTING_NOTE =
+  "Each stock is backtested from its first trading day: it joins the basket then at an equal share, the others trimmed in proportion to pay for it.";
 
 const pctTxt = (v: number) => signedPct(v);
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
@@ -164,16 +189,23 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     })
     .sort((a, b) => Date.parse(stat(b.ticker).first) - Date.parse(stat(a.ticker).first))
     .slice(0, 15);
+  const earliest = ipos.reduce<string | null>((m, s) => (!m || stat(s.ticker).first < m ? stat(s.ticker).first : m), null);
   ideas.push({
     id: "recent-ipos",
     title: "Recent listings",
-    blurb: "Companies in our maps that listed in the past two years.",
-    rule: "Listed in the past two years, newest first. REITs, InvITs and demergers left out.",
-    range: "1M",
+    blurb: "Companies in our maps that listed in the past two years, each backtested from its listing day.",
+    rule: `Listed in the past two years, newest first; REITs, InvITs and demergers left out. ${SINCE_LISTING_NOTE}`,
+    range: earliest ? sinceRange(earliest, now) : "1Y",
     stocks: ipos.map((s) => ({ ticker: s.ticker, stat: `listed ${monthYear(stat(s.ticker).first)}` })),
     ret: mean(ipos.map((s) => stat(s.ticker).sinceFirst)),
     retLabel: "since listing",
+    joinAtListing: true,
   });
+
+  // Screens on the company table's figures (kpi-screens.ts): today's list, backtested over the past year.
+  for (const k of kpiScreens(stocks)) {
+    ideas.push({ ...k, range: "1Y", ret: ret1y(k.stocks.map((s) => s.ticker)), retLabel: "1Y" });
+  }
 
   return ideas.filter((i) => i.stocks.length > 0);
 }
@@ -183,20 +215,24 @@ export type IdeaBacktest = { ret: number; holdings: { ticker: string; ret: numbe
 
 /**
  * The cards' figures from the same backtest the idea's page runs (bought at equal weights on the
- * first day of `range` and held), so the card and the page show one number. A top-performers row
- * shows that backtest's own return for the stock, highest first. With no backtest the figure is
- * left out rather than shown from a different calculation.
+ * first day of `range` and held; Recent listings: each stock from its listing day), so the card and
+ * the page show one number. A top-performers row shows that backtest's own return for the stock,
+ * highest first; a Recent listings row adds the stock's return since its listing. With no backtest
+ * the figure is left out rather than shown from a different calculation.
  */
 export function withBacktestReturns(ideas: Idea[], backtests: Record<string, IdeaBacktest | null>): Idea[] {
   return ideas.map((idea) => {
+    const label = idea.joinAtListing ? "since listing" : idea.range;
     const bt = backtests[idea.id];
-    if (!bt) return { ...idea, ret: null, retLabel: idea.range };
+    if (!bt) return { ...idea, ret: null, retLabel: label };
     const own = new Map(bt.holdings.map((h) => [h.ticker, h.ret]));
     const stocks = idea.id.startsWith("top-")
       ? idea.stocks
           .map((s) => (own.has(s.ticker) ? { ...s, stat: pctTxt(own.get(s.ticker)!) } : s))
           .sort((a, b) => (own.get(b.ticker) ?? -Infinity) - (own.get(a.ticker) ?? -Infinity))
-      : idea.stocks;
-    return { ...idea, stocks, ret: bt.ret, retLabel: idea.range };
+      : idea.joinAtListing
+        ? idea.stocks.map((s) => (own.has(s.ticker) ? { ...s, stat: `${s.stat} · ${pctTxt(own.get(s.ticker)!)}` } : s))
+        : idea.stocks;
+    return { ...idea, stocks, ret: bt.ret, retLabel: label };
   });
 }

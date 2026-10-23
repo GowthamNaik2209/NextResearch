@@ -11,18 +11,19 @@ import { ensureFinancials } from "@/lib/financials/load";
 export const maxDuration = 60;
 
 // GET /api/baskets/backtest?range=1Y&(sector=ev4w | id=<basket id> | tickers=A,B,C)
-//   [&w=equal|mcap|custom|layer][&cw=TCS:40,INFY:60][&rb=never|monthly|quarterly|drift][&band=5]
+//   [&w=equal|mcap|custom][&cw=TCS:40,INFY:60][&rb=never|monthly|quarterly|drift][&band=5][&join=listing]
 // Returns the basket's value (100 on day one) plus each holding's return and contribution, and
 // the turnover and trades its rebalancing took. With no strategy parameters it is bought at equal
 // weights (a saved basket: its own weighting) and held, as it always has been. Custom with no cw
-// reads a saved basket's own weights (equal for any other basket); "capped" reads as market cap.
+// reads a saved basket's own weights (equal for any other basket); "capped" reads as market cap and "layer" as equal (both since removed).
+// join=listing: a stock listed during the period joins on its first trading day instead of being
+// left out (the Recent listings rule-based basket backtests each stock from its listing).
 export async function GET(req: Request) {
   await ensureFinancials();
   const q = new URL(req.url).searchParams;
   const range = q.get("range");
   if (!isChartRange(range)) return NextResponse.json({ error: "bad range" }, { status: 400 });
   let strategy = parseStrategy(q);
-  let layers: Map<string, string> | undefined;
   let tickers: string[] = [];
   let shared = true;
 
@@ -32,8 +33,6 @@ export async function GET(req: Request) {
     const b = getIndustryBasket(sector);
     if (!b) return NextResponse.json({ error: "unknown industry" }, { status: 404 });
     tickers = b.stocks.map((s) => s.ticker);
-    // Its stocks' layers within this industry, for the layer-balanced weighting.
-    layers = new Map(b.stocks.map((s) => [s.ticker, s.layer]));
   } else if (id) {
     const user = await getCurrentUser();
     const b = await getVisibleBasket(id, user?.id ?? null);
@@ -56,7 +55,7 @@ export async function GET(req: Request) {
   }
   if (!tickers.length) return NextResponse.json({ error: "no stocks" }, { status: 400 });
 
-  const data = await backtestBasket(tickers, range, strategy, layers);
+  const data = await backtestBasket(tickers, range, strategy, { joinLate: q.get("join") === "listing" });
   if (!data.points.length) return NextResponse.json({ error: "unavailable" }, { status: 502 });
   // A private basket's response must not sit in a shared CDN cache.
   const cache = shared ? "public, s-maxage=300, stale-while-revalidate=900" : "private, max-age=60";

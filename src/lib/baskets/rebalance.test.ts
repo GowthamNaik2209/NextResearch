@@ -96,23 +96,8 @@ test("rebalancing reports the same exclusions as the held backtest", () => {
   assert.deepEqual(runRebalanced([], 10, "monthly").points, []);
 });
 
-test("layer-balanced: equal per layer, then equal within", () => {
-  const w = targetWeights(
-    [
-      { ticker: "A", mcapCr: 1, layer: "Cells" },
-      { ticker: "B", mcapCr: 1, layer: "Cells" },
-      { ticker: "C", mcapCr: 1, layer: "Cells" },
-      { ticker: "D", mcapCr: 1, layer: "Motors" },
-    ],
-    "layer",
-  );
-  near(w.get("D")!, 0.5);
-  near(w.get("A")!, 1 / 6);
-  near(sum(w), 1);
-});
-
 test("custom weights are each stock's own %, fitted to the stocks held", () => {
-  const stocks = ["A", "B", "C"].map((t) => ({ ticker: t, mcapCr: 1, layer: "L" }));
+  const stocks = ["A", "B", "C"].map((t) => ({ ticker: t, mcapCr: 1 }));
   const w = targetWeights(stocks, "custom", { A: 50, B: 30, C: 20 });
   near(w.get("A")!, 0.5);
   near(w.get("C")!, 0.2);
@@ -172,13 +157,20 @@ test("adding a stock gives it an equal share; removing one keeps the others' pro
 test("plain cap weights match the held backtest's (median for a missing figure)", () => {
   const w = targetWeights(
     [
-      { ticker: "A", mcapCr: 100, layer: "L" },
-      { ticker: "B", mcapCr: 300, layer: "L" },
-      { ticker: "C", mcapCr: null, layer: "L" },
+      { ticker: "A", mcapCr: 100 },
+      { ticker: "B", mcapCr: 300 },
+      { ticker: "C", mcapCr: null },
     ],
     "mcap",
   );
   near(w.get("C")!, 300 / 700);
+});
+
+test("an old link with the removed layer-balanced weighting opens at equal weight", () => {
+  assert.equal(parseStrategy(new URLSearchParams("w=layer&rb=monthly")).weighting, "equal");
+  // Even where the basket's own weighting would otherwise apply.
+  assert.equal(parseStrategy(new URLSearchParams("wt=layer"), "mcap", { w: "wt" }).weighting, "equal");
+  assert.equal(strategyQuery(parseStrategy(new URLSearchParams("w=layer"))), "w=equal");
 });
 
 test("strategy query: the default is the old w= only, and it round-trips", () => {
@@ -212,4 +204,20 @@ test("a stock set to 0% is left out as such, not as missing prices", () => {
   );
   assert.deepEqual(r.holdings.map((h) => h.ticker), ["A"]);
   assert.deepEqual(r.excluded.map((e) => [e.ticker, e.reason]), [["Z", "zero"], ["N", "no-data"]]);
+});
+
+test("rebalanced with a stock joining: the join is a rebalance to the targets of the stocks then held", () => {
+  const input = [
+    { ticker: "OLD", weight: 1, points: [{ t: "2026-01-05", c: 100 }, { t: "2026-01-20", c: 200 }, { t: "2026-01-25", c: 200 }] },
+    { ticker: "NEW", weight: 1, points: [{ t: "2026-01-20", c: 10 }, { t: "2026-01-25", c: 20 }] },
+  ];
+  const r = runRebalanced(input, 10, "monthly", 5, { joinLate: true });
+  assert.deepEqual(r.excluded, []);
+  assert.deepEqual(r.points.map((p) => p.c), [100, 200, 300]);
+  // The join traded half the basket (one way), two stocks.
+  assert.deepEqual(r.rebalances, [{ t: "2026-01-20", turnover: 50, trades: 2 }]);
+  const sum = r.holdings.reduce((n, h) => n + h.contribution, 0);
+  assert.ok(Math.abs(sum - 200) < 1e-9);
+  // The same basket held reports the same values (the join is the only trade either way).
+  assert.deepEqual(runBacktest(input, 10, { joinLate: true }).points, r.points);
 });

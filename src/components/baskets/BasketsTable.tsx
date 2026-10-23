@@ -400,72 +400,90 @@ export function BasketsPanel({
 
 // ---- the summary strip ----
 
+/** A table row's key says which table it is in: a saved basket's backtest goes by id=, an industry's by sector=. */
+const isSavedKey = (k: string) => k.startsWith("x:id=");
+
+/**
+ * One strip above both tables (your baskets, then industry & policy baskets) that counts across
+ * them, and says so: the rule-based baskets aren't counted. Every tile keeps one height whatever
+ * it shows (loading, a figure, a two-line name), so nothing below moves as the figures arrive.
+ */
 export function BasketsSummary({ mineCount, benchRet = null }: { mineCount: number | null; /** The Nifty's 1Y return the server measured the rows against. */ benchRet?: number | null }) {
   useSyncExternalStore(subscribe, getVersion, getVersion);
   useEffect(() => startBench(), []);
   const hydrated = useHydrated();
   const all = hydrated ? [...listed.keys()] : [];
-  const done = all.map((k) => figs.get(k)).filter((e): e is Fig => !!e && typeof e === "object" && e.vs != null && Number.isFinite(e.vs));
+  const fig = (k: string) => {
+    const e = figs.get(k);
+    return e && typeof e === "object" ? e : null;
+  };
+  const withVs = (keys: string[]) => keys.map(fig).filter((f): f is Fig => !!f && f.vs != null && Number.isFinite(f.vs));
+  const mineKeys = all.filter(isSavedKey);
+  const indKeys = all.filter((k) => !isSavedKey(k));
+  const done = withVs(all);
+  const beat = (fs: Fig[]) => fs.filter((f) => (f.vs ?? 0) > 0).length;
   // Rows not yet asked for (the server is still working on them) count as loading too.
   const pending = all.filter((k) => !figs.has(k) || figs.get(k) === "loading").length;
   const nifty = hydrated && typeof bench === "object" ? bench : benchRet != null ? { ret: benchRet } : hydrated ? bench : "loading";
-  const beat = done.filter((f) => (f.vs ?? 0) > 0).length;
-  let best: { name: string; ret: number } | null = null;
+  let best: { name: string; ret: number; mine: boolean } | null = null;
   for (const k of all) {
-    const e = figs.get(k);
-    if (e && typeof e === "object" && (!best || e.ret > best.ret)) best = { name: listed.get(k) ?? "", ret: e.ret };
+    const e = fig(k);
+    if (e && (!best || e.ret > best.ret)) best = { name: listed.get(k) ?? "", ret: e.ret, mine: isSavedKey(k) };
   }
+  const mineDone = withVs(mineKeys);
+  const indDone = withVs(indKeys);
 
   const cell = "flex min-w-0 flex-col gap-0.5 px-3 py-2";
   const head = "truncate text-[10px] font-semibold uppercase tracking-wider text-ink-soft";
+  // One line for the figure and two for the words under it, in every tile and every state.
+  const value = "flex h-5 items-center font-mono text-sm font-bold tabular-nums";
+  const sub = "line-clamp-2 h-7 break-words text-[11px] leading-[0.875rem] text-ink-soft";
   return (
-    <dl className="grid grid-cols-2 divide-line rounded-md border border-line bg-panel sm:grid-cols-4 [&>div]:border-line [&>div:nth-child(n+3)]:border-t sm:[&>div:nth-child(n+3)]:border-t-0 [&>div:nth-child(even)]:border-l sm:[&>div:nth-child(n+2)]:border-l">
-      <div className={cell}>
-        <dt className={head}>Nifty 50 · 1Y</dt>
-        <dd className="font-mono text-sm font-bold tabular-nums">
-          {nifty === "loading" ? (
-            <Pending />
-          ) : nifty === "error" ? (
-            // Said plainly, so the dashes in "vs Nifty" read as a missing benchmark, not a broken table.
-            <span className="font-sans text-xs font-normal text-ink-soft">Unavailable right now</span>
-          ) : (
-            <span className={tone(nifty.ret)}>{signed(nifty.ret, "%")}</span>
-          )}
-        </dd>
-      </div>
-      <div className={cell}>
-        <dt className={head}>Ahead of Nifty · 1Y</dt>
-        <dd className="font-mono text-sm font-bold tabular-nums text-ink">
-          {nifty === "error" && done.length === 0 ? (
-            <span className="font-sans text-xs font-normal text-ink-soft">Needs the Nifty 50, which couldn&rsquo;t load</span>
-          ) : all.length === 0 ? (
-            hydrated ? NA : <Pending />
-          ) : (
-            `${beat} of ${done.length} baskets`
-          )}
-          {pending > 0 && <span className="ml-1 font-sans text-[10px] font-normal text-ink-soft">({pending} loading)</span>}
-        </dd>
-      </div>
-      <div className={cell}>
-        <dt className={head}>Best basket · 1Y</dt>
-        <dd className="flex min-w-0 flex-col text-sm">
-          {best ? (
-            <>
-              <span className={"font-mono font-bold tabular-nums " + tone(best.ret)}>{signed(best.ret, "%")}</span>
-              {/* Under the figure, wrapping to two lines, so a long basket name isn't cut off in a half-width tile. */}
-              <span title={best.name} className="line-clamp-2 text-balance break-words text-[11px] leading-snug text-ink-soft">
-                {best.name}
-              </span>
-            </>
-          ) : (
-            pending || !hydrated ? <Pending /> : <span className="font-mono text-ink-soft">{NA}</span>
-          )}
-        </dd>
-      </div>
-      <div className={cell}>
-        <dt className={head}>Your baskets</dt>
-        <dd className="font-mono text-sm font-bold tabular-nums text-ink">{mineCount == null ? <span className="font-sans text-xs font-normal text-ink-soft">Sign in to save</span> : mineCount}</dd>
-      </div>
-    </dl>
+    <div className="flex flex-col gap-1">
+      <dl
+        aria-label="Your and industry baskets at a glance"
+        className="grid grid-cols-2 divide-line rounded-md border border-line bg-panel sm:grid-cols-4 [&>div]:border-line [&>div:nth-child(n+3)]:border-t sm:[&>div:nth-child(n+3)]:border-t-0 [&>div:nth-child(even)]:border-l sm:[&>div:nth-child(n+2)]:border-l"
+      >
+        <div className={cell}>
+          <dt className={head}>Nifty 50 · 1Y</dt>
+          <dd className={value}>
+            {nifty === "loading" ? <Pending /> : nifty === "error" ? <span className="text-ink-soft">{NA}</span> : <span className={tone(nifty.ret)}>{signed(nifty.ret, "%")}</span>}
+          </dd>
+          {/* Said plainly, so the dashes in "vs Nifty" read as a missing benchmark, not a broken table. */}
+          <dd className={sub}>{nifty === "error" ? "Couldn’t load right now" : "The benchmark every basket is measured against"}</dd>
+        </div>
+        <div className={cell}>
+          <dt className={head}>Ahead of Nifty · 1Y</dt>
+          <dd className={value + " text-ink"}>
+            {nifty === "error" && done.length === 0 ? <span className="text-ink-soft">{NA}</span> : all.length === 0 ? hydrated ? NA : <Pending /> : `${beat(done)} of ${done.length}`}
+          </dd>
+          <dd className={sub}>
+            {nifty === "error" && done.length === 0
+              ? "Needs the Nifty 50, which couldn’t load"
+              : pending > 0
+                ? `Your and industry baskets · ${pending} loading`
+                : all.length
+                  ? `Yours ${beat(mineDone)} of ${mineDone.length} · industry & policy ${beat(indDone)} of ${indDone.length}`
+                  : "Your and industry baskets"}
+          </dd>
+        </div>
+        <div className={cell}>
+          <dt className={head}>Best basket · 1Y</dt>
+          <dd className={value}>{best ? <span className={tone(best.ret)}>{signed(best.ret, "%")}</span> : pending || !hydrated ? <Pending /> : <span className="text-ink-soft">{NA}</span>}</dd>
+          {/* Under the figure, wrapping to two lines, so a long basket name isn't cut off in a half-width tile. */}
+          <dd title={best?.name} className={sub + " text-balance"}>
+            {best ? `${best.name}${best.mine ? " (yours)" : ""}` : "Of your and industry baskets"}
+          </dd>
+        </div>
+        <div className={cell}>
+          <dt className={head}>Your baskets</dt>
+          <dd className={value + " text-ink"}>{mineCount == null ? <span className="text-ink-soft">{NA}</span> : mineCount}</dd>
+          <dd className={sub}>{mineCount == null ? "Sign in to save your own" : mineCount === 1 ? "Saved basket" : "Saved baskets"}</dd>
+        </div>
+      </dl>
+      <p className="text-[10px] text-ink-soft sm:text-[11px]">
+        1Y: past year, bought a year ago and not rebalanced. Counts your baskets and the industry &amp; policy baskets below, not the rule-based baskets above.
+      </p>
+    </div>
   );
 }

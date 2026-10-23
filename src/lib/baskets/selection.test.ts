@@ -116,3 +116,13 @@ test("chart lines are kept only for stocks in the basket", () => {
   const next = reduce(s, { type: "chart", next: (c) => ({ ...c, picks: { A: 0, X: 1 } }) });
   assert.deepEqual(next.chart.picks, { A: 0 });
 });
+
+test("a saved basket opens with where each stock was picked from, and keeps it through remove and Undo", () => {
+  let s = initSelection({ stocks: [stock("BHARATFORG"), stock("TCS")], custom: null, chart: chart(), pickedFrom: { BHARATFORG: "ev4w", GONE: "ev4w" } });
+  // Only stocks in the basket keep an entry.
+  assert.deepEqual(s.pickedFrom, { BHARATFORG: "ev4w" });
+  s = reduce(s, { type: "remove", ticker: "BHARATFORG" });
+  assert.deepEqual(s.pickedFrom, {});
+  s = reduce(s, { type: "restore", ticker: "BHARATFORG" });
+  assert.deepEqual(s.pickedFrom, { BHARATFORG: "ev4w" });
+});

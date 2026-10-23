@@ -40,7 +40,6 @@ export async function industryFigures(): Promise<IndustryFigures> {
             b.stocks.map((s) => s.ticker),
             RANGE,
             heldStrategy(),
-            new Map(b.stocks.map((s) => [s.ticker, s.layer])),
           ).catch(() => null);
           const fig = bt?.points.length ? basketFigures(bt.points, bench) : null;
           if (fig) out.figs[slug] = fig;

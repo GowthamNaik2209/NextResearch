@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildIdeas, priceStat, withBacktestReturns, type IdeaStockInfo, type PriceSnapshot } from "./ideas";
+import { buildIdeas, priceStat, sinceRange, withBacktestReturns, type IdeaStockInfo, type PriceSnapshot } from "./ideas";
 import { runBacktest } from "./backtest";
 
 const DAY = 86_400_000;
@@ -69,9 +69,41 @@ test("across industries needs three or more maps", () => {
   assert.deepEqual(ideas.find((i) => i.id === "cross-industry")!.stocks.map((s) => s.ticker), ["B", "C"]);
 });
 
-test("recent listings roll with today's date, newest first", () => {
+test("recent listings roll with today's date, newest first, backtested from each listing", () => {
   const ideas = buildIdeas([info("OLD"), info("NEW"), info("NEWER")], snap({ OLD: st(5, 900), NEW: st(5, 500), NEWER: st(undefined, 60) }), NOW);
-  assert.deepEqual(ideas.find((i) => i.id === "recent-ipos")!.stocks.map((s) => s.ticker), ["NEWER", "NEW"]);
+  const ipo = ideas.find((i) => i.id === "recent-ipos")!;
+  assert.deepEqual(ipo.stocks.map((s) => s.ticker), ["NEWER", "NEW"]);
+  assert.equal(ipo.joinAtListing, true);
+  // The earliest listing (500 days ago) needs the 2-year range to be in it from its first day.
+  assert.equal(ipo.range, "2Y");
+});
+
+test("sinceRange picks the shortest range reaching back to the earliest listing", () => {
+  assert.equal(sinceRange(ago(20), NOW), "1M");
+  assert.equal(sinceRange(ago(100), NOW), "6M");
+  assert.equal(sinceRange(ago(300), NOW), "1Y");
+  assert.equal(sinceRange(ago(700), NOW), "2Y");
+});
+
+test("a recent listings card says since listing and shows each stock's return since its listing", () => {
+  const ideas = buildIdeas([info("NEW")], snap({ NEW: st(undefined, 100) }), NOW);
+  const [ipo] = withBacktestReturns(
+    ideas.filter((i) => i.id === "recent-ipos"),
+    { "recent-ipos": { ret: 12, holdings: [{ ticker: "NEW", ret: 12 }] } },
+  );
+  assert.equal(ipo.retLabel, "since listing");
+  assert.match(ipo.stocks[0].stat, /^listed .+ · \+12\.0%$/);
+});
+
+test("the company-figure screens join the ideas, past-year backtested", () => {
+  const fin = { pe: 15, roce: 25, rev: [1000, 1200, 1400, 1600, 1800], np: [100, 150, 200, 300, 400] };
+  const ideas = buildIdeas([info("Q", fin)], snap({ Q: st(10) }), NOW);
+  const c = ideas.find((i) => i.id === "compounders")!;
+  assert.deepEqual(c.stocks.map((s) => s.ticker), ["Q"]);
+  assert.equal(c.range, "1Y");
+  near(c.ret ?? undefined, 10);
+  // A screen with nobody in it is left out.
+  assert.equal(ideas.find((i) => i.id === "turnarounds"), undefined);
 });
 
 test("a card's figure is its page's backtest, not the snapshot's average", () => {

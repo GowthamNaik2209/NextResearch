@@ -58,13 +58,18 @@ export function ideaStockInfo(): IdeaStockInfo[] {
   const policySlugs = new Set(listSectors().filter((x) => x.category === "policy").map((x) => x.slug));
   return listBasketUniverse().map((st) => {
     const f = findSupplierByTicker(st.ticker)?.f;
-    const roce = f?.kpi?.[3];
+    // The company table's snapshot (kpi is [pe, bookValue, divYield, roce, roe, faceValue]).
+    const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
     return {
       ticker: st.ticker,
       name: st.name,
       mcapCr: st.mcapCr,
-      roce: typeof roce === "number" && Number.isFinite(roce) ? roce : null,
+      roce: num(f?.kpi?.[3]),
+      pe: num(f?.kpi?.[0]),
+      rev: f?.rev ?? undefined,
+      np: f?.np ?? undefined,
       screenOut: f?.screenOut,
+      trust: /\b(REIT|InvIT)\b|Trust\b/i.test(st.name),
       // Industries only: a policy map (PLI, ALMM) isn't another industry the company sells into.
       industries: st.industries.filter((i) => !policySlugs.has(i.slug)).length,
       policies: st.industries.filter((i) => policySlugs.has(i.slug)).length,
@@ -105,7 +110,9 @@ export const getIdeas = unstable_cache(
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },
-  ["basket-ideas-v8"], // v8: renamed lists (Biggest gainers, Highest ROCE, …), so cached v7 titles aren't served
+  // v9: Recent listings backtested from each listing (its range and joinAtListing) and the screens on
+  // the company table's figures, so cached v8 lists (Recent listings on 1M, no screens) aren't served.
+  ["basket-ideas-v9"],
   { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
 );
 
@@ -138,6 +145,7 @@ async function ideaBacktest(idea: Idea): Promise<IdeaBacktest | null> {
     idea.stocks.map((s) => s.ticker),
     idea.range,
     heldStrategy(),
+    { joinLate: !!idea.joinAtListing },
   ).catch(() => null);
   const pts = bt?.points ?? [];
   // Measured as the page's return card measures the same series.
