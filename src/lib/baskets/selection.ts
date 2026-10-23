@@ -33,6 +33,8 @@ export type SelectionState = {
   takenOff: Record<string, TakenOff>;
   /** The last stock taken off, offered for Undo. */
   lastRemoved: string | null;
+  /** Every stock taken off while the Undo offer was open (oldest first): one Undo brings them all back. */
+  burst: string[];
 };
 
 export type SelectionAction =
@@ -66,8 +68,15 @@ export function initSelection(o: {
     pickedFrom: Object.fromEntries(Object.entries(o.pickedFrom ?? {}).filter(([t]) => inIt.has(t))),
     takenOff: {},
     lastRemoved: null,
+    burst: [],
   };
 }
+
+/** The Undo offer after some of the burst came back another way: the rest, latest last. */
+const offerAfter = (burst: string[], back: (t: string) => boolean) => {
+  const rest = burst.filter((t) => !back(t));
+  return { burst: rest, lastRemoved: rest.length ? rest[rest.length - 1] : null };
+};
 
 function dedupe(list: BasketStock[]): BasketStock[] {
   const seen = new Set<string>();
@@ -116,7 +125,7 @@ export function selectionReducer(state: SelectionState, action: SelectionAction)
         chart: picks === state.chart.picks ? state.chart : { ...state.chart, picks },
         pickedFrom: action.from ? { ...state.pickedFrom, ...Object.fromEntries(tickers.map((t) => [t, action.from!])) } : state.pickedFrom,
         takenOff,
-        lastRemoved: state.lastRemoved && tickers.includes(state.lastRemoved) ? null : state.lastRemoved,
+        ...offerAfter(state.burst, (x) => tickers.includes(x)),
       };
     }
     case "remove": {
@@ -143,6 +152,8 @@ export function selectionReducer(state: SelectionState, action: SelectionAction)
         pickedFrom,
         takenOff: { ...state.takenOff, [t]: { index, stock: state.stocks[index], weight: state.custom?.[t], slot, from: state.pickedFrom[t] } },
         lastRemoved: t,
+        // A second remove while the offer is open joins the first, so Undo brings both back.
+        burst: state.lastRemoved ? [...state.burst.filter((x) => x !== t), t] : [t],
       };
     }
     case "restore": {
@@ -165,7 +176,7 @@ export function selectionReducer(state: SelectionState, action: SelectionAction)
         chart: picks === state.chart.picks ? state.chart : { ...state.chart, picks },
         pickedFrom: off.from ? { ...state.pickedFrom, [t]: off.from } : state.pickedFrom,
         takenOff,
-        lastRemoved: state.lastRemoved === t ? null : state.lastRemoved,
+        ...offerAfter(state.burst, (x) => x === t),
       };
     }
     case "removeUnlisted":
@@ -213,7 +224,7 @@ export function selectionReducer(state: SelectionState, action: SelectionAction)
         chart: sameChart ? state.chart : { ...state.chart, picks },
         pickedFrom,
         takenOff,
-        lastRemoved: state.lastRemoved && keep.has(state.lastRemoved) ? null : state.lastRemoved,
+        ...offerAfter(state.burst, (x) => keep.has(x)),
       };
     }
     case "setCustom":
@@ -231,6 +242,6 @@ export function selectionReducer(state: SelectionState, action: SelectionAction)
     case "choosePicks":
       return state.picksChosen ? state : { ...state, picksChosen: true };
     case "dismissUndo":
-      return state.lastRemoved ? { ...state, lastRemoved: null } : state;
+      return state.lastRemoved || state.burst.length ? { ...state, lastRemoved: null, burst: [] } : state;
   }
 }

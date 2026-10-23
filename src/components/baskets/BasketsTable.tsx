@@ -23,7 +23,8 @@ export type IndustryRow = { kind: "industry"; slug: string; name: string; catego
 export type BasketRow = SavedRow | IndustryRow;
 
 type Fig = BasketFigures;
-type Entry = "loading" | "error" | Fig;
+/** "empty": a saved basket with no stocks left, which has nothing to backtest (no request is made). */
+type Entry = "loading" | "error" | "empty" | Fig;
 /** Figures the server already has: by series key, and the Nifty 50's own 1Y return. */
 export type TableSeed = { figs: Record<string, Fig>; benchRet: number | null };
 
@@ -134,7 +135,7 @@ const Pending = () => (
 
 function Num({ entry, pick, unit }: { entry: Entry | undefined; pick: (f: Fig) => number | null; unit: string }) {
   if (!entry || entry === "loading") return <Pending />;
-  if (entry === "error") return <span className="text-ink-soft">{NA}</span>;
+  if (entry === "error" || entry === "empty") return <span className="text-ink-soft">{NA}</span>;
   const v = pick(entry);
   if (v == null || !Number.isFinite(v)) return <span className="text-ink-soft">{NA}</span>;
   return <span className={tone(v)}>{signed(v, unit)}</span>;
@@ -182,26 +183,30 @@ export function BasketsTable({
   deferred?: boolean;
 }) {
   const keys = useMemo(() => rows.map(keyOf), [rows]);
+  // Saved baskets edited down to no stocks: shown as such, never backtested or counted.
+  const empties = useMemo(() => new Set(rows.flatMap((r, i) => (countOf(r) === 0 ? [keys[i]] : []))), [rows, keys]);
   // Bumps as figures arrive, so the rows (and a sort by them) re-read the store.
   const v = useSyncExternalStore(subscribe, getVersion, getVersion);
   // Before the effect below puts the server's figures in the store, read them from the props.
   const hydrated = useHydrated();
   const entryOf = (key: string): Entry | undefined => {
+    if (empties.has(key)) return "empty";
     if (!hydrated) return seed?.figs[key];
     const e = figs.get(key);
     return e && e !== "loading" ? e : (seed?.figs[key] ?? e);
   };
 
   useEffect(() => {
-    rows.forEach((r, i) => listed.set(keys[i], r.name));
+    const live = keys.filter((k) => !empties.has(k));
+    rows.forEach((r, i) => !empties.has(keys[i]) && listed.set(keys[i], r.name));
     if (seed) seedStore(seed);
     emit();
-    if (!deferred) request(keys);
+    if (!deferred) request(live);
     return () => {
-      keys.forEach((k) => listed.delete(k));
+      live.forEach((k) => listed.delete(k));
       emit();
     };
-  }, [rows, keys, seed, deferred]);
+  }, [rows, keys, empties, seed, deferred]);
 
   const sorted = useMemo(() => {
     const items = rows.map((r, i) => ({ r, key: keys[i] }));
@@ -224,7 +229,7 @@ export function BasketsTable({
       return sign * (va - vb) || a.r.name.localeCompare(b.r.name);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- v: re-sort as figures arrive (entryOf reads the store and seed)
-  }, [rows, keys, sort, v, seed, hydrated]);
+  }, [rows, keys, empties, sort, v, seed, hydrated]);
 
   const head = (id: Sort, text: string, place: string) => {
     const on = sort?.by === id ? sort : null;
@@ -323,7 +328,8 @@ export function BasketsTable({
                       // Wraps to a second line rather than cutting off; the stock count shows only on phones (a column from sm).
                       <span className="min-w-0">
                         <span className="line-clamp-2 break-words">
-                          <span className="sm:hidden">{stocksWord} · </span>
+                          <span className="sm:hidden">{n ? stocksWord : "No stocks"} · </span>
+                          {n === 0 && <span className="hidden sm:inline">No stocks · </span>}
                           {r.weighting === "mcap" ? "M-cap weight" : r.weighting === "custom" ? "Custom weights" : "Equal weight"}
                           {r.names.length > 0 && ` · ${r.names.slice(0, 3).join(", ")}${r.names.length > 3 ? ` +${r.names.length - 3}` : ""}`}
                         </span>

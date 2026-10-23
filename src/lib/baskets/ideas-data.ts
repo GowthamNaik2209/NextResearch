@@ -67,6 +67,7 @@ export function ideaStockInfo(): IdeaStockInfo[] {
       mcapCr: st.mcapCr,
       roce: num(f?.kpi?.[3]),
       pe: num(f?.kpi?.[0]),
+      book: num(f?.kpi?.[1]),
       rev: f?.rev ?? undefined,
       np: f?.np ?? undefined,
       outlier: !!detectOutlier(f),
@@ -111,9 +112,9 @@ export const getIdeas = unstable_cache(
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },
-  // v10: companies with a one-off year (outliers.ts) left out of every list, so cached v9 lists
-  // (Tata Steel in Turnarounds, say) aren't served.
-  ["basket-ideas-v10"],
+  // v11: Highest ROCE needs a profit and positive book value (roceMeaningful), and Turnarounds'
+  // card line was reworded, so cached v10 lists aren't served.
+  ["basket-ideas-v11"],
   { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
 );
 

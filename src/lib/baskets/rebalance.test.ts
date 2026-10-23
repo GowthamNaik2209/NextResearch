@@ -206,18 +206,27 @@ test("a stock set to 0% is left out as such, not as missing prices", () => {
   assert.deepEqual(r.excluded.map((e) => [e.ticker, e.reason]), [["Z", "zero"], ["N", "no-data"]]);
 });
 
-test("rebalanced with a stock joining: the join is a rebalance to the targets of the stocks then held", () => {
+test("rebalanced with a stock joining: its cash buys it on its first bar, counted as one trade", () => {
   const input = [
     { ticker: "OLD", weight: 1, points: [{ t: "2026-01-05", c: 100 }, { t: "2026-01-20", c: 200 }, { t: "2026-01-25", c: 200 }] },
     { ticker: "NEW", weight: 1, points: [{ t: "2026-01-20", c: 10 }, { t: "2026-01-25", c: 20 }] },
   ];
   const r = runRebalanced(input, 10, "monthly", 5, { joinLate: true });
   assert.deepEqual(r.excluded, []);
-  assert.deepEqual(r.points.map((p) => p.c), [100, 200, 300]);
-  // The join traded half the basket (one way), two stocks.
-  assert.deepEqual(r.rebalances, [{ t: "2026-01-20", turnover: 50, trades: 2 }]);
+  assert.deepEqual(r.points.map((p) => p.c), [100, 150, 200]);
+  // No rebalance fell due in January; the join bought NEW with its cash (one stock, a third of the basket bought).
+  assert.deepEqual(r.rebalances, []);
+  assert.equal(r.trades, 1);
   const sum = r.holdings.reduce((n, h) => n + h.contribution, 0);
-  assert.ok(Math.abs(sum - 200) < 1e-9);
+  assert.ok(Math.abs(sum - 100) < 1e-9);
   // The same basket held reports the same values (the join is the only trade either way).
   assert.deepEqual(runBacktest(input, 10, { joinLate: true }).points, r.points);
+});
+
+test("custom weights typed to one decimal around an even split are exactly equal weights", () => {
+  const tickers = Array.from({ length: 23 }, (_, i) => `T${i}`);
+  const shown = toPercents(new Map(tickers.map((t) => [t, 1 / 23])));
+  assert.ok(new Set(Object.values(shown)).size > 1, "Reset to equal shows 4.4% and 4.3%");
+  const w = customTargets(tickers, shown);
+  for (const t of tickers) assert.ok(Math.abs(w.get(t)! - 1 / 23) < 1e-12);
 });

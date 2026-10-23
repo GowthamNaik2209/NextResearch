@@ -8,7 +8,8 @@ import { shownPct } from "./fmt";
 export type SeriesStats = {
   /** Total change over the series, %. */
   ret: number;
-  /** Compound annual growth, %; null under a year (annualising a few months misleads). */
+  /** Compound annual growth, %; null over a year or less (annualising a few months misleads, and
+   * over one year it is the return itself, only re-scaled by a calendar that differs by a few days). */
   cagr: number | null;
   /** Annualised standard deviation of bar returns, %. */
   vol: number | null;
@@ -68,7 +69,9 @@ export function seriesStats(points: PricePoint[]): SeriesStats | null {
   const last = points[points.length - 1];
   const ret = (last.c / first.c - 1) * 100;
   const years = (Date.parse(last.t) - Date.parse(first.t)) / (365.25 * DAY);
-  const cagr = years >= 0.98 ? (Math.pow(last.c / first.c, 1 / years) - 1) * 100 : null;
+  // Only past about a year: a 1-year backtest spans 360-368 calendar days, so its CAGR would be the
+  // return re-scaled by that odd day count (-8.9% beside a -8.8% return), saying nothing new.
+  const cagr = years >= 1.1 ? (Math.pow(last.c / first.c, 1 / years) - 1) * 100 : null;
 
   const r = returns(points);
   const m = mean(r);

@@ -2,7 +2,8 @@
 // stock pop-up's cache) and run the pure backtest over them, bought and held or rebalanced by the
 // strategy. Cached per basket composition and strategy.
 import { cached } from "@/lib/live/cache";
-import { getChartWithFallback, type ChartRange } from "@/lib/live/yahoo";
+import { getChartWithFallback, getSymbolChart, type ChartRange } from "@/lib/live/yahoo";
+import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { basketWeights, runBacktest, slackDaysFor, splitHeld, type BacktestExcluded, type BacktestHolding, type JoinOptions, type PricePoint } from "./backtest";
 import { basketStock } from "./industry";
 import { runRebalanced, targetWeights, type Rebalance } from "./rebalance";
@@ -53,11 +54,18 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
   // The plain held backtest keeps the cache key it has always had.
   const plain = isPlainHold(strategy);
   const sorted = stocks.map((s) => s.ticker).sort();
-  const key = `basket3:${plain ? strategy.weighting : strategyQuery(strategy)}:${range}:${sorted.join(",")}${opts.joinLate ? ":J" : ""}`;
+  const key = `basket3:${plain ? strategy.weighting : strategyQuery(strategy)}:${range}:${sorted.join(",")}${opts.joinLate ? ":J2" : ""}`;
   const ttl = range === "3Y" || range === "5Y" || range === "MAX" ? 60 * 60 * 1000 : 5 * 60 * 1000;
   return cached(key, ttl, async () => {
     const series = await mapLimit(stocks, CONCURRENCY, (s) => getChartWithFallback(s.ticker, range).catch(() => null));
     const slackDays = slackDaysFor(range);
+    // Joining at listing: the range's trading days (the Nifty 50's, the line every basket is
+    // compared with), so the basket starts on the range's first day with the money for stocks not
+    // yet listed waiting in cash, and the chart, statistics and drawdown all share that first day.
+    if (opts.joinLate && !opts.calendar) {
+      const nifty = await getSymbolChart(BENCHMARKS.nifty50.symbol, range).catch(() => null);
+      opts = { ...opts, calendar: nifty?.points.map((p) => p.t) ?? [] };
+    }
     // Equal and market cap weigh the whole list, as they always have (a missing market cap gets
     // the list's median); custom weighs only the stocks actually held, so a stock with no prices
     // can't leave its share unspent.

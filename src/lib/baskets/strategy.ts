@@ -123,6 +123,12 @@ export function customTargets(tickers: string[], weights: Record<string, number>
     return v != null && Number.isFinite(v) && v >= 0 ? v : avg;
   });
   const sum = raw.reduce((a, b) => a + b, 0);
+  // Equal shares typed to one decimal (23 stocks: some 4.4%, some 4.3%, as Reset to equal sets
+  // them) are equal weights: within a rounding step of the even split, every stock gets exactly
+  // 1/n, so the backtest matches the Equal weighting to the last digit (a subset of them too:
+  // the chart's picks). Weights are %s to one decimal, so each is under 0.1 points from the even split.
+  const even = sum / tickers.length;
+  if (even >= 0.5 && tickers.length > 1 && raw.every((v) => Math.abs(v - even) < 0.1 - 1e-9)) return new Map(tickers.map((t) => [t, 1 / tickers.length]));
   return new Map(tickers.map((t, i) => [t, sum > 0 ? raw[i] / sum : 1 / tickers.length]));
 }
 

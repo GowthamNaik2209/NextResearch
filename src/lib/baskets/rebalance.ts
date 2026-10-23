@@ -47,11 +47,11 @@ export function targetWeights(stocks: WeightStock[], scheme: WeightScheme, custo
  * saw. No costs or taxes are taken; turnover and trade counts say how much trading it took.
  * Holdings report the target weight, the weight on the last day, the stock's own price change and
  * the points it added to the basket's return (they sum to the basket's return). With a start date
- * of its own or `opts.joinLate`, a stock listed during the period joins on its first bar (a
- * rebalance to the targets of the stocks then held): see walkShares.
+ * of its own or `opts.joinLate`, a stock listed during the period joins on its first bar, bought
+ * with its target share set aside in cash since the first day: see walkShares.
  */
 export function runRebalanced(input: BacktestInput[], slackDays: number, rule: RebalanceRule, band = 5, opts: JoinOptions = {}): RebalancedResult {
   const { held, excluded } = splitHeld(input, slackDays, opts);
   if (!held.length) return { points: [], holdings: [], excluded, turnover: 0, trades: 0, rebalances: [] };
-  return { ...walkShares(held, slackDays, rule, band), excluded };
+  return { ...walkShares(held, slackDays, rule, band, opts.joinLate ? (opts.calendar ?? []) : []), excluded };
 }

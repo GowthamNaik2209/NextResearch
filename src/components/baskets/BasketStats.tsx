@@ -113,9 +113,9 @@ export function BasketStats({
     {
       label: "CAGR",
       value: signed(s?.cagr),
-      sub: s && s.cagr == null ? "under a year" : undefined,
+      sub: s && s.cagr == null ? "not for 1Y or less" : undefined,
       cls: tone(s?.cagr),
-      help: "Compound growth per year. Not shown under a year, where annualising misleads.",
+      help: "Compound growth per year. Not shown for a year or less: there it would only re-scale the return by the period's exact day count.",
     },
     {
       label: "Volatility",

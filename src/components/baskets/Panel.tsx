@@ -22,6 +22,7 @@ export function Panel({
   heading: H = "h3",
   info,
   infoLabel,
+  toolsInline = false,
 }: {
   title?: ReactNode;
   /** Controls on the right of the header line. */
@@ -38,20 +39,23 @@ export function Panel({
   info?: ReactNode;
   /** The "i" button's accessible name; defaults to "About <label or title>". */
   infoLabel?: string;
+  /** Keep the tools beside the title on every width (the title wraps instead), so a narrow phone
+   * doesn't give a small tool a header line of its own. */
+  toolsInline?: boolean;
 }) {
   return (
     <Tag aria-label={label ?? (typeof title === "string" ? title : undefined)} className={PANEL + " " + className}>
       {(title || tools) && (
-        <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-line px-3 py-1">
+        <div className={"flex min-h-8 items-center justify-between gap-x-2 gap-y-1 border-b border-line px-3 py-1 " + (toolsInline ? "flex-nowrap" : "flex-wrap")}>
           {title ? (
-            <div className="flex min-w-0 items-center gap-1.5">
+            <div className={"flex min-w-0 items-center gap-1.5 " + (toolsInline ? "flex-1" : "")}>
               <H className={PANEL_TITLE}>{title}</H>
               {info && <InfoTip label={infoLabel ?? `About ${label ?? (typeof title === "string" ? title : "this panel")}`}>{info}</InfoTip>}
             </div>
           ) : (
             <span />
           )}
-          {tools && <div className="flex flex-wrap items-center gap-1.5">{tools}</div>}
+          {tools && <div className={"flex items-center gap-1.5 " + (toolsInline ? "flex-none" : "flex-wrap")}>{tools}</div>}
         </div>
       )}
       <div className={bodyClassName}>{children}</div>

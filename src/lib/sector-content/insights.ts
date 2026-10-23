@@ -13,11 +13,22 @@ import {
   primarySector,
   tickerForSupplier,
   type SectorWithSlug,
+  type SupplierFinancials,
 } from "./index";
 import { memoByFinancials } from "@/lib/financials/store";
 import { detectOutlier, ONE_OFF_NOTE } from "@/lib/baskets/outliers";
 import { signedPct } from "@/lib/format";
 
+
+// The same guard as the rule-based baskets (baskets/ideas.ts roceMeaningful): ROCE ranks only with a
+// positive P/E, a profit in the latest year and positive book value - a loss-maker with negative
+// equity can show a huge "ROCE" (Tata Teleservices).
+function roceMeaningful(f: SupplierFinancials): boolean {
+  const pe = num(f.kpi?.[0]);
+  const book = num(f.kpi?.[1]);
+  const np = num(f.np?.[4]);
+  return num(f.kpi?.[3]) != null && pe != null && pe > 0 && (np == null || np > 0) && !(book != null && book <= 0);
+}
 
 export type CompanyMetrics = {
   ticker: string;
@@ -84,7 +95,8 @@ function buildSectorMetrics(s: SectorWithSlug): CompanyMetrics[] {
       sectorName: s.name,
       href: `/sector/${s.slug}/explore${zone ? `?zone=${encodeURIComponent(zone)}&company=${encodeURIComponent(key)}` : ""}`,
       pe: num(f.kpi?.[0]),
-      roce: num(f.kpi?.[3]),
+      // ROCE ranks only where it means something (see roceMeaningful).
+      roce: roceMeaningful(f) ? num(f.kpi?.[3]) : null,
       divYield: num(f.kpi?.[2]),
       cagr1y: num(f.cagr?.[0]),
       cagr3y: num(f.cagr?.[1]),

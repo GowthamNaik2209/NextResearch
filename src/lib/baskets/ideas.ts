@@ -76,6 +76,8 @@ export type IdeaStockInfo = KpiStock & {
   name: string;
   mcapCr: number | null;
   roce: number | null;
+  /** Book value per share from the company table (negative when the company owes more than it owns). */
+  book?: number | null;
   /** Industry maps the company is in (policy maps not counted). */
   industries: number;
   /** Policy maps (PLI, ALMM…) it is also in: with the industries, the "chains" /connections counts. */
@@ -107,7 +109,18 @@ export function sinceRange(first: string, now: number): ChartRange {
 
 /** The Recent listings method, in the words its "i" and page use. */
 export const SINCE_LISTING_NOTE =
-  "Each stock is backtested from its first trading day: it joins the basket then at an equal share, the others trimmed in proportion to pay for it.";
+  "Each stock is backtested from its first trading day: its equal share of the money is set aside on the first day and waits in cash until it lists, so it adds its share times its return since listing.";
+
+/**
+ * ROCE means something only for a company that earns a profit on positive equity: on negative or
+ * near-zero equity (a loss-making company that owes more than it owns) the ratio can read as 50%+
+ * while the business loses money. So Highest ROCE needs a positive P/E, a profit in the latest year
+ * and a book value that isn't negative.
+ */
+export function roceMeaningful(s: Pick<IdeaStockInfo, "roce" | "pe" | "np" | "book">): boolean {
+  const np = s.np?.[4];
+  return s.roce != null && s.pe != null && s.pe > 0 && (np == null || np > 0) && !(s.book != null && s.book <= 0);
+}
 
 const pctTxt = (v: number) => signedPct(v);
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
@@ -142,14 +155,14 @@ export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: numbe
   }
 
   const quality = stocks
-    .filter((s) => s.roce != null && (s.mcapCr ?? 0) >= QUALITY_MIN_MCAP_CR)
+    .filter((s) => roceMeaningful(s) && (s.mcapCr ?? 0) >= QUALITY_MIN_MCAP_CR)
     .sort((a, b) => b.roce! - a.roce! || a.name.localeCompare(b.name))
     .slice(0, LIST_N);
   ideas.push({
     id: "quality",
     title: "Highest ROCE",
     blurb: "The highest return on capital employed across every industry we map.",
-    rule: `Highest ROCE in our maps, among companies worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more. ${ONE_OFF_NOTE}`,
+    rule: `Highest ROCE in our maps, among profitable companies (a P/E and a profit in the latest year) with positive book value, worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more: ROCE on a loss or negative equity isn't meaningful. ${ONE_OFF_NOTE}`,
     range: "1Y",
     stocks: quality.map((s) => ({ ticker: s.ticker, stat: `ROCE ${s.roce!.toFixed(0)}%` })),
     ret: ret1y(quality.map((s) => s.ticker)),

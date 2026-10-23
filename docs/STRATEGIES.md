@@ -78,15 +78,28 @@ changed); an old link with `w=layer` (or `wt=layer`) opens at equal weight.
 **Stocks joining on their own start date** (`src/lib/baskets/walk.ts`, `JoinOptions` in backtest.ts,
 `join=listing` on the backtest API). A stock may carry a start date (`from`), or with `joinLate` a
 stock whose history starts after the basket's first day (listed during the period) joins on its first
-bar instead of being left out. The honest method chosen: on that bar it is bought at its target share
-among the stocks then held (equal weight: 1/k of the basket with k stocks after it joins), paid for by
-selling the others in proportion to what they are worth then. No money comes in or out, so the
-basket's value is unbroken, each stock's return runs from the day it joined (its "since listing"
-return) and the points each stock added still sum to the basket's return. On a rebalanced basket the
-join is a rebalance to the targets of the stocks then held (counted in turnover). The Recent listings
-rule-based basket uses it: its chart opens on the shortest range reaching back to the earliest listing
-(up to 2Y), its card says "since listing", and each row shows the stock's own return since listing. A
-saved copy doesn't keep this (it backtests every stock from the period's first day).
+bar instead of being left out. The method (changed 2026-10 from "bought at 1/k, the others trimmed",
+whose targets added up to more than 100% and whose points could have the opposite sign to a stock's
+return): every stock's target share is set aside on the first day; a stock not yet listed has its
+share wait in cash (earning nothing) until its first bar, when that money buys it at the close.
+Nothing else is traded, so the targets total 100%, each stock's return runs from the day it joined
+(its "since listing" return), and in a basket that is never rebalanced each stock adds exactly its
+target share times that return (they sum to the basket's return). On a rebalanced basket a waiting
+share is rebalanced as cash; the purchase on listing counts as one trade. With `joinLate` the walk
+also runs over the range's trading days (the Nifty 50's, `calendar`), so the basket starts on the
+range's first day like every line beside it: the chart, the return cards, the statistics and the
+drawdown all measure the Nifty over the same dates. The Recent listings rule-based basket uses it:
+its chart opens on the shortest range reaching back to the earliest listing (up to 2Y), its card
+says "since listing", and each row shows the stock's own return since listing. The early part of
+that backtest is mostly cash, which the comparison with the fully invested Nifty should be read
+with. A saved copy doesn't keep this (it backtests every stock from the period's first day).
+
+**CAGR** is shown only for periods longer than about a year (1.1 years): over 1 year it would only
+re-scale the return by the period's exact calendar-day count.
+
+**Custom weights at an even split** (each within a rounding step, 0.1 points, of 100/n, as "Reset to
+equal" sets them) are treated as exactly equal, so they give the Equal weighting's figure; "Reset to
+market cap" sends the exact market-cap shares, not the one-decimal ones shown.
 
 
 1. **Equal weight, rebalanced monthly / quarterly.** The simplest improvement over buy-and-hold:
@@ -124,13 +137,13 @@ Built as **rule-based baskets** on today's company-table snapshot (`src/lib/bask
 unit-tested): today's list, backtested over the past year, so the result is "how today's list did",
 not a point-in-time strategy. Each keeps out companies under ₹1,000 Cr, companies with a one-off
 year (below) and REITs/InvITs, caps the list at 12, ranks by the one figure shown beside each stock and states its
-rule in the card's "i":
+rule in the card's "i". Each rule-based basket's page shows that figure in a "Picked on" column:
 
 - *Consistent compounders*: revenue and net profit up every year FY22→FY26 (FY22 profit ₹25 Cr+),
   ROCE 15%+; fastest 4-year profit growth first.
 - *Growth at a reasonable price*: P/E ÷ FY23→FY26 profit growth (PEG 1.5 or less), lowest first;
   profit growth 15%+ a year from ₹25 Cr+ with no loss since FY22, revenue growth 10%+, ROCE 12%+.
-- *Turnarounds*: a net loss in FY22, FY23 or FY24, then profits in FY25 and FY26 (FY26 higher)
+- *Turnarounds*: a net loss in at least one of FY22, FY23 or FY24, then profits in FY25 and FY26 (FY26 higher)
   without shrinking sales; biggest FY26 profit first.
 - *Widening margins*: net margin up most from FY23 to FY26, profitable each year, revenue growing
   and ₹500 Cr+.
@@ -192,6 +205,10 @@ rule-based basket (Biggest gainers, Highest ROCE, Scarce suppliers, In 3+ indust
 listings and the four screens above) and the landing page's Stock screens; each rule's "i" says
 "One-off years left out." Users can still add them to their own baskets, where the stock picker and
 the Stocks table mark them "one-off" with the reason in a small "i".
+
+**Highest ROCE needs a meaningful ROCE** (`roceMeaningful` in ideas.ts): a positive P/E, a profit in
+the latest year and a book value that isn't negative. On a loss or negative equity the ratio can read
+50%+ while the business loses money (Tata Teleservices (Maharashtra) did).
 
 ## Guarding against flattering results
 

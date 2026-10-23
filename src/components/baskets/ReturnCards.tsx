@@ -53,6 +53,27 @@ export function ReturnCards({
     const pts = l.data.points;
     return (pts[pts.length - 1].c / pts[0].c - 1) * 100;
   };
+  // A benchmark over the basket's own first and last days (its last close on or before each), as
+  // the statistics panel measures it, so "Nifty 50" reads the same in both.
+  const benchRet = (key: string) => {
+    const l = at(key);
+    const b = at(basket.key);
+    if (l?.status !== "ok" || l.data.points.length < 2) return null;
+    if (b?.status !== "ok" || b.data.points.length < 2) return ret(key);
+    const pts = l.data.points;
+    const bp = b.data.points;
+    const on = (t: string) => {
+      let v: number | null = null;
+      for (const p of pts) {
+        if (p.t > t) break;
+        v = p.c;
+      }
+      return v;
+    };
+    const from = on(bp[0].t) ?? pts[0].c;
+    const to = on(bp[bp.length - 1].t);
+    return to != null && from > 0 ? (to / from - 1) * 100 : ret(key);
+  };
   // A line whose history starts well after the basket's first day (an ETF or a stock listed
   // mid-period) can't be compared over the whole range: its card says when its history begins.
   const lateFrom = (key: string) => {
@@ -63,11 +84,11 @@ export function ReturnCards({
     const from = l.data.points[0].t;
     return Date.parse(from) - Date.parse(b.data.points[0].t) > slack ? from : null;
   };
-  const card = (line: CardLine) => {
+  const card = (line: CardLine, bench = false) => {
     if (!line.key) return { value: null, loading: false, failed: false, onRetry: () => {}, note: line.note };
     const late = lateFrom(line.key);
     return {
-      value: late ? null : ret(line.key),
+      value: late ? null : bench && line.key.startsWith("b:") ? benchRet(line.key) : ret(line.key),
       loading: at(line.key)?.status === "loading" || !at(line.key),
       failed: at(line.key)?.status === "error",
       onRetry: () => retry(line.key),
@@ -102,7 +123,7 @@ export function ReturnCards({
       )}
       {!picks && picksSlot && <Stat label={picksSlot.label} value={null} loading={false} note={picksSlot.note} dense={dense} />}
       {benches.map((line) => {
-        const c = card(line);
+        const c = card(line, true);
         return <Stat key={line.key || line.label} label={line.label} value={c.value} loading={c.loading} failed={c.failed} onRetry={c.onRetry} note={c.note} diff={gap(c.value, false)} dense={dense} />;
       })}
     </section>

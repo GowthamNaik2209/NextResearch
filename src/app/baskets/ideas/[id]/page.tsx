@@ -59,6 +59,7 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
           watchlist={[]}
           initialRange={idea.range}
           joinAtListing={idea.joinAtListing}
+          pickedOn={Object.fromEntries(idea.stocks.map((s) => [s.ticker, s.stat]))}
           {...compareProps(dominantIndustry(stocks.map((s) => s.ticker)))}
         />
       </main>

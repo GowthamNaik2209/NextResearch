@@ -2,7 +2,7 @@
 // and held (not rebalanced), so each stock's share drifts with its price - what an investor who
 // bought the basket that day would hold now. Price change only: dividends are not added back.
 // Pure (no fetching), so it is unit-tested on its own.
-import { basketStart, isLate, walkShares } from "./walk";
+import { basketStart, isLate, walkShares, walkStart } from "./walk";
 
 export type PricePoint = { t: string; c: number };
 
@@ -49,13 +49,15 @@ export type HeldInput = { ticker: string; weight: number; points: PricePoint[]; 
  * `joinLate`: a stock whose history starts after the basket's first day (listed during the period)
  * joins on its first bar, as if its start date were its listing day, rather than being left out.
  *
- * How a stock joins (the same for every weighting and rebalancing rule): on its first bar it is
- * bought at its target share among the stocks then held (equal weight: 1/k of the basket with k
- * stocks held after it joins), paid for by selling the others in proportion to what they are
- * worth then. No money comes in or out, so the basket's value carries on unbroken, each stock's
- * return runs from the day it joined, and the points each stock added still sum to the return.
+ * How a stock joins (the same for every weighting and rebalancing rule): its target share of the
+ * basket is set aside on the first day and waits in cash (earning nothing) until its first bar,
+ * when it buys the stock at that close. The other stocks aren't touched, so the targets total 100%,
+ * each stock's return runs from the day it joined, and in a basket never rebalanced each one adds
+ * exactly its target share times that return (the points still sum to the basket's return).
+ * `calendar`: the range's trading days (the Nifty 50's), so the basket begins with the range and
+ * every line, chart and statistic beside it is measured from the same first day.
  */
-export type JoinOptions = { joinLate?: boolean };
+export type JoinOptions = { joinLate?: boolean; calendar?: string[] };
 
 /**
  * The stocks a backtest holds, and the rest with the reason: no price data, or a history that
@@ -81,9 +83,9 @@ export function splitHeld(input: BacktestInput[], slackDays: number, opts: JoinO
 }
 
 /** Whether any held stock joins after the first day (so the backtest needs the joining walk). */
-export function hasJoiners(held: HeldInput[], slackDays: number): boolean {
+export function hasJoiners(held: HeldInput[], slackDays: number, calendar: string[] = []): boolean {
   if (!held.length) return false;
-  const start = basketStart(held);
+  const start = walkStart(held, calendar);
   return held.some((s) => isLate(s, start, slackDays));
 }
 
@@ -99,8 +101,9 @@ export function runBacktest(input: BacktestInput[], slackDays: number, opts: Joi
   // Stocks joining mid-period: the share-based walk (walk.ts, shared with the rebalanced backtest)
   // buys each on its first bar. Without them this simpler walk is kept, so every figure it has
   // always produced is unchanged.
-  if (hasJoiners(held, slackDays)) {
-    const { points, holdings } = walkShares(held, slackDays, "never");
+  const calendar = opts.joinLate ? (opts.calendar ?? []) : [];
+  if (hasJoiners(held, slackDays, calendar)) {
+    const { points, holdings } = walkShares(held, slackDays, "never", 5, calendar);
     return { points, holdings, excluded };
   }
   const total = held.reduce((n, s) => n + s.weight, 0);

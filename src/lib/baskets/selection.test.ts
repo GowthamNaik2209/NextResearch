@@ -126,3 +126,18 @@ test("a saved basket opens with where each stock was picked from, and keeps it t
   s = reduce(s, { type: "restore", ticker: "BHARATFORG" });
   assert.deepEqual(s.pickedFrom, { BHARATFORG: "ev4w" });
 });
+
+test("two quick removes are one Undo: restoring the burst latest first puts both back as they were", () => {
+  let s = start(["A", "B", "C", "D"], { A: 40, B: 30, C: 20, D: 10 });
+  s = reduce(s, { type: "remove", ticker: "B" });
+  s = reduce(s, { type: "remove", ticker: "D" });
+  assert.deepEqual(s.burst, ["B", "D"]);
+  for (const t of [...s.burst].reverse()) s = reduce(s, { type: "restore", ticker: t });
+  assert.deepEqual(tickers(s), ["A", "B", "C", "D"]);
+  assert.deepEqual(s.custom, { A: 40, B: 30, C: 20, D: 10 });
+  assert.equal(s.lastRemoved, null);
+  assert.deepEqual(s.burst, []);
+  // Once the offer has gone, the next remove starts a new burst.
+  s = reduce(reduce(s, { type: "remove", ticker: "A" }), { type: "dismissUndo" });
+  assert.deepEqual(reduce(s, { type: "remove", ticker: "C" }).burst, ["C"]);
+});

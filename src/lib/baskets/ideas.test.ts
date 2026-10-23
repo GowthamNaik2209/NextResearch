@@ -47,9 +47,18 @@ test("top performers rank by the period's return and average it", () => {
   assert.equal(ideas.find((i) => i.id === "top-5y"), undefined);
 });
 
-test("quality skips small and one-off companies", () => {
+test("quality skips small and one-off companies, and those where ROCE isn't meaningful", () => {
   const ideas = buildIdeas(
-    [info("BIG", { roce: 30 }), info("SMALL", { roce: 90, mcapCr: 200 }), info("ONEOFF", { roce: 80, outlier: true }), info("BEST", { roce: 50 })],
+    [
+      info("BIG", { roce: 30, pe: 20 }),
+      info("SMALL", { roce: 90, pe: 20, mcapCr: 200 }),
+      info("ONEOFF", { roce: 80, pe: 20, outlier: true }),
+      info("BEST", { roce: 50, pe: 20, book: 120 }),
+      // Loss-making on negative equity: a high ROCE that means nothing.
+      info("NOPE", { roce: 56, pe: null, book: -40, np: [-900, -800, -700, -600, -500] }),
+      info("NEGBOOK", { roce: 70, pe: 12, book: -5 }),
+      info("LOSS", { roce: 60, pe: 30, np: [10, 10, 10, 10, -5] }),
+    ],
     snap({}),
     NOW,
   );
@@ -148,7 +157,7 @@ test("companies with a one-off year are in no rule-based basket, and each rule s
   const ideas = buildIdeas(
     [
       info("ONEOFF", { outlier: true, roce: 99, industries: 5, scarce: sc, rev: [1000, 1100, 1200, 1300, 1400], np: [100, -50, 60, 80, 120] }),
-      info("PLAIN", { roce: 20, industries: 3, scarce: sc }),
+      info("PLAIN", { roce: 20, pe: 15, industries: 3, scarce: sc }),
     ],
     snap({ ONEOFF: st(300, 200), PLAIN: st(10, 200) }),
     NOW,

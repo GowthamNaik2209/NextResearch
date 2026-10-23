@@ -157,7 +157,7 @@ export function kpiScreens(stocks: KpiStock[]): KpiScreen[] {
     {
       id: "turnarounds",
       title: "Turnarounds",
-      blurb: "Loss-making in FY22–FY24, profitable since, with FY26 profit up on FY25.",
+      blurb: "A net loss in at least one of FY22, FY23 or FY24, profitable since, with FY26 profit up on FY25.",
       rule: `A net loss in FY22, FY23 or FY24, then profits in FY25 and FY26 (FY26 higher) without shrinking sales, worth ${cr}+; biggest FY26 profit first. ${ONE_OFF_NOTE}`,
       stocks: turnarounds(stocks),
     },

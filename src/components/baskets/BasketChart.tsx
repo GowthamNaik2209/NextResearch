@@ -186,7 +186,8 @@ export function BasketChart({
       autoSize: true,
       layout: { background: { type: ColorType.Solid, color: "transparent" }, textColor: cssVar("--ink-soft", "#888"), fontFamily: "IBM Plex Mono, monospace", fontSize: 11 },
       grid: { vertLines: { visible: false }, horzLines: { color: cssVar("--grid", "#ddd") } },
-      rightPriceScale: { borderVisible: false },
+      // entireTextOnly: no half-cut "+400%" at the top or bottom edge; the label goes when it can't fit.
+      rightPriceScale: { borderVisible: false, entireTextOnly: true },
       timeScale: { borderVisible: false, timeVisible: false, fixLeftEdge: true, fixRightEdge: true, lockVisibleTimeRangeOnResize: true, tickMarkFormatter: tickLabel },
       crosshair: { mode: CrosshairMode.Normal },
       localization: { priceFormatter: (v: number) => axisPct(v) },
@@ -315,7 +316,7 @@ export function BasketChart({
                       {compare.length}/{MAX_COMPARE} on
                     </span>
                   </div>
-                  <p className="mt-0.5 text-[11px] leading-snug text-ink-soft">Every listed stock an industry maps, at this basket&rsquo;s settings (equal weight when this one is custom).</p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-ink-soft">Every listed stock on an industry&rsquo;s map, at this basket&rsquo;s settings (equal weight when this one is custom).</p>
                   <div className="mt-1 flex flex-col">
                     {industries.map((b) => {
                       const i = compare.indexOf(b.slug);

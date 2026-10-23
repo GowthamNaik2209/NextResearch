@@ -15,7 +15,7 @@ import { useBasketSelection } from "./use-basket-selection";
 import { isWatched, subscribeWatchlist, watchlistSnapshot } from "@/components/sector-explorer/WatchlistButton";
 import { DASHARRAY } from "@/components/charts/palette";
 import { useSiteTheme } from "@/lib/theme";
-import { croreShort, fmtMonth, inr, NA, signedPct } from "@/lib/format";
+import { croreShort, fmtMonth, NA, signedPct } from "@/lib/format";
 import { signedPts } from "@/lib/baskets/fmt";
 import { MAX_BASKET_STOCKS } from "@/lib/baskets/limits";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -25,6 +25,7 @@ import { BasketAnalysis } from "./BasketAnalysis";
 import { MINI_SEG, PANEL, PANEL_TITLE, Panel } from "./Panel";
 import { IndustryChips } from "./IndustryChips";
 import { OneOffMark } from "./OneOffMark";
+import { MoreBelow, useMoreBelow } from "./MoreBelow";
 import { basketCreateError } from "./NewBasketButton";
 import { industrySeriesKey, savedBasketQuery } from "./series";
 import { useSeries } from "./use-series";
@@ -78,9 +79,13 @@ function copyNow(text: string): Promise<boolean> {
   );
 }
 
+/** sessionStorage key prefix: a new basket's chart comparisons, handed from Create basket to its page. */
+const CHART_HANDOFF = "nr-basket-chart:";
 // Only the market beside the basket; indices and other baskets are a "Compare with" pick on the chart.
 const NIFTY_ONLY = [{ key: "b:nifty50", label: "Nifty 50" }];
 const stocksWord = (n: number) => `${n} stock${n === 1 ? "" : "s"}`;
+/** Why a P/E shows "—": the company table has none for it. */
+const NO_PE = "No P/E in our last data update: a loss over the latest twelve months, or none reported";
 /** A 0-1 share as a percentage, one decimal. */
 const pct1 = (share: number) => `${(share * 100).toFixed(1)}%`;
 
@@ -161,6 +166,9 @@ export type BasketDetailProps = {
   /** A saved basket: the industry each stock was picked from (saved with it), so its layer label
    * stays the one it was picked in after a reload. */
   pickedFrom?: Record<string, string>;
+  /** A rule-based basket: the figure each stock was picked on ("ROCE 56%", "PEG 0.80 · P/E 20.1x"),
+   * shown beside it so the list can be checked against its rule. */
+  pickedOn?: Record<string, string>;
 };
 
 export function BasketDetail(p: BasketDetailProps) {
@@ -444,12 +452,16 @@ export function BasketDetail(p: BasketDetailProps) {
     const weights = weightsAfter();
     if (!draft) await patchItems({ remove: [t], ...weights });
   };
+  // Undo brings back every stock taken off while the offer was open (two quick removes are one
+  // Undo), latest first, so each goes back to its place with the weight it had.
   const undo = async () => {
-    const t = current().lastRemoved;
-    if (locked || !t) return;
-    act({ type: "restore", ticker: t });
+    const list = [...current().burst].reverse();
+    if (locked || !list.length) return;
+    for (const t of list) act({ type: "restore", ticker: t });
+    const back = list.filter((t) => current().stocks.some((s) => s.ticker === t));
+    if (!back.length) return;
     const weights = weightsAfter();
-    if (!draft) await patchItems({ add: [t], ...weights, ...pickedFromFor([t]) });
+    if (!draft) await patchItems({ add: back, ...weights, ...pickedFromFor(back) });
   };
   // The Undo offer stays a while, then the line goes back to its usual text.
   const lastRemoved = sel.lastRemoved;
@@ -458,7 +470,7 @@ export function BasketDetail(p: BasketDetailProps) {
     const timer = setTimeout(() => act({ type: "dismissUndo" }), 12_000);
     return () => clearTimeout(timer);
   }, [lastRemoved, act]);
-  const removedName = lastRemoved ? (sel.takenOff[lastRemoved]?.stock.name ?? lastRemoved) : null;
+  const removedName = !lastRemoved ? null : sel.burst.length > 1 ? `${sel.burst.length} stocks` : (sel.takenOff[lastRemoved]?.stock.name ?? lastRemoved);
   const setWeight = async (w: WeightScheme) => {
     if (w === "custom") setWeightsOpen(true);
     if (w === weighting) return;
@@ -478,20 +490,24 @@ export function BasketDetail(p: BasketDetailProps) {
       await patch({ weighting: "custom", weights: start });
     }
   };
+  // Starting points for the custom weights, worked out from the stocks in the basket right now.
+  const resetTargets = useMemo(
+    () => ({ equal: toPercents(schemeShares(stocks, "equal")), mcap: toPercents(schemeShares(stocks, "mcap")) }),
+    [stocks],
+  );
   const blockedNote = "Make the custom weights total 100% first.";
   // One stock's % typed (or a Reset): the backtest follows once they total 100%, and a
   // saved basket of yours keeps them (a moment after the last keystroke).
   const editWeights = (next: Record<string, number>) => {
     setCustomEdit(next);
     if (!weightsValid(next, tickers)) return;
-    pickStrategy({ ...strategy, weights: next });
+    // Reset to market cap shows each share to one decimal; the backtest takes the exact shares, so
+    // it gives the M-cap weighting's figure to the last digit (equal ones snap in customTargets).
+    const isMcap = tickers.every((t) => Math.abs((next[t] ?? 0) - (resetTargets.mcap[t] ?? 0)) < 1e-9);
+    const exact = isMcap ? Object.fromEntries([...schemeShares(stocks, "mcap")].map(([t, v]) => [t, v * 100])) : next;
+    pickStrategy({ ...strategy, weights: exact });
     setNote((n) => (n === blockedNote ? null : n));
   };
-  // Starting points for the custom weights, worked out from the stocks in the basket right now.
-  const resetTargets = useMemo(
-    () => ({ equal: toPercents(schemeShares(stocks, "equal")), mcap: toPercents(schemeShares(stocks, "mcap")) }),
-    [stocks],
-  );
   // Weights typed but not yet sent (the 700ms wait): leaving the page sends them at once, so the
   // last edit is never lost to a navigation.
   const unsent = useRef<Record<string, number> | null>(null);
@@ -578,6 +594,23 @@ export function BasketDetail(p: BasketDetailProps) {
     router.push(p.signedIn ? to : `/login?next=${encodeURIComponent(to)}`);
   };
   useEffect(() => {
+    // A basket just created on Create basket: the chart's comparisons as they were there.
+    if (p.mode !== "saved") return;
+    let got: { benches?: unknown; compare?: unknown } | null = null;
+    try {
+      const raw = sessionStorage.getItem(`${CHART_HANDOFF}${p.id}`);
+      sessionStorage.removeItem(`${CHART_HANDOFF}${p.id}`);
+      got = raw ? JSON.parse(raw) : null;
+    } catch {}
+    if (!got || !Array.isArray(got.benches) || !Array.isArray(got.compare)) return;
+    const benchIds = new Set([...p.indices, ...p.market].map((b) => b.id));
+    const slugs = new Set(p.industries.map((i) => i.slug));
+    const benches = got.benches.filter((b): b is string => typeof b === "string" && benchIds.has(b));
+    const compare = got.compare.filter((c): c is string => typeof c === "string" && slugs.has(c));
+    act({ type: "chart", next: (c) => ({ ...c, benches, compare }) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once on mount
+  }, [p.id]);
+  useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- a fresh copy opens straight into editing
     if (p.isOwner && new URLSearchParams(window.location.search).get("edit") === "1") setEditing(true);
   }, [p.isOwner]);
@@ -595,6 +628,11 @@ export function BasketDetail(p: BasketDetailProps) {
     const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tickers, name: name.trim(), weighting: savedWeighting, ...savedWeights, ...pickedFromFor(tickers), ...(p.sourceSector ? { sourceSector: p.sourceSector } : {}) }) }).catch(() => null);
     const json = res ? await res.json().catch(() => null) : null;
     if (res?.ok && json?.id) {
+      // What the chart was compared with here goes with it, so the new basket's page opens on the
+      // same lines (its own default would add its industry's index and basket).
+      try {
+        sessionStorage.setItem(`${CHART_HANDOFF}${json.id}`, JSON.stringify({ benches: chartSel.benches, compare: chartSel.compare }));
+      } catch {}
       setCreateStep("opening");
       return router.push(withStrategy(`/baskets/${json.id}`));
     }
@@ -797,6 +835,8 @@ export function BasketDetail(p: BasketDetailProps) {
   const [sideOrder, setSideOrder] = useState(() => ({ key: listKey, order: sideOrderNow() }));
   if (sideOrder.key !== listKey) setSideOrder({ key: listKey, order: sideOrderNow() });
   const byTickerSide = new Map(stocks.map((s) => [s.ticker, s]));
+  const [tableBoxRef, tableMore] = useMoreBelow<HTMLDivElement>("tbody > tr");
+  const [sideListRef, sideMore] = useMoreBelow<HTMLUListElement>(":scope > li");
   const sideStocks = sideOrder.order.flatMap((t) => (byTickerSide.has(t) ? [byTickerSide.get(t)!] : []));
   // What the status line under the header says, most pressing first. Always laid out (one line),
   // so a message coming or going never moves the page.
@@ -1027,6 +1067,7 @@ export function BasketDetail(p: BasketDetailProps) {
                 label={`Backtest chart, ${pastPeriod(range)}, ${basisLabel(strategy)}`}
                 bodyClassName="p-3"
                 infoLabel="About the backtest chart"
+                toolsInline
                 info={
                   <>
                     Every line starts at 0% on the first day, so their ends compare directly. <b>Compare with</b> adds up to 3 indices or industry
@@ -1079,6 +1120,12 @@ export function BasketDetail(p: BasketDetailProps) {
                   <>
                     <b>Target %</b>: its share when bought{rebalanced ? " and after each rebalance" : ""} (your % when Custom). <b>Now %</b>: its share at the end, after price moves.{" "}
                     <b>Return</b>: its own price change. <b>Pts added</b>: what it added to the basket&rsquo;s return.
+                    {p.joinAtListing && (
+                      <span className="mt-1.5 block">
+                        Since listing: each stock&rsquo;s share is set aside on the first day and waits in cash until it lists, so its return runs from
+                        listing and, not rebalanced, its pts added are its target share times that return.
+                      </span>
+                    )}
                   </>
                 }
                 tools={
@@ -1162,8 +1209,14 @@ export function BasketDetail(p: BasketDetailProps) {
                               <div className="text-balance text-[11px] leading-snug text-ink-soft">
                                 <span className="font-mono">{s.ticker}</span> · {layerOf(s)}
                               </div>
+                              {p.pickedOn?.[s.ticker] && (
+                                <div className="font-mono text-[11px] text-ink">
+                                  <span className="font-sans text-ink-soft">Picked on </span>
+                                  {p.pickedOn[s.ticker]}
+                                </div>
+                              )}
                               <div className="font-mono text-[11px] text-ink-soft">
-                                P/E {s.pe != null ? `${s.pe.toFixed(1)}x` : NA} · <span className="whitespace-nowrap">{s.mcapCr != null ? croreShort(s.mcapCr) : `mcap ${NA}`}</span>
+                                <span title={s.pe == null ? NO_PE : undefined}>P/E {s.pe != null ? `${s.pe.toFixed(1)}x` : NA}</span> · <span className="whitespace-nowrap">{s.mcapCr != null ? croreShort(s.mcapCr) : `mcap ${NA}`}</span>
                               </div>
                               {s.oneOff ? (
                                 // Beside the industry chip (a 24-28px line), so the marker never adds a line to the row.
@@ -1213,15 +1266,24 @@ export function BasketDetail(p: BasketDetailProps) {
                           </li>
                         ))}
                     </ul>
-                    {/* From sm: the dense table, sortable by its headers. */}
-                    <div className="hidden overflow-x-auto sm:block">
+                    {/* From sm: the dense table, sortable by its headers. A long basket scrolls inside a
+                        box about the Breakdown's height (header kept in view, "N more" at the foot),
+                        so switching Table / Breakdown neither moves the panels below nor leaves a
+                        tall empty space under the shorter one. */}
+                    <div className="relative hidden sm:block">
+                    <div ref={tableBoxRef} className="max-h-[36rem] overflow-auto">
                       <table className="w-full border-collapse text-xs">
-                        <thead className="bg-panel-2/60 text-[10px] uppercase tracking-wider text-ink-soft">
+                        <thead className="sticky top-0 z-[1] bg-panel-2 text-[10px] uppercase tracking-wider text-ink-soft">
                           <tr className="border-b border-line">
                             <th scope="col" className="w-6 px-0">
                               <span className="sr-only">Chart line</span>
                             </th>
                             {sortHead("name", "Stock", false)}
+                            {p.pickedOn && (
+                              <th scope="col" title="The figure the rule picked this stock on (see the rule above)" className="whitespace-nowrap px-2 py-1.5 text-left font-semibold">
+                                Picked on
+                              </th>
+                            )}
                             <th scope="col" title={`Its share when bought${rebalanced ? " and after each rebalance" : ""} (your % when Custom)`} className="whitespace-nowrap px-2 py-1.5 text-right font-semibold">
                               Target %
                             </th>
@@ -1229,7 +1291,7 @@ export function BasketDetail(p: BasketDetailProps) {
                             {sortHead("return", "Return")}
                             {sortHead("contribution", "Pts added")}
                             {sortHead("pe", "P/E")}
-                            {sortHead("mcap", "M-cap ₹ Cr")}
+                            {sortHead("mcap", "M-cap")}
                             {sinceShown && (
                               <th scope="col" title="The stock's move since it was added to this basket (from its live price then)" className="whitespace-nowrap px-2 py-1.5 text-right font-semibold">
                                 Since added
@@ -1272,6 +1334,7 @@ export function BasketDetail(p: BasketDetailProps) {
                                     )}
                                   </span>
                                 </td>
+                                {p.pickedOn && <td className="whitespace-nowrap px-2 py-1.5 font-mono text-[11px] text-ink">{p.pickedOn[s.ticker] ?? NA}</td>}
                                 {h ? (
                                   <>
                                     <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono text-ink-soft">{pct1(h.weight)}</td>
@@ -1284,8 +1347,8 @@ export function BasketDetail(p: BasketDetailProps) {
                                     {ex ?? (tbt?.status === "error" ? NA : "…")}
                                   </td>
                                 )}
-                                <td className="px-2 py-1.5 text-right font-mono">{s.pe != null ? `${s.pe.toFixed(1)}x` : NA}</td>
-                                <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{inr(s.mcapCr)}</td>
+                                <td title={s.pe == null ? NO_PE : undefined} className="px-2 py-1.5 text-right font-mono">{s.pe != null ? `${s.pe.toFixed(1)}x` : NA}</td>
+                                <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{croreShort(s.mcapCr)}</td>
                                 {sinceShown && (
                                   <td title={since == null ? sinceWhy(s.ticker) : undefined} className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (since == null ? "text-ink-soft" : since >= 0 ? "text-pos" : "text-danger")}>
                                     {signedPct(since)}
@@ -1303,7 +1366,7 @@ export function BasketDetail(p: BasketDetailProps) {
                                   <span className="block font-mono font-semibold">{t}</span>
                                   <span className="block text-[10px]">No longer listed in our maps</span>
                                 </td>
-                                <td colSpan={sinceShown ? 7 : 6} className="px-2 py-1.5 text-right text-[11px]">
+                                <td colSpan={(sinceShown ? 7 : 6) + (p.pickedOn ? 1 : 0)} className="px-2 py-1.5 text-right text-[11px]">
                                   Left out of the backtest
                                 </td>
                                 {canEdit && <td className="w-9 px-1 py-1">{showRemove && removeButton({ ticker: t, name: t }, true)}</td>}
@@ -1311,6 +1374,8 @@ export function BasketDetail(p: BasketDetailProps) {
                             ))}
                         </tbody>
                       </table>
+                    </div>
+                    <MoreBelow count={tableMore} noun={tableMore === 1 ? "more stock" : "more stocks"} />
                     </div>
                     <p className="border-t border-line/70 px-3 py-1.5 text-[11px] text-ink-soft">
                       Return over the past {rangeLong} · <b className="font-semibold">target</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} when bought{rebalanced ? " and after each rebalance" : ""},{" "}
@@ -1341,7 +1406,7 @@ export function BasketDetail(p: BasketDetailProps) {
             {rebalanced
               ? `, then ${rebalanceLabel(strategy)}, trading at that day’s close${strategy.rebalance === "drift" ? " (the day after the drift is seen)" : ""}. Turnover and trades are shown, but no brokerage, taxes or slippage are taken off. Price change only, no dividends.`
               : " and held without rebalancing. Price change only, no dividends, costs or taxes."}{p.joinAtListing
-              ? " Each stock is backtested from its first trading day: one listed during the period joins the basket then at its share of the stocks held, the others trimmed in proportion to pay for it, so its return is since listing."
+              ? " Each stock is backtested from its first trading day: its share of the money is set aside on the first day and waits in cash (earning nothing) until the stock lists, then buys it at that close. So its return is since listing, the targets total 100%, and, not rebalanced, each stock adds its target share times its return."
               : " Stocks listed during the period are left out of it."}{" "}
             The basket is today&rsquo;s list of stocks, so companies that fell out of the industry before now are missing. A tracking and research tool, not investment advice.
             {p.mode === "industry" && (
@@ -1361,11 +1426,21 @@ export function BasketDetail(p: BasketDetailProps) {
             readers reach the chart and table first. */}
         <aside aria-label="Basket controls" className="sticky top-20 hidden max-h-[calc(100vh-6rem)] min-w-0 flex-col gap-2 overflow-y-auto lg:flex">
           {stats(true)}
-          <Panel heading={heading} title={`Stocks and chart lines · ${stocks.length}`} className="flex min-h-0 flex-col" bodyClassName="flex min-h-0 flex-col">
-            <p className="px-3 pt-1.5 text-[11px] leading-snug text-ink-soft">
-              The mark beside a stock is its line on the chart; add or take off lines with the chart&rsquo;s Stocks menu.
-            </p>
-            <ul className="h-[22rem] divide-y divide-line/70 overflow-y-auto overscroll-contain px-3 py-1">
+          {/* Shrinks with the window down to its header and five rows (the panel's own minimum; the
+              column scrolls below that); the help line sits behind the "i" to leave the rows room. */}
+          <Panel
+            heading={heading}
+            title={`Stocks and chart lines · ${stocks.length}`}
+            info={<>The mark beside a stock is its line on the chart; add or take off lines with the chart&rsquo;s Stocks menu.</>}
+            infoLabel="About the stocks and chart lines"
+            className="flex min-h-[12.75rem] flex-col"
+            bodyClassName="flex min-h-0 flex-col"
+          >
+            {/* As tall as the column allows (24rem), never under five rows (the column scrolls then),
+                with a fade and "N more" over its foot while rows are out of view. Its height
+                depends only on the window, never on the stocks or lines. */}
+            <div className="relative flex min-h-0 flex-col">
+            <ul ref={sideListRef} className="h-[24rem] min-h-0 shrink divide-y divide-line/70 overflow-y-auto overscroll-contain px-3 py-1">
               {sideStocks.map((s) => {
                 const h = holdings.get(s.ticker);
                 const slot = chartSel.picks[s.ticker];
@@ -1392,6 +1467,8 @@ export function BasketDetail(p: BasketDetailProps) {
               ))}
               {empty && !unlisted.length && <li className="py-2 text-xs text-ink-soft">No stocks yet.</li>}
             </ul>
+            <MoreBelow count={sideMore} />
+            </div>
           </Panel>
         </aside>
       </div>
@@ -1723,11 +1800,15 @@ function StockPicker({
   // Stocks already in the basket list first, as they were when the list opened or the industry
   // changed: the order never changes while it is on screen, so a row never jumps under a tap.
   const [pinned, setPinned] = useState<Set<string>>(() => new Set(have));
+  // The list opened by switching the industry rather than by its button: the button's first tap
+  // then keeps it open (it would otherwise read as a tap that did nothing), a second one closes it.
+  const [openedBySwitch, setOpenedBySwitch] = useState(false);
   const openOn = (src: "industry" | "watchlist") => {
     if (!open || src !== source) setPinned(new Set(have));
     setSource(src);
     setFilter("");
-    setOpen(!(open && src === source));
+    setOpen(!(open && src === source && !openedBySwitch));
+    setOpenedBySwitch(false);
   };
   const byTicker = useMemo(() => new Map(universe.map((s) => [s.ticker, s])), [universe]);
   const inIndustry = useMemo(
@@ -1770,6 +1851,7 @@ function StockPicker({
                 setSource("industry");
                 setFilter("");
                 setOpen(true);
+                setOpenedBySwitch(true);
                 setPinned(new Set(have));
               }}
               className="min-h-[42px] min-w-0 flex-1 rounded-lg border border-line bg-panel px-3 py-2 text-base font-semibold text-ink sm:text-sm"
@@ -1799,8 +1881,9 @@ function StockPicker({
                 aria-label={`${industryName} stocks: ${inIndustry.length} listed${added > 0 ? `, ${added} in this basket` : ""}`}
                 className={btn(open && source === "industry")}
               >
+                {/* Short enough to fit beside the Watchlist button at every width; the full wording is its label. */}
                 <span className="truncate">
-                  {inIndustry.length} listed{added > 0 ? ` · ${added} in this basket` : ""}
+                  {inIndustry.length} listed{added > 0 ? ` · ${added} added` : ""}
                 </span>
                 {chevron(open && source === "industry")}
               </button>
