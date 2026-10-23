@@ -126,8 +126,9 @@ export async function getIdea(id: string): Promise<{ asOf: string; idea: Idea } 
   const { asOf, ideas } = await getIdeas();
   const idea = ideas.find((i) => i.id === id);
   if (!idea) return null;
-  // The day's figure, the one its card shows (worked out and kept now if it isn't yet).
-  const bt = (await dailyBacktest(asOf, id)) ?? (await ideaBacktest(idea));
+  // Its own backtest, as before (cached per server for minutes). Reading the cards' shared daily
+  // cache from the page render hung on Vercel (every idea page timed out), so the page doesn't.
+  const bt = await ideaBacktest(idea);
   const [withRet] = withBacktestReturns([idea], { [idea.id]: bt });
   return { asOf, idea: withRet };
 }
