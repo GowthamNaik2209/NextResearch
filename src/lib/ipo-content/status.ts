@@ -4,6 +4,7 @@
 // can apply it per request (the decks themselves are cached across requests). Lives here, beside
 // the content it reads; src/components/ipo/status.ts re-exports it for the UI.
 import type { IpoStage } from "./types";
+import { sep } from "@/lib/format";
 
 type WithStatus = {
   status: { stage: IpoStage; label: string; detail: string };
@@ -26,7 +27,7 @@ export function istToday(now = Date.now()): number {
   return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
 }
 
-const short = (t: number) => new Date(t).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" });
+const short = (t: number) => sep(new Date(t).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" }));
 
 /** The deck (or card) with its stage, chip label and timeline ticks as of `today`. */
 export function liveIpoStatus<T extends WithStatus>(deck: T, today = istToday()): T {

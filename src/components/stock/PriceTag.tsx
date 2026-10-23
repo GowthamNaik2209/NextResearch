@@ -1,13 +1,14 @@
 import type { Quote } from "@/lib/live/yahoo";
 import { quoteTiming } from "@/lib/live/freshness";
 import { fmtPrice, fmtSigned, freshQuote } from "./merge";
+import { sep } from "@/lib/format";
 
 const MINUS = "−";
 
 // "live · 3:29 pm" for today's quote, "live · 21 Oct" for the last trading day's close (IST).
 function liveWhen(asOf: string): string {
   const t = new Date(asOf);
-  const ist = (d: Date, o: Intl.DateTimeFormatOptions) => d.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", ...o });
+  const ist = (d: Date, o: Intl.DateTimeFormatOptions) => sep(d.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", ...o }));
   const day = (d: Date) => ist(d, { day: "numeric", month: "short" });
   return day(t) === day(new Date()) ? ist(t, { hour: "numeric", minute: "2-digit" }) : day(t);
 }

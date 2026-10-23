@@ -72,8 +72,16 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
   const layerButtonRefs = useRef(new Map<number, HTMLButtonElement>());
   const controllerRef = useRef<ExplorerController | null>(null);
 
-  const [currentZoneId, setCurrentZoneId] = useState<string | null>(null);
-  const [currentSupplier, setCurrentSupplier] = useState<string | null>(null);
+  // Seeded from a deep link (?zone=&company=, validated as in the mount effect below), so the URL
+  // sync's first run doesn't strip them before the mount effect applies them.
+  const [currentZoneId, setCurrentZoneId] = useState<string | null>(() => {
+    const id = searchParams0.get("zone");
+    return id && sector.zones.some((z) => z.id === id) ? id : null;
+  });
+  const [currentSupplier, setCurrentSupplier] = useState<string | null>(() => {
+    const key = searchParams0.get("company");
+    return key && sector.zones.some((z) => z.id === searchParams0.get("zone")) && sector.suppliers[key] ? key : null;
+  });
   const [activeView, setActiveView] = useState<string>(sector.defaultView || sector.views[0]?.id);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   // Phones/tablets: the open sheet starts at a "peek" height so the picked part stays in
@@ -322,7 +330,9 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
   // The native history API, not router.replace: a router navigation re-renders the page on the
   // server (auth, figures) on every pick, while replaceState only rewrites the address bar
   // (Next keeps useSearchParams in step). Replace, not push: picks don't pile up history entries,
-  // so Back still leaves the explorer, as before.
+  // so Back still leaves the explorer, as before. The state argument must be null, not the
+  // current entry's: Next only records the new URL in its own history state when the call carries
+  // none of its own, and without that, Back then Forward restored the picks but not the URL.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (currentZoneId) params.set("zone", currentZoneId);
@@ -334,7 +344,7 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
     params.delete("tour");
     const query = params.toString();
     const url = query ? `${pathname}?${query}` : pathname;
-    if (url !== window.location.pathname + window.location.search) window.history.replaceState(window.history.state, "", url);
+    if (url !== window.location.pathname + window.location.search) window.history.replaceState(null, "", url);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentZoneId, currentSupplier, scenarioId]);
 
@@ -356,6 +366,18 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
   // A zone with exactly one supplier auto-opens it (mirrors the original) — derived
   // at render time rather than synced via an effect, so there's no extra render pass.
   const effectiveSupplier = currentSupplier ?? (zoneSupplierKeys.length === 1 ? zoneSupplierKeys[0] : null);
+
+  // Outside tap closes an open Systems / What-if list (owner rule for every menu); Esc does too.
+  useEffect(() => {
+    if (!isZoneMenuOpen && !isScenarioMenuOpen) return;
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Element | null;
+      if (!t?.closest("#nrSystemsList, .zone-more-btn:not(.scn-more)")) setIsZoneMenuOpen(false);
+      if (!t?.closest("#nrScenarioList, .scn-more")) setIsScenarioMenuOpen(false);
+    };
+    window.addEventListener("pointerdown", onDown, { capture: true });
+    return () => window.removeEventListener("pointerdown", onDown, { capture: true });
+  }, [isZoneMenuOpen, isScenarioMenuOpen]);
 
   // Desktop: the open Systems list can run past the bottom of the rail; bring it into view.
   useEffect(() => {

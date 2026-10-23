@@ -526,8 +526,8 @@ function BeneficiariesSlide({ deck, openCompany }: SlideProps) {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
-                      <span className="truncate font-display text-sm font-semibold text-ink group-hover:text-accent">{c.name}</span>
-                      <span className="flex-none font-mono text-[10.5px] text-ink-soft">{c.mcap ?? ""}</span>
+                      <span className="min-w-0 font-display text-sm font-semibold leading-snug text-ink [overflow-wrap:anywhere] group-hover:text-accent">{c.name}</span>
+                      <span className="flex-none font-mono text-[10.5px] text-ink-soft">{c.mcapCr != null ? fmtCr(c.mcapCr) : ""}</span>
                     </span>
                     <span className="block font-mono text-[10px] text-ink-soft">{shortTicker(c)}</span>
                     <span className="mt-1 block text-[12px] leading-snug text-ink-soft">{c.why}</span>
@@ -544,7 +544,7 @@ function BeneficiariesSlide({ deck, openCompany }: SlideProps) {
           </span>
         ))}
       </p>
-      <p className="mt-3 text-[10.5px] text-ink-soft">Tap a company for its financials, price chart and news. Market caps are seed-data snapshots.</p>
+      <p className="mt-3 text-[10.5px] text-ink-soft">Tap a company for its financials, price chart and news.{snapshotDate(deck) ? ` Market caps as of ${snapshotDate(deck)} (company table snapshot).` : ""}</p>
       <SlideFoot deck={deck} />
     </>
   );
@@ -570,6 +570,12 @@ function MiniBar({ value, max, tone }: { value: number | null; max: number; tone
 
 // P/E is on trailing-twelve-month earnings, net margin on the latest fiscal year: a recovery quarter
 // can make the first positive while the second is negative, which needs flagging, not hiding.
+// The date of the company-table snapshot behind the deck's figures (the latest of its companies').
+function snapshotDate(deck: Deck): string | null {
+  const dates = deck.companies.flatMap((c) => (c.supplier.f?.asOf ? [c.supplier.f.asOf] : []));
+  return dates.sort((a, b) => Date.parse(b) - Date.parse(a))[0] ?? null;
+}
+
 const ttmMismatch = (c: DeckCompany) => (c.npMargin ?? 0) < 0 && (c.pe ?? 0) > 0;
 
 function ScorecardSlide({ deck, openCompany }: SlideProps) {
@@ -604,7 +610,7 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
               </div>
               <div>
                 <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">P/E (TTM) · ROCE</dt>
-                <dd className="font-mono text-ink">{c.pe != null ? c.pe.toFixed(1) : "—"}{ttmMismatch(c) ? "*" : ""} · {fmtPct(c.roce)}</dd>
+                <dd className="font-mono text-ink">{c.pe != null ? `${c.pe.toFixed(1)}x` : "—"}{ttmMismatch(c) ? "*" : ""} · {fmtPct(c.roce)}</dd>
               </div>
             </dl>
           </li>
@@ -648,7 +654,7 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
                   <MiniBar value={c.npMargin} max={maxMargin} tone="amber" />
                 </td>
                 <td className="px-3 py-2 text-right font-mono tabular-nums text-ink">
-                  {c.pe != null ? c.pe.toFixed(1) : "—"}
+                  {c.pe != null ? `${c.pe.toFixed(1)}x` : "—"}
                   {ttmMismatch(c) ? "*" : ""}
                 </td>
                 <td className="px-4 py-2 text-right font-mono tabular-nums text-ink">{fmtPct(c.roce)}</td>

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { IpoDeck } from "@/lib/ipo-content";
 import type { IpoCard as IpoCardData } from "@/lib/analysis-props";
-import { LazyIpoDeck, dropDeepLinkParam, intentProps, prefetchIpo } from "@/components/research/LazyDecks";
+import { LazyIpoDeck, dropDeepLinkParam, intentProps, prefetchIpo, useForwardReopen } from "@/components/research/LazyDecks";
 import { StageChip } from "./StageChip";
 import { fmtCr } from "./headlines";
 
@@ -29,6 +29,21 @@ export function IpoGrid({ ipos, initial, initialDeck }: { ipos: IpoCardData[]; i
 
   // Stable, so the deck's Esc/Back handlers don't re-subscribe on every render.
   const closeDeck = useCallback(() => setOpenSlug(null), []);
+  // Browser Forward onto a deck's entry reopens it on that entry (adopt).
+  const [adopt, setAdopt] = useState(false);
+  const openFromCard = (slug: string) => {
+    setAdopt(false);
+    setOpenSlug(slug);
+  };
+  useForwardReopen(
+    "ipo",
+    openSlug,
+    (slug) => ipos.some((d) => d.slug === slug),
+    (slug) => {
+      setAdopt(true);
+      setOpenSlug(slug);
+    }
+  );
 
   // Recent listings stay for a few weeks after their debut, in their own group below the pipeline.
   const groups = [
@@ -43,12 +58,12 @@ export function IpoGrid({ ipos, initial, initialDeck }: { ipos: IpoCardData[]; i
           {groups.length > 1 && <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-ink-soft">{g.label}</h3>}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {g.items.map((d) => (
-              <IpoCard key={d.slug} deck={d} onOpen={() => setOpenSlug(d.slug)} />
+              <IpoCard key={d.slug} deck={d} onOpen={() => openFromCard(d.slug)} />
             ))}
           </div>
         </section>
       ))}
-      {open && <LazyIpoDeck key={open.slug} slug={open.slug} initialDeck={initialDeck} onClose={closeDeck} urlParam="ipo" />}
+      {open && <LazyIpoDeck key={open.slug} slug={open.slug} initialDeck={initialDeck} onClose={closeDeck} urlParam="ipo" adoptHistoryEntry={adopt} />}
     </div>
   );
 }

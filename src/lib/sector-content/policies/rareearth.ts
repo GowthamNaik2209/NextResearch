@@ -15,11 +15,11 @@ export function defineRareearth(h) {
   const D = "20 Oct 2026";
   return {
     id: "rareearth", icon: "RM", name: "Rare-Earth Magnets (REPM)",
-    tagline: "The ₹7,280 cr sintered rare-earth permanent magnet scheme - from beach-sand minerals to the magnets in EV motors, wind turbines and missiles",
+    tagline: "The ₹7,280 Cr sintered rare-earth permanent magnet scheme - from beach-sand minerals to the magnets in EV motors, wind turbines and missiles",
     category: "policy",
     portraitFit: true,
     headerTitle: "RARE-EARTH MAGNETS (REPM)",
-    headerSub: "The ₹7,280 cr sintered rare-earth permanent magnet scheme - from beach-sand minerals to the magnets in EV motors, wind turbines and missiles",
+    headerSub: "The ₹7,280 Cr sintered rare-earth permanent magnet scheme - from beach-sand minerals to the magnets in EV motors, wind turbines and missiles",
     whyNow: [
       "China makes ~94% of the world's sintered rare-earth magnets (IEA, 2024) and has used export licences as leverage since April 2025.",
       "Its tougher October 2025 curbs are only paused until 10 Nov 2026 - weeks away.",

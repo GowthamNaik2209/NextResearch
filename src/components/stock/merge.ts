@@ -3,7 +3,7 @@ import type { StockApi } from "./types";
 import type { PricePoint, Quote } from "@/lib/live/yahoo";
 import { isFreshQuote } from "@/lib/live/freshness";
 import { FISCAL_YEARS } from "@/lib/financials/rows";
-import { NA, signedPct } from "@/lib/format";
+import { NA, pct, signedPct } from "@/lib/format";
 
 export type Stats = {
   /** The live quote when fresh, else the snapshot price. The only figure here live data may change. */
@@ -101,6 +101,8 @@ export const fmtPrice = (v: number | null | undefined) => {
   const dp = Math.abs(v) < 1000 ? 2 : 0;
   return `₹${v.toLocaleString("en-IN", { minimumFractionDigits: dp, maximumFractionDigits: dp })}`;
 };
+/** Dividend yield: a real zero (no dividend) reads "0%", not "0.00%"; missing stays "—". */
+export const fmtYield = (v: number | null | undefined) => (v === 0 ? "0%" : pct(v, 2));
 /** Signed percent with the site's typographic minus (src/lib/format.ts). */
 export const fmtSigned = (v: number | null | undefined, digits = 1) => signedPct(v, digits);
 

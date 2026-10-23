@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Deck } from "@/lib/sector-content/reports";
 import type { IpoDeck } from "@/lib/ipo-content";
@@ -59,6 +59,33 @@ export function dropDeepLinkParam(name: string) {
   window.history.replaceState(window.history.state, "", url);
 }
 
+// Set on a popstate event once one host has reopened its deck for it: the landing page has two
+// hosts for ?ipo= (the hero window and the IPO grid) and only one deck should open.
+const CLAIMED = "__nrDeckReopened";
+
+/**
+ * Browser Back closes a deck (Presentation); this makes Forward open it again. The deck's own
+ * history entry carries ?<param>=<slug>, so when a popstate lands on an entry naming a deck that
+ * isn't open, `reopen(slug)` is called and the host opens it with adoptHistoryEntry.
+ */
+export function useForwardReopen(param: string, openSlug: string | null, isValid: (slug: string) => boolean, reopen: (slug: string) => void) {
+  const latest = useRef({ openSlug, isValid, reopen });
+  useEffect(() => {
+    latest.current = { openSlug, isValid, reopen };
+  });
+  useEffect(() => {
+    const onPop = (e: PopStateEvent) => {
+      const slug = new URL(window.location.href).searchParams.get(param);
+      const l = latest.current;
+      if (!slug || slug === l.openSlug || !l.isValid(slug) || (e as unknown as Record<string, unknown>)[CLAIMED]) return;
+      (e as unknown as Record<string, unknown>)[CLAIMED] = true;
+      l.reopen(slug);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [param]);
+}
+
 /** Props for a card that opens a deck: start loading on hover, keyboard focus or touch. */
 export const intentProps = (prefetch: () => void) => ({ onPointerEnter: prefetch, onFocus: prefetch, onTouchStart: prefetch });
 
@@ -86,18 +113,20 @@ type LazyProps<T> = {
   onClose: () => void;
   /** Name the deck in the URL while it is open (Presentation's urlParam). */
   urlParam?: string;
+  /** Reopened by browser Forward (see useForwardReopen). */
+  adoptHistoryEntry?: boolean;
 };
 
 /** A research deck by slug, loaded on open. */
-export function LazyResearchDeck({ slug, initialDeck, onClose, urlParam }: LazyProps<Deck>) {
+export function LazyResearchDeck({ slug, initialDeck, onClose, urlParam, adoptHistoryEntry }: LazyProps<Deck>) {
   const { deck, failed } = useDeck(reportUrl(slug), slug, initialDeck);
-  return deck ? <ResearchDeck deck={deck} onClose={onClose} urlParam={urlParam} /> : <DeckLoading failed={failed} onClose={onClose} />;
+  return deck ? <ResearchDeck deck={deck} onClose={onClose} urlParam={urlParam} adoptHistoryEntry={adoptHistoryEntry} /> : <DeckLoading failed={failed} onClose={onClose} />;
 }
 
 /** An IPO deck by slug, loaded on open. */
-export function LazyIpoDeck({ slug, initialDeck, onClose, urlParam }: LazyProps<IpoDeck>) {
+export function LazyIpoDeck({ slug, initialDeck, onClose, urlParam, adoptHistoryEntry }: LazyProps<IpoDeck>) {
   const { deck, failed } = useDeck(ipoUrl(slug), slug, initialDeck);
-  return deck ? <IpoDeckView deck={deck} onClose={onClose} urlParam={urlParam} /> : <DeckLoading failed={failed} onClose={onClose} />;
+  return deck ? <IpoDeckView deck={deck} onClose={onClose} urlParam={urlParam} adoptHistoryEntry={adoptHistoryEntry} /> : <DeckLoading failed={failed} onClose={onClose} />;
 }
 
 // The moment between the click and the deck: the deck's own backdrop with a small status card,

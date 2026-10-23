@@ -1,7 +1,7 @@
 import type { SectorSupplier } from "@/lib/sector-content";
 import type { StockApi } from "./types";
-import { fmtNum, mergeStats, REIT_NOTE } from "./merge";
-import { NA, pct } from "@/lib/format";
+import { fmtNum, fmtSigned, fmtYield, mergeStats, REIT_NOTE } from "./merge";
+import { croreShort, NA, pct, sep } from "@/lib/format";
 
 type Row = { label: string; company: number | null; industry: number | null; unit: string; better: "low" | "high" | null; digits?: number };
 
@@ -19,12 +19,12 @@ function verdict(r: Row): "better" | "worse" | null {
 
 // Percentages with the site's typographic minus; multiples with "x"; crore with Indian grouping.
 const fmtRow = (v: number | null, r: Row) =>
-  v == null ? NA : r.unit === "%" ? pct(v, r.digits ?? 1) : `${fmtNum(v, r.digits ?? 1)}${r.unit}`;
+  v == null ? NA : r.label === "Market cap" ? croreShort(v) : r.label === "Dividend yield" ? fmtYield(v) : r.unit === "%" ? pct(v, r.digits ?? 1) : `${fmtNum(v, r.digits ?? 1)}${r.unit}`;
 
 const SH_COLORS = ["bg-accent", "bg-amber", "bg-pos", "bg-danger", "bg-ink-soft"];
 
 const fmtFetched = (iso: string) =>
-  !Number.isFinite(Date.parse(iso)) ? "recently" : new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) + " IST";
+  !Number.isFinite(Date.parse(iso)) ? "recently" : sep(new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })) + " IST";
 
 export function FundamentalsView({ supplier, api, loading }: { supplier: SectorSupplier; api: StockApi | null; loading: boolean }) {
   const fund = api?.fundamentals ?? null;
@@ -47,7 +47,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
     // Not in the company table: these two come from Screener live (the footnote says so).
     { label: "Qtr sales growth (YoY)*", company: self?.qtrSalesVarPct ?? null, industry: med?.qtrSalesVarPct ?? null, unit: "%", better: "high", digits: 1 },
     { label: "Qtr profit growth (YoY)*", company: self?.qtrProfitVarPct ?? null, industry: med?.qtrProfitVarPct ?? null, unit: "%", better: "high", digits: 1 },
-    { label: "Market cap (₹ Cr)", company: s.marketCapCr, industry: med?.marketCapCr ?? null, unit: "", better: null, digits: 0 },
+    { label: "Market cap", company: s.marketCapCr, industry: med?.marketCapCr ?? null, unit: "", better: null, digits: 0 },
   ];
   // REITs: P/E, ROE and dividend yield are equity-company ratios that misread a trust (see
   // REIT_NOTE) - drop them rather than print a "0.05% yield" or a 168x P/E.
@@ -57,10 +57,28 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
   const hasIndustry = shown.some((r) => r.industry != null);
   // Belt and braces over the parser: never render a growth row without a number ("10 Years: %"),
   // a growth card with no rows, or an annual table with no years / all-blank rows.
-  const growth = (fund?.growth ?? [])
-    .filter((g) => !(s.reit && /return on equity/i.test(g.title)))
-    .map((g) => ({ ...g, rows: g.rows.filter((r) => /\d/.test(r.value)) }))
-    .filter((g) => g.rows.length > 0);
+  // Stock price CAGR is a company-table figure (Summary shows it): Screener's live card is
+  // replaced by the same dated snapshot, so one label never shows two values in one pop-up.
+  const priceCagr = {
+    title: "Stock price CAGR",
+    snapshot: true,
+    rows: (
+      [
+        ["1 Year", s.cagr1y],
+        ["3 Years", s.cagr3y],
+        ["5 Years", s.cagr5y],
+      ] as const
+    )
+      .filter(([, v]) => v != null)
+      .map(([period, v]) => ({ period, value: fmtSigned(v, 1) })),
+  };
+  const growth = [
+    ...(fund?.growth ?? [])
+      .filter((g) => !/price/i.test(g.title) && !(s.reit && /return on equity/i.test(g.title)))
+      .map((g) => ({ title: g.title.replace(/^Compounded /, ""), snapshot: false, rows: g.rows.filter((r) => /\d/.test(r.value)).map((r) => ({ ...r, value: r.value.replace(/^-/, "−") })) })),
+    priceCagr,
+  ].filter((g) => g.rows.length > 0);
+  const hasLiveGrowth = growth.some((g) => !g.snapshot);
   const annualSeries = fund?.annual?.years.length ? fund.annual.series.filter((r) => r.values.some((v) => v != null)) : [];
   const basis = fund?.basis ?? "consolidated";
 
@@ -147,14 +165,25 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
 
       {growth.length > 0 && (
         <Section title="Compounded growth">
+          <p className="-mt-1 mb-2 text-[11px] text-ink-soft">
+            {hasLiveGrowth && (
+              <>
+                Sales, profit and ROE: <span className="text-pos">live</span>, Screener.in.{" "}
+              </>
+            )}
+            Stock price: company snapshot {asOf}.
+          </p>
           <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
             {growth.map((g) => (
               <div key={g.title} className="rounded-xl border border-line bg-panel p-3">
-                <div className="mb-1.5 text-[11px] font-semibold text-ink">{g.title.replace(/^Compounded /, "")}</div>
+                <div className="mb-1.5 text-[11px] font-semibold text-ink">
+                  {g.title}
+                  {g.snapshot && <span className="font-normal text-ink-soft"> · snapshot</span>}
+                </div>
                 {g.rows.map((r) => (
                   <div key={r.period} className="flex justify-between font-mono text-xs leading-6 text-ink-soft">
                     <span>{r.period}</span>
-                    <span className={r.value.startsWith("-") ? "text-danger" : "text-ink"}>{r.value}</span>
+                    <span className={r.value.startsWith("−") ? "text-danger" : "text-ink"}>{r.value}</span>
                   </div>
                 ))}
               </div>
@@ -201,7 +230,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
               <tbody className="divide-y divide-line">
                 {annualSeries.map((r) => (
                   <tr key={r.label}>
-                    <td className="px-3 py-2.5 text-ink">{r.label}</td>
+                    <td className="px-3 py-2.5 text-ink">{r.label.replace(/ in Rs\.?$/i, " (₹)")}</td>
                     {r.values.map((v, i) => (
                       <td key={i} className={"px-3 py-2.5 text-right font-mono " + (v != null && v < 0 ? "text-danger" : "text-ink")}>{fmtNum(v, r.label === "OPM %" || r.label.startsWith("EPS") ? 1 : 0)}</td>
                     ))}

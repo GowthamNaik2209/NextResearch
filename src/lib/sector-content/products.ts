@@ -204,7 +204,7 @@ var ASOF = "20 Oct 2026";
  {id:"rear", label:"Rear", pos:[-6.0,1.3,0.05], target:[-0.5,0.55,0]},
  {id:"top", label:"Top", pos:[0.05,7.5,0.05], target:[0,0.3,0]},
  {id:"under", label:"Under", pos:[0.05,-1.4,3.6], target:[0,0.1,0]},
- {id:"interior", label:"Interior", pos:[-0.35,1.45,0], target:[1.6,0.7,0]}
+ {id:"interior", label:"Interior", layer:0, pos:[-0.6,1.18,0.1], target:[0.9,0.82,0.2]}
  ],
  domains: [
  {id:"raw_materials", title:"Raw Materials & Critical Minerals", shortTitle:"Raw Materials", description:"Upstream lithium, cobalt, nickel and rare-earth feedstock that goes into cells and magnets - almost entirely imported or processed abroad today.", color:"#9C6B30", relatedDomains:["battery_energy","powertrain_drive"]},

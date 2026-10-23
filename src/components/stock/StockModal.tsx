@@ -48,9 +48,10 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
       <>
         <div className="flex flex-none items-start gap-3 border-b border-line bg-panel px-4 pb-0 pt-4 sm:px-6 sm:pt-5">
           <div className="min-w-0 flex-1">
-            {/* Long names wrap to two lines on phones rather than being cut ("Dixon Technologi…"). */}
+            {/* Long names wrap rather than being cut ("Samvardhana Motherson…"): the price and ✕ leave
+                the name ~180px on a phone, so no line clamp. */}
             <div className="flex items-start gap-2">
-              <h2 className="line-clamp-2 font-display text-lg font-bold leading-snug sm:text-xl">{supplier.name}</h2>
+              <h2 className="min-w-0 break-words font-display text-base font-bold leading-snug sm:text-xl">{supplier.name}</h2>
               <span className="flex-none pt-0.5">
                 <WatchlistButton ticker={ticker} name={supplier.name} />
               </span>
@@ -75,8 +76,9 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
               onClick={() => setTab(t.id)}
               className={
                 // The pill style is the reference for stock tabs elsewhere (explorer card). tap-target
-                // grows the 24px-tall pill's hit area to 40px; the row's py-2 leaves room for it.
-                "tap-target flex-none rounded-full px-2.5 py-1 text-xs font-semibold transition-colors sm:px-4 sm:py-1.5 sm:text-sm " +
+                // grows the pill's hit area to 40px; touch screens (incl. tablets on sm sizing) also
+                // get a 40px-tall pill so the visible target matches.
+                "tap-target flex-none rounded-full px-2.5 py-1 text-xs font-semibold transition-colors sm:px-4 sm:py-1.5 sm:text-sm pointer-coarse:inline-flex pointer-coarse:min-h-10 pointer-coarse:items-center " +
                 (tab === t.id ? "bg-accent text-bg" : "text-ink-soft hover:bg-panel-2 hover:text-ink")
               }
             >

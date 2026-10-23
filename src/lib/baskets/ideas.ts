@@ -70,8 +70,10 @@ export type IdeaStockInfo = {
   roce: number | null;
   /** Kept out of screens: latest results dominated by a one-off. */
   screenOut?: boolean;
-  /** Industries the company is mapped in. */
+  /** Industry maps the company is in (policy maps not counted). */
   industries: number;
+  /** Policy maps (PLI, ALMM…) it is also in: with the industries, the "chains" /connections counts. */
+  policies?: number;
   /** Its price history starts at a listing that wasn't an IPO (a REIT or InvIT, or a demerger). */
   notIpo?: boolean;
   /** Its strongest place in a layer few listed companies supply (null if none). */
@@ -147,10 +149,10 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
   ideas.push({
     id: "cross-industry",
     title: "Across industries",
-    blurb: "Companies that turn up in three or more of our industry maps.",
+    blurb: "Companies that turn up in three or more of our industry maps (policy maps not counted).",
     rule: "Companies in three or more of our industry maps, widest reach first.",
     range: "1Y",
-    stocks: cross.map((s) => ({ ticker: s.ticker, stat: `${s.industries} industries` })),
+    stocks: cross.map((s) => ({ ticker: s.ticker, stat: s.policies ? `${s.industries} industries + ${s.policies} ${s.policies === 1 ? "policy" : "policies"}` : `${s.industries} industries` })),
     ret: ret1y(cross.map((s) => s.ticker)),
     retLabel: "1Y",
   });

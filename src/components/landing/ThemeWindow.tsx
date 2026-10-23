@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
-import { LazyIpoDeck, intentProps, prefetchIpo } from "@/components/research/LazyDecks";
+import { LazyIpoDeck, intentProps, prefetchIpo, useForwardReopen } from "@/components/research/LazyDecks";
 import { THEME_TAB_EVENT, type ThemeTab } from "@/components/research/ThemeCards";
 
 export type ThemeRow = {
@@ -58,18 +58,19 @@ export function ThemeWindow({ rows }: { rows: Record<ThemeTab, ThemeRow[]> }) {
   const [openIpo, setOpenIpo] = useState<string | null>(null);
   const closeIpo = useCallback(() => setOpenIpo(null), []);
 
-  // Shareable while open, like the IPO grids (?ipo=<slug>); removed again on close.
-  useEffect(() => {
-    if (!openIpo) return;
-    const url = new URL(window.location.href);
-    url.searchParams.set("ipo", openIpo);
-    window.history.replaceState(window.history.state, "", url);
-    return () => {
-      const u = new URL(window.location.href);
-      u.searchParams.delete("ipo");
-      window.history.replaceState(window.history.state, "", u);
-    };
-  }, [openIpo]);
+  // ?ipo=<slug> sits on the open deck's own history entry (Presentation's urlParam); browser
+  // Forward onto that entry opens the deck again there (adopt).
+  const [adopt, setAdopt] = useState(false);
+  const ipoSlugs = rows.ipo.flatMap((r) => (r.ipoSlug ? [r.ipoSlug] : []));
+  useForwardReopen(
+    "ipo",
+    openIpo,
+    (slug) => ipoSlugs.includes(slug),
+    (slug) => {
+      setAdopt(true);
+      setOpenIpo(slug);
+    }
+  );
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const pick = (t: ThemeTab) => {
@@ -140,6 +141,7 @@ export function ThemeWindow({ rows }: { rows: Record<ThemeTab, ThemeRow[]> }) {
                     onClick={(e) => {
                       if (!r.ipoSlug) return;
                       e.preventDefault();
+                      setAdopt(false);
                       setOpenIpo(r.ipoSlug);
                     }}
                     {...(r.ipoSlug ? intentProps(() => prefetchIpo(r.ipoSlug!)) : {})}
@@ -164,7 +166,7 @@ export function ThemeWindow({ rows }: { rows: Record<ThemeTab, ThemeRow[]> }) {
       >
         Explore more <span aria-hidden>&rarr;</span>
       </Link>
-      {openIpo && <LazyIpoDeck key={openIpo} slug={openIpo} onClose={closeIpo} urlParam="ipo" />}
+      {openIpo && <LazyIpoDeck key={openIpo} slug={openIpo} onClose={closeIpo} urlParam="ipo" adoptHistoryEntry={adopt} />}
     </div>
   );
 }

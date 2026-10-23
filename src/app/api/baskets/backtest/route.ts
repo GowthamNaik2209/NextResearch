@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { isChartRange } from "@/lib/live/yahoo";
-import { getIndustryBasket } from "@/lib/baskets/industry";
+import { basketStock, getIndustryBasket } from "@/lib/baskets/industry";
 import { backtestBasket } from "@/lib/baskets/run";
-import { parseStrategy } from "@/lib/baskets/strategy";
+import { parseStrategy, shortHash } from "@/lib/baskets/strategy";
 import { cleanTickers, getVisibleBasket } from "@/lib/baskets/store";
 import { ensureFinancials } from "@/lib/financials/load";
 
@@ -38,9 +38,18 @@ export async function GET(req: Request) {
     const user = await getCurrentUser();
     const b = await getVisibleBasket(id, user?.id ?? null);
     if (!b) return NextResponse.json({ error: "not found" }, { status: 404 });
-    tickers = b.items.map((i) => i.ticker);
+    // The stocks the page draws (those the content still lists), as savedBasketQuery hashes them.
+    tickers = b.items.map((i) => i.ticker).filter((t) => basketStock(t));
+    // `v` names the stocks the page expects. A different set means an edit hasn't been saved yet
+    // (the page asked mid-save) or the page is out of date: answer 409, cached nowhere, rather than
+    // backtest the old stocks under the new name, which the browser would then keep showing.
+    const v = q.get("v");
+    if (v && v !== shortHash([...tickers].sort().join(","))) {
+      return NextResponse.json({ error: "stale", tickers }, { status: 409, headers: { "Cache-Control": "no-store" } });
+    }
     if (!q.get("w")) strategy = parseStrategy(q, b.weighting);
-    if (strategy.weighting === "custom" && !strategy.weights && b.weights) strategy = { ...strategy, weights: b.weights };
+    // Custom weights only for the stocks in it now (a removed stock's kept % never counts).
+    if (strategy.weighting === "custom" && !strategy.weights && b.weights) strategy = { ...strategy, weights: Object.fromEntries(Object.entries(b.weights).filter(([t]) => tickers.includes(t))) };
     shared = b.isPublic;
   } else {
     tickers = cleanTickers((q.get("tickers") ?? "").split(","));

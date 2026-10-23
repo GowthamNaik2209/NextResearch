@@ -11,7 +11,7 @@ import { dataAsOf } from "@/lib/sector-content/insights";
 import { ensureFinancials } from "@/lib/financials/load";
 import { FISCAL_YEARS } from "@/lib/financials/rows";
 import { croreShort, inr, pct } from "@/lib/format";
-import { fmtPrice, mergeStats } from "@/components/stock/merge";
+import { fmtPrice, fmtYield, mergeStats } from "@/components/stock/merge";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
 export const revalidate = 900;
@@ -73,7 +73,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
     { label: "P/E", value: s0.pe != null ? `${s0.pe.toFixed(1)}x` : undefined },
     { label: "ROCE", value: s0.roce != null ? pct(s0.roce) : undefined },
     { label: "ROE", value: s0.roe != null ? pct(s0.roe) : undefined },
-    { label: "Dividend yield", value: s0.divYield != null ? pct(s0.divYield, 2) : undefined },
+    { label: "Dividend yield", value: s0.divYield != null ? fmtYield(s0.divYield) : undefined },
   ].filter((s): s is { label: string; value: string } => !!s.value);
 
   const rev = f?.rev ?? [];

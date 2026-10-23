@@ -185,6 +185,8 @@ export function BasketDetail(p: BasketDetailProps) {
   // The rebalanced basket's chart also draws it bought and held, unless switched off.
   const [vsHeld, setVsHeld] = useState(true);
   const [stocks, setStocks] = useState(p.stocks);
+  // The stocks the server has saved (what the database, and so the id backtest, holds).
+  const [confirmed, setConfirmed] = useState(() => p.stocks.map((s) => s.ticker));
   // The latest list, for a save's reply that lands after more taps.
   const stocksRef = useRef(stocks);
   useEffect(() => {
@@ -262,8 +264,16 @@ export function BasketDetail(p: BasketDetailProps) {
   };
 
   const tickers = useMemo(() => stocks.map((s) => s.ticker), [stocks]);
+  // A saved basket is backtested by its id only for the stocks the server has confirmed: the id
+  // route reads the stocks from the database, so asking for it mid-save would run the old list.
+  // While an add or remove is saving, the same stocks go by list (tickers=), which needs no save.
+  const savedList = confirmed.length === tickers.length && tickers.every((t) => confirmed.includes(t));
   const keyFor = (q: string) =>
-    p.mode === "industry" ? industrySeriesKey(p.id, q) : p.mode === "idea" || draft ? picksKey(tickers, q) ?? `x:tickers=&${q}` : `x:${savedBasketQuery(p.id, q, tickers)}`;
+    p.mode === "industry"
+      ? industrySeriesKey(p.id, q)
+      : p.mode === "idea" || draft || !savedList
+        ? (picksKey(tickers, q) ?? `x:tickers=&${q}`)
+        : `x:${savedBasketQuery(p.id, q, confirmed)}`;
   const basketKey = keyFor(sq);
   // The same basket at the same weights, bought and held: the rebalanced one's comparison.
   const heldKey = rebalanced ? keyFor(strategyQuery({ ...strategy, rebalance: "never" })) : null;
@@ -273,10 +283,23 @@ export function BasketDetail(p: BasketDetailProps) {
   const compareKey = p.compareSlug && !(p.mode === "industry" && p.compareSlug === p.id) ? industrySeriesKey(p.compareSlug, compareSq) : null;
   // Kept here, above the chart, so the reader's picks outlive weighting, range and view switches.
   const compareIndustries = p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id));
-  // A stock's industries with this basket's own first on an industry basket (Bharat Forge sits in
-  // EV 4W here, not in its primary industry, defence), so its chip names why it is in the basket.
+  // The industry a stock is read in here: the one it was picked from this visit, else the
+  // basket's own (an industry basket's, a saved basket's source or most-held industry). Bharat
+  // Forge picked from EV reads as an EV part ("Electric motor & e-axle"), not its home layer in
+  // defence; a stock not in that industry keeps its home layer.
+  const [pickedFrom, setPickedFrom] = useState<Record<string, string>>({});
+  const contextOf = (s: BasketStock) => {
+    const slug = pickedFrom[s.ticker] ?? (p.mode === "industry" ? p.id : p.compareSlug);
+    return slug && s.layerIn?.[slug] ? slug : null;
+  };
+  const layerOf = (s: BasketStock) => {
+    const slug = contextOf(s);
+    return slug ? s.layerIn[slug] : s.layer;
+  };
+  // Its industries with that one first, so its chip names why it is in the basket.
   const industriesOf = (s: BasketStock) => {
-    const own = p.mode === "industry" ? s.industries.find((i) => i.slug === p.id) : undefined;
+    const slug = contextOf(s);
+    const own = slug ? s.industries.find((i) => i.slug === slug) : undefined;
     return own ? [own, ...s.industries.filter((i) => i !== own)] : s.industries;
   };
   // A saved basket or an idea opens with its stocks drawn on the chart (as many as there are line
@@ -367,7 +390,9 @@ export function BasketDetail(p: BasketDetailProps) {
     if (!res) res = await fetch(`/api/baskets/${p.id}`).then((r) => (r.ok ? (r.json() as Promise<Saved>) : null), () => null);
     if (!res || seq !== itemsSeq.current) return;
     const known = new Map([...universe, ...stocksRef.current.map((s) => [s.ticker, s] as const)]);
-    setStocks(res.items.map((i) => known.get(i.ticker)).filter((s): s is BasketStock => !!s));
+    const next = res.items.map((i) => known.get(i.ticker)).filter((s): s is BasketStock => !!s);
+    setStocks(next);
+    setConfirmed(next.map((s) => s.ticker));
   };
   // Custom weights follow the stocks: a new one gets an equal share and the rest shrink in
   // proportion; one taken off leaves the rest in proportion, scaled back up to 100%.
@@ -379,9 +404,10 @@ export function BasketDetail(p: BasketDetailProps) {
     if (Object.keys(next).length) pickStrategy({ ...strategy, weights: next });
     return next;
   };
-  const add = async (list: string[]) => {
+  const add = async (list: string[], fromIndustry?: string) => {
     const fresh = list.filter((t) => !byTicker.has(t)).slice(0, MAX_BASKET_STOCKS - stocks.length);
     if (!fresh.length) return;
+    if (fromIndustry) setPickedFrom((m) => ({ ...m, ...Object.fromEntries(fresh.map((t) => [t, fromIndustry])) }));
     setStocks((s) => [...s, ...fresh.map((t) => universe.get(t)!).filter(Boolean)]);
     const weights = weighting === "custom" ? { weights: reweigh(addToWeights(customEdit ?? {}, fresh, takenOff.current)) } : {};
     for (const t of fresh) delete takenOff.current[t];
@@ -490,18 +516,21 @@ export function BasketDetail(p: BasketDetailProps) {
   const share = async () => {
     const copiedOk = copyNow(shareUrl());
     setConfirm(null);
-    const res = await patch({ isPublic: true });
-    if (!res) return setNote("Couldn’t share it right now. Try again.");
+    // The badge and button change at once; a failed save puts them back.
     setIsPublic(true);
+    const res = await patch({ isPublic: true });
+    if (!res) {
+      setIsPublic(false);
+      return setNote("Couldn’t share it right now. Try again.");
+    }
     const ok = await copiedOk;
     showCopied(ok);
     if (ok) setNote("Link copied. Anyone with it can view this basket; “Make private” in the ⋯ menu stops that.");
   };
   const unshare = async () => {
-    if (await patch({ isPublic: false })) {
-      setIsPublic(false);
-      setNote("Private again: only you can see this basket. The old link no longer opens it.");
-    }
+    setIsPublic(false);
+    if (await patch({ isPublic: false })) setNote("Private again: only you can see this basket. The old link no longer opens it.");
+    else setIsPublic(true);
   };
   const [deleting, setDeleting] = useState(false);
   const destroy = async () => {
@@ -681,7 +710,13 @@ export function BasketDetail(p: BasketDetailProps) {
       </button>
     </th>
   );
-  const sinceShown = p.mode === "saved" && rows.some((s) => p.addPrices[s.ticker]);
+  // A saved basket always has the column: a stock whose price at adding isn't recorded yet shows
+  // "—" with the reason, rather than the column coming and going.
+  const sinceShown = p.mode === "saved";
+  const sinceWhy = (t: string) =>
+    p.addPrices[t] == null
+      ? "The price when it was added isn't recorded yet: it is taken from the live quote a few seconds after adding. Reload to see the move."
+      : "No closing price for it in this range.";
   const moveSinceAdded = (t: string) => {
     const added = p.addPrices[t];
     const last = tData?.last?.[t];
@@ -881,7 +916,7 @@ export function BasketDetail(p: BasketDetailProps) {
         </div>
         {(canEdit || note || copied) && (
           // Owners keep this line reserved, so "Saving…" coming and going doesn't shift the page.
-          <p id={statusId} role="status" className={"text-xs text-ink-soft empty:hidden " + (canEdit && !draft ? "min-h-4" : "")}>
+          <p id={statusId} role="status" className={"text-xs text-ink-soft " + (canEdit && !draft ? "min-h-4" : "empty:hidden")}>
             {draft && createStep
               ? createStep === "opening"
                 ? "Saved. Opening your basket…"
@@ -1058,7 +1093,7 @@ export function BasketDetail(p: BasketDetailProps) {
                               </StockLink>
                               {/* Balanced, so a long layer never leaves one word on a line of its own. */}
                               <div className="text-balance text-[11px] leading-snug text-ink-soft">
-                                <span className="font-mono">{s.ticker}</span> · {s.layer}
+                                <span className="font-mono">{s.ticker}</span> · {layerOf(s)}
                               </div>
                               <div className="font-mono text-[11px] text-ink-soft">
                                 P/E {s.pe != null ? `${s.pe.toFixed(1)}x` : NA} · <span className="whitespace-nowrap">{s.mcapCr != null ? croreShort(s.mcapCr) : `mcap ${NA}`}</span>
@@ -1079,8 +1114,8 @@ export function BasketDetail(p: BasketDetailProps) {
                               ) : (
                                 <div className="font-mono text-sm text-ink-soft">{tbt?.status === "error" ? NA : "…"}</div>
                               )}
-                              {since != null && (
-                                <div className="font-mono text-[11px] text-ink-soft">
+                              {sinceShown && (
+                                <div className="font-mono text-[11px] text-ink-soft" title={since == null ? sinceWhy(s.ticker) : undefined}>
                                   {signedPct(since)}
                                   <span className="block font-sans">since added</span>
                                 </div>
@@ -1109,7 +1144,7 @@ export function BasketDetail(p: BasketDetailProps) {
                             {sortHead("pe", "P/E")}
                             {sortHead("mcap", "Mcap ₹ Cr")}
                             {sinceShown && (
-                              <th scope="col" className="whitespace-nowrap px-2 py-1.5 text-right font-semibold">
+                              <th scope="col" title="The stock's move since it was added to this basket (from its live price then)" className="whitespace-nowrap px-2 py-1.5 text-right font-semibold">
                                 Since added
                               </th>
                             )}
@@ -1138,7 +1173,7 @@ export function BasketDetail(p: BasketDetailProps) {
                                   </StockLink>
                                   {/* Wraps rather than cuts off: a tablet held upright has no hover to show a title. */}
                                   <span className="block text-balance text-[10px] leading-snug text-ink-soft pointer-coarse:mt-3">
-                                    <span className="font-mono">{s.ticker}</span> · {s.layer}
+                                    <span className="font-mono">{s.ticker}</span> · {layerOf(s)}
                                     {inds[0] && (
                                       <>
                                         {" · "}
@@ -1164,7 +1199,11 @@ export function BasketDetail(p: BasketDetailProps) {
                                 )}
                                 <td className="px-2 py-1.5 text-right font-mono">{s.pe != null ? `${s.pe.toFixed(1)}x` : NA}</td>
                                 <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{inr(s.mcapCr)}</td>
-                                {sinceShown && <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (since == null ? "text-ink-soft" : since >= 0 ? "text-pos" : "text-danger")}>{signedPct(since)}</td>}
+                                {sinceShown && (
+                                  <td title={since == null ? sinceWhy(s.ticker) : undefined} className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (since == null ? "text-ink-soft" : since >= 0 ? "text-pos" : "text-danger")}>
+                                    {signedPct(since)}
+                                  </td>
+                                )}
                                 {canEdit && editing && <td className="px-1 py-1">{removeButton(s, true)}</td>}
                               </tr>
                             );
@@ -1486,7 +1525,8 @@ function StockPicker({
   watchlist: string[];
   have: Set<string>;
   full: boolean;
-  onAdd: (tickers: string[]) => void;
+  /** The stocks, and the industry list they were picked from (none from the watchlist). */
+  onAdd: (tickers: string[], fromIndustry?: string) => void;
 }) {
   const [industry, setIndustry] = useState(() => (initialIndustry && industries.some((i) => i.slug === initialIndustry) ? initialIndustry : (industries[0]?.slug ?? "")));
   const [filter, setFilter] = useState("");
@@ -1597,7 +1637,7 @@ function StockPicker({
             <div className="flex items-center justify-between gap-2">
               <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wider text-ink-soft">{industryName}</span>
               {addable.length > 1 && (
-                <button type="button" disabled={full} onClick={() => onAdd(addable.map((s) => s.ticker))} className="flex-none text-xs font-semibold text-accent hover:underline">
+                <button type="button" disabled={full} onClick={() => onAdd(addable.map((s) => s.ticker), industry)} className="flex-none text-xs font-semibold text-accent hover:underline">
                   Add all {addable.length}
                 </button>
               )}
@@ -1635,7 +1675,7 @@ function StockPicker({
                       <button
                         type="button"
                         disabled={inIt || full}
-                        onClick={() => onAdd([s.ticker])}
+                        onClick={() => onAdd([s.ticker], industry)}
                         aria-label={inIt ? `${s.name} is in this basket` : `Add ${s.name}`}
                         className={"min-h-9 flex-none rounded-full px-3 text-xs font-semibold " + (inIt ? "text-ink-soft" : "border border-accent text-accent hover:bg-accent hover:text-bg")}
                       >

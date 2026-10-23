@@ -200,13 +200,16 @@ export function mountExplorer(
     if (sheetInset > 0.5) camera.setViewOffset(w, h, 0, sheetInset / 2, w, h);
     else camera.clearViewOffset();
   }
-  function measureSheetInset(stageRect: DOMRect) {
+  // `cap`: the framing never works with less than a fifth of the stage; the labels' cut-off
+  // line uses the sheet's real top (uncapped), so no label peeks out from under a full sheet.
+  function measureSheetInset(stageRect: DOMRect, cap = true) {
     const el = dom.sheet;
     if (!el) return 0;
     const r = el.getBoundingClientRect();
     // The desktop side panel sits beside the stage, not over it.
     if (r.left > stageRect.left + 8 || r.right < stageRect.right - 8) return 0;
-    return Math.max(0, Math.min(stageRect.height * 0.8, stageRect.bottom - r.top));
+    const covered = Math.max(0, stageRect.bottom - r.top);
+    return cap ? Math.min(stageRect.height * 0.8, covered) : covered;
   }
   let fitMaxDistance = 0;
   function resize() {
@@ -417,7 +420,12 @@ export function mountExplorer(
     const tag = document.createElement("button");
     tag.type = "button";
     tag.className = "mtag";
-    tag.textContent = z.label;
+    // The text truncates inside its own span, so the tag itself needn't clip (overflow) and its
+    // enlarged touch area (::after, explorer.css) isn't cut off.
+    const tagText = document.createElement("span");
+    tagText.className = "mtag-t";
+    tagText.textContent = z.label;
+    tag.appendChild(tagText);
     // Phone tags are truncated to keep the model visible; the full name stays accessible.
     tag.setAttribute("aria-label", z.label);
     tag.title = z.label;
@@ -583,6 +591,7 @@ export function mountExplorer(
       }
     });
   }
+  const modelBox = new THREE.Box3().setFromPoints(modelCorners);
   // Smallest camera distance (along the view's direction) at which the whole model fits
   // the visible part of the stage with a small margin, for the current aspect.
   function viewBasis(dir: THREE.Vector3) {
@@ -685,13 +694,22 @@ export function mountExplorer(
     const dir = new THREE.Vector3(s.pos[0], s.pos[1], s.pos[2]).sub(t);
     const authored = dir.length();
     dir.normalize();
-    if (!s.fit) return { pos: t.clone().addScaledVector(dir, authored * aspectFit()), target: t };
+    // A camera placed inside the model (a cabin view) stays where it was put: pulled back for a
+    // portrait stage it would end up outside, looking at the bodywork instead of the interior.
+    if (!s.fit) {
+      // Short shots only (today just the EV cabin): a plinth's box also contains close-ups taken
+      // over it, such as cockpit and nacelle shots, which still need the portrait pull-back.
+      const inside = authored < 1.6 && modelBox.containsPoint(t.clone().addScaledVector(dir, authored));
+      return { pos: t.clone().addScaledVector(dir, authored * (inside ? 1 : aspectFit())), target: t };
+    }
     let dist: number;
     let target = t;
     // Only in the phone/tablet layout (bottom sheet over the stage). The desktop stage between
     // the rail and the side panel can be portrait too, but its overviews are approved as authored.
     // Opt-in per sector (SectorDef.portraitFit): existing sectors keep their approved phone views.
-    if (sector.portraitFit && camera.aspect < 1 && sheetLayout() && modelCorners.length) {
+    // Tablets held upright (stage 600px+ wide) get it for every sector: an authored low, wide shot
+    // left the model a thin band across the middle with empty floor above and below.
+    if ((sector.portraitFit || stage.clientWidth >= 600) && camera.aspect < 1 && sheetLayout() && modelCorners.length) {
       const p = portraitFit(dir, t);
       dir.copy(p.dir);
       target = p.t;
@@ -845,6 +863,7 @@ export function mountExplorer(
     const w = stageRect.width,
       h = stageRect.height;
     const inset = measureSheetInset(stageRect);
+    const sheetTop = h - measureSheetInset(stageRect, false);
     // Phones/tablets show the tags over the model; wider screens the callout rails (one or the
     // other is display:none, so only the visible set is measured and positioned).
     const phoneTags = mobileTags.offsetParent !== null;
@@ -873,7 +892,8 @@ export function mountExplorer(
       sheetInset = inset;
       applyViewOffset();
     }
-    const visibleH = h - sheetInset;
+    // Labels stop at the sheet's real top edge.
+    const visibleH = Math.min(h - sheetInset, sheetTop);
 
     // Phone tags are anchored to their 3D markers, which often sit close together; stack them
     // so none overlaps. Most important first (selected, then scenario-hit) so they keep their spot.
@@ -882,9 +902,8 @@ export function mountExplorer(
     // Phones label every system (the user wants the whole map visible); with one selected the
     // others stay readable but lighter (isDimmed). Tags are stacked so none overlap.
     const EDGE = 8;
-    // De-emphasised, not faded out: the other systems' names must stay readable (about 3:1 or
-    // better over the model) so the next one can be picked without closing this one first.
-    const DIM_OPACITY = "0.72";
+    // De-emphasised labels (.dimmed in explorer.css) keep their solid backing and only soften
+    // text and border: fading the whole label left it unreadable over pale parts in dark mode.
 
     for (const zr of ordered) {
       const z = zr.def;
@@ -924,8 +943,10 @@ export function mountExplorer(
           // system is picked) and lies under the placed ones.
           const rowH = th + 3;
           let best: { x: number; y: number; r: ReturnType<typeof rectAt>; over: number; score: number } | null = null;
-          for (let k = -8; k <= 8; k++) {
-            for (const sx of [0, 0.35, -0.35, 0.7, -0.7]) {
+          // A wide search: with the sheet open the strip above it is short, and a narrow one
+          // ran out of free slots and stacked names on top of each other.
+          for (let k = -12; k <= 12; k++) {
+            for (const sx of [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05]) {
               const x = Math.max(xMin, Math.min(xMax, px + sx * tw));
               const y = py + k * rowH;
               const r = rectAt(x, y);
@@ -950,7 +971,7 @@ export function mountExplorer(
         zr.tag.classList.toggle("selected", isSelected);
         zr.tag.classList.toggle("dimmed", isDimmed);
         const tagShown = labelsVisible && !tagHidden;
-        zr.tag.style.opacity = tagShown ? (isDimmed ? DIM_OPACITY : "1") : "0";
+        zr.tag.style.opacity = tagShown ? "1" : "0";
         zr.tag.style.zIndex = isSelected ? "3" : crowded ? "1" : "2";
         zr.tag.style.pointerEvents = tagShown ? "auto" : "none";
         zr.tag.tabIndex = tagShown ? 0 : -1;
@@ -1000,7 +1021,7 @@ export function mountExplorer(
       zr.box.classList.toggle("dimmed", isDimmed);
       zr.box.classList.toggle("off", offscreen);
       const boxShown = labelsVisible && !offscreen;
-      zr.box.style.opacity = boxShown ? (isDimmed ? DIM_OPACITY : "1") : "0";
+      zr.box.style.opacity = boxShown ? "1" : "0";
       zr.box.style.pointerEvents = boxShown ? "auto" : "none";
       zr.box.tabIndex = boxShown ? 0 : -1;
       zr.box.setAttribute("aria-hidden", String(!boxShown));

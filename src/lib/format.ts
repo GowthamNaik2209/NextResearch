@@ -52,17 +52,21 @@ export function inr(v: number | null | undefined, dp = 0): string {
 // Dates are "YYYY-MM-DD" trading days or ISO timestamps at UTC midnight. Formatting them in UTC
 // keeps a reader west of UTC from seeing the previous day.
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+// Built from a fixed month list: toLocaleDateString("en-IN") prints "Sept" in current Chrome/Node.
+
 /** "20 Oct 2026" (or "20 Oct 26" with `short`). */
 export function fmtDay(t: string | number | Date, { short = false }: { short?: boolean } = {}): string {
-  return new Date(t).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: short ? "2-digit" : "numeric",
-    timeZone: "UTC",
-  });
+  const d = new Date(t);
+  const y = d.getUTCFullYear();
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${short ? String(y).slice(2) : y}`;
 }
 
 /** "Oct 2026". */
 export function fmtMonth(t: string | number | Date): string {
-  return new Date(t).toLocaleDateString("en-IN", { month: "short", year: "numeric", timeZone: "UTC" });
+  const d = new Date(t);
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
+
+/** For dates formatted with the locale's own options (times, IST): "Sept" -> "Sep", like fmtDay. */
+export const sep = (s: string) => s.replace(/\bSept\b/g, "Sep");

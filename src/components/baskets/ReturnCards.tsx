@@ -3,7 +3,7 @@
 import type { ChartRange } from "@/lib/live/yahoo";
 import { fmtMonth, NA, signedPct } from "@/lib/format";
 import { slackDaysFor } from "@/lib/baskets/backtest";
-import { signedPts } from "@/lib/baskets/fmt";
+import { shownPct, signedPts } from "@/lib/baskets/fmt";
 import { useSeries } from "./use-series";
 
 // The return cards above a basket chart: the basket itself, the stocks picked in the chart
@@ -24,7 +24,7 @@ export function picksKey(tickers: string[], strategy: string): string | null {
 }
 
 // The figure a card displays, so the gap between two cards matches their numbers (−5.4 vs −5.5 is 0.1).
-const shown = (v: number) => Number(v.toFixed(Math.abs(v) >= 100 ? 0 : 1));
+const shown = shownPct;
 
 export function ReturnCards({
   range,

@@ -3,6 +3,7 @@
 // and every annualised figure scales by it. Price change only, like the backtest itself.
 // Pure (no fetching), so it is unit-tested on its own.
 import type { PricePoint } from "./backtest";
+import { shownPct } from "./fmt";
 
 export type SeriesStats = {
   /** Total change over the series, %. */
@@ -137,7 +138,8 @@ export function basketFigures(points: PricePoint[], bench: PricePoint[] | null):
   const st = seriesStats(points);
   if (!st) return null;
   const rel = bench ? relativeStats(points, bench) : null;
-  return { ret: st.ret, maxDd: st.maxDd, vs: rel ? st.ret - rel.benchRet : null };
+  // The lead between the two figures as shown, so the row's three numbers add up on screen.
+  return { ret: st.ret, maxDd: st.maxDd, vs: rel ? shownPct(st.ret) - shownPct(rel.benchRet) : null };
 }
 
 /**

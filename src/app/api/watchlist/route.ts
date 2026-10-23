@@ -1,16 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ensureProfile } from "@/lib/profile";
 import { ensureFinancials } from "@/lib/financials/load";
-import { parseRupees } from "@/lib/financials/rows";
 import { findSupplierByTicker } from "@/lib/sector-content";
 import { getQuote } from "@/lib/live/yahoo";
 
 // Per user, and changes the moment they tap a heart: never cached anywhere.
 const NO_STORE = { "Cache-Control": "private, no-store" };
-// The live quote for priceAtAdd: wait this long, then use the company table's price instead.
-const QUOTE_WAIT_MS = 4000;
+// priceAtAdd is always a live price, filled after the response (see fillPriceAtAdd): waits
+// before each try at the quote. Under load getQuote can time out, so it is retried a few times.
+const QUOTE_RETRY_DELAYS_MS = [0, 5_000, 20_000];
+// Only rows saved this recently are filled, so an old row whose price was never known doesn't
+// get today's price (which would make its "since added" meaningless).
+const FILL_WINDOW_MS = 2 * 60_000;
 
 const fail = (where: string, e: unknown) => {
   console.error(`watchlist ${where} failed`, e);
@@ -36,20 +39,30 @@ export async function GET() {
   }
 }
 
-/** The price to remember as priceAtAdd: the live quote, else the company table's last price, else null. */
-async function addPrice(ticker: string, tablePrice: string | null | undefined): Promise<number | null> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<null>((resolve) => {
-    timer = setTimeout(() => resolve(null), QUOTE_WAIT_MS);
-  });
-  const q = await Promise.race([getQuote(ticker).catch(() => null), timeout]).finally(() => clearTimeout(timer));
-  if (q && q.price > 0) return q.price;
-  const p = parseRupees(tablePrice);
-  return p != null && p > 0 ? p : null;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Records the live quote as the row's priceAtAdd. It used to fall back to the company table's
+ * snapshot price when the quote was slow, so stocks saved from different places had different
+ * bases (a stock "lost 4.5%" the moment it was saved). No live price = it stays 0 (unknown), and
+ * the watchlist page shows "—" for the move rather than a figure against the wrong base.
+ */
+async function fillPriceAtAdd(userId: string, companyId: string, ticker: string) {
+  for (const wait of QUOTE_RETRY_DELAYS_MS) {
+    if (wait) await sleep(wait);
+    const q = await getQuote(ticker).catch(() => null);
+    if (q && q.price > 0) {
+      await prisma.watchlist.updateMany({
+        where: { userId, companyId, priceAtAdd: 0, addedAt: { gte: new Date(Date.now() - FILL_WINDOW_MS - wait) } },
+        data: { priceAtAdd: q.price },
+      });
+      return;
+    }
+  }
 }
 
-// POST { ticker } — add to watchlist, capturing the price now as priceAtAdd so /watchlist can show
-// the move since the user saved it. Only tickers the content lists as listed companies (the same
+// POST { ticker } — add to watchlist and answer at once; the live price at the time of saving
+// (priceAtAdd, for /watchlist's "since added") is filled in just after the response. Only tickers the content lists as listed companies (the same
 // allowlist the stock pop-up uses), so an unlisted name or a made-up ticker is a 400. Upsert:
 // re-liking an already-saved ticker is a no-op, not a duplicate row or a reset priceAtAdd.
 export async function POST(request: Request) {
@@ -65,10 +78,9 @@ export async function POST(request: Request) {
     if (!supplier || ticker.startsWith("UNLISTED_")) return NextResponse.json({ error: "not a listed company" }, { status: 400, headers: NO_STORE });
 
     // The profile row the watchlist row points at (a user signed in before it existed would
-    // otherwise hit a foreign-key error), the company row and the price, all at once.
-    const [company, priceAtAdd] = await Promise.all([
+    // otherwise hit a foreign-key error) and the company row, at once.
+    const [company] = await Promise.all([
       prisma.company.findUnique({ where: { ticker }, select: { id: true } }),
-      addPrice(ticker, supplier.f?.price),
       user.email ? ensureProfile(user.id, user.email) : null,
     ]);
     if (!company) return NextResponse.json({ error: "company not found" }, { status: 404, headers: NO_STORE });
@@ -76,9 +88,10 @@ export async function POST(request: Request) {
     await prisma.watchlist.upsert({
       where: { userId_companyId: { userId: user.id, companyId: company.id } },
       // The column is NOT NULL: 0 stands for "price unknown" (the watchlist page shows no move for it).
-      create: { userId: user.id, companyId: company.id, priceAtAdd: priceAtAdd ?? 0 },
+      create: { userId: user.id, companyId: company.id, priceAtAdd: 0 },
       update: {},
     });
+    after(() => fillPriceAtAdd(user.id, company.id, ticker).catch((e) => console.error("watchlist priceAtAdd fill failed", e)));
     return NextResponse.json({ ok: true }, { headers: NO_STORE });
   } catch (e) {
     return fail("add", e);

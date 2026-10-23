@@ -10,12 +10,14 @@ export function ResearchDeck({
   onClose,
   initialSlide = 0,
   urlParam,
+  adoptHistoryEntry,
 }: {
   deck: Deck;
   onClose: () => void;
   initialSlide?: number;
   /** Name the deck in the URL while open (?report=<slug>); see Presentation. */
   urlParam?: string;
+  adoptHistoryEntry?: boolean;
 }) {
   const isPolicy = deck.category === "policy";
   return (
@@ -36,6 +38,7 @@ export function ResearchDeck({
       onClose={onClose}
       initialSlide={initialSlide}
       urlParam={urlParam ? { name: urlParam, value: deck.slug } : undefined}
+      adoptHistoryEntry={adoptHistoryEntry}
     />
   );
 }

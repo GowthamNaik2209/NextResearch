@@ -9,13 +9,13 @@ import { findSupplierByTicker } from "@/lib/sector-content";
 import { getQuote, type Quote } from "@/lib/live/yahoo";
 import { basketStock } from "@/lib/baskets/industry";
 import { IndustryChips } from "@/components/baskets/IndustryChips";
-import { NewBasketButton } from "@/components/baskets/NewBasketButton";
 import { ensureFinancials } from "@/lib/financials/load";
 import { parseRupees } from "@/lib/financials/rows";
-import { croreShort, fmtDay, signedPct } from "@/lib/format";
+import { croreShort, fmtDay, NA, signedPct } from "@/lib/format";
 import { croreFromLabel, fmtPrice, freshQuote } from "@/components/stock/merge";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { WatchlistRow } from "./WatchlistRow";
+import { WatchlistBacktest, WatchlistNewsGate } from "./WatchlistLive";
 
 export const metadata = { title: "Watchlist", robots: { index: false, follow: false } };
 
@@ -57,12 +57,7 @@ export default async function WatchlistPage() {
             </p>
           </div>
           {basketable.length > 0 && (
-            <NewBasketButton
-              tickers={basketable}
-              name="My watchlist basket"
-              label="Backtest as a basket"
-              className="min-h-10 rounded-lg border border-line px-4 text-sm font-semibold text-ink hover:border-accent"
-            />
+            <WatchlistBacktest tickers={basketable} className="min-h-10 rounded-lg border border-line px-4 text-sm font-semibold text-ink hover:border-accent" />
           )}
         </div>
 
@@ -83,9 +78,10 @@ export default async function WatchlistPage() {
               const supplier = findSupplierByTicker(ticker);
               const stock = basketStock(ticker);
               const f = supplier?.f;
+              const home = stock?.industries[0] ?? null;
               const q = freshQuote(live.get(ticker));
               const current = q?.price ?? parseRupees(f?.price);
-              // 0 is stored when no price was known at the time: no "since added" move for it.
+              // 0 = the live price at saving isn't known (yet - the API fills it just after saving): no move.
               const added = row.priceAtAdd.toNumber();
               const priceAtAdd = added > 0 ? added : null;
               const since = current != null && priceAtAdd != null ? ((current - priceAtAdd) / priceAtAdd) * 100 : null;
@@ -105,7 +101,15 @@ export default async function WatchlistPage() {
                       <div className="truncate text-sm font-semibold text-ink">{row.company.name}</div>
                       <div className="truncate text-xs text-ink-soft">
                         <span className="font-mono">{ticker}</span>
-                        {stock && <> · {stock.layer}</>}
+                        {/* A saved stock has no "picked from" industry (a basket uses that), so name its home
+                            industry with the layer: "Artillery & armoured systems" alone read
+                            as wrong for Bharat Forge saved from the EV explorer. */}
+                        {home && (
+                          <>
+                            {" "}
+                            · {stock!.layerIn[home.slug] ?? stock!.layer} ({home.name})
+                          </>
+                        )}
                       </div>
                     </div>
                     <div className="flex-none text-right">
@@ -116,18 +120,21 @@ export default async function WatchlistPage() {
                       {/* The price is the only live figure in the row; say so, and date the rest. */}
                       <div className="font-mono text-[11px] text-ink-soft">
                         {q ? <span className="text-pos">live</span> : `snapshot ${asOf}`}
-                        {since != null && (
-                          <>
-                            {" · "}
-                            <span className={since >= 0 ? "text-pos" : "text-danger"}>{signedPct(since)}</span> since added
-                          </>
-                        )}
+                        {" · "}
+                        {since != null ? (
+                          <span className={since >= 0 ? "text-pos" : "text-danger"}>{signedPct(since)}</span>
+                        ) : (
+                          <span title="The live price when you saved this isn't known yet, so there is no move to show.">{NA}</span>
+                        )}{" "}
+                        since added
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-                    {stock ? <IndustryChips industries={stock.industries} /> : <span />}
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-ink-soft">
+                  {/* Same three lines on every card (chips; figures; when added), so cards line up
+                      whatever the chip widths. */}
+                  {stock ? <IndustryChips industries={stock.industries} /> : null}
+                  <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-[11px] text-ink-soft">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       {cap != null && <span>M.cap {croreShort(cap)}</span>}
                       {pe != null && pe > 0 && <span>P/E {pe.toFixed(1)}x</span>}
                       {pos != null && (
@@ -141,8 +148,11 @@ export default async function WatchlistPage() {
                       )}
                       {(cap != null || pe != null || pos != null) && <span>as of {asOf}</span>}
                     </div>
+                    <span className="text-[10px]">
+                      added {fmtDay(row.addedAt)}
+                      {priceAtAdd != null && ` at ${fmtPrice(priceAtAdd)}`}
+                    </span>
                   </div>
-                  <div className="font-mono text-[10px] text-ink-soft">added {fmtDay(row.addedAt)}{priceAtAdd != null && ` at ${fmtPrice(priceAtAdd)}`}</div>
                 </>
               );
               return (
@@ -155,12 +165,14 @@ export default async function WatchlistPage() {
         )}
 
         {rows.length > 0 && (
-          <section className="mt-4">
-            <h2 className="font-display text-lg font-bold text-ink">News on your watchlist</h2>
-            <div className="mt-3">
-              <NewsFeed tickers={rows.map((r) => r.company.ticker)} limit={8} showSector={false} />
-            </div>
-          </section>
+          <WatchlistNewsGate tickers={rows.map((r) => r.company.ticker)}>
+            <section className="mt-4">
+              <h2 className="font-display text-lg font-bold text-ink">News on your watchlist</h2>
+              <div className="mt-3">
+                <NewsFeed tickers={rows.map((r) => r.company.ticker)} limit={8} showSector={false} />
+              </div>
+            </section>
+          </WatchlistNewsGate>
         )}
       </main>
       <SiteFooter />

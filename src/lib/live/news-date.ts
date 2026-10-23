@@ -2,6 +2,7 @@
 // separate from news.ts so client code doesn't bundle the sector content it imports.
 
 const HOUR = 3_600_000;
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 // Times that mean "this day, time unknown": Google News dates many stories 07:00:00 GMT (12:30
 // IST) when the publisher gave no time, and curated items are parsed at UTC or IST midnight. A
@@ -17,7 +18,10 @@ export function formatNewsDate(ts: number, now = Date.now()): string {
   const hours = isDateOnly(ts) ? Infinity : (now - ts) / HOUR;
   if (hours < 1) return "Just now";
   if (hours < 24) return `${Math.floor(hours)}h ago`;
-  return new Date(ts).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
+  // Fixed month names: newer ICU builds abbreviate September as "Sept", which the rest of the
+  // site writes "Sep". The calendar date is IST's (+5:30).
+  const ist = new Date(ts + 5.5 * HOUR);
+  return `${ist.getUTCDate()} ${MONTHS[ist.getUTCMonth()]} ${ist.getUTCFullYear()}`;
 }
 
 const RELATIVE = /^(Just now|\d+h ago)$/;

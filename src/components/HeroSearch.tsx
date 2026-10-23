@@ -19,9 +19,12 @@ function score(e: SearchEntry, term: string): number {
   return 9;
 }
 
-// Within a score: themes (industries and policies), then IPOs, then companies; then A-Z.
+// Within a score: themes (industries and policies), then IPOs, then companies (listed first); then A-Z.
 const KIND_ORDER: Record<SearchEntry["kind"], number> = { sector: 0, ipo: 1, company: 2 };
 const KIND_LABEL: Record<SearchEntry["kind"], string> = { sector: "Theme", ipo: "IPO", company: "Company" };
+// Listed companies before unlisted ones in the same tier: "tata" should lead with Tata Steel and
+// Tata Motors, not Tata 1mg. The index marks unlisted companies in the sub-line (buildSearchIndex).
+const unlisted = (e: SearchEntry) => (e.kind === "company" && e.sub.startsWith("Unlisted") ? 1 : 0);
 /** Results shown before "Show all": enough to scan, short enough to fit under the box on a phone. */
 const FIRST = 8;
 
@@ -41,7 +44,7 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
     return index
       .map((e) => ({ e, score: score(e, term) }))
       .filter((x) => x.score < 9)
-      .sort((a, b) => a.score - b.score || KIND_ORDER[a.e.kind] - KIND_ORDER[b.e.kind] || a.e.label.localeCompare(b.e.label))
+      .sort((a, b) => a.score - b.score || KIND_ORDER[a.e.kind] - KIND_ORDER[b.e.kind] || unlisted(a.e) - unlisted(b.e) || a.e.label.localeCompare(b.e.label))
       .map((x) => x.e);
   }, [term, index]);
   const results = all ? matches : matches.slice(0, FIRST);

@@ -67,6 +67,7 @@ export function ideaStockInfo(): IdeaStockInfo[] {
       screenOut: f?.screenOut,
       // Industries only: a policy map (PLI, ALMM) isn't another industry the company sells into.
       industries: st.industries.filter((i) => !policySlugs.has(i.slug)).length,
+      policies: st.industries.filter((i) => policySlugs.has(i.slug)).length,
       notIpo: /\b(REIT|InvIT)\b|Trust\b/i.test(st.name) || st.ticker in HISTORY_FROM,
       scarce: scarce.get(st.ticker) ?? null,
     };
@@ -104,7 +105,7 @@ export const getIdeas = unstable_cache(
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },
-  ["basket-ideas-v6"],
+  ["basket-ideas-v7"],
   { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
 );
 

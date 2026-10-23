@@ -66,8 +66,10 @@ function startBench() {
   benchStarted = true;
   loadSeries(BENCH, RANGE).then((l) => {
     const st = l.status === "ok" ? seriesStats(l.data.points) : null;
-    // A figure the server sent stays: it is the one the rows' leads were measured against.
-    if (bench === "loading" || bench === "error") bench = l.status === "ok" && st ? { ret: st.ret } : "error";
+    // The loader's Nifty (the series the basket pages read) replaces the server's figure; a failed
+    // load keeps the server's.
+    if (l.status === "ok" && st) bench = { ret: st.ret };
+    else if (typeof bench !== "object") bench = "error";
     emit();
   });
 }
@@ -79,7 +81,9 @@ function pump() {
     Promise.all([loadSeries(key, RANGE), loadSeries(BENCH, RANGE)])
       .then(([l, b]) => {
         const fig = l.status === "ok" ? basketFigures(l.data.points, b.status === "ok" ? b.data.points : null) : null;
-        figs.set(key, fig ?? "error");
+        if (fig) figs.set(key, fig);
+        // A failed load keeps the server's figure, if there is one.
+        else if (typeof figs.get(key) !== "object") figs.set(key, "error");
       })
       .catch(() => figs.set(key, "error"))
       .finally(() => {
@@ -90,11 +94,19 @@ function pump() {
   }
 }
 
-/** Figures the server worked out, into the store (a row the browser already measured keeps its own). */
+/** Keys already measured in the browser, or queued to be. */
+const measured = new Set<string>();
+
+/**
+ * Figures the server worked out, into the store, shown at once. Each row is still measured again
+ * through the browser's series loader (the same request and cache the basket pages use), and that
+ * figure replaces the server's: the price series can differ by the day's latest bar between the
+ * page's render and the API's cache, and the row must read exactly as the basket page does.
+ */
 function seedStore(seed: TableSeed) {
   for (const [k, f] of Object.entries(seed.figs)) {
     const e = figs.get(k);
-    if (!e || e === "error") figs.set(k, f);
+    if (!e || e === "error" || e === "loading") figs.set(k, f);
   }
   if (seed.benchRet != null && typeof bench !== "object") bench = { ret: seed.benchRet };
 }
@@ -102,8 +114,9 @@ function seedStore(seed: TableSeed) {
 function request(keys: string[]) {
   startBench();
   for (const k of keys) {
-    if (figs.has(k)) continue;
-    figs.set(k, "loading");
+    if (measured.has(k)) continue;
+    measured.add(k);
+    if (!figs.has(k)) figs.set(k, "loading");
     queue.push(k);
   }
   pump();
@@ -338,7 +351,7 @@ export function BasketsTable({
                   <span className="sr-only">Max drawdown </span>
                   <Num entry={e} pick={(f) => f.maxDd} unit="%" />
                 </span>
-                <span role="cell" className="text-right font-mono tabular-nums">
+                <span role="cell" title={e && typeof e === "object" && e.vs == null ? "The Nifty 50's prices couldn't load, so the lead can't be worked out" : undefined} className="text-right font-mono tabular-nums">
                   <span className="sr-only">Versus Nifty 50 </span>
                   <Num entry={e} pick={(f) => f.vs} unit=" pts" />
                 </span>
@@ -410,13 +423,26 @@ export function BasketsSummary({ mineCount, benchRet = null }: { mineCount: numb
       <div className={cell}>
         <dt className={head}>Nifty 50 · 1Y</dt>
         <dd className="font-mono text-sm font-bold tabular-nums">
-          {nifty === "loading" ? <Pending /> : nifty === "error" ? <span className="text-ink-soft">{NA}</span> : <span className={tone(nifty.ret)}>{signed(nifty.ret, "%")}</span>}
+          {nifty === "loading" ? (
+            <Pending />
+          ) : nifty === "error" ? (
+            // Said plainly, so the dashes in "vs Nifty" read as a missing benchmark, not a broken table.
+            <span className="font-sans text-xs font-normal text-ink-soft">Unavailable right now</span>
+          ) : (
+            <span className={tone(nifty.ret)}>{signed(nifty.ret, "%")}</span>
+          )}
         </dd>
       </div>
       <div className={cell}>
         <dt className={head}>Beat the Nifty · 1Y</dt>
         <dd className="font-mono text-sm font-bold tabular-nums text-ink">
-          {all.length === 0 ? (hydrated ? NA : <Pending />) : `${beat} of ${done.length}`}
+          {nifty === "error" && done.length === 0 ? (
+            <span className="font-sans text-xs font-normal text-ink-soft">Needs the Nifty 50, which couldn&rsquo;t load</span>
+          ) : all.length === 0 ? (
+            hydrated ? NA : <Pending />
+          ) : (
+            `${beat} of ${done.length}`
+          )}
           {pending > 0 && <span className="ml-1 font-sans text-[10px] font-normal text-ink-soft">({pending} loading)</span>}
         </dd>
       </div>

@@ -7,7 +7,7 @@ import type { IpoDeck } from "@/lib/ipo-content";
 import type { DeckCard, IpoCard } from "@/lib/analysis-props";
 import { IpoGrid } from "@/components/ipo/IpoGrid";
 import { InfoTip } from "@/components/InfoTip";
-import { LazyResearchDeck, dropDeepLinkParam, intentProps, prefetchReport } from "./LazyDecks";
+import { LazyResearchDeck, dropDeepLinkParam, intentProps, prefetchReport, useForwardReopen } from "./LazyDecks";
 import type { ChartsIndustry } from "@/components/baskets/IndustryChartsView";
 import type { CompareBasket } from "@/components/baskets/BasketChart";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
@@ -113,7 +113,18 @@ export function ReadingList({
     setOpenSlug(initial);
   }, [decks, initial]);
 
-  // ?report=<slug> is set on the open deck's own history entry (Presentation's urlParam).
+  // ?report=<slug> is set on the open deck's own history entry (Presentation's urlParam), and
+  // browser Forward onto that entry opens the deck again there (adopt).
+  const [adopt, setAdopt] = useState(false);
+  useForwardReopen(
+    "report",
+    openSlug,
+    (slug) => decks.some((d) => d.slug === slug),
+    (slug) => {
+      setAdopt(true);
+      setOpenSlug(slug);
+    }
+  );
 
   // The hero's theme window picks a tab here too (landing page), opening the Deep dive on it.
   useEffect(() => {
@@ -135,7 +146,10 @@ export function ReadingList({
       url.searchParams.delete("sector");
       url.searchParams.delete("bview");
     }
-    window.history.replaceState(window.history.state, "", url);
+    // Only when it changes: on first load the URL already matches, and a replaceState that early
+    // reaches Next's router before it has initialised ("Router action dispatched before
+    // initialization" and a state update before mount, seen on the landing page).
+    if (url.href !== window.location.href) window.history.replaceState(window.history.state, "", url);
   }, [view]);
 
   // The Charts view's baskets: from the page, or fetched the first time the view is shown.
@@ -216,13 +230,16 @@ export function ReadingList({
       {view === "reports" && tab !== "ipo" && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((d) => (
-            <ReportCard key={d.slug} deck={d} onOpen={() => setOpenSlug(d.slug)} />
+            <ReportCard key={d.slug} deck={d} onOpen={() => {
+              setAdopt(false);
+              setOpenSlug(d.slug);
+            }} />
           ))}
         </div>
       )}
       {view !== "charts" && tab === "all" && <h2 className="mt-4 font-display text-xl font-bold text-ink">IPOs</h2>}
       {view !== "charts" && (tab === "ipo" || tab === "all") && <IpoGrid ipos={ipos} initial={initialIpo} initialDeck={initialIpoDeck} />}
-      {open && <LazyResearchDeck key={open.slug} slug={open.slug} initialDeck={initialDeck} onClose={closeDeck} urlParam="report" />}
+      {open && <LazyResearchDeck key={open.slug} slug={open.slug} initialDeck={initialDeck} onClose={closeDeck} urlParam="report" adoptHistoryEntry={adopt} />}
     </>
   );
 }

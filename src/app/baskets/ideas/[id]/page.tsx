@@ -8,13 +8,14 @@ import { getIdea } from "@/lib/baskets/ideas-data";
 import { basketStock, dominantIndustry } from "@/lib/baskets/industry";
 import { compareProps } from "@/lib/baskets/page-props";
 import { ensureFinancials } from "@/lib/financials/load";
+import { sep } from "@/lib/format";
 
 // A basket idea: today's list for one rule, as a basket anyone can chart and save as their own.
 // The list moves with prices, so the page is rendered per request from the day's cached lists.
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const dayOf = (iso: string) => new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
+const dayOf = (iso: string) => sep(new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" }));
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   await ensureFinancials();

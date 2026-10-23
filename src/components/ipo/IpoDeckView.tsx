@@ -11,12 +11,14 @@ export function IpoDeckView({
   onClose,
   initialSlide = 0,
   urlParam,
+  adoptHistoryEntry,
 }: {
   deck: IpoDeck;
   onClose: () => void;
   initialSlide?: number;
   /** Name the deck in the URL while open (?ipo=<slug>); see Presentation. */
   urlParam?: string;
+  adoptHistoryEntry?: boolean;
 }) {
   const doc = deck.sources[0];
   return (
@@ -38,6 +40,7 @@ export function IpoDeckView({
       onClose={onClose}
       initialSlide={initialSlide}
       urlParam={urlParam ? { name: urlParam, value: deck.slug } : undefined}
+      adoptHistoryEntry={adoptHistoryEntry}
     />
   );
 }

@@ -45,6 +45,9 @@ function withAlpha(hex: string, a: number) {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 }
 
+// The library hands times back as "YYYY-MM-DD", a business-day object or a UTC timestamp (s).
+const timeToMs = (t: Time): number =>
+  typeof t === "string" ? Date.parse(t) : typeof t === "number" ? t * 1000 : Date.UTC(t.year, t.month - 1, t.day);
 const getJson = <T,>(url: string) => fetch(url).then((r) => (r.ok ? (r.json() as Promise<T>) : Promise.reject(r)));
 // Bars are dated "YYYY-MM-DD" (IST trading days); fmtDay/fmtMonth read them in UTC, so a viewer
 // west of UTC no longer sees each bar labelled with the previous day.
@@ -134,6 +137,8 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
       // blank space beside the history.
       timeScale: { borderVisible: false, timeVisible: false, lockVisibleTimeRangeOnResize: true, fixLeftEdge: true, fixRightEdge: true, tickMarkFormatter: tickLabel },
       crosshair: { mode: CrosshairMode.Magnet },
+      // The crosshair's date label in the site's format (the library's own read "07 Sept '26").
+      localization: { timeFormatter: (t: Time) => fmtDay(timeToMs(t)) },
       // Pinch / Ctrl + wheel zooms; a plain wheel or vertical swipe still scrolls the pop-up.
       ...ZOOM_OPTIONS,
     });
@@ -230,7 +235,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
                 type="button"
                 onClick={() => pick(r.id)}
                 aria-pressed={range === r.id}
-                className={"min-h-8 min-w-9 rounded-full px-2.5 text-xs pointer-coarse:min-h-9 font-semibold transition-colors " + (range === r.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
+                className={"min-h-8 min-w-9 rounded-full px-2.5 text-xs pointer-coarse:min-h-10 font-semibold transition-colors " + (range === r.id ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}
               >
                 {r.label}
               </button>
@@ -250,7 +255,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
                     aria-disabled={disabled || undefined}
                     title={disabled ? noCandlesNote : undefined}
                     className={
-                      "min-h-8 rounded-full px-3 text-xs font-semibold transition-colors pointer-coarse:min-h-9 " +
+                      "min-h-8 rounded-full px-3 text-xs font-semibold transition-colors pointer-coarse:min-h-10 " +
                       (on ? "bg-accent text-bg" : disabled ? "cursor-not-allowed text-ink-soft opacity-45" : "text-ink-soft hover:text-ink")
                     }
                   >
@@ -265,7 +270,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
                 role="switch"
                 aria-checked={showVol}
                 onClick={() => setShowVol((v) => !v)}
-                className="flex min-h-9 items-center gap-2 rounded-full px-2 text-xs font-semibold text-ink-soft transition-colors hover:text-ink"
+                className="flex min-h-9 items-center gap-2 rounded-full px-2 text-xs pointer-coarse:min-h-10 font-semibold text-ink-soft transition-colors hover:text-ink"
               >
                 <span aria-hidden className={"relative h-5 w-9 shrink-0 rounded-full border transition-colors " + (showVol ? "border-transparent bg-accent" : "border-line bg-bg")}>
                   <span className={"absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full shadow transition-all " + (showVol ? "left-[18px] bg-bg" : "left-0.5 bg-ink-soft")} />
@@ -294,7 +299,11 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
             <div className={"order-2 text-right font-mono text-sm font-semibold tabular-nums " + (shownUp ? "text-pos" : "text-danger")}>
               {shownUp ? "▲" : "▼"} {Math.abs(change).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (
               {range === "MAX" && first && shown && shown.c / first.c >= 10 ? `${fmtNum(shown.c / first.c, 0)}×` : fmtSigned(changePct, 2)})
-              <div className="text-[11px] font-normal text-ink-soft">{hover && first ? `since ${fmtDay(first.t)}` : range === "MAX" && first ? `since ${fmtMonth(first.t)}` : `past ${RANGES.find((r) => r.id === range)?.long}`}</div>
+              {/* "live chart": this is the chart's own price change, not the dated snapshot CAGR on Summary. */}
+              <div className="text-[11px] font-normal text-ink-soft">
+                {hover && first ? `since ${fmtDay(first.t)}` : range === "MAX" && first ? `since ${fmtMonth(first.t)}` : `past ${RANGES.find((r) => r.id === range)?.long}`} ·{" "}
+                <span className="text-pos">live</span> chart
+              </div>
             </div>
           )}
         </div>

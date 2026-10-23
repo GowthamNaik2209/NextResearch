@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { EXPOSURE_STRENGTH_LABEL, EXPOSURE_TYPE_LABEL, type SectorSupplier } from "@/lib/sector-content";
 import type { StockApi, StockTab } from "./types";
-import { fmtNum, fmtPrice, fmtSigned, freshQuote, mergeStats, REIT_NOTE, revenueSeries } from "./merge";
+import { fmtNum, fmtSigned, fmtYield, freshQuote, mergeStats, REIT_NOTE, revenueSeries } from "./merge";
 import { croreShort, inr, NA, pct } from "@/lib/format";
 import { NewsTime } from "./NewsTime";
 import { quoteTiming } from "@/lib/live/freshness";
@@ -70,16 +70,26 @@ export function SummaryView({
   const maxRev = Math.max(1, ...rev.map((r) => r.revenue ?? 0));
   const tl = f?.tl;
 
-  // [label, value, optional] - optional chips are muted on phones to save space.
-  // The snapshot price sits beside the snapshot market cap and P/E it was computed at; the live
-  // price is in the pop-up header (and the 52-week bar below), labelled live.
-  const chips: [string, string, boolean?][] = [
+  // [label, value, optional] - optional chips are hidden on phones to save space. No snapshot
+  // "Price" tile: beside the live price in the header it read as a second, conflicting price. The
+  // 52-week range takes two lines (high over low) so it fits the narrow explorer card at any width.
+  const chips: [string, React.ReactNode, boolean?][] = [
     ["Mkt Cap", croreShort(s.marketCapCr)],
-    ["Price", fmtPrice(s.snapshotPrice)],
-    ["High / Low", s.high52w != null && s.low52w != null ? `${inr(s.high52w)} / ${inr(s.low52w)}` : NA, true],
+    [
+      "52W High / Low",
+      s.high52w != null && s.low52w != null ? (
+        <>
+          <span className="block">₹{inr(s.high52w)}</span>
+          <span className="block font-normal text-ink-soft">₹{inr(s.low52w)}</span>
+        </>
+      ) : (
+        NA
+      ),
+      true,
+    ],
     ["Stock P/E", nm(s.pe != null ? `${s.pe.toFixed(1)}x` : NA)],
     ["Book Value", s.bookValue != null ? `₹${fmtNum(s.bookValue, 1)}` : NA, true],
-    ["Div Yield", nm(pct(s.divYield, 2))],
+    ["Div Yield", nm(fmtYield(s.divYield))],
     ["ROCE", pct(s.roce)],
     ["ROE", nm(pct(s.roe))],
     ["Face Value", s.faceValue != null ? `₹${fmtNum(s.faceValue, 2)}` : NA, true],
@@ -99,7 +109,7 @@ export function SummaryView({
           {chips.map(([k, v, opt]) => (
             <div key={k} className={"rounded-lg border border-line bg-panel-2 px-2.5 py-2" + (opt ? " max-[640px]:hidden" : "")}>
               <div className="text-[9px] uppercase tracking-wide text-ink-soft">{k}</div>
-              <div className={"mt-0.5 whitespace-nowrap font-mono text-[13px] font-semibold " + (v === "n/m" ? "text-ink-soft" : "text-ink")} title={v === "n/m" ? "Not meaningful for a REIT" : undefined}>
+              <div className={"mt-0.5 font-mono text-[13px] font-semibold leading-snug break-words " + (v === "n/m" ? "text-ink-soft" : "text-ink")} title={v === "n/m" ? "Not meaningful for a REIT" : undefined}>
                 {v}
               </div>
             </div>

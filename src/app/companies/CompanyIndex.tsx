@@ -26,7 +26,8 @@ export function CompanyIndex({ companies }: { companies: IndexCompany[] }) {
 
   return (
     <>
-      {/* Sticks under the site header (57px tall) while the list scrolls. */}
+      {/* Sticks under the site header (57px tall) while the list scrolls. The letter headings'
+          scroll-margin clears header + this bar (two rows on phones), so a jump lands in view. */}
       <div className="sticky top-[57px] z-30 -mx-5 flex flex-col gap-2 border-b border-line bg-bg/95 px-5 py-3 backdrop-blur sm:flex-row sm:items-center sm:gap-4">
         <input
           type="search"
@@ -56,7 +57,7 @@ export function CompanyIndex({ companies }: { companies: IndexCompany[] }) {
         </p>
       )}
       {[...byLetter.entries()].map(([letter, list]) => (
-        <section key={letter} id={`letter-${letter === "#" ? "num" : letter}`} className="scroll-mt-[150px] sm:scroll-mt-[120px]">
+        <section key={letter} id={`letter-${letter === "#" ? "num" : letter}`} className="scroll-mt-[200px] sm:scroll-mt-[140px]">
           <h2 className="font-display text-lg font-bold text-accent">{letter}</h2>
           <ul className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
             {list.map((c) => (

@@ -26,6 +26,9 @@ type Props = {
   /** A search param naming the open deck (?report=<slug>, ?ipo=<slug>), set on the deck's own
    *  history entry so the URL is shareable while it is open and clean again once it closes. */
   urlParam?: { name: string; value: string };
+  /** Reopened by browser Forward: the deck's own history entry (with its param) is already the
+   *  current one, so it is reused rather than another pushed on top (useForwardReopen). */
+  adoptHistoryEntry?: boolean;
 };
 
 // The history step back owed by a deck that just closed (see the Back handling below).
@@ -35,12 +38,13 @@ let pendingBack: number | null = null;
 // tilting card as the stock pop-up (.nr-pop-* in globals.css), sized like a presentation.
 // Arrow keys / swipe / the footer buttons move between slides; Esc, the ✕ or a backdrop
 // click closes it. A company named on a slide opens the regular stock pop-up on top.
-export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta: ctaFor, extra: extraFor, onClose, initialSlide = 0, urlParam }: Props) {
+export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta: ctaFor, extra: extraFor, onClose, initialSlide = 0, urlParam, adoptHistoryEntry = false }: Props) {
   const [index, setIndex] = useState(initialSlide);
   const [dir, setDir] = useState<1 | -1>(1);
   const [menuOpen, setMenuOpen] = useState(false);
   const [stock, setStock] = useState<OpenableStock | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
   const total = slides.length;
@@ -77,8 +81,8 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
   useEffect(() => {
     const url = new URL(window.location.href);
     if (paramName && paramValue) url.searchParams.set(paramName, paramValue);
-    if (pendingBack !== null) {
-      window.clearTimeout(pendingBack);
+    if (pendingBack !== null || adoptHistoryEntry) {
+      if (pendingBack !== null) window.clearTimeout(pendingBack);
       pendingBack = null;
       window.history.replaceState(window.history.state, "", url);
     } else {
@@ -98,6 +102,8 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
         window.history.back();
       }, 0);
     };
+    // adoptHistoryEntry only matters on the first run (how this opening got its entry).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paramName, paramValue]);
 
   useEffect(() => {
@@ -132,6 +138,26 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
     const onKey = (e: KeyboardEvent) => {
       if (stock) return; // the stock pop-up on top owns the keyboard
       if (e.key === "Escape") return menuOpen ? setMenuOpen(false) : onClose();
+      // Keep Tab inside the deck (aria-modal): wrap from the last control to the first and back,
+      // and pull focus back in if it is somewhere behind the backdrop.
+      if (e.key === "Tab" && cardRef.current) {
+        const items = [...cardRef.current.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input,select,textarea,[tabindex]')].filter(
+          (el) => el.tabIndex >= 0 && el.getClientRects().length > 0
+        );
+        if (!items.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        const at = document.activeElement as HTMLElement | null;
+        const inside = !!at && cardRef.current.contains(at);
+        if (e.shiftKey && (!inside || at === first)) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && (!inside || at === last)) {
+          e.preventDefault();
+          first.focus();
+        }
+        return;
+      }
       if ((e.target as HTMLElement)?.closest?.("input,textarea,select")) return;
       if (e.key === "ArrowRight" || e.key === "PageDown") go(index + 1);
       else if (e.key === "ArrowLeft" || e.key === "PageUp") go(index - 1);
@@ -153,6 +179,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
+        ref={cardRef}
         role="dialog"
         aria-modal="true"
         aria-roledescription="presentation"
@@ -218,7 +245,9 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
 
         {/* Slide */}
         <div className="relative min-h-0 flex-1">
-        <div ref={bodyRef} className="absolute inset-0 overflow-y-auto overscroll-contain">
+        {/* overflow-x-hidden: the slide's entrance slides in from 28px to the side, which otherwise
+            gave the scroller a hidden 28px of horizontal scroll on phones. */}
+        <div ref={bodyRef} className="absolute inset-0 overflow-y-auto overflow-x-hidden overscroll-contain">
           <div
             key={index}
             className={"nr-slide mx-auto flex min-h-full w-full max-w-[1160px] flex-col px-4 py-4 sm:px-10 sm:py-7 " + (dir > 0 ? "nr-slide-next" : "nr-slide-prev")}
