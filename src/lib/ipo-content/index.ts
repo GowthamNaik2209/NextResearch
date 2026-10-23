@@ -29,6 +29,12 @@ export function listIpos(today = istToday()): IpoReport[] {
   return IPOS.map((r) => liveIpoStatus(r, today)).sort(byStage);
 }
 
+/** The stage as authored, before the timeline rolls it forward: a deck the timeline alone has moved
+ *  to "listed" (e.g. on listing day) is not yet held to the listed-deck rules until it is updated. */
+export function authoredStage(slug: string): IpoStage | null {
+  return IPOS.find((x) => x.slug === slug)?.status.stage ?? null;
+}
+
 export function getIpo(slug: string, today = istToday()): IpoReport | null {
   const r = IPOS.find((x) => x.slug === slug);
   return r ? liveIpoStatus(r, today) : null;
@@ -44,11 +50,52 @@ export type IpoPeer = Omit<IpoReport["peers"][number], "mcapCr" | "revenueCr" | 
   supplier: SectorSupplier | null;
 };
 
-export type IpoDeck = Omit<IpoReport, "peers"> & { peers: IpoPeer[] };
+/**
+ * A listed deck's own current figures, from the company table (one source, one date, same as the
+ * peers and every industry page): price, market cap and P/E as of the table's snapshot, against the
+ * authored issue price. Null until the deck names a ticker the table tracks.
+ */
+export type IpoNow = {
+  ticker: string;
+  price: number | null;
+  mcapCr: number | null;
+  pe: number | null;
+  asOf: string | null;
+  issuePrice: number | null;
+  /** Current price vs the issue price, %. */
+  vsIssuePct: number | null;
+  supplier: SectorSupplier | null;
+};
+
+export type IpoDeck = Omit<IpoReport, "peers"> & { peers: IpoPeer[]; now: IpoNow | null };
+
+/** "Rs 1,651" -> 1651. */
+const rupees = (s: string | null | undefined) => {
+  const n = s ? parseFloat(s.replace(/[^\d.]/g, "")) : NaN;
+  return Number.isFinite(n) ? n : null;
+};
+
+function nowFigures(r: IpoReport): IpoNow | null {
+  const f = r.ticker ? companyFinancials(r.ticker) : null;
+  if (!r.ticker || !f) return null;
+  const price = rupees(f.price);
+  const issuePrice = r.issue.issuePrice ?? null;
+  return {
+    ticker: r.ticker,
+    price,
+    mcapCr: parseCrore(f.mcap),
+    pe: f.kpi?.[0] ?? null,
+    asOf: f.asOf ?? null,
+    issuePrice,
+    vsIssuePct: price != null && issuePrice ? (price / issuePrice - 1) * 100 : null,
+    supplier: findSupplierByTicker(r.ticker),
+  };
+}
 
 export function buildIpoDeck(r: IpoReport): IpoDeck {
   return {
     ...r,
+    now: nowFigures(r),
     peers: r.peers.map((p) => {
       const f = p.ticker ? companyFinancials(p.ticker) : null;
       const supplier = p.ticker ? findSupplierByTicker(p.ticker) : null;

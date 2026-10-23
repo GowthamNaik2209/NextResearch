@@ -14,6 +14,9 @@ import { cssVar, useSiteTheme, type SiteTheme } from "@/lib/theme";
 import { axisPct, fmtDay, fmtMonth, NA, signedPct } from "@/lib/format";
 import { slackDaysFor } from "@/lib/baskets/backtest";
 import { useSeries } from "./use-series";
+import { MAX_CHART_STOCKS, type ChartSelection } from "@/lib/baskets/selection";
+
+export { MAX_CHART_STOCKS, type ChartSelection };
 
 // A basket's backtest beside the market, its industry's index and other industry baskets, on the
 // Analysis charts' conventions: every line starts at 0% on the first day shown, benchmarks are
@@ -23,7 +26,6 @@ export type CompareBasket = { slug: string; name: string; icon: string };
 // A stock's line: one of six palette colours (slot 6 is kept for the compared industry baskets),
 // solid first, then long-dashed, then dotted, so 18 stocks can be told apart.
 const STOCK_DASH: Dash[] = ["solid", "long", "dot"];
-export const MAX_CHART_STOCKS = 6 * STOCK_DASH.length;
 export function stockLine(theme: SiteTheme, slot: number): { color: string; dash: Dash } {
   return { color: SLOTS[theme][slot % 6], dash: STOCK_DASH[Math.floor(slot / 6) % STOCK_DASH.length] };
 }
@@ -31,9 +33,6 @@ const MAX_COMPARE = 3;
 const COMPARE_DASH: Dash[] = ["long", "dash", "dot"];
 
 type Line = { key: string; name: string; note?: string; color: string; token?: string; width: 2 | 3; dash: Dash; stock?: string };
-
-/** What the reader has switched on: indices, other industry baskets, and stocks (ticker → palette slot). */
-export type ChartSelection = { benches: string[]; compare: string[]; picks: Record<string, number> };
 
 /** The first view: the Nifty 50 and the industry index, plus the default comparison basket if there is one. */
 export function defaultSelection(indices: Benchmark[], industries: CompareBasket[], defaultCompare: string | null): ChartSelection {
@@ -266,13 +265,13 @@ export function BasketChart({
   const toggleCompare = (slug: string) => setCompare((c) => (c.includes(slug) ? c.filter((x) => x !== slug) : c.length >= MAX_COMPARE ? c : [...c, slug]));
 
   const byKey = new Map(series.list.map((s) => [s.line.key, s]));
-  const rows = lines
-    .map((l) => {
-      const s = byKey.get(l.key);
-      const value = hover ? hover.values[l.key] : s?.last;
-      return { line: l, value: series.short.has(l.key) ? undefined : value, late: s?.late ?? series.short.get(l.key) ?? null, short: series.short.has(l.key), load: loadOf(l.key) };
-    })
-    .sort((a, b) => (a.line.key === basketKey ? -1 : b.line.key === basketKey ? 1 : (b.value ?? -Infinity) - (a.value ?? -Infinity)));
+  // In the lines' own order (the basket, then what it is compared with, then stocks), never by
+  // value: a row doesn't jump while the crosshair moves or a line loads.
+  const rows = lines.map((l) => {
+    const s = byKey.get(l.key);
+    const value = hover ? hover.values[l.key] : s?.last;
+    return { line: l, value: series.short.has(l.key) ? undefined : value, late: s?.late ?? series.short.get(l.key) ?? null, short: series.short.has(l.key), load: loadOf(l.key) };
+  });
   const anyLoading = lines.some((l) => loadOf(l.key)?.status !== "ok" && loadOf(l.key)?.status !== "error");
   const etfs = indices.filter((b) => b.via && benches.includes(b.id));
   const compareCount = compare.length + [...indices, ...market].filter((b) => benches.includes(b.id)).length;
@@ -295,7 +294,7 @@ export function BasketChart({
             ref={popRef}
             style={{ left: menuLeft }}
             role="dialog"
-            aria-label={menu === "compare" ? "Choose what to compare with" : "Choose stocks"}
+            aria-label={menu === "compare" ? "Choose what to compare with" : "Choose stocks to show on the chart"}
             className="absolute top-full z-20 mt-2 flex max-h-[min(60vh,440px)] w-full flex-col overflow-hidden rounded-xl border border-line bg-panel shadow-[0_18px_40px_-18px_rgba(0,0,0,0.45)] sm:w-96"
           >
             <div className="min-h-0 flex-1 overflow-y-auto p-3">
@@ -340,12 +339,15 @@ export function BasketChart({
               ) : (
                 <>
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">{stocks.length} in this basket</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">Show on chart</span>
                     <span className="font-mono text-[11px] text-ink-soft">
                       {picked === stocks.length ? `all ${picked} on` : `${picked} of ${stocks.length} on`}
                     </span>
                   </div>
-                  {full && <p className="mt-1 text-xs text-ink-soft">Up to {MAX_CHART_STOCKS} lines at a time. Switch one off to add another.</p>}
+                  {/* Visibility only: these switch a stock's line on or off; they don't change the basket. */}
+                  <p className={"mt-1 text-[11px] leading-snug " + (full ? "text-ink" : "text-ink-soft")}>
+                    {full ? `Up to ${MAX_CHART_STOCKS} lines at a time. Switch one off to show another.` : `Lines only: the ${stocks.length} stocks stay in the basket either way.`}
+                  </p>
                   {stocks.length > 12 && (
                     <input
                       type="search"
@@ -403,7 +405,8 @@ export function BasketChart({
           <span>{hover ? `${series.step === "1wk" ? "Week of" : series.step === "1mo" ? "Month of" : "On"} ${fmtDay(hover.t)}` : `Return, past ${rangeLong}`}</span>
           {anyLoading && series.list.length > 0 && <span className="normal-case tracking-normal">Loading…</span>}
         </div>
-        <ul className="divide-y divide-line rounded-xl border border-line bg-bg/60">
+        {/* A fixed height that scrolls, so switching lines on or off never moves what is below. */}
+        <ul className="h-56 divide-y divide-line overflow-y-auto overscroll-contain rounded-xl border border-line bg-bg/60">
           {rows.map(({ line, value, late, short, load }) => {
             const failed = load?.status === "error";
             const sub = [line.note, short && late ? `history from ${fmtMonth(late)}, pick a shorter range` : late ? `data from ${fmtMonth(late)}` : null, failed ? "no price data available" : null]

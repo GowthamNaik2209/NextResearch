@@ -1,3 +1,4 @@
 {
-  "regions": ["bom1"]
+  "regions": ["syd1"],
+  "crons": [{ "path": "/api/financials/refresh", "schedule": "30 13 * * 1-5" }]
 }

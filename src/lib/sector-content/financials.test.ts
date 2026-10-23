@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { listCompanyFinancials, listSectors, type SupplierFinancials } from "./index";
 import { missingTickers } from "@/lib/financials/store";
 import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
+import { listIpos } from "@/lib/ipo-content";
 
 // Company figures come from the database (DATABASE_URL), as in the app.
 before(installFinancialsFromDatabase);
@@ -10,6 +11,15 @@ before(installFinancialsFromDatabase);
 test("every ticker the content names is in the company table", () => {
   const byTicker = Object.fromEntries(listCompanyFinancials().map((f) => [f.ticker, f]));
   assert.deepEqual(missingTickers(byTicker), [], "add them with scripts/refresh-financials.ts --add=TICKER");
+});
+
+// The other direction: a tracked company is named somewhere - an industry or policy (co()), an IPO
+// peer, or a listed IPO deck's own ticker (NSE, MANIPALHOS) - so the table carries no orphans.
+test("every company in the table is named by the content", () => {
+  listSectors();
+  const named = new Set(missingTickers({}));
+  for (const r of listIpos()) for (const t of [r.ticker, ...r.peers.map((p) => p.ticker)]) if (t) named.add(t);
+  assert.deepEqual(listCompanyFinancials().map((f) => f.ticker).filter((t) => !named.has(t)), [], "name them in the content or stop tracking them");
 });
 
 // Every listed supplier row across all sectors, tagged with where it lives.

@@ -33,6 +33,7 @@ export function BasketStats({
   scope,
   heading: H = "h2",
   reload = 0,
+  empty = false,
 }: {
   range: ChartRange;
   basketKey: string;
@@ -46,8 +47,10 @@ export function BasketStats({
   heading?: "h2" | "h3";
   /** Bumped by the page's Retry: forgets a failed load so the panel tries again. */
   reload?: number;
+  /** No stocks yet: the panel keeps its place and size, with a line saying so. */
+  empty?: boolean;
 }) {
-  const { get } = useSeries([basketKey, BENCH.key], range, { reload });
+  const { get, retry } = useSeries(empty ? [] : [basketKey, BENCH.key], range, { reload });
   const b = get(basketKey);
   const n = get(BENCH.key);
   const basket = b?.status === "ok" ? b.data : null;
@@ -55,8 +58,9 @@ export function BasketStats({
   const s = useMemo(() => (basket ? seriesStats(basket.points) : null), [basket]);
   const r = useMemo(() => (basket && bench ? relativeStats(basket.points, bench) : null), [basket, bench]);
 
-  if (b?.status === "error") return null;
-  const loading = !basket;
+  // A failed load keeps the panel, at its size, with the reason and a Retry.
+  const failed = !empty && b?.status === "error";
+  const loading = !empty && !failed && !basket;
   // Years the range covers, for turnover a year (none under a year, where it would mislead).
   const span = basket && basket.points.length > 1 ? (Date.parse(basket.points[basket.points.length - 1].t) - Date.parse(basket.points[0].t)) / (365.25 * 86_400_000) : 0;
   const years = span >= 0.95 ? span : null;
@@ -91,6 +95,7 @@ export function BasketStats({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
+  const held = strategy.rebalance === "never";
   const tone = (v: number | null | undefined) => (v == null ? "text-ink-soft" : v >= 0 ? "text-pos" : "text-danger");
   const cells: {
     label: string;
@@ -98,101 +103,96 @@ export function BasketStats({
     sub?: string;
     cls?: string;
     help: string;
-  }[] = s
-    ? [
-        {
-          label: "Return",
-          value: signed(s.ret),
-          cls: tone(s.ret),
-          help: "Change in the basket's value over the range.",
-        },
-        {
-          label: "CAGR",
-          value: signed(s.cagr),
-          sub: s.cagr == null ? "under a year" : undefined,
-          cls: tone(s.cagr),
-          help: "Compound growth per year. Not shown under a year, where annualising misleads.",
-        },
-        {
-          label: "Volatility",
-          value: pct(s.vol),
-          sub: "annualised",
-          help: `Standard deviation of ${freq} returns, scaled to a year.`,
-        },
-        {
-          label: "Max drawdown",
-          value: signed(s.maxDd),
-          // Non-breaking spaces inside each date and phrase, so a narrow cell breaks only between them.
-          sub: s.ddPeak && s.ddTrough ? `${nb(day(s.ddPeak))} → ${nb(day(s.ddTrough))}${s.ddRecovered ? "" : ` · ${nb("not regained")}`}` : "no fall",
-          cls: s.maxDd < 0 ? "text-danger" : "text-ink-soft",
-          help: "Deepest fall from a previous high, peak to trough, and whether the basket has climbed back to that high.",
-        },
-        {
-          label: "Sortino",
-          value: s.sortino != null ? ratio(s.sortino) : NA,
-          sub: "target 0%",
-          help: "Annualised return per unit of downside volatility (only falling bars count). Higher is better; above 1 is good.",
-        },
-        {
-          label: `Beta · ${BENCH.name}`,
-          value: r?.beta != null ? ratio(r.beta) : n?.status === "error" ? NA : "…",
-          help: `How much the basket moves for a 1% move in the ${BENCH.name}. Above 1 swings more than the market.`,
-        },
-        {
-          label: "Up capture",
-          value: pct(r?.upCapture, 0),
-          help: `How much of the ${BENCH.name}'s rise the basket took, on the ${freq} bars the index went up. Above 100% beats it.`,
-        },
-        {
-          label: "Down capture",
-          value: pct(r?.downCapture, 0),
-          help: `How much of the ${BENCH.name}'s fall the basket took, on the bars the index went down. Below 100% loses less.`,
-        },
-        {
-          label: "Best month",
-          value: signed(s.bestMonth?.ret),
-          sub: s.bestMonth ? monthName(s.bestMonth.month) : undefined,
-          cls: tone(s.bestMonth?.ret),
-          help: "Best calendar month, from one month-end close to the next.",
-        },
-        {
-          label: "Worst month",
-          value: signed(s.worstMonth?.ret),
-          sub: s.worstMonth ? monthName(s.worstMonth.month) : undefined,
-          cls: tone(s.worstMonth?.ret),
-          help: "Worst calendar month, from one month-end close to the next.",
-        },
-        {
-          label: BENCH.name,
-          value: signed(r?.benchRet),
-          sub: "same dates",
-          cls: tone(r?.benchRet),
-          help: `The ${BENCH.name}'s own change over the basket's dates (price index, no dividends).`,
-        },
-        {
-          label: "Months up",
-          value: s.months ? `${s.upMonths}/${s.months}` : NA,
-          sub: s.months ? `${Math.round((s.upMonths / s.months) * 100)}% of months` : "under a month",
-          help: "Calendar months the basket ended higher than the month before, out of the months in the range.",
-        },
-        ...(strategy.rebalance === "never"
-          ? []
-          : [
-              {
-                label: "Turnover",
-                value: pct(basket?.turnover, 0),
-                sub: basket?.turnover != null && years ? `${(basket.turnover / years).toFixed(0)}% a year` : "one way, total",
-                help: "Share of the basket bought and sold to get back to the target weights, counted one way and added up over every rebalance. Each 100% means trading the whole basket once.",
-              },
-              {
-                label: "Trades",
-                value: basket?.trades != null ? String(basket.trades) : NA,
-                sub: `${basket?.rebalances?.length ?? 0} rebalance${basket?.rebalances?.length === 1 ? "" : "s"}`,
-                help: "Buys and sells across all the rebalances (the first day's purchase not counted). No costs are taken off the return: brokerage, taxes and slippage would lower it.",
-              },
-            ]),
-      ]
-    : [];
+  }[] = [
+    {
+      label: "Return",
+      value: signed(s?.ret),
+      cls: tone(s?.ret),
+      help: "Change in the basket's value over the range.",
+    },
+    {
+      label: "CAGR",
+      value: signed(s?.cagr),
+      sub: s && s.cagr == null ? "under a year" : undefined,
+      cls: tone(s?.cagr),
+      help: "Compound growth per year. Not shown under a year, where annualising misleads.",
+    },
+    {
+      label: "Volatility",
+      value: pct(s?.vol),
+      sub: "annualised",
+      help: `Standard deviation of ${freq} returns, scaled to a year.`,
+    },
+    {
+      label: "Max drawdown",
+      value: signed(s?.maxDd),
+      // Non-breaking spaces inside each date and phrase, so a narrow cell breaks only between them.
+      sub: !s ? undefined : s.ddPeak && s.ddTrough ? `${nb(day(s.ddPeak))} → ${nb(day(s.ddTrough))}${s.ddRecovered ? "" : ` · ${nb("not regained")}`}` : "no fall",
+      cls: s && s.maxDd < 0 ? "text-danger" : "text-ink-soft",
+      help: "Deepest fall from a previous high, peak to trough, and whether the basket has climbed back to that high.",
+    },
+    {
+      label: "Sortino",
+      value: s?.sortino != null ? ratio(s.sortino) : NA,
+      sub: "target 0%",
+      help: "Annualised return per unit of downside volatility (only falling bars count). Higher is better; above 1 is good.",
+    },
+    {
+      label: `Beta · ${BENCH.name}`,
+      value: r?.beta != null ? ratio(r.beta) : n?.status === "error" || !s ? NA : "…",
+      help: `How much the basket moves for a 1% move in the ${BENCH.name}. Above 1 swings more than the market.`,
+    },
+    {
+      label: "Up capture",
+      value: pct(r?.upCapture, 0),
+      help: `How much of the ${BENCH.name}'s rise the basket took, on the ${freq} bars the index went up. Above 100% beats it.`,
+    },
+    {
+      label: "Down capture",
+      value: pct(r?.downCapture, 0),
+      help: `How much of the ${BENCH.name}'s fall the basket took, on the bars the index went down. Below 100% loses less.`,
+    },
+    {
+      label: "Best month",
+      value: signed(s?.bestMonth?.ret),
+      sub: s?.bestMonth ? monthName(s.bestMonth.month) : undefined,
+      cls: tone(s?.bestMonth?.ret),
+      help: "Best calendar month, from one month-end close to the next.",
+    },
+    {
+      label: "Worst month",
+      value: signed(s?.worstMonth?.ret),
+      sub: s?.worstMonth ? monthName(s.worstMonth.month) : undefined,
+      cls: tone(s?.worstMonth?.ret),
+      help: "Worst calendar month, from one month-end close to the next.",
+    },
+    {
+      label: BENCH.name,
+      value: signed(r?.benchRet),
+      sub: "same dates",
+      cls: tone(r?.benchRet),
+      help: `The ${BENCH.name}'s own change over the basket's dates (price index, no dividends).`,
+    },
+    {
+      label: "Months up",
+      value: s?.months ? `${s.upMonths}/${s.months}` : NA,
+      sub: !s ? undefined : s.months ? `${Math.round((s.upMonths / s.months) * 100)}% of months` : "under a month",
+      help: "Calendar months the basket ended higher than the month before, out of the months in the range.",
+    },
+    // Always there (a "—" when not rebalanced), so the grid keeps its shape when rebalancing is switched.
+    {
+      label: "Turnover",
+      value: held ? NA : pct(basket?.turnover, 0),
+      sub: held ? "when rebalanced" : basket?.turnover != null && years ? `${(basket.turnover / years).toFixed(0)}% a year` : "one way, total",
+      help: "Share of the basket bought and sold to get back to the target weights, counted one way and added up over every rebalance. Each 100% means trading the whole basket once. Shown when the basket is rebalanced.",
+    },
+    {
+      label: "Trades",
+      value: held ? NA : basket?.trades != null ? String(basket.trades) : NA,
+      sub: held ? "when rebalanced" : `${basket?.rebalances?.length ?? 0} rebalance${basket?.rebalances?.length === 1 ? "" : "s"}`,
+      help: "Buys and sells across all the rebalances (the first day's purchase not counted). No costs are taken off the return: brokerage, taxes and slippage would lower it.",
+    },
+  ];
 
   return (
     <section aria-label="Backtest statistics" className="rounded-md border border-line bg-panel">
@@ -202,7 +202,7 @@ export function BasketStats({
           {scope ? ` · ${scope}` : ""} · <span className={compact ? "" : "sm:hidden"}>{range}</span>
           {!compact && <span className="whitespace-nowrap max-sm:hidden">{pastPeriod(range)}</span>}
           {/* The side column is narrow: the settings take their own line there rather than breaking mid-title. */}
-          <span title={`${weightingLabel(strategy)}, ${rebalanceLabel(strategy)}`} className={compact ? "block" : ""}>
+          <span title={`${weightingLabel(strategy)}, ${rebalanceLabel(strategy)}`} className={compact ? "block truncate" : ""}>
             {compact ? "" : " · "}
             {basisLabel(strategy)}
           </span>
@@ -216,23 +216,37 @@ export function BasketStats({
           Export CSV
         </button>
       </div>
-      {loading ? (
-        <div aria-busy className="h-[7.5rem] animate-pulse bg-line/40" />
-      ) : !s ? (
-        <p className="px-3 py-3 text-xs text-ink-soft">Not enough price history in this range to measure. Try a longer period.</p>
-      ) : (
-        <div className="overflow-hidden">
-          <dl className={"-mb-px -mr-px grid " + (compact ? "grid-cols-2" : "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6")}>
-            {cells.map((c) => (
-              <div key={c.label} title={c.help} className="min-w-0 border-b border-r border-line/70 px-2.5 py-1.5">
-                <dt className="truncate text-[10px] leading-snug text-ink-soft sm:text-[11px]">{c.label}</dt>
-                <dd className={"font-mono text-sm font-semibold " + (c.cls ?? "text-ink")}>{c.value}</dd>
-                {c.sub && <dd className="text-balance text-[10px] leading-snug text-ink-soft">{c.sub}</dd>}
-              </div>
-            ))}
-          </dl>
-        </div>
-      )}
+      {/* The same grid of cells whatever the state (loading, no stocks, a failed load, too short a
+          range), each cell a fixed height, so the panel never changes size; a message sits over it. */}
+      <div className="relative overflow-hidden" aria-busy={loading || undefined}>
+        <dl className={"-mb-px -mr-px grid " + (compact ? "grid-cols-2" : "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6") + (s ? "" : " opacity-40")}>
+          {cells.map((c) => (
+            <div key={c.label} title={c.help} className="h-[4.5rem] min-w-0 overflow-hidden border-b border-r border-line/70 px-2.5 py-1.5">
+              <dt className="truncate text-[10px] leading-snug text-ink-soft sm:text-[11px]">{c.label}</dt>
+              <dd className={"font-mono text-sm font-semibold " + (c.cls ?? "text-ink")}>
+                {loading ? <span className="inline-block h-4 w-12 animate-pulse rounded bg-line/70 align-middle" /> : c.value}
+              </dd>
+              {c.sub && <dd className="line-clamp-2 text-[10px] leading-snug text-ink-soft">{c.sub}</dd>}
+            </div>
+          ))}
+        </dl>
+        {(empty || failed || (!loading && !s)) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-panel/70 px-4 text-center text-xs text-ink-soft">
+            {empty ? (
+              "Add stocks to see the statistics."
+            ) : failed ? (
+              <span>
+                Couldn&rsquo;t load the statistics right now.{" "}
+                <button type="button" onClick={() => retry(basketKey)} className="font-semibold text-accent underline">
+                  Retry
+                </button>
+              </span>
+            ) : (
+              "Not enough price history in this range to measure. Try a longer period."
+            )}
+          </div>
+        )}
+      </div>
       <details className="group px-3 pb-1.5 text-[11px] text-ink-soft">
         {/* A flex summary drops the browser's triangle, so it draws its own; tall enough to tap. */}
         <summary className="flex min-h-8 cursor-pointer select-none list-none items-center gap-1 pointer-coarse:min-h-9 [&::-webkit-details-marker]:hidden">

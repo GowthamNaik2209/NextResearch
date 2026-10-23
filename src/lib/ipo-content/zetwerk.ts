@@ -8,6 +8,9 @@ export const zetwerk: IpoReport = {
   sectorLabel: "Contract manufacturing & industrial supply",
   tagline: "An asset-light manufacturing platform raises ₹5,012 Cr at ~₹25,583 Cr, still loss-making",
   asOf: "Oct 2026",
+  // NSE symbol (Screener lists ZETWERK): the automatic refresh adds it to the company table once it
+  // lists. Add issue.issuePrice once the final price is confirmed, then the "Now listed" panel shows.
+  ticker: "ZETWERK",
 
   status: {
     stage: "upcoming",

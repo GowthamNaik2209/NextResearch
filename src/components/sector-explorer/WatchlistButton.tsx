@@ -67,6 +67,9 @@ export function subscribeWatchlist(onChange: () => void): () => void {
   };
 }
 export const isWatched = (ticker: string): boolean | null => (tickersCache ? tickersCache.has(ticker) : null);
+/** The whole list as one string ("A,B,C"; "" when empty), null until it loads: a stable snapshot for
+ * useSyncExternalStore, so the basket builder's "From your watchlist" list follows the hearts. */
+export const watchlistSnapshot = (): string | null => (tickersCache ? [...tickersCache].join(",") : null);
 
 // A signed-out tap on the heart remembers the ticker here before sending them to sign up /
 // log in; ReturnToStock finishes the save once they're back on the page with ?stock=TICKER.

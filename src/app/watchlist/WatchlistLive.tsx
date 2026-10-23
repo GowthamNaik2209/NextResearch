@@ -1,8 +1,8 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import Link from "next/link";
 import { isWatched, subscribeWatchlist } from "@/components/sector-explorer/WatchlistButton";
-import { NewBasketButton } from "@/components/baskets/NewBasketButton";
 
 // The page is rendered with the list as it was on load; rows can then be removed (or put back)
 // without a reload. These follow the shared heart state so the parts that depend on the whole
@@ -18,10 +18,22 @@ function useStillWatched(tickers: string[]): string[] {
   return key ? key.split(",") : [];
 }
 
+// Opens Create basket with the stocks still saved, as an unsaved draft (nothing is saved until
+// "Create basket" there). Stays in place, greyed out, once every stock has been removed, so the
+// header never re-flows.
 export function WatchlistBacktest({ tickers, className }: { tickers: string[]; className: string }) {
   const still = useStillWatched(tickers);
-  if (still.length === 0) return null;
-  return <NewBasketButton tickers={still} name="My watchlist basket" label="Save as a basket" className={className} />;
+  if (still.length === 0)
+    return (
+      <span aria-disabled className={className + " inline-flex cursor-default items-center opacity-40"} title="Your watchlist is empty">
+        Save as a basket
+      </span>
+    );
+  return (
+    <Link href="/baskets/new?from=watchlist" className={className + " inline-flex items-center"}>
+      Save as a basket
+    </Link>
+  );
 }
 
 /** The news section, hidden once every stock it covers has been removed. */

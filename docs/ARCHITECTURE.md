@@ -130,27 +130,68 @@ tab falls back to Yahoo's partial data and says so; if both fail it shows the st
 
 Every listed company's price, market cap, ratios, 52-week range, price CAGR and FY22-FY26
 revenue/profit live **only** in the database: `Company` (`tracked`, `financialsNote`, `screenOut`,
-Trendlyne ids), its latest `KpiSnapshot` and its `FinancialSnapshot` years.
+Trendlyne ids), its `KpiSnapshot`s (one per refresh day) and its `FinancialSnapshot` years.
+**Owner rule: every company's figures are identical everywhere and share ONE snapshot date.**
 
-- `query.ts` - the one query (tracked companies, latest snapshot, FY rows); `rows.ts` converts
-  rows <-> `SupplierFinancials`.
-- `load.ts` (server) - `ensureFinancials()` reads the table through `unstable_cache` (shared by
-  all instances, re-read in the background after 15 minutes, so a refresh shows within about half
-  an hour) and installs it. A ticker the content names but the table lacks stays blank and is
-  logged (and fails `financials.test.ts`), rather than taking pages down. **Every page, route
-  handler, OG image and the sitemap awaits it first**, including `generateMetadata` /
-  `generateStaticParams` that read sectors. Inside the Next server, `listSectors()`, `getSector()`
-  and `findSupplierByTicker()` throw if nothing is installed, so a missed call fails the build
-  instead of rendering blanks.
+- `query.ts` - the one query: tracked companies, FY rows, and per company its latest snapshot dated
+  **on or before the published date** (the latest `PUBLISHED` `FinancialsRun`; with none, the day
+  before the first run; with no runs at all, the latest). `rows.ts` converts rows <->
+  `SupplierFinancials`; `trading-day.ts` holds the pure date rules (tested).
+- `load.ts` (server) - `ensureFinancials()` reads that published table through `unstable_cache`
+  (tag `financials`, shared by all instances, re-read in the background after 15 minutes) and
+  installs it. A ticker the content names but the table lacks stays blank and is logged (and fails
+  `financials.test.ts`), rather than taking pages down. **Every page, route handler, OG image and
+  the sitemap awaits it first**, including `generateMetadata` / `generateStaticParams` that read
+  sectors. Inside the Next server, `listSectors()`, `getSector()` and `findSupplierByTicker()`
+  throw if nothing is installed, so a missed call fails the build instead of rendering blanks.
 - `store.ts` (server and browser) - the installed table; fills every `co()` placeholder in place
   and bumps a version so derived caches (`memoByFinancials`: insights metrics, basket stocks)
   rebuild. Client components get figures as props (stock pop-ups, decks) or, for the 3D explorer,
   as a `figures` prop the explore page loads for its sector; the browser bundle carries none.
-- Writes come only from scripts: `refresh-financials.ts` (a new dated `KpiSnapshot` per company
-  per run; `--fix-history`, `--add`) and the one-off `migrate-financials-to-db.ts` that moved the
-  figures out of the content (Oct 2026). Both go through `write.ts`, which writes each company in
-  one transaction (retried whole on a dropped connection), so a crash never leaves half a company.
+- `refresh.ts` (server, no Next imports) - reads a company from Screener.in and runs the daily
+  refresh; `auto.ts` (app only) triggers it; `write.ts` writes one company in one transaction
+  (retried whole on a dropped connection), so a crash never leaves half a company.
 - Tests that check real figures read the table from `DATABASE_URL` (`test-db.ts`), read-only.
+
+**Automatic refresh (since 23 Oct 2026).** Figures for NSE trading day D are due from 18:30 IST on
+D (weekends and the NSE holidays in `trading-day.ts` skipped; add next year's list each December).
+- *Trigger on visit:* each `ensureFinancials()` checks, in memory, whether the installed table's
+  published date is behind the latest due day; if so it schedules one chunk with `after()` (never
+  blocks or fails the page; at most one attempt per instance a minute; skipped during `next build`).
+- *Chunk:* claims the day's `FinancialsRun` lease in one atomic `INSERT ... ON CONFLICT DO UPDATE
+  ... WHERE leaseUntil IS NULL OR leaseUntil < now()` (refused while any run holds a live lease), so
+  one chunk runs at a time across all instances. It snapshots the tracked companies that have no
+  `KpiSnapshot` for D yet and are not in `failed`, two at a time with a 1s pause each, for ~40s
+  (the cron: ~230s), saving progress after each company, then releases the lease. Screener
+  answering 429/403/503 stops the chunk and holds the lease 15 minutes (back-off).
+- *Publish:* when every company has been tried, the run is marked `PUBLISHED` and the `financials`
+  tag is expired, so the whole site moves to D in one step (from a prerender, where Next refuses
+  that, the 15-minute clock picks it up). A company Screener could not read (DIGIFIBRE,
+  STONEINDIA) keeps its previous snapshot and its own date. More than max(5, 5%) misses and the run
+  is marked `FAILED` instead: the site stays on the last published date and the next day retries.
+- *New listings:* each run also includes every IPO deck whose live stage (`liveIpoStatus`) is
+  `listed` by D and that names a `ticker` the table doesn't track: it is created/tracked with its
+  full FY history (as `--add` does) and snapshotted in the same run. Until the run publishes it has
+  no snapshot on or before the published date, so `query.ts` leaves it out and it appears with
+  everyone else. A listed deck with no `ticker` is skipped and logged (symbols are never guessed).
+- *History:* automatic runs write only `KpiSnapshot`s for companies already in the table. FY revenue/profit (`FinancialSnapshot`) is
+  curated and changes only by hand (`--fix-history`, `--add`), so a run in progress can never change
+  the history the site shows.
+- *Backstop:* Vercel Cron calls `GET /api/financials/refresh` at 13:30 UTC (19:00 IST) on weekdays
+  (`vercel.json`; crons run on production only), authorised by `Authorization: Bearer
+  $CRON_SECRET`. Without `CRON_SECRET` the route refuses everything.
+- *Env:* `CRON_SECRET` must be set in Vercel (Production and Preview). The visit trigger is on by
+  default where `VERCEL_ENV` is `production` or `preview` and off elsewhere, so dev servers and
+  tests never write to the shared database; `FINANCIALS_AUTO_REFRESH=1` forces it on,
+  `=0` turns it and the cron route off.
+- *Status:* `SELECT * FROM "FinancialsRun" ORDER BY "snapshotDate" DESC` shows each day's progress
+  (`done`/`total`, `failed`, lease). A stuck run (lease past, never published) is taken over by the
+  next chunk; an older unfinished run is marked `FAILED` when a newer day starts.
+
+**By hand:** `npx tsx scripts/refresh-financials.ts` (dry run, history report), `--apply` (claims
+today's run, waiting while a chunk holds the lease, writes everyone dated today in IST and publishes),
+`--only A,B` (dry run with before/after), `--fix-history=A,B --apply`, `--add=T,...` (a new
+company, dated at the published date so it shows at once). See Playbook 1.5.
 
 If the database is unreachable, an instance keeps serving the table it has installed (and the data
 cache its last copy); a cold instance with neither cannot render pages until it is back. Run the
@@ -158,16 +199,22 @@ migration and the data copy together: with `tracked` rows missing, the table rea
 
 ### Database (Postgres via Prisma)
 
+**Region.** The Supabase database (and its auth) is in Sydney (`ap-southeast-2`), so `vercel.json` runs
+every function in `syd1` beside it: a page makes several database/auth round trips but the reader's
+request crosses the distance once. (Per-route `preferredRegion` is deprecated in Next 16 and Vercel's
+Node functions don't support it.) Moving the database to Mumbai would let both move back to `bom1`.
+
 `prisma/schema.prisma` models exactly what the code uses:
 
 | Table | Holds | Written by |
 | --- | --- | --- |
 | `Company` | ticker, name, listed, role, Trendlyne ids, `tracked`, `financialsNote`, `screenOut` | `db:seed` (identity), `write.ts` (figure fields) |
-| `KpiSnapshot` | one dated price/valuation/ratio row per company per refresh (the app reads the latest) | `write.ts` |
-| `FinancialSnapshot` | FY22-FY26 revenue/net profit, one row per year | `write.ts` |
+| `KpiSnapshot` | one dated price/valuation/ratio row per company per refresh (the app reads the latest on or before the published date) | `write.ts` |
+| `FinancialSnapshot` | FY22-FY26 revenue/net profit, one row per year | `write.ts` (by hand only) |
+| `FinancialsRun` | one automatic refresh per trading day: `snapshotDate`, `status` (RUNNING/PUBLISHED/FAILED), progress, lease | `refresh.ts` |
 | `Profile` | mirror of a Supabase auth user (`ensureProfile`, on sign-in and before a watchlist or basket write) | app |
 | `Watchlist` | user x company, `priceAtAdd` | `/api/watchlist` |
-| `Basket`, `BasketItem` | a user's baskets; items keyed by ticker, with `priceAtAdd` and custom `weight` | `/api/baskets` |
+| `Basket`, `BasketItem` | a user's baskets; items keyed by ticker, with `priceAtAdd`, custom `weight` and `pickedFrom` (industry slug) | `/api/baskets` |
 
 `npm run db:seed` writes company identity only (ticker, name, listed, role) from
 `prisma/seed-source/extracted.json`; the curated news in that file is read by the app straight from

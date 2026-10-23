@@ -2,7 +2,7 @@ import { NextResponse, after } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ensureProfile } from "@/lib/profile";
-import { MAX_BASKETS_PER_USER, getIndustryBasket } from "@/lib/baskets/industry";
+import { MAX_BASKETS_PER_USER, MAX_BASKET_STOCKS, getIndustryBasket } from "@/lib/baskets/industry";
 import { cleanName, cleanTickers, cleanWeights, fillAddPrices, getVisibleBasket, toSaved } from "@/lib/baskets/store";
 import { uniqueName } from "@/lib/baskets/names";
 import { ensureFinancials } from "@/lib/financials/load";
@@ -19,7 +19,7 @@ export async function GET() {
   return NextResponse.json({ baskets: rows.map((r) => toSaved(r, user.id)), signedIn: true });
 }
 
-// POST { name?, tickers? | sector? | copyFrom?, weighting?, weights? } - a new basket, empty, from
+// POST { name?, tickers? (+ sourceSector?) | sector? | copyFrom?, weighting?, weights? } - a new basket, empty, from
 // a list of stocks, from an industry basket, or a copy of a basket shared with the viewer.
 // weighting "custom" takes weights ({ ticker: % }, totalling 100); without valid ones it is equal.
 export async function POST(request: Request) {
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   if (typeof body?.sector === "string") {
     const ind = getIndustryBasket(body.sector);
     if (!ind) return NextResponse.json({ error: "unknown industry" }, { status: 404 });
-    tickers = ind.stocks.map((s) => s.ticker);
+    tickers = ind.stocks.map((s) => s.ticker).slice(0, MAX_BASKET_STOCKS);
     sourceSector = ind.slug;
     name = cleanName(body?.name, `My ${ind.name} basket`);
   } else if (typeof body?.copyFrom === "string") {
@@ -55,6 +55,9 @@ export async function POST(request: Request) {
       wanted = src.weights;
     }
     name = cleanName(body?.name, src.isOwner ? `${src.name} (copy)` : src.name).slice(0, 60);
+  } else if (typeof body?.sourceSector === "string") {
+    // A draft copied from an industry basket (Create basket) keeps that industry as its source.
+    sourceSector = getIndustryBasket(body.sourceSector)?.slug ?? null;
   }
 
   // A cap per person, so one account can't fill the shared database with baskets. Their basket

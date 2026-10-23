@@ -29,6 +29,9 @@ export default async function SavedBasketPage({ params }: { params: Promise<{ id
   const b = await getVisibleBasket(id, user?.id ?? null);
   if (!b) notFound();
   const stocks = b.items.map((i) => basketStock(i.ticker)).filter((s) => s !== null);
+  // Saved stocks the maps no longer list stay visible ("No longer listed") so they can be taken off,
+  // rather than silently vanishing; the backtest leaves them out either way.
+  const unlisted = b.items.map((i) => i.ticker).filter((t) => !basketStock(t));
   const industry = b.sourceSector ?? dominantIndustry(stocks.map((s) => s.ticker));
   const picker = b.isOwner && user ? await pickerProps(user.id) : { universe: null, watchlist: [] };
 
@@ -51,6 +54,7 @@ export default async function SavedBasketPage({ params }: { params: Promise<{ id
           isOwner={b.isOwner}
           isPublic={b.isPublic}
           signedIn={!!user}
+          unlisted={unlisted}
           {...picker}
           {...compareProps(industry)}
         />

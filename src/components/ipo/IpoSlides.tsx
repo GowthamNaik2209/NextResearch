@@ -5,6 +5,7 @@ import type { IpoDeck, IpoPeer } from "@/lib/ipo-content";
 import type { Tone } from "@/lib/ipo-content/types";
 import type { OpenableStock } from "@/components/research/Presentation";
 import { BarChart, Chip, MixChart, Panel, SlideHead, TONE_LABEL, TONE_TEXT, ToneBadge, ToneIcon, ToneValueCell } from "@/components/research/slides";
+import { NA, croreShort, inr, signedPct } from "@/lib/format";
 import { StageChip } from "./StageChip";
 import { businessTitle, financialsTitle, fmtCr, industryTitle, issueTitle, kpiTitle, peersTitle, proceedsTitle, revenueGrowth, risksTitle } from "./headlines";
 
@@ -58,9 +59,53 @@ const HOLDER_COLORS = [
 ];
 const shade = (i: number) => HOLDER_COLORS[i] ?? "var(--line)";
 
+// A listed deck's own figures today, from the company table (same source and date as the peers and
+// every industry page), against the authored issue price. Nothing here is typed into the deck.
+function NowListed({ deck, openStock, className = "" }: SlideProps & { className?: string }) {
+  const n = deck.now;
+  if (!n) return null;
+  const tone: Tone = n.vsIssuePct == null ? "neutral" : n.vsIssuePct > 0 ? "pos" : n.vsIssuePct < 0 ? "neg" : "neutral";
+  const cells: [string, ReactNode, string?][] = [
+    ["Share price", n.price != null ? `₹${inr(n.price)}` : NA],
+    ["vs issue price", <span key="v" className={TONE_TEXT[tone]}>{signedPct(n.vsIssuePct)}</span>, n.issuePrice != null ? `Issue price ₹${inr(n.issuePrice)}` : undefined],
+    ["Market cap", keepUnits(croreShort(n.mcapCr)), deck.issue.valuationCr != null ? `${keepUnits(croreShort(deck.issue.valuationCr))} at the issue` : undefined],
+    ["P/E", n.pe != null ? `${n.pe.toFixed(1)}x` : NA, "Trailing earnings"],
+  ];
+  return (
+    <Panel className={"border-accent p-4 " + className}>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-accent">
+          Now listed · {n.ticker}
+        </p>
+        <p className="text-[10.5px] text-ink-soft">as of {n.asOf ?? deck.asOf}</p>
+      </div>
+      <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-3 lg:grid-cols-4">
+        {cells.map(([k, v, sub]) => (
+          <div key={k} className="min-w-0">
+            <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">{k}</dt>
+            <dd className="mt-0.5 font-display text-lg font-bold leading-tight text-ink tabular-nums">{v}</dd>
+            {sub && <dd className="text-[10.5px] leading-snug text-ink-soft">{sub}</dd>}
+          </div>
+        ))}
+      </dl>
+      <p className="mt-2.5 text-[10.5px] leading-snug text-ink-soft">
+        Price, market cap and P/E: Screener.in, as of {n.asOf ?? deck.asOf} - the same figures as the peer table and every industry page. Issue price from the offer document.
+        {n.supplier && (
+          <>
+            {" "}
+            <button type="button" onClick={() => openStock({ ticker: n.ticker, supplier: n.supplier! })} className="font-semibold text-accent hover:underline" aria-haspopup="dialog">
+              Live price and news &rsaquo;
+            </button>
+          </>
+        )}
+      </p>
+    </Panel>
+  );
+}
+
 // ---------- 1. Summary ----------
 
-function SummarySlide({ deck }: SlideProps) {
+function SummarySlide({ deck, openStock }: SlideProps) {
   const i = deck.issue;
   const glance: [string, string][] = [
     ["Price band", i.priceBand ?? "Not yet set"],
@@ -108,6 +153,8 @@ function SummarySlide({ deck }: SlideProps) {
           </div>
         ))}
       </dl>
+
+      <NowListed deck={deck} openStock={openStock} className="mt-3" />
 
       <Eyebrow className="mt-6">Why this IPO matters</Eyebrow>
       <ol className="grid grid-cols-1 gap-2.5 lg:grid-cols-3">
@@ -661,6 +708,7 @@ function PeersSlide({ deck, openStock }: SlideProps) {
           {v != null && lastRev && <span className="font-mono text-ink-soft">{(v / lastRev.revenue).toFixed(1)}x {lastRev.label} sales</span>}
         </div>
       </Panel>
+      <NowListed deck={deck} openStock={openStock} className="mb-3" />
       {/* Phone and tablet: cards; lg up: a table (it needs ~760px). */}
       <ul className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:hidden">
         {rows.map((p) => (

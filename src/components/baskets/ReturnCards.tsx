@@ -9,6 +9,7 @@ import { useSeries } from "./use-series";
 // The return cards above a basket chart: the basket itself, the stocks picked in the chart
 // (backtested together as their own basket) and the benchmarks, each gap stated against the
 // basket. The basket pages and the Analysis charts both use it, so they read the same.
+// A line with an empty key is a placeholder: the card keeps its place, shows "—" and its note.
 export type CardLine = { key: string; label: string; note?: string };
 
 /**
@@ -30,6 +31,7 @@ export function ReturnCards({
   range,
   basket,
   picks,
+  picksSlot,
   benches,
   dense = false,
 }: {
@@ -37,6 +39,9 @@ export function ReturnCards({
   basket: CardLine;
   /** The picked stocks’ backtest, with the tickers and settings ("equal weight, not rebalanced") named in its tooltip. */
   picks: (CardLine & { tickers: string[]; strategy: string }) | null;
+  /** When set, the picks card keeps its place with this label and note while there are no picks,
+   * so the strip never changes shape (the basket pages). */
+  picksSlot?: { label: string; note: string };
   benches: CardLine[];
   /** The basket pages' flat strip (full width, square cells); the Analysis charts keep the cards. */
   dense?: boolean;
@@ -59,6 +64,7 @@ export function ReturnCards({
     return Date.parse(from) - Date.parse(b.data.points[0].t) > slack ? from : null;
   };
   const card = (line: CardLine) => {
+    if (!line.key) return { value: null, loading: false, failed: false, onRetry: () => {}, note: line.note };
     const late = lateFrom(line.key);
     return {
       value: late ? null : ret(line.key),
@@ -75,11 +81,11 @@ export function ReturnCards({
 
   // One row of 2 or 3 cards on every screen; 4 cards (picks beside a rebalanced basket) go two by
   // two on phones, where a quarter of the row can't hold their labels.
-  const count = 1 + (picks ? 1 : 0) + benches.length;
+  const count = 1 + (picks || picksSlot ? 1 : 0) + benches.length;
   const cols = count >= 4 ? "grid-cols-2 sm:grid-cols-4" : count === 3 ? "grid-cols-3" : "grid-cols-2";
   return (
     <section aria-label="Backtest summary" className={(dense ? "grid gap-2 " : "grid max-w-3xl gap-2 sm:gap-3 ") + cols}>
-      <Stat label={basket.label} value={b.value} loading={b.loading} failed={b.failed} onRetry={b.onRetry} note={basket.note} strong dense={dense} />
+      <Stat label={basket.label} value={b.value} loading={b.loading} failed={b.failed} onRetry={b.onRetry} note={b.note} strong dense={dense} />
       {picks && p && (
         <Stat
           label={picks.label}
@@ -94,9 +100,10 @@ export function ReturnCards({
           title={`${picks.tickers.join(", ")} · ${picks.strategy}`}
         />
       )}
+      {!picks && picksSlot && <Stat label={picksSlot.label} value={null} loading={false} note={picksSlot.note} dense={dense} />}
       {benches.map((line) => {
         const c = card(line);
-        return <Stat key={line.key} label={line.label} value={c.value} loading={c.loading} failed={c.failed} onRetry={c.onRetry} note={c.note} diff={gap(c.value, false)} dense={dense} />;
+        return <Stat key={line.key || line.label} label={line.label} value={c.value} loading={c.loading} failed={c.failed} onRetry={c.onRetry} note={c.note} diff={gap(c.value, false)} dense={dense} />;
       })}
     </section>
   );
@@ -140,7 +147,9 @@ function Stat({
       </>
     );
   return (
-    <div title={title} className={"min-w-0 border " + (dense ? "rounded-md px-2.5 py-1.5 sm:px-3 " : "rounded-xl px-2.5 py-2 sm:p-3 ") + (strong ? "border-accent bg-accent/5" : "border-line bg-panel")}>
+    // Dense cards have a minimum height that fits a label, the figure and two short lines, so a card
+    // filling in (or a placeholder note) never changes the strip's height.
+    <div title={title} className={"min-w-0 border " + (dense ? "min-h-[5.75rem] rounded-md px-2.5 py-1.5 sm:min-h-[5.25rem] sm:px-3 " : "rounded-xl px-2.5 py-2 sm:p-3 ") + (strong ? "border-accent bg-accent/5" : "border-line bg-panel")}>
       {/* Labels and gaps wrap rather than cut off: a phone's third of a row is about 100px. */}
       <div className="text-[10px] leading-snug text-ink-soft sm:text-[11px]">{label}</div>
       <div className={"mt-0.5 font-mono text-base font-bold sm:text-lg " + (value == null ? "text-ink-soft" : value >= 0 ? "text-pos" : "text-danger")}>

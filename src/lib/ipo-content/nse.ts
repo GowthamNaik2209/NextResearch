@@ -8,6 +8,7 @@ export const nse: IpoReport = {
   sectorLabel: "Stock exchange & market infrastructure",
   tagline: "India's dominant exchange, now listed on BSE after a ₹22,563 Cr pure OFS",
   asOf: "Oct 2026",
+  ticker: "NSE",
 
   status: {
     stage: "listed",
@@ -33,6 +34,7 @@ export const nse: IpoReport = {
     ofsCr: 22563,
     ofsShares: "12.64 crore shares (DRHP: up to 14.89 crore)",
     priceBand: "₹1,700 - 1,785 (priced at ₹1,785)",
+    issuePrice: 1785,
     lotSize: "8 shares (₹14,280)",
     faceValue: "₹1",
     valuation: "₹4.42L Cr market cap at the ₹1,785 issue price (247.5 crore shares)",
@@ -199,7 +201,7 @@ export const nse: IpoReport = {
     { name: "CAMS", ticker: "CAMS", note: "Mutual-fund registrar and transfer agent." },
   ],
   valuationNote:
-    "At the ₹1,785 issue price NSE was valued at 42.9x FY26 diluted EPS of ₹41.62 (35x on annualised Q1 FY27), below BSE's P/E (see the table) despite far larger scale and share. Since listing, its multiple moves with the share price; the peer table carries the listed peers' current figures.",
+    "At the ₹1,785 issue price NSE was valued at 42.9x FY26 diluted EPS of ₹41.62 (35x on annualised Q1 FY27), below BSE's P/E (see the table) despite far larger scale and share. Since listing its multiple moves with the share price: the \"Now listed\" panel above carries NSE's current price and P/E, the table the peers'.",
 
   strengths: [
     { title: "Dominant market share", body: "93% of cash equities and ~99.8% of equity futures, plus the world's largest derivatives franchise by contracts - network effects that are hard to dislodge." },

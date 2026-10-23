@@ -1,7 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { MAX_BASKET_STOCKS } from "@/lib/baskets/industry";
+import { MAX_BASKET_STOCKS, basketStock } from "@/lib/baskets/industry";
 import { uniqueName } from "@/lib/baskets/names";
 import { cleanName, cleanTickers, cleanWeights, fillAddPrices, getVisibleBasket } from "@/lib/baskets/store";
 import { addToWeights, removeFromWeights } from "@/lib/baskets/strategy";
@@ -55,7 +55,9 @@ export async function PATCH(request: Request, { params }: Ctx) {
         if (typeof body?.isPublic === "boolean") data.isPublic = body.isPublic;
 
         const have = new Set(row.items.map((i) => i.ticker));
-        const remove = cleanTickers(body?.remove).filter((t) => have.has(t));
+        // Any stock the basket holds can be taken off, including one the maps no longer list (the
+        // page shows those as "No longer listed" rows with a remove button).
+        const remove = Array.isArray(body?.remove) ? [...new Set((body.remove as unknown[]).filter((t): t is string => typeof t === "string" && have.has(t)))] : [];
         const room = MAX_BASKET_STOCKS - (have.size - remove.length);
         const add = cleanTickers(body?.add).filter((t) => !have.has(t)).slice(0, Math.max(0, room));
 
@@ -64,9 +66,12 @@ export async function PATCH(request: Request, { params }: Ctx) {
         const next = [...row.items.map((i) => i.ticker).filter((t) => !remove.includes(t)), ...add];
         const custom = body?.weighting === "custom" || (row.customWeighting && data.customWeighting !== false);
         let weights: Record<string, number> | null = null;
+        // Weights are for the listed stocks only: an unlisted one left in the basket has none (the
+        // page and the backtest leave it out).
+        const listed = next.filter((t) => basketStock(t));
         if (custom && body?.weights !== undefined) {
-          weights = cleanWeights(body.weights, next);
-          if (!weights && next.length) return { error: "weights must total 100%", status: 400 };
+          weights = cleanWeights(body.weights, listed);
+          if (!weights && listed.length) return { error: "weights must total 100%", status: 400 };
         } else if (custom && (add.length || remove.length)) {
           const saved = Object.fromEntries(row.items.filter((i) => i.weight != null).map((i) => [i.ticker, i.weight!]));
           weights = addToWeights(removeFromWeights(saved, remove), add);

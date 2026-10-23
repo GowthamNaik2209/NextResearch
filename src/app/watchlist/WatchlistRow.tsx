@@ -7,7 +7,7 @@ import { OpenStockCard } from "@/components/stock/OpenStockCard";
 
 // One watchlist row with its own heart, so a stock can be removed right here. Every heart for a
 // ticker shares one state (WatchlistButton), so removing it from the row's pop-up flips this
-// row's heart too; the row follows that shared state and collapses to a "removed" line at once -
+// row's heart too; the row follows that shared state and shows a "removed" line in its place at once -
 // no reload - with the heart still there to put it back.
 export function WatchlistRow({
   ticker,
@@ -38,19 +38,22 @@ export function WatchlistRow({
       <WatchlistButton ticker={ticker} name={name} />
     </span>
   );
-  const body = removed ? (
-    <div className="flex items-center justify-between gap-3">
-      <p className="text-sm text-ink-soft">
-        <span className="font-semibold text-ink">{name}</span> removed from your watchlist.
-      </p>
-      <span className="flex flex-none items-center gap-1 text-xs text-ink-soft">
-        Undo {heart}
-      </span>
-    </div>
-  ) : (
-    <div className="flex items-start gap-2">
-      <div className="flex min-w-0 flex-1 flex-col gap-2">{children}</div>
-      {heart}
+  // Removed, the row keeps its height: its content stays laid out (hidden) under the
+  // "removed · Undo" line, so the rows and the news below don't move.
+  const body = (
+    <div className="relative">
+      <div aria-hidden={removed || undefined} className={"flex items-start gap-2 " + (removed ? "invisible" : "")}>
+        <div className="flex min-w-0 flex-1 flex-col gap-2">{children}</div>
+        {!removed && heart}
+      </div>
+      {removed && (
+        <div className="absolute inset-0 flex items-center justify-between gap-3">
+          <p className="text-sm text-ink-soft">
+            <span className="font-semibold text-ink">{name}</span> removed from your watchlist.
+          </p>
+          <span className="flex flex-none items-center gap-1 text-xs text-ink-soft">Undo {heart}</span>
+        </div>
+      )}
     </div>
   );
 

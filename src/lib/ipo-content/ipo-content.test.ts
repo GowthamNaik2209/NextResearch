@@ -64,3 +64,15 @@ test("no IPO chip promises an opening date that has passed", () => {
   const stages = listIpoDecks(day("2026-10-22")).map((r) => order[r.status.stage]);
   assert.deepEqual(stages, [...stages].sort((a, b) => a - b));
 });
+
+test("a listed deck shows its own current figures from the company table, against its issue price", () => {
+  const listed = listIpoDecks().filter((d) => d.ticker);
+  assert.ok(listed.some((d) => d.slug === "nse") && listed.some((d) => d.slug === "manipal-hospitals"));
+  for (const d of listed) {
+    const f = companyFinancials(d.ticker!);
+    assert.ok(f && d.now, `${d.slug}: ${d.ticker} is not in the company table`);
+    const price = parseFloat(f.price!.replace(/[^\d.]/g, ""));
+    assert.deepEqual([d.now.price, d.now.mcapCr, d.now.pe, d.now.asOf], [price, parseCrore(f.mcap), f.kpi?.[0] ?? null, f.asOf ?? null], d.slug);
+    assert.equal(d.now.vsIssuePct, (price / d.issue.issuePrice! - 1) * 100, d.slug);
+  }
+});

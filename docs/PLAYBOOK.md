@@ -99,18 +99,32 @@ from there: industries and policies via `co()`, IPO peer tables via `companyFina
 with an NSE ticker carries no figures of its own; add it with `--add`). IPO valuation notes compare peers in words and
 point to the table instead of restating multiples that drift.
 
-`npx tsx scripts/refresh-financials.ts` re-reads every company from Screener in one run and writes
-a new snapshot dated today to the database (it prints which one first; the live one needs the
-go-ahead). The site shows it within about half an hour, no deploy:
+**The site refreshes itself.** Every NSE trading day, once it is past 18:30 IST, the first page view
+schedules a background chunk (after the response) that re-reads companies from Screener; later
+views carry it on a chunk at a time, and a weekday cron at 19:00 IST (`/api/financials/refresh`) is
+the backstop. Nothing shows until every company has been tried: then the run is published and the
+whole site moves to the new date at once. Companies Screener can't read keep their older snapshot
+and date; too many misses and the run isn't published at all (the site stays on yesterday). IPOs
+whose deck has gone `listed` with a `ticker` set are added in the same run. Needs `CRON_SECRET` in
+Vercel (Production + Preview); the visit trigger is off locally (`FINANCIALS_AUTO_REFRESH=1` to
+force it - it writes to the shared database). Progress: the `FinancialsRun` table.
+Details: ARCHITECTURE "Company figures".
+
+**By hand** (checks, fixes, or when a run is stuck): `npx tsx scripts/refresh-financials.ts`
+re-reads every company in one go; `--apply` writes a snapshot dated today (IST) and publishes it
+(it prints which database first; the live one needs the go-ahead; it waits while an automatic chunk
+holds the lease). The site shows it within about half an hour, no deploy:
 1. Dry run. It lists failures and writes `scripts/.refresh-financials-report.json` with every
    company whose authored FY22-FY26 revenue/profit differs from Screener's by >3%. Read it: some
    are genuine errors (a history shifted by a year, standalone figures where consolidated
    belong), some deliberate (pre-listing years left blank, explained in the note).
 2. `--fix-history=A,B,... --apply` refreshes price/valuation for everyone (one snapshot date)
    and replaces the listed companies' histories with Screener's. Update any note that the
-   fix makes stale ("only FY26 available") in `Company.financialsNote`.
-3. `--add=TICKER,...` adds companies we don't cover yet (IPO peers, a new sector's suppliers).
-A company Screener could not read keeps its older snapshot and date; screens then show the span.
+   fix makes stale ("only FY26 available") in `Company.financialsNote`. History is never changed
+   by the automatic refresh.
+3. `--add=TICKER,...` adds companies we don't cover yet (IPO peers, a new sector's suppliers),
+   dated at the published date so they show at once on the same date as everyone else.
+`--only A,B` is a dry run with before/after for a few companies (never with `--apply`).
 
 ## 1b. Add or refresh an upcoming IPO
 

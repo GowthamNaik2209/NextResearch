@@ -52,6 +52,16 @@ Old links with `w=capped` still open, read as market cap; their `cap` and `lcap`
 cleared from the URL. Adding a stock gives it an equal share (or back the % it had, if it was taken
 off this visit) and shrinks the rest in proportion; removing one scales the rest back up to 100%.
 
+**One selection per basket page** (`src/lib/baskets/selection.ts`, unit-tested): the stocks, their
+custom weights, the chart's lines, where each stock was picked from and what was just taken off all
+change together through one reducer, so the picker, the stock table, the side list, the chart's
+Stocks menu and the custom weights never disagree. Removing is soft ("Removed X · Undo" restores
+its place, weight and line); a removed stock's line is dropped, never handed to another stock once
+the reader has chosen lines; a save that fails reloads the basket and its weights and lines with it.
+Every "start from" path (Copy to my baskets on industry, rule-based and shared baskets; the
+watchlist's Save as a basket) opens the unsaved draft at `/baskets/new?from=…`; nothing is saved
+until Create basket. A basket holds up to 75 stocks; an add that would pass that says how many went in.
+
 **What a saved basket stores:** `Basket.weighting` (EQUAL or MCAP) plus `Basket.customWeighting`
 (true when custom) and each `BasketItem.weight` (its custom %). The weights are kept when the
 owner switches to Equal or M-cap, so switching back to Custom restores them. Layer-balanced and

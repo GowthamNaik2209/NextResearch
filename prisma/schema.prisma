@@ -80,6 +80,30 @@ model KpiSnapshot {
   @@unique([companyId, asOf])
 }
 
+// One automatic refresh of the company table per NSE trading day (src/lib/financials/refresh.ts).
+// A run writes each company's KpiSnapshot dated `snapshotDate` a chunk at a time; the app shows only
+// snapshots dated on or before the latest PUBLISHED run, so a half-finished run is never visible and
+// every company shares one date. `leaseUntil` lets one chunk at a time work on it, across instances.
+enum FinancialsRunStatus {
+  RUNNING
+  PUBLISHED
+  FAILED
+}
+
+model FinancialsRun {
+  id           String              @id @default(cuid())
+  // The IST trading day the figures are for, at UTC midnight (like KpiSnapshot.asOf).
+  snapshotDate DateTime            @unique
+  status       FinancialsRunStatus @default(RUNNING)
+  // Tracked companies with a snapshot dated snapshotDate / in the table; tickers Screener could not read.
+  done         Int                 @default(0)
+  total        Int                 @default(0)
+  failed       String[]            @default([])
+  leaseUntil   DateTime?
+  startedAt    DateTime            @default(now())
+  publishedAt  DateTime?
+}
+
 // Mirrors a Supabase auth.users row (id = that user's UUID) for FK convenience.
 model Profile {
   id        String      @id
@@ -139,6 +163,8 @@ model BasketItem {
   priceAtAdd Decimal?
   // Custom weighting: the stock's target, % of the basket (the items total 100). Null otherwise.
   weight     Float?
+  // The industry slug the stock was picked from (Add stocks > industry), or null (search, copy, older rows).
+  pickedFrom String?
   addedAt    DateTime @default(now())
 
   @@unique([basketId, ticker])

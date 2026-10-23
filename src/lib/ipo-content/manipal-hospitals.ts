@@ -12,6 +12,7 @@ export const manipalHospitals: IpoReport = {
   sectorLabel: "Hospitals & healthcare delivery",
   tagline: "India's largest hospital network by beds, now listed after a ₹9,275 Cr IPO",
   asOf: "Oct 2026",
+  ticker: "MANIPALHOS",
 
   status: {
     stage: "listed",
@@ -36,6 +37,7 @@ export const manipalHospitals: IpoReport = {
     ofsCr: 1275.22,
     ofsShares: "2.16 crore shares",
     priceBand: "₹560-590 (priced at ₹590)",
+    issuePrice: 590,
     lotSize: "25 shares (₹14,750 at the upper band)",
     faceValue: "₹2",
     valuation: "~₹77,607 Cr market cap at the upper band",
@@ -76,7 +78,7 @@ export const manipalHospitals: IpoReport = {
     },
     {
       title: "The biggest healthcare listing sets a new reference point",
-      body: "At ~₹84,500 Cr, Manipal is now the second-most valuable listed hospital chain after Apollo. Its multiple sits well above Apollo, Max and Fortis, so delivery on occupancy and ARPOB will decide the re-rating.",
+      body: "Manipal joined Apollo and Max among the most valuable listed hospital chains (current figures under \"Now listed\"). Its multiple sits well above Apollo, Max and Fortis, so delivery on occupancy and ARPOB will decide the re-rating.",
     },
   ],
 
@@ -189,7 +191,7 @@ export const manipalHospitals: IpoReport = {
     { name: "Medanta (Global Health)", ticker: "MEDANTA", note: "Gurugram-led, high-acuity, expanding in north and east" },
   ],
   valuationNote:
-    "At ₹590, the IPO valued Manipal at ~₹77,600 Cr, about 76-85x FY26 earnings and ~35x EV/EBITDA, against 66-75x for Apollo, Max and Fortis at the time (FundsIndia, ICICI Direct, Angel One). Since listing it has traded at a premium to the listed peers in the table.",
+    "At ₹590, the IPO valued Manipal at ~₹77,600 Cr, about 76-85x FY26 earnings and ~35x EV/EBITDA, against 66-75x for Apollo, Max and Fortis at the time (FundsIndia, ICICI Direct, Angel One). Since listing it has traded at a premium to the listed peers: the \"Now listed\" panel above carries its current P/E, the table the peers'.",
 
   strengths: [
     { title: "Unmatched bed scale and metro leadership", body: "Largest pan-India network by beds and the only private chain leading three metros (Bengaluru, Kolkata, Pune) by bed capacity, per Crisil." },

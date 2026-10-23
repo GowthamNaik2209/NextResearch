@@ -34,6 +34,13 @@ export type IpoReport = {
   tagline: string;
   /** Month the content was written against, e.g. "Oct 2026". */
   asOf: string;
+  /**
+   * Once listed: the company's ticker in the shared company table (its NSE symbol; NSE itself, listed
+   * only on BSE, is "NSE"). Required for stage "listed". The deck's "Now listed" figures (price,
+   * market cap, P/E, as of the table's date) come from the table - never type them into the text;
+   * add the company with `scripts/refresh-financials.ts --add=TICKER`.
+   */
+  ticker?: string;
 
   status: {
     stage: IpoStage;
@@ -54,6 +61,8 @@ export type IpoReport = {
     /** Shares offered for sale when the rupee value is not yet fixed, e.g. "11.35 crore shares". */
     ofsShares?: string;
     priceBand: string | null;
+    /** Final issue price in ₹ per share once allotted (history, authored); a listed deck compares today's price with it. Required for stage "listed". */
+    issuePrice?: number;
     lotSize: string | null;
     faceValue: string | null;
     /** Market cap at the upper band, or the reported expected valuation; say which. */

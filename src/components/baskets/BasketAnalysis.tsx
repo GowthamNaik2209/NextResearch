@@ -35,6 +35,7 @@ export function BasketAnalysis({
   benchName = "Nifty 50",
   heading = "h2",
   reload = 0,
+  empty = false,
 }: {
   range: ChartRange;
   basketKey: string;
@@ -43,15 +44,18 @@ export function BasketAnalysis({
   heading?: "h2" | "h3";
   /** Bumped by the page's Retry: forgets a failed load so the panel tries again. */
   reload?: number;
+  /** No stocks yet: the panel keeps its place and size, with a line saying so. */
+  empty?: boolean;
 }) {
   const [view, setView] = useState<View>("dd");
-  const { get } = useSeries([basketKey, benchKey], range, { reload });
+  const { get, retry } = useSeries(empty ? [] : [basketKey, benchKey], range, { reload });
   const b = get(basketKey);
   const n = get(benchKey);
   const points = useMemo(() => (b?.status === "ok" ? b.data.points.filter((p) => p.c > 0) : null), [b]);
   const bench = useMemo(() => (n?.status === "ok" ? n.data.points.filter((p) => p.c > 0) : n?.status === "error" ? [] : null), [n]);
 
-  if (b?.status === "error") return null;
+  // A failed load keeps the panel at its size, with the reason and a Retry, instead of vanishing.
+  const failed = !empty && b?.status === "error";
   const ready = points && bench && points.length >= 2;
   const freq = points && points.length >= 3 ? (periodsPerYear(points) === 52 ? "weekly" : periodsPerYear(points) === 12 ? "monthly" : "daily") : null;
 
@@ -85,9 +89,22 @@ export function BasketAnalysis({
         </div>
       }
     >
-      {!ready ? (
+      {empty || failed ? (
+        <div className="flex h-[13rem] items-center justify-center px-4 text-center text-xs text-ink-soft">
+          {empty ? (
+            "Add stocks to see how the basket fell and recovered, month by month."
+          ) : (
+            <span>
+              Couldn&rsquo;t load the backtest analysis right now.{" "}
+              <button type="button" onClick={() => retry(basketKey)} className="font-semibold text-accent underline">
+                Retry
+              </button>
+            </span>
+          )}
+        </div>
+      ) : !ready ? (
         b?.status === "ok" && points && points.length < 2 ? (
-          <Note>Not enough history in this range.</Note>
+          <div className="flex h-[13rem] items-center justify-center px-4 text-center text-xs text-ink-soft">Not enough history in this range.</div>
         ) : (
           <div aria-busy className="h-[13rem] animate-pulse bg-line/40" />
         )

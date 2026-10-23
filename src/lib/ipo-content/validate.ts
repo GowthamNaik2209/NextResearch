@@ -2,6 +2,7 @@
 // content test. Returns human-readable problems; an empty list means the deck is well formed.
 import { companyFinancials } from "../sector-content";
 import type { IpoReport } from "./types";
+import { authoredStage } from "./index";
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 const near100 = (xs: number[]) => Math.abs(sum(xs) - 100) <= 2;
@@ -33,6 +34,16 @@ export function validateIpo(r: IpoReport): string[] {
     need(companyFinancials(peer.ticker), `peer ${peer.ticker} is not in the company table - run scripts/refresh-financials.ts --add=${peer.ticker}`);
     need(peer.mcapCr === undefined && peer.revenueCr === undefined && peer.pe === undefined, `peer ${peer.ticker}: leave out mcapCr/revenueCr/pe - they come from the company table`);
     need(!/\b(Screener|TTM|trailing)\b/i.test(peer.note), `peer ${peer.ticker}: note should say why it compares, not restate figures or their source`);
+  }
+  // A listed deck shows its own current figures from the same table, dated, beside the issue price.
+  // Held to the authored stage: listing day rolls the chip forward before anyone can add the ticker.
+  if ((authoredStage(r.slug) ?? r.status.stage) === "listed") {
+    need(r.ticker, `a listed deck must name its ticker (the company table's, e.g. its NSE symbol) - add the company with scripts/refresh-financials.ts --add=TICKER`);
+    need(r.issue.issuePrice != null && r.issue.issuePrice > 0, "a listed deck needs issue.issuePrice (the final issue price, ₹ per share)");
+  }
+  if (r.ticker) {
+    need(companyFinancials(r.ticker), `${r.ticker} (the deck's own ticker) is not in the company table - run scripts/refresh-financials.ts --add=${r.ticker}`);
+    need(!r.peers.some((p) => p.ticker === r.ticker), `${r.ticker} is the deck's own company; it cannot also be a peer`);
   }
   need(r.strengths.length === 4, "strengths needs exactly 4");
   need(r.risks.length >= 4 && r.risks.length <= 5, "risks needs 4-5");
