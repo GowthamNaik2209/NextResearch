@@ -1384,6 +1384,8 @@ export function buildDatacenter(ctx: Ctx) {
     return keys[keys.length - 1][1];
   };
   return {
+    // The rack LEDs blink (onBeforeRender above), so the engine keeps drawing frames while idle.
+    animated: true,
     applyLevel(v: number) {
       L.set("ground", pw(v, [[0, 1], [1, 0.55], [2, 0.32], [3, 0.28]]));
       L.set("shell", pw(v, [[0, 1], [1, 0.14], [2, 0.07], [3, 0.05]]));

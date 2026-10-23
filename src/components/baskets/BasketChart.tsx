@@ -14,7 +14,7 @@ import { cssVar, useSiteTheme, type SiteTheme } from "@/lib/theme";
 import { axisPct, fmtDay, fmtMonth, NA, signedPct } from "@/lib/format";
 import { slackDaysFor } from "@/lib/baskets/backtest";
 import { useSeries } from "./use-series";
-import { MAX_CHART_STOCKS, type ChartSelection } from "@/lib/baskets/selection";
+import { LINES_FULL, MAX_CHART_STOCKS, type ChartSelection } from "@/lib/baskets/selection";
 
 export { MAX_CHART_STOCKS, type ChartSelection };
 
@@ -58,7 +58,9 @@ export function BasketChart({
   stocks,
   selection,
   onSelection,
-  onPick,
+  onToggleStock,
+  onPickAll,
+  onPickNone,
 }: {
   range: ChartRange;
   rangeLong: string;
@@ -77,11 +79,15 @@ export function BasketChart({
   stocks: { ticker: string; name: string }[];
   selection: ChartSelection;
   onSelection: Dispatch<SetStateAction<ChartSelection>>;
-  /** Called when the reader switches a stock's line on or off, so the page can tell their own picks from the lines it drew by default. */
-  onPick?: () => void;
+  /** A stock's line on or off. The page's selection does it (the stock table's line ticks do the
+   * same), so the two always agree and the line limit is kept in one place. */
+  onToggleStock: (ticker: string) => void;
+  /** Every stock's line on, up to the line limit. */
+  onPickAll: () => void;
+  /** Every stock's line off; the basket, benchmarks and compared baskets stay. */
+  onPickNone: () => void;
 }) {
   const { benches, compare, picks } = selection;
-  const setPicks = (f: (p: Record<string, number>) => Record<string, number>) => onSelection((s) => ({ ...s, picks: f(s.picks) }));
   const setBenches = (f: (b: string[]) => string[]) => onSelection((s) => ({ ...s, benches: f(s.benches) }));
   const setCompare = (f: (c: string[]) => string[]) => onSelection((s) => ({ ...s, compare: f(s.compare) }));
   const [menu, setMenu] = useState<"compare" | "stocks" | null>(null);
@@ -249,19 +255,9 @@ export function BasketChart({
 
   const picked = Object.keys(picks).length;
   const full = picked >= MAX_CHART_STOCKS;
-  const toggleStock = (t: string) => {
-    onPick?.();
-    setPicks((p) => {
-      if (p[t] != null) {
-        const rest = { ...p };
-        delete rest[t];
-        return rest;
-      }
-      if (Object.keys(p).length >= MAX_CHART_STOCKS) return p;
-      const used = new Set(Object.values(p));
-      return { ...p, [t]: [...Array(MAX_CHART_STOCKS).keys()].find((i) => !used.has(i))! };
-    });
-  };
+  // Select all can't draw every stock of a basket longer than the line limit: it draws the first ones.
+  const capped = stocks.length > MAX_CHART_STOCKS;
+  const allOn = picked >= Math.min(stocks.length, MAX_CHART_STOCKS);
   const toggleBench = (id: string) => setBenches((b) => (b.includes(id) ? b.filter((x) => x !== id) : [...b, id]));
   const toggleCompare = (slug: string) => setCompare((c) => (c.includes(slug) ? c.filter((x) => x !== slug) : c.length >= MAX_COMPARE ? c : [...c, slug]));
 
@@ -345,9 +341,29 @@ export function BasketChart({
                       {picked === stocks.length ? `all ${picked} on` : `${picked} of ${stocks.length} on`}
                     </span>
                   </div>
+                  {/* Always here, whatever the basket's size, so the menu's rows never move under a tap. */}
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={onPickAll}
+                      disabled={allOn}
+                      title={capped ? `Draws the first ${MAX_CHART_STOCKS}: the chart's line limit` : undefined}
+                      className="inline-flex min-h-9 items-center rounded border border-line bg-bg px-2.5 text-xs font-semibold text-ink hover:border-accent disabled:cursor-default disabled:text-ink-soft disabled:hover:border-line sm:min-h-7 pointer-coarse:min-h-9"
+                    >
+                      Select all
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onPickNone}
+                      disabled={picked === 0}
+                      className="inline-flex min-h-9 items-center rounded border border-line bg-bg px-2.5 text-xs font-semibold text-ink hover:border-accent disabled:cursor-default disabled:text-ink-soft disabled:hover:border-line sm:min-h-7 pointer-coarse:min-h-9"
+                    >
+                      Clear all
+                    </button>
+                  </div>
                   {/* Visibility only: these switch a stock's line on or off; they don't change the basket. */}
-                  <p className={"mt-1 text-[11px] leading-snug " + (full ? "text-ink" : "text-ink-soft")}>
-                    {full ? `Up to ${MAX_CHART_STOCKS} lines at a time. Switch one off to show another.` : `Lines only: the ${stocks.length} stocks stay in the basket either way.`}
+                  <p className={"mt-1.5 text-[11px] leading-snug " + (full ? "text-ink" : "text-ink-soft")}>
+                    {full && capped ? `First ${MAX_CHART_STOCKS} shown · chart limit. Switch one off to show another.` : full ? LINES_FULL : `Lines only: the ${stocks.length} stocks stay in the basket either way.`}
                   </p>
                   {stocks.length > 12 && (
                     <input
@@ -369,7 +385,7 @@ export function BasketChart({
                           on={on}
                           disabled={!on && full}
                           disabledTitle={`Up to ${MAX_CHART_STOCKS} stocks at a time`}
-                          onToggle={() => toggleStock(st.ticker)}
+                          onToggle={() => onToggleStock(st.ticker)}
                           label={st.name}
                           sub={st.ticker}
                           swatch={on ? { ...stockLine(theme, slot), width: 2 } : undefined}
@@ -415,10 +431,9 @@ export function BasketChart({
               .join(" · ");
             const mine = line.key === basketKey;
             return (
-              // Stock rows are phone-only: from lg the left column lists every stock with its line colour.
               // Stock names are ink, not accent: the basket's own line is accent, and the swatch
               // already shows each stock's colour.
-              <li key={line.key} className={"flex items-center gap-3 px-3 py-2 text-sm " + (mine ? "bg-accent/5 " : "") + (line.stock ? "lg:hidden" : "")}>
+              <li key={line.key} className={"flex items-center gap-3 px-3 py-2 text-sm " + (mine ? "bg-accent/5" : "")}>
                 <svg aria-hidden width="22" height="10" className={"shrink-0 " + (short || failed ? "opacity-30" : "")}>
                   <line x1="2" y1="5" x2="20" y2="5" stroke={line.color} strokeWidth={line.width} strokeDasharray={DASHARRAY[line.dash]} strokeLinecap="round" />
                 </svg>

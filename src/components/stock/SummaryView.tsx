@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { EXPOSURE_STRENGTH_LABEL, EXPOSURE_TYPE_LABEL, type SectorSupplier } from "@/lib/sector-content";
+import { EXPOSURE_STRENGTH_LABEL, EXPOSURE_TYPE_LABEL, type SectorSupplier } from "@/lib/sector-content/core";
 import type { StockApi, StockTab } from "./types";
 import { fmtNum, fmtSigned, fmtYield, freshQuote, mergeStats, pctTone, REIT_NOTE, revenueSeries } from "./merge";
 import { croreShort, inr, NA, pct } from "@/lib/format";

@@ -130,9 +130,9 @@ export type SectorCompany = {
   zones: SectorCompanyZone[];
 };
 
-// A sector can list one company under two supplier keys for two roles (aerospace has HAL as the
-// prime and as the MRO shop; energy has BHEL for thermal and for hydro). Pages and counts group
-// them by ticker so the company shows once, with every role and layer it plays in that sector.
+// One card per company, with every layer it plays in that sector. A company has one supplier record
+// per sector (validate:content enforces it since HAL's and BHEL's duplicate records were merged),
+// but pages and counts still group by ticker, so a second record could never show it twice.
 export function sectorCompanies(sector: SectorWithSlug): SectorCompany[] {
   const byTicker = new Map<string, SectorCompany>();
   for (const [key, sup] of Object.entries(sector.suppliers)) {

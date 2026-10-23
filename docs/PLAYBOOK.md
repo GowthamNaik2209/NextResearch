@@ -23,9 +23,15 @@ the contract up front so they can run at the same time:
 - **A model stub** `src/lib/sector-content/models/<slug>.ts` exporting `<SLUG>_ANCHORS`
   (`{ zoneId: { pos, side } }`), `<SLUG>_VIEWS` and `build<Slug>()`. Zones reference
   `pos: <SLUG>_ANCHORS.<id>.pos, side: <SLUG>_ANCHORS.<id>.side` and `views: <SLUG>_VIEWS`, so the
-  model author moves anchors without touching products.ts.
-- **A temporary `muted: true` stub sector** in products.ts so `/sector/<slug>/explore` renders
-  immediately for the 3D author. The content author replaces it and removes `muted`.
+  model author moves anchors without touching the content file.
+- **A temporary `muted: true` stub sector** `src/lib/sector-content/sectors/<slug>.ts` (copy an
+  existing one: `const <slug> = {...}; export default <slug>;`, `build: function(ctx:
+  Parameters<typeof build<Slug>>[0]){ return build<Slug>(ctx); }`), registered in **two** places:
+  an import + entry in `products.ts` (the server registry, in site order) and a line in
+  `sectors/load.ts` (the browser loader, one chunk per sector). validate:content fails if they
+  differ. The content author fills it in and removes `muted`.
+- Client code never imports `@/lib/sector-content` (index.ts pulls in every sector): use
+  `@/lib/sector-content/core` for helpers and `import type` for types.
 - **Placeholders** in shared files (`scenarios.ts`, `docs.ts`, `reports/index.ts`) so parallel
   edits never collide; remove every placeholder/marker comment before committing.
 
@@ -48,8 +54,11 @@ the contract up front so they can run at the same time:
   --add=TICKER` (dry run, then `--apply` with the go-ahead), then check its row and note. One-off
   dominated latest year -> set `Company.screenOut`.
 - Use one supplier key per company within a sector, referenced from several zones with different
-  `exposureType`/`exposureStrength`. Link genuine cross-sector companies (L&T, Polycab...) -
-  that is what `/connections` shows.
+  `exposureType`/`exposureStrength`; its `role`/`strengths`/`risks` cover every part it plays
+  there (validate:content fails a second record for the same ticker). Retiring a key (merging,
+  renaming) -> add `keyAliases: { oldKey: "newKey" }` to the sector so old `?company=` links still
+  work, then `db:extract`. Link genuine cross-sector companies (L&T, Polycab...) - that is what
+  `/connections` shows.
 - Lenders and other enablers: mark `exposureType: "enabler"` so they don't inflate sector revenue
   or crowd the news feed (centrality).
 - **Also author:** 3-4 scenarios, 2-4 reading links (load each URL), and the 10-slide deck
@@ -82,9 +91,10 @@ the contract up front so they can run at the same time:
 
 ### 1.4 Policies (since Oct 2026)
 
-A policy (category "policy": a government move and the stocks it benefits) lives in its own files
-instead of products.ts, so parallel authors never edit the same file:
-`sector-content/policies/<slug>.ts` (the sector def; `define<Slug>(h)` gets co, ASOF, SRC),
+A policy (category "policy": a government move and the stocks it benefits) lives in its own files,
+like every sector, so parallel authors never edit the same file:
+`sector-content/policies/<slug>.ts` (the sector def; `define<Slug>(h)` gets co, ASOF, SRC; a
+three-line `sectors/<slug>.ts` binds it and is registered in `products.ts` + `sectors/load.ts`),
 `policies/<slug>.extras.ts` (typed scenarios and reading list, wired into scenarios.ts and
 docs.ts), `models/<slug>.ts` and `reports/<slug>.ts`. Every company, new or reused, is `co()`;
 a new ticker's figures go into the company table with `refresh-financials.ts --add`.
@@ -156,6 +166,9 @@ holds the lease). The site shows it within about half an hour, no deploy:
   phone views were already approved keep them; desktop is never affected.
 - Keep the scene compact (about +/-5 units); the engine fits default/top views to the stage, but
   very wide plinths still get small on phones.
+- Anything that moves on its own (blinking LEDs, spinning rotors via `onBeforeRender`) needs
+  `animated: true` in the object `build()` returns: the engine renders on demand and would
+  otherwise freeze it once the camera stops.
 - Verify every layer and every view in light and dark, at 375 px and 1440 px, with the tab in
   front (see the gotchas below).
 
@@ -189,7 +202,9 @@ The bar the user set: **no omissions**. Before anything goes to `staging`:
 | Theme flips mid-test | `nr-theme` in localStorage is shared by every tab | Set `document.documentElement.dataset.theme` directly when testing |
 | REIT price "live" but from 2024 | Yahoo's plain `.NS` symbol is frozen after the move to the RR series | `isFreshQuote` + the `.NS`/`-RR.NS`/`-SM.NS`/`.BO` fallback chain |
 | Fundamentals tab shows bare "%" | Empty consolidated template on Screener | `isUsablePage` -> standalone; drop empty sections |
-| Same company twice on a sector page | Two supplier keys share a ticker | Count and list by ticker (`sectorCompanies`) |
+| Same company twice on a sector page | Two supplier keys share a ticker | One record per company (validate:content); merge and add `keyAliases` |
+| Explorer bundle carried every sector | Client code imported `@/lib/sector-content` | Import `core.ts`; the explorer loads its sector via `sectors/load.ts` |
+| A model's animation freezes when idle | Render on demand stops drawing | Return `animated: true` from `build()` |
 | Sector revenue/news dominated by banks | Side-exposed mega-caps | `exposureType: "enabler"`; centrality |
 | One earnings story five times in a feed | Several outlets, different wording | `sameStory` dedupe |
 | Netflix "Lupin" tagged to the drugmaker | Single-word company names | `NOT_BUSINESS` filter + tests |

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { SectorDef } from "@/lib/sector-content";
-import { tickerForSupplier } from "@/lib/sector-content";
+import type { SectorDef } from "@/lib/sector-content/core";
+import { tickerForSupplier } from "@/lib/sector-content/core";
 import { WatchlistButton } from "./WatchlistButton";
 import { useStockData } from "@/components/stock/useStockData";
 import { mergeStats } from "@/components/stock/merge";

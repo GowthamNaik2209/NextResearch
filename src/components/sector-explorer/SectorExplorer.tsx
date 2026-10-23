@@ -1,17 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { use, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   companyLinkExposure,
   companyLinkKey,
-  getSector,
+  resolveSupplierKey,
   tickerForSupplier,
   EXPOSURE_TYPE_LABEL,
   EXPOSURE_STRENGTH_LABEL,
   type SupplierFinancials,
-} from "@/lib/sector-content";
+} from "@/lib/sector-content/core";
+import { loadSector } from "@/lib/sector-content/sectors/load";
 import { installFinancials } from "@/lib/financials/store";
 import { listScenarios, scenarioCompanies, scenarioZoneImpacts } from "@/lib/sector-content/scenarios";
 import { mountExplorer, type ExplorerController, type ExplorerDom, type ImpactMap } from "./engine";
@@ -52,11 +53,13 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
   // Fill this sector's suppliers (`f`) before anything below reads them. Idempotent (the same
   // figures land in the same places), so running it during render is safe.
   useMemo(() => installFinancials(figures, { partial: true }), [figures]);
-  // Looked up here (client bundle) rather than passed as a prop from the server
-  // page — the sector object carries three.js geometry-building functions, which
-  // can't cross the server/client boundary as React props. The page's own
-  // getSector(slug) check (src/app/sector/[slug]/explore/page.tsx) guarantees this exists.
-  const sector = getSector(slug)!;
+  // Loaded here (client bundle) rather than passed as a prop from the server page: the sector
+  // object carries three.js geometry-building functions, which can't cross the server/client
+  // boundary as React props. loadSector fetches only this sector's chunk (not every sector's
+  // content and models); until it arrives this suspends into the page's "Loading the 3D
+  // explorer…" fallback. The page's own getSector(slug) check (src/app/sector/[slug]/explore/
+  // page.tsx) guarantees it exists.
+  const sector = use(loadSector(slug))!;
 
   const stageRef = useRef<HTMLDivElement>(null);
   const leaderSvgRef = useRef<SVGSVGElement>(null);
@@ -79,8 +82,9 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
     return id && sector.zones.some((z) => z.id === id) ? id : null;
   });
   const [currentSupplier, setCurrentSupplier] = useState<string | null>(() => {
-    const key = searchParams0.get("company");
-    return key && sector.zones.some((z) => z.id === searchParams0.get("zone")) && sector.suppliers[key] ? key : null;
+    // resolveSupplierKey follows retired keys (merged duplicate records) to today's key.
+    const key = resolveSupplierKey(sector, searchParams0.get("company"));
+    return key && sector.zones.some((z) => z.id === searchParams0.get("zone")) ? key : null;
   });
   const [activeView, setActiveView] = useState<string>(sector.defaultView || sector.views[0]?.id);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -270,9 +274,9 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
     // nested in `if` blocks — same outcome, but it's what the state-in-effect lint
     // rule wants: an early-return shape it can't tell apart from stale state.
     const linkedZoneId = searchParams.get("zone");
-    const linkedCompanyKey = searchParams.get("company");
+    const linkedCompanyKey = resolveSupplierKey(sector, searchParams.get("company"));
     const validZone = linkedZoneId && sector.zones.some((z) => z.id === linkedZoneId) ? linkedZoneId : null;
-    const validCompany = validZone && linkedCompanyKey && sector.suppliers[linkedCompanyKey] ? linkedCompanyKey : null;
+    const validCompany = validZone ? linkedCompanyKey : null;
     if (validZone) controller.selectZone(validZone);
     setCurrentZoneId(validZone);
     setCurrentSupplier(validCompany);
