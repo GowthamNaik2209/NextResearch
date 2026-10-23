@@ -6,9 +6,9 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } f
 // a phone). The note is fixed-positioned under the button and kept 16px inside the screen; a tap
 // outside, Escape, a second tap or scrolling the page closes it (so it never slides under the
 // sticky header).
-export function InfoTip({ label, children }: { label: string; children: ReactNode }) {
+export function InfoTip({ label, children, wide = false }: { label: string; children: ReactNode; /** A longer note (a method explained): wider, and scrolls inside itself. */ wide?: boolean }) {
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; width: number; maxHeight: number } | null>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -17,9 +17,10 @@ export function InfoTip({ label, children }: { label: string; children: ReactNod
     if (!open || !btn.current) return;
     const place = () => {
       const r = btn.current!.getBoundingClientRect();
-      const width = Math.min(280, window.innerWidth - 32);
+      const width = Math.min(wide ? 420 : 280, window.innerWidth - 32);
       const left = Math.max(16, Math.min(r.left + r.width / 2 - width / 2, window.innerWidth - 16 - width));
-      setPos({ top: r.bottom + 6, left, width });
+      // Never past the bottom of the screen: a long note scrolls inside itself.
+      setPos({ top: r.bottom + 6, left, width, maxHeight: Math.max(160, window.innerHeight - r.bottom - 22) });
     };
     place();
     // A scroll inside the note itself is fine; the page scrolling closes it.
@@ -32,7 +33,7 @@ export function InfoTip({ label, children }: { label: string; children: ReactNod
       window.removeEventListener("resize", place);
       window.removeEventListener("scroll", onScroll, true);
     };
-  }, [open]);
+  }, [open, wide]);
 
   useEffect(() => {
     if (!open) return;
@@ -72,8 +73,8 @@ export function InfoTip({ label, children }: { label: string; children: ReactNod
           ref={box}
           id={id}
           role="note"
-          style={{ top: pos.top, left: pos.left, width: pos.width }}
-          className="fixed z-50 rounded-md border border-line bg-panel p-3 text-left text-xs font-normal normal-case leading-relaxed tracking-normal text-ink shadow-lg"
+          style={{ top: pos.top, left: pos.left, width: pos.width, maxHeight: pos.maxHeight }}
+          className="fixed z-50 overflow-y-auto overscroll-contain rounded-md border border-line bg-panel p-3 text-left text-xs font-normal normal-case leading-relaxed tracking-normal text-ink shadow-lg"
         >
           {children}
         </div>

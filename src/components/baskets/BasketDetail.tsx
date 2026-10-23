@@ -976,11 +976,66 @@ export function BasketDetail(p: BasketDetailProps) {
         {projSeg("Exit at", "exit", ["own", "ind"] as const, (e) => EXIT_LABEL[e as ExitBasis], (e) =>
           e === "own" ? "Today’s P/E moves toward the stock’s own median of the last 3 years" : "Today’s P/E moves toward its industry’s median P/E",
         )}
-        <InfoTip label="How projections work">
-          <p>
-            Each stock grows from today&rsquo;s earnings at its usual pace, valued at a P/E moving toward its own or its industry&rsquo;s median.
-            Bear and Bull take slower or faster growth, margins and multiples. Details in the Assumptions tab.
-          </p>
+        <InfoTip label="How projections work" wide>
+          <p className="font-semibold">How a projection is worked out</p>
+          <ol className="mt-1 list-decimal space-y-1 pl-4">
+            <li>
+              <b>Which stocks.</b> Only stocks with at least 3 years in a row of revenue and net profit, and a price and market cap in our last
+              data update. Any other stock is left out, and its share of the basket is spread over the rest in proportion to their weights.
+            </li>
+            <li>
+              <b>Growth.</b> Its usual yearly revenue growth (the median of its years, or its overall rate over those years if lower), faded 40% of the way toward
+              10% a year, since fast growth rarely lasts. Kept between −25% and +40% a year.
+            </li>
+            <li>
+              <b>Margin.</b> Its net margin moves from today&rsquo;s a third of the way a year toward its aim, by at most 15% of today&rsquo;s
+              margin a year. A one-off year is left out.
+            </li>
+            <li>
+              <b>Valuation.</b> Today&rsquo;s P/E moves a third of the way a year toward its target, kept between 0.7× and 1.4× today&rsquo;s.
+              Loss-makers use price to sales on revenue instead.
+            </li>
+            <li>
+              <b>Price.</b> Return = today&rsquo;s earnings grown at that rate and margin, times the exit P/E, against today&rsquo;s price. Each
+              case is kept between −60% and +80% a year.
+            </li>
+            <li>
+              <b>Basket.</b> Bought today at your weights and held, no rebalancing. Its return is the weighted sum of its stocks&rsquo;; points
+              added are each stock&rsquo;s weight × return.
+            </li>
+            <li>
+              <b>Range and risk.</b> 1,000 simulated weekly paths that end around the chosen case and swing like the basket did over the past
+              year. The likely range holds 8 in 10 paths; drawdowns and the chance of a loss come from the same paths.
+            </li>
+          </ol>
+          <p className="mt-2 font-semibold">The options</p>
+          <ul className="mt-1 space-y-1">
+            <li>
+              <b>Next 1Y / 2Y</b>: how far ahead. The margin and P/E move a third of the way toward their targets in 1 year, two thirds in 2.
+            </li>
+            <li>
+              <b>Bear</b>: slower growth (by a quarter of the range of its past years, at least 3 points a year), its lowest margin of those years
+              and an exit multiple 10% lower (20% for price to sales).
+            </li>
+            <li>
+              <b>Base</b>: its usual growth, a margin halfway between today&rsquo;s and its median, and the target multiple.
+            </li>
+            <li>
+              <b>Bull</b>: faster growth by the same amount, its highest margin and an exit multiple 10% higher (20% for price to sales).
+            </li>
+            <li>
+              <b>Exit at Own P/E</b>: the target is the median of its P/E today, 1 year ago and 3 years ago. <b>Industry P/E</b>: the median
+              P/E of its home industry&rsquo;s listed companies (if none is known, its own).
+            </li>
+            <li>
+              <b>Weighting</b>: Equal, M-cap and Custom work as in the backtest; the projection follows your weights at once.
+              <b> Rebalancing</b> doesn&rsquo;t apply.
+            </li>
+            <li>
+              <b>Indices</b> (Nifty 50, industry indices) aren&rsquo;t projected: we don&rsquo;t forecast them.
+            </li>
+          </ul>
+          <p className="mt-2">Each stock&rsquo;s own figures are in the Assumptions tab under Projection analysis.</p>
           <p className="mt-1.5 text-ink-soft">{PROJECTION_DISCLAIMER}</p>
         </InfoTip>
       </div>
