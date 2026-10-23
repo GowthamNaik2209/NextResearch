@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { BasketStock } from "./industry";
 import { MAX_BASKET_STOCKS } from "./limits";
-import { initSelection, planAdd, selectionReducer as reduce, type SelectionState } from "./selection";
+import { MAX_CHART_STOCKS, initSelection, planAdd, selectionReducer as reduce, type SelectionState } from "./selection";
 import { weightsTotal } from "./strategy";
 
 const stock = (ticker: string): BasketStock => ({ ticker, name: ticker, mcapCr: 100, pe: 10, role: "", layer: "", industries: [], layerIn: {} });
@@ -35,19 +35,25 @@ test("remove drops the stock, its weight and its line; weights stay at 100", () 
   assert.equal(s.lastRemoved, "B");
 });
 
-test("a removed line passes on only while the lines are the page's defaults", () => {
+test("a removed line is never passed on to another stock", () => {
   const s0 = start(["A", "B", "C"], null, { A: 0, B: 1 });
-  const auto = reduce(s0, { type: "remove", ticker: "A" });
-  assert.deepEqual(auto.chart.picks, { B: 1, C: 0 });
-  const chosen = reduce(reduce(s0, { type: "choosePicks" }), { type: "remove", ticker: "A" });
-  assert.deepEqual(chosen.chart.picks, { B: 1 });
+  assert.deepEqual(reduce(s0, { type: "remove", ticker: "A" }).chart.picks, { B: 1 });
 });
 
-test("add draws a line only before the reader has chosen picks", () => {
+test("add never draws a line: only the reader does", () => {
   const s0 = start(["A"], null, { A: 0 });
-  assert.deepEqual(reduce(s0, { type: "add", stocks: [stock("B")] }).chart.picks, { A: 0, B: 1 });
-  const chosen = reduce(reduce(s0, { type: "choosePicks" }), { type: "add", stocks: [stock("B")] });
-  assert.deepEqual(chosen.chart.picks, { A: 0 });
+  assert.deepEqual(reduce(s0, { type: "add", stocks: [stock("B")] }).chart.picks, { A: 0 });
+  assert.deepEqual(reduce(start([]), { type: "add", stocks: [stock("B")] }).chart.picks, {});
+});
+
+test("Select all draws the lines in the table's order", () => {
+  const many = Array.from({ length: MAX_CHART_STOCKS + 4 }, (_, i) => `T${i}`);
+  const order = [...many].reverse();
+  const s = reduce(start(many), { type: "pickAll", order: ["ZZ", ...order] });
+  const on = Object.keys(s.chart.picks);
+  assert.equal(on.length, MAX_CHART_STOCKS);
+  assert.deepEqual(on.sort(), order.slice(0, MAX_CHART_STOCKS).sort());
+  assert.equal(s.chart.picks[order[0]], 0);
 });
 
 test("undo puts the stock back where it was, with its weight and its line", () => {
@@ -140,4 +146,32 @@ test("two quick removes are one Undo: restoring the burst latest first puts both
   // Once the offer has gone, the next remove starts a new burst.
   s = reduce(reduce(s, { type: "remove", ticker: "A" }), { type: "dismissUndo" });
   assert.deepEqual(reduce(s, { type: "remove", ticker: "C" }).burst, ["C"]);
+});
+
+test("a line tick, Select all and Clear all are the reader's picks, capped at the line slots", () => {
+  const many = Array.from({ length: MAX_CHART_STOCKS + 4 }, (_, i) => `T${i}`);
+  let s = start(many, null, { T3: 0 });
+  s = reduce(s, { type: "togglePick", ticker: "T5" });
+  assert.equal(s.picksChosen, true);
+  assert.deepEqual(s.chart.picks, { T3: 0, T5: 1 });
+  s = reduce(s, { type: "togglePick", ticker: "T3" });
+  assert.deepEqual(s.chart.picks, { T5: 1 });
+  // Select all keeps lines already on and fills the rest in basket order up to the limit.
+  s = reduce(s, { type: "pickAll" });
+  assert.equal(Object.keys(s.chart.picks).length, MAX_CHART_STOCKS);
+  assert.equal(s.chart.picks.T5, 1);
+  assert.equal(new Set(Object.values(s.chart.picks)).size, MAX_CHART_STOCKS);
+  // Full: one more tick changes nothing.
+  const off = many.find((t) => s.chart.picks[t] == null)!;
+  assert.equal(reduce(s, { type: "togglePick", ticker: off }), s);
+  // A stock not in the basket never gets a line.
+  assert.equal(reduce(s, { type: "togglePick", ticker: "ZZ" }), s);
+  s = reduce(s, { type: "pickNone" });
+  assert.deepEqual(s.chart.picks, {});
+  // A removed stock's line goes; Undo brings it back.
+  s = reduce(s, { type: "togglePick", ticker: "T0" });
+  s = reduce(s, { type: "remove", ticker: "T0" });
+  assert.deepEqual(s.chart.picks, {});
+  s = reduce(s, { type: "restore", ticker: "T0" });
+  assert.deepEqual(s.chart.picks, { T0: 0 });
 });

@@ -9,7 +9,7 @@ commands see the [README](../README.md); for step-by-step recipes (adding a sect
 ```
  authored content (git)                    live data (fetched server-side, cached)
  ───────────────────────                   ─────────────────────────────────────────
- sector-content/products.ts   ──┐          Yahoo Finance (yahoo-finance2)  quote, price history
+ sector-content/sectors/*.ts  ──┐          Yahoo Finance (yahoo-finance2)  quote, price history
    zones, suppliers (tickers),  │          Screener.in (HTML parse)        ratios, growth,
    3D scene                     │                                          shareholding, P&L,
  prisma/seed-source/            │                                          industry medians
@@ -41,11 +41,22 @@ Two rules shape most decisions:
 
 ### Authored sector content - `src/lib/sector-content/`
 
-- `products.ts` - the big authored file (3D geometry + zones + suppliers for each sector).
-  `@ts-nocheck` on purpose: it is scene content ported from the original artifact, not app
-  data. **Do not import it from client components** (it is large); import *types* only.
-- `index.ts` - the typed facade (`SectorDef`, `SectorZone`, `SectorSupplier`,
-  `SupplierFinancials`) and lookups (`getSector`, `listSectors`, `findSupplierByTicker`).
+- **One module per sector:** `sectors/<slug>.ts` (zones, suppliers, views, deep dive, the
+  `build` hook) + `models/<slug>.ts` (geometry, `ANCHORS`/`VIEWS`). Policies keep their content in
+  `policies/<slug>.ts` and `sectors/<slug>.ts` just binds it. `sectors/shared.ts` holds `co()`,
+  `ASOF`, `SRC`. The industry modules type-check by inference (no `@ts-nocheck`); `SectorDef` is
+  the shape and `validate:content` the guard for the graph.
+- `products.ts` - the registry: imports every sector module in site order (also the tie-break
+  for a company's home sector) plus the curated `NEWS` for the extract script.
+- `core.ts` - types (`SectorDef`, `SectorZone`, `SectorSupplier`, `SupplierFinancials`) and pure
+  helpers (link weights, labels, `tickerForSupplier`, `resolveSupplierKey`, `parseCrore`). **Client
+  components import from here** (or `import type`), never from `index.ts`.
+- `index.ts` - re-exports `core.ts` and adds the registry lookups (`getSector`, `listSectors`,
+  `findSupplierByTicker`, `primaryLink`). It pulls in every sector, so it is for server code,
+  scripts and tests.
+- `sectors/load.ts` - the browser's loader: `loadSector(slug)` is one dynamic import per sector,
+  so `/sector/<slug>/explore` downloads only its own sector (SectorExplorer reads it with
+  `use()`). Its slug list must match `products.ts` (validate:content + `sector-load.test.ts`).
   A company in several sectors has one supplier record *per sector*; `findSupplierByTicker` (and
   `companies.ts` `primaryAppearance`) pick the record from its **strongest link** (`linkWeight`:
   high > medium > low, enablers/indirect lower), so the pop-up and company page describe it alike.
@@ -62,8 +73,12 @@ Two rules shape most decisions:
 - `exposure.ts` - cross-sector footprint (same ticker joined across sectors; also returned by `/api/stock/[ticker]` as `footprint`). `scenarios.ts` - authored "what if" shocks per sector (zone severity + headwind/tailwind) and the ranking of exposed companies; the explorer lights the zones via `controller.setImpact`. Zone ids are checked by `validate:content`.
 - `stats.ts` - landing numbers and the search index; `insights.ts` - per-sector medians, the
   rule-based "idea" screens, and the news feed; `docs.ts` - the curated reading list;
-  `companies.ts` - company pages and `sectorCompanies()` (one card per *ticker* on a sector page:
-  two supplier keys can share a ticker, e.g. BHEL thermal + hydro, so always count/list by ticker).
+  `companies.ts` - company pages and `sectorCompanies()` (one card per *ticker* on a sector page).
+- **One supplier record per company per sector**, linked from every zone it plays in (each link
+  has its own `exposureType`/`exposureStrength`); validate:content fails a second record. A key
+  retired by merging duplicates goes in the sector's `keyAliases` (old -> new), so old
+  `?company=<key>` deep links still open the company (`resolveSupplierKey`). Aerospace's seven
+  doubled companies and Energy's BHEL were merged this way in Oct 2026.
 - **Centrality.** `CompanyMetrics.centrality` (0-1) is how central a sector is to a company (its
   strongest exposure there; enablers such as lenders are discounted). Sector revenue totals skip
   companies below `CORE_CENTRALITY`, and sector news feeds lead with core players - otherwise
@@ -291,8 +306,14 @@ after checking no watchlist references it (children cascade).
   - Default and "top" views are pulled back until the whole model fits (`fit`); close-ups keep
     their authored framing. Callouts whose marker is off-screen are hidden.
   - Each model file (`sector-content/models/<slug>.ts`) owns its geometry, `applyLevel` crossfade
-    (`layerMats()` buckets) and, for new sectors, exported `ANCHORS`/`VIEWS` that products.ts
-    references - so content and geometry can be authored in parallel.
+    (`layerMats()` buckets) and, for new sectors, exported `ANCHORS`/`VIEWS` that
+    `sectors/<slug>.ts` references - so content and geometry can be authored in parallel.
+  - **Render on demand** (`engine.ts` `invalidate()` / `animate()`): the loop runs every frame but
+    only redraws while something moves - a camera flight, OrbitControls damping, a layer
+    crossfade, marker easing, a hover/pick/scenario change, a resize or theme switch, or a change
+    in the stage/sheet/label layout. An idle explorer draws nothing. A model with its own motion
+    returns `animated: true` from `build()` (data-centre LEDs, energy's wind turbines) and keeps
+    drawing. Anything new that changes the scene from outside the loop must call `invalidate()`.
 - **Theming.** Colour tokens are CSS variables in `globals.css` (light is the default; dark via
   `data-theme="dark"` on `<html>`, set before paint by the inline script in `layout.tsx`).
   `explorer.css` mirrors the tokens because the explorer scopes its own copy - **change both
@@ -315,7 +336,8 @@ after checking no watchlist references it (children cascade).
 - **Comments explain *why*** (constraints, gotchas, trade-offs) - the code shows what.
 - **Add or unlock a sector / policy - complete the whole loop.** A sector is only done when every
   surface that lists companies knows about it. Checklist:
-  1. Author it in `products.ts` (zones with `layer`, suppliers with `f: co(...)` - add new tickers'
+  1. Author it in `sectors/<slug>.ts` + `models/<slug>.ts`, registered in `products.ts` and
+     `sectors/load.ts` (zones with `layer`, suppliers with `f: co(...)` - add new tickers'
      figures to the company table with `refresh-financials.ts --add`,
      domains, `whyNow`, `thesisSummary`, `integratorZoneId`, exposure links, 3D model) and leave
      `muted` off. The full recipe is in the [Playbook](PLAYBOOK.md).
@@ -347,7 +369,11 @@ after checking no watchlist references it (children cascade).
   candidate to split (rail / panel / header / camera framing) next.
 - Energy's opening "Platform" layer has no systems of its own, so phones show all its tags there.
 - DIGIFIBRE and STONEINDIA have no live quote source; they always show the stored figures.
-- `products.ts` is untyped (`@ts-nocheck`) authored content; `validate:content` is the only guard.
+- Sector modules type-check by inference, not against `SectorDef` (its `build` signature and the
+  deep-dive fields don't fit a `satisfies` check yet); policies and `products.ts` are still
+  `@ts-nocheck`. `validate:content` guards the graph.
+- `scenarios.ts` (every sector's "what if" text) still ships whole with the explorer; splitting it
+  per sector like the content would trim the explorer bundle a little further.
 - Screener scraping is fragile and sits in a legal grey area (see the note in
   `screener-company.ts`); a licensed data vendor would replace `lib/live/screener-*`.
 - Yahoo NSE quotes are ~15 minutes delayed; the UI says so. There is no streaming.

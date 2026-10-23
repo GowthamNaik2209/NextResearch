@@ -1,7 +1,7 @@
 // One basket's stock selection while it is being looked at or edited: the stocks, their custom
 // weights, which ones are drawn on the chart, where each was picked from and what was just taken
-// off (for Undo). Every list on the basket page (the stock picker, the table, the side list, the
-// chart's Stocks menu, the custom weights) reads this one state, and every change goes through
+// off (for Undo). Every list on the basket page (the stock picker, the stock table with its line
+// ticks and weight boxes, the chart's Stocks menu) reads this one state, and every change goes through
 // this reducer, so a stock taken off anywhere is gone everywhere at once and its weight and chart
 // line go with it. Pure, so it is unit-tested without a browser (selection.test.ts).
 import type { BasketStock } from "./industry";
@@ -10,6 +10,8 @@ import { addToWeights, customTargets, removeFromWeights, toPercents } from "./st
 
 /** Chart lines a basket page can draw for single stocks (six colours, three dash styles). */
 export const MAX_CHART_STOCKS = 18;
+/** What the page says when a line is asked for with every line slot taken (table tick or Stocks menu). */
+export const LINES_FULL = `Up to ${MAX_CHART_STOCKS} lines at a time. Switch one off to show another.`;
 
 /** What the reader has switched on in the chart: indices, other industry baskets, and stocks (ticker -> line slot). */
 export type ChartSelection = { benches: string[]; compare: string[]; picks: Record<string, number> };
@@ -46,6 +48,14 @@ export type SelectionAction =
   | { type: "setCustom"; weights: Record<string, number> | null }
   | { type: "chart"; next: ChartSelection | ((s: ChartSelection) => ChartSelection) }
   | { type: "choosePicks" }
+  /** A stock's chart line on or off (the table's tick, the Stocks menu's switch): the reader's own pick. */
+  | { type: "togglePick"; ticker: string }
+  /** Every stock's line on, as many as there are line slots (lines already on keep theirs), in
+   * `order` (the stock table's current sort, which the chart's Stocks menu lists in too), so the
+   * lines drawn are the top rows the reader sees; stocks not in it follow in basket order. */
+  | { type: "pickAll"; order?: string[] }
+  /** Every stock's line off (the basket and what it is compared with stay). */
+  | { type: "pickNone" }
   | { type: "dismissUndo" };
 
 export function initSelection(o: {
@@ -107,22 +117,13 @@ export function selectionReducer(state: SelectionState, action: SelectionAction)
       const earlier = Object.fromEntries(tickers.flatMap((t) => (state.takenOff[t]?.weight != null ? [[t, state.takenOff[t].weight!]] : [])));
       const takenOff = { ...state.takenOff };
       for (const t of tickers) delete takenOff[t];
-      // A new stock gets a line only while the lines are still the page's defaults: once the reader
-      // has chosen their own, an add never changes the chart under them.
-      let picks = state.chart.picks;
-      if (!state.picksChosen) {
-        picks = { ...picks };
-        for (const t of tickers) {
-          const slot = freeSlot(picks);
-          if (slot == null) break;
-          picks[t] = slot;
-        }
-      }
+      // No line for a new stock: every basket opens with no stock lines and only the reader draws
+      // them (one default for every kind of basket, see docs/STRATEGIES.md), so an add never
+      // changes the chart.
       return {
         ...state,
         stocks: [...state.stocks, ...fresh],
         custom: state.custom ? addToWeights(state.custom, tickers, earlier) : null,
-        chart: picks === state.chart.picks ? state.chart : { ...state.chart, picks },
         pickedFrom: action.from ? { ...state.pickedFrom, ...Object.fromEntries(tickers.map((t) => [t, action.from!])) } : state.pickedFrom,
         takenOff,
         ...offerAfter(state.burst, (x) => tickers.includes(x)),
@@ -135,13 +136,8 @@ export function selectionReducer(state: SelectionState, action: SelectionAction)
       const stocks = state.stocks.filter((s) => s.ticker !== t);
       const slot = state.chart.picks[t];
       const picks = { ...state.chart.picks };
+      // Its line is dropped (Undo brings it back in the same slot).
       delete picks[t];
-      // Its line is dropped. Only while the lines are the page's defaults does the slot pass to the
-      // first stock not drawn yet (so a long basket still opens with its lines full).
-      if (slot != null && !state.picksChosen) {
-        const next = stocks.find((s) => picks[s.ticker] == null);
-        if (next) picks[next.ticker] = slot;
-      }
       const pickedFrom = { ...state.pickedFrom };
       delete pickedFrom[t];
       return {
@@ -241,6 +237,33 @@ export function selectionReducer(state: SelectionState, action: SelectionAction)
     }
     case "choosePicks":
       return state.picksChosen ? state : { ...state, picksChosen: true };
+    case "togglePick": {
+      const t = action.ticker;
+      if (!state.stocks.some((s) => s.ticker === t)) return state;
+      const picks = { ...state.chart.picks };
+      if (picks[t] != null) delete picks[t];
+      else {
+        const slot = freeSlot(picks);
+        // Every slot taken: nothing changes (the caller says why, with LINES_FULL).
+        if (slot == null) return state.picksChosen ? state : { ...state, picksChosen: true };
+        picks[t] = slot;
+      }
+      return { ...state, chart: { ...state.chart, picks }, picksChosen: true };
+    }
+    case "pickAll": {
+      const picks = { ...state.chart.picks };
+      const inIt = new Set(state.stocks.map((s) => s.ticker));
+      const order = [...new Set([...(action.order ?? []).filter((t) => inIt.has(t)), ...state.stocks.map((s) => s.ticker)])];
+      for (const t of order) {
+        if (picks[t] != null) continue;
+        const slot = freeSlot(picks);
+        if (slot == null) break;
+        picks[t] = slot;
+      }
+      return { ...state, chart: { ...state.chart, picks }, picksChosen: true };
+    }
+    case "pickNone":
+      return { ...state, chart: { ...state.chart, picks: {} }, picksChosen: true };
     case "dismissUndo":
       return state.lastRemoved || state.burst.length ? { ...state, lastRemoved: null, burst: [] } : state;
   }

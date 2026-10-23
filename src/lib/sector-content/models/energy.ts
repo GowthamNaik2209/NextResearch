@@ -1299,6 +1299,8 @@ export function buildEnergy(ctx: Ctx) {
   const GHOST = 0.16;
   const tri = (v: number, c: number) => clamp01(1 - Math.abs(v - c));
   return {
+    // The wind turbines spin (onBeforeRender above), so the engine keeps drawing frames while idle.
+    animated: true,
     applyLevel(v: number) {
       const genOp = Math.max(1 - clamp01(v - 1), GHOST);
       const gridOp = Math.max(1 - clamp01(v), clamp01(v - 1), GHOST);

@@ -230,16 +230,20 @@ export function buildDatacenter(ctx: Ctx) {
     g.fillRect(0, 0, w, h);
     g.strokeStyle = "#717880";
     g.lineWidth = 2;
-    for (let r = 10; r < 64; r += 8) {
-      g.beginPath();
-      g.arc(w / 2, h / 2, r, 0, Math.PI * 2);
-      g.stroke();
-    }
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2;
+    // Five swept blades under the guard rings. Everything here is round except the blades, so
+    // turning the whole texture (see the chiller fans' onBeforeRender) reads as the fans spinning.
+    g.fillStyle = "#3b4148";
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2;
       g.beginPath();
       g.moveTo(w / 2, h / 2);
-      g.lineTo(w / 2 + Math.cos(a) * 62, h / 2 + Math.sin(a) * 62);
+      g.arc(w / 2, h / 2, 58, a, a + 0.7);
+      g.closePath();
+      g.fill();
+    }
+    for (let r = 18; r < 64; r += 12) {
+      g.beginPath();
+      g.arc(w / 2, h / 2, r, 0, Math.PI * 2);
       g.stroke();
     }
     g.fillStyle = "#5a6168";
@@ -962,7 +966,14 @@ export function buildDatacenter(ctx: Ctx) {
     mesh(siteG, mergeInto(THREE, basins), steelDark);
     unitBody.side = DS;
     mesh(siteG, mergeInto(THREE, stacks), unitBody);
-    mesh(siteG, mergeInto(THREE, fans), fanMat);
+    const fanMesh = mesh(siteG, mergeInto(THREE, fans), fanMat);
+    // Spin the chiller fans: every fan disc has its own 0-1 UVs, so rotating the shared texture
+    // about its centre turns them all. This is the motion visible from the overview (the
+    // blinking rack LEDs are inside the closed hall until a layer opens it).
+    fanTex.center.set(0.5, 0.5);
+    fanMesh.onBeforeRender = () => {
+      fanTex.rotation = -(performance.now() / 1000) * 2.4;
+    };
     // Dry coolers (V-coil, fans on top) on legs.
     const dcBody: T.BufferGeometry[] = [];
     const dcCoil: T.BufferGeometry[] = [];
@@ -1056,7 +1067,14 @@ export function buildDatacenter(ctx: Ctx) {
     mesh(siteG, mergeInto(THREE, body), unitBody);
     mesh(siteG, mergeInto(THREE, coils), coilMat);
     mesh(siteG, mergeInto(THREE, shrouds), unitBody);
-    mesh(siteG, mergeInto(THREE, fans), fanMat);
+    const fanMesh = mesh(siteG, mergeInto(THREE, fans), fanMat);
+    // Spin the chiller fans: every fan disc has its own 0-1 UVs, so rotating the shared texture
+    // about its centre turns them all. This is the motion visible from the overview (the
+    // blinking rack LEDs are inside the closed hall until a layer opens it).
+    fanTex.center.set(0.5, 0.5);
+    fanMesh.onBeforeRender = () => {
+      fanTex.rotation = -(performance.now() / 1000) * 2.4;
+    };
     // Insulated chilled-water headers between the rows, dropping through the roof.
     const hdr: T.BufferGeometry[] = [];
     for (const dz of [-0.03, 0.03]) hdr.push(bar(THREE, [-2.3, y0 + 0.05, -0.05 + dz], [2.0, y0 + 0.05, -0.05 + dz], 0.02, 10));
@@ -1384,6 +1402,9 @@ export function buildDatacenter(ctx: Ctx) {
     return keys[keys.length - 1][1];
   };
   return {
+    // The chiller fans spin and the rack LEDs blink (onBeforeRender above), so the engine keeps
+    // drawing frames while idle, in every view.
+    animated: true,
     applyLevel(v: number) {
       L.set("ground", pw(v, [[0, 1], [1, 0.55], [2, 0.32], [3, 0.28]]));
       L.set("shell", pw(v, [[0, 1], [1, 0.14], [2, 0.07], [3, 0.05]]));

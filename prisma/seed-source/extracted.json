@@ -2330,11 +2330,11 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "One of the world's largest forging companies by volume, giving it the scale and capital base to invest ahead of demand in dedicated aerospace-grade forging capacity"
+            "One of the world's largest forging companies by volume, giving it the scale and capital base to invest ahead of demand in dedicated aerospace-grade forging capacity",
+            "Leverages the same scale forging infrastructure and OEM relationships as its structural-forgings business to also supply aero-engine forgings, spreading fixed costs across a broader aerospace product base"
           ],
           "risks": [
-            "Aerospace-specific revenue not broken out from BharatForge's consolidated results",
-            "Exposure also recorded separately for aero-engine forgings"
+            "Aerospace-specific revenue not broken out from BharatForge's consolidated results"
           ],
           "f": {
             "ticker": "BHARATFORG"
@@ -2347,7 +2347,8 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Qualified and shipping turbine/compressor blades directly to GE, Honeywell and Safran, clearing one of aerospace's highest technical-qualification bars that keeps most domestic players out of hot-section work"
+            "Qualified and shipping turbine/compressor blades directly to GE, Honeywell and Safran, clearing one of aerospace's highest technical-qualification bars that keeps most domestic players out of hot-section work",
+            "Hot-section turbine/compressor blade work is Azad's core qualified product line with GE, Honeywell and Safran, not a side business, giving genuine technical depth in the highest-margin segment of the value chain"
           ],
           "risks": [
             "Revenue concentrated among a small number of global engine-OEM customers (GE, Honeywell, Safran)",
@@ -2411,15 +2412,16 @@
         "dynamatic": {
           "name": "Dynamatic Technologies",
           "listed": true,
-          "role": "Aerospace division machines structural parts/flap-track beams for Airbus A320, Boeing 787, GKN",
+          "role": "Aerospace division machines structural parts/flap-track beams for Airbus A320, Boeing 787, GKN; its hydraulic gear pumps feed landing-gear systems",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Established, qualified supplier of flap-track beams and structural parts on Airbus A320 and Boeing 787 - two of the highest-volume programs in production - giving revenue visibility tied to their build-rate ramps"
+            "Established, qualified supplier of flap-track beams and structural parts on Airbus A320 and Boeing 787 - two of the highest-volume programs in production - giving revenue visibility tied to their build-rate ramps",
+            "Hydraulics expertise alongside its core aerospace structures business gives it credible, qualified capability in actuation-adjacent hydraulic gear pumps"
           ],
           "risks": [
             "Aerospace is one division alongside Dynamatic's hydraulics business - segment-specific margins aren't separately disclosed",
-            "Also cross-referenced into the Landing Gear zone via its hydraulics products"
+            "No dedicated landing-gear revenue disclosure - landing-gear exposure is a small, undisclosed slice of its broader aerospace business"
           ],
           "f": {
             "ticker": "DYNAMATECH"
@@ -2428,15 +2430,16 @@
         "unimech": {
           "name": "Unimech Aerospace and Manufacturing",
           "listed": true,
-          "role": "Precision tooling, fasteners & complex machined aerostructure/engine parts for Airbus, Safran, Collins",
+          "role": "Precision tooling, fasteners & complex machined aerostructure/engine parts for Airbus, Safran, Collins, including landing-gear assembly hardware",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Deep multi-year qualification with Airbus, Safran and Collins across tooling, fasteners and complex machined parts, with revenue and order book growing rapidly off a small base as it wins increasing wallet share"
+            "Deep multi-year qualification with Airbus, Safran and Collins across tooling, fasteners and complex machined parts, with revenue and order book growing rapidly off a small base as it wins increasing wallet share",
+            "The same qualified fastener/tooling relationships with Airbus, Safran and Collins that underpin its structures business extend naturally into landing-gear assembly hardware"
           ],
           "risks": [
             "Customer concentration among a small number of global primes (Airbus, Safran, Collins)",
-            "Also cross-referenced into the Landing Gear zone"
+            "Landing-gear-specific revenue not separately disclosed"
           ],
           "f": {
             "ticker": "UNIMECH"
@@ -2462,15 +2465,17 @@
         "tanejaaerospace": {
           "name": "Taneja Aerospace and Aviation",
           "listed": true,
-          "role": "Aerostructure component manufacturing at Hosur, TN",
+          "role": "Aerostructure component manufacturing and a civil MRO hangar capable of Boeing 737/A320 servicing at Hosur, TN",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Combines aerostructure manufacturing with an on-site civil MRO hangar at Hosur capable of servicing Boeing 737/A320s - a rare dual manufacturing-plus-sustainment footprint for a company of its size"
+            "Combines aerostructure manufacturing with an on-site civil MRO hangar at Hosur capable of servicing Boeing 737/A320s - a rare dual manufacturing-plus-sustainment footprint for a company of its size",
+            "The most direct listed civil-MRO exposure in India, with a hangar already certified to service Boeing 737 and A320 aircraft - the two most common narrow-body types in the domestic fleet"
           ],
           "risks": [
             "Small-cap with limited scale relative to global aerostructure peers",
-            "Also cross-referenced into the MRO zone for its civil hangar business"
+            "MRO-specific revenue not separately disclosed",
+            "Small-scale hangar relative to India's total civil MRO demand"
           ],
           "f": {
             "ticker": "TANAA"
@@ -2493,39 +2498,6 @@
             "ticker": "SIKA"
           }
         },
-        "dynamatic_gear": {
-          "name": "Dynamatic Technologies",
-          "listed": true,
-          "role": "Hydraulic gear pumps and actuation-adjacent machined parts feeding into landing-gear systems",
-          "dataStatus": "demo",
-          "sourceDate": "20 Oct 2026",
-          "strengths": [
-            "Cross-referenced hydraulics expertise from its core aerospace structures business gives it credible, qualified capability in actuation-adjacent hydraulic gear pumps"
-          ],
-          "risks": [
-            "Cross-referenced from the Structures zone - no dedicated landing-gear revenue disclosure",
-            "Landing-gear-specific exposure is a small, undisclosed slice of Dynamatic's broader aerospace business"
-          ],
-          "f": {
-            "ticker": "DYNAMATECH"
-          }
-        },
-        "unimech_gear": {
-          "name": "Unimech Aerospace and Manufacturing",
-          "listed": true,
-          "role": "Precision fasteners/tooling used in landing-gear assemblies",
-          "dataStatus": "demo",
-          "sourceDate": "20 Oct 2026",
-          "strengths": [
-            "The same qualified fastener/tooling relationships with Airbus, Safran and Collins that underpin its structures business extend naturally into landing-gear assembly hardware"
-          ],
-          "risks": [
-            "Cross-referenced from the Structures zone - landing-gear-specific revenue not separately disclosed"
-          ],
-          "f": {
-            "ticker": "UNIMECH"
-          }
-        },
         "mtartech_aero": {
           "name": "MTAR Technologies",
           "listed": true,
@@ -2543,52 +2515,20 @@
             "ticker": "MTARTECH"
           }
         },
-        "azadengineering_aero2": {
-          "name": "Azad Engineering",
-          "listed": true,
-          "role": "Turbine/compressor blades are its core hot-section product (see Forgings zone)",
-          "dataStatus": "demo",
-          "sourceDate": "20 Oct 2026",
-          "strengths": [
-            "Hot-section turbine/compressor blade work is Azad's core qualified product line with GE, Honeywell and Safran, not a side business, giving genuine technical depth in the highest-margin segment of the value chain"
-          ],
-          "risks": [
-            "Same company and financials as the Forgings-zone listing - not incremental exposure",
-            "Revenue concentrated among a small number of global engine OEMs"
-          ],
-          "f": {
-            "ticker": "AZAD"
-          }
-        },
-        "bharatforge_aero2": {
-          "name": "Bharat Forge",
-          "listed": true,
-          "role": "Aerospace forgings division also supplies aero-engine forgings (see Forgings zone)",
-          "dataStatus": "demo",
-          "sourceDate": "20 Oct 2026",
-          "strengths": [
-            "Leverages the same scale forging infrastructure and OEM relationships as its structural-forgings business to also supply aero-engine forgings, spreading fixed costs across a broader aerospace product base"
-          ],
-          "risks": [
-            "Same company and financials as the Forgings-zone listing - not incremental exposure",
-            "Aerospace-specific revenue not broken out from consolidated results"
-          ],
-          "f": {
-            "ticker": "BHARATFORG"
-          }
-        },
         "bel_aero": {
           "name": "Bharat Electronics",
           "listed": true,
-          "role": "Largest defense-electronics PSU - avionics, radar, EW; JVs with Safran and Israel Aerospace Industries",
+          "role": "Largest defense-electronics PSU - avionics, radar, EW and mission-systems integration across aircraft primes; JVs with Safran and Israel Aerospace Industries",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's largest defense-electronics PSU, with JVs alongside Safran and Israel Aerospace Industries giving it access to foreign avionics/radar technology that smaller private players can't match"
+            "India's largest defense-electronics PSU, with JVs alongside Safran and Israel Aerospace Industries giving it access to foreign avionics/radar technology that smaller private players can't match",
+            "Leverages the same avionics/radar manufacturing base that makes it India's largest defense-electronics PSU to also integrate mission systems across multiple aircraft primes"
           ],
           "risks": [
             "Avionics/radar is one of several defense-electronics product lines - not separately broken out",
-            "Large PSU with government-linked capital-allocation and governance considerations"
+            "Large PSU with government-linked capital-allocation and governance considerations",
+            "Systems integration on other primes' platforms is secondary to its core avionics/radar manufacturing and not separately disclosed"
           ],
           "f": {
             "ticker": "BEL"
@@ -2696,23 +2636,6 @@
             "ticker": "CYIENT"
           }
         },
-        "hal_mro": {
-          "name": "Hindustan Aeronautics",
-          "listed": true,
-          "role": "ROH (Repair, Overhaul & Maintenance) segment ~1/3 of revenue - India's largest MRO by revenue",
-          "dataStatus": "demo",
-          "sourceDate": "20 Oct 2026",
-          "strengths": [
-            "India's largest MRO provider by revenue, with a captive demand base from the military fleets it also manufactures - an integrated manufacture-and-sustain model competitors can't replicate"
-          ],
-          "risks": [
-            "ROH/MRO is roughly a third of HAL's revenue - the larger share is manufacturing/integration, not sustainment",
-            "Almost entirely military-aircraft MRO - no meaningful civil MRO exposure"
-          ],
-          "f": {
-            "ticker": "HAL"
-          }
-        },
         "gmraerotechnic": {
           "name": "GMR Aero Technic",
           "listed": false,
@@ -2732,55 +2655,23 @@
             "No public market data - GMR Airports Infrastructure Ltd (listed parent) does not break out Aero Technic/MRO financials separately"
           ]
         },
-        "tanejaaerospace_mro": {
-          "name": "Taneja Aerospace and Aviation",
-          "listed": true,
-          "role": "Civil MRO hangar at Hosur, TN, capable of Boeing 737/A320 servicing",
-          "dataStatus": "demo",
-          "sourceDate": "20 Oct 2026",
-          "strengths": [
-            "The most direct listed civil-MRO exposure in India, with a hangar already certified to service Boeing 737 and A320 aircraft - the two most common narrow-body types in the domestic fleet"
-          ],
-          "risks": [
-            "Cross-referenced from the Structures zone - MRO-specific revenue not separately disclosed",
-            "Small-scale hangar relative to India's total civil MRO demand"
-          ],
-          "f": {
-            "ticker": "TANAA"
-          }
-        },
         "hal_prime": {
           "name": "Hindustan Aeronautics",
           "listed": true,
-          "role": "Final aircraft/helicopter assembly and integration (Tejas, Su-30, ALH Dhruv)",
+          "role": "Final aircraft/helicopter assembly and integration (Tejas, Su-30, ALH Dhruv), plus repair & overhaul (ROH, ~1/3 of revenue) - India's largest MRO by revenue",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Sole domestic integrator for India's frontline fighter and helicopter platforms (Tejas, Su-30, ALH Dhruv), giving it an effectively monopoly order pipeline tied to multi-decade defense-modernization programs"
+            "Sole domestic integrator for India's frontline fighter and helicopter platforms (Tejas, Su-30, ALH Dhruv), giving it an effectively monopoly order pipeline tied to multi-decade defense-modernization programs",
+            "India's largest MRO provider by revenue, with a captive demand base from the military fleets it also manufactures - an integrated manufacture-and-sustain model competitors can't replicate"
           ],
           "risks": [
             "Revenue almost entirely military/government - minimal civil aviation diversification",
-            "Execution risk on large, multi-year platform programs (Tejas, helicopters)"
+            "Execution risk on large, multi-year platform programs (Tejas, helicopters)",
+            "ROH/MRO is roughly a third of HAL's revenue - the larger share is manufacturing/integration, not sustainment"
           ],
           "f": {
             "ticker": "HAL"
-          }
-        },
-        "bel_prime": {
-          "name": "Bharat Electronics",
-          "listed": true,
-          "role": "Systems integration for avionics/mission systems across aircraft primes",
-          "dataStatus": "demo",
-          "sourceDate": "20 Oct 2026",
-          "strengths": [
-            "Leverages the same avionics/radar manufacturing base that makes it India's largest defense-electronics PSU to also integrate mission systems across multiple aircraft primes"
-          ],
-          "risks": [
-            "Systems-integration role here is secondary to BEL's core avionics/radar manufacturing business (see Avionics zone)",
-            "Integration revenue for other primes' platforms is not separately disclosed"
-          ],
-          "f": {
-            "ticker": "BEL"
           }
         },
         "bdl_aero": {
@@ -4055,15 +3946,17 @@
         "bhel": {
           "name": "Bharat Heavy Electricals",
           "listed": true,
-          "role": "Boiler-turbine-generator (BTG) equipment and EPC for thermal power plants",
+          "role": "Boiler-turbine-generator (BTG) equipment and EPC for thermal power plants, plus hydro turbines, generators and EPC for conventional and pumped-storage hydro plants",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's dominant domestic BTG equipment supplier with a multi-decade installed base and a large, improving order book"
+            "India's dominant domestic BTG equipment supplier with a multi-decade installed base and a large, improving order book",
+            "Decades of installed hydro turbine base across India's PSU hydro fleet position it for both renovation orders and new pumped-storage project awards"
           ],
           "risks": [
             "Structurally declining share of new domestic capacity additions as policy favors renewables over coal",
-            "Historically thin and volatile margins versus private-sector peers"
+            "Historically thin and volatile margins versus private-sector peers",
+            "Hydro/PSP equipment is one of several business lines within the wider PSU equipment business"
           ],
           "f": {
             "ticker": "BHEL"
@@ -4263,22 +4156,6 @@
           ],
           "f": {
             "ticker": "GREENPOWER"
-          }
-        },
-        "bhelHydro": {
-          "name": "Bharat Heavy Electricals",
-          "listed": true,
-          "role": "Hydro turbines, generators and EPC for conventional and pumped-storage hydro plants",
-          "dataStatus": "demo",
-          "sourceDate": "20 Oct 2026",
-          "strengths": [
-            "Decades of installed hydro turbine base across India's PSU hydro fleet position it for both renovation orders and new pumped-storage project awards"
-          ],
-          "risks": [
-            "Hydro/PSP equipment is one of several business lines within a broader, historically thin-margin PSU equipment manufacturer"
-          ],
-          "f": {
-            "ticker": "BHEL"
           }
         },
         "nhpc": {

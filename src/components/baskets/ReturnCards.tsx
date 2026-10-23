@@ -159,18 +159,13 @@ function Stat({
   dense?: boolean;
   who?: "basket" | "picks";
 }) {
-  // "pts" only from sm: a phone's third-of-a-row card has room for the number alone.
-  const pts =
-    diff == null ? null : (
-      <>
-        {signedPts(diff)}
-        <span className="hidden sm:inline"> pts</span>
-      </>
-    );
+  // Always with its unit, at every width: a bare "+330.8" beside a % figure reads as a percent.
+  const pts = diff == null ? null : `${signedPts(diff)} pts`;
   return (
-    // Dense cards have a minimum height that fits a label, the figure and two short lines, so a card
+    // Dense cards have a minimum height that fits a label, the figure and two short lines (the Your
+    // picks placeholder's note wraps to two at desktop widths), so a card
     // filling in (or a placeholder note) never changes the strip's height.
-    <div title={title} className={"min-w-0 border " + (dense ? "min-h-[5.75rem] rounded-md px-2.5 py-1.5 sm:min-h-[5.25rem] sm:px-3 " : "rounded-xl px-2.5 py-2 sm:p-3 ") + (strong ? "border-accent bg-accent/5" : "border-line bg-panel")}>
+    <div title={title} className={"min-w-0 border " + (dense ? "min-h-[5.75rem] rounded-md px-2.5 py-1.5 sm:min-h-[5.625rem] sm:px-3 " : "rounded-xl px-2.5 py-2 sm:p-3 ") + (strong ? "border-accent bg-accent/5" : "border-line bg-panel")}>
       {/* Labels and gaps wrap rather than cut off: a phone's third of a row is about 100px. */}
       <div className="text-[10px] leading-snug text-ink-soft sm:text-[11px]">{label}</div>
       <div className={"mt-0.5 font-mono text-base font-bold sm:text-lg " + (value == null ? "text-ink-soft" : value >= 0 ? "text-pos" : "text-danger")}>

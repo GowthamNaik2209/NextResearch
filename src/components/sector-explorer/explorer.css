@@ -245,6 +245,15 @@
  background:var(--chip); border:1px solid var(--line); border-radius:8px; padding:9px 11px;
  cursor:pointer; font-size:12.5px; font-weight:600; display:flex; align-items:center; justify-content:space-between; gap:8px;
  }
+ /* Row = [name over exposure][badge][heart]. The text block takes the slack and wraps on its own;
+    the badge and the heart (a 40px button on touch, globals.css) keep fixed columns at the end, so
+    the heart never sits in the middle of the row's open area. */
+ .chip-text{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px }
+ .chip-name{ overflow-wrap:anywhere }
+ .chip-exposure{ font-weight:500 }
+ .chip > .badge, .chip > .watch-wrap{ flex:none }
+ .chip-heart-gap{ flex:none; width:25px }
+ @media (pointer: coarse){ .chip-heart-gap{ width:40px } .chip{ padding-right:4px } }
  .chip:hover{border-color:var(--accent)}
  .chip.active{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 6%, var(--chip))}
  .badge{ font-size:9.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; padding:2px 6px; border-radius:5px }
@@ -300,6 +309,9 @@
  opacity:0;
  }
  .mtag-t{ min-width:0; overflow:hidden; text-overflow:ellipsis }
+ /* Set by the engine when the tags can't all fit the strip above the sheet without overlapping:
+    smaller unpicked tags (still at least 9.5px text), so every name stays readable and clear. */
+ .mobile-tags.compact .mtag:not(.selected){ font-size:9.5px; padding:2px 6px; max-width:min(128px, 34vw) }
  .mtag.selected{ background:color-mix(in srgb, var(--zc) 32%, var(--callout-bg-strong)); transform:translate(-50%,-138%) scale(1.08); max-width:calc(100% - 24px) }
  /* Tablets have the width for longer names before truncating. */
  @media (min-width:600px){ .mtag{ max-width:240px } }

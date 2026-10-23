@@ -9,7 +9,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import type { SectorDef, SectorZone } from "@/lib/sector-content";
+import type { SectorDef, SectorZone } from "@/lib/sector-content/core";
 import { readTheme } from "@/lib/theme";
 
 export type ExplorerDom = {
@@ -81,6 +81,17 @@ export function mountExplorer(
 ): ExplorerController {
   const { stage, leaderSvg, railLeft, railRight, railTop, railBottom, mobileTags } = dom;
 
+  // Render on demand: an idle explorer (nothing moving, nobody touching it) draws no frames, so
+  // it doesn't keep the GPU busy and the phone warm. Anything that changes what is on screen
+  // calls invalidate(); the loop (animate) also keeps drawing while a camera flight, layer
+  // crossfade, marker easing or OrbitControls damping is still moving, while the stage or a
+  // label's layout changes (bottom sheet sliding, rail reflow), and always for models that
+  // animate on their own (build() returns `animated: true`, e.g. data-centre LEDs, wind turbines).
+  let wake = 2; // full frames still owed (2: one to place the labels, one to draw them there)
+  const invalidate = () => {
+    wake = Math.max(wake, 2);
+  };
+
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x141c28, 10, 23);
 
@@ -118,7 +129,9 @@ export function mountExplorer(
     shot = null;
     camAnim = null;
     focusReturn = null;
+    invalidate();
   });
+  controls.addEventListener("change", invalidate);
 
   // Labels (phone tags, callouts) sit over the canvas, so a pinch or drag whose fingers land
   // on them never reached OrbitControls and the model wouldn't zoom or turn - on a phone the
@@ -171,6 +184,7 @@ export function mountExplorer(
     }
     labelGesture.x = m.x;
     labelGesture.y = m.y;
+    invalidate();
   };
   const onGestureEnd = (e: TouchEvent) => {
     if (!labelGesture) return;
@@ -220,6 +234,7 @@ export function mountExplorer(
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
     controls.maxDistance = Math.max(17 * aspectFit(), fitMaxDistance * 1.3);
+    invalidate(); // a resized canvas is blank until drawn again
   }
   window.addEventListener("resize", resize);
   // The stage can change size without a window resize (phone layout settling,
@@ -263,6 +278,7 @@ export function mountExplorer(
     fog.color.setHex(light ? 0xd3d9e0 : 0x141c28);
     scene.environmentIntensity = light ? 0.7 : 0.55;
     renderer.toneMappingExposure = light ? 1.0 : 1.05;
+    invalidate();
   };
   applyGridTheme();
   const themeObserver = new MutationObserver(applyGridTheme);
@@ -446,10 +462,12 @@ export function mountExplorer(
 
   function setHoverGuarded(id: string | null, onlyIfCurrent?: string) {
     if (onlyIfCurrent !== undefined && hoveredZoneId !== onlyIfCurrent) return;
-    hoveredZoneId = id;
+    setHover(id);
   }
   function setHover(id: string | null) {
+    if (id === hoveredZoneId) return;
     hoveredZoneId = id;
+    invalidate();
   }
 
   // A manual layer move (button, slider, layer-specific camera view) away from the
@@ -461,6 +479,7 @@ export function mountExplorer(
     if (zl != null && Math.round(level) !== zl) selectZone(null, { keepLayer: true });
   }
   function setUserLevel(level: number, immediate: boolean) {
+    invalidate();
     targetLevel = level;
     if (immediate) {
       currentLevel = level;
@@ -471,6 +490,7 @@ export function mountExplorer(
 
   const IMPACT_COLOR = { headwind: 0xe8705e, tailwind: 0x3fbf8a };
   function setImpact(next: ImpactMap | null) {
+    invalidate();
     impact = next && Object.keys(next).length ? next : null;
     for (const [zid, zr] of zones) {
       const hit = impact?.[zid];
@@ -488,8 +508,13 @@ export function mountExplorer(
   // and the opening camera view. Only an explicit layer change by the user keeps the layer
   // (keepLayer), since that deselect is a side effect of them choosing where to look.
   function selectZone(id: string | null, opts: { keepLayer?: boolean } = {}) {
+    invalidate();
     const closing = id == null && currentZoneId != null && !opts.keepLayer;
     currentZoneId = id;
+    // Drop any hover with it. The panel's "Systems in this model" rows set hover on mouseenter
+    // and are unmounted by the very click that picks one, so their mouseleave never fires: the
+    // picked label kept its thick, solid leader line after the card was closed.
+    hoveredZoneId = null;
     // Peel the model to the layer where the picked system is actually visible, so
     // choosing "e-axle" from any entry point (marker, callout, Systems list, deep
     // link) shows the drive unit rather than a marker floating over the paint.
@@ -706,10 +731,10 @@ export function mountExplorer(
     let target = t;
     // Only in the phone/tablet layout (bottom sheet over the stage). The desktop stage between
     // the rail and the side panel can be portrait too, but its overviews are approved as authored.
-    // Opt-in per sector (SectorDef.portraitFit): existing sectors keep their approved phone views.
-    // Tablets held upright (stage 600px+ wide) get it for every sector: an authored low, wide shot
-    // left the model a thin band across the middle with empty floor above and below.
-    if ((sector.portraitFit || stage.clientWidth >= 600) && camera.aspect < 1 && sheetLayout() && modelCorners.length) {
+    // Every sector unless it opts out (SectorDef.portraitFit === false), and tablets held upright
+    // (stage 600px+ wide) always: an authored low, wide shot left the model a thin band across the
+    // middle third with empty stage above and below.
+    if ((sector.portraitFit !== false || stage.clientWidth >= 600) && camera.aspect < 1 && sheetLayout() && modelCorners.length) {
       const p = portraitFit(dir, t);
       dir.copy(p.dir);
       target = p.t;
@@ -726,6 +751,7 @@ export function mountExplorer(
   const isFitView = (id: string) => id === defaultViewId || id === "top";
 
   function flyTo(viewId: string) {
+    invalidate();
     const v = sector.views.find((x) => x.id === viewId) as (SectorDef["views"][number] & { layer?: number }) | undefined;
     if (!v) return;
     focusReturn = null;
@@ -773,6 +799,7 @@ export function mountExplorer(
   }
 
   function enterDeepDive() {
+    invalidate();
     if (!deepDiveDef) return;
     deepDiveActive = true;
     deepStage = 0;
@@ -796,6 +823,7 @@ export function mountExplorer(
     callbacks.onDeepDiveStageChange(deepStage);
   }
   function exitDeepDive() {
+    invalidate();
     if (!deepDiveActive || !deepDiveDef) return;
     deepDiveActive = false;
     deepDiveDef.exit(productState.deep);
@@ -803,6 +831,7 @@ export function mountExplorer(
     callbacks.onDeepDiveStageChange(null);
   }
   function cycleDeepStage() {
+    invalidate();
     if (!deepDiveDef) return;
     deepStage = (deepStage + 1) % deepDiveDef.stageCount;
     deepDiveDef.applyStage(deepStage, productState.deep);
@@ -842,7 +871,7 @@ export function mountExplorer(
     const hits = raycaster.intersectObjects(markerMeshes);
     const newHover = hits.length ? (hits[0].object.userData.zoneId as string) : null;
     if (newHover !== hoveredZoneId) {
-      hoveredZoneId = newHover;
+      setHover(newHover);
       renderer.domElement.style.cursor = hoveredZoneId ? "pointer" : "grab";
     }
   };
@@ -855,6 +884,8 @@ export function mountExplorer(
   // here meant thousands of short-lived objects a second for the garbage collector.
   const scratch = new THREE.Vector3();
   let lastViewBox = "";
+  let compactTags = false;
+  let compactAt = 0;
   function updateCallouts() {
     // Every layout read happens first, then every write. Reading a size or position after a style
     // write makes the browser lay the page out again, and that used to happen once per system per
@@ -902,6 +933,7 @@ export function mountExplorer(
     // Phones label every system (the user wants the whole map visible); with one selected the
     // others stay readable but lighter (isDimmed). Tags are stacked so none overlap.
     const EDGE = 8;
+    let anyCrowded = false;
     // De-emphasised labels (.dimmed in explorer.css) keep their solid backing and only soften
     // text and border: fading the whole label left it unreadable over pale parts in dark mode.
 
@@ -945,9 +977,14 @@ export function mountExplorer(
           let best: { x: number; y: number; r: ReturnType<typeof rectAt>; over: number; score: number } | null = null;
           // A wide search: with the sheet open the strip above it is short, and a narrow one
           // ran out of free slots and stacked names on top of each other.
+          // Besides nudges around the marker, every row also tries a sweep across the full stage
+          // width (a leader line then joins tag and marker): with a company card open the strip
+          // above the sheet is only a few rows tall, and the nudges alone ran out of free slots.
+          const xs = [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05].map((sx) => px + sx * tw);
+          for (let i = 0; i <= 8; i++) xs.push(xMin + ((xMax - xMin) * i) / 8);
           for (let k = -12; k <= 12; k++) {
-            for (const sx of [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05]) {
-              const x = Math.max(xMin, Math.min(xMax, px + sx * tw));
+            for (const xc of xs) {
+              const x = Math.max(xMin, Math.min(xMax, xc));
               const y = py + k * rowH;
               const r = rectAt(x, y);
               if (r.y0 < EDGE || r.y1 > visibleH - EDGE) continue;
@@ -962,6 +999,12 @@ export function mountExplorer(
             px = best.x;
             py = best.y;
             crowded = best.over > 0 && !isSelected;
+            if (crowded) anyCrowded = true;
+          } else {
+            // No row fits at all (a very short strip): keep the tag inside the strip above the
+            // sheet rather than at its marker, where it was cut by the stage edge or the sheet.
+            py = Math.max(EDGE + 1.38 * th, Math.min(visibleH - EDGE + 0.38 * th, py));
+            anyCrowded = true;
           }
         }
         // Hidden tags still sit inside the stage, so they never widen its scrollable area.
@@ -1027,11 +1070,54 @@ export function mountExplorer(
       zr.box.setAttribute("aria-hidden", String(!boxShown));
     }
     leaderSvg.style.opacity = labelsVisible ? "1" : "0";
+    // Still crowded after the search (a short strip above an open company card): switch the
+    // unpicked tags to a smaller size, which the next frame measures and re-stacks (layoutChanged
+    // sees the new tag sizes). It switches back only once the strip has grown, so it can't flicker.
+    if (phoneTags) {
+      if (!compactTags && anyCrowded) {
+        compactTags = true;
+        compactAt = visibleH;
+        mobileTags.classList.add("compact");
+        invalidate();
+      } else if (compactTags && visibleH > compactAt + 40) {
+        compactTags = false;
+        mobileTags.classList.remove("compact");
+        invalidate();
+      }
+    }
   }
 
   // ---- animation loop ----
   // Camera distance (scene units) from which a marker is drawn at full size; see the marker loop.
   const MARKER_FULL_SIZE_AT = 6;
+  // Models with their own motion (build() returns `animated: true`) keep the loop drawing.
+  const animated = !!productState?.animated;
+  // Below these an easing value counts as settled (sub-pixel, invisible), so the loop can go idle.
+  const SETTLED_POS = 1e-4;
+  const SETTLED_EASE = 1e-3;
+  // What the labels depend on besides the camera: the stage's box, the sheet's top edge and each
+  // label's size/rail position. Compared on idle frames only, and it is layout reads alone (no
+  // writes before them), so it costs no forced layout.
+  let lastLayout = "";
+  function layoutChanged() {
+    const r = stage.getBoundingClientRect();
+    let sig = `${r.left},${r.top},${r.width},${r.height}|${dom.sheet ? dom.sheet.getBoundingClientRect().top : ""}`;
+    if (mobileTags.offsetParent !== null) {
+      for (const zr of zones.values()) sig += `|${zr.tag.offsetWidth}x${zr.tag.offsetHeight}`;
+      // The stage's floating chrome the phone tags keep clear of (see updateCallouts).
+      stage.querySelectorAll<HTMLElement>(".breadcrumb, .reset-btn, .controls-btn, .scn-pill").forEach((el) => {
+        const q = el.getBoundingClientRect();
+        sig += `|${q.left},${q.top},${q.width}`;
+      });
+    } else
+      for (const zr of zones.values()) {
+        const q = zr.box.getBoundingClientRect();
+        sig += `|${q.left},${q.top},${q.width},${q.height}`;
+      }
+    if (sig === lastLayout) return false;
+    lastLayout = sig;
+    return true;
+  }
   const timer = new THREE.Timer();
   let rafId = 0;
   let frames = 0;
@@ -1039,20 +1125,27 @@ export function mountExplorer(
     rafId = requestAnimationFrame(animate);
     timer.update();
     const dt = timer.getDelta();
+    let active = wake > 0 || !!camAnim || animated;
+    if (wake > 0) wake--;
 
     if (Math.abs(targetLevel - currentLevel) > 0.002) {
       currentLevel += (targetLevel - currentLevel) * Math.min(1, dt * 4);
       applyLevel(currentLevel);
+      active = true;
     }
     layerGroups.forEach((g) => {
       const ty = g.userData.targetY || 0;
+      if (Math.abs(ty - g.position.y) < SETTLED_POS) return;
       g.position.y += (ty - g.position.y) * Math.min(1, dt * 5);
+      active = true;
     });
     if (productState?.spreadMeshes) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       productState.spreadMeshes.forEach((m: any) => {
         const tx = m.userData.targetX !== undefined ? m.userData.targetX : m.userData.baseX;
+        if (Math.abs(tx - m.position.x) < SETTLED_POS) return;
         m.position.x += (tx - m.position.x) * Math.min(1, dt * 6);
+        active = true;
       });
     }
     markerMeshes.forEach((m) => {
@@ -1066,12 +1159,14 @@ export function mountExplorer(
       const near = THREE.MathUtils.clamp(camera.position.distanceTo(m.position) / MARKER_FULL_SIZE_AT, 0.02, 1);
       // Only the emphasis (pick/hover/impact) eases; the distance factor applies at once, so a
       // marker never shows up huge for the first frames of a close-up.
-      const eased = ((m.userData.ease as number | undefined) ?? 1) + (s - ((m.userData.ease as number | undefined) ?? 1)) * 0.2;
+      const prev = (m.userData.ease as number | undefined) ?? 1;
+      const eased = prev + (s - prev) * 0.2;
       m.userData.ease = eased;
       m.scale.setScalar(eased * near);
       const mat = m.material as THREE.MeshBasicMaterial;
       const targetOp = isDimmed ? 0.22 : 1;
       mat.opacity += (targetOp - mat.opacity) * 0.2;
+      if (Math.abs(s - eased) > SETTLED_EASE || Math.abs(targetOp - mat.opacity) > SETTLED_EASE) active = true;
     });
     markersGroup.children.forEach((c) => {
       if (c.userData.isRing) {
@@ -1082,10 +1177,13 @@ export function mountExplorer(
         const targetRingOp = ringDimmed ? 0.15 : 0.7;
         const mat = (c as THREE.Mesh).material as THREE.MeshBasicMaterial;
         mat.opacity += (targetRingOp - mat.opacity) * 0.2;
+        if (Math.abs(targetRingOp - mat.opacity) > SETTLED_EASE) active = true;
       }
     });
-    updateCallouts();
+    if (!active) active = layoutChanged();
+    if (active) updateCallouts();
 
+    let cameraMoved = false;
     if (camAnim) {
       const t = Math.min(1, (performance.now() - camAnim.t0) / camAnim.dur);
       const ease = 1 - Math.pow(1 - t, 3);
@@ -1097,6 +1195,7 @@ export function mountExplorer(
       }
       camera.position.lerpVectors(camAnim.startPos, camAnim.endPos, ease);
       controls.target.lerpVectors(camAnim.startTarget, camAnim.endTarget, ease);
+      cameraMoved = true;
       if (t >= 1) {
         camAnim = null;
         if (floorAfterFlight) {
@@ -1106,7 +1205,12 @@ export function mountExplorer(
       }
     }
 
-    controls.update();
+    // Also drives OrbitControls' damping after a drag ends: true while the camera still drifts.
+    if (controls.update()) cameraMoved = true;
+    if (!active && !cameraMoved) return;
+    // The labels above were placed from the previous frame's camera; one more frame after the
+    // camera stops brings them to its final position.
+    if (cameraMoved) wake = Math.max(wake, 1);
     // Fog is tuned for the authored distances; keep it behind the model when an overview
     // has been pulled further back to fit a narrow stage.
     const camDist = camera.position.distanceTo(controls.target);

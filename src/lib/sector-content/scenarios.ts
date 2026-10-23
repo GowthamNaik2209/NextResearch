@@ -6,7 +6,7 @@
 // strength in that layer. Nothing here predicts prices or is a recommendation.
 //
 // Zone ids must exist in the sector (checked by `npm run validate:content`).
-import { companyLinkExposure, companyLinkKey, tickerForSupplier, type ExposureStrength, type SectorDef } from "./index";
+import { companyLinkExposure, companyLinkKey, tickerForSupplier, type ExposureStrength, type SectorDef } from "./core";
 import { SEMICON2_SCENARIOS } from "./policies/semicon2.extras";
 import { RAREEARTH_SCENARIOS } from "./policies/rareearth.extras";
 import { DEFENCEPROC_SCENARIOS } from "./policies/defenceproc.extras";

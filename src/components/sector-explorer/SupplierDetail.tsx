@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { SectorDef } from "@/lib/sector-content";
-import { tickerForSupplier } from "@/lib/sector-content";
+import type { SectorDef } from "@/lib/sector-content/core";
+import { tickerForSupplier } from "@/lib/sector-content/core";
 import { WatchlistButton } from "./WatchlistButton";
 import { useStockData } from "@/components/stock/useStockData";
 import { mergeStats } from "@/components/stock/merge";
@@ -17,6 +17,9 @@ type Props = {
   zoneSuppliers: string[];
   onSelectSupplier: (key: string) => void;
 };
+
+// A note that only restates "unlisted / no market data" (e.g. "No public market data - not listed").
+const NOT_LISTED_NOTE = /^(no (indian )?(public|listed) market data|not listed)( in india)?( - (not listed( on nse\/bse)?|no market data|figures not available))?$/i;
 
 const TABS: { id: StockTab; label: string }[] = [
   { id: "summary", label: "Summary" },
@@ -127,11 +130,22 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
 
       {!supplier.listed ? (
         <>
-          <ul className="unlisted-facts">
-            {(supplier.notes ?? []).map((n, i) => (
-              <li key={i}>{n}</li>
-            ))}
-          </ul>
+          {/* An unlisted company's notes, under their own heading: shown bare after Risks they read
+              as a second, unheaded risk list. Notes that only say "not listed / no market data"
+              are dropped, since the badge, Risks and the source line below already say so. */}
+          {(() => {
+            const notes = (supplier.notes ?? []).filter((n) => !NOT_LISTED_NOTE.test(n) && !supplier.risks?.includes(n));
+            return notes.length > 0 ? (
+              <div>
+                <div className="chart-label">Background</div>
+                <ul className="unlisted-facts" style={{ marginTop: 4 }}>
+                  {notes.map((n, i) => (
+                    <li key={i}>{n}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null;
+          })()}
           <p className="source-line">Compiled from public reporting — not exchange-listed.</p>
         </>
       ) : (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { ColorType, CrosshairMode, LineSeries, LineStyle, createChart, type IChartApi, type ISeriesApi, type Time } from "lightweight-charts";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
@@ -14,7 +14,7 @@ import { cssVar, useSiteTheme, type SiteTheme } from "@/lib/theme";
 import { axisPct, fmtDay, fmtMonth, NA, signedPct } from "@/lib/format";
 import { slackDaysFor } from "@/lib/baskets/backtest";
 import { useSeries } from "./use-series";
-import { MAX_CHART_STOCKS, type ChartSelection } from "@/lib/baskets/selection";
+import { LINES_FULL, MAX_CHART_STOCKS, type ChartSelection } from "@/lib/baskets/selection";
 
 export { MAX_CHART_STOCKS, type ChartSelection };
 
@@ -30,6 +30,10 @@ export function stockLine(theme: SiteTheme, slot: number): { color: string; dash
   return { color: SLOTS[theme][slot % 6], dash: STOCK_DASH[Math.floor(slot / 6) % STOCK_DASH.length] };
 }
 const MAX_COMPARE = 3;
+/** The legend box's tallest (14rem, about five rows); past that it scrolls. */
+const LEGEND_MAX = 224;
+/** A stock's legend row (name and ticker lines), the legend's spare row. */
+const LEGEND_STOCK_ROW = 52;
 const COMPARE_DASH: Dash[] = ["long", "dash", "dot"];
 
 type Line = { key: string; name: string; note?: string; color: string; token?: string; width: 2 | 3; dash: Dash; stock?: string };
@@ -58,7 +62,9 @@ export function BasketChart({
   stocks,
   selection,
   onSelection,
-  onPick,
+  onToggleStock,
+  onPickAll,
+  onPickNone,
 }: {
   range: ChartRange;
   rangeLong: string;
@@ -77,11 +83,15 @@ export function BasketChart({
   stocks: { ticker: string; name: string }[];
   selection: ChartSelection;
   onSelection: Dispatch<SetStateAction<ChartSelection>>;
-  /** Called when the reader switches a stock's line on or off, so the page can tell their own picks from the lines it drew by default. */
-  onPick?: () => void;
+  /** A stock's line on or off. The page's selection does it (the stock table's line ticks do the
+   * same), so the two always agree and the line limit is kept in one place. */
+  onToggleStock: (ticker: string) => void;
+  /** Every stock's line on, up to the line limit. */
+  onPickAll: () => void;
+  /** Every stock's line off; the basket, benchmarks and compared baskets stay. */
+  onPickNone: () => void;
 }) {
   const { benches, compare, picks } = selection;
-  const setPicks = (f: (p: Record<string, number>) => Record<string, number>) => onSelection((s) => ({ ...s, picks: f(s.picks) }));
   const setBenches = (f: (b: string[]) => string[]) => onSelection((s) => ({ ...s, benches: f(s.benches) }));
   const setCompare = (f: (c: string[]) => string[]) => onSelection((s) => ({ ...s, compare: f(s.compare) }));
   const [menu, setMenu] = useState<"compare" | "stocks" | null>(null);
@@ -89,9 +99,9 @@ export function BasketChart({
   const [hover, setHover] = useState<{ t: string; values: Record<string, number> } | null>(null);
   const theme = useSiteTheme();
   const [query, setQuery] = useState("");
-  // The stocks on the chart when the Stocks menu opened: listed first, so picks made in any
-  // industry are easy to find. Fixed while it is open, so a row never jumps under a tap.
-  const [onTop, setOnTop] = useState<Record<string, number>>({});
+  // The menu lists the stocks in the order the page passes (the stock table's sort), as they were
+  // when it opened: fixed while it is open, so a row never jumps under a tap.
+  const [frozen, setFrozen] = useState<string[] | null>(null);
   const menusRef = useRef<HTMLDivElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -102,7 +112,7 @@ export function BasketChart({
   const toggleMenu = (name: "compare" | "stocks", btn: HTMLButtonElement) => {
     const row = menusRef.current;
     setMenuLeft(row && window.innerWidth >= 640 ? Math.max(0, Math.min(btn.offsetLeft, row.clientWidth - 384)) : 0);
-    if (name === "stocks" && menu !== "stocks") setOnTop(picks);
+    if (name === "stocks" && menu !== "stocks") setFrozen(stocks.map((s) => s.ticker));
     setMenu((m) => (m === name ? null : name));
   };
   useEffect(() => {
@@ -249,19 +259,9 @@ export function BasketChart({
 
   const picked = Object.keys(picks).length;
   const full = picked >= MAX_CHART_STOCKS;
-  const toggleStock = (t: string) => {
-    onPick?.();
-    setPicks((p) => {
-      if (p[t] != null) {
-        const rest = { ...p };
-        delete rest[t];
-        return rest;
-      }
-      if (Object.keys(p).length >= MAX_CHART_STOCKS) return p;
-      const used = new Set(Object.values(p));
-      return { ...p, [t]: [...Array(MAX_CHART_STOCKS).keys()].find((i) => !used.has(i))! };
-    });
-  };
+  // Select all can't draw every stock of a basket longer than the line limit: it draws the first ones.
+  const capped = stocks.length > MAX_CHART_STOCKS;
+  const allOn = picked >= Math.min(stocks.length, MAX_CHART_STOCKS);
   const toggleBench = (id: string) => setBenches((b) => (b.includes(id) ? b.filter((x) => x !== id) : [...b, id]));
   const toggleCompare = (slug: string) => setCompare((c) => (c.includes(slug) ? c.filter((x) => x !== slug) : c.length >= MAX_COMPARE ? c : [...c, slug]));
 
@@ -273,16 +273,54 @@ export function BasketChart({
     const value = hover ? hover.values[l.key] : s?.last;
     return { line: l, value: series.short.has(l.key) ? undefined : value, late: s?.late ?? series.short.get(l.key) ?? null, short: series.short.has(l.key), load: loadOf(l.key) };
   });
+  // The legend box's height: the rows on plus one spare row, up to five rows (then it scrolls).
+  // After the first measure it only grows, and only when the rows no longer fit (then to the rows
+  // plus one again): a line switched off never pulls the panels below up, and the next line
+  // switched on fits in the spare row without moving them. A few lines no longer leave a mostly empty box. Measured before paint; estimated (about
+  // 48px a row) for the first render.
+  const legendRef = useRef<HTMLUListElement>(null);
+  const [legendH, setLegendH] = useState(() => Math.min(LEGEND_MAX, (lines.length + 1) * 48));
+  const legendSet = useRef(false);
+  const legendHRef = useRef(legendH);
+  useLayoutEffect(() => {
+    const ul = legendRef.current;
+    if (!ul) return;
+    const fit = () => {
+      const items = [...ul.children] as HTMLElement[];
+      const content = items.reduce((sum, el) => sum + el.offsetHeight, 0) + 2;
+      // The spare row is a stock's (its name and ticker: the tallest usual row), so the next line fits.
+      const row = Math.max(LEGEND_STOCK_ROW, items.length ? content / items.length : 0);
+      const want = Math.min(LEGEND_MAX, Math.ceil(content + row));
+      const now = legendHRef.current;
+      // The first measure sets it; after that it grows only once the rows no longer fit.
+      if (!legendSet.current) legendSet.current = true;
+      else if (content <= now || want <= now) return;
+      if (want === now) return;
+      // A tick in the stock table (below the box) keeps its row under the pointer: the page scrolls
+      // by what the box grew. Done here, not left to the browser's scroll anchoring, which some
+      // browsers lack and Chrome skips here (the basket page turns it off, so the two never add up).
+      const below = want > now && document.activeElement instanceof HTMLElement && ul.getBoundingClientRect().bottom <= document.activeElement.getBoundingClientRect().top;
+      if (below) window.scrollBy(0, want - now);
+      legendHRef.current = want;
+      ul.style.height = `${want}px`;
+      setLegendH(want);
+    };
+    fit();
+    // A row that gets taller later (its "data from…" note once its prices load) is caught when it
+    // happens, not at some later unrelated re-render.
+    const ro = new ResizeObserver(fit);
+    for (const el of ul.children) ro.observe(el);
+    return () => ro.disconnect();
+  }, [lines]);
   const anyLoading = lines.some((l) => loadOf(l.key)?.status !== "ok" && loadOf(l.key)?.status !== "error");
   const etfs = indices.filter((b) => b.via && benches.includes(b.id));
   const compareCount = compare.length + [...indices, ...market].filter((b) => benches.includes(b.id)).length;
   const q = query.trim().toLowerCase();
-  const ordered = [...stocks].sort((a, b) => {
-    const sa = onTop[a.ticker];
-    const sb = onTop[b.ticker];
-    if (sa != null && sb != null) return sa - sb;
-    return sa != null ? -1 : sb != null ? 1 : 0;
-  });
+  const at = (t: string) => {
+    const i = menu === "stocks" && frozen ? frozen.indexOf(t) : -1;
+    return i < 0 ? stocks.length : i;
+  };
+  const ordered = menu === "stocks" && frozen ? [...stocks].sort((a, b) => at(a.ticker) - at(b.ticker)) : stocks;
   const visible = q ? ordered.filter((s) => s.name.toLowerCase().includes(q) || s.ticker.toLowerCase().includes(q)) : ordered;
 
   return (
@@ -345,9 +383,29 @@ export function BasketChart({
                       {picked === stocks.length ? `all ${picked} on` : `${picked} of ${stocks.length} on`}
                     </span>
                   </div>
+                  {/* Always here, whatever the basket's size, so the menu's rows never move under a tap. */}
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={onPickAll}
+                      disabled={allOn}
+                      title={capped ? `Draws the first ${MAX_CHART_STOCKS}: the chart's line limit` : undefined}
+                      className="inline-flex min-h-9 items-center rounded border border-line bg-bg px-2.5 text-xs font-semibold text-ink hover:border-accent disabled:cursor-default disabled:text-ink-soft disabled:hover:border-line sm:min-h-7 pointer-coarse:min-h-9"
+                    >
+                      Select all
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onPickNone}
+                      disabled={picked === 0}
+                      className="inline-flex min-h-9 items-center rounded border border-line bg-bg px-2.5 text-xs font-semibold text-ink hover:border-accent disabled:cursor-default disabled:text-ink-soft disabled:hover:border-line sm:min-h-7 pointer-coarse:min-h-9"
+                    >
+                      Clear all
+                    </button>
+                  </div>
                   {/* Visibility only: these switch a stock's line on or off; they don't change the basket. */}
-                  <p className={"mt-1 text-[11px] leading-snug " + (full ? "text-ink" : "text-ink-soft")}>
-                    {full ? `Up to ${MAX_CHART_STOCKS} lines at a time. Switch one off to show another.` : `Lines only: the ${stocks.length} stocks stay in the basket either way.`}
+                  <p className={"mt-1.5 text-[11px] leading-snug " + (full ? "text-ink" : "text-ink-soft")}>
+                    {full && capped ? `First ${MAX_CHART_STOCKS} shown · chart limit. Switch one off to show another.` : full ? LINES_FULL : `Lines only: the ${stocks.length} stocks stay in the basket either way.`}
                   </p>
                   {stocks.length > 12 && (
                     <input
@@ -369,7 +427,7 @@ export function BasketChart({
                           on={on}
                           disabled={!on && full}
                           disabledTitle={`Up to ${MAX_CHART_STOCKS} stocks at a time`}
-                          onToggle={() => toggleStock(st.ticker)}
+                          onToggle={() => onToggleStock(st.ticker)}
                           label={st.name}
                           sub={st.ticker}
                           swatch={on ? { ...stockLine(theme, slot), width: 2 } : undefined}
@@ -406,8 +464,8 @@ export function BasketChart({
           <span>{hover ? `${series.step === "1wk" ? "Week of" : series.step === "1mo" ? "Month of" : "On"} ${fmtDay(hover.t)}` : `Return, past ${rangeLong}`}</span>
           {anyLoading && series.list.length > 0 && <span className="normal-case tracking-normal">Loading…</span>}
         </div>
-        {/* A fixed height that scrolls, so switching lines on or off never moves what is below. */}
-        <ul className="h-56 divide-y divide-line overflow-y-auto overscroll-contain rounded-xl border border-line bg-bg/60">
+        {/* Sized to its rows plus one, only ever growing (see legendH), so switching lines on or off rarely moves what is below. */}
+        <ul ref={legendRef} style={{ height: legendH }} className="divide-y divide-line overflow-y-auto overscroll-contain rounded-xl border border-line bg-bg/60">
           {rows.map(({ line, value, late, short, load }) => {
             const failed = load?.status === "error";
             const sub = [line.note, short && late ? `history from ${fmtMonth(late)}, pick a shorter range` : late ? `data from ${fmtMonth(late)}` : null, failed ? "no price data available" : null]
@@ -415,10 +473,9 @@ export function BasketChart({
               .join(" · ");
             const mine = line.key === basketKey;
             return (
-              // Stock rows are phone-only: from lg the left column lists every stock with its line colour.
               // Stock names are ink, not accent: the basket's own line is accent, and the swatch
               // already shows each stock's colour.
-              <li key={line.key} className={"flex items-center gap-3 px-3 py-2 text-sm " + (mine ? "bg-accent/5 " : "") + (line.stock ? "lg:hidden" : "")}>
+              <li key={line.key} className={"flex items-center gap-3 px-3 py-2 text-sm " + (mine ? "bg-accent/5" : "")}>
                 <svg aria-hidden width="22" height="10" className={"shrink-0 " + (short || failed ? "opacity-30" : "")}>
                   <line x1="2" y1="5" x2="20" y2="5" stroke={line.color} strokeWidth={line.width} strokeDasharray={DASHARRAY[line.dash]} strokeLinecap="round" />
                 </svg>

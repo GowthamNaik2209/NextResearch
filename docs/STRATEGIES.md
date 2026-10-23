@@ -54,10 +54,24 @@ off this visit) and shrinks the rest in proportion; removing one scales the rest
 
 **One selection per basket page** (`src/lib/baskets/selection.ts`, unit-tested): the stocks, their
 custom weights, the chart's lines, where each stock was picked from and what was just taken off all
-change together through one reducer, so the picker, the stock table, the side list, the chart's
-Stocks menu and the custom weights never disagree. Removing is soft ("Removed X · Undo" restores
-its place, weight and line); a removed stock's line is dropped, never handed to another stock once
-the reader has chosen lines; a save that fails reloads the basket and its weights and lines with it.
+change together through one reducer, so the picker, the stock table and the chart's Stocks menu
+never disagree. The stock table is the one list of the basket's stocks: each row's box draws its
+chart line (the same action as its switch in the Stocks menu, up to 18 lines; Select all and Clear
+all in both places), Custom weights are typed in its Target % column (total, Reset to equal / to
+market cap and Done above the rows), and its × hides a line in *Your picks* or, while editing your
+basket or a draft, takes the stock out of the basket in *All stocks*. Removing is soft: the row
+becomes a "Removed X · Undo" placeholder of the same height in its place (also in the header's
+status line) while the offer is open, and Undo restores its place, weight and line; a removed
+stock's line is dropped, never handed to another stock; a save that fails reloads the basket and
+its weights and lines with it.
+
+**Chart lines default to none, for every kind of basket** (industry, rule-based, saved, a draft):
+the chart opens on the basket and its benchmarks, and only the reader draws stock lines (adding
+stocks never draws one), so the first tick always adds a line and "Your picks" means the reader's
+picks. The table and the Stocks menu list the stocks in one order (the table's sort), and Select
+all in either place draws the top 18 of that order. A tick past 18 lines opens a note beside the
+tapped box. In the Custom weight boxes, Tab moves to the next stock's box; the line boxes move with
+the up and down arrows.
 Every "start from" path (Copy to my baskets on industry, rule-based and shared baskets; the
 watchlist's Save as a basket) opens the unsaved draft at `/baskets/new?from=…`; nothing is saved
 until Create basket. A basket holds up to 75 stocks; an add that would pass that says how many went in.

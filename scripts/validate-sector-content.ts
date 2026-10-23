@@ -1,11 +1,12 @@
 // Integrity check for the sector/domain/zone/company graph in
-// src/lib/sector-content/products.ts (the data-model upgrade's Domain/Component
+// src/lib/sector-content/sectors/<slug>.ts (registered in products.ts; the data-model upgrade's Domain/Component
 // relational fields: domainId, relatedComponents, relatedDomains, and zone->company
 // links), the completeness of every live sector, and that no company figure is typed
 // into the prose (figures come only from the company table - see TYPED_FIGURE below).
 //
 // Run: npm run validate:content
-import { companyLinkKey, listSectors } from "../src/lib/sector-content/index.js";
+import { companyLinkKey, listSectorSlugs, listSectors, tickerForSupplier } from "../src/lib/sector-content/index.js";
+import { SECTOR_LOADERS } from "../src/lib/sector-content/sectors/load.js";
 import { getResearchForSector } from "../src/lib/sector-content/docs.js";
 import { listScenarios } from "../src/lib/sector-content/scenarios.js";
 import { getReport } from "../src/lib/sector-content/reports/index.js";
@@ -53,10 +54,31 @@ function checkTypedFigures(v: unknown, path: string) {
     }
 }
 
+// The browser explorer loads sectors through sectors/load.ts, the server through products.ts.
+{
+  const registry = new Set(listSectorSlugs());
+  const loaders = new Set(Object.keys(SECTOR_LOADERS));
+  for (const slug of registry) if (!loaders.has(slug)) fail(`[${slug}] has no loader in src/lib/sector-content/sectors/load.ts (its explorer would not load)`);
+  for (const slug of loaders) if (!registry.has(slug)) fail(`[${slug}] has a loader in sectors/load.ts but is not registered in products.ts`);
+}
+
 for (const sector of listSectors()) {
   const zoneIds = new Set(sector.zones.map((z) => z.id));
   const domainIds = new Set((sector.domains ?? []).map((d) => d.id));
   const supplierKeys = new Set(Object.keys(sector.suppliers));
+
+  // One record per company in a sector, linked from every zone it touches (each link carries its
+  // own exposureType/strength): two records for one company split its write-up and double-count it.
+  const byCompany = new Map<string, string>();
+  for (const [key, sup] of Object.entries(sector.suppliers)) {
+    const t = tickerForSupplier(sup);
+    if (byCompany.has(t)) fail(`[${sector.slug}] "${key}" and "${byCompany.get(t)}" are the same company (${t}) - merge them into one record and map the retired key in keyAliases`);
+    else byCompany.set(t, key);
+  }
+  for (const [from, to] of Object.entries(sector.keyAliases ?? {})) {
+    if (supplierKeys.has(from)) fail(`[${sector.slug}] keyAliases "${from}" is still a live supplier key`);
+    if (!supplierKeys.has(to)) fail(`[${sector.slug}] keyAliases "${from}" points to missing supplier "${to}"`);
+  }
 
   if (sector.integratorZoneId !== undefined && !zoneIds.has(sector.integratorZoneId)) {
     fail(`[${sector.slug}] integratorZoneId "${sector.integratorZoneId}" has no matching zone`);

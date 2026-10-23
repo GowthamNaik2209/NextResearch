@@ -8,7 +8,7 @@ import {
   EXPOSURE_STRENGTH_LABEL,
   type SectorDef,
   type SectorZone,
-} from "@/lib/sector-content";
+} from "@/lib/sector-content/core";
 import { WatchlistButton } from "./WatchlistButton";
 import { NA, croreShort } from "@/lib/format";
 
