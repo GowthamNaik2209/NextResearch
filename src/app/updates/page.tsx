@@ -28,13 +28,15 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
             The latest headlines on the companies we cover, newest first. Each one links to the original source.
           </p>
+          {/* Up here, not under the feed: below it, the tip jumped down when the 30 headlines
+              replaced the 5-row loading skeleton (a layout shift on every visit). */}
+          <p className="mt-1.5 text-xs text-ink-soft">
+            Tip: save companies to your <Link href="/watchlist" className="tap-target text-accent hover:underline">watchlist</Link> to see their news in one place.
+          </p>
         </div>
         <ThemeChips sectors={sectors.map((s) => ({ slug: s.slug, name: s.name }))} active={active} />
         {/* key: switching sector shows the skeleton again instead of the previous list */}
         <NewsFeed key={active ?? "all"} sectorSlug={active} limit={30} />
-        <p className="text-xs text-ink-soft">
-          Tip: save companies to your <Link href="/watchlist" className="tap-target text-accent hover:underline">watchlist</Link> to see their news in one place.
-        </p>
       </main>
       <SiteFooter />
     </>

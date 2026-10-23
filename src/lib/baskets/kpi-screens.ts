@@ -1,19 +1,21 @@
 // Rule-based baskets screened on the company table's figures (supplier.f): five fiscal years of
 // revenue and net profit (FY22..FY26), P/E and ROCE. Each rule is fixed and stated in one line, uses
-// only the latest snapshot, keeps out small companies and those whose latest year is a one-off
-// (screenOut) and REITs/InvITs, and ranks by one number shown beside each stock. They deliberately differ from the
+// only the latest snapshot, keeps out small companies, those with a one-off year (./outliers.ts)
+// and REITs/InvITs, and ranks by one number shown beside each stock. They deliberately differ from the
 // other rule-based baskets (past price, ROCE alone, our maps) and from the landing page's "Stock
 // screens" (src/lib/sector-content/insights.ts: highest ROCE, latest-year revenue growth, lowest
 // P/E with ROCE above 15%, furthest below the 52-week high, highest dividend yield).
 // Pure, so each rule is unit-tested on fixture data (kpi-screens.test.ts).
 import { croreShort } from "@/lib/format";
+import { ONE_OFF_NOTE } from "./outliers";
 
 /** What a screen needs about one company (from the company table; null when not reported). */
 export type KpiStock = {
   ticker: string;
   name: string;
   mcapCr: number | null;
-  screenOut?: boolean;
+  /** Figures distorted by a one-off year (./outliers.ts): kept out of every screen. */
+  outlier?: boolean;
   /** A REIT or InvIT: it passes its income through, so its P/E, margins and "losses" (fair-value
    * marks) don't compare with a company's. Kept out of these screens. */
   trust?: boolean;
@@ -46,7 +48,7 @@ const FY = (i: number) => `FY${22 + i}`;
 const ok = (v: number | null | undefined): v is number => typeof v === "number" && Number.isFinite(v);
 const cagr = (from: number, to: number, years: number) => ((to / from) ** (1 / years) - 1) * 100;
 const pct0 = (v: number) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(0)}%`;
-const eligible = (s: KpiStock) => !s.screenOut && !s.trust && (s.mcapCr ?? 0) >= KPI_MIN_MCAP_CR;
+const eligible = (s: KpiStock) => !s.outlier && !s.trust && (s.mcapCr ?? 0) >= KPI_MIN_MCAP_CR;
 /** Ties break on market cap (bigger first), then name, so the order is fully determined. */
 const tie = (a: KpiStock, b: KpiStock) => (b.mcapCr ?? -1) - (a.mcapCr ?? -1) || a.name.localeCompare(b.name);
 
@@ -142,28 +144,28 @@ export function kpiScreens(stocks: KpiStock[]): KpiScreen[] {
       id: "compounders",
       title: "Consistent compounders",
       blurb: "Revenue and profit higher every year for five years, with ROCE of 15% or more.",
-      rule: `Revenue and net profit up every year FY22→FY26 (FY22 profit ₹${KPI_MIN_BASE_PROFIT_CR} Cr+) and ROCE ${COMPOUNDER_MIN_ROCE}%+, worth ${cr}+; fastest 4-year profit growth first.`,
+      rule: `Revenue and net profit up every year FY22→FY26 (FY22 profit ₹${KPI_MIN_BASE_PROFIT_CR} Cr+) and ROCE ${COMPOUNDER_MIN_ROCE}%+, worth ${cr}+; fastest 4-year profit growth first. ${ONE_OFF_NOTE}`,
       stocks: compounders(stocks),
     },
     {
       id: "garp",
       title: "Growth at a reasonable price",
       blurb: "Fast profit growth for the price paid: the lowest P/E per point of growth.",
-      rule: `P/E ÷ FY23→FY26 profit growth (PEG ${GARP.maxPeg} or less), lowest first; profit growth ${GARP.minProfitCagr}%+ a year from ₹${KPI_MIN_BASE_PROFIT_CR} Cr+ with no loss since FY22, revenue ${GARP.minRevCagr}%+, ROCE ${GARP.minRoce}%+, worth ${cr}+.`,
+      rule: `P/E ÷ FY23→FY26 profit growth (PEG ${GARP.maxPeg} or less), lowest first; profit growth ${GARP.minProfitCagr}%+ a year from ₹${KPI_MIN_BASE_PROFIT_CR} Cr+ with no loss since FY22, revenue ${GARP.minRevCagr}%+, ROCE ${GARP.minRoce}%+, worth ${cr}+. ${ONE_OFF_NOTE}`,
       stocks: garp(stocks),
     },
     {
       id: "turnarounds",
       title: "Turnarounds",
       blurb: "Loss-making in FY22–FY24, profitable since, with FY26 profit up on FY25.",
-      rule: `A net loss in FY22, FY23 or FY24, then profits in FY25 and FY26 (FY26 higher) without shrinking sales, worth ${cr}+; biggest FY26 profit first.`,
+      rule: `A net loss in FY22, FY23 or FY24, then profits in FY25 and FY26 (FY26 higher) without shrinking sales, worth ${cr}+; biggest FY26 profit first. ${ONE_OFF_NOTE}`,
       stocks: turnarounds(stocks),
     },
     {
       id: "margins",
       title: "Widening margins",
       blurb: "Net margin up most over three years, profitable each year on growing revenue.",
-      rule: `Net margin (profit ÷ revenue) up most from FY23 to FY26, profitable every year, revenue growing and ₹${MARGIN_MIN_REV_CR} Cr+, worth ${cr}+.`,
+      rule: `Net margin (profit ÷ revenue) up most from FY23 to FY26, profitable every year, revenue growing and ₹${MARGIN_MIN_REV_CR} Cr+, worth ${cr}+. ${ONE_OFF_NOTE}`,
       stocks: wideningMargins(stocks),
     },
   ];

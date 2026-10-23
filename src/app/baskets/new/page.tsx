@@ -10,6 +10,7 @@ import { getVisibleBasket } from "@/lib/baskets/store";
 import { parseWeights } from "@/lib/baskets/strategy";
 import { compareProps, pickerProps } from "@/lib/baskets/page-props";
 import { ensureFinancials } from "@/lib/financials/load";
+import { primarySector } from "@/lib/sector-content";
 
 export const metadata = { title: "Create a basket", robots: { index: false, follow: false } };
 
@@ -120,7 +121,15 @@ export default async function NewBasketPage({ searchParams }: { searchParams: Pr
           // listing"), so a copy of Recent listings opens on the usual 1Y rather than its 2Y range.
           initialRange={idea && !idea.joinAtListing ? idea.range : undefined}
           sourceSector={ind?.slug ?? src?.sourceSector ?? null}
-          pickedFrom={src ? Object.fromEntries(src.items.flatMap((i) => (i.pickedFrom ? [[i.ticker, i.pickedFrom]] : []))) : undefined}
+          // From the watchlist each stock keeps its home industry, the one its watchlist card names
+          // (primarySector), rather than reading as a role in whichever industry most of them share.
+          pickedFrom={
+            src
+              ? Object.fromEntries(src.items.flatMap((i) => (i.pickedFrom ? [[i.ticker, i.pickedFrom]] : [])))
+              : kind === "watchlist"
+                ? Object.fromEntries(stocks.flatMap((s) => [[s.ticker, primarySector(s.ticker)] as const].filter((e): e is [string, string] => e[1] != null)))
+                : undefined
+          }
           notice={notice || null}
           {...compareProps(industry)}
         />

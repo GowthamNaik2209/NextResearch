@@ -20,11 +20,16 @@ const IndustryChartsView = dynamic(() => import("@/components/baskets/IndustryCh
   loading: () => <ChartsLoading />,
 });
 
+// The loading box sits in a wrapper about as tall as the loaded Charts view at each breakpoint
+// (measured on the basket page it renders, a little under so it never ends taller), so the footer
+// doesn't jump from just under the spinner to thousands of pixels down when the view arrives.
 function ChartsLoading() {
   return (
-    <div role="status" className="flex min-h-[420px] items-center justify-center gap-3 rounded-2xl border border-line bg-panel text-sm text-ink-soft">
-      <span aria-hidden className="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-accent" />
-      Loading charts&hellip;
+    <div className="min-h-[3700px] sm:min-h-[2740px] lg:min-h-[2940px] xl:min-h-[2620px]">
+      <div role="status" className="flex min-h-[420px] items-center justify-center gap-3 rounded-2xl border border-line bg-panel text-sm text-ink-soft">
+        <span aria-hidden className="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-accent" />
+        Loading charts&hellip;
+      </div>
     </div>
   );
 }

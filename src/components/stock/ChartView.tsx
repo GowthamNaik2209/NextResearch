@@ -298,11 +298,13 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
           {change != null && changePct != null && (
             <div className={"order-2 text-right font-mono text-sm font-semibold tabular-nums " + (shownUp ? "text-pos" : "text-danger")}>
               {shownUp ? "▲" : "▼"} {Math.abs(change).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (
-              {range === "MAX" && first && shown && shown.c / first.c >= 10 ? `${fmtNum(shown.c / first.c, 0)}×` : fmtSigned(changePct, 2)})
-              {/* "live chart": this is the chart's own price change, not the dated snapshot CAGR on Summary. */}
+              {range === "MAX" && first && shown && shown.c / first.c >= 10 ? `${fmtNum(shown.c / first.c, 0)}×` : fmtSigned(changePct, 1)})
+              {/* The chart's own move from live price history, which differs from the dated
+                  company-table return on Summary; "live" plus the window keeps the two apart.
+                  One decimal, like every other return in the pop-up. */}
               <div className="text-[11px] font-normal text-ink-soft">
-                {hover && first ? `since ${fmtDay(first.t)}` : range === "MAX" && first ? `since ${fmtMonth(first.t)}` : `past ${RANGES.find((r) => r.id === range)?.long}`} ·{" "}
-                <span className="text-pos">live</span> chart
+                {hover && first ? `Since ${fmtDay(first.t)}` : range === "MAX" && first ? `Since ${fmtMonth(first.t)}` : `Past ${range}`},{" "}
+                <span className="text-pos">live</span>
               </div>
             </div>
           )}

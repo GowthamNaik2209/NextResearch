@@ -1,6 +1,6 @@
 import type { Quote } from "@/lib/live/yahoo";
 import { quoteTiming } from "@/lib/live/freshness";
-import { fmtPrice, fmtSigned, freshQuote } from "./merge";
+import { fmtPrice, fmtSigned, freshQuote, pctTone } from "./merge";
 import { sep } from "@/lib/format";
 
 const MINUS = "−";
@@ -21,7 +21,7 @@ export function PriceTag({ price, quote: rawQuote, size = "md", asOf }: { price:
   const quote = freshQuote(rawQuote);
   if (price == null && !quote) return null;
   const up = (quote?.changePct ?? 0) >= 0;
-  const tone = quote?.changePct == null ? "text-ink-soft" : up ? "text-pos" : "text-danger";
+  const tone = pctTone(quote?.changePct, 2);
   return (
     <div className="text-right">
       <div className={"font-mono font-semibold text-ink " + (size === "md" ? "text-lg" : "text-sm")}>{fmtPrice(quote?.price ?? price)}</div>

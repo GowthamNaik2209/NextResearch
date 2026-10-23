@@ -62,7 +62,11 @@ export type IpoNow = {
   pe: number | null;
   asOf: string | null;
   issuePrice: number | null;
-  /** Current price vs the issue price, %. */
+  /** Top of the authored price band (₹), the comparison while no final issue price is authored. */
+  bandTop: number | null;
+  /** What vsIssuePct is measured against: the final issue price, else the top of the price band. */
+  vsBasis: "issue" | "band-top" | null;
+  /** Current price vs the issue price (or, without one, the top of the price band), %. */
   vsIssuePct: number | null;
   supplier: SectorSupplier | null;
 };
@@ -75,11 +79,22 @@ const rupees = (s: string | null | undefined) => {
   return Number.isFinite(n) ? n : null;
 };
 
+/** "₹143 - 151" -> 151; "₹1,700 - 1,785 (priced at ₹1,785)" -> 1785: the band's highest figure. */
+export function priceBandTop(band: string | null | undefined): number | null {
+  const nums = (band ?? "").match(/\d[\d,]*(?:\.\d+)?/g)?.map((x) => parseFloat(x.replace(/,/g, ""))) ?? [];
+  const top = Math.max(...nums.filter((n) => Number.isFinite(n) && n > 0));
+  return Number.isFinite(top) ? top : null;
+}
+
 function nowFigures(r: IpoReport): IpoNow | null {
   const f = r.ticker ? companyFinancials(r.ticker) : null;
   if (!r.ticker || !f) return null;
   const price = rupees(f.price);
   const issuePrice = r.issue.issuePrice ?? null;
+  // Just listed, before the final issue price is authored (it is never guessed), the band's top
+  // is the fair yardstick: issues are almost always priced there, and the panel says which it is.
+  const bandTop = priceBandTop(r.issue.priceBand);
+  const base = issuePrice ?? bandTop;
   return {
     ticker: r.ticker,
     price,
@@ -87,7 +102,9 @@ function nowFigures(r: IpoReport): IpoNow | null {
     pe: f.kpi?.[0] ?? null,
     asOf: f.asOf ?? null,
     issuePrice,
-    vsIssuePct: price != null && issuePrice ? (price / issuePrice - 1) * 100 : null,
+    bandTop,
+    vsBasis: issuePrice ? "issue" : bandTop ? "band-top" : null,
+    vsIssuePct: price != null && base ? (price / base - 1) * 100 : null,
     supplier: findSupplierByTicker(r.ticker),
   };
 }

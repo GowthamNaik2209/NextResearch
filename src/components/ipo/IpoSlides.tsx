@@ -67,8 +67,13 @@ function NowListed({ deck, openStock, className = "" }: SlideProps & { className
   const tone: Tone = n.vsIssuePct == null ? "neutral" : n.vsIssuePct > 0 ? "pos" : n.vsIssuePct < 0 ? "neg" : "neutral";
   const cells: [string, ReactNode, string?][] = [
     ["Share price", n.price != null ? `₹${inr(n.price)}` : NA],
-    ["vs issue price", <span key="v" className={TONE_TEXT[tone]}>{signedPct(n.vsIssuePct)}</span>, n.issuePrice != null ? `Issue price ₹${inr(n.issuePrice)}` : undefined],
-    ["Market cap", keepUnits(croreShort(n.mcapCr)), deck.issue.valuationCr != null ? `${keepUnits(croreShort(deck.issue.valuationCr))} at the issue` : undefined],
+    n.vsBasis === "band-top"
+      ? // No final issue price authored yet: measured against the band's top, and labelled so.
+        ["vs top of price band", <span key="v" className={TONE_TEXT[tone]}>{signedPct(n.vsIssuePct)}</span>, `Top of price band ₹${inr(n.bandTop)}`]
+      : ["vs issue price", <span key="v" className={TONE_TEXT[tone]}>{signedPct(n.vsIssuePct)}</span>, n.issuePrice != null ? `Issue price ₹${inr(n.issuePrice)}` : undefined],
+    // The company table's figure as it stands; the offer document's valuation (its own share count,
+    // at the band's top) is a different source, so it is named as such rather than reconciled.
+    ["Market cap", keepUnits(croreShort(n.mcapCr)), deck.issue.valuationCr != null ? `${keepUnits(croreShort(deck.issue.valuationCr))} at the issue (offer document)` : undefined],
     ["P/E", n.pe != null ? `${n.pe.toFixed(1)}x` : NA, "Trailing earnings"],
   ];
   return (
@@ -89,7 +94,7 @@ function NowListed({ deck, openStock, className = "" }: SlideProps & { className
         ))}
       </dl>
       <p className="mt-2.5 text-[10.5px] leading-snug text-ink-soft">
-        Price, market cap and P/E: Screener.in, as of {n.asOf ?? deck.asOf} - the same figures as the peer table and every industry page. Issue price from the offer document.
+        Price, market cap and P/E: Screener.in, as of {n.asOf ?? deck.asOf} - the same figures as the peer table and every industry page. {n.vsBasis === "band-top" ? "Price band" : "Issue price"} and valuation at the issue from the offer document, which can count shares differently.
         {n.supplier && (
           <>
             {" "}

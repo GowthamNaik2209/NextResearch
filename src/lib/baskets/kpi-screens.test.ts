@@ -14,7 +14,7 @@ test("compounders: revenue and profit up every year, ROCE 15%+, fastest profit g
     co("FLATPROFIT", { np: [100, 120, 120, 160, 180] }), // profit not up every year
     co("LOWROCE", { roce: 12 }),
     co("SMALL", { mcapCr: 400 }),
-    co("ONEOFF", { screenOut: true }),
+    co("ONEOFF", { outlier: true }),
     co("REIT", { trust: true }),
     co("GAP", { np: [100, null, 140, 160, 180] }), // a year missing: can't show "every year"
     co("LOSS", { np: [-5, 20, 40, 60, 80] }), // growth from a loss isn't a compounding rate
@@ -80,5 +80,15 @@ test("each screen states a one-line rule with its market-cap floor", () => {
   for (const s of kpiScreens([co("A")])) {
     assert.ok(s.rule.includes("₹1,000 Cr"), s.id);
     assert.ok(!s.rule.includes("\n"), s.id);
+  }
+});
+
+test("a company with a one-off year is in no screen, and every rule says so", () => {
+  // Tata Steel's shape: an impairment loss in FY24 makes it look like a turnaround.
+  const oneOff = co("ONEOFFTURN", { outlier: true, rev: [243959, 243353, 229171, 218543, 232140], np: [41749, 8075, -4910, 3174, 10886] });
+  assert.deepEqual(tickers(turnarounds([oneOff, { ...oneOff, ticker: "TURN", outlier: false }])), ["TURN"]);
+  for (const s of kpiScreens([oneOff, co("FAST", { outlier: true, np: [100, 150, 200, 300, 400] })])) {
+    assert.equal(s.stocks.length, 0, s.id);
+    assert.ok(s.rule.includes("One-off years left out."), s.id);
   }
 });

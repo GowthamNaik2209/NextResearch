@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { before, test } from "node:test";
 import { findSupplierByTicker, listSectors } from "./index";
-import { buildIdeas, listNews, sectorNumbers } from "./insights";
+import { buildIdeas, listCompanyMetrics, listNews, sectorNumbers } from "./insights";
 import { buildSearchIndex, getPlatformStats } from "./stats";
 import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
 
@@ -14,6 +14,16 @@ test("every idea screen is non-empty, short, and states its rule", () => {
   for (const idea of ideas) {
     assert.ok(idea.rule.length > 10, `${idea.id} should explain its rule`);
     assert.ok(idea.rows.length > 0 && idea.rows.length <= 5);
+  }
+});
+
+test("no stock screen lists a company with a one-off year, and each rule says so", () => {
+  const flagged = new Set(listCompanyMetrics().filter((c) => c.outlier).map((c) => c.name));
+  // The detector's anchor cases are in the table and flagged (src/lib/baskets/outliers.ts).
+  for (const t of ["TATASTEEL", "JSWSTEEL", "NAUKRI", "SPARC"]) assert.ok(listCompanyMetrics().find((c) => c.ticker === t)?.outlier, t);
+  for (const idea of buildIdeas()) {
+    assert.ok(idea.rule.includes("One-off years left out."), idea.id);
+    for (const r of idea.rows) assert.ok(!flagged.has(r.name), `${idea.id}: ${r.name}`);
   }
 });
 

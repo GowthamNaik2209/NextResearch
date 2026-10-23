@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { before, test } from "node:test";
-import { getIpo, listIpoDecks, listIpos } from "./index";
+import { getIpo, listIpoDecks, listIpos, priceBandTop } from "./index";
 import { validateIpo } from "./validate";
 import { companyFinancials, parseCrore } from "../sector-content";
 import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
@@ -73,7 +73,17 @@ test("a listed deck shows its own current figures from the company table, agains
     assert.ok(f && d.now, `${d.slug}: ${d.ticker} is not in the company table`);
     const price = parseFloat(f.price!.replace(/[^\d.]/g, ""));
     assert.deepEqual([d.now.price, d.now.mcapCr, d.now.pe, d.now.asOf], [price, parseCrore(f.mcap), f.kpi?.[0] ?? null, f.asOf ?? null], d.slug);
-    // A just-listed deck may name its ticker before its final issue price is confirmed (Zetwerk).
-    assert.equal(d.now.vsIssuePct, d.issue.issuePrice ? (price / d.issue.issuePrice - 1) * 100 : null, d.slug);
+    // A just-listed deck may name its ticker before its final issue price is confirmed (Zetwerk):
+    // then it is compared with the top of its price band, and says so.
+    const base = d.issue.issuePrice ?? priceBandTop(d.issue.priceBand);
+    assert.equal(d.now.vsBasis, d.issue.issuePrice ? "issue" : base ? "band-top" : null, d.slug);
+    assert.equal(d.now.vsIssuePct, base ? (price / base - 1) * 100 : null, d.slug);
   }
+});
+
+test("the top of a price band is its highest figure", () => {
+  assert.equal(priceBandTop("₹143 - 151"), 151);
+  assert.equal(priceBandTop("₹1,700 - 1,785 (priced at ₹1,785)"), 1785);
+  assert.equal(priceBandTop(null), null);
+  assert.equal(priceBandTop("Not yet set"), null);
 });

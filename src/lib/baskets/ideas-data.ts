@@ -10,6 +10,7 @@ import { listBasketUniverse } from "./industry";
 import { ensureFinancials } from "@/lib/financials/load";
 import { backtestBasket } from "./run";
 import { heldStrategy } from "./strategy";
+import { detectOutlier } from "./outliers";
 import { buildIdeas, priceStat, withBacktestReturns, type Idea, type IdeaBacktest, type IdeaStockInfo, type PriceSnapshot, type PriceStat } from "./ideas";
 
 const CONCURRENCY = 10;
@@ -68,7 +69,7 @@ export function ideaStockInfo(): IdeaStockInfo[] {
       pe: num(f?.kpi?.[0]),
       rev: f?.rev ?? undefined,
       np: f?.np ?? undefined,
-      screenOut: f?.screenOut,
+      outlier: !!detectOutlier(f),
       trust: /\b(REIT|InvIT)\b|Trust\b/i.test(st.name),
       // Industries only: a policy map (PLI, ALMM) isn't another industry the company sells into.
       industries: st.industries.filter((i) => !policySlugs.has(i.slug)).length,
@@ -110,9 +111,9 @@ export const getIdeas = unstable_cache(
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },
-  // v9: Recent listings backtested from each listing (its range and joinAtListing) and the screens on
-  // the company table's figures, so cached v8 lists (Recent listings on 1M, no screens) aren't served.
-  ["basket-ideas-v9"],
+  // v10: companies with a one-off year (outliers.ts) left out of every list, so cached v9 lists
+  // (Tata Steel in Turnarounds, say) aren't served.
+  ["basket-ideas-v10"],
   { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
 );
 

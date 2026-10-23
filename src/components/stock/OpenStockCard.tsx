@@ -12,32 +12,38 @@ export function OpenStockCard({
   ticker,
   supplier,
   className = "",
+  disabled = false,
   children,
 }: {
   ticker: string;
   supplier: SectorSupplier;
   className?: string;
+  /** Not a pop-up opener for now (a removed watchlist row): a plain box. The same element either
+   * way, so the children don't remount when it switches back. */
+  disabled?: boolean;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  return (
-    <>
-      <div
-        role="button"
-        tabIndex={0}
-        aria-haspopup="dialog"
-        onClick={(e) => {
+  const opener = disabled
+    ? {}
+    : ({
+        role: "button",
+        tabIndex: 0,
+        "aria-haspopup": "dialog",
+        onClick: (e: React.MouseEvent) => {
           if ((e.target as HTMLElement).closest("a,button,input")) return;
           setOpen(true);
-        }}
-        onKeyDown={(e) => {
+        },
+        onKeyDown: (e: React.KeyboardEvent) => {
           if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {
             e.preventDefault();
             setOpen(true);
           }
-        }}
-        className={"cursor-pointer " + className}
-      >
+        },
+      } as const);
+  return (
+    <>
+      <div {...opener} className={(disabled ? "" : "cursor-pointer ") + className}>
         {children}
       </div>
       {open && <StockModalHost ticker={ticker} supplier={supplier} onClose={() => setOpen(false)} />}

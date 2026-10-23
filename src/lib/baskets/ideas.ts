@@ -3,6 +3,7 @@
 import { fmtMonth, signedPct } from "@/lib/format";
 import type { ChartRange } from "@/lib/live/yahoo";
 import { kpiScreens, type KpiStock } from "./kpi-screens";
+import { ONE_OFF_NOTE } from "./outliers";
 
 const DAY = 86_400_000;
 
@@ -75,8 +76,6 @@ export type IdeaStockInfo = KpiStock & {
   name: string;
   mcapCr: number | null;
   roce: number | null;
-  /** Kept out of screens: latest results dominated by a one-off. */
-  screenOut?: boolean;
   /** Industry maps the company is in (policy maps not counted). */
   industries: number;
   /** Policy maps (PLI, ALMM…) it is also in: with the industries, the "chains" /connections counts. */
@@ -114,8 +113,13 @@ const pctTxt = (v: number) => signedPct(v);
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
 const monthYear = (t: string) => fmtMonth(t);
 
-/** Every idea for the day. An idea with no stocks (no price data yet, say) is left out. */
-export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: number): Idea[] {
+/**
+ * Every idea for the day. An idea with no stocks (no price data yet, say) is left out. Companies
+ * with a one-off year (outlier, ./outliers.ts) are in none of them: a ranking on distorted figures
+ * (or a price move on a one-off) mostly ranks the one-off. Users can still add them to their own baskets.
+ */
+export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: number): Idea[] {
+  const stocks = all.filter((s) => !s.outlier);
   const stat = (t: string) => snap.stats[t];
   const ret1y = (list: string[]) => mean(list.map((t) => stat(t)?.ret["1Y"]).filter((v): v is number => v != null));
   const ideas: Idea[] = [];
@@ -129,7 +133,7 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
       id: `top-${p.id.toLowerCase()}`,
       title: `Biggest gainers · ${p.id}`,
       blurb: `The ${TOP_N} listed stocks in our maps that rose most over the past ${p.long}.`,
-      rule: `The ${TOP_N} biggest gainers over the past ${p.long} across our maps, re-ranked daily. Past returns, not a recommendation.`,
+      rule: `The ${TOP_N} biggest gainers over the past ${p.long} across our maps, re-ranked daily. ${ONE_OFF_NOTE} Past returns, not a recommendation.`,
       range: p.id,
       stocks: ranked.map((s) => ({ ticker: s.ticker, stat: pctTxt(stat(s.ticker).ret[p.id]!) })),
       ret: mean(ranked.map((s) => stat(s.ticker).ret[p.id]!)),
@@ -138,14 +142,14 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
   }
 
   const quality = stocks
-    .filter((s) => s.roce != null && !s.screenOut && (s.mcapCr ?? 0) >= QUALITY_MIN_MCAP_CR)
+    .filter((s) => s.roce != null && (s.mcapCr ?? 0) >= QUALITY_MIN_MCAP_CR)
     .sort((a, b) => b.roce! - a.roce! || a.name.localeCompare(b.name))
     .slice(0, LIST_N);
   ideas.push({
     id: "quality",
     title: "Highest ROCE",
     blurb: "The highest return on capital employed across every industry we map.",
-    rule: `Highest ROCE in our maps, among companies worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more.`,
+    rule: `Highest ROCE in our maps, among companies worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more. ${ONE_OFF_NOTE}`,
     range: "1Y",
     stocks: quality.map((s) => ({ ticker: s.ticker, stat: `ROCE ${s.roce!.toFixed(0)}%` })),
     ret: ret1y(quality.map((s) => s.ticker)),
@@ -160,7 +164,7 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     id: "bottlenecks",
     title: "Scarce suppliers",
     blurb: "Listed companies in supply-chain layers that only one or two listed names supply.",
-    rule: "Companies in supply-chain layers that only one or two listed companies supply, scarcest first.",
+    rule: `Companies in supply-chain layers that only one or two listed companies supply, scarcest first. ${ONE_OFF_NOTE}`,
     range: "1Y",
     stocks: scarce.map((s) => ({ ticker: s.ticker, stat: s.scarce!.listed === 1 ? "sole listed name" : "1 of 2 listed" })),
     ret: ret1y(scarce.map((s) => s.ticker)),
@@ -175,7 +179,7 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     id: "cross-industry",
     title: "In 3+ industries",
     blurb: "Companies that turn up in three or more of our industry maps (policy maps not counted).",
-    rule: "Companies in three or more of our industry maps, widest reach first.",
+    rule: `Companies in three or more of our industry maps, widest reach first. ${ONE_OFF_NOTE}`,
     range: "1Y",
     stocks: cross.map((s) => ({ ticker: s.ticker, stat: s.policies ? `${s.industries} industries + ${s.policies} ${s.policies === 1 ? "policy" : "policies"}` : `${s.industries} industries` })),
     ret: ret1y(cross.map((s) => s.ticker)),
@@ -194,7 +198,7 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     id: "recent-ipos",
     title: "Recent listings",
     blurb: "Companies in our maps that listed in the past two years, each backtested from its listing day.",
-    rule: `Listed in the past two years, newest first; REITs, InvITs and demergers left out. ${SINCE_LISTING_NOTE}`,
+    rule: `Listed in the past two years, newest first; REITs, InvITs and demergers left out. ${ONE_OFF_NOTE} ${SINCE_LISTING_NOTE}`,
     range: earliest ? sinceRange(earliest, now) : "1Y",
     stocks: ipos.map((s) => ({ ticker: s.ticker, stat: `listed ${monthYear(stat(s.ticker).first)}` })),
     ret: mean(ipos.map((s) => stat(s.ticker).sinceFirst)),

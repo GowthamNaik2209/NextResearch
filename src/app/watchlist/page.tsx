@@ -5,14 +5,14 @@ import { prisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { NewsFeed } from "@/components/NewsFeed";
-import { findSupplierByTicker } from "@/lib/sector-content";
+import { findSupplierByTicker, primarySector } from "@/lib/sector-content";
 import { getQuote, type Quote } from "@/lib/live/yahoo";
 import { basketStock } from "@/lib/baskets/industry";
 import { IndustryChips } from "@/components/baskets/IndustryChips";
 import { ensureFinancials } from "@/lib/financials/load";
 import { parseRupees } from "@/lib/financials/rows";
 import { croreShort, fmtDay, NA, signedPct } from "@/lib/format";
-import { croreFromLabel, fmtPrice, freshQuote } from "@/components/stock/merge";
+import { croreFromLabel, fmtPrice, freshQuote, pctTone } from "@/components/stock/merge";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { WatchlistRow } from "./WatchlistRow";
 import { WatchlistBacktest, WatchlistNewsGate } from "./WatchlistLive";
@@ -78,7 +78,10 @@ export default async function WatchlistPage() {
               const supplier = findSupplierByTicker(ticker);
               const stock = basketStock(ticker);
               const f = supplier?.f;
-              const home = stock?.industries[0] ?? null;
+              // Home industry by the one rule every page uses (primarySector); the basket draft made
+              // by "Save as a basket" labels the stock the same way.
+              const homeSlug = primarySector(ticker);
+              const home = stock?.industries.find((i) => i.slug === homeSlug) ?? stock?.industries[0] ?? null;
               const q = freshQuote(live.get(ticker));
               const current = q?.price ?? parseRupees(f?.price);
               // 0 = the live price at saving isn't known (yet - the API fills it just after saving): no move.
@@ -115,14 +118,14 @@ export default async function WatchlistPage() {
                     <div className="flex-none text-right">
                       <div className="font-mono text-sm text-ink">
                         {fmtPrice(current)}
-                        {q?.changePct != null && <span className={" text-xs " + (q.changePct >= 0 ? "text-pos" : "text-danger")}> {signedPct(q.changePct)}</span>}
+                        {q?.changePct != null && <span className={" text-xs " + pctTone(q.changePct, 1)}> {signedPct(q.changePct)}</span>}
                       </div>
                       {/* The price is the only live figure in the row; say so, and date the rest. */}
                       <div className="font-mono text-[11px] text-ink-soft">
                         {q ? <span className="text-pos">live</span> : `snapshot ${asOf}`}
                         {" · "}
                         {since != null ? (
-                          <span className={since >= 0 ? "text-pos" : "text-danger"}>{signedPct(since)}</span>
+                          <span className={pctTone(since, 1)}>{signedPct(since, 1)}</span>
                         ) : (
                           <span title="The live price when you saved this isn't known yet, so there is no move to show.">{NA}</span>
                         )}{" "}

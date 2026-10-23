@@ -124,6 +124,21 @@ export async function saveToWatchlist(ticker: string): Promise<boolean> {
   return true;
 }
 
+// The /watchlist "Undo" on a removed row: puts the stock back at once (every heart for it fills)
+// and saves it, reverting if the save fails. Only reached by a signed-in user who just removed it,
+// so unlike saveToWatchlist there is no list to reload first.
+export async function restoreToWatchlist(ticker: string): Promise<boolean> {
+  setLiked(ticker, true);
+  const res = await fetch("/api/watchlist", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ticker }),
+  }).catch(() => null);
+  if (res?.ok) return true;
+  setLiked(ticker, false);
+  return false;
+}
+
 export function WatchlistButton({ ticker, name }: Props) {
   const [, setTick] = useState(0);
   // A tap is being saved. The heart already shows the new state (optimistic); this only stops

@@ -105,6 +105,13 @@ export const fmtPrice = (v: number | null | undefined) => {
 export const fmtYield = (v: number | null | undefined) => (v === 0 ? "0%" : pct(v, 2));
 /** Signed percent with the site's typographic minus (src/lib/format.ts). */
 export const fmtSigned = (v: number | null | undefined, digits = 1) => signedPct(v, digits);
+/** Colour for a signed % shown at `digits` places: a figure that reads 0.0% is neutral, never red
+ * or green (a tiny −0.01% coloured red beside a green +0.0% looked like a different result). */
+export function pctTone(v: number | null | undefined, digits = 1): string {
+  if (v == null || !Number.isFinite(v)) return "text-ink-soft";
+  const r = Number(v.toFixed(digits));
+  return r > 0 ? "text-pos" : r < 0 ? "text-danger" : "text-ink-soft";
+}
 
 // The chart's history is cached and ends at the last closed bar, so on its own it can show an older
 // price than the live quote in the pop-up header. Close the series on the live quote (same IST

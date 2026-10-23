@@ -15,6 +15,7 @@ import {
   type SectorWithSlug,
 } from "./index";
 import { memoByFinancials } from "@/lib/financials/store";
+import { detectOutlier, ONE_OFF_NOTE } from "@/lib/baskets/outliers";
 import { signedPct } from "@/lib/format";
 
 
@@ -36,8 +37,9 @@ export type CompanyMetrics = {
   // 0-1: how central this sector is to the company (its strongest exposure here), used to
   // keep side-exposed mega-caps from crowding a sector's news feed.
   centrality: number;
-  // Latest-year figures distorted by a one-off (see SupplierFinancials.screenOut).
-  screenOut: boolean;
+  // Figures distorted by a one-off year (src/lib/baskets/outliers.ts, shared with the rule-based
+  // baskets): kept out of the stock screens.
+  outlier: boolean;
 };
 
 // Centrality scale (0-1) for the thresholds below (CORE_CENTRALITY) and the news feed's weighting;
@@ -91,7 +93,7 @@ function buildSectorMetrics(s: SectorWithSlug): CompanyMetrics[] {
       pctFrom52wHigh: price != null && hi ? ((price - hi) / hi) * 100 : null,
       mcapCr: parseCrore(f.mcap),
       centrality: centralityOf.get(ticker) ?? 1,
-      screenOut: !!f.screenOut,
+      outlier: !!detectOutlier(f),
     });
   }
   return out;
@@ -174,7 +176,7 @@ const pct = (v: number) => signedPct(v, 0);
 export const buildIdeas = memoByFinancials((): Idea[] => {
   // Side-exposed companies (Coal India bidding for the magnet scheme) would be labelled with a
   // theme their own business isn't about, so screens use companies central to some theme.
-  const cs = listCompanyMetrics().filter((c) => !c.screenOut && c.centrality >= CORE_CENTRALITY);
+  const cs = listCompanyMetrics().filter((c) => !c.outlier && c.centrality >= CORE_CENTRALITY);
   const row = (c: CompanyMetrics, value: string) => ({ name: c.name, sector: c.sectorName, href: c.href, value });
   const sorted = (f: (c: CompanyMetrics) => number | null, dir: 1 | -1, filter: (c: CompanyMetrics) => boolean = () => true) =>
     cs.filter((c) => f(c) != null && filter(c)).sort((a, b) => dir * ((f(a) as number) - (f(b) as number)));
@@ -182,35 +184,35 @@ export const buildIdeas = memoByFinancials((): Idea[] => {
     {
       id: "quality",
       title: "High return on capital",
-      rule: "Ranked by ROCE, among companies with revenue above ₹1,000 Cr",
+      rule: `Ranked by ROCE, among companies with revenue above ₹1,000 Cr. ${ONE_OFF_NOTE}`,
       metricLabel: "ROCE",
       rows: top(sorted((c) => c.roce, -1, (c) => (c.revenueCr ?? 0) > 1000)).map((c) => row(c, `${fmt1(c.roce!)}%`)),
     },
     {
       id: "growth",
       title: "Fastest revenue growth",
-      rule: "Latest-year revenue growth, among companies with revenue above ₹1,000 Cr in both years",
+      rule: `Latest-year revenue growth, among companies with revenue above ₹1,000 Cr in both years. ${ONE_OFF_NOTE}`,
       metricLabel: "Revenue YoY",
       rows: top(sorted((c) => c.revGrowthPct, -1, (c) => (c.revenueCr ?? 0) > 1000 && c.revenueCr! / (1 + c.revGrowthPct! / 100) > 1000)).map((c) => row(c, pct(c.revGrowthPct!))),
     },
     {
       id: "value",
       title: "Quality at a lower multiple",
-      rule: "Lowest P/E among companies with ROCE above 15% and a positive P/E",
+      rule: `Lowest P/E among companies with ROCE above 15% and a positive P/E. ${ONE_OFF_NOTE}`,
       metricLabel: "P/E",
       rows: top(sorted((c) => c.pe, 1, (c) => (c.pe ?? 0) > 0 && (c.roce ?? 0) > 15)).map((c) => row(c, `${fmt1(c.pe!)}x`)),
     },
     {
       id: "dip",
       title: "Furthest below 52-week high",
-      rule: "Price vs 52-week high, among companies with revenue above ₹1,000 Cr",
+      rule: `Price vs 52-week high, among companies with revenue above ₹1,000 Cr. ${ONE_OFF_NOTE}`,
       metricLabel: "vs 52w high",
       rows: top(sorted((c) => c.pctFrom52wHigh, 1, (c) => (c.revenueCr ?? 0) > 1000)).map((c) => row(c, pct(c.pctFrom52wHigh!))),
     },
     {
       id: "income",
       title: "Highest dividend yield",
-      rule: "Dividend yield, among companies with ROCE above 10%",
+      rule: `Dividend yield, among companies with ROCE above 10%. ${ONE_OFF_NOTE}`,
       metricLabel: "Yield",
       rows: top(sorted((c) => c.divYield, -1, (c) => (c.roce ?? 0) > 10)).map((c) => row(c, `${c.divYield!.toFixed(2)}%`)),
     },

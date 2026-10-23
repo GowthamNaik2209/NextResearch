@@ -60,13 +60,13 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
   // Stock price CAGR is a company-table figure (Summary shows it): Screener's live card is
   // replaced by the same dated snapshot, so one label never shows two values in one pop-up.
   const priceCagr = {
-    title: "Stock price CAGR",
+    title: "Stock price return",
     snapshot: true,
     rows: (
       [
-        ["1 Year", s.cagr1y],
-        ["3 Years", s.cagr3y],
-        ["5 Years", s.cagr5y],
+        ["1 Year price return", s.cagr1y],
+        ["3 Years CAGR", s.cagr3y],
+        ["5 Years CAGR", s.cagr5y],
       ] as const
     )
       .filter(([, v]) => v != null)
@@ -178,7 +178,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
               <div key={g.title} className="rounded-xl border border-line bg-panel p-3">
                 <div className="mb-1.5 text-[11px] font-semibold text-ink">
                   {g.title}
-                  {g.snapshot && <span className="font-normal text-ink-soft"> · snapshot</span>}
+                  {g.snapshot && <span className="font-normal text-ink-soft"> · {asOf}</span>}
                 </div>
                 {g.rows.map((r) => (
                   <div key={r.period} className="flex justify-between font-mono text-xs leading-6 text-ink-soft">

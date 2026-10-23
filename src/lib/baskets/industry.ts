@@ -7,6 +7,7 @@ import { getCompanyPage, companySlug, listCompanyPages, primaryAppearance } from
 import { getCompanyFootprint } from "@/lib/sector-content/exposure";
 import { sectorBenchmarks, type Benchmark } from "@/lib/sector-content/benchmarks";
 import { memoByFinancials } from "@/lib/financials/store";
+import { oneOffReason } from "./outliers";
 
 export { MAX_BASKET_STOCKS, MAX_BASKETS_PER_USER } from "./limits";
 
@@ -25,6 +26,9 @@ export type BasketStock = {
   /** Its layer within each industry it is mapped in (the strongest where it has several), by
    * industry slug: the stock picker lists an industry's stocks under that industry's own layers. */
   layerIn: Record<string, string>;
+  /** Why its figures have a one-off year (./outliers.ts), when they do: it is left out of the
+   * rule-based baskets and screens, and marked "one-off" where a user adds it. Absent otherwise. */
+  oneOff?: string;
 };
 
 export type IndustryBasket = {
@@ -73,6 +77,8 @@ export function basketStock(ticker: string): BasketStock | null {
       industries,
       layerIn: Object.fromEntries([...best].map(([slug, x]) => [slug, x.label])),
     };
+    const oneOff = oneOffReason(page.supplier.f ?? sup.f);
+    if (oneOff) out.oneOff = oneOff;
   }
   stockCache.set(ticker, out);
   return out;

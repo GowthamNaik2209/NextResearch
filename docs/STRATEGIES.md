@@ -122,8 +122,8 @@ saved copy doesn't keep this (it backtests every stock from the period's first d
 
 Built as **rule-based baskets** on today's company-table snapshot (`src/lib/baskets/kpi-screens.ts`,
 unit-tested): today's list, backtested over the past year, so the result is "how today's list did",
-not a point-in-time strategy. Each keeps out companies under ₹1,000 Cr, screenOut companies and
-REITs/InvITs, caps the list at 12, ranks by the one figure shown beside each stock and states its
+not a point-in-time strategy. Each keeps out companies under ₹1,000 Cr, companies with a one-off
+year (below) and REITs/InvITs, caps the list at 12, ranks by the one figure shown beside each stock and states its
 rule in the card's "i":
 
 - *Consistent compounders*: revenue and net profit up every year FY22→FY26 (FY22 profit ₹25 Cr+),
@@ -173,6 +173,25 @@ with ROCE above 15%, furthest below the 52-week high, highest dividend yield), s
 | E. Value chain | A dated history of our own maps (when a company entered a layer, exposure changes) | 2-3 weeks plus content work |
 
 The engine, cost model and trade log are built once and serve every group.
+
+## One-off years (outliers)
+
+Owner's rule: remove outliers, and let users add them with a note. `src/lib/baskets/outliers.ts`
+(unit-tested in `outliers.test.ts`) flags a company whose recent figures are distorted by a one-off
+(impairment, write-down, asset or voucher sale, demerger gain, mark-to-market loss) when the company
+table marks it `screenOut`, or its FY23-FY26 revenue and net profit show:
+
+1. a single loss year between profitable ones, the drop into it 3%+ of that year's revenue
+   (Tata Steel FY24, Info Edge FY23); or
+2. a year where net profit moved by more rupees than revenue did, by 8%+ of revenue, with a profit on
+   at least one side; a middle year must also reverse by half or more the next year (JSW Steel FY26).
+
+Both need the swing to be at least 1.25x the company's usual profit (median of its other years), so
+operating leverage and high-margin wobble don't count. Flagged companies are left out of every
+rule-based basket (Biggest gainers, Highest ROCE, Scarce suppliers, In 3+ industries, Recent
+listings and the four screens above) and the landing page's Stock screens; each rule's "i" says
+"One-off years left out." Users can still add them to their own baskets, where the stock picker and
+the Stocks table mark them "one-off" with the reason in a small "i".
 
 ## Guarding against flattering results
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { EXPOSURE_STRENGTH_LABEL, EXPOSURE_TYPE_LABEL, type SectorSupplier } from "@/lib/sector-content";
 import type { StockApi, StockTab } from "./types";
-import { fmtNum, fmtSigned, fmtYield, freshQuote, mergeStats, REIT_NOTE, revenueSeries } from "./merge";
+import { fmtNum, fmtSigned, fmtYield, freshQuote, mergeStats, pctTone, REIT_NOTE, revenueSeries } from "./merge";
 import { croreShort, inr, NA, pct } from "@/lib/format";
 import { NewsTime } from "./NewsTime";
 import { quoteTiming } from "@/lib/live/freshness";
@@ -167,19 +167,20 @@ export function SummaryView({
       {(s.cagr1y != null || s.cagr3y != null || s.cagr5y != null) && (
         <div className={phoneHide.trim()}>
           <Label>
-            Stock price CAGR <span className="font-normal normal-case tracking-normal">— snapshot {asOf}</span>
+            Stock price return <span className="font-normal normal-case tracking-normal">· {asOf}</span>
           </Label>
           <div className="mt-2 grid grid-cols-3 gap-2">
             {(
               [
-                ["1Y", s.cagr1y],
-                ["3Y", s.cagr3y],
-                ["5Y", s.cagr5y],
+                // Dated company-table figures; the Chart tab's "Past 1Y, live" move is from live prices.
+                ["1Y price return", s.cagr1y],
+                ["3Y CAGR", s.cagr3y],
+                ["5Y CAGR", s.cagr5y],
               ] as const
             ).map(([k, v]) => (
               <div key={k} className="rounded-lg border border-line bg-panel-2 px-2 py-2.5 text-center">
                 <div className="text-[9.5px] uppercase tracking-wide text-ink-soft">{k}</div>
-                <div className={"mt-1 font-mono text-base font-bold " + (v == null ? "text-ink-soft" : v >= 0 ? "text-pos" : "text-danger")}>
+                <div className={"mt-1 font-mono text-base font-bold " + pctTone(v, 1)}>
                   {fmtSigned(v, 1)}
                 </div>
               </div>

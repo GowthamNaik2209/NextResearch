@@ -24,6 +24,7 @@ import { BasketStats } from "./BasketStats";
 import { BasketAnalysis } from "./BasketAnalysis";
 import { MINI_SEG, PANEL, PANEL_TITLE, Panel } from "./Panel";
 import { IndustryChips } from "./IndustryChips";
+import { OneOffMark } from "./OneOffMark";
 import { basketCreateError } from "./NewBasketButton";
 import { industrySeriesKey, savedBasketQuery } from "./series";
 import { useSeries } from "./use-series";
@@ -1164,7 +1165,17 @@ export function BasketDetail(p: BasketDetailProps) {
                               <div className="font-mono text-[11px] text-ink-soft">
                                 P/E {s.pe != null ? `${s.pe.toFixed(1)}x` : NA} · <span className="whitespace-nowrap">{s.mcapCr != null ? croreShort(s.mcapCr) : `mcap ${NA}`}</span>
                               </div>
-                              <IndustryChips industries={industriesOf(s)} className="mt-1" />
+                              {s.oneOff ? (
+                                // Beside the industry chip (a 24-28px line), so the marker never adds a line to the row.
+                                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                  <IndustryChips industries={industriesOf(s)} />
+                                  <span className="text-[11px]">
+                                    <OneOffMark name={s.name} reason={s.oneOff} />
+                                  </span>
+                                </div>
+                              ) : (
+                                <IndustryChips industries={industriesOf(s)} className="mt-1" />
+                              )}
                             </div>
                             <div className="flex-none text-right">
                               {h ? (
@@ -1249,7 +1260,7 @@ export function BasketDetail(p: BasketDetailProps) {
                                   </StockLink>
                                   {/* Wraps rather than cuts off: a tablet held upright has no hover to show a title. */}
                                   <span className="block text-balance text-[10px] leading-snug text-ink-soft pointer-coarse:mt-3">
-                                    <span className="font-mono">{s.ticker}</span> · {layerOf(s)}
+                                    <span className="font-mono">{s.ticker}</span> · {s.oneOff && <><OneOffMark name={s.name} reason={s.oneOff} /> · </>}{layerOf(s)}
                                     {inds[0] && (
                                       <>
                                         {" · "}
@@ -1862,6 +1873,11 @@ function StockPicker({
                         {inIt && <span className="sr-only"> (in this basket)</span>}
                       </div>
                     </div>
+                    {s.oneOff && (
+                      <span className="flex-none text-[11px]">
+                        <OneOffMark name={s.name} reason={s.oneOff} />
+                      </span>
+                    )}
                     {/* The add and remove controls share one slot of the same width, so a row never re-flows. */}
                     <span className="flex w-[4.5rem] flex-none justify-end">
                       {inIt ? (

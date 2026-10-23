@@ -49,7 +49,7 @@ test("top performers rank by the period's return and average it", () => {
 
 test("quality skips small and one-off companies", () => {
   const ideas = buildIdeas(
-    [info("BIG", { roce: 30 }), info("SMALL", { roce: 90, mcapCr: 200 }), info("ONEOFF", { roce: 80, screenOut: true }), info("BEST", { roce: 50 })],
+    [info("BIG", { roce: 30 }), info("SMALL", { roce: 90, mcapCr: 200 }), info("ONEOFF", { roce: 80, outlier: true }), info("BEST", { roce: 50 })],
     snap({}),
     NOW,
   );
@@ -141,4 +141,22 @@ test("a card with no backtest shows no figure rather than another calculation's"
     out.find((i) => i.id === "top-1y")!.stocks,
     ideas.find((i) => i.id === "top-1y")!.stocks,
   );
+});
+
+test("companies with a one-off year are in no rule-based basket, and each rule says so", () => {
+  const sc = { listed: 1, strength: 3, layer: "L", industry: "I" };
+  const ideas = buildIdeas(
+    [
+      info("ONEOFF", { outlier: true, roce: 99, industries: 5, scarce: sc, rev: [1000, 1100, 1200, 1300, 1400], np: [100, -50, 60, 80, 120] }),
+      info("PLAIN", { roce: 20, industries: 3, scarce: sc }),
+    ],
+    snap({ ONEOFF: st(300, 200), PLAIN: st(10, 200) }),
+    NOW,
+  );
+  assert.ok(ideas.length >= 5);
+  for (const idea of ideas) {
+    assert.ok(!idea.stocks.some((s) => s.ticker === "ONEOFF"), idea.id);
+    assert.ok(idea.rule.includes("One-off years left out."), idea.id);
+  }
+  assert.deepEqual(ideas.find((i) => i.id === "top-1y")!.stocks.map((s) => s.ticker), ["PLAIN"]);
 });
