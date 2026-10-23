@@ -511,6 +511,10 @@ export function mountExplorer(
     invalidate();
     const closing = id == null && currentZoneId != null && !opts.keepLayer;
     currentZoneId = id;
+    // Drop any hover with it. The panel's "Systems in this model" rows set hover on mouseenter
+    // and are unmounted by the very click that picks one, so their mouseleave never fires: the
+    // picked label kept its thick, solid leader line after the card was closed.
+    hoveredZoneId = null;
     // Peel the model to the layer where the picked system is actually visible, so
     // choosing "e-axle" from any entry point (marker, callout, Systems list, deep
     // link) shows the drive unit rather than a marker floating over the paint.
@@ -727,10 +731,10 @@ export function mountExplorer(
     let target = t;
     // Only in the phone/tablet layout (bottom sheet over the stage). The desktop stage between
     // the rail and the side panel can be portrait too, but its overviews are approved as authored.
-    // Opt-in per sector (SectorDef.portraitFit): existing sectors keep their approved phone views.
-    // Tablets held upright (stage 600px+ wide) get it for every sector: an authored low, wide shot
-    // left the model a thin band across the middle with empty floor above and below.
-    if ((sector.portraitFit || stage.clientWidth >= 600) && camera.aspect < 1 && sheetLayout() && modelCorners.length) {
+    // Every sector unless it opts out (SectorDef.portraitFit === false), and tablets held upright
+    // (stage 600px+ wide) always: an authored low, wide shot left the model a thin band across the
+    // middle third with empty stage above and below.
+    if ((sector.portraitFit !== false || stage.clientWidth >= 600) && camera.aspect < 1 && sheetLayout() && modelCorners.length) {
       const p = portraitFit(dir, t);
       dir.copy(p.dir);
       target = p.t;
@@ -880,6 +884,8 @@ export function mountExplorer(
   // here meant thousands of short-lived objects a second for the garbage collector.
   const scratch = new THREE.Vector3();
   let lastViewBox = "";
+  let compactTags = false;
+  let compactAt = 0;
   function updateCallouts() {
     // Every layout read happens first, then every write. Reading a size or position after a style
     // write makes the browser lay the page out again, and that used to happen once per system per
@@ -927,6 +933,7 @@ export function mountExplorer(
     // Phones label every system (the user wants the whole map visible); with one selected the
     // others stay readable but lighter (isDimmed). Tags are stacked so none overlap.
     const EDGE = 8;
+    let anyCrowded = false;
     // De-emphasised labels (.dimmed in explorer.css) keep their solid backing and only soften
     // text and border: fading the whole label left it unreadable over pale parts in dark mode.
 
@@ -970,9 +977,14 @@ export function mountExplorer(
           let best: { x: number; y: number; r: ReturnType<typeof rectAt>; over: number; score: number } | null = null;
           // A wide search: with the sheet open the strip above it is short, and a narrow one
           // ran out of free slots and stacked names on top of each other.
+          // Besides nudges around the marker, every row also tries a sweep across the full stage
+          // width (a leader line then joins tag and marker): with a company card open the strip
+          // above the sheet is only a few rows tall, and the nudges alone ran out of free slots.
+          const xs = [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05].map((sx) => px + sx * tw);
+          for (let i = 0; i <= 8; i++) xs.push(xMin + ((xMax - xMin) * i) / 8);
           for (let k = -12; k <= 12; k++) {
-            for (const sx of [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05]) {
-              const x = Math.max(xMin, Math.min(xMax, px + sx * tw));
+            for (const xc of xs) {
+              const x = Math.max(xMin, Math.min(xMax, xc));
               const y = py + k * rowH;
               const r = rectAt(x, y);
               if (r.y0 < EDGE || r.y1 > visibleH - EDGE) continue;
@@ -987,6 +999,12 @@ export function mountExplorer(
             px = best.x;
             py = best.y;
             crowded = best.over > 0 && !isSelected;
+            if (crowded) anyCrowded = true;
+          } else {
+            // No row fits at all (a very short strip): keep the tag inside the strip above the
+            // sheet rather than at its marker, where it was cut by the stage edge or the sheet.
+            py = Math.max(EDGE + 1.38 * th, Math.min(visibleH - EDGE + 0.38 * th, py));
+            anyCrowded = true;
           }
         }
         // Hidden tags still sit inside the stage, so they never widen its scrollable area.
@@ -1052,6 +1070,21 @@ export function mountExplorer(
       zr.box.setAttribute("aria-hidden", String(!boxShown));
     }
     leaderSvg.style.opacity = labelsVisible ? "1" : "0";
+    // Still crowded after the search (a short strip above an open company card): switch the
+    // unpicked tags to a smaller size, which the next frame measures and re-stacks (layoutChanged
+    // sees the new tag sizes). It switches back only once the strip has grown, so it can't flicker.
+    if (phoneTags) {
+      if (!compactTags && anyCrowded) {
+        compactTags = true;
+        compactAt = visibleH;
+        mobileTags.classList.add("compact");
+        invalidate();
+      } else if (compactTags && visibleH > compactAt + 40) {
+        compactTags = false;
+        mobileTags.classList.remove("compact");
+        invalidate();
+      }
+    }
   }
 
   // ---- animation loop ----

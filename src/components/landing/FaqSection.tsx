@@ -22,7 +22,7 @@ const FAQ = [
 export function FaqSection() {
   return (
     <section className="border-t border-line bg-panel">
-      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-[0.8fr_1.2fr]">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-5 py-16 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <div>
           <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">Straight answers</h2>
           <p className="mt-3 text-sm leading-relaxed text-ink-soft">

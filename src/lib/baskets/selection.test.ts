@@ -35,19 +35,25 @@ test("remove drops the stock, its weight and its line; weights stay at 100", () 
   assert.equal(s.lastRemoved, "B");
 });
 
-test("a removed line passes on only while the lines are the page's defaults", () => {
+test("a removed line is never passed on to another stock", () => {
   const s0 = start(["A", "B", "C"], null, { A: 0, B: 1 });
-  const auto = reduce(s0, { type: "remove", ticker: "A" });
-  assert.deepEqual(auto.chart.picks, { B: 1, C: 0 });
-  const chosen = reduce(reduce(s0, { type: "choosePicks" }), { type: "remove", ticker: "A" });
-  assert.deepEqual(chosen.chart.picks, { B: 1 });
+  assert.deepEqual(reduce(s0, { type: "remove", ticker: "A" }).chart.picks, { B: 1 });
 });
 
-test("add draws a line only before the reader has chosen picks", () => {
+test("add never draws a line: only the reader does", () => {
   const s0 = start(["A"], null, { A: 0 });
-  assert.deepEqual(reduce(s0, { type: "add", stocks: [stock("B")] }).chart.picks, { A: 0, B: 1 });
-  const chosen = reduce(reduce(s0, { type: "choosePicks" }), { type: "add", stocks: [stock("B")] });
-  assert.deepEqual(chosen.chart.picks, { A: 0 });
+  assert.deepEqual(reduce(s0, { type: "add", stocks: [stock("B")] }).chart.picks, { A: 0 });
+  assert.deepEqual(reduce(start([]), { type: "add", stocks: [stock("B")] }).chart.picks, {});
+});
+
+test("Select all draws the lines in the table's order", () => {
+  const many = Array.from({ length: MAX_CHART_STOCKS + 4 }, (_, i) => `T${i}`);
+  const order = [...many].reverse();
+  const s = reduce(start(many), { type: "pickAll", order: ["ZZ", ...order] });
+  const on = Object.keys(s.chart.picks);
+  assert.equal(on.length, MAX_CHART_STOCKS);
+  assert.deepEqual(on.sort(), order.slice(0, MAX_CHART_STOCKS).sort());
+  assert.equal(s.chart.picks[order[0]], 0);
 });
 
 test("undo puts the stock back where it was, with its weight and its line", () => {

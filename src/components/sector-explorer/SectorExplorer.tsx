@@ -1015,12 +1015,14 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
                           }
                         }}
                       >
-                        <span>
-                          {s.name}
-                          {/* The open company's heart is on its card below; one per company on screen. */}
-                          {s.listed && effectiveSupplier !== key && <WatchlistButton ticker={tickerForSupplier(s)} name={s.name} />}
+                        {/* Name over its exposure, then the badge, then the heart in its own
+                            column at the row's end: a heart beside the name sat mid-row, so taps
+                            meant to open the company saved it instead, and the exposure wrapped
+                            apart ("… India · High" / "Direct supplier"). */}
+                        <span className="chip-text">
+                          <span className="chip-name">{s.name}</span>
                           {exposure?.exposureType && (
-                            <span className="fine" style={{ marginLeft: 6 }}>
+                            <span className="fine chip-exposure">
                               {EXPOSURE_TYPE_LABEL[exposure.exposureType]}
                               {exposure.exposureStrength ? ` · ${EXPOSURE_STRENGTH_LABEL[exposure.exposureStrength]}` : ""}
                             </span>
@@ -1029,6 +1031,13 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
                         <span className={"badge " + (s.listed ? "listed" : "unlisted")}>
                           {s.listed ? "Listed" : "Unlisted"}
                         </span>
+                        {/* The open company's heart is on its card below; one per company on screen.
+                            Rows without one keep the column so the badges line up. */}
+                        {s.listed && effectiveSupplier !== key ? (
+                          <WatchlistButton ticker={tickerForSupplier(s)} name={s.name} />
+                        ) : (
+                          <span className="chip-heart-gap" aria-hidden />
+                        )}
                       </div>
                     );
                   })}

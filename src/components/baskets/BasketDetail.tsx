@@ -16,7 +16,7 @@ import { isWatched, subscribeWatchlist, watchlistSnapshot } from "@/components/s
 import { DASHARRAY } from "@/components/charts/palette";
 import { useSiteTheme } from "@/lib/theme";
 import { croreShort, fmtMonth, NA, signedPct } from "@/lib/format";
-import { signedPts } from "@/lib/baskets/fmt";
+import { shownPct, signedPts } from "@/lib/baskets/fmt";
 import { MAX_BASKET_STOCKS } from "@/lib/baskets/limits";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ReturnCards, picksKey } from "./ReturnCards";
@@ -112,6 +112,9 @@ function schemeShares(stocks: BasketStock[], scheme: WeightScheme, custom?: Reco
   return new Map([...raw].map(([t, v]) => [t, v / sum]));
 }
 
+/** A stock just taken off, held as a placeholder row at its place in the list (see `display`). */
+type Ghost = { ticker: string; name: string; index: number; h: { table?: number; phone?: number } };
+
 type Sort = "contribution" | "return" | "weight" | "pe" | "mcap" | "name";
 const SORTS: { id: Sort; label: string }[] = [
   { id: "contribution", label: "Pts added" },
@@ -185,12 +188,12 @@ export function BasketDetail(p: BasketDetailProps) {
   // weights as typed (which may not total 100% yet; the backtest keeps the last ones that did, and
   // they are kept while another weighting is picked, so going back to Custom brings the same split
   // back), the chart's lines, where each stock was picked from and what was just taken off.
-  // A saved basket or an idea opens with its stocks drawn on the chart (as many as there are line
-  // styles); an industry basket, often 20+ stocks, opens on the benchmarks alone.
+  // Every kind of basket (industry, rule-based, saved, a draft) opens with no stock lines: the
+  // chart shows the basket and its benchmarks, and the reader ticks the stocks they want drawn.
+  // One rule everywhere, so the first tap always adds a line (docs/STRATEGIES.md).
   const { sel, act, current, tickers } = useBasketSelection(() => {
     const ownIndustry = p.mode === "industry" && p.compareSlug === p.id;
     const chart = defaultSelection(p.indices, p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id)), p.compareSlug && !ownIndustry ? p.compareSlug : null);
-    if (p.mode !== "industry") chart.picks = Object.fromEntries(p.stocks.slice(0, MAX_CHART_STOCKS).map((s, i) => [s.ticker, i]));
     return { stocks: p.stocks, unlisted: p.unlisted, custom: p.weighting === "custom" || p.customWeights ? savedCustom(p.stocks) : null, chart, pickedFrom: p.pickedFrom };
   });
   const { stocks, confirmed, unlisted, custom: customEdit, chart: chartSel, pickedFrom, picksChosen } = sel;
@@ -333,9 +336,8 @@ export function BasketDetail(p: BasketDetailProps) {
   const picked = useMemo(() => stocks.filter((s) => chartSel.picks[s.ticker] != null), [stocks, chartSel.picks]);
   // Every stock picked is the basket itself: no separate card, and the table needs no second backtest.
   const picksAll = picked.length > 0 && picked.length === stocks.length;
-  // Lines drawn by default (the first 18 of a long basket, or stocks as they're added) aren't the
-  // reader's choice, so "Your picks" (the return card and the table's scope) waits until they
-  // switch a stock on or off in the chart's Stocks menu.
+  // "Your picks" (the return card and the table's scope) waits until the reader switches a stock's
+  // line on or off.
   const pickedKey = picksChosen
     ? picksKey(
         picked.map((s) => s.ticker),
@@ -356,7 +358,9 @@ export function BasketDetail(p: BasketDetailProps) {
   const tbt = at(tableKey);
   const tData = tbt?.status === "ok" ? tbt.data : null;
   const tHoldings = new Map((tData?.holdings ?? []).map((h) => [h.ticker, h]));
-  const rows = [...(tableScope === "picks" ? picked : stocks)].sort((a, b) => {
+  // Every stock in the table's current sort: the table's rows, the chart's Stocks menu and Select
+  // all (in either place) all follow this one order, so Select all ticks the top rows you see.
+  const sortedAll = [...stocks].sort((a, b) => {
     if (sort === "name") return a.name.localeCompare(b.name);
     // Stocks with no figure go last either way.
     if (sort === "pe") return (a.pe ?? Infinity) - (b.pe ?? Infinity);
@@ -366,6 +370,16 @@ export function BasketDetail(p: BasketDetailProps) {
     const v = (h: typeof ha) => (!h ? -Infinity : sort === "return" ? h.ret : sort === "weight" ? h.endWeight : h.contribution);
     return v(hb) - v(ha);
   });
+  const rows = tableScope === "picks" ? sortedAll.filter((s) => chartSel.picks[s.ticker] != null) : sortedAll;
+  // A stock just taken off leaves a placeholder row where it was ("Removed X · Undo"), at the
+  // row's own height, while the Undo offer is open: the Undo is where the tap was (a phone's
+  // header is far above), and the rows under it don't move until the offer goes.
+  const [ghosts, setGhosts] = useState<Ghost[]>([]);
+  const ghostsShown = tableScope === "all" ? ghosts.filter((g) => sel.burst.includes(g.ticker) && !stocks.some((x) => x.ticker === g.ticker)) : [];
+  const display: ({ kind: "stock"; s: BasketStock } | { kind: "ghost"; g: Ghost })[] = rows.map((x) => ({ kind: "stock", s: x }));
+  for (const g of [...ghostsShown].sort((a, b) => a.index - b.index)) display.splice(Math.min(g.index, display.length), 0, { kind: "ghost", g });
+  // The removed row's Undo takes the focus when the × was pressed by keyboard or tap in that row.
+  const focusGhost = useRef<string | null>(null);
 
   // ---- owner actions ----
   // Every change is sent in order, one after the other (a quick add then remove can't reach the
@@ -455,6 +469,18 @@ export function BasketDetail(p: BasketDetailProps) {
       return void (await patchItems({ remove: [t] }));
     }
     if (!current().stocks.some((s) => s.ticker === t)) return;
+    const index = display.findIndex((it) => it.kind === "stock" && it.s.ticker === t);
+    if (index >= 0) {
+      // Each list's row height (the phone list and the table are both rendered; CSS shows one).
+      const h: Ghost["h"] = {};
+      for (const el of document.querySelectorAll<HTMLElement>(`[data-basket-row="${CSS.escape(t)}"]`)) {
+        if (el.dataset.list === "table" || el.dataset.list === "phone") h[el.dataset.list] = el.offsetHeight || undefined;
+        if (el.contains(document.activeElement)) focusGhost.current = t;
+      }
+      const offerOpen = current().lastRemoved != null;
+      const name = current().stocks.find((x) => x.ticker === t)?.name ?? t;
+      setGhosts((g) => [...(offerOpen ? g.filter((x) => x.ticker !== t) : []), { ticker: t, name, index, h }]);
+    }
     act({ type: "remove", ticker: t });
     setNote(null);
     const weights = weightsAfter();
@@ -479,17 +505,24 @@ export function BasketDetail(p: BasketDetailProps) {
     return () => clearTimeout(timer);
   }, [lastRemoved, act]);
   // A stock's chart line on or off: the table's tick and the chart's Stocks menu both come here,
-  // so they always agree. With every line slot taken, the status line says why nothing happened.
+  // so they always agree. With every line slot taken, a note opens beside the box that was tapped
+  // (over the row, so nothing moves) and says why nothing happened.
+  const [fullAt, setFullAt] = useState<string | null>(null);
+  useEffect(() => {
+    if (!fullAt) return;
+    const timer = setTimeout(() => setFullAt(null), 4000);
+    return () => clearTimeout(timer);
+  }, [fullAt]);
   const togglePick = (t: string) => {
     const cur = current().chart.picks;
-    if (cur[t] == null && Object.keys(cur).length >= MAX_CHART_STOCKS) return setNote(LINES_FULL);
+    if (cur[t] == null && Object.keys(cur).length >= MAX_CHART_STOCKS) return setFullAt(t);
     act({ type: "togglePick", ticker: t });
-    setNote((n) => (n === LINES_FULL ? null : n));
+    setFullAt(null);
   };
-  const pickAll = () => act({ type: "pickAll" });
+  const pickAll = () => act({ type: "pickAll", order: sortedAll.map((x) => x.ticker) });
   const pickNone = () => {
     act({ type: "pickNone" });
-    setNote((n) => (n === LINES_FULL ? null : n));
+    setFullAt(null);
   };
   const removedName = !lastRemoved ? null : sel.burst.length > 1 ? `${sel.burst.length} stocks` : (sel.takenOff[lastRemoved]?.stock.name ?? lastRemoved);
   const setWeight = async (w: WeightScheme) => {
@@ -637,6 +670,12 @@ export function BasketDetail(p: BasketDetailProps) {
   }, [p.isOwner]);
 
   const canEdit = (p.mode === "saved" && p.isOwner) || draft;
+  // The foot-of-screen note (baskets you can't edit) goes by itself after a few seconds.
+  useEffect(() => {
+    if (canEdit || !note) return;
+    const timer = setTimeout(() => setNote(null), 6000);
+    return () => clearTimeout(timer);
+  }, [canEdit, note]);
   // Create basket: saves the stocks picked so far under the name typed (numbered by the server if
   // taken). It needs a name, at least one stock and, when custom, weights that total 100%; until
   // then the button is off and the line under it says what is missing.
@@ -797,6 +836,11 @@ export function BasketDetail(p: BasketDetailProps) {
     const last = tData?.last?.[t];
     return added && last ? (last / added - 1) * 100 : null;
   };
+  // One rule at every width: green up, red down, and a move that shows as 0.0% in neutral grey.
+  const sinceTone = (v: number | null) => {
+    const r = v == null ? 0 : shownPct(v);
+    return r > 0 ? "text-pos" : r < 0 ? "text-danger" : "text-ink-soft";
+  };
   const excludedNote = (t: string) => {
     const ex = tData?.excluded?.find((e) => e.ticker === t);
     if (!ex) return null;
@@ -843,14 +887,26 @@ export function BasketDetail(p: BasketDetailProps) {
     const on = slot != null;
     const line = on ? stockLine(theme, slot) : null;
     return (
+      <span className="relative flex flex-none">
       <button
         type="button"
+        data-line-box
         role="checkbox"
         aria-checked={on}
         aria-disabled={(!on && linesFull) || undefined}
         aria-label={`Show ${s.name}'s line on the chart`}
         title={on ? "Line on the chart: tap to hide it" : linesFull ? LINES_FULL : "Draw its line on the chart"}
         onClick={() => togglePick(s.ticker)}
+        // Up and down move between the line boxes (Tab goes through the row as usual).
+        onKeyDown={(e) => {
+          if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+          const boxes = [...(e.currentTarget.closest("table, ul")?.querySelectorAll<HTMLElement>("[data-line-box]") ?? [])];
+          const next = boxes[boxes.indexOf(e.currentTarget) + (e.key === "ArrowDown" ? 1 : -1)];
+          if (next) {
+            e.preventDefault();
+            next.focus();
+          }
+        }}
         className={
           "flex h-7 w-8 flex-none items-center justify-center rounded border bg-bg pointer-coarse:h-9 pointer-coarse:w-9 max-sm:h-9 max-sm:w-9 " +
           (on ? "border-2" : "border-line hover:border-accent ") +
@@ -862,6 +918,12 @@ export function BasketDetail(p: BasketDetailProps) {
           {line && <line x1="2" y1="4" x2="16" y2="4" stroke={line.color} strokeWidth="2.5" strokeDasharray={DASHARRAY[line.dash]} strokeLinecap="round" />}
         </svg>
       </button>
+      {fullAt === s.ticker && (
+        <span role="status" className="absolute left-full top-1/2 z-10 ml-2 w-52 -translate-y-1/2 rounded border border-line bg-panel px-2 py-1 text-[11px] leading-snug text-ink shadow-[0_8px_20px_-10px_rgba(0,0,0,0.45)]">
+          {LINES_FULL}
+        </span>
+      )}
+      </span>
     );
   };
   // Custom weights, typed in the Target % column while Custom is open (one place to edit them).
@@ -882,6 +944,34 @@ export function BasketDetail(p: BasketDetailProps) {
       onBad={(b) => markBad(s.ticker, b)}
     />
   );
+  // Every column of the desktop table, for a row that spans them all (a removed stock's placeholder).
+  const tableCols = 8 + (p.pickedOn ? 1 : 0) + (sinceShown ? 1 : 0) + (xColumn ? 1 : 0);
+  // A removed stock's placeholder: its name and the Undo (which brings back every stock taken off
+  // while the offer is open, as the header's does).
+  const ghostLine = (g: Ghost) => (
+    <span className="flex flex-wrap items-baseline gap-x-2 text-xs text-ink-soft">
+      <span>
+        Removed <b className="font-semibold text-ink">{g.name}</b>
+        {busy && canEdit && !draft ? " · Saving…" : ""}
+      </span>
+      <button
+        type="button"
+        ref={(el) => {
+          // Keeps the keyboard where the × was: the visible copy (phone list or table) takes the focus.
+          if (el && focusGhost.current === g.ticker && el.offsetParent) {
+            focusGhost.current = null;
+            el.focus({ preventScroll: true });
+          }
+        }}
+        onClick={undo}
+        disabled={locked}
+        title={sel.burst.length > 1 ? `Brings back the ${sel.burst.length} stocks just removed` : undefined}
+        className="tap-y font-semibold text-accent underline disabled:opacity-40"
+      >
+        Undo
+      </button>
+    </span>
+  );
   const stripBtn =
     "inline-flex min-h-9 items-center rounded border border-line bg-bg px-2 text-[11px] font-semibold text-ink hover:border-accent disabled:cursor-default disabled:text-ink-soft disabled:hover:border-line sm:min-h-6 pointer-coarse:min-h-9";
   // The strip over the stock list: chart lines (Select all, Clear all) or, when Custom, the weights'
@@ -898,9 +988,13 @@ export function BasketDetail(p: BasketDetailProps) {
             ? `Type each stock's % in Target %; they total 100%.${ownsWeights ? " Saved with the basket." : ""}`
             : `Total is ${weightTotal.toFixed(1)}%: ${weightOff > 0 ? `add ${weightOff.toFixed(1)}%` : `take off ${(-weightOff).toFixed(1)}%`} to make 100%. Results wait until then.`
         : "Target % shows your weights. Edit weights to change them."
-      : linesFull && stocks.length > MAX_CHART_STOCKS
-        ? `First ${MAX_CHART_STOCKS} shown · chart limit. Untick one to show another.`
-        : `Tick a stock to draw its line on the chart (up to ${MAX_CHART_STOCKS}).`;
+      : pickedCount === 0
+        ? `Tick a stock to draw its line on the chart (up to ${MAX_CHART_STOCKS}).`
+        : linesFull && stocks.length > MAX_CHART_STOCKS
+          ? `${MAX_CHART_STOCKS} lines on: the chart's limit. Untick one to show another.`
+          : pickedCount === stocks.length
+            ? "Every stock's line is on the chart. Untick a box to hide one."
+            : `Lines on the chart for the ticked stocks. Tick more (up to ${MAX_CHART_STOCKS}) or untick to hide.`;
     return (
       <div className="flex flex-col gap-1 border-b border-line/70 px-3 py-1.5">
         <div className="flex flex-col gap-1 sm:min-h-6 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
@@ -986,12 +1080,12 @@ export function BasketDetail(p: BasketDetailProps) {
           (customBlocked
             ? "The custom weights don’t total 100%, so the results are still for the last ones that did."
             : draft
-              ? !tickers.length
-                ? "Pick an industry or your watchlist above and add stocks; switch Industry to mix in others."
-                : createBlocker
+              ? createBlocker
               : null));
   return (
-    <div className="flex min-w-0 flex-col gap-2">
+    // No browser scroll anchoring: where something grows above the reader, the page scrolls by it
+    // itself (the chart's legend box), so the two never both move the page.
+    <div className="flex min-w-0 flex-col gap-2 [overflow-anchor:none]">
       {/* Header strip: the basket's name and actions, then how it is measured. */}
       <header className={PANEL + " flex flex-col gap-2 px-3 py-2.5 sm:px-4"}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
@@ -1132,7 +1226,10 @@ export function BasketDetail(p: BasketDetailProps) {
             ))}
           </div>
         </div>
-        {/* Reserved in every mode, so "Saving…", a note or the Undo offer never shifts the page. */}
+        {/* Your basket and a draft: reserved, so "Saving…", a note or the Undo offer never shifts
+            the page. Industry and rule-based baskets have no line here (their few notes come up
+            at the foot of the screen instead), so their header holds no empty strip. */}
+        {canEdit && (
         <p id={statusId} role="status" className={"flex min-h-4 flex-wrap items-baseline gap-x-2 text-xs " + (customBlocked && !note && !(busy && canEdit) ? "font-semibold text-danger" : "text-ink-soft")}>
           {removedName && !(draft && createStep) ? (
             <>
@@ -1148,7 +1245,20 @@ export function BasketDetail(p: BasketDetailProps) {
             statusText
           )}
         </p>
+        )}
       </header>
+      {!canEdit && note && (
+        // Over the page at the foot of the screen, so it is seen wherever the reader has scrolled
+        // and nothing moves. Goes by itself after a few seconds, or with its ×.
+        <div role="status" className="fixed inset-x-4 bottom-4 z-40 flex items-start gap-3 rounded-lg border border-line bg-panel px-3 py-2 text-xs text-ink shadow-[0_18px_40px_-18px_rgba(0,0,0,0.45)] sm:left-auto sm:max-w-sm">
+          <span className="min-w-0 flex-1">{note}</span>
+          <button type="button" onClick={() => setNote(null)} aria-label="Dismiss" className="tap-target -m-1 flex-none p-1 text-ink-soft hover:text-ink">
+            <svg aria-hidden width="10" height="10" viewBox="0 0 12 12">
+              <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* Draft and your own baskets: the stock picker, always in this place (its lists open over the
           page), so editing never pushes the results down. */}
@@ -1210,9 +1320,9 @@ export function BasketDetail(p: BasketDetailProps) {
                   </button>
                 }
               >
-                {/* The chart's own height (menus, plot, legend, footnote), so the first stock added doesn't push the page down. */}
+                {/* Empty: one short line, not a chart-sized blank; the prompt to add stocks is in the Stocks panel. */}
                 {empty ? (
-                  <div className="flex h-[46.75rem] items-center justify-center px-6 text-center text-sm text-ink-soft sm:h-[50.5rem]">{emptyText}</div>
+                  <div className="flex min-h-24 items-center justify-center px-6 text-center text-sm text-ink-soft">The backtest chart appears with the first stock.</div>
                 ) : (
                 <BasketChart
                   range={range}
@@ -1224,7 +1334,8 @@ export function BasketDetail(p: BasketDetailProps) {
                   industries={compareIndustries}
                   indices={p.indices}
                   market={p.market}
-                  stocks={stocks.map((s) => ({ ticker: s.ticker, name: s.name }))}
+                  // In the table's order, so the Stocks menu and its Select all match the table.
+                  stocks={sortedAll.map((s) => ({ ticker: s.ticker, name: s.name }))}
                   selection={chartSel}
                   onSelection={(next) => act({ type: "chart", next })}
                   onToggleStock={togglePick}
@@ -1283,10 +1394,11 @@ export function BasketDetail(p: BasketDetailProps) {
               >
                 {/* The body keeps at least the height it had before a Table / Breakdown switch, so the
                     panels under it don't jump up when the shorter view shows. */}
-                {linesStrip}
+                {/* No stocks, no line or weight controls: the empty state alone. */}
+                {!empty && linesStrip}
                 <div ref={stockBodyRef} style={stockBodyMin ? { minHeight: stockBodyMin } : undefined}>
                 {empty ? (
-                  <div className="flex min-h-48 items-center justify-center px-6 py-8 text-center text-sm text-ink-soft">{emptyText}</div>
+                  <div className="flex min-h-20 items-center justify-center px-6 py-6 text-center text-sm text-ink-soft">{emptyText}</div>
                 ) : stockView === "charts" ? (
                   tData ? (
                     <BasketBreakdown
@@ -1320,12 +1432,14 @@ export function BasketDetail(p: BasketDetailProps) {
                       </label>
                     </div>
                     <ul className="divide-y divide-line/70 sm:hidden">
-                      {rows.map((s) => {
+                      {display.map((it) => {
+                        if (it.kind === "ghost") return <li key={`ghost:${it.g.ticker}`} style={{ height: it.g.h.phone }} className="flex min-h-12 items-center bg-accent/5 px-3 py-2">{ghostLine(it.g)}</li>;
+                        const s = it.s;
                         const h = tHoldings.get(s.ticker);
                         const ex = excludedNote(s.ticker);
                         const since = moveSinceAdded(s.ticker);
                         return (
-                          <li key={s.ticker} className="flex items-start gap-2 px-3 py-2">
+                          <li key={s.ticker} data-basket-row={s.ticker} data-list="phone" className="flex items-start gap-2 px-3 py-2">
                             {lineTick(s)}
                             <div className="min-w-0 flex-1">
                               {/* Names wrap rather than cut off; the figures on the right stay narrow to leave them room. */}
@@ -1374,7 +1488,7 @@ export function BasketDetail(p: BasketDetailProps) {
                               )}
                               {sinceShown && (
                                 <div className="font-mono text-[11px] text-ink-soft" title={since == null ? sinceWhy(s.ticker) : undefined}>
-                                  {signedPct(since)}
+                                  <span className={sinceTone(since)}>{signedPct(since)}</span>
                                   <span className="block font-sans">since added</span>
                                 </div>
                               )}
@@ -1435,14 +1549,23 @@ export function BasketDetail(p: BasketDetailProps) {
                           </tr>
                         </thead>
                         <tbody>
-                          {rows.map((s) => {
+                          {display.map((it) => {
+                            if (it.kind === "ghost")
+                              return (
+                                <tr key={`ghost:${it.g.ticker}`} style={{ height: it.g.h.table }} className="border-b border-line/60 bg-accent/5">
+                                  <td colSpan={tableCols} className="px-3 py-1.5">
+                                    {ghostLine(it.g)}
+                                  </td>
+                                </tr>
+                              );
+                            const s = it.s;
                             const h = tHoldings.get(s.ticker);
                             const ex = excludedNote(s.ticker);
                             const since = moveSinceAdded(s.ticker);
                             const inds = industriesOf(s);
                             const others = inds.length - 1;
                             return (
-                              <tr key={s.ticker} className="border-b border-line/60 even:bg-panel-2/30 hover:bg-accent/5">
+                              <tr key={s.ticker} data-basket-row={s.ticker} data-list="table" className="border-b border-line/60 even:bg-panel-2/30 hover:bg-accent/5">
                                 <td className="py-1 pl-2 pr-0">{lineTick(s)}</td>
                                 <td className="w-full max-w-0 px-2 py-1.5">
                                   {/* Touch screens: the name is padded to 36px and the line below spaced out so the
@@ -1481,11 +1604,12 @@ export function BasketDetail(p: BasketDetailProps) {
                                 <td title={s.pe == null ? NO_PE : undefined} className="px-2 py-1.5 text-right font-mono">{s.pe != null ? `${s.pe.toFixed(1)}x` : NA}</td>
                                 <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{croreShort(s.mcapCr)}</td>
                                 {sinceShown && (
-                                  <td title={since == null ? sinceWhy(s.ticker) : undefined} className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (since == null ? "text-ink-soft" : since >= 0 ? "text-pos" : "text-danger")}>
+                                  <td title={since == null ? sinceWhy(s.ticker) : undefined} className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + sinceTone(since)}>
                                     {signedPct(since)}
                                   </td>
                                 )}
-                                {xColumn && <td className="w-9 px-1 py-1">{xFor(s, true)}</td>}
+                                {/* An empty cell keeps the ×'s width, so Edit stocks never narrows the names and re-wraps a row. */}
+                                {xColumn && <td className="w-9 px-1 py-1">{xFor(s, true) ?? <span aria-hidden className="block w-7 pointer-coarse:w-9" />}</td>}
                               </tr>
                             );
                           })}
@@ -1500,7 +1624,7 @@ export function BasketDetail(p: BasketDetailProps) {
                                 <td colSpan={(sinceShown ? 7 : 6) + (p.pickedOn ? 1 : 0)} className="px-2 py-1.5 text-right text-[11px]">
                                   Left out of the backtest
                                 </td>
-                                {xColumn && <td className="w-9 px-1 py-1">{showRemove && removeButton({ ticker: t, name: t }, true)}</td>}
+                                {xColumn && <td className="w-9 px-1 py-1">{showRemove ? removeButton({ ticker: t, name: t }, true) : <span aria-hidden className="block w-7 pointer-coarse:w-9" />}</td>}
                               </tr>
                             ))}
                         </tbody>
@@ -1642,6 +1766,18 @@ function WeightInput({ label, title, value, onCommit, onBad }: { label: string; 
           if (n != null) onCommit(n);
         }}
         onFocus={(e) => e.target.select()}
+        data-weight-box
+        // Tab goes straight to the next stock's box (Shift+Tab the one before), so typing weights is
+        // one Tab per row; the line boxes and links stay reachable with Tab from elsewhere.
+        onKeyDown={(e) => {
+          if (e.key !== "Tab" || e.altKey || e.ctrlKey || e.metaKey) return;
+          const boxes = [...(e.currentTarget.closest("table, ul")?.querySelectorAll<HTMLInputElement>("[data-weight-box]") ?? [])];
+          const next = boxes[boxes.indexOf(e.currentTarget) + (e.shiftKey ? -1 : 1)];
+          if (next) {
+            e.preventDefault();
+            next.focus();
+          }
+        }}
         onBlur={() => {
           if (bad) onBad(false);
           setText(null);

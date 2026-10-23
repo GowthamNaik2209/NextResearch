@@ -204,8 +204,8 @@ export type SectorDef = {
   integratorHeading?: string;
   integratorBlurb?: string;
   // Phone/tablet overview framing: tilt, turn (up to 30 degrees) and re-centre a flat campus so it
-  // fills the portrait stage (engine.ts portraitFit). Opt-in, so sectors whose phone views were
-  // already approved keep them.
+  // fills the portrait stage (engine.ts portraitFit). On by default (QA: the authored low, wide
+  // shots left the model a thin band across the middle third of a phone); `false` opts a sector out.
   portraitFit?: boolean;
 };
 

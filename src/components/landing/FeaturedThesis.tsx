@@ -5,7 +5,7 @@ import { Points } from "@/components/Points";
 export function FeaturedThesis({ sector }: { sector: Pick<SectorWithSlug, "slug" | "name" | "tagline" | "whyNow" | "thesisSummary"> }) {
   return (
     <section className="mx-auto max-w-6xl px-5 py-16">
-      <div className="grid gap-8 rounded-3xl border border-line bg-panel p-8 lg:grid-cols-[1fr_1.2fr] lg:p-10">
+      <div className="grid grid-cols-1 gap-8 rounded-3xl border border-line bg-panel p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:p-10">
         <div>
           <span className="text-xs font-bold uppercase tracking-widest text-accent">Featured thesis</span>
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-ink">{sector.name}</h2>
