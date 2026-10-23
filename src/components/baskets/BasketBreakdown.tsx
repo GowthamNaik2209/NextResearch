@@ -46,10 +46,10 @@ export function BasketBreakdown({
   const whose = picks ? "your picks\u2019" : "the basket\u2019s";
   const inds = industryRows(holdings, industryOf);
   const tabs: { id: Tab; label: string }[] = [
-    { id: "contribution", label: "Contribution" },
+    { id: "contribution", label: "Pts added" },
     { id: "returns", label: "Returns" },
     { id: "weights", label: "Weights" },
-    ...(byIndustry && inds.length > 1 ? [{ id: "industries" as const, label: "Industries" }] : []),
+    ...(byIndustry && inds.length > 1 ? [{ id: "industries" as const, label: "By industry" }] : []),
   ];
   const active = tabs.some((t) => t.id === tab) ? tab : "contribution";
 
@@ -70,7 +70,7 @@ export function BasketBreakdown({
     },
     weights: {
       headline: weightHeadline(holdings, nameOf, picks ? "your picks" : "the basket"),
-      sub: `Share of ${picks ? "your picks" : "the basket"} now, against where it started. Winners grow, losers shrink.`,
+      sub: `Share of ${picks ? "your picks" : "the basket"} at the end, against its target. Winners grow, losers shrink.`,
       rows: weightRows(holdings),
       unit: "%",
       legend: false,

@@ -154,7 +154,7 @@ const DIR_WORDS: Partial<Record<Sort, Record<SortState["dir"], string>>> = {
   dd: { desc: "smallest fall first", asc: "deepest fall first" },
 };
 const dirWords = (s: SortState) => DIR_WORDS[s.by]?.[s.dir] ?? (s.dir === "desc" ? "high to low" : "low to high");
-const COL_NAMES: Record<Sort, string> = { name: "Basket", count: "Number of stocks", ret: "1Y return", dd: "Max drawdown", vs: "vs Nifty" };
+const COL_NAMES: Record<Sort, string> = { name: "Basket", count: "Number of stocks", ret: "1Y return", dd: "Drawdown", vs: "vs Nifty 50" };
 /** The phone's sort menu: each column both ways, the first-tap direction first. */
 const PHONE_SORTS: SortState[] = (["ret", "vs", "dd", "count", "name"] as Sort[]).flatMap((by) => {
   const d = firstDir(by);
@@ -285,9 +285,9 @@ export function BasketsTable({
           {/* The column headers are the sort controls: tap one to sort by it (numbers high to low, Basket A to Z), again to reverse. */}
           <div role="row" className={GRID + " border-b border-line px-3 text-[10px] font-semibold uppercase tracking-wider text-ink-soft"}>
             {head("name", "Basket", "min-w-0")}
-            {head("count", "#", "hidden sm:block")}
+            {head("count", "Stocks", "hidden sm:block")}
             {head("ret", "1Y", "")}
-            {head("dd", "Max DD", "hidden sm:block")}
+            {head("dd", "Drawdown", "hidden sm:block")}
             {head("vs", "vs Nifty", "")}
           </div>
         </div>
@@ -324,7 +324,7 @@ export function BasketsTable({
                       <span className="min-w-0">
                         <span className="line-clamp-2 break-words">
                           <span className="sm:hidden">{stocksWord} · </span>
-                          {r.weighting === "mcap" ? "Mcap wt" : r.weighting === "custom" ? "Custom wt" : "Equal wt"}
+                          {r.weighting === "mcap" ? "M-cap weight" : r.weighting === "custom" ? "Custom weights" : "Equal weight"}
                           {r.names.length > 0 && ` · ${r.names.slice(0, 3).join(", ")}${r.names.length > 3 ? ` +${r.names.length - 3}` : ""}`}
                         </span>
                         {ddNote}
@@ -360,7 +360,7 @@ export function BasketsTable({
           })}
         </ul>
       </div>
-      <p className="border-t border-line px-3 py-1.5 text-[10px] text-ink-soft">1Y, equal or saved weighting, bought a year ago and held; price only, no dividends or costs.</p>
+      <p className="border-t border-line px-3 py-1.5 text-[10px] text-ink-soft">1Y: past year, bought a year ago and not rebalanced, at each basket&rsquo;s saved weighting (industry baskets at equal weight). Price only, no dividends or costs.</p>
     </div>
   );
 }
@@ -434,20 +434,20 @@ export function BasketsSummary({ mineCount, benchRet = null }: { mineCount: numb
         </dd>
       </div>
       <div className={cell}>
-        <dt className={head}>Beat the Nifty · 1Y</dt>
+        <dt className={head}>Ahead of Nifty · 1Y</dt>
         <dd className="font-mono text-sm font-bold tabular-nums text-ink">
           {nifty === "error" && done.length === 0 ? (
             <span className="font-sans text-xs font-normal text-ink-soft">Needs the Nifty 50, which couldn&rsquo;t load</span>
           ) : all.length === 0 ? (
             hydrated ? NA : <Pending />
           ) : (
-            `${beat} of ${done.length}`
+            `${beat} of ${done.length} baskets`
           )}
           {pending > 0 && <span className="ml-1 font-sans text-[10px] font-normal text-ink-soft">({pending} loading)</span>}
         </dd>
       </div>
       <div className={cell}>
-        <dt className={head}>Best 1Y</dt>
+        <dt className={head}>Best basket · 1Y</dt>
         <dd className="flex min-w-0 flex-col text-sm">
           {best ? (
             <>

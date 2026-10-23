@@ -21,7 +21,7 @@ function useStillWatched(tickers: string[]): string[] {
 export function WatchlistBacktest({ tickers, className }: { tickers: string[]; className: string }) {
   const still = useStillWatched(tickers);
   if (still.length === 0) return null;
-  return <NewBasketButton tickers={still} name="My watchlist basket" label="Backtest as a basket" className={className} />;
+  return <NewBasketButton tickers={still} name="My watchlist basket" label="Save as a basket" className={className} />;
 }
 
 /** The news section, hidden once every stock it covers has been removed. */

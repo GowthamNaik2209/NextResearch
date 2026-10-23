@@ -10,7 +10,7 @@ export function IdeasSection({ ideas, asOf }: { ideas: Idea[]; asOf: string }) {
   if (!idea) return null;
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">Ideas to start from</h2>
+      <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">Stock screens</h2>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink-soft">
         Rule-based screens across every company we profile. Each shows its rule, so you can see exactly why a name is on the list.
       </p>

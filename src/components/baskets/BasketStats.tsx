@@ -7,6 +7,7 @@ import { basketCsv, csvFileName, type CsvStock } from "@/lib/baskets/csv";
 import { isPlainHold, rebalanceLabel, strategyShort, weightingLabel, type Strategy } from "@/lib/baskets/strategy";
 import { fmtDay, fmtMonth, NA, pct, signedPct } from "@/lib/format";
 import { useSeries } from "./use-series";
+import { basisLabel, pastPeriod } from "./labels";
 
 // The stats grid under the return cards: risk and return of the basket's backtest over the
 // chosen range and strategy (named in the title), how it moved against the Nifty 50 and, when it
@@ -197,8 +198,14 @@ export function BasketStats({
     <section aria-label="Backtest statistics" className="rounded-md border border-line bg-panel">
       <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-1.5">
         <H className="text-balance text-[10px] font-semibold uppercase tracking-wider text-ink-soft sm:text-[11px]">
-          Statistics{scope ? ` · ${scope}` : ""} · {range} · <span title={`${weightingLabel(strategy)}, ${rebalanceLabel(strategy)}`}>{strategyShort(strategy)}</span>
-          {s ? ` · ${freq} bars` : ""}
+          <span className="whitespace-nowrap">Backtest statistics</span>
+          {scope ? ` · ${scope}` : ""} · <span className={compact ? "" : "sm:hidden"}>{range}</span>
+          {!compact && <span className="whitespace-nowrap max-sm:hidden">{pastPeriod(range)}</span>}
+          {/* The side column is narrow: the settings take their own line there rather than breaking mid-title. */}
+          <span title={`${weightingLabel(strategy)}, ${rebalanceLabel(strategy)}`} className={compact ? "block" : ""}>
+            {compact ? "" : " · "}
+            {basisLabel(strategy)}
+          </span>
         </H>
         <button
           type="button"
@@ -240,6 +247,7 @@ export function BasketStats({
               <b className="font-semibold text-ink">{c.label}</b>: {c.help}
             </li>
           ))}
+          <li>Measured on {freq} closes against the {BENCH.name} over the same dates.</li>
           <li>Past prices only: not a forecast. The CSV holds these figures, the holdings and the basket&rsquo;s value line, not raw prices.</li>
         </ul>
       </details>

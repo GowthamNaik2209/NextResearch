@@ -24,12 +24,12 @@ import { IndustryChips } from "./IndustryChips";
 import { basketCreateError } from "./NewBasketButton";
 import { industrySeriesKey, savedBasketQuery } from "./series";
 import { useSeries } from "./use-series";
+import { NOT_REBALANCED, REBALANCE_BUTTON, basisLabel, pastPeriod } from "./labels";
 import { basketWeights } from "@/lib/baskets/backtest";
 import { targetWeights } from "@/lib/baskets/rebalance";
 import {
   BAND_CHOICES,
   REBALANCE_RULES,
-  RULE_SHORT,
   SCHEME_SHORT,
   WEIGHT_SCHEMES,
   addToWeights,
@@ -40,7 +40,6 @@ import {
   rebalanceLabel,
   removeFromWeights,
   strategyQuery,
-  strategyShort,
   toPercents,
   weightsParam,
   weightsTotal,
@@ -120,9 +119,9 @@ const useWide = () => useSyncExternalStore(onLgChange, () => window.matchMedia(L
 
 type Sort = "contribution" | "return" | "weight" | "pe" | "mcap" | "name";
 const SORTS: { id: Sort; label: string }[] = [
-  { id: "contribution", label: "Contribution" },
+  { id: "contribution", label: "Pts added" },
   { id: "return", label: "Return" },
-  { id: "weight", label: "Weight now" },
+  { id: "weight", label: "Share now" },
   { id: "pe", label: "P/E (low first)" },
   { id: "mcap", label: "Market cap" },
   { id: "name", label: "Name" },
@@ -460,7 +459,7 @@ export function BasketDetail(p: BasketDetailProps) {
     }
   };
   const blockedNote = "Make the custom weights total 100% first.";
-  // One stock's % typed (or reset to equal): the backtest follows once they total 100%, and a
+  // One stock's % typed (or a Reset): the backtest follows once they total 100%, and a
   // saved basket of yours keeps them (a moment after the last keystroke).
   const editWeights = (next: Record<string, number>) => {
     setCustomEdit(next);
@@ -468,7 +467,11 @@ export function BasketDetail(p: BasketDetailProps) {
     pickStrategy({ ...strategy, weights: next });
     setNote((n) => (n === blockedNote ? null : n));
   };
-  const resetToEqual = () => editWeights(toPercents(schemeShares(stocks, "equal")));
+  // Starting points for the custom weights, worked out from the stocks in the basket right now.
+  const resetTargets = useMemo(
+    () => ({ equal: toPercents(schemeShares(stocks, "equal")), mcap: toPercents(schemeShares(stocks, "mcap")) }),
+    [stocks],
+  );
   // Weights typed but not yet sent (the 700ms wait): leaving the page sends them at once, so the
   // last edit is never lost to a navigation.
   const unsent = useRef<Record<string, number> | null>(null);
@@ -640,16 +643,16 @@ export function BasketDetail(p: BasketDetailProps) {
     </div>
   );
   const RULE_HELP = {
-    never: "Bought on the first day and held",
+    never: "No rebalancing: bought on the first day, then left to move with prices",
     monthly: "Back to the target weights on the first trading day of each month",
     quarterly: "Back to the target weights on the first trading day of each quarter",
     drift: "Back to the target weights once any stock drifts past the band",
   };
   const rebalanceControl = (
-    <div className={MINI_SEG} role="group" aria-label="Rebalance">
+    <div className={MINI_SEG} role="group" aria-label="Rebalancing">
       {REBALANCE_RULES.map((r) => (
         <button key={r} type="button" aria-pressed={strategy.rebalance === r} onClick={() => pickStrategy({ ...strategy, rebalance: r })} title={RULE_HELP[r]} className={segBtn(strategy.rebalance === r)}>
-          {RULE_SHORT[r]}
+          {REBALANCE_BUTTON[r]}
         </button>
       ))}
     </div>
@@ -818,6 +821,8 @@ export function BasketDetail(p: BasketDetailProps) {
                 {p.mode === "saved" && (
                   <span className={"rounded border px-1.5 py-px text-[10px] font-semibold " + (isPublic ? "border-accent text-accent" : "border-line text-ink-soft")}>{isPublic ? "Shared by link" : "Private"}</span>
                 )}
+                {/* A rule-based basket is a list picked by a fixed rule, not a pick of ours: the badge says so beside its name. */}
+                {p.mode === "idea" && <span className="rounded border border-line px-1.5 py-px text-[10px] font-semibold text-ink-soft">Rule-based</span>}
               </div>
             )}
             {/* An idea's description is its rule, list date and disclaimer, so it is never cut short. */}
@@ -851,15 +856,15 @@ export function BasketDetail(p: BasketDetailProps) {
               // with the weighting and rebalancing picked here (signed out, both go to sign in first).
               <>
                 <button type="button" onClick={copy} disabled={busy} className={btnPri}>
-                  {busy ? "Creating…" : "Save as my basket"}
+                  {busy ? "Copying…" : "Copy to my baskets"}
                 </button>
                 <Link href={withStrategy(`/baskets/new?idea=${encodeURIComponent(p.id)}`, true)} className={btnSec + " inline-flex items-center"}>
-                  Edit
+                  Edit before saving
                 </Link>
               </>
             ) : (
               <button type="button" onClick={copy} disabled={busy} className={btnPri}>
-                {busy ? "Creating…" : p.mode === "industry" ? "Customise this basket" : "Copy to my baskets"}
+                {busy ? "Copying…" : "Copy to my baskets"}
               </button>
             )}
             {canEdit && !draft && (
@@ -875,7 +880,7 @@ export function BasketDetail(p: BasketDetailProps) {
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-line pt-2">
           <div className="flex items-center gap-1.5">
-            <span className={ctlLabel + " hidden sm:inline"}>Weight</span>
+            <span className={ctlLabel + " hidden sm:inline"}>Weighting</span>
             {weightingControl}
             <InfoTip label="What the weightings mean">
               <ul className="flex flex-col gap-1">
@@ -887,12 +892,12 @@ export function BasketDetail(p: BasketDetailProps) {
             </InfoTip>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className={ctlLabel + " hidden sm:inline"}>Rebalance</span>
+            <span className={ctlLabel + " hidden sm:inline"}>Rebalancing</span>
             {rebalanceControl}
-            <InfoTip label="What the rebalance rules mean">
+            <InfoTip label="What the rebalancing rules mean">
               <p className="mb-1">Rebalancing trades every stock back to its target weight.</p>
               <ul className="flex flex-col gap-1">
-                <li><b>Hold</b>: bought on day one, never traded.</li>
+                <li><b>Never</b>: bought on day one, then left to move with prices.</li>
                 <li><b>Monthly</b> / <b>Quarterly</b>: on the first trading day of each month or quarter.</li>
                 <li><b>Drift</b>: only when a stock moves more than the Band above or below its target.</li>
               </ul>
@@ -936,7 +941,7 @@ export function BasketDetail(p: BasketDetailProps) {
           heading={heading}
           stocks={stocks}
           picks={pickedKey && !picksAll ? picked.map((s) => s.ticker) : null}
-          values={customEdit ?? {}} onChange={editWeights} onReset={resetToEqual} onClose={() => setWeightsOpen(false)} saves={ownsWeights} />
+          values={customEdit ?? {}} onChange={editWeights} resets={resetTargets} onClose={() => setWeightsOpen(false)} saves={ownsWeights} />
       )}
 
       <div className="flex min-w-0 flex-col gap-2 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
@@ -955,8 +960,8 @@ export function BasketDetail(p: BasketDetailProps) {
               dense
               range={range}
               basket={{ key: basketKey, label: `This basket · ${range}` }}
-              picks={pickedKey && !picksAll ? { key: pickedKey, label: `Your ${picked.length} pick${picked.length > 1 ? "s" : ""}`, tickers: picked.map((s) => s.ticker), strategy: strategyShort(strategy) } : null}
-              benches={heldKey ? [{ key: heldKey, label: "Bought and held" }, ...NIFTY_ONLY] : NIFTY_ONLY}
+              picks={pickedKey && !picksAll ? { key: pickedKey, label: `Your ${picked.length} pick${picked.length > 1 ? "s" : ""}`, tickers: picked.map((s) => s.ticker), strategy: basisLabel(strategy) } : null}
+              benches={heldKey ? [{ key: heldKey, label: NOT_REBALANCED }, ...NIFTY_ONLY] : NIFTY_ONLY}
             />
           )}
           {view !== "chart" && narrowStats}
@@ -979,21 +984,26 @@ export function BasketDetail(p: BasketDetailProps) {
               <Panel
                 heading={heading}
                 className={onlyOn("chart")}
-                title={`Performance · past ${rangeLong} · ${strategyShort(strategy)}`}
-                label="Chart"
+                title={
+                  <>
+                    Backtest · <span className="sm:hidden">{range}</span>
+                    <span className="max-sm:hidden">{pastPeriod(range)}</span> · {basisLabel(strategy)}
+                  </>
+                }
+                label={`Backtest chart, ${pastPeriod(range)}, ${basisLabel(strategy)}`}
                 bodyClassName="p-3"
-                infoLabel="About the chart"
+                infoLabel="About the backtest chart"
                 info={
                   <>
                     Every line starts at 0% on the first day, so their ends compare directly. <b>Compare with</b> adds up to 3 indices or industry
                     baskets; <b>Stocks</b> draws single stocks. Pinch, or use + and −, to zoom; drag sideways to move.
-                    {rebalanced && " vs bought and held also draws the same basket never rebalanced."}
+                    {rebalanced && " vs not rebalanced also draws the same basket left unrebalanced."}
                   </>
                 }
                 tools={
                   rebalanced && (
                     <button type="button" aria-pressed={vsHeld} onClick={() => setVsHeld((v) => !v)} className={MINI_SEG + " " + segBtn(vsHeld) + " items-center font-sans"}>
-                      vs bought and held
+                      vs not rebalanced
                     </button>
                   )
                 }
@@ -1004,7 +1014,7 @@ export function BasketDetail(p: BasketDetailProps) {
                   basketKey={basketKey}
                   basketName={name}
                   strategy={compareSq}
-                  held={heldKey && vsHeld ? { key: heldKey, name: "Bought and held" } : null}
+                  held={heldKey && vsHeld ? { key: heldKey, name: NOT_REBALANCED } : null}
                   industries={compareIndustries}
                   indices={p.indices}
                   market={p.market}
@@ -1017,13 +1027,13 @@ export function BasketDetail(p: BasketDetailProps) {
               <Panel
                 heading={heading}
                 className={onlyOn("stocks")}
-                title={`Holdings · ${tableScope === "picks" ? `your ${picked.length} pick${picked.length === 1 ? "" : "s"}` : stocksWord(stocks.length)}`}
+                title={`${tableScope === "picks" ? `Your ${picked.length} pick${picked.length === 1 ? "" : "s"}` : `Stocks (${stocks.length})`} · ${pastPeriod(range)}`}
                 label="Stocks in this basket"
-                infoLabel="About the holdings"
+                infoLabel="About the stock table"
                 info={
                   <>
-                    <b>Target</b>: the share it was bought at (your custom % when Custom). <b>Now</b>: its share today, after the price moves.{" "}
-                    <b>Return</b>: its own price change. <b>Pts</b>: what it added to the basket&rsquo;s return.
+                    <b>Target %</b>: its share when bought{rebalanced ? " and after each rebalance" : ""} (your % when Custom). <b>Now %</b>: its share at the end, after price moves.{" "}
+                    <b>Return</b>: its own price change. <b>Pts added</b>: what it added to the basket&rsquo;s return.
                   </>
                 }
                 tools={
@@ -1032,7 +1042,7 @@ export function BasketDetail(p: BasketDetailProps) {
                       <div role="group" aria-label="Measure within" className={MINI_SEG}>
                         {(["all", "picks"] as const).map((v) => (
                           <button key={v} type="button" aria-pressed={tableScope === v} onClick={() => setScope(v)} className={segBtn(tableScope === v) + " font-sans"}>
-                            {v === "all" ? "All" : "Your picks"}
+                            {v === "all" ? "All stocks" : "Your picks"}
                           </button>
                         ))}
                       </div>
@@ -1135,14 +1145,14 @@ export function BasketDetail(p: BasketDetailProps) {
                               <span className="sr-only">Chart line</span>
                             </th>
                             {sortHead("name", "Stock", false)}
-                            <th scope="col" title="The share it was bought at (your custom % when Custom)" className="whitespace-nowrap px-2 py-1.5 text-right font-semibold">
-                              Target
+                            <th scope="col" title={`Its share when bought${rebalanced ? " and after each rebalance" : ""} (your % when Custom)`} className="whitespace-nowrap px-2 py-1.5 text-right font-semibold">
+                              Target %
                             </th>
-                            {sortHead("weight", "Now")}
+                            {sortHead("weight", "Now %")}
                             {sortHead("return", "Return")}
-                            {sortHead("contribution", "Pts")}
+                            {sortHead("contribution", "Pts added")}
                             {sortHead("pe", "P/E")}
-                            {sortHead("mcap", "Mcap ₹ Cr")}
+                            {sortHead("mcap", "M-cap ₹ Cr")}
                             {sinceShown && (
                               <th scope="col" title="The stock's move since it was added to this basket (from its live price then)" className="whitespace-nowrap px-2 py-1.5 text-right font-semibold">
                                 Since added
@@ -1212,7 +1222,7 @@ export function BasketDetail(p: BasketDetailProps) {
                       </table>
                     </div>
                     <p className="border-t border-line/70 px-3 py-1.5 text-[11px] text-ink-soft">
-                      Return over the past {rangeLong} · <b className="font-semibold">target</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} when bought,{" "}
+                      Return over the past {rangeLong} · <b className="font-semibold">target</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} when bought{rebalanced ? " and after each rebalance" : ""},{" "}
                       <b className="font-semibold">now</b> after the price moves ·{" "}
                       <b className="font-semibold">pts</b> what it added to {tableScope === "picks" ? "your picks’" : "the basket’s"} return · P/E and market cap from our last data update
                     </p>
@@ -1228,14 +1238,14 @@ export function BasketDetail(p: BasketDetailProps) {
                 )}
               </Panel>
               <div className={"flex min-w-0 flex-col " + onlyOn("chart")}>
-                <BasketAnalysis range={range} basketKey={basketKey} strategyName={strategyShort(strategy)} heading={heading} reload={reload} />
+                <BasketAnalysis range={range} basketKey={basketKey} heading={heading} reload={reload} />
               </div>
               {view === "chart" && narrowStats}
             </>
           )}
 
           <p className="text-[11px] leading-relaxed text-ink-soft">
-            Backtest: bought on the first day of the period at {weighting === "equal" ? "equal weights" : weighting === "layer" ? "equal weights per value-chain layer (equal within each)" : weighting === "custom" ? "your custom weights (a stock with no prices for the period has its share spread over the rest, in proportion)" : "weights by market cap"}
+            How it is backtested: bought on the first day of the period at {weighting === "equal" ? "equal weights" : weighting === "layer" ? "equal weights per value-chain layer (equal within each)" : weighting === "custom" ? "your custom weights (a stock with no prices for the period has its share spread over the rest, in proportion)" : "weights by market cap"}
             {weighting === "mcap" ? " (today’s market caps, from our last data update, so slightly flattering to winners)" : ""}
             {rebalanced
               ? `, then ${rebalanceLabel(strategy)}, trading at that day’s close${strategy.rebalance === "drift" ? " (the day after the drift is seen)" : ""}. Turnover and trades are shown, but no brokerage, taxes or slippage are taken off. Price change only, no dividends.`
@@ -1245,7 +1255,7 @@ export function BasketDetail(p: BasketDetailProps) {
                 {" "}
                 Every listed company on the{" "}
                 <Link href={`/sector/${p.id}`} className="tap-y text-accent hover:underline">
-                  {p.name.replace(/ basket$/, "")} map
+                  {p.name.replace(/ (industry|policy) basket$/, "")} map
                 </Link>
                 .
               </>
@@ -1259,10 +1269,10 @@ export function BasketDetail(p: BasketDetailProps) {
           {stats(true)}
           {railPicker}
           {stocks.length > 0 && (
-            <Panel heading={heading} title={`In this basket (${stocks.length})`} className="flex min-h-0 flex-col" bodyClassName="flex min-h-0 flex-col">
+            <Panel heading={heading} title={`Stocks and chart lines · ${stocks.length}`} className="flex min-h-0 flex-col" bodyClassName="flex min-h-0 flex-col">
               <p className="px-3 pt-1.5 text-[11px] leading-snug text-ink-soft">
                 {picked.length > 0 ? "The mark beside a stock is its line on the chart. " : ""}Add or take off lines with the chart&rsquo;s Stocks menu.
-                {canEdit && editing ? " Remove stocks from the Holdings table." : ""}
+                {canEdit && editing ? " Remove stocks from the Stocks table." : ""}
               </p>
               <ul className="max-h-[22rem] divide-y divide-line/70 overflow-y-auto overscroll-contain px-3 py-1">
                 {/* Stocks on the chart first (in the order their lines were given), then the rest A to Z. */}
@@ -1309,13 +1319,13 @@ export function BasketDetail(p: BasketDetailProps) {
 }
 
 // Custom weighting: each stock's % as a typed number, a running total that has to reach 100% (the
-// backtest keeps the last weights that did until then), and Reset to equal.
+// backtest keeps the last weights that did until then), and Reset to equal or to market cap.
 function CustomWeights({
   heading,
   stocks,
   values,
   onChange,
-  onReset,
+  resets,
   onClose,
   saves,
   picks,
@@ -1327,7 +1337,8 @@ function CustomWeights({
   picks: string[] | null;
   values: Record<string, number>;
   onChange: (next: Record<string, number>) => void;
-  onReset: () => void;
+  /** Equal and market-cap shares of the current stocks, as %s: the two Reset buttons. */
+  resets: { equal: Record<string, number>; mcap: Record<string, number> };
   /** Hides the panel (shown only once the weights total 100%). */
   onClose: () => void;
   /** A saved basket of yours: the weights are kept with it. */
@@ -1351,7 +1362,7 @@ function CustomWeights({
   return (
     <Panel label="Custom weights">
       {/* The × sits top right on its own, so on a phone it stays beside the title while the total
-          and Reset wrap underneath. */}
+          and the Resets wrap underneath. */}
       <div className="flex items-start gap-2 border-b border-line px-3 py-1">
         <div className="flex min-h-8 min-w-0 flex-1 flex-wrap items-center justify-between gap-x-2 gap-y-1">
           <div className="flex min-w-0 items-center gap-1.5">
@@ -1363,9 +1374,27 @@ function CustomWeights({
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <span className={"font-mono text-[11px] font-semibold " + (ok ? "text-pos" : "text-danger")}>Total {total.toFixed(1)}%</span>
-            <button type="button" onClick={onReset} className="inline-flex min-h-9 items-center rounded border border-line bg-bg px-2 text-[11px] font-semibold text-ink hover:border-accent sm:min-h-6 pointer-coarse:min-h-9">
-              Reset to equal
-            </button>
+            {(
+              [
+                ["equal", "Reset to equal"],
+                ["mcap", "Reset to market cap"],
+              ] as const
+            ).map(([k, text]) => {
+              // Greyed out while the weights already are that scheme's, so the buttons show where you are.
+              const current = stocks.every((st) => Math.abs((values[st.ticker] ?? 0) - (resets[k][st.ticker] ?? 0)) < 0.05);
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => onChange(resets[k])}
+                  disabled={current}
+                  title={current ? `The weights are ${k === "equal" ? "equal" : "by market cap"} now` : undefined}
+                  className="inline-flex min-h-9 items-center rounded border border-line bg-bg px-2 text-[11px] font-semibold text-ink hover:border-accent disabled:cursor-default disabled:text-ink-soft disabled:hover:border-line sm:min-h-6 pointer-coarse:min-h-9"
+                >
+                  {text}
+                </button>
+              );
+            })}
           </div>
         </div>
         {ok && !bad.size && (
@@ -1385,7 +1414,7 @@ function CustomWeights({
         {bad.size
           ? "Type a number from 0 to 100 in each box."
           : ok
-          ? "The backtest uses these target weights (the Holdings table's Target column)."
+          ? "The backtest uses these target weights (the Stocks table's Target % column)."
           : `Total is ${total.toFixed(1)}%: ${off > 0 ? `add ${off.toFixed(1)}%` : `take off ${(-off).toFixed(1)}%`} to make 100%. The backtest waits until then.`}
       </p>
       {/* Phones list every stock (the × closes the panel); wider screens scroll a long list inside. */}
@@ -1427,7 +1456,7 @@ function WeightInput({ label, value, onCommit, onBad }: { label: string; value: 
         inputMode="decimal"
         aria-label={label}
         aria-invalid={bad || undefined}
-        // What's being typed, unless the value moved underneath it (Reset to equal, a stock added).
+        // What's being typed, unless the value moved underneath it (a Reset, a stock added).
         value={text != null && (bad || read(text) === value) ? text : String(value)}
         onChange={(e) => {
           setText(e.target.value);

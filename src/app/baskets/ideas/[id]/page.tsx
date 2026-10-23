@@ -10,7 +10,7 @@ import { compareProps } from "@/lib/baskets/page-props";
 import { ensureFinancials } from "@/lib/financials/load";
 import { sep } from "@/lib/format";
 
-// A basket idea: today's list for one rule, as a basket anyone can chart and save as their own.
+// A rule-based basket (a "basket idea" in the code): today's list for one rule, as a basket anyone can chart and save as their own.
 // The list moves with prices, so the page is rendered per request from the day's cached lists.
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const got = await getIdea(id).catch(() => null);
   if (!got) return { title: "Page not found", robots: { index: false } };
   return {
-    title: `${got.idea.title}: a stock basket idea`,
+    title: `${got.idea.title}: a rule-based stock basket`,
     description: `${got.idea.blurb} Re-ranked daily and backtested against the Nifty 50 on NextResearch.`,
     alternates: { canonical: `/baskets/ideas/${id}` },
   };
@@ -42,7 +42,7 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-4xl lg:max-w-7xl flex-1 flex-col gap-4 px-5 py-14">
         <Link href="/baskets#ideas" className="-my-1 inline-flex min-h-8 items-center self-start text-xs font-semibold text-accent hover:underline pointer-coarse:min-h-9">
-          &larr; Basket ideas
+          &larr; Rule-based baskets
         </Link>
         <BasketDetail
           mode="idea"

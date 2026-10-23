@@ -30,7 +30,7 @@ can't trade on the price it just saw.
 
 ## Strategy ideas
 
-### A. Rebalancing (built: the basket page's Weight and Rebalance controls)
+### A. Rebalancing (built: the basket page's Weighting and Rebalancing controls)
 
 Built in src/lib/baskets/rebalance.ts (pure, unit-tested) and src/lib/baskets/strategy.ts (the
 query string that names a strategy: `w=equal|mcap|custom|layer`, `cw=TICKER:40,TICKER:60` for
@@ -39,6 +39,13 @@ weighting as `wt` so it can't clash with a host page's parameters. Calendar reba
 the close of the first bar of the new month or quarter; the drift rule trades the bar after the
 drift is seen. Turnover and trade counts are reported (and each rebalance in the CSV); costs are
 not yet taken off.
+
+**Names on screen** (src/components/baskets/labels.ts): the controls are *Weighting* (Equal, M-cap,
+Custom, Layers) and *Rebalancing* (Never, Monthly, Quarterly, Drift). Panel titles name the period and
+the settings in words, built from the live strategy ("Backtest · past 1 year · equal weight, not
+rebalanced"); the unrebalanced comparison line and card are "Not rebalanced". Baskets are called
+*industry* (or *policy*) *baskets* (every listed stock on a map), *rule-based baskets* (the ideas,
+picked by a fixed rule and re-ranked daily) and *your baskets* (saved).
 
 **Custom weights** (each stock's target %, totalling 100) replaced the earlier *Capped* weighting.
 Old links with `w=capped` still open, read as market cap; their `cap` and `lcap` parameters are

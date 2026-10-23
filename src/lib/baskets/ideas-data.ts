@@ -105,7 +105,7 @@ export const getIdeas = unstable_cache(
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },
-  ["basket-ideas-v7"],
+  ["basket-ideas-v8"], // v8: renamed lists (Biggest gainers, Highest ROCE, …), so cached v7 titles aren't served
   { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
 );
 

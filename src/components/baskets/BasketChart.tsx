@@ -316,7 +316,7 @@ export function BasketChart({
                       {compare.length}/{MAX_COMPARE} on
                     </span>
                   </div>
-                  <p className="mt-0.5 text-[11px] leading-snug text-ink-soft">Every listed stock an industry maps, weighted the same way as this basket.</p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-ink-soft">Every listed stock an industry maps, at this basket&rsquo;s settings (equal weight when this one is custom).</p>
                   <div className="mt-1 flex flex-col">
                     {industries.map((b) => {
                       const i = compare.indexOf(b.slug);

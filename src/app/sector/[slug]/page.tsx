@@ -159,7 +159,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
               href={`/baskets/industry/${sector.slug}`}
               className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink"
             >
-              Backtest as a basket
+              {sector.category === "policy" ? "Open policy basket" : "Open industry basket"}
             </Link>
           )}
           {hasBottlenecks && (

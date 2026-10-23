@@ -20,8 +20,8 @@ const STEPS: { title: string; body: string; link: { href: string; label: string 
   },
   {
     title: "Make it yours",
-    body: "Customise the basket into your own, save companies to your watchlist and share a basket by link as the story develops.",
-    link: { href: "/baskets", label: "Go to baskets" },
+    body: "Copy the industry basket into your own, save companies to your watchlist and share a basket by link as the story develops.",
+    link: { href: "/baskets", label: "Open Baskets" },
   },
 ];
 

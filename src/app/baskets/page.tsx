@@ -16,7 +16,7 @@ import { ensureFinancials } from "@/lib/financials/load";
 export const metadata = {
   title: "Stock baskets: build your own from any mix of Indian industries",
   description:
-    "Create a stock basket from any mix of the industries NextResearch maps, from EVs and railways to defence, pharma and real estate, or start from a daily basket idea: top performers, quality leaders, bottleneck plays, companies across industries and recent listings. Each one is backtested against the Nifty 50 and shareable by link.",
+    "Create a stock basket from any mix of the industries NextResearch maps, from EVs and railways to defence, pharma and real estate, or start from a rule-based basket re-ranked daily: biggest gainers, highest ROCE, scarce suppliers, companies in 3+ industries and recent listings. Each one is backtested against the Nifty 50 and shareable by link.",
   alternates: { canonical: "/baskets" },
 };
 
@@ -64,7 +64,7 @@ export default async function BasketsPage() {
         <div className="min-w-0">
           <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Baskets</h1>
           <p className="mt-1.5 max-w-3xl text-xs leading-relaxed text-ink-soft sm:text-sm">
-            A basket is a group of stocks you follow as one. Start from one of today&rsquo;s basket ideas, or create your own from any
+            A basket is a group of stocks you follow as one. Start from an industry basket or a rule-based list, or create your own from any
             mix of industries and your watchlist. Each one is backtested against the Nifty 50, with indices and industries a tap away
             to compare. For tracking and research only: nothing here places trades.
           </p>
@@ -75,14 +75,14 @@ export default async function BasketsPage() {
           <div>
             <div className="flex items-center gap-2">
               <h2 id="ideas-h" className="font-display text-lg font-bold text-ink sm:text-xl">
-                Basket ideas
+                Rule-based baskets
               </h2>
-              <InfoTip label="About basket ideas">
-                Ready-made lists, re-ranked every day from the latest closes. Open one to chart it, then save it as your own basket. Past returns, not a
-                recommendation.
+              <InfoTip label="About rule-based baskets">
+                Each list is picked by a fixed rule (past return, ROCE, our maps) and re-ranked daily. Returns shown are past performance, not a
+                recommendation or forecast.
               </InfoTip>
             </div>
-            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Ready-made lists, re-ranked every day. Open one to chart it, then save it as your own basket.</p>
+            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Lists picked by a fixed rule, re-ranked daily. Open one to backtest it, or copy it to your baskets.</p>
           </div>
           <BasketIdeas />
         </section>
@@ -105,12 +105,12 @@ export default async function BasketsPage() {
                 <Link href="/login?next=/baskets" className="font-semibold text-accent hover:underline">
                   Sign in
                 </Link>{" "}
-                to create your own baskets, build them from your watchlist and share them by link. The basket ideas above are open to everyone.
+                to create your own baskets, build them from your watchlist and share them by link. The rule-based baskets above are open to everyone.
               </>
             ) : mineFailed ? (
-              <>Your saved baskets couldn&rsquo;t load right now. Reload in a moment; the basket ideas above still work.</>
+              <>Your saved baskets couldn&rsquo;t load right now. Reload in a moment; the rule-based baskets above still work.</>
             ) : (
-              <>No baskets yet. Tap &ldquo;Create basket&rdquo; to build one from any mix of industries, or save one of the ideas above.</>
+              <>No baskets yet. Tap &ldquo;Create basket&rdquo; to build one from any mix of industries, or copy one of the rule-based baskets above.</>
             )}
           </BasketsPanel>
         </section>
@@ -122,11 +122,11 @@ export default async function BasketsPage() {
                 Industry &amp; policy baskets
               </h2>
               <InfoTip label="What the columns mean">
-                <b>1Y</b>: return over the past year, bought and held at equal weight. <b>Max DD</b>: the deepest fall from a high in that year (a column from tablet width up).{" "}
+                <b>1Y</b>: return over the past year, bought a year ago and not rebalanced. <b>Drawdown</b>: the deepest fall from a high in that year (a column from tablet width up).{" "}
                 <b>vs Nifty</b>: the basket&rsquo;s return minus the Nifty 50&rsquo;s, in percentage points. Tap a column heading to sort, or use the Sort menu on a phone.
               </InfoTip>
             </div>
-            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock each industry or policy maps, equal weight.</p>
+            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock on each industry or policy map, at equal weight.</p>
           </div>
           {/* The figures are worked out on the server and stream in; until then the rows show loading. */}
           <Suspense

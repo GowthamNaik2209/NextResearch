@@ -55,7 +55,7 @@ export default async function NewBasketPage({ searchParams }: { searchParams: Pr
           mode="draft"
           id="new"
           name={idea?.title ?? ""}
-          description={idea ? `Starting from the ${idea.title} idea. Add stocks from any industry or policy, take off the ones you don\u2019t want, then create it as your basket.` : null}
+          description={idea ? `Starting from the ${idea.title} rule-based basket. Add stocks from any industry or policy, take off the ones you don\u2019t want, then create it as your basket.` : null}
           stocks={stocks}
           addPrices={{}}
           weighting="equal"

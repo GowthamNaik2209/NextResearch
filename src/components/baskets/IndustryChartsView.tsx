@@ -7,7 +7,7 @@ import { BasketDetail } from "./BasketDetail";
 import type { CompareBasket } from "./BasketChart";
 
 // The Analysis page's Charts view: an industry's basket page (cards, chart, stock list and a
-// "Customise this basket" button) with a picker to switch industries. The same component as
+// "Copy to my baskets" button) with a picker to switch industries. The same component as
 // /baskets/industry/<slug>, so the two never drift apart.
 export type ChartsIndustry = {
   slug: string;
@@ -63,8 +63,8 @@ export function IndustryChartsView({
         key={b.slug}
         mode="industry"
         id={b.slug}
-        name={`${b.name} basket`}
-        description={`Every listed company in the ${b.name} map: ${b.tagline}`}
+        name={`${b.name} ${b.category === "policy" ? "policy" : "industry"} basket`}
+        description={`All ${b.stocks.length} listed companies on the ${b.name} map: ${b.tagline}`}
         stocks={b.stocks}
         addPrices={{}}
         weighting="equal"

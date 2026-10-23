@@ -102,7 +102,7 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
       .slice(0, TOP_N);
     ideas.push({
       id: `top-${p.id.toLowerCase()}`,
-      title: `Top performers · ${p.id}`,
+      title: `Biggest gainers · ${p.id}`,
       blurb: `The ${TOP_N} listed stocks in our maps that rose most over the past ${p.long}.`,
       rule: `The ${TOP_N} biggest gainers over the past ${p.long} across our maps, re-ranked daily. Past returns, not a recommendation.`,
       range: p.id,
@@ -118,7 +118,7 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     .slice(0, LIST_N);
   ideas.push({
     id: "quality",
-    title: "Quality leaders",
+    title: "Highest ROCE",
     blurb: "The highest return on capital employed across every industry we map.",
     rule: `Highest ROCE in our maps, among companies worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more.`,
     range: "1Y",
@@ -133,7 +133,7 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     .slice(0, LIST_N);
   ideas.push({
     id: "bottlenecks",
-    title: "Bottleneck plays",
+    title: "Scarce suppliers",
     blurb: "Listed companies in supply-chain layers that only one or two listed names supply.",
     rule: "Companies in supply-chain layers that only one or two listed companies supply, scarcest first.",
     range: "1Y",
@@ -148,7 +148,7 @@ export function buildIdeas(stocks: IdeaStockInfo[], snap: PriceSnapshot, now: nu
     .slice(0, 15);
   ideas.push({
     id: "cross-industry",
-    title: "Across industries",
+    title: "In 3+ industries",
     blurb: "Companies that turn up in three or more of our industry maps (policy maps not counted).",
     rule: "Companies in three or more of our industry maps, widest reach first.",
     range: "1Y",

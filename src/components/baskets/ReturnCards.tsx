@@ -35,7 +35,7 @@ export function ReturnCards({
 }: {
   range: ChartRange;
   basket: CardLine;
-  /** The picked stocks' backtest, with the tickers and strategy ("Equal · held") named in its tooltip. */
+  /** The picked stocks’ backtest, with the tickers and settings ("equal weight, not rebalanced") named in its tooltip. */
   picks: (CardLine & { tickers: string[]; strategy: string }) | null;
   benches: CardLine[];
   /** The basket pages' flat strip (full width, square cells); the Analysis charts keep the cards. */

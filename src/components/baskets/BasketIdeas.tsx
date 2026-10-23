@@ -7,7 +7,7 @@ import { fmtDay, signedPct } from "@/lib/format";
 import { MINI_SEG, miniSegBtn, PANEL } from "./Panel";
 
 // The Baskets page's ideas: today's lists, fetched after the page shows (the first build of the
-// day reads every stock's prices). "Top performers" is one card with a switch for its period.
+// day reads every stock's prices). "Biggest gainers" is one card with a switch for its period.
 // Each figure is the idea's own backtest, formatted as its page's return card formats it.
 type CardIdea = Omit<Idea, "stocks"> & { stocks: { ticker: string; name: string; stat: string }[] };
 type State = { status: "loading" } | { status: "error" } | { status: "ok"; asOf: string; ideas: CardIdea[] };
@@ -59,7 +59,7 @@ export function BasketIdeas() {
   if (state.status === "error") {
     return (
       <p className={PANEL + " px-3 py-3 text-xs text-ink-soft"}>
-        Basket ideas couldn&rsquo;t load right now.{" "}
+        Rule-based baskets couldn&rsquo;t load right now.{" "}
         <button
           type="button"
           onClick={() => {
@@ -85,7 +85,7 @@ export function BasketIdeas() {
           <li>
             <IdeaCard
               idea={top}
-              title="Top performers"
+              title="Biggest gainers"
               switcher={
                 <div role="group" aria-label="Period" className={MINI_SEG}>
                   {tops.map((t) => {
@@ -107,7 +107,7 @@ export function BasketIdeas() {
           </li>
         ))}
       </ul>
-      <p className="text-[10px] text-ink-soft sm:text-[11px]">Lists as of {fmtDay(state.asOf)}, re-ranked each day from the latest closes. Past returns, not a recommendation.</p>
+      <p className="text-[10px] text-ink-soft sm:text-[11px]">Lists as of {fmtDay(state.asOf)}, re-ranked each day from the latest closes. Returns are past performance, not a recommendation or forecast.</p>
     </div>
   );
 }
@@ -125,7 +125,7 @@ function IdeaCard({ idea, title, switcher }: { idea: CardIdea; title?: string; s
         {idea.ret != null && (
           <span className="flex-none text-right">
             <span className={"block font-mono text-sm font-bold tabular-nums " + (idea.ret >= 0 ? "text-pos" : "text-danger")}>{signedPct(idea.ret)}</span>
-            <span className="block text-[10px] text-ink-soft">{idea.retLabel}</span>
+            <span className="block text-[10px] text-ink-soft">past {idea.retLabel}</span>
           </span>
         )}
       </div>

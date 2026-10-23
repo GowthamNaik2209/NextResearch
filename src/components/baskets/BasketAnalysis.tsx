@@ -8,6 +8,7 @@ import { alignTo, captureIsGood, drawdownEpisodes, monthlyCapture, monthlyMatrix
 import { fmtDay, NA, pct, signedPct } from "@/lib/format";
 import { useSeries } from "./use-series";
 import { MINI_SEG, Panel, miniSegBtn } from "./Panel";
+import { pastPeriod } from "./labels";
 
 // Backtest analysis under the stats grid: how deep and how long the basket fell (underwater
 // curve and worst drawdowns), its calendar-month returns, rolling one-year return and how much of
@@ -30,7 +31,6 @@ const tone = (v: number | null | undefined) => (v == null ? "text-ink-soft" : v 
 export function BasketAnalysis({
   range,
   basketKey,
-  strategyName,
   benchKey = "b:nifty50",
   benchName = "Nifty 50",
   heading = "h2",
@@ -38,8 +38,6 @@ export function BasketAnalysis({
 }: {
   range: ChartRange;
   basketKey: string;
-  /** The strategy the backtest ran ("Equal · monthly"), named in the title. */
-  strategyName?: string;
   benchKey?: string;
   benchName?: string;
   heading?: "h2" | "h3";
@@ -60,8 +58,13 @@ export function BasketAnalysis({
   return (
     <Panel
       heading={heading}
-      title={`Backtest analysis · ${range}${strategyName ? ` · ${strategyName}` : ""}${freq ? ` · ${freq} bars` : ""}`}
-      label="Backtest analysis"
+      title={
+        <>
+          Backtest analysis · <span className="sm:hidden">{range}</span>
+          <span className="max-sm:hidden">{pastPeriod(range)}</span>
+        </>
+      }
+      label={`Backtest analysis, ${pastPeriod(range)}`}
       infoLabel="About the backtest analysis"
       info={
         <ul className="flex flex-col gap-1">
@@ -69,6 +72,7 @@ export function BasketAnalysis({
           <li><b>Monthly</b>: each calendar month&rsquo;s return.</li>
           <li><b>Rolling 1Y</b>: the 1-year return through time.</li>
           <li><b>Capture</b>: how it moved in the Nifty&rsquo;s up and down months.</li>
+          {freq && <li>Same basket and settings as the chart, on {freq} closes.</li>}
         </ul>
       }
       tools={
@@ -124,7 +128,7 @@ function DrawdownView({ points, bench, benchName }: { points: PricePoint[]; benc
   return (
     <div className="grid lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
       <div className="min-w-0 border-b border-line lg:border-b-0 lg:border-r">
-        <SubTitle>Underwater · % below previous high</SubTitle>
+        <SubTitle>% below its previous high</SubTitle>
         <LineChart dates={dates} series={series} />
       </div>
       <div className="min-w-0">
