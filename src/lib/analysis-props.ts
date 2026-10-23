@@ -62,7 +62,8 @@ export function ipoCards(): IpoCard[] {
 }
 
 const chartBaskets = memoByFinancials((): ChartsIndustry[] =>
-  listIndustryBaskets().map(({ slug, name, tagline, category, stocks, indices }) => ({ slug, name, tagline, category, stocks, indices }))
+  // Without each stock's projection: the Charts view doesn't show projections, so it needn't carry them.
+  listIndustryBaskets().map(({ slug, name, tagline, category, stocks, indices }) => ({ slug, name, tagline, category, stocks: stocks.map((s) => ({ ...s, proj: undefined })), indices }))
 );
 /** Every industry basket for the Charts view (served by /docs/baskets when not in the page). */
 export const analysisBaskets = chartBaskets;

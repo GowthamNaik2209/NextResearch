@@ -29,8 +29,15 @@ import { MoreBelow, useMoreBelow } from "./MoreBelow";
 import { basketCreateError } from "./NewBasketButton";
 import { industrySeriesKey, savedBasketQuery } from "./series";
 import { useSeries } from "./use-series";
-import { NOT_REBALANCED, REBALANCE_BUTTON, basisLabel, pastPeriod } from "./labels";
-import { basketWeights } from "@/lib/baskets/backtest";
+import { NOT_REBALANCED, REBALANCE_BUTTON, WEIGHTING_WORDS, basisLabel, pastPeriod } from "./labels";
+import { useProjection, schemeShares } from "./use-projection";
+import { ProjectionCards } from "./ProjectionCards";
+import { ProjectionStats } from "./ProjectionStats";
+import { ProjectionAnalysis } from "./ProjectionAnalysis";
+import { EXIT_LABEL, HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL } from "./projection-view";
+import type { ChartProjection } from "./BasketChart";
+import { caseReturn, HORIZONS, SCENARIOS, type ExitBasis, type Horizon, type Scenario } from "@/lib/baskets/projection";
+import { stockPath, type ProjectionSettings } from "@/lib/baskets/projection-basket";
 import {
   BAND_CHOICES,
   REBALANCE_RULES,
@@ -103,14 +110,9 @@ const RANGES: { id: ChartRange; long: string }[] = [
 const STRATEGY_PARAMS = ["wt", "rb", "band", "cw", "cap", "lcap"];
 const strategyUrlParams = (s: Strategy) => [...new URLSearchParams(strategyQuery(s))].map(([k, v]) => [k === "w" ? "wt" : k, v] as const);
 
-/** Each stock's share (fractions summing to 1) under a weighting, as the backtest sets it. */
-function schemeShares(stocks: BasketStock[], scheme: WeightScheme, custom?: Record<string, number>): Map<string, number> {
-  if (!stocks.length) return new Map();
-  if (scheme === "custom") return customTargets(stocks.map((s) => s.ticker), custom);
-  const raw = basketWeights(stocks, scheme);
-  const sum = [...raw.values()].reduce((a, b) => a + b, 0);
-  return new Map([...raw].map(([t, v]) => [t, v / sum]));
-}
+// Projections' settings in the page URL (docs/PROJECTIONS.md), so a link reopens the same projection.
+const PROJECTION_PARAMS = ["proj", "ph", "ps", "pe"];
+const DEFAULT_PROJECTION: ProjectionSettings = { h: 1, scenario: "base", exit: "own" };
 
 /** A stock just taken off, held as a placeholder row at its place in the list (see `display`). */
 type Ghost = { ticker: string; name: string; index: number; h: { table?: number; phone?: number } };
@@ -245,6 +247,53 @@ export function BasketDetail(p: BasketDetailProps) {
   // Bumped by Retry, so the stats and analysis panels drop a failed load too.
   const [reload, setReload] = useState(0);
   const [note, setNote] = useState<string | null>(p.notice ?? null);
+  // Projections: off, the page is the backtest; on, every panel looks 1 or 2 years ahead from today.
+  const [projOn, setProjOn] = useState(false);
+  const [projSet, setProjSet] = useState<ProjectionSettings>(DEFAULT_PROJECTION);
+  // The note naming the stocks left out of the projection: opens by itself the first time, and from the chip.
+  const [leftNote, setLeftNote] = useState(false);
+  const leftSeen = useRef(false);
+  // The live settings, so two quick taps (1Y then Bear) each build on the other, never on a stale copy.
+  const projRef = useRef({ on: false, set: DEFAULT_PROJECTION });
+  const pickProjection = (on: boolean, change: Partial<ProjectionSettings> = {}) => {
+    const next = { ...projRef.current.set, ...change };
+    projRef.current = { on, set: next };
+    setProjOn(on);
+    setProjSet(next);
+    const url = new URL(window.location.href);
+    for (const k of PROJECTION_PARAMS) url.searchParams.delete(k);
+    if (on) {
+      url.searchParams.set("proj", "1");
+      if (next.h !== DEFAULT_PROJECTION.h) url.searchParams.set("ph", String(next.h));
+      if (next.scenario !== DEFAULT_PROJECTION.scenario) url.searchParams.set("ps", next.scenario);
+      if (next.exit !== DEFAULT_PROJECTION.exit) url.searchParams.set("pe", next.exit);
+    }
+    window.history.replaceState(window.history.state, "", url);
+  };
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("proj") !== "1") return;
+    const h = Number(q.get("ph"));
+    const sc = q.get("ps");
+    const ex = q.get("pe");
+    const set: ProjectionSettings = {
+      h: (HORIZONS as number[]).includes(h) ? (h as Horizon) : DEFAULT_PROJECTION.h,
+      scenario: (SCENARIOS as string[]).includes(sc ?? "") ? (sc as Scenario) : DEFAULT_PROJECTION.scenario,
+      exit: ex === "ind" || ex === "own" ? (ex as ExitBasis) : DEFAULT_PROJECTION.exit,
+    };
+    projRef.current = { on: true, set };
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the projection a link asked for once on mount
+    setProjSet(set);
+    setProjOn(true);
+    // A link with a value we don't know (ph=7) is rewritten with what is shown.
+    const url = new URL(window.location.href);
+    for (const k of PROJECTION_PARAMS) url.searchParams.delete(k);
+    url.searchParams.set("proj", "1");
+    if (set.h !== DEFAULT_PROJECTION.h) url.searchParams.set("ph", String(set.h));
+    if (set.scenario !== DEFAULT_PROJECTION.scenario) url.searchParams.set("ps", set.scenario);
+    if (set.exit !== DEFAULT_PROJECTION.exit) url.searchParams.set("pe", set.exit);
+    window.history.replaceState(window.history.state, "", url);
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the view the URL asked for once on mount
@@ -349,6 +398,49 @@ export function BasketDetail(p: BasketDetailProps) {
   const tableScope = scope === "picks" && pickedKey ? "picks" : "all";
   const tableKey = tableScope === "picks" && pickedKey && !picksAll ? pickedKey : basketKey;
 
+  // The projection (null while Projections is off): the same stocks, weights, picks and scope as the
+  // backtest, so every list and box keeps working the same with it on.
+  const projection = useProjection({
+    on: projOn && stocks.length > 0,
+    settings: projSet,
+    stocks,
+    weighting,
+    weights: strategy.weights,
+    picked,
+    picksChosen,
+    scopePicks: tableScope === "picks" && !picksAll,
+    volKey: stocks.length ? basketKey : null,
+    reload,
+  });
+  const leftCount = projection?.basket.leftOut.length ?? 0;
+  // The chart's lines in Projections mode: the basket's path, each stock's own (a left-out stock says why).
+  const chartProjection = useMemo((): ChartProjection | null => {
+    if (!projection) return null;
+    const steps = projection.dates.length - 1;
+    const { h, scenario, exit } = projection.settings;
+    const values: Record<string, number[]> = { [basketKey]: projection.path };
+    const why: Record<string, string> = {};
+    for (const st of stocks) {
+      const r = caseReturn(st.proj, h, scenario, exit);
+      if (r != null) values[`s:${st.ticker}`] = stockPath(r, steps);
+      else why[`s:${st.ticker}`] = `left out: ${(st.proj && !st.proj.ok ? st.proj.reason : "no figures in our last data update").replace(/^./, (c) => c.toLowerCase())}`;
+    }
+    return {
+      label: projection.period,
+      settings: projection.settings,
+      compareWeighting: weighting === "mcap" ? "mcap" : "equal",
+      dates: projection.dates,
+      values,
+      why,
+      band: projection.sim ? { lo: projection.sim.lo, hi: projection.sim.hi } : null,
+    };
+  }, [projection, basketKey, stocks, weighting]);
+  useEffect(() => {
+    if (!projOn || !leftCount || leftSeen.current) return;
+    leftSeen.current = true;
+    setLeftNote(true);
+  }, [projOn, leftCount]);
+
   // The table's backtest: the basket's own, or the picks' when it shows just the picks (the cards
   // and panels load their lines themselves; the basket's is asked for here too, so it is ready).
   const { get: at, retry: retryLoad } = useSeries(tickers.length ? [basketKey, tableKey] : [], range, { reload });
@@ -357,10 +449,10 @@ export function BasketDetail(p: BasketDetailProps) {
 
   const tbt = at(tableKey);
   const tData = tbt?.status === "ok" ? tbt.data : null;
-  const tHoldings = new Map((tData?.holdings ?? []).map((h) => [h.ticker, h]));
+  const tHoldings = new Map(((projection ? projection.table.holdings : tData?.holdings) ?? []).map((h) => [h.ticker, h]));
   // Every stock in the table's current sort: the table's rows, the chart's Stocks menu and Select
   // all (in either place) all follow this one order, so Select all ticks the top rows you see.
-  const sortedAll = [...stocks].sort((a, b) => {
+  const sortedLive = [...stocks].sort((a, b) => {
     if (sort === "name") return a.name.localeCompare(b.name);
     // Stocks with no figure go last either way.
     if (sort === "pe") return (a.pe ?? Infinity) - (b.pe ?? Infinity);
@@ -370,6 +462,25 @@ export function BasketDetail(p: BasketDetailProps) {
     const v = (h: typeof ha) => (!h ? -Infinity : sort === "return" ? h.ret : sort === "weight" ? h.endWeight : h.contribution);
     return v(hb) - v(ha);
   });
+  // While the weight boxes are open the rows keep the order they had when the boxes opened: typing a
+  // weight moves its stock's figures (and, with Projections on, at once), and a row that jumped would
+  // take the next Tab to another stock's box. They re-sort when the boxes close.
+  const boxesOpen = weighting === "custom" && stocks.length > 0 && (weightsOpen || !weightsValid(customEdit ?? undefined, tickers));
+  const [heldOrder, setHeldOrder] = useState<string[] | null>(null);
+  const liveOrder = sortedLive.map((x) => x.ticker).join(",");
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- takes the order once as the boxes open, drops it as they close
+    setHeldOrder(boxesOpen ? liveOrder.split(",") : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- on opening or closing the boxes, or a new sort picked (which re-sorts at once)
+  }, [boxesOpen, sort]);
+  const sortedAll = heldOrder
+    ? [...stocks].sort((a, b) => {
+        const ia = heldOrder.indexOf(a.ticker);
+        const ib = heldOrder.indexOf(b.ticker);
+        // A stock added while the boxes are open goes after the rest.
+        return (ia < 0 ? Infinity : ia) - (ib < 0 ? Infinity : ib);
+      })
+    : sortedLive;
   const rows = tableScope === "picks" ? sortedAll.filter((s) => chartSel.picks[s.ticker] != null) : sortedAll;
   // A stock just taken off leaves a placeholder row where it was ("Removed X · Undo"), at the
   // row's own height, while the Undo offer is open: the Undo is where the tap was (a phone's
@@ -759,7 +870,15 @@ export function BasketDetail(p: BasketDetailProps) {
   const rebalanceControl = (
     <div className={MINI_SEG} role="group" aria-label="Rebalancing">
       {REBALANCE_RULES.map((r) => (
-        <button key={r} type="button" aria-pressed={strategy.rebalance === r} onClick={() => pickStrategy({ ...strategy, rebalance: r })} title={RULE_HELP[r]} className={segBtn(strategy.rebalance === r)}>
+        <button
+          key={r}
+          type="button"
+          aria-pressed={!projOn && strategy.rebalance === r}
+          disabled={projOn}
+          onClick={() => pickStrategy({ ...strategy, rebalance: r })}
+          title={projOn ? "Projections are bought today and held, so rebalancing doesn’t apply" : RULE_HELP[r]}
+          className={segBtn(!projOn && strategy.rebalance === r) + " disabled:cursor-default disabled:opacity-40"}
+        >
           {REBALANCE_BUTTON[r]}
         </button>
       ))}
@@ -815,6 +934,64 @@ export function BasketDetail(p: BasketDetailProps) {
     </div>
   );
 
+  // Projections: the switch, then (on) how far ahead, which case and where the multiple ends up.
+  const projSwitch = (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={projOn}
+      disabled={!stocks.length}
+      onClick={() => pickProjection(!projRef.current.on)}
+      title={!stocks.length ? "Add stocks to see a projection" : projOn ? "Back to the backtest" : "Project the basket 1 or 2 years ahead from today"}
+      className={
+        "inline-flex flex-none items-center gap-1.5 rounded border px-2 font-sans text-[11px] font-semibold min-h-9 sm:min-h-7 pointer-coarse:min-h-9 disabled:opacity-40 " +
+        (projOn ? "border-accent bg-accent/10 text-ink" : "border-line bg-bg text-ink-soft hover:text-ink")
+      }
+    >
+      <span aria-hidden className={"relative inline-block h-3.5 w-6 flex-none rounded-full transition-colors " + (projOn ? "bg-accent" : "bg-line")}>
+        <span className={"absolute top-0.5 h-2.5 w-2.5 rounded-full bg-bg transition-[left] " + (projOn ? "left-3" : "left-0.5")} />
+      </span>
+      Projections
+    </button>
+  );
+  const projSeg = <K extends keyof ProjectionSettings>(label: string, field: K, choices: readonly ProjectionSettings[K][], text: (v: ProjectionSettings[K]) => string, help: (v: ProjectionSettings[K]) => string) => (
+    <div className="flex items-center gap-1.5">
+      <span className={ctlLabel}>{label}</span>
+      <div className={MINI_SEG} role="group" aria-label={label}>
+        {choices.map((c) => (
+          <button key={String(c)} type="button" aria-pressed={projSet[field] === c} onClick={() => pickProjection(true, { [field]: c })} title={help(c)} className={segBtn(projSet[field] === c) + " min-w-9 sm:min-w-0"}>
+            {text(c)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+  const projControls = (
+    <>
+      {projSeg("Next", "h", HORIZONS, (h) => `${h}Y`, (h) => `Project ${HORIZON_LONG[h]} ahead`)}
+      {projSeg("Case", "scenario", SCENARIOS, (c) => SCENARIO_LABEL[c], (c) =>
+        c === "bear" ? "Slower growth, lowest margin, exit multiple 10% lower" : c === "bull" ? "Faster growth, highest margin, exit multiple 10% higher" : "Its usual growth and margin",
+      )}
+      <div className="flex items-center gap-1.5">
+        {projSeg("Exit at", "exit", ["own", "ind"] as const, (e) => EXIT_LABEL[e as ExitBasis], (e) =>
+          e === "own" ? "Today’s P/E moves toward the stock’s own median of the last 3 years" : "Today’s P/E moves toward its industry’s median P/E",
+        )}
+        <InfoTip label="How projections work">
+          <p>
+            Each stock grows from today&rsquo;s earnings at its usual pace, valued at a P/E moving toward its own or its industry&rsquo;s median.
+            Bear and Bull take slower or faster growth, margins and multiples. Details in the Assumptions tab.
+          </p>
+          <p className="mt-1.5 text-ink-soft">{PROJECTION_DISCLAIMER}</p>
+        </InfoTip>
+      </div>
+      {leftCount > 0 && (
+        <button type="button" onClick={() => setLeftNote(true)} className="inline-flex min-h-9 items-center rounded border border-amber px-2 text-[11px] font-semibold text-amber-ink sm:min-h-7 pointer-coarse:min-h-9">
+          {leftCount} left out ›
+        </button>
+      )}
+    </>
+  );
+
   // The holdings table's sortable headers: numbers sort high to low, P/E low to high, names A to Z.
   const sortHead = (id: Sort, label: string, right = true) => (
     <th scope="col" aria-sort={sort === id ? (id === "name" || id === "pe" ? "ascending" : "descending") : "none"} className={"px-2 py-1.5 font-semibold " + (right ? "text-right" : "text-left")}>
@@ -842,6 +1019,11 @@ export function BasketDetail(p: BasketDetailProps) {
     return r > 0 ? "text-pos" : r < 0 ? "text-danger" : "text-ink-soft";
   };
   const excludedNote = (t: string) => {
+    if (projection) {
+      const lo = projection.table.leftOut.find((l) => l.ticker === t);
+      if (lo) return `Left out: ${lo.reason}`;
+      return (projection.shares.get(t) ?? 0) <= 0 ? "Set to 0%" : null;
+    }
     const ex = tData?.excluded?.find((e) => e.ticker === t);
     if (!ex) return null;
     if (ex.reason === "zero") return "Set to 0%";
@@ -1062,9 +1244,12 @@ export function BasketDetail(p: BasketDetailProps) {
   // are rendered and CSS shows one (the side column is lg:flex, this copy lg:hidden), so the server
   // sends the panel in its place and nothing appears after the page loads.
   const empty = stocks.length === 0;
-  const stats = (compact: boolean) => (
+  const stats = (compact: boolean) =>
+    projOn ? (
+      <ProjectionStats view={projection} compact={compact} heading={heading} empty={empty} scope={tableScope === "picks" ? "whole basket" : undefined} />
+    ) : (
     <BasketStats range={range} basketKey={basketKey} name={name} strategy={strategy} stocks={stocks} compact={compact} heading={heading} reload={reload} empty={empty} scope={tableScope === "picks" ? "whole basket" : undefined} />
-  );
+    );
   const narrowStats = <div className="flex min-w-0 flex-col lg:hidden">{stats(false)}</div>;
   const [tableBoxRef, tableMore] = useMoreBelow<HTMLDivElement>("tbody > tr");
   // What the status line under the header says, most pressing first. Always laid out (one line),
@@ -1212,11 +1397,18 @@ export function BasketDetail(p: BasketDetailProps) {
               </ul>
             </InfoTip>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className={ctlLabel + " hidden sm:inline"}>Period</span>
-            {rangeControl}
-          </div>
-          {strategySettings}
+          {projSwitch}
+          {projOn ? (
+            projControls
+          ) : (
+            <>
+              <div className="flex items-center gap-1.5">
+                <span className={ctlLabel + " hidden sm:inline"}>Period</span>
+                {rangeControl}
+              </div>
+              {strategySettings}
+            </>
+          )}
           <span className="hidden font-mono text-[11px] text-ink-soft sm:inline">{stocksWord(stocks.length)}</span>
           <div role="tablist" aria-label="View" className={MINI_SEG + " ml-auto lg:hidden"}>
             {(["stocks", "chart"] as const).map((v) => (
@@ -1272,6 +1464,9 @@ export function BasketDetail(p: BasketDetailProps) {
         <div className="flex min-w-0 flex-col gap-2">
           {/* Always four cards (placeholders for Your picks and Not rebalanced until they apply), so
               the strip never changes shape. */}
+          {projOn ? (
+            <ProjectionCards view={projection} empty={empty} dense />
+          ) : (
           <ReturnCards
             dense
             range={range}
@@ -1283,6 +1478,7 @@ export function BasketDetail(p: BasketDetailProps) {
               ...NIFTY_ONLY,
             ]}
           />
+          )}
           {view !== "chart" && narrowStats}
 
           <>
@@ -1290,31 +1486,46 @@ export function BasketDetail(p: BasketDetailProps) {
                 heading={heading}
                 className={onlyOn("chart")}
                 title={
+                  projOn ? (
+                    <>
+                      Projection · <span className="sm:hidden">{projSet.h}Y</span>
+                      <span className="max-sm:hidden">next {HORIZON_LONG[projSet.h]}</span> · {SCENARIO_LABEL[projSet.scenario].toLowerCase()} case · {WEIGHTING_WORDS[weighting]}
+                    </>
+                  ) : (
                   <>
                     Backtest · <span className="sm:hidden">{range}</span>
                     <span className="max-sm:hidden">{pastPeriod(range)}</span> · {basisLabel(strategy)}
                   </>
+                  )
                 }
-                label={`Backtest chart, ${pastPeriod(range)}, ${basisLabel(strategy)}`}
+                label={projOn ? `Projection chart, next ${HORIZON_LONG[projSet.h]}, ${projSet.scenario} case` : `Backtest chart, ${pastPeriod(range)}, ${basisLabel(strategy)}`}
                 bodyClassName="p-3"
                 infoLabel="About the backtest chart"
                 toolsInline
                 info={
+                  projOn ? (
+                    <>
+                      Every line starts at 0% today and runs {HORIZON_LONG[projSet.h]} ahead in the {projSet.scenario} case: the basket bought today at your
+                      weights and held, each compared industry basket the same way, and each ticked stock on its own. The dotted lines are the range 8 in 10
+                      simulated paths end within. Indices aren&rsquo;t projected. {PROJECTION_DISCLAIMER}
+                    </>
+                  ) : (
                   <>
                     Every line starts at 0% on the first day, so their ends compare directly. <b>Compare with</b> adds up to 3 indices or industry
                     baskets; <b>Stocks</b> draws single stocks. Pinch, or use + and −, to zoom; drag sideways to move.
                     {rebalanced && " vs not rebalanced also draws the same basket left unrebalanced."}
                   </>
+                  )
                 }
                 tools={
                   // Laid out even when hidden (not rebalanced), so the header keeps its height.
                   <button
                     type="button"
                     aria-pressed={vsHeld}
-                    aria-hidden={!rebalanced || undefined}
-                    tabIndex={rebalanced ? undefined : -1}
+                    aria-hidden={!rebalanced || projOn || undefined}
+                    tabIndex={rebalanced && !projOn ? undefined : -1}
                     onClick={() => setVsHeld((v) => !v)}
-                    className={MINI_SEG + " " + segBtn(vsHeld) + " items-center font-sans " + (rebalanced && !empty ? "" : "invisible")}
+                    className={MINI_SEG + " " + segBtn(vsHeld) + " items-center font-sans " + (rebalanced && !empty && !projOn ? "" : "invisible")}
                   >
                     vs not rebalanced
                   </button>
@@ -1341,13 +1552,14 @@ export function BasketDetail(p: BasketDetailProps) {
                   onToggleStock={togglePick}
                   onPickAll={pickAll}
                   onPickNone={pickNone}
+                  projection={chartProjection}
                 />
                 )}
               </Panel>
               <Panel
                 heading={heading}
                 className={onlyOn("stocks")}
-                title={`${tableScope === "picks" ? `Your ${picked.length} pick${picked.length === 1 ? "" : "s"}` : `Stocks (${stocks.length})`} · ${pastPeriod(range)}`}
+                title={`${tableScope === "picks" ? `Your ${picked.length} pick${picked.length === 1 ? "" : "s"}` : `Stocks (${stocks.length})`} · ${projOn ? `next ${HORIZON_LONG[projSet.h]} · ${projSet.scenario} case` : pastPeriod(range)}`}
                 label="Stocks in this basket"
                 infoLabel="About the stock table"
                 info={
@@ -1400,11 +1612,12 @@ export function BasketDetail(p: BasketDetailProps) {
                 {empty ? (
                   <div className="flex min-h-20 items-center justify-center px-6 py-6 text-center text-sm text-ink-soft">{emptyText}</div>
                 ) : stockView === "charts" ? (
-                  tData ? (
+                  projection || tData ? (
                     <BasketBreakdown
-                      holdings={(tData.holdings ?? []).filter((h) => rows.some((s) => s.ticker === h.ticker))}
+                      holdings={((projection ? projection.table.holdings : tData?.holdings) ?? []).filter((h) => rows.some((s) => s.ticker === h.ticker))}
                       stockOf={(t) => byTicker.get(t)}
-                      rangeLong={rangeLong}
+                      rangeLong={projOn ? HORIZON_LONG[projSet.h] : rangeLong}
+                      ahead={projOn}
                       picks={tableScope === "picks"}
                       byIndustry={p.mode !== "industry"}
                       tab={breakdownTab}
@@ -1418,14 +1631,14 @@ export function BasketDetail(p: BasketDetailProps) {
                     {/* Phones: one compact row per stock, sorted from the menu. */}
                     <div className="flex items-center justify-between gap-2 border-b border-line/70 px-3 py-1.5 text-[11px] text-ink-soft sm:hidden">
                       <span className="text-balance">
-                        <b className="font-semibold">target → now</b> share · <b className="font-semibold">pts</b> added to the return
+                        <b className="font-semibold">target → {projOn ? "end" : "now"}</b> share · <b className="font-semibold">pts</b> added to the return
                       </span>
                       <label className="flex items-center gap-1.5">
                         <span className="sr-only">Sort by</span>
                         <select aria-label="Sort by" value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="min-h-9 rounded border border-line bg-bg px-1.5 text-xs text-ink">
                           {SORTS.map((s) => (
                             <option key={s.id} value={s.id}>
-                              {s.label}
+                              {projOn && s.id === "weight" ? "Share at end" : projOn && s.id === "return" ? "Projected return" : s.label}
                             </option>
                           ))}
                         </select>
@@ -1476,8 +1689,8 @@ export function BasketDetail(p: BasketDetailProps) {
                               {h ? (
                                 <>
                                   <div className={"font-mono text-[13px] font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{signedPct(h.ret)}</div>
-                                  <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft" title={editingWeights ? "Share now" : "Target share → share now"}>
-                                    {editingWeights ? `now ${pct1(h.endWeight)}` : `${pct1(h.weight)} → ${pct1(h.endWeight)}`}
+                                  <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft" title={projOn ? (editingWeights ? "Share at the end" : "Target share today → share at the end") : editingWeights ? "Share now" : "Target share → share now"}>
+                                    {editingWeights ? `${projOn ? "end" : "now"} ${pct1(h.endWeight)}` : `${pct1(h.weight)} → ${pct1(h.endWeight)}`}
                                   </div>
                                   <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft">{signedPts(h.contribution, 2)} pts</div>
                                 </>
@@ -1531,7 +1744,7 @@ export function BasketDetail(p: BasketDetailProps) {
                               {/* As wide as a weight box, so opening Custom never narrows the names and re-wraps the rows. */}
                               <span className="inline-block min-w-[4.75rem]">Target %</span>
                             </th>
-                            {sortHead("weight", "Now %")}
+                            {sortHead("weight", projOn ? "End %" : "Now %")}
                             {sortHead("return", "Return")}
                             {sortHead("contribution", "Pts added")}
                             {sortHead("pe", "P/E")}
@@ -1633,14 +1846,23 @@ export function BasketDetail(p: BasketDetailProps) {
                     <MoreBelow count={tableMore} noun={tableMore === 1 ? "more stock" : "more stocks"} />
                     </div>
                     <p className="border-t border-line/70 px-3 py-1.5 text-[11px] text-ink-soft">
+                      {projOn ? (
+                        <>
+                          Projected return over the next {HORIZON_LONG[projSet.h]}, {projSet.scenario} case · <b className="font-semibold">target</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} today (a left-out stock&rsquo;s share spread over the rest),{" "}
+                          <b className="font-semibold">end</b> if held to the end · <b className="font-semibold">pts</b> what it adds to the projected return · P/E and market cap from our last data update
+                        </>
+                      ) : (
+                      <>
                       Return over the past {rangeLong} · <b className="font-semibold">target</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} when bought{rebalanced ? " and after each rebalance" : ""},{" "}
                       <b className="font-semibold">now</b> after the price moves ·{" "}
                       <b className="font-semibold">pts</b> what it added to {tableScope === "picks" ? "your picks’" : "the basket’s"} return · P/E and market cap from our last data update
+                      </>
+                      )}
                     </p>
                   </>
                 )}
                 </div>
-                {!empty && tbt?.status === "error" && (
+                {!empty && !projOn && tbt?.status === "error" && (
                   <p className="px-3 pb-2 text-xs text-ink-soft">
                     Couldn&rsquo;t backtest the basket right now.{" "}
                     <button type="button" onClick={retry} className="font-semibold text-accent underline">
@@ -1650,11 +1872,22 @@ export function BasketDetail(p: BasketDetailProps) {
                 )}
               </Panel>
               <div className={"flex min-w-0 flex-col " + onlyOn("chart")}>
-                <BasketAnalysis range={range} basketKey={basketKey} heading={heading} reload={reload} empty={empty} />
+                {projOn ? <ProjectionAnalysis view={projection} heading={heading} empty={empty} /> : <BasketAnalysis range={range} basketKey={basketKey} heading={heading} reload={reload} empty={empty} />}
               </div>
               {view === "chart" && narrowStats}
             </>
 
+          {projOn ? (
+            <p className="text-[11px] leading-relaxed text-ink-soft">
+              How it is projected: each stock with at least 3 consecutive years of revenue and net profit grows from today&rsquo;s earnings at its
+              usual revenue growth, faded part of the way toward 10% a year, with its margin moving toward its usual one (Bear: slower growth, lowest
+              margin; Bull: faster growth, highest margin), valued at a P/E moving a third of the way a year toward{" "}
+              {projSet.exit === "own" ? "its own median" : "its home industry’s median"}, held within 0.7× and 1.4× today&rsquo;s (price to sales for loss-makers), with each case kept within
+              −60% and +80% a year. The basket is bought today at {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights" : "weights by market cap"} and held;
+              a stock left out has its share spread over the rest in proportion. The likely range and drawdowns come from 1,000 simulated paths that swing
+              like the basket did over the past year. Price change only. {PROJECTION_DISCLAIMER} See the Assumptions tab for each stock&rsquo;s inputs.
+            </p>
+          ) : (
           <p className="text-[11px] leading-relaxed text-ink-soft">
             How it is backtested: bought on the first day of the period at {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights (a stock with no prices for the period has its share spread over the rest, in proportion)" : "weights by market cap"}
             {weighting === "mcap" ? " (today’s market caps, from our last data update, so slightly flattering to winners)" : ""}
@@ -1675,6 +1908,7 @@ export function BasketDetail(p: BasketDetailProps) {
               </>
             )}
           </p>
+          )}
         </div>
         {/* Side column (from lg, beside the results and kept in view while they scroll): the
             statistics. The stocks and their chart lines are in the Stocks table. After the results
@@ -1683,6 +1917,20 @@ export function BasketDetail(p: BasketDetailProps) {
           {stats(true)}
         </aside>
       </div>
+      <ConfirmDialog open={leftNote} notice title={`${leftCount} stock${leftCount === 1 ? "" : "s"} left out of the projection`} confirmLabel="Got it" onConfirm={() => setLeftNote(false)} onCancel={() => setLeftNote(false)}>
+        <ul className="flex flex-col gap-1">
+          {projection?.basket.leftOut.map((l) => (
+            <li key={l.ticker}>
+              <b className="font-semibold text-ink">{byTicker.get(l.ticker)?.name ?? l.ticker}</b>: {l.reason.charAt(0).toLowerCase() + l.reason.slice(1)}.
+            </li>
+          ))}
+        </ul>
+        <p className="mt-2">
+          A projection needs at least 3 years of results and a price and market cap in our last data update. {leftCount === 1 ? "Its" : "Their"}{" "}
+          {pct1(projection?.basket.spread ?? 0)} of the basket is shared across the other {projection?.basket.holdings.length ?? 0} stocks in proportion to their
+          weights. This changes only the projection, not the backtest.
+        </p>
+      </ConfirmDialog>
       {canEdit && !draft && (
         <>
           <ConfirmDialog open={confirm === "share"} title="Share this basket by link?" confirmLabel="Share and copy link" onConfirm={share} onCancel={() => setConfirm(null)}>
