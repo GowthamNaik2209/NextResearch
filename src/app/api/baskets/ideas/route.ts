@@ -13,10 +13,11 @@ export const maxDuration = 60;
 export async function GET() {
   await ensureFinancials();
   try {
-    const { asOf, ideas } = await getIdeasWithReturns();
+    const { asOf, ideas, complete } = await getIdeasWithReturns();
     return NextResponse.json(
       { asOf, ideas: ideas.map((i) => ({ ...i, stocks: i.stocks.map((s) => ({ ...s, name: basketStock(s.ticker)?.name ?? s.ticker })) })) },
-      { headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400" } },
+      // Some cards still without a figure (the server is working them out): the CDN keeps it a minute only.
+      { headers: { "Cache-Control": complete ? "public, s-maxage=3600, stale-while-revalidate=86400" : "public, s-maxage=60" } },
     );
   } catch (e) {
     console.error("[ideas] building the basket ideas failed", e);

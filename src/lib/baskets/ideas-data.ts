@@ -3,6 +3,7 @@
 // shared by every server instance, and rebuilt in the background a few hours after it was made,
 // so the lists follow each trading day without a visitor waiting on ~260 price histories.
 import { unstable_cache } from "next/cache";
+import { after } from "next/server";
 import { listSectors, companyLinkKey, companyLinkExposure, findSupplierByTicker, strengthPoints } from "@/lib/sector-content";
 import { HISTORY_FROM, getChartWithFallback, getSymbolChart } from "@/lib/live/yahoo";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
@@ -125,9 +126,8 @@ export async function getIdea(id: string): Promise<{ asOf: string; idea: Idea } 
   const { asOf, ideas } = await getIdeas();
   const idea = ideas.find((i) => i.id === id);
   if (!idea) return null;
-  // The day's figure when it is cached (the card shows the same); worked out here if not.
-  const daily = await dailyBacktests(asOf).catch(() => null);
-  const bt = daily && id in daily ? daily[id] : await ideaBacktest(idea);
+  // The day's figure, the one its card shows (worked out and kept now if it isn't yet).
+  const bt = (await dailyBacktest(asOf, id)) ?? (await ideaBacktest(idea));
   const [withRet] = withBacktestReturns([idea], { [idea.id]: bt });
   return { asOf, idea: withRet };
 }
@@ -137,27 +137,45 @@ const BACKTEST_CONCURRENCY = 3;
 
 /**
  * Each idea's card figure, from the backtest its page runs (same function, range and weighting:
- * equal, held), worked out once a day: cached by the lists' date in the shared cache, so a new
- * trading day's lists get new figures and every visit in between reads them at once (they used to
- * run per request, and a fresh server instance redid every idea's backtest). A day with most
- * backtests failing isn't kept, so the next visit tries again.
+ * equal, held), worked out once a day and kept per idea in the shared cache (keyed by the lists'
+ * date and the idea), so every visit and every server instance reads it at once. They used to run
+ * on every request, and all of them together can outlast a request's 60s on a cold server; one by
+ * one, a run cut short keeps the ideas it finished. A failed backtest isn't kept.
  */
-const dailyBacktests = unstable_cache(
-  async (asOf: string): Promise<Record<string, IdeaBacktest | null>> => {
-    void asOf; // the cache key: one entry per day's lists
+const ideaFigure = unstable_cache(
+  async (asOf: string, id: string): Promise<IdeaBacktest> => {
     const { ideas } = await getIdeas();
-    const results = await mapLimit(ideas, BACKTEST_CONCURRENCY, ideaBacktest);
-    if (results.filter(Boolean).length < ideas.length / 2) throw new Error(`only ${results.filter(Boolean).length} of ${ideas.length} idea backtests ran`);
-    return Object.fromEntries(ideas.map((i, k) => [i.id, results[k]]));
+    const idea = ideas.find((i) => i.id === id);
+    const bt = idea ? await ideaBacktest(idea) : null;
+    if (!bt) throw new Error(`no backtest for idea ${id} (${asOf})`);
+    return bt;
   },
-  ["basket-ideas-backtests-v1"],
+  ["basket-ideas-backtest-v2"],
   { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
 );
+const dailyBacktest = (asOf: string, id: string) => ideaFigure(asOf, id).catch(() => null);
 
-/** The day's ideas with each card's figure (see dailyBacktests). */
-export async function getIdeasWithReturns(): Promise<IdeasPayload> {
+// How long the cards wait for figures not cached yet; the rest come on the next visit.
+const CARDS_WAIT_MS = 8_000;
+
+/** The day's ideas with each card's figure (see ideaFigure); `complete` is false while some are still being worked out. */
+export async function getIdeasWithReturns(): Promise<IdeasPayload & { complete: boolean }> {
   const { asOf, ideas } = await getIdeas();
-  return { asOf, ideas: withBacktestReturns(ideas, await dailyBacktests(asOf)) };
+  const got: Record<string, IdeaBacktest | null> = {};
+  const queue = ideas.map((i) => i.id);
+  const work = Promise.all(
+    Array.from({ length: BACKTEST_CONCURRENCY }, async () => {
+      for (let id = queue.shift(); id; id = queue.shift()) got[id] = await dailyBacktest(asOf, id);
+    }),
+  );
+  const done = await Promise.race([work.then(() => true), new Promise<false>((r) => setTimeout(() => r(false), CARDS_WAIT_MS))]);
+  if (!done)
+    try {
+      after(() => work);
+    } catch {
+      // Outside a request: nothing to keep alive.
+    }
+  return { asOf, ideas: withBacktestReturns(ideas, { ...got }), complete: done && ideas.every((i) => got[i.id]) };
 }
 
 async function ideaBacktest(idea: Idea): Promise<IdeaBacktest | null> {
