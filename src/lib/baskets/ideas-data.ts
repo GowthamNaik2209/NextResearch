@@ -17,7 +17,9 @@ const CONCURRENCY = 10;
 // Below this share of stocks with prices the day's run is treated as an upstream outage: it
 // throws, so the cache keeps serving the last good lists instead of thin ones.
 const MIN_COVERAGE = 0.6;
-const REVALIDATE_SECONDS = 4 * 60 * 60;
+// Rule-based baskets are re-ranked once a day (owner's call, Oct 2026): the lists, and the cards'
+// figures with them, are worked out once and served from the shared cache until the next day.
+const REVALIDATE_SECONDS = 24 * 60 * 60;
 
 async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
   const out = new Array<R>(items.length);
@@ -105,7 +107,7 @@ async function lastTradingDay(): Promise<string | null> {
 
 export type IdeasPayload = { asOf: string; ideas: Idea[] };
 
-/** The day's ideas, from the shared cache (rebuilt in the background once it is a few hours old). */
+/** The day's ideas, from the shared cache (rebuilt in the background once a day). */
 export const getIdeas = unstable_cache(
   async (): Promise<IdeasPayload> => {
     await ensureFinancials();
@@ -123,7 +125,10 @@ export async function getIdea(id: string): Promise<{ asOf: string; idea: Idea } 
   const { asOf, ideas } = await getIdeas();
   const idea = ideas.find((i) => i.id === id);
   if (!idea) return null;
-  const [withRet] = withBacktestReturns([idea], { [idea.id]: await ideaBacktest(idea) });
+  // The day's figure when it is cached (the card shows the same); worked out here if not.
+  const daily = await dailyBacktests(asOf).catch(() => null);
+  const bt = daily && id in daily ? daily[id] : await ideaBacktest(idea);
+  const [withRet] = withBacktestReturns([idea], { [idea.id]: bt });
   return { asOf, idea: withRet };
 }
 
@@ -131,15 +136,28 @@ export async function getIdea(id: string): Promise<{ asOf: string; idea: Idea } 
 const BACKTEST_CONCURRENCY = 3;
 
 /**
- * The day's ideas with each card's figure from the backtest its page runs: the same function,
- * range and weighting (equal, held), so the same cache entry and the same number. Run per request
- * (the backtests cache for minutes), not inside the lists' four-hour cache, which would freeze the
- * card while the page moves with the day's prices.
+ * Each idea's card figure, from the backtest its page runs (same function, range and weighting:
+ * equal, held), worked out once a day: cached by the lists' date in the shared cache, so a new
+ * trading day's lists get new figures and every visit in between reads them at once (they used to
+ * run per request, and a fresh server instance redid every idea's backtest). A day with most
+ * backtests failing isn't kept, so the next visit tries again.
  */
+const dailyBacktests = unstable_cache(
+  async (asOf: string): Promise<Record<string, IdeaBacktest | null>> => {
+    void asOf; // the cache key: one entry per day's lists
+    const { ideas } = await getIdeas();
+    const results = await mapLimit(ideas, BACKTEST_CONCURRENCY, ideaBacktest);
+    if (results.filter(Boolean).length < ideas.length / 2) throw new Error(`only ${results.filter(Boolean).length} of ${ideas.length} idea backtests ran`);
+    return Object.fromEntries(ideas.map((i, k) => [i.id, results[k]]));
+  },
+  ["basket-ideas-backtests-v1"],
+  { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
+);
+
+/** The day's ideas with each card's figure (see dailyBacktests). */
 export async function getIdeasWithReturns(): Promise<IdeasPayload> {
   const { asOf, ideas } = await getIdeas();
-  const results = await mapLimit(ideas, BACKTEST_CONCURRENCY, ideaBacktest);
-  return { asOf, ideas: withBacktestReturns(ideas, Object.fromEntries(ideas.map((i, k) => [i.id, results[k]]))) };
+  return { asOf, ideas: withBacktestReturns(ideas, await dailyBacktests(asOf)) };
 }
 
 async function ideaBacktest(idea: Idea): Promise<IdeaBacktest | null> {
