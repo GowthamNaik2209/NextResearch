@@ -244,14 +244,10 @@ function Picker({
         )}
         <Link
           href={`/baskets/industry/${ind.slug}`}
-          title={`${ind.name} basket`}
+          title={`${ind.name} basket: backtest and projections`}
           className="text-right text-ink-soft hover:text-accent hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-9 pointer-coarse:items-center"
         >
-          {/* One span: the link is a flex box on touch screens, which would drop the spaces between pieces. */}
-          <span>
-            <span className="hidden sm:inline">{ind.name} basket: backtest</span>
-            <span className="sm:hidden">Basket backtest</span> &amp; projections &rarr;
-          </span>
+          Industry basket analysis &rarr;
         </Link>
       </div>
     </>
