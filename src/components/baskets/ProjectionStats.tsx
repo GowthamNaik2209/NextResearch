@@ -9,7 +9,7 @@ import { EXIT_LABEL, HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, type P
 // The stats grid with Projections on (docs/PROJECTIONS.md): the basket's projected return in each
 // case, the likely range, chances of a loss and of a 10% fall, the drawdowns of the simulated paths
 // and which stocks are projected. Built like BasketStats (same frame, cells and help), so the panel
-// keeps its place and size when the switch flips. No CSV: these are model figures, not prices.
+// keeps its place and size when the switch flips. Export Excel at the top of the page holds them with every case.
 
 // A ratio with a typographic minus, never "−0.00".
 const ratio = (v: number) => signedPct(v, 2).replace("%", "").replace("+", "");

@@ -37,7 +37,11 @@ import { ProjectionAnalysis } from "./ProjectionAnalysis";
 import { EXIT_LABEL, HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, forPicks } from "./projection-view";
 import type { ChartProjection } from "./BasketChart";
 import { caseReturn, HORIZONS, SCENARIOS, type ExitBasis, type Horizon, type Scenario } from "@/lib/baskets/projection";
-import { stockPath, type ProjectionSettings } from "@/lib/baskets/projection-basket";
+import { annualVol, basketPath, projectBasket, seedOf, simulate, stockPath, weeklyDates, type ProjectionSettings } from "@/lib/baskets/projection-basket";
+import { relativeStats, seriesStats } from "@/lib/baskets/stats";
+import { basketWorkbook, workbookFileName } from "@/lib/baskets/workbook";
+import { buildXlsx } from "@/lib/xlsx";
+import { loadSeries } from "./series";
 import {
   BAND_CHOICES,
   REBALANCE_RULES,
@@ -794,6 +798,70 @@ export function BasketDetail(p: BasketDetailProps) {
     if (p.isOwner && new URLSearchParams(window.location.search).get("edit") === "1") setEditing(true);
   }, [p.isOwner]);
 
+  // Export: one Excel workbook of everything the page shows (docs/PROJECTIONS.md): settings, every
+  // stock, the backtest's statistics and value line beside the Nifty 50, and the projections in every
+  // case with each stock's assumptions (at the page's projection settings, or the defaults while
+  // Projections is off).
+  const [exporting, setExporting] = useState(false);
+  const exportWorkbook = async () => {
+    if (!stocks.length || exporting) return;
+    setExporting(true);
+    try {
+      const [bt, nifty, past] = await Promise.all([loadSeries(basketKey, range), loadSeries("b:nifty50", range), loadSeries(basketKey, "1Y")]);
+      const data = bt.status === "ok" ? bt.data : null;
+      const bench = nifty.status === "ok" ? nifty.data.points : null;
+      const shares = schemeShares(stocks, weighting, strategy.weights);
+      const settings = projection?.settings ?? projSet;
+      let proj = projection ? { settings, on: true, sim: projection.sim, vol: projection.vol, dates: projection.dates, path: projection.path } : null;
+      if (!proj) {
+        const vol = past.status === "ok" ? annualVol(past.data.points) : null;
+        const b = projectBasket(stocks.map((st) => ({ ticker: st.ticker, weight: shares.get(st.ticker) ?? 0, proj: st.proj })), settings);
+        const start = past.status === "ok" && past.data.points.length ? past.data.points[past.data.points.length - 1].t : new Date().toISOString().slice(0, 10);
+        proj = {
+          settings,
+          on: false,
+          sim: b.ret != null && vol ? simulate(b.ret, settings.h, vol, seedOf(`${tickers.join(",")}|export`)) : null,
+          vol,
+          dates: weeklyDates(start, settings.h),
+          path: basketPath(b.holdings, 52 * settings.h),
+        };
+      }
+      const sheets = basketWorkbook({
+        name,
+        kind: p.mode === "industry" ? "Industry basket" : p.mode === "idea" ? "Rule-based basket" : draft ? "New basket (not saved)" : "Your basket",
+        description: p.description,
+        url: window.location.href,
+        exportedAt: new Date(),
+        strategy,
+        range,
+        benchName: "Nifty 50",
+        stocks,
+        layerOf,
+        shares,
+        picks: pickedKey && !picksAll ? picked.map((x) => x.ticker) : null,
+        backtest: data ? { points: data.points, holdings: data.holdings ?? [], excluded: data.excluded, turnover: data.turnover, trades: data.trades, rebalances: data.rebalances } : null,
+        bench,
+        stats: data ? seriesStats(data.points) : null,
+        rel: data && bench ? relativeStats(data.points, bench) : null,
+        projection: proj,
+        disclaimer: `${PROJECTION_DISCLAIMER} Backtests are past prices only. A tracking and research tool, not investment advice.`,
+      });
+      const bytes = buildXlsx(sheets);
+      const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = workbookFileName(name, range);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      setNote("Couldn’t build the export right now. Try again.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const canEdit = (p.mode === "saved" && p.isOwner) || draft;
   // The foot-of-screen note (baskets you can't edit) goes by itself after a few seconds.
   useEffect(() => {
@@ -1348,9 +1416,7 @@ export function BasketDetail(p: BasketDetailProps) {
     <BasketStats
       range={range}
       basketKey={statsPicks && pickedKey ? pickedKey : basketKey}
-      name={statsPicks ? `${name} (your picks)` : name}
       strategy={strategy}
-      stocks={statsPicks ? picked : stocks}
       compact={compact}
       heading={heading}
       reload={reload}
@@ -1471,6 +1537,9 @@ export function BasketDetail(p: BasketDetailProps) {
                 {busy ? "Copying…" : "Copy to my baskets"}
               </button>
             )}
+            <button type="button" onClick={exportWorkbook} disabled={!stocks.length || exporting} title="Download everything on this page as an Excel workbook" className={btnSec}>
+              {exporting ? "Exporting…" : "Export Excel"}
+            </button>
             {canEdit && !draft && (
               <MoreMenu
                 items={[

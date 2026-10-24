@@ -37,7 +37,7 @@ query string that names a strategy: `w=equal|mcap|custom`, `cw=TICKER:40,TICKER:
 custom weights, `rb=never|monthly|quarterly|drift`, `band`). The page's own URL writes the
 weighting as `wt` so it can't clash with a host page's parameters. Calendar rebalances trade at
 the close of the first bar of the new month or quarter; the drift rule trades the bar after the
-drift is seen. Turnover and trade counts are reported (and each rebalance in the CSV); costs are
+drift is seen. Turnover and trade counts are reported (and each rebalance in the Excel export); costs are
 not yet taken off.
 
 **Names on screen** (src/components/baskets/labels.ts): the controls are *Weighting* (Equal, M-cap,

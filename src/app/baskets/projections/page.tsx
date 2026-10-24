@@ -7,6 +7,7 @@ import { listBasketUniverse } from "@/lib/baskets/industry";
 import { projectionInputFor } from "@/lib/baskets/projection-data";
 import { ANNUAL_MAX, ANNUAL_MIN, MIN_YEARS, SCENARIOS, caseDetail, explainStock, type ExitBasis, type Horizon } from "@/lib/baskets/projection";
 import { NA, signedPct } from "@/lib/format";
+import { ExampleStockSelect } from "./ExampleStockSelect";
 
 // How the basket pages' Projections are worked out (docs/PROJECTIONS.md), in full, with a worked
 // example: any stock's own figures run through each step by the same code the baskets use, so the
@@ -292,21 +293,7 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
 
         <section className="flex flex-col gap-3">
           <H2 id="example">10. Worked example</H2>
-          <form method="get" action="/baskets/projections#example" className="flex flex-wrap items-center gap-2">
-            <label htmlFor="t" className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
-              Stock
-            </label>
-            <select id="t" name="t" defaultValue={stock?.ticker} className="min-h-10 max-w-full rounded border border-line bg-bg px-2 text-base text-ink sm:text-sm">
-              {universe.map((s) => (
-                <option key={s.ticker} value={s.ticker}>
-                  {s.name} ({s.ticker})
-                </option>
-              ))}
-            </select>
-            <button type="submit" className="inline-flex min-h-10 items-center rounded bg-accent px-4 text-sm font-semibold text-bg hover:opacity-90">
-              Show
-            </button>
-          </form>
+          <ExampleStockSelect stocks={universe.map((s) => ({ ticker: s.ticker, name: s.name }))} value={stock?.ticker} />
           {!stock || !ex ? (
             <P>No figures for this stock in our last data update.</P>
           ) : !ex.ok ? (
