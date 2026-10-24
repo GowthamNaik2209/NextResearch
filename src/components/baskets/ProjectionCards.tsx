@@ -90,7 +90,7 @@ export function ProjectionCards({ view, empty, dense = false }: { view: Projecti
         sub={base != null ? `Base ${signedPct(base * 100)}` : undefined}
         note={loading || (bear != null && bull != null) ? undefined : empty ? "add stocks to see" : "nothing projected"}
         dense={dense}
-        title={`The basket's projected return in the Bear and Bull cases, same horizon and exit.${quiet}`}
+        title={`The basket's projected return in the Bear and Bull cases, same horizon: every stock at its own 10th or 90th percentile at once, so wider than the basket's own range (see Likely range).${quiet}`}
       />
       <Card
         label="Likely range"

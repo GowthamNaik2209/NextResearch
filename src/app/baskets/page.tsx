@@ -12,6 +12,8 @@ import { industrySeriesKey } from "@/components/baskets/series";
 import { toSaved } from "@/lib/baskets/store";
 import { industryFigures } from "@/lib/baskets/industry-figures";
 import { ensureFinancials } from "@/lib/financials/load";
+import { ensureRiskStats } from "@/lib/baskets/projection-risk-data";
+import { basketCases } from "@/lib/baskets/projection-data";
 
 export const metadata = {
   title: "Stock baskets: build your own from any mix of Indian industries",
@@ -25,6 +27,7 @@ const figures = cache(industryFigures);
 
 export default async function BasketsPage() {
   await ensureFinancials();
+  await ensureRiskStats();
   const user = await getCurrentUser();
   // A failed read of the signed-in user's own rows must not take the page down: the basket ideas
   // below don't need the database. The error is logged (Vercel runtime logs, "[baskets]").
@@ -55,10 +58,12 @@ export default async function BasketsPage() {
       weights: b.weighting === "custom" ? b.weights : null,
       tickers: stocks.map((s) => s.ticker),
       names: stocks.map((s) => s.name),
+      // Next year's Bear, Base and Bull at the basket's own weighting (docs/PROJECTIONS.md).
+      proj: stocks.length ? basketCases(stocks, b.weighting, b.weighting === "custom" ? b.weights : null)["1"] : null,
     };
   });
   const mineCount = user && !mineFailed ? mine.length : null;
-  const industryRows: IndustryRow[] = listIndustryBaskets().map((b) => ({ kind: "industry", slug: b.slug, name: b.name, category: b.category, count: b.stocks.length }));
+  const industryRows: IndustryRow[] = listIndustryBaskets().map((b) => ({ kind: "industry", slug: b.slug, name: b.name, category: b.category, count: b.stocks.length, proj: b.stocks.length ? basketCases(b.stocks, "equal")["1"] : null }));
 
   return (
     <>
@@ -134,7 +139,9 @@ export default async function BasketsPage() {
               </h2>
               <InfoTip label="What the columns mean">
                 <b>1Y</b>: return over the past year, bought a year ago and not rebalanced. <b>Drawdown</b>: the deepest fall from a high in that year (a column from tablet width up).{" "}
-                <b>vs Nifty</b>: the basket&rsquo;s return minus the Nifty 50&rsquo;s, in percentage points. Tap a column heading to sort, or use the Sort menu on a phone.
+                <b>vs Nifty</b>: the basket&rsquo;s return minus the Nifty 50&rsquo;s, in percentage points.{" "}
+                <b>Bear · Base · Bull</b>: the basket&rsquo;s projected return over the next year in each case (a model projection, not a forecast; columns from tablet width, and in the Sort menu on phones).{" "}
+                Tap a column heading to sort (again to reverse), or use the Sort menu on a phone.
               </InfoTip>
             </div>
             <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock on each industry or policy map, at equal weight.</p>

@@ -7,9 +7,8 @@ import type { BasketProjection, ProjectionSettings, Simulation } from "@/lib/bas
 
 export const SCENARIO_LABEL: Record<Scenario, string> = { bear: "Bear", base: "Base", bull: "Bull" };
 export const HORIZON_LONG: Record<Horizon, string> = { 1: "1 year", 2: "2 years" };
-export const EXIT_LABEL = { own: "Own P/E", ind: "Industry P/E" } as const;
 /** The line every projected panel carries. */
-export const PROJECTION_DISCLAIMER = "Model projection from reported financials and past prices, not a forecast or a recommendation.";
+export const PROJECTION_DISCLAIMER = "Model projection from market pricing, past prices and reported financials, not a forecast or a recommendation.";
 
 export type ProjectionView = {
   settings: ProjectionSettings;
@@ -19,7 +18,7 @@ export type ProjectionView = {
   caseLabel: string;
   /** The whole basket in the chosen case. */
   basket: BasketProjection;
-  /** The basket's return in each case (same horizon and exit), fractions; null when nothing is projected. */
+  /** The basket's return in each case (same horizon), fractions; null when nothing is projected. */
   cases: Record<Scenario, number | null>;
   /** The stocks picked on the chart as their own basket, when some (not all) are picked; else null. */
   picks: BasketProjection | null;

@@ -271,6 +271,22 @@ stock's risk, adjusted slightly for its fundamentals". Bear–Bull becomes "8 in
 for a stock this volatile", using 1Y volatility. With EWMA volatility that sentence would not have held in
 P3.
 
+## 6b. The model as built (`src/lib/baskets/projection.ts`)
+
+The site's v2 follows section 6: CAPM anchor with Blume beta, the IC 0.05 tilt on the P/E-held
+fundamentals score, and the band on 1Y realised volatility, centred on the lognormal median. It also
+**subtracts the dividend yield** from the market return (it projects price, section 7) and keeps the
+site's later growth rule (a recent slowdown counts). The script's "Built v2" rows run that exact code
+on the same as-of inputs, with each period's rf and ERP in place of today's and today's dividend
+yield, which the table doesn't have for past dates:
+
+| | P1 | P2 | P3 | Pooled |
+|---|---|---|---|---|
+| Inside Bear–Bull | 91% | 90% | 81% | 87% (Kupiec rejects as too wide, p < 0.001) |
+| IC (Base vs actual) | +0.01 | +0.02 | −0.10 | mean −0.02 |
+| Median error / abs error | −15 / 28 | −12 / 31 | −24 / 39 | |
+| Top − bottom fifth (mean) | +7 | +18 | +3 | +9 |
+
 ## 7. Limitations
 
 - **Three periods, two independent.** All three fall within one two-year stretch for Indian small

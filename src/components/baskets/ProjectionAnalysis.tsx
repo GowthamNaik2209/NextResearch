@@ -4,14 +4,15 @@ import Link from "next/link";
 import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { StockLink } from "@/components/stock/StockLink";
 import { fmtDay, NA, pct, signedPct } from "@/lib/format";
-import { caseReturn, SCENARIOS, type Scenario, type StockProjection } from "@/lib/baskets/projection";
+import { GROWTH_FADE, IC, LONG_RUN_GROWTH, MARKET, SCENARIOS, VOL_FLOOR, type Scenario, type StockProjection } from "@/lib/baskets/projection";
 import { stockPath } from "@/lib/baskets/projection-basket";
 import { MINI_SEG, Panel, miniSegBtn } from "./Panel";
-import { EXIT_LABEL, HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, type ProjectionView } from "./projection-view";
+import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, type ProjectionView } from "./projection-view";
 
 // Projection analysis, in the backtest analysis' place with Projections on (docs/PROJECTIONS.md):
 // how far the simulated paths fall from a high, the chosen case beside the other cases and the
-// likely range, and every stock's assumptions (growth, margin, multiple, method, years of data).
+// likely range, and every stock's assumptions (beta, volatility, market return, fundamentals tilt,
+// years of data).
 // Built like BasketAnalysis: the same tabs, small SVG charts and tables.
 type View = "dd" | "paths" | "assumptions";
 const VIEWS: { id: View; label: string }[] = [
@@ -47,7 +48,7 @@ export function ProjectionAnalysis({ view: data, heading, empty }: { view: Proje
         <ul className="flex flex-col gap-1">
           <li><b>Drawdown</b>: how far below its high a typical and a bad (1 in 10) simulated path fall.</li>
           <li><b>Paths</b>: the chosen case, the other cases and the range 8 in 10 simulated paths stay within.</li>
-          <li><b>Assumptions</b>: each stock&rsquo;s growth, margin, multiple, method and years of results.</li>
+          <li><b>Assumptions</b>: each stock&rsquo;s beta, volatility, market return, fundamentals tilt, years of results and its Bear / Base / Bull.</li>
           <li>{PROJECTION_DISCLAIMER}</li>
         </ul>
       }
@@ -166,34 +167,34 @@ function PathsView({ view }: { view: ProjectionView }) {
 
 /* ---------------------------------------------------------------- Assumptions */
 
-/** "4 / 9 / 14%": bear / base / bull, whole % (one decimal when all are under 10%, for margins). */
-function tri(t: [number, number, number], fine = false): string {
-  const dp = fine && t.every((v) => Math.abs(v) < 0.1) ? 1 : 0;
-  return t.map((v) => pct(v * 100, dp).replace("%", "")).join(" / ") + "%";
-}
-const mult = (v: number) => `${v.toFixed(1)}x`;
 const why = (reason: string) => (/^[A-Z][a-z]/.test(reason) ? reason[0].toLowerCase() + reason.slice(1) : reason);
+/** A small grey line under a cell's figure. */
+const Note = ({ children, title }: { children: ReactNode; title?: string }) => (
+  <span title={title} className="block font-sans text-[10px] font-normal text-ink-soft">
+    {children}
+  </span>
+);
 
 function AssumptionsView({ view }: { view: ProjectionView }) {
-  const { h, scenario, exit } = view.settings;
+  const { h } = view.settings;
   const cols = 7;
+  const rf = pct(MARKET.rf * 100, 2);
+  const erp = pct(MARKET.erp * 100, 2);
   return (
     <div>
-      <SubTitle>
-        Each stock&rsquo;s assumptions · bear / base / bull · exit at {EXIT_LABEL[exit]}
-      </SubTitle>
+      <SubTitle>Each stock&rsquo;s assumptions · next {HORIZON_LONG[h]} · bear / base / bull</SubTitle>
       {/* Wide on a phone: the table scrolls inside its own box, never the page. */}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[46rem] text-[11px]">
           <thead className="text-[10px] text-ink-soft">
             <tr className="border-b border-line">
               <Th left sticky>Stock</Th>
-              <Th left title="P/E: earnings times P/E. P/S: revenue times price to sales, for loss-makers.">Method</Th>
               <Th left title="Fiscal years of results used">Years</Th>
-              <Th title="Revenue growth a year: bear / base / bull">Growth a year</Th>
-              <Th title="Net margin: bear / base / bull (P/E method only)">Net margin</Th>
-              <Th title={`Today's multiple and the one it moves toward (${EXIT_LABEL[exit]})`}>Multiple now → target</Th>
-              <Th title={`Projected return over the next ${HORIZON_LONG[h]}, ${view.caseLabel}`}>{SCENARIO_LABEL[scenario]} return</Th>
+              <Th title="Beta to the Nifty 50 from 2 years of weekly returns, pulled a third of the way to 1">Beta</Th>
+              <Th title={`Annual volatility used for Bear and Bull: its last year's, never below ${pct(VOL_FLOOR * 100, 0)}`}>Volatility</Th>
+              <Th title={`G-sec ${rf} + beta x ERP ${erp} - dividend yield, a year`}>Market return</Th>
+              <Th title="IC 0.05 x volatility x standardised fundamentals score, added once">Fundamentals tilt</Th>
+              <Th title={`Projected return over the next ${HORIZON_LONG[h]}: bear / base / bull; the chosen case in bold`}>Bear / Base / Bull</Th>
             </tr>
           </thead>
           <tbody>
@@ -204,10 +205,25 @@ function AssumptionsView({ view }: { view: ProjectionView }) {
         </table>
       </div>
       <ul className="flex flex-col gap-0.5 border-t border-line px-3 py-1.5 text-[10px] leading-snug text-ink-soft">
-        <li><b className="font-semibold text-ink">Growth</b>: its median year of revenue growth over the years shown (lower if its latest year slowed), faded part of the way toward 10% a year; bear and bull sit the same distance either side, unless that passes −25% or +40%.</li>
-        <li><b className="font-semibold text-ink">Margin</b>: moves from today&rsquo;s toward halfway to its median (bear: its lowest, bull: its highest), by at most 15% of today&rsquo;s a year. A one-off year is left out.</li>
-        <li><b className="font-semibold text-ink">Price</b>: today&rsquo;s earnings grown at that rate and margin, times an exit multiple moving a third of the way a year toward the target, held within 0.7× and 1.4× today&rsquo;s (bear 10% lower, bull 10% higher). Loss-makers use price to sales on revenue.</li>
-        <li><b className="font-semibold text-ink">Capped</b>: a case kept within −60% to +80% a year.</li>
+        <li>
+          <b className="font-semibold text-ink">Market return</b>: the return the market prices in for the stock&rsquo;s risk: the 10-year G-sec yield ({rf}, {MARKET.rfAsOf}) plus its beta times
+          India&rsquo;s equity risk premium ({erp}, Damodaran, {MARKET.erpAsOf}), less its dividend yield, since this is a price projection.
+        </li>
+        <li>
+          <b className="font-semibold text-ink">Beta</b>: from 2 years of weekly returns against the Nifty 50, pulled a third of the way to 1 (Blume). A stock without 2 years of prices counts as 1.
+        </li>
+        <li>
+          <b className="font-semibold text-ink">Volatility</b>: its own swings over the last year, annualised, never below {pct(VOL_FLOOR * 100, 0)}. While its price history loads it is estimated from the 52-week range.
+        </li>
+        <li>
+          <b className="font-semibold text-ink">Fundamentals tilt</b>: IC {IC} × volatility × its standardised fundamentals score (within ±3). The score is one year&rsquo;s return on revenue growth
+          (its usual rate faded {Math.round(GROWTH_FADE * 100)}% toward {pct(LONG_RUN_GROWTH * 100, 0)}) and the net margin moving a third of the way toward the average of its own usual margin and its industry&rsquo;s, with today&rsquo;s P/E held;
+          it is measured against every company we cover. Loss-makers (no positive P/E or margin) get the market return only.
+        </li>
+        <li>
+          <b className="font-semibold text-ink">Base</b> = market return + tilt (2 years: the market return compounded, the tilt once). <b className="font-semibold text-ink">Bear / Bull</b>: the 10th and 90th
+          percentile of a year at the stock&rsquo;s own volatility, (1 + Base) × e<sup>−σ²h/2 ∓ 1.28σ√h</sup> − 1; 2 years is √2 wider. Base mostly reflects beta, so it isn&rsquo;t a ranking of the stocks.
+        </li>
         <li>{PROJECTION_DISCLAIMER} <Link href="/baskets/projections" className="font-semibold text-accent underline">Full method, with a worked example</Link>.</li>
       </ul>
     </div>
@@ -215,7 +231,7 @@ function AssumptionsView({ view }: { view: ProjectionView }) {
 }
 
 function Row({ ticker, name, proj, view, cols, notHeld }: { ticker: string; name: string; proj: StockProjection | undefined; view: ProjectionView; cols: number; notHeld: boolean }) {
-  const { h, scenario, exit } = view.settings;
+  const { h, scenario } = view.settings;
   const stock = (
     <td className="sticky left-0 z-[1] bg-panel px-1.5 py-1 align-middle">
       <StockLink ticker={ticker} className="block max-w-[11rem] font-semibold pointer-coarse:flex pointer-coarse:min-h-9 pointer-coarse:items-center leading-snug text-ink [overflow-wrap:anywhere] hover:text-accent hover:underline">
@@ -233,36 +249,57 @@ function Row({ ticker, name, proj, view, cols, notHeld }: { ticker: string; name
         </td>
       </tr>
     );
-  const r = caseReturn(proj, h, scenario, exit);
-  const ind = exit === "ind" && proj.targetInd != null;
-  const target = ind ? proj.targetInd! : proj.targetOwn;
+  const cases = proj.ret[`${h}`];
+  const chosen = SCENARIOS.indexOf(scenario);
+  const cell = "whitespace-nowrap px-1.5 py-1 text-right align-middle font-mono";
   return (
     <tr className="border-b border-line/60 last:border-b-0">
       {stock}
-      <td className="whitespace-nowrap px-1.5 py-1 align-middle">{proj.method === "pe" ? "P/E" : "P/S"}</td>
       <td className="whitespace-nowrap px-1.5 py-1 align-middle font-mono">
         {proj.span}
-        {proj.skipped && <span className="text-ink-soft"> · {proj.skipped} left out</span>}
+        {proj.skipped && <Note>{proj.skipped} left out of margins</Note>}
       </td>
-      <td className="whitespace-nowrap px-1.5 py-1 text-right align-middle font-mono">{tri(proj.growth)}</td>
-      <td className="whitespace-nowrap px-1.5 py-1 text-right align-middle font-mono">{proj.margin ? tri(proj.margin, true) : NA}</td>
-      <td className="whitespace-nowrap px-1.5 py-1 text-right align-middle font-mono">
-        {mult(proj.multipleNow)} → {mult(target)}
-        {exit === "ind" && !ind && <span className="block font-sans text-[10px] text-ink-soft">(own: no industry median)</span>}
-      </td>
-      <td className="whitespace-nowrap px-1.5 py-1 text-right align-middle font-mono">
-        {notHeld ? (
-          <span className="font-sans text-ink-soft" title="Set to 0%: not held">
-            not held
-          </span>
+      <td className={cell}>
+        {proj.betaSource === "default" ? (
+          <>
+            1<Note title="Under 2 years of weekly prices: beta taken as 1">(no 2Y history)</Note>
+          </>
         ) : (
-          <span className={"font-semibold " + tone(r == null ? null : r)}>{r == null ? NA : signed(r * 100)}</span>
+          proj.beta.toFixed(2)
         )}
-        {proj.capped && (
-          <span className="block font-sans text-[10px] text-ink-soft" title="A case hit the −60% / +80% a year bound">
-            capped
+      </td>
+      <td className={cell}>
+        {pct(proj.vol * 100, 0)}
+        {proj.volSource === "range" && <Note title="Price history still loading: estimated from the 52-week high and low">est. from 52-week range</Note>}
+        {proj.volSource === "floor" && <Note title={`Its swings were below ${pct(VOL_FLOOR * 100, 0)} a year (or unknown), so the floor is used`}>floor</Note>}
+      </td>
+      <td className={cell}>
+        {signed(proj.market * 100)}
+        {proj.divYield > 0 && <Note>after {pct(proj.divYield * 100)} dividend</Note>}
+      </td>
+      <td className={cell}>
+        {proj.method === "pe" ? (
+          <>
+            {signedPct(proj.tilt * 100, 2)}
+            <Note title="Standardised fundamentals score, then revenue growth a year and net margin today → a year on">
+              z {proj.z > 0 ? "+" : ""}{proj.z.toFixed(1)} · growth {proj.growth != null ? pct(proj.growth * 100, 0) : NA} · margin {proj.marginNow != null ? pct(proj.marginNow * 100) : NA} → {proj.marginThen != null ? pct(proj.marginThen * 100) : NA}
+            </Note>
+          </>
+        ) : (
+          <>
+            <span className="text-ink-soft">{NA}</span>
+            <Note>loss-maker: market only</Note>
+          </>
+        )}
+      </td>
+      <td className={cell}>
+        {cases.map((v, i) => (
+          <span key={i}>
+            {i > 0 && <span className="text-ink-soft"> / </span>}
+            <span className={i === chosen ? "font-semibold " + tone(v) : "text-ink-soft"}>{signed(v * 100, 0)}</span>
           </span>
-        )}
+        ))}
+        {notHeld && <Note title="Set to 0%: not held">not held</Note>}
       </td>
     </tr>
   );

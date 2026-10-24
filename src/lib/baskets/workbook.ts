@@ -7,7 +7,7 @@ import type { BasketStock } from "./industry";
 import type { Rebalance } from "./rebalance";
 import type { RelativeStats, SeriesStats } from "./stats";
 import { rebalanceLabel, weightingLabel, type Strategy } from "./strategy";
-import { ANNUAL_MAX, ANNUAL_MIN, HORIZONS, MIN_YEARS, SCENARIOS, caseReturn, type ExitBasis } from "./projection";
+import { BLUME_WEIGHT, GROWTH_FADE, HORIZONS, IC, LONG_RUN_GROWTH, MARGIN_SHIFT_A_YEAR, MARKET, MIN_YEARS, SCENARIOS, VOL_FLOOR, Z80, Z_MAX, caseReturn } from "./projection";
 import { projectBasket, type ProjectionSettings, type Simulation } from "./projection-basket";
 import type { Cell, Sheet } from "@/lib/xlsx";
 
@@ -48,7 +48,10 @@ export type WorkbookInput = {
 const r2 = (v: number | null | undefined) => (v == null || !Number.isFinite(v) ? null : Math.round(v * 100) / 100);
 const pct = (v: number | null | undefined) => (v == null ? null : r2(v * 100));
 const CASE = { bear: "Bear", base: "Base", bull: "Bull" } as const;
-const EXIT: Record<ExitBasis, string> = { own: "Own P/E", ind: "Industry P/E" };
+const BETA_SOURCE = { prices: "2Y weekly vs Nifty 50", default: "1 (no 2Y history)" } as const;
+const VOL_SOURCE = { prices: "1Y realised", range: "est. from 52-week range", floor: `floor (${Math.round(VOL_FLOOR * 100)}%)` } as const;
+/** A market input (a fraction) as a percentage in text: "7.47%". */
+const pc = (v: number) => `${(v * 100).toFixed(2)}%`;
 
 function sheet(name: string, rows: Cell[][], bold: number[], widths?: number[], freezeTop = false): Sheet {
   return { name, rows, bold, widths, freezeTop };
@@ -78,7 +81,7 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
       ...(x.picks ? [["Your picks", x.picks.join(", ")]] : []),
       ...(ps
         ? [
-            ["Projection (as on the page)", `${x.projection?.on ? "" : "Projections switched off; defaults: "}next ${ps.h} year${ps.h === 1 ? "" : "s"}, ${CASE[ps.scenario]} case, exit at ${EXIT[ps.exit]}`],
+            ["Projection (as on the page)", `${x.projection?.on ? "" : "Projections switched off; defaults: "}next ${ps.h} year${ps.h === 1 ? "" : "s"}, ${CASE[ps.scenario]} case`],
           ]
         : []),
       [],
@@ -114,18 +117,20 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
       "Method",
       "Years used",
       "One-off year left out",
-      "Growth bear %",
-      "Growth base %",
-      "Growth bull %",
-      "Margin bear %",
-      "Margin base %",
-      "Margin bull %",
-      "Multiple now",
-      "Target (own)",
-      "Target (industry)",
+      "Beta",
+      "Beta source",
+      "Volatility %",
+      "Volatility source",
+      "Dividend yield %",
+      "Market return % a year",
+      "Revenue growth % a year",
+      "Net margin now %",
+      "Net margin a year on %",
+      "Fundamentals score %",
+      "Score z",
+      "Tilt %",
     ];
-    for (const h of HORIZONS) for (const e of ["own", "ind"] as const) for (const s of SCENARIOS) head.push(`${h}Y ${CASE[s]} · ${EXIT[e]} %`);
-    head.push("Capped");
+    for (const h of HORIZONS) for (const s of SCENARIOS) head.push(`${h}Y ${CASE[s]} %`);
     const rows: Cell[][] = [head];
     for (const s of x.stocks) {
       const b = hold.get(s.ticker);
@@ -146,13 +151,28 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
         p && !p.ok ? p.reason : p ? null : "No figures in our last data update",
       ];
       if (p?.ok) {
-        row.push(p.method === "pe" ? "P/E" : "P/S", p.span, p.skipped ?? null, ...p.growth.map(pct), ...(p.margin ? p.margin.map(pct) : [null, null, null]), r2(p.multipleNow), r2(p.targetOwn), r2(p.targetInd));
-        for (const h of HORIZONS) for (const e of ["own", "ind"] as const) for (const sc of SCENARIOS) row.push(pct(caseReturn(p, h, sc, e)));
-        row.push(p.capped ? "Yes" : null);
+        row.push(
+          p.method === "pe" ? "Market + fundamentals tilt" : "Market only (loss-maker)",
+          p.span,
+          p.skipped ?? null,
+          r2(p.beta),
+          BETA_SOURCE[p.betaSource],
+          pct(p.vol),
+          VOL_SOURCE[p.volSource],
+          pct(p.divYield),
+          pct(p.market),
+          pct(p.growth),
+          pct(p.marginNow),
+          pct(p.marginThen),
+          pct(p.score),
+          r2(p.z),
+          pct(p.tilt),
+        );
+        for (const h of HORIZONS) for (const sc of SCENARIOS) row.push(pct(caseReturn(p, h, sc)));
       }
       rows.push(row);
     }
-    sheets.push(sheet("Stocks", rows, [0], [12, 32, 28, 22, 10, 12, 8, 9, 9, 8, 12, 10, 34, 8, 12, 10], true));
+    sheets.push(sheet("Stocks", rows, [0], [12, 32, 28, 22, 10, 12, 8, 9, 9, 8, 12, 10, 34, 24, 12, 10, 8, 20, 12, 22, 10, 12, 12, 12, 12, 12, 8, 8], true));
   }
 
   // ---- Backtest stats
@@ -225,12 +245,11 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
     const table = (title: string, list: typeof items) => {
       bold.push(rows.length);
       rows.push([title, "Bear %", "Base %", "Bull %", "Per year (base) %"]);
-      for (const h of HORIZONS)
-        for (const e of ["own", "ind"] as const) {
-          const out = SCENARIOS.map((sc) => projectBasket(list, { h, scenario: sc, exit: e }).ret);
-          const base = out[1];
-          rows.push([`Next ${h} year${h === 1 ? "" : "s"} · exit at ${EXIT[e]}`, pct(out[0]), pct(out[1]), pct(out[2]), base == null ? null : pct(Math.pow(1 + base, 1 / h) - 1)]);
-        }
+      for (const h of HORIZONS) {
+        const out = SCENARIOS.map((sc) => projectBasket(list, { h, scenario: sc }).ret);
+        const base = out[1];
+        rows.push([`Next ${h} year${h === 1 ? "" : "s"}`, pct(out[0]), pct(out[1]), pct(out[2]), base == null ? null : pct(Math.pow(1 + base, 1 / h) - 1)]);
+      }
       rows.push([]);
     };
     table("This basket", items);
@@ -241,13 +260,13 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
     if (ps) {
       const b = projectBasket(items, ps);
       bold.push(rows.length);
-      rows.push([`Chosen case: next ${ps.h} year${ps.h === 1 ? "" : "s"}, ${CASE[ps.scenario]}, exit at ${EXIT[ps.exit]}`, "Value", "Note"]);
+      rows.push([`Chosen case: next ${ps.h} year${ps.h === 1 ? "" : "s"}, ${CASE[ps.scenario]}`, "Value", "Note"]);
       const sim = x.projection?.sim ?? null;
       const last = sim ? sim.lo.length - 1 : 0;
       rows.push(
         ["Projected return %", pct(b.ret)],
         ["Per year %", pct(b.cagr)],
-        ["Likely range low %", sim ? r2(sim.lo[last]) : null, "10th percentile of 1,000 simulated paths at the end"],
+        ["Likely range low %", sim ? r2(sim.lo[last]) : null, "10th percentile of 1,000 simulated paths at the end: the basket-level range"],
         ["Likely range high %", sim ? r2(sim.hi[last]) : null, "90th percentile"],
         ["Chance of loss %", sim ? r2(sim.pLoss * 100) : null, "share of paths ending below today"],
         ["Chance of a 10% fall %", sim ? r2(sim.pFall10 * 100) : null, "share of paths falling 10% from a high at some point"],
@@ -288,12 +307,16 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
       [],
       ["Projection"],
       [`Only stocks with at least ${MIN_YEARS} consecutive fiscal years of revenue and net profit, ${MIN_YEARS} years of trading, and a price and market cap are projected; a left-out stock's share is spread over the rest in proportion.`],
-      ["Growth: the median year of revenue growth (lower if its overall rate is lower or its latest year slowed), faded 40% of the way toward 10% a year; Bear and Bull the same distance either side (a quarter of the range of its years, at least 3 points); kept within −25% and +40% a year."],
-      ["Margin: moves from today's a third of the way a year toward its aim (Base: halfway to the median; Bear: lowest year; Bull: highest), by at most 15% of today's a year. A one-off year is left out."],
-      ["Valuation: today's P/E moves a third of the way a year toward its target (own: median of today, 1 and 3 years ago; industry: its home industry's median), held within 0.7× and 1.4× today's; Bear −10%, Bull +10%. Loss-makers use price to sales (±20%)."],
-      [`Return = (exit multiple ÷ today's) × (1 + growth)^years × margin factor − 1, kept within ${Math.round(ANNUAL_MIN * 100)}% and +${Math.round(ANNUAL_MAX * 100)}% a year.`],
-      ["Basket: bought today at the target weights and held; return = Σ weight × return; points added = weight × return."],
-      ["Risk figures: 1,000 simulated weekly paths whose middle ends at the chosen case's return and which swing like the basket's past year; the likely range is the 10th to 90th percentile."],
+      [`Market return = rf + beta × ERP − dividend yield, a year. rf: India 10-year G-sec yield, ${pc(MARKET.rf)} (${MARKET.rfAsOf}). ERP: Damodaran's total equity risk premium for India, ${pc(MARKET.erp)} (${MARKET.erpAsOf}). Dividend yield is taken off because this is a price projection.`],
+      [`Beta: 2 years of weekly returns against the Nifty 50, Blume-adjusted: ${BLUME_WEIGHT} × measured + ${(1 - BLUME_WEIGHT).toFixed(2)}. Under 2 years of prices: 1.`],
+      [`Volatility (σ): the last year's realised volatility, annualised (estimated from the 52-week range, ln(high ÷ low) ÷ √(8/π), while the price history loads), never below ${Math.round(VOL_FLOOR * 100)}%.`],
+      [`Fundamentals score = (1 + revenue growth) × (margin a year on ÷ margin now) − 1, with today's P/E held. Growth: the usual rate (lowest of the median year, the CAGR and, if the latest year slowed, their average) faded ${Math.round(GROWTH_FADE * 100)}% toward ${Math.round(LONG_RUN_GROWTH * 100)}%, kept within −25% and +40%. Margin: moves a third of the way from today's toward the average of its own median margin and its home industry's, by at most ${Math.round(MARGIN_SHIFT_A_YEAR * 100)}% of today's; a one-off year is left out.`],
+      [`z = (score − median score) ÷ standard deviation, over every company we cover, kept within ±${Z_MAX}. Tilt = IC ${IC} × σ × z. Loss-makers (no positive P/E, latest-year profit or usual margin): no tilt, the market return only.`],
+      [`Base (h years) = (1 + market return)^h × (1 + tilt) − 1: the market return compounded, the tilt once.`],
+      [`Bear / Bull = (1 + Base) × e^(−σ² h / 2 ∓ ${Z80.toFixed(2)} σ √h) − 1: the 10th and 90th percentile of a lognormal outcome at the stock's own volatility. Out of sample over three one-year periods (Oct 2024 to Oct 2026), the Bear-to-Bull range held 91%, 90% and 81% of actual one-year outcomes (aim 80%).`],
+      ["Base is not a ranking or stock-picking signal: across stocks it mostly reflects beta (its rank correlation with actual outcomes was +0.01, +0.02 and −0.10 in the same test)."],
+      ["Basket: bought today at the target weights and held; each case = Σ weight × the stock's same case; points added = weight × return. So the basket's Bear and Bull have every stock at its own 10th or 90th percentile at once, wider than the basket's real range; the likely range below is the basket-level range."],
+      ["Likely range and risk figures: 1,000 simulated weekly paths whose middle ends at the chosen case's return and which swing like the basket's past year; the likely range is the 10th to 90th percentile."],
       [`Full method with a worked example: ${x.url.replace(/\/baskets\/.*$/, "")}/baskets/projections`],
       [],
       [x.disclaimer],

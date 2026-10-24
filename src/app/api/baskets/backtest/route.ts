@@ -6,6 +6,7 @@ import { backtestBasket } from "@/lib/baskets/run";
 import { parseStrategy, shortHash } from "@/lib/baskets/strategy";
 import { cleanTickers, getVisibleBasket } from "@/lib/baskets/store";
 import { ensureFinancials } from "@/lib/financials/load";
+import { ensureRiskStats } from "@/lib/baskets/projection-risk-data";
 
 // A cold industry basket fetches up to ~57 price histories (8 at a time).
 export const maxDuration = 60;
@@ -20,6 +21,7 @@ export const maxDuration = 60;
 // left out (the Recent listings rule-based basket backtests each stock from its listing).
 export async function GET(req: Request) {
   await ensureFinancials();
+  await ensureRiskStats();
   const q = new URL(req.url).searchParams;
   const range = q.get("range");
   if (!isChartRange(range)) return NextResponse.json({ error: "bad range" }, { status: 400 });

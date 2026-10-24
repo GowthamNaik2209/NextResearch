@@ -13,8 +13,8 @@ import { companyFinancials, listSectors, parseCrore, tickerForSupplier } from ".
 import { companySlug, getCompanyPage, primaryAppearance } from "../src/lib/sector-content/companies";
 import { listBasketUniverse } from "../src/lib/baskets/industry";
 import { detectOutlier } from "../src/lib/baskets/outliers";
-import * as shipped from "../src/lib/baskets/projection";
-import type { ProjectionInput, StockProjection } from "../src/lib/baskets/projection";
+import * as shipped from "./lib/projection-v1";
+import type { ProjectionInput, StockProjection } from "./lib/projection-v1";
 import { getChartWithFallback, getSymbolChart, type PricePoint } from "../src/lib/live/yahoo";
 
 const AS_OF = "2025-10-24";
@@ -26,7 +26,7 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 // ---- Parameter variants: a copy of projection.ts with constants swapped (shipped file untouched) ----
 type Params = Partial<Record<"GROWTH_FADE" | "REVERT_YEARS" | "TARGET_MIN" | "TARGET_MAX", number>>;
 type Model = { projectStock: (x: ProjectionInput) => StockProjection };
-const SRC = readFileSync(new URL("../src/lib/baskets/projection.ts", import.meta.url), "utf8");
+const SRC = readFileSync(new URL("./lib/projection-v1.ts", import.meta.url), "utf8");
 const TMP = mkdtempSync(join(tmpdir(), "validate-proj-"));
 async function variant(name: string, p: Params): Promise<Model> {
   let src = SRC;

@@ -6,12 +6,14 @@ import { uniqueName } from "@/lib/baskets/names";
 import { cleanName, cleanTickers, cleanWeights, fillAddPrices, getVisibleBasket } from "@/lib/baskets/store";
 import { addToWeights, removeFromWeights } from "@/lib/baskets/strategy";
 import { ensureFinancials } from "@/lib/financials/load";
+import { ensureRiskStats } from "@/lib/baskets/projection-risk-data";
 import { cleanPickedFrom } from "@/lib/baskets/picked-from";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(_req: Request, { params }: Ctx) {
   await ensureFinancials();
+  await ensureRiskStats();
   const { id } = await params;
   const user = await getCurrentUser();
   const b = await getVisibleBasket(id, user?.id ?? null);
@@ -29,6 +31,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 // from the old items.
 export async function PATCH(request: Request, { params }: Ctx) {
   await ensureFinancials();
+  await ensureRiskStats();
   const { id } = await params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "not authenticated" }, { status: 401 });
@@ -113,6 +116,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
 
 export async function DELETE(_req: Request, { params }: Ctx) {
   await ensureFinancials();
+  await ensureRiskStats();
   const { id } = await params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "not authenticated" }, { status: 401 });

@@ -8,18 +8,22 @@ import { signedPts } from "@/lib/baskets/fmt";
 import { Panel } from "./Panel";
 import { industrySeriesKey, loadSeries, savedBasketQuery } from "./series";
 import { heldStrategy, strategyQuery } from "@/lib/baskets/strategy";
+import { PROJECTION_DISCLAIMER } from "./projection-view";
 
 // The Baskets page's dense tables: one row per basket with its 1Y return, deepest fall and lead
-// over the Nifty 50. Figures load in the browser after the page shows, through the same series
+// over the Nifty 50, and its projected return over the next year in the Bear, Base and Bull cases
+// (worked out on the server with the page, docs/PROJECTIONS.md). Figures load in the browser after the page shows, through the same series
 // loader (and keys) the basket pages use, so opening a row reuses the backtest it just ran.
 // A shared queue keeps at most a few backtests in flight (an account may keep 50 baskets).
 // The industry rows' figures can arrive already worked out by the server (`seed`), so the table
 // shows them with the page instead of after a dozen backtests in the browser.
 
+/** Next year's projected return, [bear, base, bull] (fractions; null where nothing is projected). */
+export type RowProjection = [number | null, number | null, number | null] | null;
 /** A saved basket of the viewer's, as the page hands it over (plain, serializable). */
-export type SavedRow = { kind: "saved"; id: string; name: string; isPublic: boolean; weighting: "equal" | "mcap" | "custom"; weights?: Record<string, number> | null; tickers: string[]; names: string[] };
+export type SavedRow = { kind: "saved"; id: string; name: string; isPublic: boolean; weighting: "equal" | "mcap" | "custom"; weights?: Record<string, number> | null; tickers: string[]; names: string[]; proj?: RowProjection };
 /** An industry or policy basket (every listed stock it maps, equal weight). */
-export type IndustryRow = { kind: "industry"; slug: string; name: string; category: "sector" | "policy"; count: number };
+export type IndustryRow = { kind: "industry"; slug: string; name: string; category: "sector" | "policy"; count: number; proj?: RowProjection };
 export type BasketRow = SavedRow | IndustryRow;
 
 type Fig = BasketFigures;
@@ -141,9 +145,20 @@ function Num({ entry, pick, unit }: { entry: Entry | undefined; pick: (f: Fig) =
   return <span className={tone(v)}>{signed(v, unit)}</span>;
 }
 
+/** A projected case, %, as worked out on the server (no loading state). */
+function CaseNum({ v }: { v: number | null }) {
+  if (v == null) return <span className="text-ink-soft">{NA}</span>;
+  return <span className={tone(v)}>{signedPct(v)}</span>;
+}
+
 // ---- the table ----
 
-type Sort = "ret" | "dd" | "vs" | "count" | "name";
+type Sort = "ret" | "dd" | "vs" | "count" | "name" | "bear" | "base" | "bull";
+const CASES = ["bear", "base", "bull"] as const;
+const caseOf = (r: BasketRow, c: (typeof CASES)[number]) => {
+  const v = r.proj?.[CASES.indexOf(c)];
+  return v != null && Number.isFinite(v) ? v * 100 : null;
+};
 /** A column and its direction: "desc" puts the highest number first (Basket: Z to A). */
 type SortState = { by: Sort; dir: "asc" | "desc" };
 // The first tap on a heading: numbers high to low (▼), Basket A to Z (▲). Max DD is a negative
@@ -155,16 +170,19 @@ const DIR_WORDS: Partial<Record<Sort, Record<SortState["dir"], string>>> = {
   dd: { desc: "smallest fall first", asc: "deepest fall first" },
 };
 const dirWords = (s: SortState) => DIR_WORDS[s.by]?.[s.dir] ?? (s.dir === "desc" ? "high to low" : "low to high");
-const COL_NAMES: Record<Sort, string> = { name: "Basket", count: "Number of stocks", ret: "1Y return", dd: "Drawdown", vs: "vs Nifty 50" };
+const COL_NAMES: Record<Sort, string> = { name: "Basket", count: "Number of stocks", ret: "1Y return", dd: "Drawdown", vs: "vs Nifty 50", bear: "Next 1Y Bear case", base: "Next 1Y Base case", bull: "Next 1Y Bull case" };
 /** The phone's sort menu: each column both ways, the first-tap direction first. */
-const PHONE_SORTS: SortState[] = (["ret", "vs", "dd", "count", "name"] as Sort[]).flatMap((by) => {
+const PHONE_SORTS: SortState[] = (["ret", "vs", "dd", "base", "bear", "bull", "count", "name"] as Sort[]).flatMap((by) => {
   const d = firstDir(by);
   return [{ by, dir: d }, { by, dir: d === "desc" ? "asc" : "desc" }];
 });
 
 // Columns: name grows; the stock count and max drawdown give way on phones (the count moves into
 // the sub-line, and the sort menu still sorts by both), so a row fits 360px without sideways scroll.
-const GRID = "grid grid-cols-[minmax(0,1fr)_4rem_4.25rem] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_4.5rem]";
+// The projected cases show from md; below it the sort menu still sorts by them and the sorted case
+// joins the sub-line.
+const GRID =
+  "grid grid-cols-[minmax(0,1fr)_4rem_4.25rem] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_4.5rem] md:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_4.5rem_4.25rem_4.25rem_4.25rem]";
 
 export function BasketsTable({
   rows,
@@ -219,7 +237,7 @@ export function BasketsTable({
       return v != null && Number.isFinite(v) ? v : null;
     };
     const val = (x: { r: BasketRow; key: string }) =>
-      by === "ret" ? num(x.key, (f) => f.ret) : by === "dd" ? num(x.key, (f) => f.maxDd) : by === "vs" ? num(x.key, (f) => f.vs) : countOf(x.r);
+      by === "ret" ? num(x.key, (f) => f.ret) : by === "dd" ? num(x.key, (f) => f.maxDd) : by === "vs" ? num(x.key, (f) => f.vs) : by === "bear" || by === "base" || by === "bull" ? caseOf(x.r, by) : countOf(x.r);
     if (by === "name") return [...items].sort((a, b) => sign * a.r.name.localeCompare(b.r.name));
     // Rows still loading (or without a figure) stay at the bottom either way.
     return [...items].sort((a, b) => {
@@ -294,6 +312,9 @@ export function BasketsTable({
             {head("ret", "1Y", "")}
             {head("dd", "Drawdown", "hidden sm:block")}
             {head("vs", "vs Nifty", "")}
+            {head("bear", "Bear", "hidden md:block")}
+            {head("base", "Base", "hidden md:block")}
+            {head("bull", "Bull", "hidden md:block")}
           </div>
         </div>
         <ul role="rowgroup">
@@ -306,10 +327,27 @@ export function BasketsTable({
                 : { text: r.category === "policy" ? "Policy" : "Sector", on: r.category === "policy" };
             const stocksWord = `${n} ${n === 1 ? "stock" : "stocks"}`;
             // Sorted by Max DD on a phone, where that column is hidden: the figure joins the sub-line.
-            const ddNote = sort?.by === "dd" && (
-              <span className="block whitespace-nowrap sm:hidden">
-                Max DD <Num entry={e} pick={(f) => f.maxDd} unit="%" />
-              </span>
+            const sortedCase = sort && (sort.by === "bear" || sort.by === "base" || sort.by === "bull") ? sort.by : null;
+            const ddNote = (
+              <>
+                {sort?.by === "dd" && (
+                  <span className="block whitespace-nowrap sm:hidden">
+                    Max DD <Num entry={e} pick={(f) => f.maxDd} unit="%" />
+                  </span>
+                )}
+                {/* Sorted by a projected case below md, where those columns are hidden: the three join the sub-line. */}
+                {sortedCase && (
+                  <span className="block whitespace-nowrap md:hidden">
+                    Next 1Y{" "}
+                    {CASES.map((c, i) => (
+                      <span key={c} className={c === sortedCase ? "font-semibold text-ink" : undefined}>
+                        {i > 0 && " · "}
+                        {c === "bear" ? "Bear" : c === "base" ? "Base" : "Bull"} <CaseNum v={caseOf(r, c)} />
+                      </span>
+                    ))}
+                  </span>
+                )}
+              </>
             );
             return (
               // The whole row opens the basket: the name's link stretches over it (::after).
@@ -361,12 +399,25 @@ export function BasketsTable({
                   <span className="sr-only">Versus Nifty 50 </span>
                   <Num entry={e} pick={(f) => f.vs} unit=" pts" />
                 </span>
+                {CASES.map((c) => (
+                  <span key={c} role="cell" className="hidden text-right font-mono tabular-nums md:block">
+                    <span className="sr-only">Next 1 year {c} case </span>
+                    <CaseNum v={caseOf(r, c)} />
+                  </span>
+                ))}
               </li>
             );
           })}
         </ul>
       </div>
-      <p className="border-t border-line px-3 py-1.5 text-[10px] text-ink-soft">1Y: past year, bought a year ago and not rebalanced, at each basket&rsquo;s saved weighting (industry baskets at equal weight). Price only, no dividends or costs.</p>
+      <p className="border-t border-line px-3 py-1.5 text-[10px] text-ink-soft">
+        1Y: past year, bought a year ago and not rebalanced, at each basket&rsquo;s saved weighting (industry baskets at equal weight). Price only, no dividends or costs.{" "}
+        <b className="font-semibold">Bear · Base · Bull</b>: projected return over the next year at the same weighting (stocks it can&rsquo;t project left out, their share spread over the rest);{" "}
+        <Link href="/baskets/projections" className="underline hover:text-ink">
+          how projections work
+        </Link>
+        . {PROJECTION_DISCLAIMER}
+      </p>
     </div>
   );
 }

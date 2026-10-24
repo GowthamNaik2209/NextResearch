@@ -4,9 +4,9 @@
 // simulated paths behind the likely range, drawdowns and chance of a loss (docs/PROJECTIONS.md).
 // Pure, so the page and the server (compared industry baskets) share it, and it is unit-tested.
 import type { BacktestHolding, PricePoint } from "./backtest";
-import { caseReturn, type ExitBasis, type Horizon, type Scenario, type StockProjection } from "./projection";
+import { caseReturn, type Horizon, type Scenario, type StockProjection } from "./projection";
 
-export type ProjectionSettings = { h: Horizon; scenario: Scenario; exit: ExitBasis };
+export type ProjectionSettings = { h: Horizon; scenario: Scenario };
 export type LeftOut = { ticker: string; reason: string; /** Its share of the basket (or picks) before spreading, 0-1. */ share: number };
 
 export type BasketProjection = {
@@ -31,7 +31,7 @@ export function projectBasket(items: { ticker: string; weight: number; proj: Sto
   const leftOut: LeftOut[] = [];
   const kept: { ticker: string; w: number; r: number }[] = [];
   for (const i of held) {
-    const r = caseReturn(i.proj, s.h, s.scenario, s.exit);
+    const r = caseReturn(i.proj, s.h, s.scenario);
     if (r == null) leftOut.push({ ticker: i.ticker, reason: i.proj && !i.proj.ok ? i.proj.reason : "No figures in our last data update", share: i.weight / total });
     else kept.push({ ticker: i.ticker, w: i.weight, r });
   }
@@ -119,13 +119,14 @@ export type Simulation = {
 const quantile = (sorted: number[], q: number) => sorted[Math.min(sorted.length - 1, Math.max(0, Math.floor(q * sorted.length)))];
 
 /**
- * Weekly paths whose median ends at the basket's return (log-drift ln(1+R)/n a week) and which swing
- * like the basket did over the past year (vol, a yearly fraction).
+ * Weekly paths whose average ends at the basket's return and which swing like the basket did over
+ * the past year (vol, a yearly fraction): log-drift (ln(1+R) - vol^2 h / 2) / n a week, so the median
+ * path ends below R, as each stock's Bear-Bull range is centred (./projection.ts casesFor).
  */
 export function simulate(ret: number, h: Horizon, vol: number, seed: number, paths = 1000): Simulation {
   const n = 52 * h;
   const sig = vol / Math.sqrt(52);
-  const mu = Math.log(1 + ret) / n;
+  const mu = (Math.log(1 + ret) - (vol * vol * h) / 2) / n;
   const r = rng(seed);
   const values: Float64Array[] = [];
   const dds: Float64Array[] = [];

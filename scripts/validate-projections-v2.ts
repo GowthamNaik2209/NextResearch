@@ -16,9 +16,12 @@ import { companyFinancials, listSectors, parseCrore, tickerForSupplier } from ".
 import { companySlug, getCompanyPage, primaryAppearance } from "../src/lib/sector-content/companies";
 import { listBasketUniverse } from "../src/lib/baskets/industry";
 import { detectOutlier } from "../src/lib/baskets/outliers";
-import * as shipped from "../src/lib/baskets/projection";
-import type { ProjectionInput } from "../src/lib/baskets/projection";
+import * as shipped from "./lib/projection-v1";
+import type { ProjectionInput } from "./lib/projection-v1";
 import type { PricePoint } from "../src/lib/live/yahoo";
+// The model as built for the site (v2), checked here on the same as-of inputs.
+import * as built from "../src/lib/baskets/projection";
+import { riskOf } from "../src/lib/baskets/projection-risk";
 
 // ---- Periods and market inputs (sources in the doc) ----
 type Period = { key: string; start: string; label: string; end: string | null; fyIdx: number };
@@ -242,6 +245,8 @@ function fundamentalsV2(x: ProjectionInput, indMargin: number | null, g: GrowthM
 type Row = {
   ticker: string; home: string | null; input: ProjectionInput; actual: number; past1y: number | null;
   beta: number; betaRaw: number | null; vol: number; volRaw: number | null; vol1y: number; vol97: number; fund: number | null;
+  /** The built model's input as of the start (its price statistics to the start date). */
+  input2: built.ProjectionInput;
 };
 
 async function main() {
@@ -250,7 +255,7 @@ async function main() {
   const cacheFile = arg("--prices") ?? join(tmpdir(), "validate-proj-v2-prices.json");
   await installFinancialsFromDatabase();
   const universe = listBasketUniverse();
-  const g55: GrowthMod = await copyWith("../src/lib/baskets/projection.ts", [[/const GROWTH_FADE = [\d.]+;/, `const GROWTH_FADE = ${V2_FADE};`]], "projection-fade55.ts");
+  const g55: GrowthMod = await copyWith("./lib/projection-v1.ts", [[/const GROWTH_FADE = [\d.]+;/, `const GROWTH_FADE = ${V2_FADE};`]], "projection-fade55.ts");
 
   const tickers = new Set(universe.map((s) => s.ticker));
   for (const s of listSectors()) for (const sup of Object.values(s.suppliers)) if (sup.listed && sup.f) tickers.add(tickerForSupplier(sup));
@@ -359,7 +364,19 @@ async function main() {
       const v = ewmaVol(pts, per.start);
       if (v.vol == null) { leave(t, "Under 40 daily returns before the start"); continue; }
       const fv = fundamentalsV2(input, im.margin, g55);
-      rows.push({ ticker: t, home, input, actual: th.end / th.price - 1, past1y: th.past1y, beta: b.adj, betaRaw: b.raw, vol: v.vol, volRaw: v.raw, vol1y: v.vol1y!, vol97: v.vol97!, fund: fv?.ret ?? null });
+      // Built model: the same figures, price statistics measured to the start date, today's dividend
+      // yield (the as-of one isn't in the table), and the 3-year price change as of the start where the
+      // 5Y history has it (else 0: the 3-years-of-trading rule is not what is tested here).
+      const p3 = priceOn(pts, addDays(per.start, -3 * 365), 10);
+      const input2: built.ProjectionInput = {
+        rev, np, price: th.price, mcapCr: th.mcap, pe: input.pe,
+        cagr: [th.past1y, p3 != null ? (Math.pow(th.price / p3, 1 / 3) - 1) * 100 : 0, null],
+        divYield: fin(f.kpi?.[2]) ? f.kpi![2] : null,
+        asOf: per.label, oneOffIndex: input.oneOffIndex,
+        industry: { margin: im.margin },
+        risk: riskOf(pts.filter((q) => q.t <= per.start), niftyPts.filter((q) => q.t <= per.start)),
+      };
+      rows.push({ ticker: t, home, input, actual: th.end / th.price - 1, past1y: th.past1y, beta: b.adj, betaRaw: b.raw, vol: v.vol, volRaw: v.raw, vol1y: v.vol1y!, vol97: v.vol97!, fund: fv?.ret ?? null, input2 });
     }
     allRows[per.key] = rows;
 
@@ -369,6 +386,16 @@ async function main() {
     const z = (r: Row) => (fin(r.fund) ? clamp((r.fund - fMed) / fSd, -3, 3) : 0);
     const rf = RF[per.key];
     type Pred = { bear: number; base: number; bull: number };
+    // Built model: its own beta, volatility, score scale (over this period's stocks), tilt and cases,
+    // with the period's rf and ERP in place of today's.
+    const scale2 = built.scoreScale(rows.map((r) => built.fundamentalScore(r.input2)).filter(fin));
+    const builtPred = (r: Row): Pred => {
+      const e = built.explainStock(r.input2, scale2);
+      if (!e.ok) throw new Error(`built model left out ${r.ticker}: ${e.reason}`);
+      const market = rf + e.ctx.beta * ERP - e.ctx.divYield;
+      const [bear, base, bull] = built.casesFor({ ...e.ctx, market }, 1);
+      return { bear, base, bull };
+    };
     const models: [string, (r: Row) => Pred][] = [
       ["Shipped (own P/E exit)", (r) => { const q = shipped.projectStock(r.input); if (!q.ok) throw new Error(); const [bear, base, bull] = q.ret.own["1"]; return { bear, base, bull }; }],
       ["Shipped (industry P/E exit)", (r) => { const q = shipped.projectStock(r.input); if (!q.ok) throw new Error(); const [bear, base, bull] = q.ret.ind["1"]; return { bear, base, bull }; }],
@@ -384,6 +411,7 @@ async function main() {
         const c = (1 + base) * (onMedian ? Math.exp(-(sg ** 2) / 2) : 1);
         return { base, bear: c * Math.exp(-Z80 * sg) - 1, bull: c * Math.exp(Z80 * sg) - 1 };
       }]).filter(([n]) => n !== "v2, IC 0.05, EWMA 0.94")),
+      ["Built v2 (projection.ts)", builtPred],
     ];
     const act = rows.map((r) => r.actual);
     const niftyRet = (nifty.get(endDay) ?? priceOn(niftyPts, endDay)!) / priceOn(niftyPts, per.start)! - 1;

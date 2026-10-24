@@ -83,7 +83,7 @@ export function useProjection({
   }, [on, stocks, weighting, weights, settings, picked, picksChosen]);
 
   const steps = 52 * settings.h;
-  const seed = useMemo(() => seedOf(`${stocks.map((s) => `${s.ticker}:${core?.shares.get(s.ticker)?.toFixed(6)}`).join(",")}|${settings.h}|${settings.scenario}|${settings.exit}`), [stocks, core, settings]);
+  const seed = useMemo(() => seedOf(`${stocks.map((s) => `${s.ticker}:${core?.shares.get(s.ticker)?.toFixed(6)}`).join(",")}|${settings.h}|${settings.scenario}`), [stocks, core, settings]);
   const ret = core?.basket.ret ?? null;
   const sim = useMemo(() => (on && ret != null && vol != null && vol > 0 ? simulate(ret, settings.h, vol, seed) : null), [on, ret, vol, settings.h, seed]);
   const pRet = core?.picks?.ret ?? null;
