@@ -3,17 +3,16 @@
 //
 // Only card-sized objects go into the page: a full research deck is ~35 KB and the 15 of them,
 // plus the IPO decks and every industry basket's stock list, made the landing page ~1 MB of
-// props. The decks load when opened (/docs/deck/<slug>, /ipos/deck/<slug>) and the baskets when
-// the Charts view is picked (/docs/baskets). A deep link (?report=, ?ipo=, ?view=charts) gets
-// its one deck or the baskets in the page, so it opens without a round trip.
+// props. The decks load when opened (/docs/deck/<slug>, /ipos/deck/<slug>) and the chart picker's
+// stock lists when a card's Charts button is first pressed (/docs/baskets). A deep link (?report=,
+// ?ipo=, ?view=charts) gets its one deck or the stock lists in the page, so it opens without a round trip.
 import { listIndustryBaskets } from "@/lib/baskets/industry";
 import { listComingSoonSectors, listSectors } from "@/lib/sector-content";
 import { buildSectorCards } from "@/lib/sector-content/stats";
 import { buildDeck, type Deck } from "@/lib/sector-content/reports";
-import { BENCHMARKS, MARKET_BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listIpoDecks, type IpoDeck } from "@/lib/ipo-content";
 import { memoByFinancials } from "@/lib/financials/store";
-import type { ChartsIndustry } from "@/components/baskets/IndustryChartsView";
+import type { ChartPickerIndustry } from "@/components/stock/StockChartPopup";
 
 // The builders used here (buildDeck, listIpoDecks, buildSectorCards, ...) memoise themselves per
 // installed company table, and listIpoDecks rolls each IPO's status forward to today.
@@ -61,19 +60,23 @@ export function ipoCards(): IpoCard[] {
   }));
 }
 
-const chartBaskets = memoByFinancials((): ChartsIndustry[] =>
-  // Without each stock's projection: the Charts view doesn't show projections, so it needn't carry them.
-  listIndustryBaskets().map(({ slug, name, tagline, category, stocks, indices }) => ({ slug, name, tagline, category, stocks: stocks.map((s) => ({ ...s, proj: undefined })), indices }))
-);
-/** Every industry basket for the Charts view (served by /docs/baskets when not in the page). */
-export const analysisBaskets = chartBaskets;
+const chartIndustries = memoByFinancials((): ChartPickerIndustry[] => {
+  const zones = new Map(listSectors().map((s) => [s.slug, s.zones.map((z) => z.label)]));
+  return listIndustryBaskets().map(({ slug, name, category, stocks }) => {
+    // Layers in the industry's own order (its map's systems), keeping only those with a listed stock.
+    const used = new Set(stocks.map((s) => s.layer));
+    const layers = [...new Set([...(zones.get(slug) ?? []), ...used])].filter((l) => used.has(l));
+    return { slug, name, category, layers, stocks: stocks.map(({ ticker, name, layer, industries }) => ({ ticker, name, layer, core: industries[0]?.slug === slug })) };
+  });
+});
+/** Every industry's layers and listed stocks for the chart pop-up (served by /docs/baskets when not in the page). */
+export const analysisChartIndustries = chartIndustries;
 
 /**
  * The Analysis block's props. `report`/`ipo`/`view` are the page's search params: the deck a
- * deep link opens, or the Charts view's baskets, come with the page; everything else on demand.
+ * deep link opens, or the chart pop-up's stock lists, come with the page; everything else on demand.
  */
 export function analysisProps({ report, ipo, view }: { report?: string; ipo?: string; view?: string } = {}) {
-  const baskets = listIndustryBaskets();
   const decks = deckCards();
   return {
     decks,
@@ -82,11 +85,10 @@ export function analysisProps({ report, ipo, view }: { report?: string; ipo?: st
     initialIpoDeck: ipo ? (getIpoDeck(ipo) ?? undefined) : undefined,
     sectorCards: buildSectorCards(),
     comingSoon: listComingSoonSectors(),
-    baskets: analysisView(view) === "charts" ? chartBaskets() : undefined,
-    industries: baskets.map(({ slug, name, icon }) => ({ slug, name, icon })),
-    market: MARKET_BENCHMARKS.map((id) => BENCHMARKS[id]),
+    chartIndustries: view === "charts" ? chartIndustries() : undefined,
   };
 }
 
-/** The view the block opens on, from `?view=`: Deep dive unless Reports or Charts is asked for. */
-export const analysisView = (view?: string) => (view === "charts" ? "charts" : view === "reports" ? "reports" : "deep");
+/** The view the block opens on, from `?view=`: Deep dive unless Reports is asked for. (`?view=charts`,
+ * the old Charts view, now opens the chart pop-up over the Deep dive.) */
+export const analysisView = (view?: string) => (view === "reports" ? "reports" : "deep");

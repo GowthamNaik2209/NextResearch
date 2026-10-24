@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 // The site's flow in four steps, each linking to where that step happens: Analysis (Deep dive,
-// Reports, Charts) is the way in, an industry's page holds its 3D map, and Baskets keeps your own.
+// Reports) is the way in, an industry's page holds its 3D map, and Baskets keeps your own.
 const STEPS: { title: string; body: string; link: { href: string; label: string } }[] = [
   {
     title: "Pick an industry",
@@ -15,7 +15,7 @@ const STEPS: { title: string; body: string; link: { href: string; label: string 
   },
   {
     title: "Read and chart it",
-    body: "Reports sum the industry up in ten slides for investors. Charts backtest its listed stocks as a basket against the Nifty 50.",
+    body: "Reports sum the industry up in ten slides for investors. Charts show any of its listed stocks, picked by layer.",
     link: { href: "/docs?view=reports", label: "See the reports" },
   },
   {

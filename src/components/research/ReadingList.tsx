@@ -8,31 +8,11 @@ import type { DeckCard, IpoCard } from "@/lib/analysis-props";
 import { IpoGrid } from "@/components/ipo/IpoGrid";
 import { InfoTip } from "@/components/InfoTip";
 import { LazyResearchDeck, dropDeepLinkParam, intentProps, prefetchReport, useForwardReopen } from "./LazyDecks";
-import type { ChartsIndustry } from "@/components/baskets/IndustryChartsView";
-import type { CompareBasket } from "@/components/baskets/BasketChart";
-import type { Benchmark } from "@/lib/sector-content/benchmarks";
+import type { ChartPickerIndustry } from "@/components/stock/StockChartPopup";
 import { THEME_TAB_EVENT, ThemeCards, type ComingSoonSector, type SectorCard, type ThemeTab } from "./ThemeCards";
 
-// The Charts view (a full basket chart) is not needed for the first paint, so its code loads
-// when the view is picked, or right away on a ?view=charts link.
-const IndustryChartsView = dynamic(() => import("@/components/baskets/IndustryChartsView").then((m) => m.IndustryChartsView), {
-  ssr: false,
-  loading: () => <ChartsLoading />,
-});
-
-// The loading box sits in a wrapper about as tall as the loaded Charts view at each breakpoint
-// (measured on the basket page it renders, a little under so it never ends taller), so the footer
-// doesn't jump from just under the spinner to thousands of pixels down when the view arrives.
-function ChartsLoading() {
-  return (
-    <div className="min-h-[3700px] sm:min-h-[2740px] lg:min-h-[2940px] xl:min-h-[2620px]">
-      <div role="status" className="flex min-h-[420px] items-center justify-center gap-3 rounded-2xl border border-line bg-panel text-sm text-ink-soft">
-        <span aria-hidden className="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-accent" />
-        Loading charts&hellip;
-      </div>
-    </div>
-  );
-}
+// The Charts pop-up (one stock's price chart) loads when a card's Charts button is pressed.
+const StockChartPopup = dynamic(() => import("@/components/stock/StockChartPopup").then((m) => m.StockChartPopup), { ssr: false });
 
 const TABS = [
   { id: "all", label: "All" },
@@ -44,15 +24,15 @@ const TABS = [
 const VIEWS = [
   { id: "deep", label: "Deep dive" },
   { id: "reports", label: "Reports" },
-  { id: "charts", label: "Charts" },
 ] as const;
 type View = (typeof VIEWS)[number]["id"];
 
-// The Analysis block (on /docs and the landing page's #themes section). Three views on the
+// The Analysis block (on /docs and the landing page's #themes section). Two views on the
 // right-hand toggle: Deep dive (default) has one card per industry or policy opening its page;
-// Reports has one card per research deck, opened as a pop-up (`?report=<slug>`, shareable);
-// Charts is each industry's basket page (`?view=charts&sector=<slug>`). The left tabs filter all
-// three; the IPOs tab holds the IPO decks (`?ipo=<slug>` lands on it with that deck open).
+// Reports has one card per research deck, opened as a pop-up (`?report=<slug>`, shareable). A Deep
+// dive card's Charts button opens a pop-up with one stock's price chart, picked by industry, layer
+// and stock (`?view=charts&sector=<slug>`, shareable); basket backtests live in Baskets. The left
+// tabs filter both views; the IPOs tab holds the IPO decks (`?ipo=<slug>` lands on it with that deck open).
 export function ReadingList({
   decks,
   initialDeck,
@@ -60,14 +40,12 @@ export function ReadingList({
   initialIpoDeck,
   sectorCards,
   comingSoon,
-  baskets,
-  industries,
-  market,
-  signedIn,
+  chartIndustries,
   initial,
   initialIpo,
   initialView = "deep",
   initialSector,
+  initialCharts = false,
 }: {
   decks: DeckCard[];
   /** The deck a ?report= link opens, built with the page; any other deck loads when opened. */
@@ -77,31 +55,43 @@ export function ReadingList({
   initialIpoDeck?: IpoDeck;
   sectorCards: SectorCard[];
   comingSoon: ComingSoonSector[];
-  /** Every industry basket for the Charts view: in the page on a ?view=charts link, else fetched on first use. */
-  baskets?: ChartsIndustry[];
-  industries: CompareBasket[];
-  market: Benchmark[];
-  signedIn: boolean;
+  /** Every industry's layers and stocks for the Charts pop-up: in the page on a ?view=charts link, else fetched on first use. */
+  chartIndustries?: ChartPickerIndustry[];
   initial?: string;
   initialIpo?: string;
   initialView?: View;
   initialSector?: string;
+  /** `?view=charts`: open the Charts pop-up on `initialSector` (or the first industry). */
+  initialCharts?: boolean;
 }) {
   const [view, setView] = useState<View>(initialView);
-  // The industry the Charts view opens on: from the URL, or a Deep dive card's Charts button.
-  const [chartSlug, setChartSlug] = useState(initialSector);
-  const toolbarRef = useRef<HTMLDivElement>(null);
-  const openCharts = (slug: string) => {
-    setChartSlug(slug);
-    setView("charts");
-    toolbarRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
-  };
-
-  // Arriving from a theme card's Charts button: bring the chart into view rather than leaving
-  // it below the page intro, which on a phone is a full screen down. Once per visit.
+  // The industry the Charts pop-up is open on (null when closed): a card's Charts button, or a ?view=charts link.
+  const [chartSlug, setChartSlug] = useState<string | null>(initialCharts ? (initialSector ?? "") : null);
+  // A ?view=charts link opens the pop-up over the top of the page; closing it brings the Analysis
+  // block into view (on the landing page it is a screen or more down).
+  const blockRef = useRef<HTMLDivElement>(null);
+  const fromLink = useRef(initialCharts);
+  const closeCharts = useCallback(() => {
+    setChartSlug(null);
+    if (fromLink.current) blockRef.current?.scrollIntoView({ block: "start" });
+    fromLink.current = false;
+  }, []);
+  // Keeps ?view=charts&sector= in step with the open pop-up, so a reload or a shared link opens it.
+  const syncChartUrl = useCallback((slug: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", "charts");
+    url.searchParams.set("sector", slug);
+    if (url.href !== window.location.href) window.history.replaceState(window.history.state, "", url);
+  }, []);
   useEffect(() => {
-    if (initialView === "charts" && initialSector) toolbarRef.current?.scrollIntoView({ block: "start" });
-  }, [initialView, initialSector]);
+    if (chartSlug !== null) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("view") !== "charts") return;
+    url.searchParams.delete("view");
+    url.searchParams.delete("sector");
+    url.searchParams.delete("bview");
+    window.history.replaceState(window.history.state, "", url);
+  }, [chartSlug]);
   const [openSlug, setOpenSlug] = useState<string | null>(null);
   const closeDeck = useCallback(() => setOpenSlug(null), []);
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>(initialIpo ? "ipo" : "all");
@@ -143,42 +133,18 @@ export function ReadingList({
 
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (view === "charts") url.searchParams.set("view", "charts");
-    else {
-      // Deep dive is the default, so it needs no parameter.
-      if (view === "reports") url.searchParams.set("view", "reports");
-      else url.searchParams.delete("view");
-      url.searchParams.delete("sector");
-      url.searchParams.delete("bview");
-    }
+    // Deep dive is the default, so it needs no parameter. The Charts pop-up keeps its own ?view=charts.
+    if (view === "reports") url.searchParams.set("view", "reports");
+    else if (url.searchParams.get("view") === "reports") url.searchParams.delete("view");
     // Only when it changes: on first load the URL already matches, and a replaceState that early
     // reaches Next's router before it has initialised ("Router action dispatched before
     // initialization" and a state update before mount, seen on the landing page).
     if (url.href !== window.location.href) window.history.replaceState(window.history.state, "", url);
   }, [view]);
 
-  // The Charts view's baskets: from the page, or fetched the first time the view is shown.
-  const [loadedBaskets, setLoadedBaskets] = useState<ChartsIndustry[] | null>(baskets ?? null);
-  const [basketsFailed, setBasketsFailed] = useState(false);
-  const needBaskets = view === "charts" && !loadedBaskets;
-  useEffect(() => {
-    if (!needBaskets) return;
-    let live = true;
-    fetch("/docs/baskets")
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then(
-        (b: ChartsIndustry[]) => live && setLoadedBaskets(b),
-        () => live && setBasketsFailed(true)
-      );
-    return () => {
-      live = false;
-    };
-  }, [needBaskets]);
-  const chartBaskets = (loadedBaskets ?? []).filter((b) => tab === "all" || b.category === tab);
-
   return (
     <>
-      <div ref={toolbarRef} className="flex scroll-mt-20 flex-col gap-3">
+      <div ref={blockRef} className="flex scroll-mt-20 flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
       <div role="tablist" aria-label="Report type" className="flex gap-1 self-start rounded-full border border-line bg-panel p-1">
         {TABS.map((t) => (
@@ -209,29 +175,14 @@ export function ReadingList({
           </button>
         ))}
       </div>
-      <InfoTip label="About the three views">
-        <b>Deep dive</b>: each industry&rsquo;s supply chain and who supplies it. <b>Reports</b>: ten-slide summaries for investors.{" "}
-        <b>Charts</b>: its listed stocks backtested as one basket against the Nifty 50.
+      <InfoTip label="About the two views">
+        <b>Deep dive</b>: each industry&rsquo;s supply chain and who supplies it; its <b>Charts</b> button shows any of its listed stocks&rsquo;
+        price chart. <b>Reports</b>: ten-slide summaries for investors.
       </InfoTip>
       </div>
       </div>
       </div>
-      {view === "charts" &&
-        (tab === "ipo" ? (
-          <p className="rounded-2xl border border-line bg-panel p-6 text-sm leading-relaxed text-ink-soft">
-            Charts cover the listed stocks in our industries and policies, so IPOs aren&rsquo;t charted here. Switch to Reports for their prospectus
-            summaries.
-          </p>
-        ) : !loadedBaskets ? (
-          basketsFailed ? (
-            <p className="rounded-2xl border border-line bg-panel p-6 text-sm text-ink-soft">The charts couldn&rsquo;t load. Check your connection and reload the page.</p>
-          ) : (
-            <ChartsLoading />
-          )
-        ) : (
-          <IndustryChartsView key={`${tab}:${chartSlug ?? ""}`} baskets={chartBaskets} industries={industries} market={market} signedIn={signedIn} initialSlug={chartSlug} />
-        ))}
-      {view === "deep" && tab !== "ipo" && <ThemeCards sectors={sectorCards} comingSoon={comingSoon} filter={tab} onCharts={openCharts} />}
+      {view === "deep" && tab !== "ipo" && <ThemeCards sectors={sectorCards} comingSoon={comingSoon} filter={tab} onCharts={setChartSlug} />}
       {view === "reports" && tab !== "ipo" && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((d) => (
@@ -242,8 +193,9 @@ export function ReadingList({
           ))}
         </div>
       )}
-      {view !== "charts" && tab === "all" && <h2 className="mt-4 font-display text-xl font-bold text-ink">IPOs</h2>}
-      {view !== "charts" && (tab === "ipo" || tab === "all") && <IpoGrid ipos={ipos} initial={initialIpo} initialDeck={initialIpoDeck} />}
+      {tab === "all" && <h2 className="mt-4 font-display text-xl font-bold text-ink">IPOs</h2>}
+      {(tab === "ipo" || tab === "all") && <IpoGrid ipos={ipos} initial={initialIpo} initialDeck={initialIpoDeck} />}
+      {chartSlug !== null && <StockChartPopup initialSlug={chartSlug || undefined} initialIndustries={chartIndustries} order={sectorCards.map((s) => s.slug)} onSlug={syncChartUrl} onClose={closeCharts} />}
       {open && <LazyResearchDeck key={open.slug} slug={open.slug} initialDeck={initialDeck} onClose={closeDeck} urlParam="report" adoptHistoryEntry={adopt} />}
     </>
   );

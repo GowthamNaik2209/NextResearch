@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { analysisBaskets } from "@/lib/analysis-props";
+import { analysisChartIndustries } from "@/lib/analysis-props";
 import { ensureFinancials } from "@/lib/financials/load";
 
-// GET /docs/baskets: every industry basket's stock list for the Analysis block's Charts view,
-// fetched when that view is first picked rather than shipped with every page that shows the block.
+// GET /docs/baskets: every industry's layers and listed stocks for the Analysis block's chart pop-up,
+// fetched when a Charts button is first pressed rather than shipped with every page that shows the block.
 export async function GET() {
   await ensureFinancials();
-  return NextResponse.json(analysisBaskets(), { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=900" } });
+  return NextResponse.json(analysisChartIndustries(), { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=900" } });
 }

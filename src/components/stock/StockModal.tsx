@@ -107,7 +107,7 @@ const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:n
 
 // Blurred backdrop + raised card, scroll lock, Esc / backdrop-click to close, focus on ✕, Tab kept
 // inside the card, and focus handed back to whatever opened it on close.
-function ModalShell({ label, onClose, children }: { label: string; onClose: () => void; children: (closeRef: React.RefObject<HTMLButtonElement | null>) => React.ReactNode }) {
+export function ModalShell({ label, onClose, children }: { label: string; onClose: () => void; children: (closeRef: React.RefObject<HTMLButtonElement | null>) => React.ReactNode }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   // Parents pass a fresh onClose on every render; reading it through a ref keeps the effect below
@@ -155,7 +155,12 @@ function ModalShell({ label, onClose, children }: { label: string; onClose: () =
   return createPortal(
     <div
       className="nr-pop-backdrop fixed inset-0 z-[200] flex items-stretch justify-center sm:items-center sm:p-8"
-      onMouseDown={(e) => e.target === e.currentTarget && onCloseRef.current()}
+      onMouseDown={(e) => {
+        if (e.target !== e.currentTarget) return;
+        // Without preventDefault the press goes on to focus <body>, undoing the focus handed back on close.
+        e.preventDefault();
+        onCloseRef.current();
+      }}
     >
       <div
         ref={cardRef}
@@ -171,7 +176,7 @@ function ModalShell({ label, onClose, children }: { label: string; onClose: () =
   );
 }
 
-function CloseButton({ closeRef, onClose }: { closeRef: React.RefObject<HTMLButtonElement | null>; onClose: () => void }) {
+export function CloseButton({ closeRef, onClose }: { closeRef: React.RefObject<HTMLButtonElement | null>; onClose: () => void }) {
   return (
     <button
       ref={closeRef}
