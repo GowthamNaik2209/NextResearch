@@ -10,7 +10,7 @@ import type { BasketStock } from "@/lib/baskets/industry";
 import { StockLink } from "@/components/stock/StockLink";
 import { BasketBreakdown, type BreakdownTab } from "./BasketBreakdown";
 import { BasketChart, defaultSelection, stockLine, type CompareBasket } from "./BasketChart";
-import { LINES_FULL, MAX_CHART_STOCKS, planAdd } from "@/lib/baskets/selection";
+import { DISTINCT_LINES, LINES_FULL, MAX_CHART_STOCKS, planAdd } from "@/lib/baskets/selection";
 import { useBasketSelection } from "./use-basket-selection";
 import { isWatched, subscribeWatchlist, watchlistSnapshot } from "@/components/sector-explorer/WatchlistButton";
 import { DASHARRAY } from "@/components/charts/palette";
@@ -34,10 +34,14 @@ import { useProjection, schemeShares } from "./use-projection";
 import { ProjectionCards } from "./ProjectionCards";
 import { ProjectionStats } from "./ProjectionStats";
 import { ProjectionAnalysis } from "./ProjectionAnalysis";
-import { EXIT_LABEL, HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL } from "./projection-view";
+import { EXIT_LABEL, HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, forPicks } from "./projection-view";
 import type { ChartProjection } from "./BasketChart";
 import { caseReturn, HORIZONS, SCENARIOS, type ExitBasis, type Horizon, type Scenario } from "@/lib/baskets/projection";
-import { stockPath, type ProjectionSettings } from "@/lib/baskets/projection-basket";
+import { annualVol, basketPath, projectBasket, seedOf, simulate, stockPath, weeklyDates, type ProjectionSettings } from "@/lib/baskets/projection-basket";
+import { relativeStats, seriesStats } from "@/lib/baskets/stats";
+import { basketWorkbook, workbookFileName } from "@/lib/baskets/workbook";
+import { buildXlsx } from "@/lib/xlsx";
+import { loadSeries } from "./series";
 import {
   BAND_CHOICES,
   REBALANCE_RULES,
@@ -195,7 +199,18 @@ export function BasketDetail(p: BasketDetailProps) {
   // One rule everywhere, so the first tap always adds a line (docs/STRATEGIES.md).
   const { sel, act, current, tickers } = useBasketSelection(() => {
     const ownIndustry = p.mode === "industry" && p.compareSlug === p.id;
-    const chart = defaultSelection(p.indices, p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id)), p.compareSlug && !ownIndustry ? p.compareSlug : null);
+    // What the chart opens compared with: a basket that comes from an industry (its own page, or a
+    // saved basket or draft copied from one) beside the Nifty 50, its index and that industry's
+    // basket; one that doesn't (a rule-based basket, a mix of your own) beside the Nifty 50 alone,
+    // since "its industry" would only be the one most of its stocks happen to share. Every index and
+    // industry basket stays in Compare with.
+    const fromIndustry = p.mode === "industry" || ((p.mode === "saved" || p.mode === "draft") && !!p.sourceSector);
+    const chart = fromIndustry
+      ? defaultSelection(p.indices, p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id)), p.compareSlug && !ownIndustry ? p.compareSlug : null)
+      : { benches: ["nifty50"], compare: [], picks: {} };
+    // A basket small enough for every stock to have its own line style opens with every line on (a
+    // rule-based list, most of your own); a bigger one (most industries) opens on the basket alone.
+    if (p.stocks.length > 0 && p.stocks.length <= DISTINCT_LINES) chart.picks = Object.fromEntries(p.stocks.map((s, i) => [s.ticker, i]));
     return { stocks: p.stocks, unlisted: p.unlisted, custom: p.weighting === "custom" || p.customWeights ? savedCustom(p.stocks) : null, chart, pickedFrom: p.pickedFrom };
   });
   const { stocks, confirmed, unlisted, custom: customEdit, chart: chartSel, pickedFrom, picksChosen } = sel;
@@ -233,6 +248,8 @@ export function BasketDetail(p: BasketDetailProps) {
   // The stock table measures weight and contribution within the whole basket, or (once stocks
   // are picked on the chart) within just those picks, backtested as their own basket.
   const [scope, setScope] = useState<"all" | "picks">("all");
+  // The statistics measure the whole basket or (with some stocks picked on the chart) just the picks.
+  const [statsScope, setStatsScope] = useState<"all" | "picks">("all");
   // Under the chart: the stocks as the dense holdings table, or as bar charts (who made the
   // return, returns, weights, industries).
   const [stockView, setStockView] = useState<"charts" | "list">("list");
@@ -410,6 +427,7 @@ export function BasketDetail(p: BasketDetailProps) {
     picksChosen,
     scopePicks: tableScope === "picks" && !picksAll,
     volKey: stocks.length ? basketKey : null,
+    picksVolKey: pickedKey && !picksAll ? pickedKey : null,
     reload,
   });
   const leftCount = projection?.basket.leftOut.length ?? 0;
@@ -780,6 +798,70 @@ export function BasketDetail(p: BasketDetailProps) {
     if (p.isOwner && new URLSearchParams(window.location.search).get("edit") === "1") setEditing(true);
   }, [p.isOwner]);
 
+  // Export: one Excel workbook of everything the page shows (docs/PROJECTIONS.md): settings, every
+  // stock, the backtest's statistics and value line beside the Nifty 50, and the projections in every
+  // case with each stock's assumptions (at the page's projection settings, or the defaults while
+  // Projections is off).
+  const [exporting, setExporting] = useState(false);
+  const exportWorkbook = async () => {
+    if (!stocks.length || exporting) return;
+    setExporting(true);
+    try {
+      const [bt, nifty, past] = await Promise.all([loadSeries(basketKey, range), loadSeries("b:nifty50", range), loadSeries(basketKey, "1Y")]);
+      const data = bt.status === "ok" ? bt.data : null;
+      const bench = nifty.status === "ok" ? nifty.data.points : null;
+      const shares = schemeShares(stocks, weighting, strategy.weights);
+      const settings = projection?.settings ?? projSet;
+      let proj = projection ? { settings, on: true, sim: projection.sim, vol: projection.vol, dates: projection.dates, path: projection.path } : null;
+      if (!proj) {
+        const vol = past.status === "ok" ? annualVol(past.data.points) : null;
+        const b = projectBasket(stocks.map((st) => ({ ticker: st.ticker, weight: shares.get(st.ticker) ?? 0, proj: st.proj })), settings);
+        const start = past.status === "ok" && past.data.points.length ? past.data.points[past.data.points.length - 1].t : new Date().toISOString().slice(0, 10);
+        proj = {
+          settings,
+          on: false,
+          sim: b.ret != null && vol ? simulate(b.ret, settings.h, vol, seedOf(`${tickers.join(",")}|export`)) : null,
+          vol,
+          dates: weeklyDates(start, settings.h),
+          path: basketPath(b.holdings, 52 * settings.h),
+        };
+      }
+      const sheets = basketWorkbook({
+        name,
+        kind: p.mode === "industry" ? "Industry basket" : p.mode === "idea" ? "Rule-based basket" : draft ? "New basket (not saved)" : "Your basket",
+        description: p.description,
+        url: window.location.href,
+        exportedAt: new Date(),
+        strategy,
+        range,
+        benchName: "Nifty 50",
+        stocks,
+        layerOf,
+        shares,
+        picks: pickedKey && !picksAll ? picked.map((x) => x.ticker) : null,
+        backtest: data ? { points: data.points, holdings: data.holdings ?? [], excluded: data.excluded, turnover: data.turnover, trades: data.trades, rebalances: data.rebalances } : null,
+        bench,
+        stats: data ? seriesStats(data.points) : null,
+        rel: data && bench ? relativeStats(data.points, bench) : null,
+        projection: proj,
+        disclaimer: `${PROJECTION_DISCLAIMER} Backtests are past prices only. A tracking and research tool, not investment advice.`,
+      });
+      const bytes = buildXlsx(sheets);
+      const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = workbookFileName(name, range);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      setNote("Couldn’t build the export right now. Try again.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const canEdit = (p.mode === "saved" && p.isOwner) || draft;
   // The foot-of-screen note (baskets you can't edit) goes by itself after a few seconds.
   useEffect(() => {
@@ -980,11 +1062,11 @@ export function BasketDetail(p: BasketDetailProps) {
           <p className="font-semibold">How a projection is worked out</p>
           <ol className="mt-1 list-decimal space-y-1 pl-4">
             <li>
-              <b>Which stocks.</b> Only stocks with at least 3 years in a row of revenue and net profit, and a price and market cap in our last
+              <b>Which stocks.</b> Only stocks with at least 3 years in a row of revenue and net profit, at least 3 years of trading, and a price and market cap in our last
               data update. Any other stock is left out, and its share of the basket is spread over the rest in proportion to their weights.
             </li>
             <li>
-              <b>Growth.</b> Its usual yearly revenue growth (the median of its years, or its overall rate over those years if lower), faded 40% of the way toward
+              <b>Growth.</b> Its usual yearly revenue growth (the median of its years; lower if its overall rate is lower, or if its latest year slowed, which is averaged in), faded 40% of the way toward
               10% a year, since fast growth rarely lasts. Kept between −25% and +40% a year.
             </li>
             <li>
@@ -1035,7 +1117,13 @@ export function BasketDetail(p: BasketDetailProps) {
               <b>Indices</b> (Nifty 50, industry indices) aren&rsquo;t projected: we don&rsquo;t forecast them.
             </li>
           </ul>
-          <p className="mt-2">Each stock&rsquo;s own figures are in the Assumptions tab under Projection analysis.</p>
+          <p className="mt-2">
+            Each stock&rsquo;s own figures are in the Assumptions tab under Projection analysis.{" "}
+            <Link href="/baskets/projections" className="font-semibold text-accent underline">
+              Full method, with a worked example for any stock
+            </Link>
+            .
+          </p>
           <p className="mt-1.5 text-ink-soft">{PROJECTION_DISCLAIMER}</p>
         </InfoTip>
       </div>
@@ -1226,12 +1314,14 @@ export function BasketDetail(p: BasketDetailProps) {
             : `Total is ${weightTotal.toFixed(1)}%: ${weightOff > 0 ? `add ${weightOff.toFixed(1)}%` : `take off ${(-weightOff).toFixed(1)}%`} to make 100%. Results wait until then.`
         : "Target % shows your weights. Edit weights to change them."
       : pickedCount === 0
-        ? `Tick a stock to draw its line on the chart (up to ${MAX_CHART_STOCKS}).`
+        ? "Tick a stock to draw its line on the chart, or Select all to draw every stock."
         : linesFull && stocks.length > MAX_CHART_STOCKS
           ? `${MAX_CHART_STOCKS} lines on: the chart's limit. Untick one to show another.`
-          : pickedCount === stocks.length
-            ? "Every stock's line is on the chart. Untick a box to hide one."
-            : `Lines on the chart for the ticked stocks. Tick more (up to ${MAX_CHART_STOCKS}) or untick to hide.`;
+          : pickedCount > DISTINCT_LINES
+            ? `${pickedCount} lines on. Past ${DISTINCT_LINES} the line styles repeat: hover a row under the chart, or tap its swatch, to pick out its line.`
+            : pickedCount === stocks.length
+              ? "Every stock's line is on the chart. Untick a box to hide one."
+              : "Lines on the chart for the ticked stocks. Tick more or untick to hide.";
     return (
       <div className="flex flex-col gap-1 border-b border-line/70 px-3 py-1.5">
         <div className="flex flex-col gap-1 sm:min-h-6 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
@@ -1299,11 +1389,41 @@ export function BasketDetail(p: BasketDetailProps) {
   // are rendered and CSS shows one (the side column is lg:flex, this copy lg:hidden), so the server
   // sends the panel in its place and nothing appears after the page loads.
   const empty = stocks.length === 0;
+  // Your picks in the statistics: there once some (not all) stocks are picked; back to the whole basket when not.
+  const statsPicks = statsScope === "picks" && !!pickedKey && !picksAll;
+  const statsLabel = statsPicks ? `your ${picked.length} pick${picked.length === 1 ? "" : "s"}` : tableScope === "picks" ? "whole basket" : undefined;
+  const statsTools = (
+    <div role="group" aria-label="Measure" className={MINI_SEG}>
+      {(["all", "picks"] as const).map((v) => (
+        <button
+          key={v}
+          type="button"
+          aria-pressed={(v === "picks") === statsPicks}
+          disabled={v === "picks" && (!pickedKey || picksAll)}
+          title={v === "picks" && (!pickedKey || picksAll) ? (picksAll ? "Every stock is picked: the same as All stocks" : "Tick some stocks in the table or the chart’s Stocks menu first") : undefined}
+          onClick={() => setStatsScope(v)}
+          className={segBtn((v === "picks") === statsPicks) + " font-sans disabled:cursor-default disabled:opacity-40"}
+        >
+          {v === "all" ? "All" : "Picks"}
+        </button>
+      ))}
+    </div>
+  );
   const stats = (compact: boolean) =>
     projOn ? (
-      <ProjectionStats view={projection} compact={compact} heading={heading} empty={empty} scope={tableScope === "picks" ? "whole basket" : undefined} />
+      <ProjectionStats view={projection && statsPicks ? forPicks(projection) : projection} compact={compact} heading={heading} empty={empty} scope={statsLabel} tools={statsTools} />
     ) : (
-    <BasketStats range={range} basketKey={basketKey} name={name} strategy={strategy} stocks={stocks} compact={compact} heading={heading} reload={reload} empty={empty} scope={tableScope === "picks" ? "whole basket" : undefined} />
+    <BasketStats
+      range={range}
+      basketKey={statsPicks && pickedKey ? pickedKey : basketKey}
+      strategy={strategy}
+      compact={compact}
+      heading={heading}
+      reload={reload}
+      empty={empty}
+      scope={statsLabel}
+      tools={statsTools}
+    />
     );
   const narrowStats = <div className="flex min-w-0 flex-col lg:hidden">{stats(false)}</div>;
   const [tableBoxRef, tableMore] = useMoreBelow<HTMLDivElement>("tbody > tr");
@@ -1417,6 +1537,9 @@ export function BasketDetail(p: BasketDetailProps) {
                 {busy ? "Copying…" : "Copy to my baskets"}
               </button>
             )}
+            <button type="button" onClick={exportWorkbook} disabled={!stocks.length || exporting} title="Download everything on this page as an Excel workbook" className={btnSec}>
+              {exporting ? "Exporting…" : "Export Excel"}
+            </button>
             {canEdit && !draft && (
               <MoreMenu
                 items={[
@@ -1940,7 +2063,11 @@ export function BasketDetail(p: BasketDetailProps) {
               {projSet.exit === "own" ? "its own median" : "its home industry’s median"}, held within 0.7× and 1.4× today&rsquo;s (price to sales for loss-makers), with each case kept within
               −60% and +80% a year. The basket is bought today at {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights" : "weights by market cap"} and held;
               a stock left out has its share spread over the rest in proportion. The likely range and drawdowns come from 1,000 simulated paths that swing
-              like the basket did over the past year. Price change only. {PROJECTION_DISCLAIMER} See the Assumptions tab for each stock&rsquo;s inputs.
+              like the basket did over the past year. Price change only. {PROJECTION_DISCLAIMER} See the Assumptions tab for each stock&rsquo;s inputs, and{" "}
+              <Link href="/baskets/projections" className="tap-y text-accent hover:underline">
+                the full method
+              </Link>
+              .
             </p>
           ) : (
           <p className="text-[11px] leading-relaxed text-ink-soft">
@@ -1981,9 +2108,16 @@ export function BasketDetail(p: BasketDetailProps) {
           ))}
         </ul>
         <p className="mt-2">
-          A projection needs at least 3 years of results and a price and market cap in our last data update. {leftCount === 1 ? "Its" : "Their"}{" "}
-          {pct1(projection?.basket.spread ?? 0)} of the basket is shared across the other {projection?.basket.holdings.length ?? 0} stocks in proportion to their
-          weights. This changes only the projection, not the backtest.
+          A projection needs at least 3 years of results, 3 years of trading, and a price and market cap in our last data update.{" "}
+          {projection?.basket.holdings.length ? (
+            <>
+              {leftCount === 1 ? "Its" : "Their"} {pct1(projection.basket.spread)} of the basket is shared across the other {projection.basket.holdings.length}{" "}
+              stock{projection.basket.holdings.length === 1 ? "" : "s"} in proportion to their weights.
+            </>
+          ) : (
+            "No stock in this basket meets that yet, so there is nothing to project."
+          )}{" "}
+          This changes only the projection, not the backtest.
         </p>
       </ConfirmDialog>
       {canEdit && !draft && (

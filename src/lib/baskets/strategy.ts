@@ -1,5 +1,5 @@
 // A basket strategy: how the money is split (weighting) and when it is put back to that split
-// (rebalancing). Shared by the backtest API, the basket page and the CSV export, so one query
+// (rebalancing). Shared by the backtest API, the basket page and the Excel export, so one query
 // string names a strategy everywhere. The default (equal or market-cap weights, bought once and
 // held) writes the same "w=equal" the backtest has always used, so its URLs and caches are unchanged.
 

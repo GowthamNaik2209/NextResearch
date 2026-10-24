@@ -3,6 +3,7 @@
 // shared by every server instance, and rebuilt in the background a few hours after it was made,
 // so the lists follow each trading day without a visitor waiting on ~260 price histories.
 import { unstable_cache } from "next/cache";
+import { after } from "next/server";
 import { listSectors, companyLinkKey, companyLinkExposure, findSupplierByTicker, strengthPoints } from "@/lib/sector-content";
 import { HISTORY_FROM, getChartWithFallback, getSymbolChart } from "@/lib/live/yahoo";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
@@ -17,7 +18,9 @@ const CONCURRENCY = 10;
 // Below this share of stocks with prices the day's run is treated as an upstream outage: it
 // throws, so the cache keeps serving the last good lists instead of thin ones.
 const MIN_COVERAGE = 0.6;
-const REVALIDATE_SECONDS = 4 * 60 * 60;
+// Rule-based baskets are re-ranked once a day (owner's call, Oct 2026): the lists, and the cards'
+// figures with them, are worked out once and served from the shared cache until the next day.
+const REVALIDATE_SECONDS = 24 * 60 * 60;
 
 async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
   const out = new Array<R>(items.length);
@@ -105,7 +108,7 @@ async function lastTradingDay(): Promise<string | null> {
 
 export type IdeasPayload = { asOf: string; ideas: Idea[] };
 
-/** The day's ideas, from the shared cache (rebuilt in the background once it is a few hours old). */
+/** The day's ideas, from the shared cache (rebuilt in the background once a day). */
 export const getIdeas = unstable_cache(
   async (): Promise<IdeasPayload> => {
     await ensureFinancials();
@@ -123,7 +126,10 @@ export async function getIdea(id: string): Promise<{ asOf: string; idea: Idea } 
   const { asOf, ideas } = await getIdeas();
   const idea = ideas.find((i) => i.id === id);
   if (!idea) return null;
-  const [withRet] = withBacktestReturns([idea], { [idea.id]: await ideaBacktest(idea) });
+  // Its own backtest, as before (cached per server for minutes). Reading the cards' shared daily
+  // cache from the page render hung on Vercel (every idea page timed out), so the page doesn't.
+  const bt = await ideaBacktest(idea);
+  const [withRet] = withBacktestReturns([idea], { [idea.id]: bt });
   return { asOf, idea: withRet };
 }
 
@@ -131,15 +137,46 @@ export async function getIdea(id: string): Promise<{ asOf: string; idea: Idea } 
 const BACKTEST_CONCURRENCY = 3;
 
 /**
- * The day's ideas with each card's figure from the backtest its page runs: the same function,
- * range and weighting (equal, held), so the same cache entry and the same number. Run per request
- * (the backtests cache for minutes), not inside the lists' four-hour cache, which would freeze the
- * card while the page moves with the day's prices.
+ * Each idea's card figure, from the backtest its page runs (same function, range and weighting:
+ * equal, held), worked out once a day and kept per idea in the shared cache (keyed by the lists'
+ * date and the idea), so every visit and every server instance reads it at once. They used to run
+ * on every request, and all of them together can outlast a request's 60s on a cold server; one by
+ * one, a run cut short keeps the ideas it finished. A failed backtest isn't kept.
  */
-export async function getIdeasWithReturns(): Promise<IdeasPayload> {
+const ideaFigure = unstable_cache(
+  async (asOf: string, id: string): Promise<IdeaBacktest> => {
+    const { ideas } = await getIdeas();
+    const idea = ideas.find((i) => i.id === id);
+    const bt = idea ? await ideaBacktest(idea) : null;
+    if (!bt) throw new Error(`no backtest for idea ${id} (${asOf})`);
+    return bt;
+  },
+  ["basket-ideas-backtest-v2"],
+  { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
+);
+const dailyBacktest = (asOf: string, id: string) => ideaFigure(asOf, id).catch(() => null);
+
+// How long the cards wait for figures not cached yet; the rest come on the next visit.
+const CARDS_WAIT_MS = 8_000;
+
+/** The day's ideas with each card's figure (see ideaFigure); `complete` is false while some are still being worked out. */
+export async function getIdeasWithReturns(): Promise<IdeasPayload & { complete: boolean }> {
   const { asOf, ideas } = await getIdeas();
-  const results = await mapLimit(ideas, BACKTEST_CONCURRENCY, ideaBacktest);
-  return { asOf, ideas: withBacktestReturns(ideas, Object.fromEntries(ideas.map((i, k) => [i.id, results[k]]))) };
+  const got: Record<string, IdeaBacktest | null> = {};
+  const queue = ideas.map((i) => i.id);
+  const work = Promise.all(
+    Array.from({ length: BACKTEST_CONCURRENCY }, async () => {
+      for (let id = queue.shift(); id; id = queue.shift()) got[id] = await dailyBacktest(asOf, id);
+    }),
+  );
+  const done = await Promise.race([work.then(() => true), new Promise<false>((r) => setTimeout(() => r(false), CARDS_WAIT_MS))]);
+  if (!done)
+    try {
+      after(() => work);
+    } catch {
+      // Outside a request: nothing to keep alive.
+    }
+  return { asOf, ideas: withBacktestReturns(ideas, { ...got }), complete: done && ideas.every((i) => got[i.id]) };
 }
 
 async function ideaBacktest(idea: Idea): Promise<IdeaBacktest | null> {

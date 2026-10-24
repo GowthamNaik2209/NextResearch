@@ -31,6 +31,9 @@ test("fewer than 3 years, or no price, is left out with the reason", () => {
   const q = projectStock({ ...base, price: null });
   assert.equal(!q.ok && q.reason, "No price or market cap in our last data update");
   assert.equal(projectStock({ ...base, rev: [null, null, 3, 4, 5], np: [null, null, 1, 1, 1] }).ok, true);
+  // Results from before a recent listing don't count: 3 years of trading are needed as well.
+  const ipo = projectStock({ ...base, cagr: [40, null, null] });
+  assert.equal(!ipo.ok && ipo.reason, "Listed under 3 years ago (needs 3 years of trading)");
 });
 
 test("growth cases: the median year faded toward 10%, bear and bull the same distance away", () => {
@@ -42,6 +45,8 @@ test("growth cases: the median year faded toward 10%, bear and bull the same dis
   near(growthCases([1000, 1300, 1690, 2197])[1], 0.22);
   // A post-Covid jump in the first year doesn't set the base: the median year does.
   near(growthCases([500, 1000, 1100, 1210, 1331])[1], 0.1);
+  // A recent collapse counts: median +40% but the latest year −50% gives a usual rate of −5%.
+  near(growthCases([100, 705, 1342, 1209, 603])[1], -0.05 + (0.1 - -0.05) * 0.4, 0.01);
   const g = growthCases([100, 300, 900, 2700, 8100]);
   assert.equal(g[1], 0.4); // capped
   assert.ok(g[0] <= g[1] && g[2] >= g[1]);

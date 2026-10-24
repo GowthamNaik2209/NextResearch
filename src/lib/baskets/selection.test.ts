@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { BasketStock } from "./industry";
 import { MAX_BASKET_STOCKS } from "./limits";
-import { MAX_CHART_STOCKS, initSelection, planAdd, selectionReducer as reduce, type SelectionState } from "./selection";
+import { DISTINCT_LINES, MAX_CHART_STOCKS, initSelection, planAdd, selectionReducer as reduce, type SelectionState } from "./selection";
 import { weightsTotal } from "./strategy";
 
 const stock = (ticker: string): BasketStock => ({ ticker, name: ticker, mcapCr: 100, pe: 10, role: "", layer: "", industries: [], layerIn: {} });
@@ -44,6 +44,11 @@ test("add never draws a line: only the reader does", () => {
   const s0 = start(["A"], null, { A: 0 });
   assert.deepEqual(reduce(s0, { type: "add", stocks: [stock("B")] }).chart.picks, { A: 0 });
   assert.deepEqual(reduce(start([]), { type: "add", stocks: [stock("B")] }).chart.picks, {});
+});
+
+test("the chart can draw every stock a basket holds", () => {
+  assert.equal(MAX_CHART_STOCKS, MAX_BASKET_STOCKS);
+  assert.ok(DISTINCT_LINES <= MAX_CHART_STOCKS);
 });
 
 test("Select all draws the lines in the table's order", () => {
@@ -149,7 +154,8 @@ test("two quick removes are one Undo: restoring the burst latest first puts both
 });
 
 test("a line tick, Select all and Clear all are the reader's picks, capped at the line slots", () => {
-  const many = Array.from({ length: MAX_CHART_STOCKS + 4 }, (_, i) => `T${i}`);
+  // A full basket: every stock can have a line (the line limit is the basket limit).
+  const many = Array.from({ length: MAX_CHART_STOCKS }, (_, i) => `T${i}`);
   let s = start(many, null, { T3: 0 });
   s = reduce(s, { type: "togglePick", ticker: "T5" });
   assert.equal(s.picksChosen, true);
@@ -161,9 +167,8 @@ test("a line tick, Select all and Clear all are the reader's picks, capped at th
   assert.equal(Object.keys(s.chart.picks).length, MAX_CHART_STOCKS);
   assert.equal(s.chart.picks.T5, 1);
   assert.equal(new Set(Object.values(s.chart.picks)).size, MAX_CHART_STOCKS);
-  // Full: one more tick changes nothing.
-  const off = many.find((t) => s.chart.picks[t] == null)!;
-  assert.equal(reduce(s, { type: "togglePick", ticker: off }), s);
+  // Every stock has its own line slot.
+  assert.equal(many.every((t) => s.chart.picks[t] != null), true);
   // A stock not in the basket never gets a line.
   assert.equal(reduce(s, { type: "togglePick", ticker: "ZZ" }), s);
   s = reduce(s, { type: "pickNone" });

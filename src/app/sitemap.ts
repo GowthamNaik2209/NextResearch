@@ -18,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/docs`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${SITE_URL}/ipos`, lastModified: now, changeFrequency: "daily", priority: 0.7 },
     { url: `${SITE_URL}/baskets`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${SITE_URL}/baskets/projections`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
     ...sectors.map((s) => ({ url: `${SITE_URL}/baskets/industry/${s.slug}`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.6 })),
     { url: `${SITE_URL}/connections`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${SITE_URL}/updates`, lastModified: now, changeFrequency: "daily", priority: 0.6 },

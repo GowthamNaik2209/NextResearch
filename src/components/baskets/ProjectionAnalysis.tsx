@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { StockLink } from "@/components/stock/StockLink";
 import { fmtDay, NA, pct, signedPct } from "@/lib/format";
@@ -23,7 +24,7 @@ const signed = signedPct;
 const day = (t: string) => fmtDay(t, { short: true });
 const week = (t: string) => `Week of ${day(t)}`;
 const tone = (v: number | null | undefined) => (v == null ? "text-ink-soft" : v >= 0 ? "text-pos" : "text-danger");
-const NOTHING = "No stock in this basket has 3 years of results, so nothing is projected.";
+const NOTHING = "No stock in this basket has the 3 years of results and trading a projection needs, so nothing is projected.";
 
 export function ProjectionAnalysis({ view: data, heading, empty }: { view: ProjectionView | null; heading: "h2" | "h3"; empty: boolean }) {
   const [view, setView] = useState<View>("dd");
@@ -203,11 +204,11 @@ function AssumptionsView({ view }: { view: ProjectionView }) {
         </table>
       </div>
       <ul className="flex flex-col gap-0.5 border-t border-line px-3 py-1.5 text-[10px] leading-snug text-ink-soft">
-        <li><b className="font-semibold text-ink">Growth</b>: its median year of revenue growth over the years shown, faded part of the way toward 10% a year; bear and bull sit the same distance either side, unless that passes −25% or +40%.</li>
+        <li><b className="font-semibold text-ink">Growth</b>: its median year of revenue growth over the years shown (lower if its latest year slowed), faded part of the way toward 10% a year; bear and bull sit the same distance either side, unless that passes −25% or +40%.</li>
         <li><b className="font-semibold text-ink">Margin</b>: moves from today&rsquo;s toward halfway to its median (bear: its lowest, bull: its highest), by at most 15% of today&rsquo;s a year. A one-off year is left out.</li>
         <li><b className="font-semibold text-ink">Price</b>: today&rsquo;s earnings grown at that rate and margin, times an exit multiple moving a third of the way a year toward the target, held within 0.7× and 1.4× today&rsquo;s (bear 10% lower, bull 10% higher). Loss-makers use price to sales on revenue.</li>
         <li><b className="font-semibold text-ink">Capped</b>: a case kept within −60% to +80% a year.</li>
-        <li>{PROJECTION_DISCLAIMER}</li>
+        <li>{PROJECTION_DISCLAIMER} <Link href="/baskets/projections" className="font-semibold text-accent underline">Full method, with a worked example</Link>.</li>
       </ul>
     </div>
   );

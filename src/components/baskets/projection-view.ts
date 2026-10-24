@@ -40,4 +40,11 @@ export type ProjectionView = {
   stocks: BasketStock[];
   /** Each stock's target share before left-out stocks were spread (0-1), by ticker. */
   shares: Map<string, number>;
+  /** Your picks measured as their own basket (statistics and analysis switched to Your picks), when some are picked. */
+  picksStats: Pick<ProjectionView, "basket" | "cases" | "vol" | "sim" | "simState" | "path"> | null;
 };
+
+/** The view with the picks in the basket's place (the statistics' and analysis's Your picks), or the view as it is. */
+export function forPicks(v: ProjectionView): ProjectionView {
+  return v.picksStats ? { ...v, ...v.picksStats, picks: null, table: v.picksStats.basket } : v;
+}

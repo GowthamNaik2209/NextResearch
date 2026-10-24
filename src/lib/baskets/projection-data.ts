@@ -4,7 +4,7 @@
 import { companyFinancials, getSector, listSectors, parseCrore, tickerForSupplier } from "@/lib/sector-content";
 import { memoByFinancials } from "@/lib/financials/store";
 import { detectOutlier } from "./outliers";
-import { compactProjection, median, projectStock, SCENARIOS, type CaseReturns, type StockProjection } from "./projection";
+import { compactProjection, median, projectStock, SCENARIOS, type CaseReturns, type ProjectionInput, type StockProjection } from "./projection";
 import { projectBasket } from "./projection-basket";
 import { basketWeights } from "./backtest";
 
@@ -36,33 +36,34 @@ const industryMultiples = memoByFinancials(() => {
 
 const projCache = memoByFinancials(() => new Map<string, StockProjection>());
 
+/** A stock's model inputs from the company table, judged against its home industry; null when it has no figures. */
+export function projectionInputFor(ticker: string, homeSlug: string | null): ProjectionInput | null {
+  const f = companyFinancials(ticker);
+  if (!f) return null;
+  const out = detectOutlier(f);
+  const m = out ? /^FY(\d\d)$/.exec(out.year) : null;
+  const pe = num(f.kpi?.[0]);
+  return {
+    rev: f.rev ?? [],
+    np: f.np ?? [],
+    price: parseCrore(f.price),
+    mcapCr: parseCrore(f.mcap),
+    pe: pe != null && pe > 0 ? pe : null,
+    cagr: f.cagr ?? null,
+    asOf: f.asOf,
+    oneOffIndex: m ? Number(m[1]) - 22 : null,
+    industry: (homeSlug && getSector(homeSlug) ? industryMultiples().get(homeSlug) : null) ?? { pe: null, ps: null },
+  };
+}
+
 /** A stock's projection, judged against its home industry (where its company page places it). */
 export function projectionFor(ticker: string, homeSlug: string | null): StockProjection {
   const c = projCache();
   const key = `${ticker}|${homeSlug ?? ""}`;
   const hit = c.get(key);
   if (hit) return hit;
-  const f = companyFinancials(ticker);
-  let p: StockProjection;
-  if (!f) p = { ok: false, years: 0, reason: "No figures in our last data update" };
-  else {
-    const out = detectOutlier(f);
-    const m = out ? /^FY(\d\d)$/.exec(out.year) : null;
-    const pe = num(f.kpi?.[0]);
-    p = compactProjection(
-      projectStock({
-        rev: f.rev ?? [],
-        np: f.np ?? [],
-        price: parseCrore(f.price),
-        mcapCr: parseCrore(f.mcap),
-        pe: pe != null && pe > 0 ? pe : null,
-        cagr: f.cagr ?? null,
-        asOf: f.asOf,
-        oneOffIndex: m ? Number(m[1]) - 22 : null,
-        industry: (homeSlug && getSector(homeSlug) ? industryMultiples().get(homeSlug) : null) ?? { pe: null, ps: null },
-      }),
-    );
-  }
+  const input = projectionInputFor(ticker, homeSlug);
+  const p: StockProjection = input ? compactProjection(projectStock(input)) : { ok: false, years: 0, reason: "No figures in our last data update" };
   c.set(key, p);
   return p;
 }

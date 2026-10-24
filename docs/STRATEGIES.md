@@ -37,7 +37,7 @@ query string that names a strategy: `w=equal|mcap|custom`, `cw=TICKER:40,TICKER:
 custom weights, `rb=never|monthly|quarterly|drift`, `band`). The page's own URL writes the
 weighting as `wt` so it can't clash with a host page's parameters. Calendar rebalances trade at
 the close of the first bar of the new month or quarter; the drift rule trades the bar after the
-drift is seen. Turnover and trade counts are reported (and each rebalance in the CSV); costs are
+drift is seen. Turnover and trade counts are reported (and each rebalance in the Excel export); costs are
 not yet taken off.
 
 **Names on screen** (src/components/baskets/labels.ts): the controls are *Weighting* (Equal, M-cap,
@@ -65,16 +65,15 @@ status line) while the offer is open, and Undo restores its place, weight and li
 stock's line is dropped, never handed to another stock; a save that fails reloads the basket and
 its weights and lines with it.
 
-**Chart lines default to none, for every kind of basket** (industry, rule-based, saved, a draft):
-the chart opens on the basket and its benchmarks, and only the reader draws stock lines (adding
-stocks never draws one), so the first tick always adds a line and "Your picks" means the reader's
-picks. The table and the Stocks menu list the stocks in one order (the table's sort), and Select
-all in either place draws the top 18 of that order. A tick past 18 lines opens a note beside the
-tapped box. In the Custom weight boxes, Tab moves to the next stock's box; the line boxes move with
-the up and down arrows.
-Every "start from" path (Copy to my baskets on industry, rule-based and shared baskets; the
-watchlist's Save as a basket) opens the unsaved draft at `/baskets/new?from=…`; nothing is saved
-until Create basket. A basket holds up to 75 stocks; an add that would pass that says how many went in.
+**What the chart opens on** (changed Oct 2026, owner's call): a basket of up to 24 stocks (each its own
+line style: every rule-based basket, most of your own, small industries) opens with every stock's line
+on; a bigger one opens on the basket alone. Every kind of basket can draw every one of its stocks (up to
+75 lines); past 24 the line styles repeat, so hovering a row under the chart previews its line and
+tapping its swatch pins it. A basket from an industry (its page, or a saved basket or draft copied from
+one) opens compared with the Nifty 50, its index and that industry's basket; any other (rule-based, your
+own mix) with the Nifty 50 alone. The table and the Stocks menu list the stocks in one order (the table's
+sort), and Select all in either place draws them in that order. The statistics have their own All /
+Picks switch (picks measured as their own basket, in the backtest and the projection).
 
 **What a saved basket stores:** `Basket.weighting` (EQUAL or MCAP) plus `Basket.customWeighting`
 (true when custom) and each `BasketItem.weight` (its custom %). The weights are kept when the

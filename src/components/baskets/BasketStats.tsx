@@ -1,18 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import type { ChartRange } from "@/lib/live/yahoo";
 import { relativeStats, seriesStats } from "@/lib/baskets/stats";
-import { basketCsv, csvFileName, type CsvStock } from "@/lib/baskets/csv";
-import { isPlainHold, rebalanceLabel, strategyShort, weightingLabel, type Strategy } from "@/lib/baskets/strategy";
+import { rebalanceLabel, weightingLabel, type Strategy } from "@/lib/baskets/strategy";
 import { fmtDay, fmtMonth, NA, pct, signedPct } from "@/lib/format";
 import { useSeries } from "./use-series";
 import { basisLabel, pastPeriod } from "./labels";
 
 // The stats grid under the return cards: risk and return of the basket's backtest over the
 // chosen range and strategy (named in the title), how it moved against the Nifty 50 and, when it
-// is rebalanced, the trading that took. A flat, dense panel of mono figures; the
-// CSV export sits in its header because it writes out exactly these numbers and the holdings.
+// is rebalanced, the trading that took. A flat, dense panel of mono figures (the page's Export
+// Excel writes out exactly these numbers with the holdings).
 const BENCH = { key: "b:nifty50", name: "Nifty 50" };
 
 const monthName = (m: string) => fmtMonth(`${m}-01T00:00:00Z`);
@@ -26,20 +25,17 @@ const nb = (t: string) => t.replace(/ /g, "\u00a0");
 export function BasketStats({
   range,
   basketKey,
-  name,
   strategy,
-  stocks,
   compact = false,
   scope,
   heading: H = "h2",
   reload = 0,
   empty = false,
+  tools,
 }: {
   range: ChartRange;
   basketKey: string;
-  name: string;
   strategy: Strategy;
-  stocks: CsvStock[];
   /** Two columns, for the basket page's side column. */
   compact?: boolean;
   /** Named in the title when the page also shows a narrower set (the table scoped to your picks). */
@@ -49,6 +45,8 @@ export function BasketStats({
   reload?: number;
   /** No stocks yet: the panel keeps its place and size, with a line saying so. */
   empty?: boolean;
+  /** Controls on the right of the header (the page's All stocks / Your picks). */
+  tools?: ReactNode;
 }) {
   const { get, retry } = useSeries(empty ? [] : [basketKey, BENCH.key], range, { reload });
   const b = get(basketKey);
@@ -66,34 +64,7 @@ export function BasketStats({
   const years = span >= 0.95 ? span : null;
   const freq = s?.periodsPerYear === 52 ? "weekly" : s?.periodsPerYear === 12 ? "monthly" : "daily";
 
-  const exportCsv = () => {
-    if (!basket) return;
-    const csv = basketCsv({
-      name,
-      range,
-      strategy,
-      benchName: BENCH.name,
-      points: basket.points,
-      bench,
-      stats: s,
-      rel: r,
-      holdings: basket.holdings ?? [],
-      excluded: basket.excluded,
-      stocks,
-      turnover: basket.turnover,
-      trades: basket.trades,
-      rebalances: basket.rebalances,
-      exportedAt: new Date(),
-    });
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = csvFileName(name, range, isPlainHold(strategy) ? undefined : strategyShort(strategy));
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  };
+
 
   const held = strategy.rebalance === "never";
   const tone = (v: number | null | undefined) => (v == null ? "text-ink-soft" : v >= 0 ? "text-pos" : "text-danger");
@@ -207,14 +178,9 @@ export function BasketStats({
             {basisLabel(strategy)}
           </span>
         </H>
-        <button
-          type="button"
-          onClick={exportCsv}
-          disabled={!basket}
-          className="min-h-8 flex-none whitespace-nowrap rounded border border-line px-2 text-[11px] font-semibold text-ink hover:border-accent disabled:opacity-40 pointer-coarse:min-h-9"
-        >
-          Export CSV
-        </button>
+        <div className="flex flex-none items-center gap-1.5">
+        {tools}
+        </div>
       </div>
       {/* The same grid of cells whatever the state (loading, no stocks, a failed load, too short a
           range), each cell a fixed height, so the panel never changes size; a message sits over it. */}
@@ -262,7 +228,7 @@ export function BasketStats({
             </li>
           ))}
           <li>Measured on {freq} closes against the {BENCH.name} over the same dates.</li>
-          <li>Past prices only: not a forecast. The CSV holds these figures, the holdings and the basket&rsquo;s value line, not raw prices.</li>
+          <li>Past prices only: not a forecast. Export Excel (at the top of the page) holds these figures, the holdings and the basket&rsquo;s value line, not raw prices.</li>
         </ul>
       </details>
     </section>

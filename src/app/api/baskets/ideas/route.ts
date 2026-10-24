@@ -7,15 +7,17 @@ import { ensureFinancials } from "@/lib/financials/load";
 // figure is its idea's own backtest.
 export const maxDuration = 60;
 
-// GET /api/baskets/ideas - the day's basket ideas, each stock with its name for the cards. Cached
-// at the CDN no longer than the backtest route, so a card never trails its idea's page.
+// GET /api/baskets/ideas - the day's basket ideas, each stock with its name for the cards. The
+// lists and figures change once a day, so the CDN keeps them an hour (and serves a stale copy while
+// it refreshes).
 export async function GET() {
   await ensureFinancials();
   try {
-    const { asOf, ideas } = await getIdeasWithReturns();
+    const { asOf, ideas, complete } = await getIdeasWithReturns();
     return NextResponse.json(
       { asOf, ideas: ideas.map((i) => ({ ...i, stocks: i.stocks.map((s) => ({ ...s, name: basketStock(s.ticker)?.name ?? s.ticker })) })) },
-      { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=900" } },
+      // Some cards still without a figure (the server is working them out): the CDN keeps it a minute only.
+      { headers: { "Cache-Control": complete ? "public, s-maxage=3600, stale-while-revalidate=86400" : "public, s-maxage=60" } },
     );
   } catch (e) {
     console.error("[ideas] building the basket ideas failed", e);

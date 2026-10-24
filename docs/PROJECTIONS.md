@@ -12,7 +12,7 @@ components named below.
 
 ## 1. What the page does today (the rules projections keep)
 
-**One selection** (`selection.ts`): stocks, custom weights as typed, chart lines (up to 18, colour
+**One selection** (`selection.ts`): stocks, custom weights as typed, chart lines (every stock, colour
 slot per stock, never reused while taken), picked-from, Undo. Projections read it and never change
 it: ticking a box, Select all / Clear all, the Stocks menu, Your picks, removing with Undo and
 custom weights all work the same with the switch on, and the projection follows at once.
@@ -25,7 +25,7 @@ baskets run at equal weight when this basket is custom; so do their projections.
 same weighting (custom: the whole basket's %s scaled up within the picks).
 
 **Chart.** Basket (thick accent), Not rebalanced (when rebalanced), up to 3 industry baskets,
-industry indices and the market (Nifty 50, Sensex), up to 18 stocks. Each line is rebased to 0% at
+industry indices and the market (Nifty 50, Sensex), every stock in the basket. Each line is rebased to 0% at
 its own first point; one shared date grid; crosshair shows every line's value at a date in the
 rows under the chart (rows keep a fixed order); zoom with pinch / Ctrl+scroll / + −.
 
@@ -54,7 +54,9 @@ weighting, so a link reopens the same projection.
 ## 3. Which stocks are projected
 
 A stock is projected only with **at least 3 consecutive fiscal years of revenue and net profit**
-(ending at its latest reported year) **and** a price and market cap in our last data update.
+(ending at its latest reported year), **at least 3 years of trading** (no 3-year price change means it
+listed under 3 years ago: its earlier results are from before it listed) **and** a price and market cap
+in our last data update.
 Anything else is **left out**:
 
 - its share of the basket (or of your picks) is spread across the projected stocks **in proportion
@@ -73,8 +75,9 @@ and net profit, today's price, market cap and P/E (on trailing earnings), the pr
 years) and the date of the data. Industry medians (P/E, price to sales) come from the stock's home
 industry in the same table.
 
-1. **Growth.** Revenue growth in each year of the run. History is the median year (or the CAGR if
-   lower: FY22 was a low post-Covid base for many companies). Every case then fades 40% of the way
+1. **Growth.** Revenue growth in each year of the run. History is the lowest of the median year, the
+   CAGR (FY22 was a low post-Covid base for many companies) and the average of the median and the
+   latest year (so a recent slowdown counts; a steady or speeding-up company is unchanged). Every case then fades 40% of the way
    toward 10% a year (about India's nominal GDP growth), since fast growth rarely lasts. Bear and
    Bull sit the same distance either side of Base: a quarter of the range of its years, at least 3
    points. Bounded to −25% … +40% a year.
@@ -95,8 +98,9 @@ industry in the same table.
 6. **Bounds.** A case's return is kept within −60% … +80% a year; a stock at a bound is marked
    "capped" in Assumptions.
 
-Across the 273 stocks projected on 24 Oct 2026 (7 left out), the median one-year return is Bear −10%,
-Base +16%, Bull +43% (own P/E); 10 stocks have a capped case.
+Across the 273 stocks projected on 24 Oct 2026 (7 left out), the median one-year return is Bear −11%,
+Base +14%, Bull +42% (own P/E); 8 stocks have a capped case. The full method, with a worked example
+for any stock run through the same code, is on the site at /baskets/projections.
 
 Every figure is rounded for display only; the sums use full precision, so the points added always
 total the basket's projected return.
