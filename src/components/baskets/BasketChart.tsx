@@ -33,12 +33,18 @@ export type CompareBasket = {
 };
 
 // A stock's line: one of six palette colours (slot 6 is kept for the compared industry baskets),
-// solid first, then long-dashed, then dotted, so 18 stocks can be told apart.
-const STOCK_DASH: Dash[] = ["solid", "long", "dot"];
+// solid first, then long-dashed, dotted and dashed, so 24 stocks look different; past that the
+// looks repeat, and a stock's row under the chart picks out its line (see `focus`).
+const STOCK_DASH: Dash[] = ["solid", "long", "dot", "dash"];
 export function stockLine(theme: SiteTheme, slot: number): { color: string; dash: Dash } {
   return { color: SLOTS[theme][slot % 6], dash: STOCK_DASH[Math.floor(slot / 6) % STOCK_DASH.length] };
 }
 const MAX_COMPARE = 3;
+/** A line drawn faint behind the one picked out: its hex colour at a quarter strength. */
+const fade = (c: string) => {
+  const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(c.trim());
+  return m ? `rgba(${parseInt(m[1], 16)}, ${parseInt(m[2], 16)}, ${parseInt(m[3], 16)}, 0.22)` : c;
+};
 /** The legend box's tallest (14rem, about five rows); past that it scrolls. */
 const LEGEND_MAX = 224;
 /** A stock's legend row (name and ticker lines), the legend's spare row. */
@@ -127,6 +133,12 @@ export function BasketChart({
   const [menu, setMenu] = useState<"compare" | "stocks" | null>(null);
   const [menuLeft, setMenuLeft] = useState(0);
   const [hover, setHover] = useState<{ t: string; values: Record<string, number> } | null>(null);
+  // The line picked out from its row under the chart (hover, keyboard focus or a tap on its swatch):
+  // drawn thicker, every other line faded. With many lines on it is how one is found.
+  // A tap (or click) on a row's swatch pins a line; hovering a row shows one while the pointer is on it.
+  const [pinned, setPinned] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const focus = hovered ?? pinned;
   const theme = useSiteTheme();
   const [query, setQuery] = useState("");
   // The menu lists the stocks in the order the page passes (the stock table's sort), as they were
@@ -329,6 +341,18 @@ export function BasketChart({
     chart.applyOptions({ layout: { textColor: cssVar("--ink-soft", "#888") }, grid: { horzLines: { color: cssVar("--grid", "#ddd") } } });
     if (series.home) chart.timeScale().setVisibleLogicalRange(series.home);
   }, [series, theme]);
+
+  // Picking a line out only restyles the lines (no new data), so the zoom stays where it is.
+  useEffect(() => {
+    const map = seriesRef.current;
+    const on = focus && map.has(focus) ? focus : null;
+    for (const { line } of series.list) {
+      const s = map.get(line.key);
+      if (!s) continue;
+      const color = line.token ? cssVar(line.token, "#888") : line.color;
+      s.applyOptions({ color: on && line.key !== on ? fade(color) : color, lineWidth: on === line.key ? 3 : line.width });
+    }
+  }, [focus, series, theme]);
 
   const picked = Object.keys(picks).length;
   const full = picked >= MAX_CHART_STOCKS;
@@ -549,10 +573,25 @@ export function BasketChart({
             return (
               // Stock names are ink, not accent: the basket's own line is accent, and the swatch
               // already shows each stock's colour.
-              <li key={line.key} className={"flex items-center gap-3 px-3 py-2 text-sm " + (mine ? "bg-accent/5" : "")}>
-                <svg aria-hidden width="22" height="10" className={"shrink-0 " + (short || failed ? "opacity-30" : "")}>
-                  <line x1="2" y1="5" x2="20" y2="5" stroke={line.color} strokeWidth={line.width} strokeDasharray={DASHARRAY[line.dash]} strokeLinecap="round" />
-                </svg>
+              <li
+                key={line.key}
+                onMouseEnter={() => setHovered(line.key)}
+                onMouseLeave={() => setHovered((f) => (f === line.key ? null : f))}
+                className={"flex items-center gap-3 px-3 py-2 text-sm " + (focus === line.key ? "bg-accent/10" : mine ? "bg-accent/5" : "")}
+              >
+                {/* Tap (or Enter) the swatch to pick its line out on the chart; again to let it go. */}
+                <button
+                  type="button"
+                  aria-pressed={pinned === line.key}
+                  aria-label={`Pick out ${line.name}'s line on the chart`}
+                  title="Pick out this line"
+                  onClick={() => setPinned((f) => (f === line.key ? null : line.key))}
+                  className="-my-1 flex h-7 w-8 flex-none items-center justify-center rounded pointer-coarse:h-9 pointer-coarse:w-9 hover:bg-line/40 aria-pressed:bg-accent/15"
+                >
+                  <svg aria-hidden width="22" height="10" className={"shrink-0 " + (short || failed ? "opacity-30" : "")}>
+                    <line x1="2" y1="5" x2="20" y2="5" stroke={line.color} strokeWidth={line.width} strokeDasharray={DASHARRAY[line.dash]} strokeLinecap="round" />
+                  </svg>
+                </button>
                 <span className="min-w-0 flex-1">
                   {line.stock ? (
                     <StockLink ticker={line.stock} className="relative block text-balance break-words font-medium leading-snug text-ink underline decoration-line underline-offset-2 before:absolute before:inset-x-0 before:-inset-y-2.5 before:content-[''] hover:text-accent">

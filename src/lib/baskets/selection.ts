@@ -8,8 +8,12 @@ import type { BasketStock } from "./industry";
 import { MAX_BASKET_STOCKS } from "./limits";
 import { addToWeights, customTargets, removeFromWeights, toPercents } from "./strategy";
 
-/** Chart lines a basket page can draw for single stocks (six colours, three dash styles). */
-export const MAX_CHART_STOCKS = 18;
+/** Chart lines a basket page can draw for single stocks: every stock a basket can hold (owner's call,
+ * Oct 2026). 24 look different (six colours, four dash styles); past that the looks repeat, and
+ * hovering or tapping a stock's row under the chart picks out its line. */
+export const MAX_CHART_STOCKS = MAX_BASKET_STOCKS;
+/** Distinct line looks before they repeat. */
+export const DISTINCT_LINES = 24;
 /** What the page says when a line is asked for with every line slot taken (table tick or Stocks menu). */
 export const LINES_FULL = `Up to ${MAX_CHART_STOCKS} lines at a time. Switch one off to show another.`;
 

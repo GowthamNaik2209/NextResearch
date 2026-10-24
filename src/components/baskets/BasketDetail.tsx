@@ -10,7 +10,7 @@ import type { BasketStock } from "@/lib/baskets/industry";
 import { StockLink } from "@/components/stock/StockLink";
 import { BasketBreakdown, type BreakdownTab } from "./BasketBreakdown";
 import { BasketChart, defaultSelection, stockLine, type CompareBasket } from "./BasketChart";
-import { LINES_FULL, MAX_CHART_STOCKS, planAdd } from "@/lib/baskets/selection";
+import { DISTINCT_LINES, LINES_FULL, MAX_CHART_STOCKS, planAdd } from "@/lib/baskets/selection";
 import { useBasketSelection } from "./use-basket-selection";
 import { isWatched, subscribeWatchlist, watchlistSnapshot } from "@/components/sector-explorer/WatchlistButton";
 import { DASHARRAY } from "@/components/charts/palette";
@@ -984,7 +984,7 @@ export function BasketDetail(p: BasketDetailProps) {
               data update. Any other stock is left out, and its share of the basket is spread over the rest in proportion to their weights.
             </li>
             <li>
-              <b>Growth.</b> Its usual yearly revenue growth (the median of its years, or its overall rate over those years if lower), faded 40% of the way toward
+              <b>Growth.</b> Its usual yearly revenue growth (the median of its years; lower if its overall rate is lower, or if its latest year slowed, which is averaged in), faded 40% of the way toward
               10% a year, since fast growth rarely lasts. Kept between −25% and +40% a year.
             </li>
             <li>
@@ -1035,7 +1035,13 @@ export function BasketDetail(p: BasketDetailProps) {
               <b>Indices</b> (Nifty 50, industry indices) aren&rsquo;t projected: we don&rsquo;t forecast them.
             </li>
           </ul>
-          <p className="mt-2">Each stock&rsquo;s own figures are in the Assumptions tab under Projection analysis.</p>
+          <p className="mt-2">
+            Each stock&rsquo;s own figures are in the Assumptions tab under Projection analysis.{" "}
+            <Link href="/baskets/projections" className="font-semibold text-accent underline">
+              Full method, with a worked example for any stock
+            </Link>
+            .
+          </p>
           <p className="mt-1.5 text-ink-soft">{PROJECTION_DISCLAIMER}</p>
         </InfoTip>
       </div>
@@ -1226,12 +1232,14 @@ export function BasketDetail(p: BasketDetailProps) {
             : `Total is ${weightTotal.toFixed(1)}%: ${weightOff > 0 ? `add ${weightOff.toFixed(1)}%` : `take off ${(-weightOff).toFixed(1)}%`} to make 100%. Results wait until then.`
         : "Target % shows your weights. Edit weights to change them."
       : pickedCount === 0
-        ? `Tick a stock to draw its line on the chart (up to ${MAX_CHART_STOCKS}).`
+        ? "Tick a stock to draw its line on the chart, or Select all to draw every stock."
         : linesFull && stocks.length > MAX_CHART_STOCKS
           ? `${MAX_CHART_STOCKS} lines on: the chart's limit. Untick one to show another.`
-          : pickedCount === stocks.length
-            ? "Every stock's line is on the chart. Untick a box to hide one."
-            : `Lines on the chart for the ticked stocks. Tick more (up to ${MAX_CHART_STOCKS}) or untick to hide.`;
+          : pickedCount > DISTINCT_LINES
+            ? `${pickedCount} lines on. Past ${DISTINCT_LINES} the line styles repeat: hover a row under the chart, or tap its swatch, to pick out its line.`
+            : pickedCount === stocks.length
+              ? "Every stock's line is on the chart. Untick a box to hide one."
+              : "Lines on the chart for the ticked stocks. Tick more or untick to hide.";
     return (
       <div className="flex flex-col gap-1 border-b border-line/70 px-3 py-1.5">
         <div className="flex flex-col gap-1 sm:min-h-6 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
@@ -1940,7 +1948,11 @@ export function BasketDetail(p: BasketDetailProps) {
               {projSet.exit === "own" ? "its own median" : "its home industry’s median"}, held within 0.7× and 1.4× today&rsquo;s (price to sales for loss-makers), with each case kept within
               −60% and +80% a year. The basket is bought today at {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights" : "weights by market cap"} and held;
               a stock left out has its share spread over the rest in proportion. The likely range and drawdowns come from 1,000 simulated paths that swing
-              like the basket did over the past year. Price change only. {PROJECTION_DISCLAIMER} See the Assumptions tab for each stock&rsquo;s inputs.
+              like the basket did over the past year. Price change only. {PROJECTION_DISCLAIMER} See the Assumptions tab for each stock&rsquo;s inputs, and{" "}
+              <Link href="/baskets/projections" className="tap-y text-accent hover:underline">
+                the full method
+              </Link>
+              .
             </p>
           ) : (
           <p className="text-[11px] leading-relaxed text-ink-soft">
