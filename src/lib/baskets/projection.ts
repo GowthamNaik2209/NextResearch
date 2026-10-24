@@ -127,7 +127,11 @@ export function growthCases(revs: number[]): [number, number, number] {
   const last = revs[revs.length - 1];
   const cagr = first > 0 && last > 0 ? Math.pow(last / first, 1 / (revs.length - 1)) - 1 : null;
   const mid = median(yoy);
-  const hist = mid != null && cagr != null ? Math.min(mid, cagr) : (mid ?? cagr ?? 0);
+  // A recent slowdown counts: the latest year is averaged in when it is below the median (a steady or
+  // speeding-up company is unchanged), so a business whose sales just fell isn't projected on its past.
+  const latest = yoy.length ? yoy[yoy.length - 1] : null;
+  const recent = mid != null && latest != null ? (mid + latest) / 2 : null;
+  const hist = Math.min(...[mid, cagr, recent].filter((v): v is number => v != null), ...(mid == null && cagr == null ? [0] : []));
   // Past growth rarely lasts: each case fades part of the way toward the long-run rate.
   const fade = (g: number) => g + (LONG_RUN_GROWTH - g) * GROWTH_FADE;
   const base = clamp(fade(hist), GROWTH_MIN, GROWTH_MAX);
@@ -153,7 +157,50 @@ export function bound(r: number, h: number): [number, boolean] {
   return [Math.pow(1 + c, h) - 1, c !== a];
 }
 
-export function projectStock(x: ProjectionInput): StockProjection {
+/** Everything a stock's cases are worked out from (see projectStock), kept for the method page's worked example. */
+export type ProjectionContext = {
+  years: number;
+  span: string;
+  skipped?: string;
+  method: "pe" | "ps";
+  revs: number[];
+  /** Year-on-year revenue growth over the run (fractions). */
+  yoy: number[];
+  growth: [number, number, number];
+  /** Net margin each year used (fractions), and the cases. */
+  margins: number[];
+  margin: [number, number, number];
+  marginNow: number;
+  /** Years since the latest fiscal year ended. */
+  lag: number;
+  /** Today's multiple, and its own past ones: [label, value]. */
+  now: number;
+  ownPoints: [string, number][];
+  ownMedian: number;
+  targetOwn: number;
+  indMedian: number | null;
+  targetInd: number | null;
+  spread: number;
+};
+
+export type CaseDetail = {
+  target: number;
+  /** Share of the way to the target by the horizon. */
+  step: number;
+  exitBase: number;
+  exit: number;
+  growthFactor: number;
+  /** The P/E method's margin then, and its factor (1 for P/S). */
+  marginThen: number | null;
+  marginFactor: number;
+  raw: number;
+  ret: number;
+  capped: boolean;
+};
+
+type Prepared = { ok: false; years: number; reason: string } | { ok: true; ctx: ProjectionContext };
+
+function prepare(x: ProjectionInput): Prepared {
   const run = latestRun(x.rev, x.np);
   const years = run ? run[1] - run[0] + 1 : 0;
   if (years < MIN_YEARS) return { ok: false, years, reason: `${years} year${years === 1 ? "" : "s"} of results (needs ${MIN_YEARS})` };
@@ -165,6 +212,8 @@ export function projectStock(x: ProjectionInput): StockProjection {
   if (revLast <= 0) return { ok: false, years, reason: "No revenue in its latest year" };
 
   const growth = growthCases(revs);
+  const yoy: number[] = [];
+  for (let i = 1; i < revs.length; i++) if (revs[i - 1] > 0) yoy.push(revs[i] / revs[i - 1] - 1);
   // Margins, leaving out a one-off year when at least two others remain.
   let idx = revs.map((_, i) => a + i).filter((i) => (x.rev[i] as number) > 0);
   let skipped: string | undefined;
@@ -172,7 +221,8 @@ export function projectStock(x: ProjectionInput): StockProjection {
     idx = idx.filter((i) => i !== x.oneOffIndex);
     skipped = fy(x.oneOffIndex);
   }
-  const margin = marginCases(idx.map((i) => (x.np[i] as number) / (x.rev[i] as number)));
+  const margins = idx.map((i) => (x.np[i] as number) / (x.rev[i] as number));
+  const margin = marginCases(margins);
   const latestLoss = nps[nps.length - 1] <= 0;
   const method: "pe" | "ps" = ok(x.pe) && x.pe > 0 && !latestLoss && margin[1] > 0 ? "pe" : "ps";
 
@@ -186,64 +236,103 @@ export function projectStock(x: ProjectionInput): StockProjection {
 
   // Its own multiple: today's, and 1 and 3 years ago (price then, from the price CAGRs, over that
   // year's profit or revenue). Five years back falls before FY22, so it isn't used.
-  const own: number[] = [];
   const now = method === "pe" ? x.pe! : x.mcapCr / revNow;
-  own.push(now);
+  const ownPoints: [string, number][] = [["today", now]];
   ([[1, 0], [3, 1]] as const).forEach(([k, ci]) => {
     const c = x.cagr?.[ci];
     const j = b - k;
     if (!ok(c) || j < 0) return;
     const capThen = x.mcapCr! / Math.pow(1 + c / 100, k);
     const base = method === "pe" ? x.np[j] : x.rev[j];
-    if (ok(base) && base > 0) own.push(capThen / base);
+    if (ok(base) && base > 0) ownPoints.push([`${k} year${k === 1 ? "" : "s"} ago (${fy(j)})`, capThen / base]);
   });
   const fit = (t: number) => clamp(t, now * TARGET_MIN, now * TARGET_MAX);
-  const targetOwn = fit(median(own)!);
+  const ownMedian = median(ownPoints.map((p) => p[1]))!;
   const indRaw = method === "pe" ? x.industry.pe : x.industry.ps;
-  const targetInd = ok(indRaw) && indRaw > 0 ? fit(indRaw) : null;
-  const spread = EXIT_SPREAD[method];
+  const indMedian = ok(indRaw) && indRaw > 0 ? indRaw : null;
+  return {
+    ok: true,
+    ctx: {
+      years,
+      span: `${fy(a)}-${fy(b)}`,
+      ...(skipped ? { skipped } : {}),
+      method,
+      revs,
+      yoy,
+      growth,
+      margins,
+      margin,
+      marginNow,
+      lag,
+      now,
+      ownPoints,
+      ownMedian,
+      targetOwn: fit(ownMedian),
+      indMedian,
+      targetInd: indMedian != null ? fit(indMedian) : null,
+      spread: EXIT_SPREAD[method],
+    },
+  };
+}
 
+/** One case for one horizon and exit basis, step by step. */
+export function caseDetail(c: ProjectionContext, basis: ExitBasis, h: Horizon, s: Scenario): CaseDetail {
+  const si = SCENARIOS.indexOf(s);
+  const target = basis === "ind" ? (c.targetInd ?? c.targetOwn) : c.targetOwn;
+  const step = Math.min(1, h / REVERT_YEARS);
+  const exitBase = c.now + (target - c.now) * step;
+  const exit = exitBase * (si === 0 ? 1 - c.spread : si === 2 ? 1 + c.spread : 1);
+  // Earnings (or revenue) grow from today's; the margin moves from today's toward the case's by the
+  // same third a year as the multiple. Price ratio = exit / today's multiple x that growth.
+  const growthFactor = Math.pow(1 + c.growth[si], h);
+  let marginThen: number | null = null;
+  let marginFactor = 1;
+  if (c.method === "pe") {
+    // Base aims halfway between today's margin and its usual (median) one.
+    const aim = si === 1 ? (c.marginNow + c.margin[1]) / 2 : c.margin[si];
+    marginThen = c.marginNow + (aim - c.marginNow) * step;
+    const most = 1 + MARGIN_SHIFT_A_YEAR * h;
+    marginFactor = clamp(marginThen / c.marginNow, 1 / most, most);
+  }
+  const raw = (exit / c.now) * growthFactor * marginFactor - 1;
+  const [ret, capped] = bound(raw, h);
+  return { target, step, exitBase, exit, growthFactor, marginThen, marginFactor, raw, ret, capped };
+}
+
+/** A stock's working, for the method page: its context, or why it is left out. */
+export function explainStock(x: ProjectionInput): Prepared {
+  return prepare(x);
+}
+
+export function projectStock(x: ProjectionInput): StockProjection {
+  const p = prepare(x);
+  if (!p.ok) return p;
+  const c = p.ctx;
   let capped = false;
   const ret = { own: {}, ind: {} } as CaseReturns;
-  for (const basis of ["own", "ind"] as const) {
-    const target = basis === "ind" ? (targetInd ?? targetOwn) : targetOwn;
+  for (const basis of ["own", "ind"] as const)
     for (const h of [1, 2] as const) {
-      const step = Math.min(1, h / REVERT_YEARS);
-      const exitBase = now + (target - now) * step;
-      const cases = [0, 1, 2].map((s) => {
-        const g = growth[s];
-        const exit = exitBase * (s === 0 ? 1 - spread : s === 2 ? 1 + spread : 1);
-        // Earnings (or revenue) grow from today's; the margin moves from today's toward the case's
-        // by the same third a year as the multiple. Price ratio = exit / today's multiple x that growth.
-        let grow = Math.pow(1 + g, h);
-        if (method === "pe") {
-          // Base aims halfway between today's margin and its usual (median) one.
-          const aim = s === 1 ? (marginNow + margin[1]) / 2 : margin[s];
-          const mH = marginNow + (aim - marginNow) * step;
-          const most = 1 + MARGIN_SHIFT_A_YEAR * h;
-          grow *= clamp(mH / marginNow, 1 / most, most);
-        }
-        const [r, cut] = bound((exit / now) * grow - 1, h);
-        if (cut) capped = true;
-        return r;
+      const cases = SCENARIOS.map((s) => {
+        const d = caseDetail(c, basis, h, s);
+        if (d.capped) capped = true;
+        return d.ret;
       }) as [number, number, number];
       // A case never lands the wrong side of Base (a bound can squeeze them together).
       cases[0] = Math.min(cases[0], cases[1]);
       cases[2] = Math.max(cases[2], cases[1]);
       ret[basis][`${h}`] = cases;
     }
-  }
   return {
     ok: true,
-    years,
-    method,
-    growth,
-    margin: method === "pe" ? margin : null,
-    multipleNow: now,
-    targetOwn,
-    targetInd,
-    span: `${fy(a)}-${fy(b)}`,
-    ...(skipped ? { skipped } : {}),
+    years: c.years,
+    method: c.method,
+    growth: c.growth,
+    margin: c.method === "pe" ? c.margin : null,
+    multipleNow: c.now,
+    targetOwn: c.targetOwn,
+    targetInd: c.targetInd,
+    span: c.span,
+    ...(c.skipped ? { skipped: c.skipped } : {}),
     ret,
     capped,
   };

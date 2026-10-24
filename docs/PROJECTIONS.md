@@ -73,8 +73,9 @@ and net profit, today's price, market cap and P/E (on trailing earnings), the pr
 years) and the date of the data. Industry medians (P/E, price to sales) come from the stock's home
 industry in the same table.
 
-1. **Growth.** Revenue growth in each year of the run. History is the median year (or the CAGR if
-   lower: FY22 was a low post-Covid base for many companies). Every case then fades 40% of the way
+1. **Growth.** Revenue growth in each year of the run. History is the lowest of the median year, the
+   CAGR (FY22 was a low post-Covid base for many companies) and the average of the median and the
+   latest year (so a recent slowdown counts; a steady or speeding-up company is unchanged). Every case then fades 40% of the way
    toward 10% a year (about India's nominal GDP growth), since fast growth rarely lasts. Bear and
    Bull sit the same distance either side of Base: a quarter of the range of its years, at least 3
    points. Bounded to −25% … +40% a year.
@@ -95,8 +96,9 @@ industry in the same table.
 6. **Bounds.** A case's return is kept within −60% … +80% a year; a stock at a bound is marked
    "capped" in Assumptions.
 
-Across the 273 stocks projected on 24 Oct 2026 (7 left out), the median one-year return is Bear −10%,
-Base +16%, Bull +43% (own P/E); 10 stocks have a capped case.
+Across the 273 stocks projected on 24 Oct 2026 (7 left out), the median one-year return is Bear −11%,
+Base +14%, Bull +42% (own P/E); 8 stocks have a capped case. The full method, with a worked example
+for any stock run through the same code, is on the site at /baskets/projections.
 
 Every figure is rounded for display only; the sums use full precision, so the points added always
 total the basket's projected return.
