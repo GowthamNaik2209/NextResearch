@@ -36,6 +36,8 @@ export function BasketAnalysis({
   heading = "h2",
   reload = 0,
   empty = false,
+  scope,
+  scopeTools,
 }: {
   range: ChartRange;
   basketKey: string;
@@ -46,6 +48,10 @@ export function BasketAnalysis({
   reload?: number;
   /** No stocks yet: the panel keeps its place and size, with a line saying so. */
   empty?: boolean;
+  /** What it measures when not the whole basket ("your 3 picks"). */
+  scope?: string;
+  /** The All / Picks switch. */
+  scopeTools?: ReactNode;
 }) {
   const [view, setView] = useState<View>("dd");
   const { get, retry } = useSeries(empty ? [] : [basketKey, benchKey], range, { reload });
@@ -64,11 +70,11 @@ export function BasketAnalysis({
       heading={heading}
       title={
         <>
-          Backtest analysis · <span className="sm:hidden">{range}</span>
+          Backtest analysis{scope ? ` · ${scope}` : ""} · <span className="sm:hidden">{range}</span>
           <span className="max-sm:hidden">{pastPeriod(range)}</span>
         </>
       }
-      label={`Backtest analysis, ${pastPeriod(range)}`}
+      label={`Backtest analysis${scope ? `, ${scope}` : ""}, ${pastPeriod(range)}`}
       infoLabel="About the backtest analysis"
       info={
         <ul className="flex flex-col gap-1">
@@ -80,12 +86,15 @@ export function BasketAnalysis({
         </ul>
       }
       tools={
-        <div role="tablist" aria-label="Analysis view" className={MINI_SEG}>
-          {VIEWS.map((v) => (
-            <button key={v.id} type="button" role="tab" aria-selected={view === v.id} onClick={() => setView(v.id)} className={miniSegBtn(view === v.id)}>
-              {v.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
+          {scopeTools}
+          <div role="tablist" aria-label="Analysis view" className={MINI_SEG}>
+            {VIEWS.map((v) => (
+              <button key={v.id} type="button" role="tab" aria-selected={view === v.id} onClick={() => setView(v.id)} className={miniSegBtn(view === v.id)}>
+                {v.label}
+              </button>
+            ))}
+          </div>
         </div>
       }
     >
@@ -109,11 +118,11 @@ export function BasketAnalysis({
           <div aria-busy className="h-[13rem] animate-pulse bg-line/40" />
         )
       ) : view === "dd" ? (
-        <DrawdownView points={points} bench={bench} benchName={benchName} />
+        <DrawdownView points={points} bench={bench} benchName={benchName} name={scope ? "Your picks" : "Basket"} />
       ) : view === "monthly" ? (
         <MonthlyView points={points} bench={bench} benchName={benchName} />
       ) : view === "rolling" ? (
-        <RollingView points={points} bench={bench} benchName={benchName} range={range} />
+        <RollingView points={points} bench={bench} benchName={benchName} range={range} name={scope ? "Your picks" : "Basket"} />
       ) : (
         <CaptureView points={points} bench={bench} benchName={benchName} />
       )}
@@ -128,19 +137,19 @@ function Note({ children }: { children: ReactNode }) {
 
 /* ---------------------------------------------------------------- Drawdown */
 
-function DrawdownView({ points, bench, benchName }: { points: PricePoint[]; bench: PricePoint[]; benchName: string }) {
+function DrawdownView({ points, bench, benchName, name }: { points: PricePoint[]; bench: PricePoint[]; benchName: string; /** The line's name: "Basket", or "Your picks". */ name: string }) {
   const { dates, series, episodes } = useMemo(() => {
     const uw = underwater(points);
     const bMap = new Map(underwater(alignTo(points, bench)).map((p) => [p.t, p.dd]));
     return {
       dates: uw.map((p) => p.t),
       series: [
-        { name: "Basket", color: "var(--danger)", area: true, values: uw.map((p) => p.dd) },
+        { name, color: "var(--danger)", area: true, values: uw.map((p) => p.dd) },
         ...(bench.length ? [{ name: benchName, color: "var(--ink-soft)", dash: true, values: uw.map((p) => bMap.get(p.t) ?? null) }] : []),
       ],
       episodes: drawdownEpisodes(points, 5),
     };
-  }, [points, bench, benchName]);
+  }, [points, bench, benchName, name]);
 
   return (
     <div className="grid lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -257,7 +266,7 @@ function MonthlyView({ points, bench, benchName }: { points: PricePoint[]; bench
 
 /* ---------------------------------------------------------------- Rolling */
 
-function RollingView({ points, bench, benchName, range }: { points: PricePoint[]; bench: PricePoint[]; benchName: string; range: ChartRange }) {
+function RollingView({ points, bench, benchName, range, name }: { points: PricePoint[]; bench: PricePoint[]; benchName: string; range: ChartRange; name: string }) {
   const data = useMemo(() => {
     const a = rollingReturn(points, 365);
     if (!a.length) return null;
@@ -265,11 +274,11 @@ function RollingView({ points, bench, benchName, range }: { points: PricePoint[]
     return {
       dates: a.map((p) => p.t),
       series: [
-        { name: "Basket", color: "var(--accent)", values: a.map((p) => p.ret) },
+        { name, color: "var(--accent)", values: a.map((p) => p.ret) },
         ...(bench.length ? [{ name: benchName, color: "var(--ink-soft)", dash: true, values: a.map((p) => bMap.get(p.t) ?? null) }] : []),
       ],
     };
-  }, [points, bench, benchName]);
+  }, [points, bench, benchName, name]);
   if (!LONG_RANGES.includes(range) || !data) return <Note>Pick 2Y or longer to see rolling 1-year returns.</Note>;
   return (
     <div>

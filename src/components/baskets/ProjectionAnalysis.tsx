@@ -27,7 +27,21 @@ const week = (t: string) => `Week of ${day(t)}`;
 const tone = (v: number | null | undefined) => (v == null ? "text-ink-soft" : v >= 0 ? "text-pos" : "text-danger");
 const NOTHING = "No stock in this basket has the 3 years of results and trading a projection needs, so nothing is projected.";
 
-export function ProjectionAnalysis({ view: data, heading, empty }: { view: ProjectionView | null; heading: "h2" | "h3"; empty: boolean }) {
+export function ProjectionAnalysis({
+  view: data,
+  heading,
+  empty,
+  scope,
+  scopeTools,
+}: {
+  view: ProjectionView | null;
+  heading: "h2" | "h3";
+  empty: boolean;
+  /** What it measures when not the whole basket ("your 3 picks"). */
+  scope?: string;
+  /** The All / Picks switch. */
+  scopeTools?: ReactNode;
+}) {
   const [view, setView] = useState<View>("dd");
   const h = data?.settings.h ?? 1;
   const nothing = !!data && data.basket.ret == null;
@@ -37,12 +51,12 @@ export function ProjectionAnalysis({ view: data, heading, empty }: { view: Proje
       heading={heading}
       title={
         <>
-          Projection analysis · <span className="sm:hidden">{h}Y</span>
+          Projection analysis{scope ? ` · ${scope}` : ""} · <span className="sm:hidden">{h}Y</span>
           <span className="max-sm:hidden">next {HORIZON_LONG[h]}</span>
           {data ? ` · ${data.caseLabel}` : ""}
         </>
       }
-      label={`Projection analysis, next ${HORIZON_LONG[h]}${data ? `, ${data.caseLabel}` : ""}`}
+      label={`Projection analysis${scope ? `, ${scope}` : ""}, next ${HORIZON_LONG[h]}${data ? `, ${data.caseLabel}` : ""}`}
       infoLabel="About the projection analysis"
       info={
         <ul className="flex flex-col gap-1">
@@ -53,12 +67,15 @@ export function ProjectionAnalysis({ view: data, heading, empty }: { view: Proje
         </ul>
       }
       tools={
-        <div role="tablist" aria-label="Analysis view" className={MINI_SEG}>
-          {VIEWS.map((v) => (
-            <button key={v.id} type="button" role="tab" aria-selected={view === v.id} onClick={() => setView(v.id)} className={miniSegBtn(view === v.id)}>
-              {v.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
+          {scopeTools}
+          <div role="tablist" aria-label="Analysis view" className={MINI_SEG}>
+            {VIEWS.map((v) => (
+              <button key={v.id} type="button" role="tab" aria-selected={view === v.id} onClick={() => setView(v.id)} className={miniSegBtn(view === v.id)}>
+                {v.label}
+              </button>
+            ))}
+          </div>
         </div>
       }
     >

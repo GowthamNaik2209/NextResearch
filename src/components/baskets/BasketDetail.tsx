@@ -267,6 +267,8 @@ export function BasketDetail(p: BasketDetailProps) {
   const [scope, setScope] = useState<"all" | "picks">("all");
   // The statistics measure the whole basket or (with some stocks picked on the chart) just the picks.
   const [statsScope, setStatsScope] = useState<"all" | "picks">("all");
+  // The analysis panel's own All / Picks switch (drawdown, paths, assumptions or the backtest's views).
+  const [analysisScope, setAnalysisScope] = useState<"all" | "picks">("all");
   // Under the chart: the stocks as the dense holdings table, or as bar charts (who made the
   // return, returns, weights, industries).
   const [stockView, setStockView] = useState<"charts" | "list">("list");
@@ -1441,23 +1443,34 @@ export function BasketDetail(p: BasketDetailProps) {
   // Your picks in the statistics: there once some (not all) stocks are picked; back to the whole basket when not.
   const statsPicks = statsScope === "picks" && !!pickedKey && !picksAll;
   const statsLabel = statsPicks ? `your ${picked.length} pick${picked.length === 1 ? "" : "s"}` : tableScope === "picks" ? "whole basket" : undefined;
-  const statsTools = (
+  // All / Picks: the whole basket, or the picked stocks as their own basket (once some, not all, are picked).
+  const scopeTools = (isPicks: boolean, set: (v: "all" | "picks") => void) => (
     <div role="group" aria-label="Measure" className={MINI_SEG}>
       {(["all", "picks"] as const).map((v) => (
         <button
           key={v}
           type="button"
-          aria-pressed={(v === "picks") === statsPicks}
+          aria-pressed={(v === "picks") === isPicks}
           disabled={v === "picks" && (!pickedKey || picksAll)}
           title={v === "picks" && (!pickedKey || picksAll) ? (picksAll ? "Every stock is picked: the same as All stocks" : "Tick some stocks in the table or the chart’s Stocks menu first") : undefined}
-          onClick={() => setStatsScope(v)}
-          className={segBtn((v === "picks") === statsPicks) + " font-sans disabled:cursor-default disabled:opacity-40"}
+          onClick={() => set(v)}
+          className={segBtn((v === "picks") === isPicks) + " font-sans disabled:cursor-default disabled:opacity-40"}
         >
           {v === "all" ? "All" : "Picks"}
         </button>
       ))}
     </div>
   );
+  const statsTools = scopeTools(statsPicks, setStatsScope);
+  const analysisPicks = analysisScope === "picks" && !!pickedKey && !picksAll;
+  const analysisLabel = analysisPicks ? `your ${picked.length} pick${picked.length === 1 ? "" : "s"}` : undefined;
+  const analysisTools = scopeTools(analysisPicks, setAnalysisScope);
+  // The picks' projection analysis: their own paths and risk (forPicks), and only their rows in Assumptions.
+  const analysisView = useMemo(() => {
+    if (!projection || !analysisPicks) return projection;
+    const keep = new Set(picked.map((s) => s.ticker));
+    return { ...forPicks(projection), stocks: projection.stocks.filter((s) => keep.has(s.ticker)) };
+  }, [projection, analysisPicks, picked]);
   const stats = (compact: boolean) =>
     projOn ? (
       <ProjectionStats view={projection && statsPicks ? forPicks(projection) : projection} compact={compact} heading={heading} empty={empty} scope={statsLabel} tools={statsTools} />
@@ -2149,7 +2162,11 @@ export function BasketDetail(p: BasketDetailProps) {
                 )}
               </Panel>
               <div className={"flex min-w-0 flex-col " + onlyOn("chart")}>
-                {projOn ? <ProjectionAnalysis view={projection} heading={heading} empty={empty} /> : <BasketAnalysis range={range} basketKey={basketKey} heading={heading} reload={reload} empty={empty} />}
+                {projOn ? (
+                  <ProjectionAnalysis view={analysisView} heading={heading} empty={empty} scope={analysisLabel} scopeTools={analysisTools} />
+                ) : (
+                  <BasketAnalysis range={range} basketKey={analysisPicks && pickedKey ? pickedKey : basketKey} heading={heading} reload={reload} empty={empty} scope={analysisLabel} scopeTools={analysisTools} />
+                )}
               </div>
               {view === "chart" && narrowStats}
             </>
