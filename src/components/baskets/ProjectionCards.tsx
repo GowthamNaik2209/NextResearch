@@ -99,7 +99,7 @@ export function ProjectionCards({ view, empty, dense = false }: { view: Projecti
         sub={sim ? "8 in 10 simulated paths" : view?.simState === "none" && view.basket.ret != null ? "needs a past year of prices" : undefined}
         note={loading ? undefined : empty ? "add stocks to see" : view?.basket.ret == null ? "nothing projected" : undefined}
         dense={dense}
-        title={`Where 8 in 10 of 1,000 simulated paths end: the chosen case as the middle, swinging like the basket did over the past year.${quiet}`}
+        title={`Where 8 in 10 of 1,000 simulated paths end: averaging the chosen case (the typical path ends a little below it), swinging like the basket did over the past year.${quiet}`}
       />
     </section>
   );

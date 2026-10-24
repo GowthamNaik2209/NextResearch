@@ -128,7 +128,7 @@ function DrawdownView({ view }: { view: ProjectionView }) {
             </tbody>
           </table>
         </div>
-        <p className="px-3 py-1.5 text-[10px] leading-snug text-ink-soft">1,000 simulated weekly paths with the chosen case as the middle, swinging like the basket did over the past year.</p>
+        <p className="px-3 py-1.5 text-[10px] leading-snug text-ink-soft">1,000 simulated weekly paths averaging the chosen case (the typical path ends a little below it), swinging like the basket did over the past year. The chart shows each week&rsquo;s fall below the high so far; the table, the deepest fall over the whole year, so the two can differ.</p>
       </div>
     </div>
   );

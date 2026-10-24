@@ -1125,7 +1125,7 @@ export function BasketDetail(p: BasketDetailProps) {
               basket&rsquo;s real range: its stocks don&rsquo;t all have a bad year together.
             </li>
             <li>
-              <b>Likely range and risk.</b> The basket-level range: 1,000 simulated weekly paths that end around the chosen case and swing like the basket did over the
+              <b>Likely range and risk.</b> The basket-level range: 1,000 simulated weekly paths whose average is the chosen case and which swing like the basket did over the
               past year. The likely range holds 8 in 10 paths; drawdowns and the chance of a loss come from the same paths.
             </li>
           </ol>

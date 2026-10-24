@@ -83,7 +83,7 @@ export function ProjectionStats({
       ...range,
       sub: "8 in 10 paths",
       cls: sim && last >= 0 && tone(sim.lo[last]) === tone(sim.hi[last]) ? tone(sim.lo[last]) : "text-ink",
-      help: "Where 8 in 10 of 1,000 simulated paths end: the chosen case as the middle, swinging like the basket did over the past year. This is the basket-level range, since its stocks don't all move together.",
+      help: "Where 8 in 10 of 1,000 simulated paths end: averaging the chosen case (the typical path ends a little below it), swinging like the basket did over the past year. This is the basket-level range, since its stocks don't all move together.",
     },
     { label: "Chance of loss", ...pLoss, sub: "at the end, simulated", help: "Share of the simulated paths that end below today's value." },
     { label: "10% fall", ...pFall, sub: "chance, at some point", help: "Share of the simulated paths that fall 10% or more from a high at some point." },
