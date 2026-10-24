@@ -31,6 +31,9 @@ test("fewer than 3 years, or no price, is left out with the reason", () => {
   const q = projectStock({ ...base, price: null });
   assert.equal(!q.ok && q.reason, "No price or market cap in our last data update");
   assert.equal(projectStock({ ...base, rev: [null, null, 3, 4, 5], np: [null, null, 1, 1, 1] }).ok, true);
+  // Results from before a recent listing don't count: 3 years of trading are needed as well.
+  const ipo = projectStock({ ...base, cagr: [40, null, null] });
+  assert.equal(!ipo.ok && ipo.reason, "Listed under 3 years ago (needs 3 years of trading)");
 });
 
 test("growth cases: the median year faded toward 10%, bear and bull the same distance away", () => {

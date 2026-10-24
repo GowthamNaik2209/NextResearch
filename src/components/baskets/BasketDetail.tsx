@@ -34,7 +34,7 @@ import { useProjection, schemeShares } from "./use-projection";
 import { ProjectionCards } from "./ProjectionCards";
 import { ProjectionStats } from "./ProjectionStats";
 import { ProjectionAnalysis } from "./ProjectionAnalysis";
-import { EXIT_LABEL, HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL } from "./projection-view";
+import { EXIT_LABEL, HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, forPicks } from "./projection-view";
 import type { ChartProjection } from "./BasketChart";
 import { caseReturn, HORIZONS, SCENARIOS, type ExitBasis, type Horizon, type Scenario } from "@/lib/baskets/projection";
 import { stockPath, type ProjectionSettings } from "@/lib/baskets/projection-basket";
@@ -195,7 +195,18 @@ export function BasketDetail(p: BasketDetailProps) {
   // One rule everywhere, so the first tap always adds a line (docs/STRATEGIES.md).
   const { sel, act, current, tickers } = useBasketSelection(() => {
     const ownIndustry = p.mode === "industry" && p.compareSlug === p.id;
-    const chart = defaultSelection(p.indices, p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id)), p.compareSlug && !ownIndustry ? p.compareSlug : null);
+    // What the chart opens compared with: a basket that comes from an industry (its own page, or a
+    // saved basket or draft copied from one) beside the Nifty 50, its index and that industry's
+    // basket; one that doesn't (a rule-based basket, a mix of your own) beside the Nifty 50 alone,
+    // since "its industry" would only be the one most of its stocks happen to share. Every index and
+    // industry basket stays in Compare with.
+    const fromIndustry = p.mode === "industry" || ((p.mode === "saved" || p.mode === "draft") && !!p.sourceSector);
+    const chart = fromIndustry
+      ? defaultSelection(p.indices, p.industries.filter((i) => !(p.mode === "industry" && i.slug === p.id)), p.compareSlug && !ownIndustry ? p.compareSlug : null)
+      : { benches: ["nifty50"], compare: [], picks: {} };
+    // A basket small enough for every stock to have its own line style opens with every line on (a
+    // rule-based list, most of your own); a bigger one (most industries) opens on the basket alone.
+    if (p.stocks.length > 0 && p.stocks.length <= DISTINCT_LINES) chart.picks = Object.fromEntries(p.stocks.map((s, i) => [s.ticker, i]));
     return { stocks: p.stocks, unlisted: p.unlisted, custom: p.weighting === "custom" || p.customWeights ? savedCustom(p.stocks) : null, chart, pickedFrom: p.pickedFrom };
   });
   const { stocks, confirmed, unlisted, custom: customEdit, chart: chartSel, pickedFrom, picksChosen } = sel;
@@ -233,6 +244,8 @@ export function BasketDetail(p: BasketDetailProps) {
   // The stock table measures weight and contribution within the whole basket, or (once stocks
   // are picked on the chart) within just those picks, backtested as their own basket.
   const [scope, setScope] = useState<"all" | "picks">("all");
+  // The statistics measure the whole basket or (with some stocks picked on the chart) just the picks.
+  const [statsScope, setStatsScope] = useState<"all" | "picks">("all");
   // Under the chart: the stocks as the dense holdings table, or as bar charts (who made the
   // return, returns, weights, industries).
   const [stockView, setStockView] = useState<"charts" | "list">("list");
@@ -410,6 +423,7 @@ export function BasketDetail(p: BasketDetailProps) {
     picksChosen,
     scopePicks: tableScope === "picks" && !picksAll,
     volKey: stocks.length ? basketKey : null,
+    picksVolKey: pickedKey && !picksAll ? pickedKey : null,
     reload,
   });
   const leftCount = projection?.basket.leftOut.length ?? 0;
@@ -980,7 +994,7 @@ export function BasketDetail(p: BasketDetailProps) {
           <p className="font-semibold">How a projection is worked out</p>
           <ol className="mt-1 list-decimal space-y-1 pl-4">
             <li>
-              <b>Which stocks.</b> Only stocks with at least 3 years in a row of revenue and net profit, and a price and market cap in our last
+              <b>Which stocks.</b> Only stocks with at least 3 years in a row of revenue and net profit, at least 3 years of trading, and a price and market cap in our last
               data update. Any other stock is left out, and its share of the basket is spread over the rest in proportion to their weights.
             </li>
             <li>
@@ -1307,11 +1321,43 @@ export function BasketDetail(p: BasketDetailProps) {
   // are rendered and CSS shows one (the side column is lg:flex, this copy lg:hidden), so the server
   // sends the panel in its place and nothing appears after the page loads.
   const empty = stocks.length === 0;
+  // Your picks in the statistics: there once some (not all) stocks are picked; back to the whole basket when not.
+  const statsPicks = statsScope === "picks" && !!pickedKey && !picksAll;
+  const statsLabel = statsPicks ? `your ${picked.length} pick${picked.length === 1 ? "" : "s"}` : tableScope === "picks" ? "whole basket" : undefined;
+  const statsTools = (
+    <div role="group" aria-label="Measure" className={MINI_SEG}>
+      {(["all", "picks"] as const).map((v) => (
+        <button
+          key={v}
+          type="button"
+          aria-pressed={(v === "picks") === statsPicks}
+          disabled={v === "picks" && (!pickedKey || picksAll)}
+          title={v === "picks" && (!pickedKey || picksAll) ? (picksAll ? "Every stock is picked: the same as All stocks" : "Tick some stocks in the table or the chart’s Stocks menu first") : undefined}
+          onClick={() => setStatsScope(v)}
+          className={segBtn((v === "picks") === statsPicks) + " font-sans disabled:cursor-default disabled:opacity-40"}
+        >
+          {v === "all" ? "All" : "Picks"}
+        </button>
+      ))}
+    </div>
+  );
   const stats = (compact: boolean) =>
     projOn ? (
-      <ProjectionStats view={projection} compact={compact} heading={heading} empty={empty} scope={tableScope === "picks" ? "whole basket" : undefined} />
+      <ProjectionStats view={projection && statsPicks ? forPicks(projection) : projection} compact={compact} heading={heading} empty={empty} scope={statsLabel} tools={statsTools} />
     ) : (
-    <BasketStats range={range} basketKey={basketKey} name={name} strategy={strategy} stocks={stocks} compact={compact} heading={heading} reload={reload} empty={empty} scope={tableScope === "picks" ? "whole basket" : undefined} />
+    <BasketStats
+      range={range}
+      basketKey={statsPicks && pickedKey ? pickedKey : basketKey}
+      name={statsPicks ? `${name} (your picks)` : name}
+      strategy={strategy}
+      stocks={statsPicks ? picked : stocks}
+      compact={compact}
+      heading={heading}
+      reload={reload}
+      empty={empty}
+      scope={statsLabel}
+      tools={statsTools}
+    />
     );
   const narrowStats = <div className="flex min-w-0 flex-col lg:hidden">{stats(false)}</div>;
   const [tableBoxRef, tableMore] = useMoreBelow<HTMLDivElement>("tbody > tr");
@@ -1993,9 +2039,16 @@ export function BasketDetail(p: BasketDetailProps) {
           ))}
         </ul>
         <p className="mt-2">
-          A projection needs at least 3 years of results and a price and market cap in our last data update. {leftCount === 1 ? "Its" : "Their"}{" "}
-          {pct1(projection?.basket.spread ?? 0)} of the basket is shared across the other {projection?.basket.holdings.length ?? 0} stocks in proportion to their
-          weights. This changes only the projection, not the backtest.
+          A projection needs at least 3 years of results, 3 years of trading, and a price and market cap in our last data update.{" "}
+          {projection?.basket.holdings.length ? (
+            <>
+              {leftCount === 1 ? "Its" : "Their"} {pct1(projection.basket.spread)} of the basket is shared across the other {projection.basket.holdings.length}{" "}
+              stock{projection.basket.holdings.length === 1 ? "" : "s"} in proportion to their weights.
+            </>
+          ) : (
+            "No stock in this basket meets that yet, so there is nothing to project."
+          )}{" "}
+          This changes only the projection, not the backtest.
         </p>
       </ConfirmDialog>
       {canEdit && !draft && (

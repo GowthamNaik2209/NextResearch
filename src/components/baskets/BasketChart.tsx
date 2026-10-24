@@ -222,7 +222,7 @@ export function BasketChart({
         const slug = decodeURIComponent(l.key.slice(9).split("&")[0]);
         const r = industries.find((b) => b.slug === slug)?.proj?.[projection.compareWeighting]?.[exit]?.[`${h}`]?.[SCENARIOS.indexOf(scenario)];
         if (r != null) values.set(l.key, stockPath(r, steps));
-        else why.set(l.key, "no stock in it has 3 years of results");
+        else why.set(l.key, "no stock in it has 3 years of results and trading");
         continue;
       }
       why.set(l.key, projection.why[l.key] ?? (l.key.startsWith("b:") ? "not projected: we don’t forecast indices" : "not projected"));
@@ -551,7 +551,7 @@ export function BasketChart({
         <div ref={boxRef} className="h-full w-full" />
         {series.list.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-ink-soft">
-            {projection ? "No stock in this basket has 3 years of results, so nothing is projected." : anyLoading ? "Backtesting the basket…" : "Couldn’t load price history right now."}
+            {projection ? "No stock in this basket has the 3 years of results and trading a projection needs, so nothing is projected." : anyLoading ? "Backtesting the basket…" : "Couldn’t load price history right now."}
           </div>
         )}
       </div>

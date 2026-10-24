@@ -111,7 +111,7 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
           <H2 id="which">2. Which stocks are projected</H2>
           <P>
             A stock needs at least <b className="text-ink">{MIN_YEARS} fiscal years in a row</b> of both revenue and net profit, ending at its latest
-            reported year, and a price and market cap in our last data update. Anything less is too little to judge growth and margins on, so the stock
+            reported year, at least 3 years of trading (a recent listing&rsquo;s earlier results are from before it listed, and it has no valuation history to judge a usual P/E by), and a price and market cap in our last data update. Anything less is too little to judge growth and margins on, so the stock
             is <b className="text-ink">left out</b>: its share of the basket is spread over the projected stocks in proportion to their own weights, so
             the weights still total 100%. A short note names the stocks left out and why; their rows in the table say so too. Leaving a stock out
             changes only the projection, never the backtest.

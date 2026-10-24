@@ -36,7 +36,7 @@ export function ProjectionCards({ view, empty, dense = false }: { view: Projecti
   const bRet = view?.basket.ret != null ? view.basket.ret * 100 : null;
   const bCagr = view?.basket.cagr != null ? view.basket.cagr * 100 : null;
   const basketSub = bRet == null ? undefined : h === 2 ? `${signedPct(bCagr)} a year` : caseName;
-  const basketNote = bRet != null || loading ? undefined : empty || !view?.stocks.length ? "add stocks to see" : "no stock has 3 years of results";
+  const basketNote = bRet != null || loading ? undefined : empty || !view?.stocks.length ? "add stocks to see" : "no stock has 3 years of results and trading";
 
   // b. Your picks, its gap taken between the shown figures (as ReturnCards does).
   const picks = view?.picks ?? null;
@@ -45,7 +45,7 @@ export function ProjectionCards({ view, empty, dense = false }: { view: Projecti
   const allPicked = !!view && view.picksCount > 0 && view.picksCount >= view.stocks.length;
   const picksNote = picks
     ? pRet == null
-      ? "no pick has 3 years of results"
+      ? "no pick has 3 years of results and trading"
       : undefined
     : loading
       ? undefined

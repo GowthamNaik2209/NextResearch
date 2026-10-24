@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { NA, pct, signedPct } from "@/lib/format";
 import { signedPts } from "@/lib/baskets/fmt";
 import { rangeEnd } from "./ProjectionCards";
@@ -23,6 +24,7 @@ export function ProjectionStats({
   heading: H,
   empty,
   scope,
+  tools,
 }: {
   view: ProjectionView | null;
   /** Two columns, for the basket page's side column. */
@@ -32,6 +34,8 @@ export function ProjectionStats({
   empty: boolean;
   /** Named in the title when the page also shows a narrower set (the table scoped to your picks). */
   scope?: string;
+  /** Controls on the right of the header (the page's All stocks / Your picks). */
+  tools?: ReactNode;
 }) {
   const loading = !empty && !view;
   const h = view?.settings.h ?? 1;
@@ -97,7 +101,7 @@ export function ProjectionStats({
       label: "Stocks projected",
       value: b ? `${k} of ${n}` : NA,
       sub: b ? (m ? `${m} left out` : "all projected") : undefined,
-      help: "Stocks with at least 3 years of results and a price in our last data update. A left-out stock's share is spread over the rest in proportion to their weights.",
+      help: "Stocks with at least 3 years of results and of trading, and a price in our last data update. A left-out stock's share is spread over the rest in proportion to their weights.",
     },
     { label: "Nifty 50", value: NA, sub: "not projected", help: "We have no forecast for an index, so the Nifty 50 isn't projected." },
   ];
@@ -118,6 +122,7 @@ export function ProjectionStats({
             </span>
           )}
         </H>
+        {tools}
       </div>
       {/* The same grid of cells whatever the state, each cell a fixed height, so the panel never
           changes size; a message sits over it. */}
@@ -135,7 +140,7 @@ export function ProjectionStats({
         </dl>
         {(empty || nothing) && (
           <div className="absolute inset-0 flex items-center justify-center bg-panel/70 px-4 text-center text-xs text-ink-soft">
-            {empty ? "Add stocks to see the projection." : "No stock in this basket has 3 years of results, so nothing is projected."}
+            {empty ? "Add stocks to see the projection." : "No stock in this basket has the 3 years of results and trading a projection needs, so nothing is projected."}
           </div>
         )}
       </div>

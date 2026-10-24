@@ -24,7 +24,7 @@ const signed = signedPct;
 const day = (t: string) => fmtDay(t, { short: true });
 const week = (t: string) => `Week of ${day(t)}`;
 const tone = (v: number | null | undefined) => (v == null ? "text-ink-soft" : v >= 0 ? "text-pos" : "text-danger");
-const NOTHING = "No stock in this basket has 3 years of results, so nothing is projected.";
+const NOTHING = "No stock in this basket has the 3 years of results and trading a projection needs, so nothing is projected.";
 
 export function ProjectionAnalysis({ view: data, heading, empty }: { view: ProjectionView | null; heading: "h2" | "h3"; empty: boolean }) {
   const [view, setView] = useState<View>("dd");

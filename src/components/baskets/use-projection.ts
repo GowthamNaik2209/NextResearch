@@ -36,6 +36,7 @@ export function useProjection({
   picksChosen,
   scopePicks,
   volKey,
+  picksVolKey = null,
   reload,
 }: {
   on: boolean;
@@ -52,12 +53,17 @@ export function useProjection({
   scopePicks: boolean;
   /** The basket's backtest key: its past year sets the simulated paths' swings. */
   volKey: string | null;
+  /** The picks' backtest key, when some (not all) stocks are picked: their own past year for their statistics. */
+  picksVolKey?: string | null;
   reload: number;
 }): ProjectionView | null {
-  const { get } = useSeries(on && stocks.length && volKey ? [volKey] : [], "1Y", { reload });
+  const { get } = useSeries(on && stocks.length && volKey ? [volKey, picksVolKey] : [], "1Y", { reload });
   const volLoad = on && volKey ? get(volKey) : undefined;
   const points = volLoad?.status === "ok" ? volLoad.data.points : null;
   const vol = useMemo(() => (points ? annualVol(points) : null), [points]);
+  const pVolLoad = on && picksVolKey ? get(picksVolKey) : undefined;
+  const pPoints = pVolLoad?.status === "ok" ? pVolLoad.data.points : null;
+  const pVol = useMemo(() => (pPoints ? annualVol(pPoints) : null), [pPoints]);
   const start = points?.length ? points[points.length - 1].t : today();
 
   const core = useMemo(() => {
@@ -70,14 +76,19 @@ export function useProjection({
     // basket's %s scaled up within the picks), as the backtest's picks card does.
     const some = picksChosen && picked.length > 0 && picked.length < stocks.length;
     const pickShares = some ? schemeShares(picked, weighting, weights) : null;
-    const picks = some && pickShares ? projectBasket(picked.map((s) => ({ ticker: s.ticker, weight: pickShares.get(s.ticker) ?? 0, proj: s.proj })), settings) : null;
-    return { shares, basket, cases, picks };
+    const pItems = some && pickShares ? picked.map((s) => ({ ticker: s.ticker, weight: pickShares.get(s.ticker) ?? 0, proj: s.proj })) : null;
+    const picks = pItems ? projectBasket(pItems, settings) : null;
+    const picksCases = pItems && picks ? (Object.fromEntries(SCENARIOS.map((sc) => [sc, sc === settings.scenario ? picks.ret : projectBasket(pItems, { ...settings, scenario: sc }).ret])) as Record<Scenario, number | null>) : null;
+    return { shares, basket, cases, picks, picksCases };
   }, [on, stocks, weighting, weights, settings, picked, picksChosen]);
 
   const steps = 52 * settings.h;
   const seed = useMemo(() => seedOf(`${stocks.map((s) => `${s.ticker}:${core?.shares.get(s.ticker)?.toFixed(6)}`).join(",")}|${settings.h}|${settings.scenario}|${settings.exit}`), [stocks, core, settings]);
   const ret = core?.basket.ret ?? null;
   const sim = useMemo(() => (on && ret != null && vol != null && vol > 0 ? simulate(ret, settings.h, vol, seed) : null), [on, ret, vol, settings.h, seed]);
+  const pRet = core?.picks?.ret ?? null;
+  const pSim = useMemo(() => (on && pRet != null && pVol != null && pVol > 0 ? simulate(pRet, settings.h, pVol, seed ^ 0x9e3779b9) : null), [on, pRet, pVol, settings.h, seed]);
+  const pVolStatus = pVolLoad?.status;
 
   const volStatus = volLoad?.status;
   // One object per change that matters, so the chart (which redraws on a new one) doesn't redraw,
@@ -101,6 +112,17 @@ export function useProjection({
     simState: ret == null ? "none" : simState,
     stocks,
     shares: core.shares,
+    picksStats:
+      core.picks && core.picksCases
+        ? {
+            basket: core.picks,
+            cases: core.picksCases,
+            vol: pVol,
+            sim: pSim,
+            simState: pRet == null ? "none" : pSim ? "ok" : !pVolStatus || pVolStatus === "loading" ? "loading" : "none",
+            path: basketPath(core.picks.holdings, steps),
+          }
+        : null,
   };
-  }, [on, core, sim, volStatus, ret, settings, steps, start, vol, stocks, scopePicks, picksChosen, picked.length]);
+  }, [on, core, sim, volStatus, ret, settings, steps, start, vol, stocks, scopePicks, picksChosen, picked.length, pVol, pSim, pRet, pVolStatus]);
 }

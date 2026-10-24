@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import type { ChartRange } from "@/lib/live/yahoo";
 import { relativeStats, seriesStats } from "@/lib/baskets/stats";
 import { basketCsv, csvFileName, type CsvStock } from "@/lib/baskets/csv";
@@ -34,6 +34,7 @@ export function BasketStats({
   heading: H = "h2",
   reload = 0,
   empty = false,
+  tools,
 }: {
   range: ChartRange;
   basketKey: string;
@@ -49,6 +50,8 @@ export function BasketStats({
   reload?: number;
   /** No stocks yet: the panel keeps its place and size, with a line saying so. */
   empty?: boolean;
+  /** Controls beside Export CSV (the page's All stocks / Your picks). */
+  tools?: ReactNode;
 }) {
   const { get, retry } = useSeries(empty ? [] : [basketKey, BENCH.key], range, { reload });
   const b = get(basketKey);
@@ -207,6 +210,8 @@ export function BasketStats({
             {basisLabel(strategy)}
           </span>
         </H>
+        <div className="flex flex-none items-center gap-1.5">
+        {tools}
         <button
           type="button"
           onClick={exportCsv}
@@ -215,6 +220,7 @@ export function BasketStats({
         >
           Export CSV
         </button>
+        </div>
       </div>
       {/* The same grid of cells whatever the state (loading, no stocks, a failed load, too short a
           range), each cell a fixed height, so the panel never changes size; a message sits over it. */}

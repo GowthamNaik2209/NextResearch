@@ -205,6 +205,10 @@ function prepare(x: ProjectionInput): Prepared {
   const years = run ? run[1] - run[0] + 1 : 0;
   if (years < MIN_YEARS) return { ok: false, years, reason: `${years} year${years === 1 ? "" : "s"} of results (needs ${MIN_YEARS})` };
   if (!ok(x.price) || x.price <= 0 || !ok(x.mcapCr) || x.mcapCr <= 0) return { ok: false, years, reason: "No price or market cap in our last data update" };
+  // Three years of trading too: a recent listing's earlier "results" are from before it listed, and
+  // it has no valuation history to judge a usual P/E by. No 3-year price change means it listed
+  // under 3 years ago.
+  if (!ok(x.cagr?.[1])) return { ok: false, years, reason: `Listed under ${MIN_YEARS} years ago (needs ${MIN_YEARS} years of trading)` };
   const [a, b] = run!;
   const revs = x.rev.slice(a, b + 1) as number[];
   const nps = x.np.slice(a, b + 1) as number[];
