@@ -316,7 +316,7 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
       [`Bear / Bull = (1 + Base) × e^(−σ² h / 2 ∓ ${Z80.toFixed(2)} σ √h) − 1: the 10th and 90th percentile of a lognormal outcome at the stock's own volatility. Out of sample over three one-year periods (Oct 2024 to Oct 2026), the Bear-to-Bull range held 91%, 90% and 81% of actual one-year outcomes (aim 80%).`],
       ["Base is not a ranking or stock-picking signal: across stocks it mostly reflects beta (its rank correlation with actual outcomes was +0.01, +0.01 and −0.11 in the same test)."],
       ["Basket: bought today at the target weights and held; each case = Σ weight × the stock's same case; points added = weight × return. So the basket's Bear and Bull have every stock at its own 10th or 90th percentile at once, wider than the basket's real range; the likely range below is the basket-level range."],
-      ["Likely range and risk figures: 1,000 simulated weekly paths whose middle ends at the chosen case's return and which swing like the basket's past year; the likely range is the 10th to 90th percentile."],
+      ["Likely range and risk figures: 1,000 simulated weekly paths around the Base case whichever case is chosen (average = the Base return, the typical path a little below it), swinging like the basket's past year; the likely range is the 10th to 90th percentile."],
       [`Full method with a worked example: ${x.url.replace(/\/baskets\/.*$/, "")}/baskets/projections`],
       [],
       [x.disclaimer],

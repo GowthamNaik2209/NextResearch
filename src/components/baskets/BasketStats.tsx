@@ -168,12 +168,12 @@ export function BasketStats({
   return (
     <section aria-label="Backtest statistics" className="rounded-md border border-line bg-panel">
       <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-1.5">
-        <H className="text-balance text-[10px] font-semibold uppercase tracking-wider text-ink-soft sm:text-[11px]">
+        <H className="min-w-0 flex-1 text-balance text-[10px] font-semibold uppercase tracking-wider text-ink-soft sm:text-[11px]">
           <span className="whitespace-nowrap">Backtest statistics</span>
           {scope ? ` · ${scope}` : ""} · <span className={compact ? "" : "sm:hidden"}>{range}</span>
           {!compact && <span className="whitespace-nowrap max-sm:hidden">{pastPeriod(range)}</span>}
           {/* The side column is narrow: the settings take their own line there rather than breaking mid-title. */}
-          <span title={`${weightingLabel(strategy)}, ${rebalanceLabel(strategy)}`} className={compact ? "block truncate" : ""}>
+          <span title={`${weightingLabel(strategy)}, ${rebalanceLabel(strategy)}`} className={compact ? "block truncate text-[9px] tracking-wide" : ""}>
             {compact ? "" : " · "}
             {basisLabel(strategy)}
           </span>

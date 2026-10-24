@@ -439,7 +439,9 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
           <H2 id="range">8. Likely range, drawdown and chance of a loss</H2>
           <P>
             A smooth line never falls, so the risk figures come from <B>1,000 simulated weekly paths</B>. Their average outcome is the
-            basket&rsquo;s return in the chosen case (so the median path ends a little below it, as each stock&rsquo;s range is centred), and each swings as much as the basket did over the past year (its volatility, from its 1-year
+            basket&rsquo;s <B>Base</B> return whichever case is chosen (so the median path ends a little below it, as each stock&rsquo;s range is
+            centred): Bear and Bull are already the basket&rsquo;s two extremes, and a simulation around Bear would stack a bad year on a bad year. Each
+            path swings as much as the basket did over the past year (its volatility, from its 1-year
             backtest). The same settings always draw the same paths.
           </P>
           <Bullets>

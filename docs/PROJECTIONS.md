@@ -154,7 +154,7 @@ total the basket's projected return.
 - **Dates.** One point a week from today's last close for 52 or 104 weeks (`Week of …` on the
   crosshair, like the 3Y and 5Y backtests).
 - **Likely range, drawdown, chance of a loss.** 1,000 simulated weekly paths (seeded, so the same
-  settings always give the same figures) with the case's return as the average (so the median path ends below it, as each stock's range is centred) and the basket's own
+  settings always give the same figures) with the **Base** case's return as the average whichever case is chosen (Bear and Bull are already the extremes; simulating around Bear would stack a bad year on a bad year; the median path ends a little below Base) and the basket's own
   volatility over the past year (its 1Y backtest). The likely range is the 10th to 90th percentile
   path; drawdowns are each path's worst fall from a high (typical = median path, bad = 1 in 10).
   Without a past-year backtest (it failed to load) those cells say so; the projection itself still shows.

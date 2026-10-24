@@ -7,7 +7,7 @@ import { fmtDay, NA, pct, signedPct } from "@/lib/format";
 import { GROWTH_FADE, IC, LONG_RUN_GROWTH, MARKET, SCENARIOS, VOL_FLOOR, type Scenario, type StockProjection } from "@/lib/baskets/projection";
 import { stockPath } from "@/lib/baskets/projection-basket";
 import { MINI_SEG, Panel, miniSegBtn } from "./Panel";
-import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, type ProjectionView } from "./projection-view";
+import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, SIM_NOTE, type ProjectionView } from "./projection-view";
 
 // Projection analysis, in the backtest analysis' place with Projections on (docs/PROJECTIONS.md):
 // how far the simulated paths fall from a high, the chosen case beside the other cases and the
@@ -109,7 +109,7 @@ function DrawdownView({ view }: { view: ProjectionView }) {
         <LineChart dates={view.dates} series={series} dateLabel={week} />
       </div>
       <div className="min-w-0">
-        <SubTitle>Falls from a high · {view.caseLabel}</SubTitle>
+        <SubTitle>Falls from a high · around the base case</SubTitle>
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]">
             <thead className="text-[10px] text-ink-soft">
@@ -128,7 +128,7 @@ function DrawdownView({ view }: { view: ProjectionView }) {
             </tbody>
           </table>
         </div>
-        <p className="px-3 py-1.5 text-[10px] leading-snug text-ink-soft">1,000 simulated weekly paths averaging the chosen case (the typical path ends a little below it), swinging like the basket did over the past year. The chart shows each week&rsquo;s fall below the high so far; the table, the deepest fall over the whole year, so the two can differ.</p>
+        <p className="px-3 py-1.5 text-[10px] leading-snug text-ink-soft">{SIM_NOTE} The chart shows each week&rsquo;s fall below the high so far; the table, the deepest fall over the whole year, so the two can differ.</p>
       </div>
     </div>
   );
@@ -144,7 +144,7 @@ function PathsView({ view }: { view: ProjectionView }) {
     const out: Line[] = [{ name: `${SCENARIO_LABEL[chosen]} case`, color: "var(--accent)", values: view.path }];
     if (sim) {
       const faint = "color-mix(in srgb, var(--accent) 55%, transparent)";
-      out.push({ name: "Likely range high", color: faint, dash: true, values: sim.hi }, { name: "Likely range low", color: faint, dash: true, values: sim.lo });
+      out.push({ name: "Likely range high (around Base)", color: faint, dash: true, values: sim.hi }, { name: "Likely range low (around Base)", color: faint, dash: true, values: sim.lo });
     }
     SCENARIOS.filter((s): s is Scenario => s !== chosen).forEach((s) => {
       const r = view.cases[s];

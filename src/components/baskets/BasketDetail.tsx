@@ -847,12 +847,15 @@ export function BasketDetail(p: BasketDetailProps) {
       let proj = projection ? { settings, on: true, sim: projection.sim, vol: projection.vol, dates: projection.dates, path: projection.path } : null;
       if (!proj) {
         const vol = past.status === "ok" ? annualVol(past.data.points) : null;
-        const b = projectBasket(stocks.map((st) => ({ ticker: st.ticker, weight: shares.get(st.ticker) ?? 0, proj: st.proj })), settings);
+        const items = stocks.map((st) => ({ ticker: st.ticker, weight: shares.get(st.ticker) ?? 0, proj: st.proj }));
+        const b = projectBasket(items, settings);
+        // The simulated paths run around the Base case, as on the page (SIM_NOTE).
+        const baseRet = settings.scenario === "base" ? b.ret : projectBasket(items, { ...settings, scenario: "base" }).ret;
         const start = past.status === "ok" && past.data.points.length ? past.data.points[past.data.points.length - 1].t : new Date().toISOString().slice(0, 10);
         proj = {
           settings,
           on: false,
-          sim: b.ret != null && vol ? simulate(b.ret, settings.h, vol, seedOf(`${tickers.join(",")}|export`)) : null,
+          sim: baseRet != null && vol ? simulate(baseRet, settings.h, vol, seedOf(`${tickers.join(",")}|export`)) : null,
           vol,
           dates: weeklyDates(start, settings.h),
           path: basketPath(b.holdings, 52 * settings.h),
@@ -1125,7 +1128,7 @@ export function BasketDetail(p: BasketDetailProps) {
               basket&rsquo;s real range: its stocks don&rsquo;t all have a bad year together.
             </li>
             <li>
-              <b>Likely range and risk.</b> The basket-level range: 1,000 simulated weekly paths whose average is the chosen case and which swing like the basket did over the
+              <b>Likely range and risk.</b> The basket-level range: 1,000 simulated weekly paths around the <b>Base</b> case whichever case is chosen (Bear and Bull are already the extremes), swinging like the basket did over the
               past year. The likely range holds 8 in 10 paths; drawdowns and the chance of a loss come from the same paths.
             </li>
           </ol>
