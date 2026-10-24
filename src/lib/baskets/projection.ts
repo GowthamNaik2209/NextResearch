@@ -132,7 +132,7 @@ export type ProjectionContext = {
   market: number;
   /** IC x vol x z. */
   tilt: number;
-  /** Base, a year: market + tilt. */
+  /** Base, a year: market + tilt (what casesFor gives for h = 1). */
   base1: number;
 };
 
@@ -328,13 +328,14 @@ export function explainStock(x: ProjectionInput, scale: ScoreScale): { ok: false
 }
 
 /**
- * The three cases over h years. Base: the market return compounded over the years, with the tilt
- * once (a one-year signal isn't carried into the second year). Bear and Bull: the 10th and 90th
+ * The three cases over h years. Base: a year, market return + tilt; two years, that year then a
+ * year at the market return, (1 + market) (1 + market + tilt) - 1 (a one-year signal isn't carried
+ * into the second year). Bear and Bull: the 10th and 90th
  * percentiles of a lognormal outcome with that mean, (1 + Base) e^(-vol^2 h / 2 -/+ 1.28 vol sqrt h) - 1.
  * (The middle of that range, the median, sits below Base: a volatile stock's typical year is below its average one.)
  */
 export function casesFor(c: Pick<ProjectionContext, "market" | "tilt" | "vol">, h: Horizon): [number, number, number] {
-  const base = Math.pow(1 + c.market, h) * (1 + c.tilt) - 1;
+  const base = Math.pow(1 + c.market, h - 1) * (1 + c.market + c.tilt) - 1;
   const mid = (1 + base) * Math.exp((-c.vol * c.vol * h) / 2);
   const w = Z80 * c.vol * Math.sqrt(h);
   return [mid * Math.exp(-w) - 1, base, mid * Math.exp(w) - 1];

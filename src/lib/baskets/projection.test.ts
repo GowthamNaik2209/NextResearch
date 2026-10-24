@@ -92,13 +92,13 @@ test("no measured beta: 1; no price history: volatility from the 52-week range; 
 test("Bear and Bull: 10th and 90th percentiles of a lognormal outcome with mean Base", () => {
   const c = { market: 0.12, tilt: 0.01, vol: 0.3 };
   const [bear, mid, bull] = casesFor(c, 1);
-  near(mid, 1.12 * 1.01 - 1);
+  near(mid, 0.13);
   const med = (1 + mid) * Math.exp(-0.045);
   near(bear, med * Math.exp(-Z80 * 0.3) - 1);
   near(bull, med * Math.exp(Z80 * 0.3) - 1);
   // Two years: market compounded, tilt once, width by sqrt(2).
   const [b2, m2, u2] = casesFor(c, 2);
-  near(m2, 1.12 * 1.12 * 1.01 - 1);
+  near(m2, 1.12 * 1.13 - 1);
   near(Math.log((1 + u2) / (1 + b2)), 2 * Z80 * 0.3 * Math.SQRT2);
   // Lognormal check: with mean (1 + Base), 10% of outcomes fall below Bear.
   const p = projectStock(base, scale);

@@ -118,19 +118,20 @@ stock's Base by the same amount, never the order of stocks or the width of the r
    deviation over every listed company we cover, within ±3. A weak signal should barely move the
    forecast: with σ ~35% the tilt is at most about ±5 points. Loss-makers (and stocks without a
    usable P/E or margin) have no tilt: "market" method.
-6. **Base** = market return + tilt, a year. Two years: (1 + market)² × (1 + tilt) − 1 (a one-year
+6. **Base** = market return + tilt, a year. Two years: (1 + market) × (1 + market + tilt) − 1 (a one-year
    signal isn't carried into the second year).
 7. **Bear and Bull** = the 10th and 90th percentiles of a lognormal outcome with mean Base:
    (1 + Base) × e^(−σ²h/2 ∓ 1.28 σ √h) − 1 for h = 1 or 2 years. Their middle (the median outcome)
-   sits below Base: a volatile stock's typical year is below its average one. No caps.
+   sits below Base: a volatile stock's typical year is below its average one. The return has no cap
+   (only the inputs have limits: growth, margins, z, the volatility floor).
 
 Rules for which stocks are projected are as in section 3. Out of sample over three 1-year periods
 (Oct 2024 – Oct 2026; [PROJECTIONS-V2-PROTOTYPE.md](./PROJECTIONS-V2-PROTOTYPE.md), "Built v2" rows of
 `scripts/validate-projections-v2.ts`), this model's Bear–Bull held 91%, 90% and 81% of actual
-outcomes (the first model's: 47%, 48%, 33%); Base's rank correlation with outcomes was +0.01, +0.02
-and −0.10: it describes risk and the market's pricing, it does not pick stocks. Today (24 Oct 2026, `scripts/projections-today.ts`): 248 of
+outcomes (the first model's: 47%, 48%, 33%); Base's rank correlation with outcomes was +0.01, +0.01
+and −0.11: it describes risk and the market's pricing, it does not pick stocks. Today (24 Oct 2026, `scripts/projections-today.ts`): 248 of
 280 companies projected; median beta 1.22, volatility 36%, dividend yield 0.4%; median one-year Bear
-−31%, Base +15%, Bull +72% (two years: −39% / +34% / +126%); Base ranges from +4% to +26%, the
+−31%, Base +15%, Bull +72% (two years: −39% / +34% / +127%); Base ranges from +5% to +25%, the
 highest being the highest-beta stocks; 29 on the market method (no fundamentals tilt), 9 at the
 volatility floor. The full method,
 with a worked example for any stock run through the same code, is on the site at

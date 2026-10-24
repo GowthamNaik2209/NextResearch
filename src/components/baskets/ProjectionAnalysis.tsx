@@ -192,7 +192,7 @@ function AssumptionsView({ view }: { view: ProjectionView }) {
               <Th left title="Fiscal years of results used">Years</Th>
               <Th title="Beta to the Nifty 50 from 2 years of weekly returns, pulled a third of the way to 1">Beta</Th>
               <Th title={`Annual volatility used for Bear and Bull: its last year's, never below ${pct(VOL_FLOOR * 100, 0)}`}>Volatility</Th>
-              <Th title={`G-sec ${rf} + beta x ERP ${erp} - dividend yield, a year`}>Market return</Th>
+              <Th title={`G-sec ${rf} + beta x ERP ${erp} - dividend yield, a year`}>Market return a year</Th>
               <Th title="IC 0.05 x volatility x standardised fundamentals score, added once">Fundamentals tilt</Th>
               <Th title={`Projected return over the next ${HORIZON_LONG[h]}: bear / base / bull; the chosen case in bold`}>Bear / Base / Bull</Th>
             </tr>
@@ -275,7 +275,7 @@ function Row({ ticker, name, proj, view, cols, notHeld }: { ticker: string; name
       </td>
       <td className={cell}>
         {signed(proj.market * 100)}
-        {proj.divYield > 0 && <Note>after {pct(proj.divYield * 100)} dividend</Note>}
+        {proj.divYield >= 0.0005 && <Note>after {pct(proj.divYield * 100)} dividend</Note>}
       </td>
       <td className={cell}>
         {proj.method === "pe" ? (

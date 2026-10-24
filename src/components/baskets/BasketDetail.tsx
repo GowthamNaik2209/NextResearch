@@ -469,8 +469,18 @@ export function BasketDetail(p: BasketDetailProps) {
   useEffect(() => {
     if (!projOn || !leftCount || leftSeen.current) return;
     leftSeen.current = true;
+    // Once per basket and set of left-out stocks in this browser: a reload doesn't show it again
+    // (the "N left out" chip still opens it).
+    const seenKey = `nr-leftout:${basketKey}:${projection?.basket.leftOut.map((l) => l.ticker).join(",") ?? ""}`;
+    try {
+      if (localStorage.getItem(seenKey)) return;
+      localStorage.setItem(seenKey, "1");
+    } catch {
+      // Storage blocked: show it, as before.
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- opens the note once, on the first projection with a left-out stock
     setLeftNote(true);
-  }, [projOn, leftCount]);
+  }, [projOn, leftCount, basketKey, projection]);
 
   // The table's backtest: the basket's own, or the picks' when it shows just the picks (the cards
   // and panels load their lines themselves; the basket's is asked for here too, so it is ready).
@@ -1102,7 +1112,7 @@ export function BasketDetail(p: BasketDetailProps) {
             </li>
             <li>
               <b>Base</b> = market return + tilt. Across stocks it mostly reflects beta, so it isn&rsquo;t a ranking or a stock-picking signal: in our out-of-sample test its
-              rank correlation with what stocks then did was close to zero (+0.01, +0.02 and −0.10 over three one-year periods).
+              rank correlation with what stocks then did was close to zero (+0.01, +0.01 and −0.11 over three one-year periods).
             </li>
             <li>
               <b>Bear and Bull.</b> The 10th and 90th percentile of a year at the stock&rsquo;s own volatility over the last year (never below {Math.round(VOL_FLOOR * 100)}%; estimated
@@ -1170,6 +1180,7 @@ export function BasketDetail(p: BasketDetailProps) {
         <button
           type="button"
           onClick={() => setSort(id)}
+          aria-label={on ? `${label}, ${sortWords(id, sortRev)}. Tap for ${sortWords(id, !sortRev)}` : `Sort by ${label}, ${sortWords(id, false)}`}
           title={on ? `${sortWords(id, sortRev)} · tap again for ${sortWords(id, !sortRev)}` : sortWords(id, false)}
           className={"tap-y inline-flex min-h-6 items-center whitespace-nowrap uppercase tracking-wider hover:text-ink pointer-coarse:min-h-9 " + (on ? "text-ink" : "")}
         >
@@ -1920,7 +1931,10 @@ export function BasketDetail(p: BasketDetailProps) {
                                           return (
                                             <span key={sc}>
                                               {i > 0 && " · "}
-                                              <span className="font-sans">{sc === "bear" ? "Bear" : sc === "bull" ? "Bull" : "Base"}</span> {r == null ? NA : signedPct(r * 100)}
+                                              {/* The case the list is sorted by, when it is one of these two, stands out. */}
+                                              <span className={sort === sc ? "font-semibold text-ink" : undefined}>
+                                                <span className="font-sans">{sc === "bear" ? "Bear" : sc === "bull" ? "Bull" : "Base"}</span> {r == null ? NA : signedPct(r * 100)}
+                                              </span>
                                             </span>
                                           );
                                         })}
@@ -1966,7 +1980,9 @@ export function BasketDetail(p: BasketDetailProps) {
                         tall empty space under the shorter one. */}
                     <div className="relative hidden sm:block">
                     <div ref={tableBoxRef} className="max-h-[36rem] overflow-auto">
-                      <table className="w-full border-collapse text-xs">
+                      {/* With Projections on (three case columns) or a Picked on column, the table keeps a width the
+                          names can read at and scrolls sideways inside its box on a tablet instead of squeezing them. */}
+                      <table className={"w-full border-collapse text-xs " + (projOn || p.pickedOn ? "min-w-[52rem]" : "")}>
                         <thead className="sticky top-0 z-[1] bg-panel-2 text-[10px] uppercase tracking-wider text-ink-soft">
                           <tr className="border-b border-line">
                             <th scope="col" className="w-10 pl-2 pr-0">

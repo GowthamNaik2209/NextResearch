@@ -283,9 +283,9 @@ yield, which the table doesn't have for past dates:
 | | P1 | P2 | P3 | Pooled |
 |---|---|---|---|---|
 | Inside Bear–Bull | 91% | 90% | 81% | 87% (Kupiec rejects as too wide, p < 0.001) |
-| IC (Base vs actual) | +0.01 | +0.02 | −0.10 | mean −0.02 |
-| Median error / abs error | −15 / 28 | −12 / 31 | −24 / 39 | |
-| Top − bottom fifth (mean) | +7 | +18 | +3 | +9 |
+| IC (Base vs actual) | +0.01 | +0.01 | −0.11 | mean −0.03 |
+| Median error / abs error | −15 / 28 | −11 / 31 | −24 / 39 | |
+| Top − bottom fifth (mean) | +8 | +17 | −6 | +6 |
 
 ## 7. Limitations
 

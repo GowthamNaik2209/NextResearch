@@ -45,6 +45,9 @@ const DISCLAIMER = "Model projection from market pricing, past prices and report
 const DEFAULT = "M&M";
 const pct = (v: number, dp = 1) => `${v < 0 ? "−" : ""}${Math.abs(v * 100).toFixed(dp)}%`;
 const sPct = (v: number, dp?: number) => signedPct(v * 100, dp);
+const f4 = (v: number) => v.toFixed(4);
+/** A term added in a formula: "+ 1.23%" or "− 1.23%" (or as a fraction, "+ 0.0123"), never "+ −". */
+const plus = (v: number, dp = 2, frac = false) => `${v < 0 ? "−" : "+"} ${frac ? Math.abs(v).toFixed(dp) : `${Math.abs(v * 100).toFixed(dp)}%`}`;
 const n2 = (v: number) => `${v < 0 ? "−" : ""}${Math.abs(v).toFixed(2)}`;
 const n3 = (v: number) => `${v < 0 ? "−" : ""}${Math.abs(v).toFixed(3)}`;
 const cr = (v: number | null | undefined) => (v == null || !Number.isFinite(v) ? NA : Math.round(v).toLocaleString("en-IN"));
@@ -115,8 +118,8 @@ const SECTIONS = [
 // docs/PROJECTIONS-V2-PROTOTYPE.md. Inside = share of actual 1-year outcomes between Bear and Bull.
 const PERIODS = [
   { period: "24 Oct 2024 → 24 Oct 2025", nifty: "+5.7%", stocks: 241, oldInside: "47%", inside: "91%", baseIc: "+0.01", scoreIc: "+0.09" },
-  { period: "24 Apr 2025 → 24 Apr 2026", nifty: "−1.4%", stocks: 248, oldInside: "48%", inside: "90%", baseIc: "+0.02", scoreIc: "+0.09" },
-  { period: "24 Oct 2025 → 23 Oct 2026", nifty: "−12.4%", stocks: 259, oldInside: "33%", inside: "81%", baseIc: "−0.10", scoreIc: "+0.01" },
+  { period: "24 Apr 2025 → 24 Apr 2026", nifty: "−1.4%", stocks: 248, oldInside: "48%", inside: "90%", baseIc: "+0.01", scoreIc: "+0.09" },
+  { period: "24 Oct 2025 → 23 Oct 2026", nifty: "−12.4%", stocks: 259, oldInside: "33%", inside: "81%", baseIc: "−0.11", scoreIc: "+0.01" },
 ] as const;
 
 export default async function ProjectionMethodPage({ searchParams }: { searchParams: Promise<{ t?: string }> }) {
@@ -338,14 +341,15 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
             <Formula>
               Base, 1 year = market return + tilt
               <br />
-              Base, 2 years = (1 + market return)² × (1 + tilt) − 1
+              Base, 2 years = (1 + market return) × (1 + market return + tilt) − 1
             </Formula>
           </div>
           <div className="flex flex-col gap-2">
             <H3>h. Bear and Bull</H3>
             <P>
               The 10th and 90th percentiles of a lognormal outcome whose average is Base and whose spread is the stock&rsquo;s σ over h years (1 or
-              2). The middle of that range, the median, is (1 + Base) × e^(−σ²h/2) − 1, below Base. There are no caps.
+              2). The middle of that range, the median, is (1 + Base) × e^(−σ²h/2) − 1, below Base. The return itself has no cap (the
+              previous model&rsquo;s −60% … +80% a year bound is gone); only the inputs above have limits.
             </P>
             <Formula>
               Bear = (1 + Base) × e^(−σ²h/2 − {Z80.toFixed(4)} × σ × √h) − 1
@@ -375,7 +379,7 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
             <Row>
               <Td left>Base</Td>
               <Td left wrap>the average outcome: market return plus tilt</Td>
-              <Td left>(1 + market)^h × (1 + tilt) − 1</Td>
+              <Td left>1 year: market + tilt · 2 years: (1 + market) × (1 + market + tilt) − 1</Td>
             </Row>
             <Row last>
               <Td left>Bull</Td>
@@ -490,7 +494,7 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
             </li>
             <li>
               <B>Bear and Bull come from the stock&rsquo;s own 1-year volatility</B>, centred on the lognormal median, instead of scenario shifts.
-              No caps.
+              The return itself has no cap.
             </li>
             <li>
               <B>Loss-makers</B> get the market return and their own volatility instead of a price-to-sales reversion.
@@ -533,7 +537,7 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
               held up in the year the Nifty fell 12%, and is a little wide in calmer years; it was not narrowed to fit these periods.
             </li>
             <li>
-              <B>Base is not a stock-picking signal.</B> Its rank correlation with outcomes was +0.01, +0.02 and −0.10. Across stocks it mostly
+              <B>Base is not a stock-picking signal.</B> Its rank correlation with outcomes was +0.01, +0.01 and −0.11. Across stocks it mostly
               reflects beta, so it follows the market&rsquo;s direction. The fundamentals score alone was +0.09, +0.09 and +0.01: positive in every
               period, never statistically significant, which is why its weight is small.
             </li>
@@ -757,7 +761,7 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
               <br />
               usual = lowest = {sPct(f.histGrowth, 2)}
               <br />
-              growth = {sPct(f.histGrowth, 2)} + {GROWTH_FADE} × ({pct(LONG_RUN_GROWTH, 0)} − {sPct(f.histGrowth, 2)}) = {sPct(g.faded, 2)}
+              growth = {pct(f.histGrowth, 2)} + {GROWTH_FADE} × ({pct(LONG_RUN_GROWTH, 0)} {plus(-f.histGrowth)}) = {sPct(g.faded, 2)}
               {Math.abs(g.faded - f.growth) > 1e-12 ? ` → kept within −25% … +40%: ${sPct(f.growth, 2)}` : ""}
               <br />
               <br />
@@ -773,14 +777,14 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
               {marginCapped ? ` → kept within 1 ÷ ${1 + MARGIN_SHIFT_A_YEAR} … ${1 + MARGIN_SHIFT_A_YEAR}: ${f.marginFactor.toFixed(4)}` : ""}
               <br />
               <br />
-              score = (1 + {sPct(f.growth, 2)}) × {f.marginFactor.toFixed(4)} − 1 = {sPct(f.score, 2)}
+              score = {f4(1 + f.growth)} × {f.marginFactor.toFixed(4)} − 1 = {sPct(f.score, 2)}
             </Formula>
           </div>
 
           <div className="flex flex-col gap-1">
             <H3>5. z and the tilt</H3>
             <Formula>
-              z = ({sPct(f.score, 2)} − {sPct(ctx.scale.median, 2)}) ÷ {pct(ctx.scale.sd, 2)} = {n2(zRaw)}
+              z = ({pct(f.score, 2)} {plus(-ctx.scale.median)}) ÷ {pct(ctx.scale.sd, 2)} = {n2(zRaw)}
               {zCapped ? ` → kept within ±${Z_MAX}: ${n2(ctx.z)}` : ""}
               <br />
               tilt = {IC} × {pct(ctx.vol, 2)} × {n2(ctx.z)} = {sPct(ctx.tilt, 2)}
@@ -800,8 +804,8 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
       <div className="flex flex-col gap-1">
         <H3>6. Base</H3>
         <Formula>
-          1 year: {pct(ctx.market, 2)} + {sPct(ctx.tilt, 2)} = {sPct(ctx.base1, 2)}
-          <br />2 years: (1 + {pct(ctx.market, 2)})² × (1 + {sPct(ctx.tilt, 2)}) − 1 = {sPct(base2, 2)}
+          1 year: {pct(ctx.market, 2)} {plus(ctx.tilt)} = {sPct(ctx.base1, 2)}
+          <br />2 years: {f4(1 + ctx.market)} × ({f4(1 + ctx.market)} {plus(ctx.tilt, 4, true)}) − 1 = {sPct(base2, 2)}
         </Formula>
       </div>
 
@@ -814,10 +818,10 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
             return (
               <span key={h}>
                 {i > 0 && <br />}
-                {h} year{h === 1 ? "" : "s"}: median = (1 + {sPct(c[1], 2)}) × e^(−{pct(ctx.vol, 2)}² × {h} ÷ 2) − 1 = {sPct(mid, 2)}; spread ={" "}
+                {h} year{h === 1 ? "" : "s"}: median = {f4(1 + c[1])} × e^(−{pct(ctx.vol, 2)}² × {h} ÷ 2) − 1 = {sPct(mid, 2)}; spread ={" "}
                 {Z80.toFixed(4)} × {pct(ctx.vol, 2)} × √{h} = {w.toFixed(4)}
                 <br />
-                {"  "}Bear = (1 + {sPct(mid, 2)}) × e^(−{w.toFixed(4)}) − 1 = {sPct(c[0], 2)} · Bull = (1 + {sPct(mid, 2)}) × e^({w.toFixed(4)}) − 1 ={" "}
+                {"  "}Bear = {f4(1 + mid)} × e^(−{w.toFixed(4)}) − 1 = {sPct(c[0], 2)} · Bull = {f4(1 + mid)} × e^({w.toFixed(4)}) − 1 ={" "}
                 {sPct(c[2], 2)}
               </span>
             );

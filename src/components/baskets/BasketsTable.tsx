@@ -335,18 +335,6 @@ export function BasketsTable({
                     Max DD <Num entry={e} pick={(f) => f.maxDd} unit="%" />
                   </span>
                 )}
-                {/* Sorted by a projected case below md, where those columns are hidden: the three join the sub-line. */}
-                {sortedCase && (
-                  <span className="block whitespace-nowrap md:hidden">
-                    Next 1Y{" "}
-                    {CASES.map((c, i) => (
-                      <span key={c} className={c === sortedCase ? "font-semibold text-ink" : undefined}>
-                        {i > 0 && " · "}
-                        {c === "bear" ? "Bear" : c === "base" ? "Base" : "Bull"} <CaseNum v={caseOf(r, c)} />
-                      </span>
-                    ))}
-                  </span>
-                )}
               </>
             );
             return (
@@ -382,6 +370,19 @@ export function BasketsTable({
                       </span>
                     )}
                   </span>
+                  {/* Sorted by a projected case below md, where those columns are hidden: the three show under the name. */}
+                  {sortedCase && (
+                    <span className="text-[11px] leading-4 text-ink-soft md:hidden">
+                      {CASES.map((c, i) => (
+                        <span key={c}>
+                          {i > 0 && " · "}
+                          <span className={"whitespace-nowrap " + (c === sortedCase ? "font-semibold text-ink" : "")}>
+                            {c === "bear" ? "Bear" : c === "base" ? "Base" : "Bull"} <CaseNum v={caseOf(r, c)} />
+                          </span>
+                        </span>
+                      ))}
+                    </span>
+                  )}
                 </span>
                 <span role="cell" className="hidden text-right font-mono tabular-nums text-ink-soft sm:block">
                   <span className="sr-only">Stocks </span>
