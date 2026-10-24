@@ -10,8 +10,10 @@ fundamentals, and a volatility-based range?
 
 - **The volatility range is the clear win.** Pooled, it held **78%** of outcomes against a target of
   80% (Kupiec p 0.16, so not rejected). The shipped Bear–Bull held **42%** (p < 0.001). It was closer
-  to 80% than the shipped band in every period. Per period it still swings, 86% / 93% / 56%: the
-  short-memory EWMA follows recent turbulence.
+  to 80% than the shipped band in every period. With the spec's EWMA λ 0.94 it still swings, 86% /
+  93% / 56%, because the short-memory EWMA follows recent turbulence. λ 0.97 barely helps (88 / 93 /
+  60%). **1Y realised volatility** centred on the median held 90 / 89 / **80%**: calibrated in the
+  falling year and a little wide in the other two (section 4).
 - **Removing the multiple reversion removes the anti-momentum lean.** The fundamentals score with
   today's P/E held had IC +0.09 / +0.09 / +0.01. The shipped Base on the same stocks had +0.07 /
   +0.09 / −0.12. It was never negative, but it was never significant either.
@@ -20,8 +22,8 @@ fundamentals, and a volatility-based range?
   the market's year. As a ranking, v2's Base is mostly beta, and beta's IC takes the sign of the
   market (−0.21 in the year Nifty fell 12%). That is what CAPM predicts. It is not skill.
 
-Recommendation (section 6): ship the volatility range, preferably with a longer-memory volatility,
-and drop the multiple reversion. Ship the CAPM anchor as the level, with the tilt shrunk at IC 0.05,
+Recommendation (section 6): ship the volatility range on 1Y realised volatility, centred on the
+median, and drop the multiple reversion. Ship the CAPM anchor as the level, with the tilt shrunk at IC 0.05,
 but never present v2's Base as a ranking signal. None of it changes this conclusion: the projection
 is not a way to pick between stocks.
 
@@ -46,10 +48,12 @@ For stock *i* at a start date, horizon *h* = 1 year:
 | **Base** | rf + β*ᵢ* × ERP + tilt*ᵢ* | |
 | **Bear / Bull** | (1 + Base) × exp(∓1.2816 × σ*ᵢ* × √h) − 1 | Two-sided 80% |
 
-Two diagnostic variants of IC 0.05 are also reported. They use a theory-based alternative, not a
-fitted one: (a) **1Y realised vol**, the equal-weighted volatility over the same year in place of the
-EWMA; (b) **band on median**, the band centred on the lognormal median (1 + Base)·e^(−σ²/2)
-instead of on the mean.
+Diagnostic variants of IC 0.05 are also reported. Each swaps in a standard alternative, not a fitted
+one. The volatility can be the spec's EWMA λ 0.94, a **slower EWMA λ 0.97** (the same seeding and
+window), or the **1Y realised** volatility: equal-weighted daily log returns over the same year,
+√(250 × mean r²), with the same 20% floor. Each volatility is used in both the tilt and the band.
+Each is shown with the band centred on the mean, as the spec has it, and **on the median**, where
+the band is centred on the lognormal median (1 + Base)·e^(−σ²/2).
 
 ### Market inputs and sources
 
@@ -119,8 +123,11 @@ column is the mean actual return of the top fifth by Base minus the bottom fifth
 | Shipped, industry P/E exit | +0.07 (−0.07…+0.19) | 0.30 | 47 / 41 / 12% | 129 (<.001) | −18 / −12 / 30 | +3 / +11 | +17% | 46 pts |
 | v2, IC 0 | −0.02 (−0.15…+0.10) | 0.75 | 86 / 11 / 3% | 5.7 (0.017) | −17 / −11 / 29 | +2 / −5 | +14% | 115 pts |
 | **v2, IC 0.05** | +0.03 (−0.10…+0.15) | 0.69 | **86 / 11 / 3%** | 5.7 (0.017) | −15 / −11 / 29 | +6 / +1 | +15% | 116 pts |
-| v2, IC 0.05, 1Y realised vol | +0.01 | 0.87 | 87 / 10 / 2% | 8.5 (0.004) | −16 / −11 / 29 | +7 / 0 | +15% | 124 pts |
-| v2, IC 0.05, band on median | +0.03 | 0.69 | 88 / 9 / 4% | 9.6 (0.002) | −15 / −11 / 29 | +6 / +1 | +15% | 108 pts |
+| v2, IC 0.05, EWMA 0.94, on median | +0.03 | 0.69 | 88 / 9 / 4% | 9.6 (0.002) | −15 / −11 / 29 | +6 / +1 | +15% | 108 pts |
+| v2, IC 0.05, EWMA 0.97 | +0.03 | 0.71 | 88 / 10 / 2% | 9.6 (0.002) | −15 / −11 / 29 | +6 / +1 | +15% | 120 pts |
+| v2, IC 0.05, EWMA 0.97, on median | +0.03 | 0.71 | 89 / 8 / 3% | 13.4 (<.001) | −15 / −11 / 29 | +6 / +1 | +15% | 111 pts |
+| v2, IC 0.05, 1Y realised | +0.01 | 0.87 | 87 / 10 / 2% | 8.5 (0.004) | −16 / −11 / 29 | +7 / 0 | +15% | 124 pts |
+| v2, IC 0.05, 1Y realised, on median | +0.01 | 0.87 | 90 / 7 / 3% | 17.8 (<.001) | −16 / −11 / 29 | +7 / 0 | +15% | 115 pts |
 
 ### P2: 24 Apr 2025 → 24 Apr 2026 (Nifty −1.4%)
 
@@ -130,8 +137,11 @@ column is the mean actual return of the top fifth by Base minus the bottom fifth
 | Shipped, industry P/E exit | +0.03 (−0.09…+0.16) | 0.60 | 43 / 38 / 19% | 163 (<.001) | −14 / −6 / 34 | +11 / +8 | +17% | 45 pts |
 | v2, IC 0 | −0.07 (−0.18…+0.05) | 0.26 | 93 / 5 / 2% | 31.5 (<.001) | −12 / −5 / 31 | +2 / −2 | +15% | 141 pts |
 | **v2, IC 0.05** | −0.00 (−0.13…+0.12) | 0.94 | **93 / 4 / 2%** | 33.9 (<.001) | −13 / −5 / 31 | +10 / −2 | +15% | 141 pts |
-| v2, IC 0.05, 1Y realised vol | −0.01 | 0.91 | 91 / 7 / 2% | 21.3 (<.001) | −13 / −5 / 31 | +13 / 0 | +15% | 136 pts |
-| v2, IC 0.05, band on median | −0.00 | 0.94 | 92 / 2 / 6% | 27.1 (<.001) | −13 / −5 / 31 | +10 / −2 | +15% | 128 pts |
+| v2, IC 0.05, EWMA 0.94, on median | −0.00 | 0.94 | 92 / 2 / 6% | 27.1 (<.001) | −13 / −5 / 31 | +10 / −2 | +15% | 128 pts |
+| v2, IC 0.05, EWMA 0.97 | −0.01 | 0.93 | 93 / 5 / 2% | 33.9 (<.001) | −13 / −5 / 31 | +11 / −2 | +15% | 146 pts |
+| v2, IC 0.05, EWMA 0.97, on median | −0.01 | 0.93 | 93 / 2 / 6% | 31.5 (<.001) | −13 / −5 / 31 | +11 / −2 | +15% | 131 pts |
+| v2, IC 0.05, 1Y realised | −0.01 | 0.91 | 91 / 7 / 2% | 21.3 (<.001) | −13 / −5 / 31 | +13 / 0 | +15% | 136 pts |
+| v2, IC 0.05, 1Y realised, on median | −0.01 | 0.91 | 89 / 5 / 6% | 14.8 (<.001) | −13 / −5 / 31 | +13 / 0 | +15% | 124 pts |
 
 The P2 start fell just after the April 2025 tariff sell-off, so the EWMA volatility was high
 (median 45%, against 37% in P1 and 27% in P3). The band came out too wide.
@@ -144,8 +154,11 @@ The P2 start fell just after the April 2025 tariff sell-off, so the EWMA volatil
 | Shipped, industry P/E exit | −0.14 (−0.27…−0.02) | 0.026 | 31 / 53 / 17% | 292 (<.001) | −25 / −14 / 41 | −23 / −16 | +15% | 47 pts |
 | v2, IC 0 | −0.21 (−0.33…−0.08) | 0.001 | 56 / 40 / 5% | 78.6 (<.001) | −25 / −14 / 39 | −20 / −17 | +16% | 80 pts |
 | **v2, IC 0.05** | −0.16 (−0.28…−0.04) | 0.005 | **56 / 40 / 4%** | 76.3 (<.001) | −26 / −14 / 39 | −7 / −18 | +16% | 81 pts |
-| v2, IC 0.05, 1Y realised vol | −0.15 | 0.005 | 75 / 22 / 2% | 3.4 (0.065) | −25 / −14 / 39 | −5 / −18 | +16% | 122 pts |
-| v2, IC 0.05, band on median | −0.16 | 0.005 | 59 / 34 / 7% | 59.0 (<.001) | −26 / −14 / 39 | −7 / −18 | +16% | 78 pts |
+| v2, IC 0.05, EWMA 0.94, on median | −0.16 | 0.005 | 59 / 34 / 7% | 59.0 (<.001) | −26 / −14 / 39 | −7 / −18 | +16% | 78 pts |
+| v2, IC 0.05, EWMA 0.97 | −0.16 | 0.007 | 60 / 36 / 4% | 53.0 (<.001) | −25 / −14 / 39 | −9 / −18 | +16% | 88 pts |
+| v2, IC 0.05, EWMA 0.97, on median | −0.16 | 0.007 | 63 / 32 / 5% | 40.2 (<.001) | −25 / −14 / 39 | −9 / −18 | +16% | 85 pts |
+| v2, IC 0.05, 1Y realised | −0.15 | 0.005 | 75 / 22 / 2% | 3.4 (0.065) | −25 / −14 / 39 | −5 / −18 | +16% | 122 pts |
+| **v2, IC 0.05, 1Y realised, on median** | −0.15 | 0.005 | **80 / 17 / 3%** | **0.0 (0.90)** | −25 / −14 / 39 | −5 / −18 | +16% | 113 pts |
 
 At the P3 start, volatility was calm (median 27%; 58 stocks at the 20% floor). Then the market fell
 12%, so misses piled up below Bear. The standardised log errors had an sd of 1.37 (1.0 = calibrated)
@@ -175,8 +188,37 @@ premium in this sample.
 | Shipped, industry P/E exit | −0.01 | −0.04 | 40% | 569 (<.001) | −19 | 35 | −3 |
 | v2, IC 0 | −0.10 | −0.12 | 78% | 2.5 (0.12) | −18 | 33 | −5 |
 | **v2, IC 0.05** | −0.05 | −0.07 | **78%** | **1.9 (0.16)** | −18 | 33 | +3 |
-| v2, IC 0.05, 1Y realised vol | −0.05 | −0.07 | 84% | 8.8 (0.003) | −18 | 33 | +5 |
-| v2, IC 0.05, band on median | −0.05 | −0.07 | 79% | 0.3 (0.56) | −18 | 33 | +3 |
+| v2, IC 0.05, EWMA 0.94, on median | −0.05 | −0.07 | 79% | 0.3 (0.56) | −18 | 33 | +3 |
+| v2, IC 0.05, EWMA 0.97 | −0.05 | −0.07 | 80% | 0.0 (0.97) | −18 | 33 | +3 |
+| v2, IC 0.05, EWMA 0.97, on median | −0.05 | −0.07 | 81% | 0.6 (0.43) | −18 | 33 | +3 |
+| v2, IC 0.05, 1Y realised | −0.05 | −0.07 | 84% | 8.8 (0.003) | −18 | 33 | +5 |
+| v2, IC 0.05, 1Y realised, on median | −0.05 | −0.07 | 86% | 20.8 (<.001) | −18 | 33 | +5 |
+
+### Which volatility? (all IC 0.05; inside Bear–Bull by period P1 / P2 / P3)
+
+| Volatility | Band centre | P1 | P2 | P3 | Range across periods | Pooled | Std. log error sd, P1 / P2 / P3 (1.0 = calibrated) | Stocks at the 20% floor, P3 |
+|---|---|---|---|---|---|---|---|---|
+| EWMA λ 0.94 (spec) | mean | 86% | 93% | 56% | 37 pts | 78% | 0.81 / 0.73 / 1.37 | 58 |
+| EWMA λ 0.94 | median | 88% | 92% | 59% | 33 pts | 79% | | |
+| EWMA λ 0.97 | mean | 88% | 93% | 60% | 33 pts | 80% | 0.78 / 0.72 / 1.26 | 40 |
+| EWMA λ 0.97 | median | 89% | 93% | 63% | 30 pts | 81% | | |
+| 1Y realised (equal weights) | mean | 87% | 91% | 75% | 16 pts | 84% | 0.73 / 0.78 / 0.96 | 5 |
+| **1Y realised** | **median** | **90%** | **89%** | **80%** | **11 pts** | 86% | | |
+
+Coverage by volatility third in P3 (low … high vol) was 52 / 51 / 64% for EWMA 0.94, 57 / 50 / 74%
+for EWMA 0.97, and 74 / 77 / 75% for 1Y realised. The EWMA bands failed mostly on the calmest
+stocks: their recent calm was read as low risk. The 1Y band was even across the volatility range.
+
+**λ 0.97 is only a marginal fix.** Its half-life is about 23 trading days instead of 11, so it still
+reads the quiet weeks before October 2025 as low risk (40 stocks at the floor, 60% coverage in P3).
+Its pooled 80% is the average of two over-wide periods and one badly narrow one, not calibration.
+**1Y realised volatility** is the only estimate that held up in the falling year: 75%, or 80%
+centred on the median, with the standardised error sd at 0.96. It is also the steadiest across
+periods (11–16 pts of spread against 30–37). Its cost is being too wide in the two calmer years
+(87–91%, sd 0.73–0.78). That is why its pooled 84–86% is rejected by Kupiec as *too wide*. With two
+independent years, and the one hard year calibrated, a band that is consistently a little wide is
+the better error than one that swings from 93% to 56%. Narrowing it (a z below 1.28, or a lower
+floor) would be fitting to these three periods, so it was not done.
 
 **On the Kupiec test.** It assumes independent misses. Here they are not: misses within a period
 share the market's move, which is why one period can sit at 56% and another at 93%. So the per-period
@@ -190,10 +232,10 @@ no correlation adjustment rescues it.
    stock needs 80–140 pts of 80% range over a year, not the ~45 pts of the scenario band. Its
    remaining error is timing. The EWMA with λ 0.94 has a half-life of about 11 trading days, so the
    band is set by the last few weeks: too wide after a sell-off (P2, 93%), too narrow before one
-   (P3, 56%). The 1Y realised volatility was steadier where it mattered (P3: 75% instead of 56%) at
-   the cost of being wider still in P1 and P2 (87%, 91%). Centring on the lognormal median is the
-   theoretically right centre for a quantile band, and it moved the pooled hit rate only from 78%
-   to 79%.
+   (P3, 56%). A slower EWMA (λ 0.97) only softens this (60% in P3). The 1Y realised volatility
+   held 80% in P3 when centred on the median, at the cost of 89–90% in P1 and P2. Centring on the
+   lognormal median is the theoretically right centre for a quantile band, and it adds 2–5 pts of
+   coverage in a falling year.
 2. **Multiple reversion.** Holding today's P/E removed the period where the shipped Base turned
    negative (P3: −0.12 → +0.01 on the same stocks), and the score was positive in P1 and P2. The
    differences are within noise (CIs of ±0.13), so this is "no longer harmful", not "useful".
@@ -215,8 +257,8 @@ no correlation adjustment rescues it.
 | Part | Ship? | Why |
 |---|---|---|
 | Volatility-based Bear/Bull, (1+Base)·exp(∓1.28σ√h) − 1, 20% floor | **Yes** | Pooled 78% vs 42%. Closer to 80% than the shipped band in every period |
-| …with EWMA λ 0.94 | **Prefer a longer memory** | λ 0.94 swung coverage from 93% to 56%. Use 1Y realised (or λ ≈ 0.97–0.98, or a blend with a long-run level) so the band doesn't reset with each month's news. Re-test as periods accrue rather than picking λ on these three |
-| Band centred on the lognormal median | Yes (small) | Correct for a quantile band, no cost |
+| …on **1Y realised volatility** (not EWMA) | **Yes** | 90 / 89 / 80% by period against 86 / 93 / 56% for EWMA λ 0.94 and 88 / 93 / 60% for λ 0.97. It is the only estimate calibrated in the falling year, and the steadiest. It is a little wide in calm years (pooled 86%, Kupiec rejects as too wide); don't narrow it on three periods. Re-test as periods accrue |
+| Band centred on the lognormal median | Yes | Correct for a quantile band. With 1Y vol it took P3 from 75% to 80% |
 | Drop multiple reversion (hold today's P/E over 1 year) | **Yes** | Removes the anti-momentum tilt that drove the P3 failure. Never worse in any period |
 | Growth fade 0.55 and margin toward ½(own + industry median) | Yes, as part of the score | Conservative toward long-run rates; not separately tested against fade 0.4 here |
 | CAPM anchor rf + β·ERP (Blume β) | **Yes, as the level** | Puts every Base on a market-consistent footing (~rf + ERP for a beta-1 stock) instead of "the multiple goes back to X". Show the inputs (rf, ERP, β) |
@@ -226,8 +268,8 @@ no correlation adjustment rescues it.
 
 Wording: v2's Base can honestly be described as "the return the market's pricing implies for this
 stock's risk, adjusted slightly for its fundamentals". Bear–Bull becomes "8 in 10 one-year outcomes
-for a stock this volatile". The second half of that sentence needs the longer-memory volatility to
-hold in a period like P3.
+for a stock this volatile", using 1Y volatility. With EWMA volatility that sentence would not have held in
+P3.
 
 ## 7. Limitations
 

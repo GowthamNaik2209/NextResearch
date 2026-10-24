@@ -37,6 +37,9 @@ const EWMA_LAMBDA = 0.94;
 const VOL_FLOOR = 0.2;
 const Z80 = 1.2816; // two-sided 80%
 const ICS = [0, 0.05];
+/** Volatility estimates compared: the spec's EWMA 0.94, a slower EWMA 0.97, 1-year equal-weighted. */
+type VolRow = { vol: number; vol97: number; vol1y: number };
+const VOLS: [string, (r: VolRow) => number][] = [["EWMA 0.94", (r) => r.vol], ["EWMA 0.97", (r) => r.vol97], ["1Y realised", (r) => r.vol1y]];
 const V2_FADE = 0.55;
 const V2_MARGIN_YEARS = 3; // margin closes on its target over this many years (as shipped)
 const MARGIN_SHIFT_A_YEAR = 0.15;
@@ -118,14 +121,19 @@ function ewmaVol(pts: PricePoint[], day: string) {
   const s = pts.filter((p) => p.t > from && p.t <= day);
   const r: number[] = [];
   for (let i = 1; i < s.length; i++) r.push(Math.log(s[i].c / s[i - 1].c));
-  if (r.length < 40) return { raw: null, vol: null as number | null, vol1y: null as number | null };
+  if (r.length < 40) return { raw: null, vol: null as number | null, vol1y: null as number | null, vol97: null as number | null };
   // Seed with the first 20 returns' variance, then run the recursion.
-  let v = mean(r.slice(0, 20).map((x) => x * x))!;
-  for (let i = 20; i < r.length; i++) v = EWMA_LAMBDA * v + (1 - EWMA_LAMBDA) * r[i] * r[i];
-  const raw = Math.sqrt(v * 250);
+  const ewma = (lambda: number) => {
+    let v = mean(r.slice(0, 20).map((x) => x * x))!;
+    for (let i = 20; i < r.length; i++) v = lambda * v + (1 - lambda) * r[i] * r[i];
+    return Math.sqrt(v * 250);
+  };
+  const raw = ewma(EWMA_LAMBDA);
+  // Diagnostic: a slower EWMA (lambda 0.97, half-life ~23 trading days).
+  const slow = ewma(0.97);
   // Diagnostic: equal-weighted volatility over the same year (longer memory than the EWMA).
   const year = Math.sqrt(mean(r.map((x) => x * x))! * 250);
-  return { raw, vol: Math.max(VOL_FLOOR, raw), vol1y: Math.max(VOL_FLOOR, year) };
+  return { raw, vol: Math.max(VOL_FLOOR, raw), vol1y: Math.max(VOL_FLOOR, year), vol97: Math.max(VOL_FLOOR, slow) };
 }
 
 async function pool<T, R>(items: T[], n: number, fn: (t: T) => Promise<R>): Promise<R[]> {
@@ -233,7 +241,7 @@ function fundamentalsV2(x: ProjectionInput, indMargin: number | null, g: GrowthM
 // ---- Main ----
 type Row = {
   ticker: string; home: string | null; input: ProjectionInput; actual: number; past1y: number | null;
-  beta: number; betaRaw: number | null; vol: number; volRaw: number | null; vol1y: number; fund: number | null;
+  beta: number; betaRaw: number | null; vol: number; volRaw: number | null; vol1y: number; vol97: number; fund: number | null;
 };
 
 async function main() {
@@ -351,7 +359,7 @@ async function main() {
       const v = ewmaVol(pts, per.start);
       if (v.vol == null) { leave(t, "Under 40 daily returns before the start"); continue; }
       const fv = fundamentalsV2(input, im.margin, g55);
-      rows.push({ ticker: t, home, input, actual: th.end / th.price - 1, past1y: th.past1y, beta: b.adj, betaRaw: b.raw, vol: v.vol, volRaw: v.raw, vol1y: v.vol1y!, fund: fv?.ret ?? null });
+      rows.push({ ticker: t, home, input, actual: th.end / th.price - 1, past1y: th.past1y, beta: b.adj, betaRaw: b.raw, vol: v.vol, volRaw: v.raw, vol1y: v.vol1y!, vol97: v.vol97!, fund: fv?.ret ?? null });
     }
     allRows[per.key] = rows;
 
@@ -368,17 +376,14 @@ async function main() {
         const base = rf + r.beta * ERP + ic * r.vol * z(r);
         return { base, bear: (1 + base) * Math.exp(-Z80 * r.vol) - 1, bull: (1 + base) * Math.exp(Z80 * r.vol) - 1 };
       }]),
-      // Diagnostic: 1-year equal-weighted volatility in place of the EWMA (Base and band).
-      ["v2, IC 0.05, 1Y realised vol", (r) => {
-        const base = rf + r.beta * ERP + 0.05 * r.vol1y * z(r);
-        return { base, bear: (1 + base) * Math.exp(-Z80 * r.vol1y) - 1, bull: (1 + base) * Math.exp(Z80 * r.vol1y) - 1 };
-      }],
-      // Diagnostic: the same band centred on the lognormal median, (1 + Base) e^(-sigma^2/2).
-      ["v2, IC 0.05, band on median", (r) => {
-        const base = rf + r.beta * ERP + 0.05 * r.vol * z(r);
-        const c = (1 + base) * Math.exp(-(r.vol ** 2) / 2);
-        return { base, bear: c * Math.exp(-Z80 * r.vol) - 1, bull: c * Math.exp(Z80 * r.vol) - 1 };
-      }],
+      // Diagnostics, IC 0.05: other volatility estimates (used in both the tilt and the band), each
+      // with the band centred on the mean (spec) and on the lognormal median, (1 + Base) e^(-sigma^2/2).
+      ...VOLS.flatMap(([vname, vf]) => [false, true].map((onMedian): [string, (r: Row) => Pred] => [`v2, IC 0.05, ${vname}${onMedian ? ", on median" : ""}`, (r) => {
+        const sg = vf(r);
+        const base = rf + r.beta * ERP + 0.05 * sg * z(r);
+        const c = (1 + base) * (onMedian ? Math.exp(-(sg ** 2) / 2) : 1);
+        return { base, bear: c * Math.exp(-Z80 * sg) - 1, bull: c * Math.exp(Z80 * sg) - 1 };
+      }]).filter(([n]) => n !== "v2, IC 0.05, EWMA 0.94")),
     ];
     const act = rows.map((r) => r.actual);
     const niftyRet = (nifty.get(endDay) ?? priceOn(niftyPts, endDay)!) / priceOn(niftyPts, per.start)! - 1;
@@ -433,14 +438,16 @@ async function main() {
     sigR("shipped Base, P/E-method stocks", (r) => (fin(r.fund) ? (shipped.projectStock(r.input) as { ret: { own: { "1": number[] } } }).ret.own["1"][1] : null));
     sigR("shipped Base, all stocks", (r) => (shipped.projectStock(r.input) as { ret: { own: { "1": number[] } } }).ret.own["1"][1]);
     sigR("v2 Base IC 0.05, all stocks", (r) => rf + r.beta * ERP + 0.05 * r.vol * z(r));
-    // Band calibration by volatility tercile for v2 IC 0.05.
-    const v2 = models[3][1];
-    const byVol = [...rows].sort((a, b) => a.vol - b.vol);
+    // Band calibration by volatility third and standardised errors, for each volatility estimate.
+    for (const [vname, vf] of VOLS) {
+    const v2 = models.find(([n]) => n === (vname === "EWMA 0.94" ? "v2, IC 0.05" : `v2, IC 0.05, ${vname}`))![1];
+    const byVol = [...rows].sort((a, b) => vf(a) - vf(b));
     const terc = [0, 1, 2].map((k) => byVol.slice(Math.floor((k * byVol.length) / 3), Math.floor(((k + 1) * byVol.length) / 3)));
-    p(`  v2 IC 0.05 inside by volatility third (low..high): ${terc.map((s) => `${sh(s.filter((r) => { const x = v2(r); return r.actual >= x.bear && r.actual <= x.bull; }).length / s.length)} (vol ${sh(med(s.map((r) => r.vol))!)}, n${s.length})`).join("  ")}`);
+    p(`  ${vname.padEnd(12)} vol median ${sh(med(rows.map(vf))!)}, ${rows.filter((r) => vf(r) <= VOL_FLOOR).length} at floor; inside by vol third (low..high): ${terc.map((s) => `${sh(s.filter((r) => { const x = v2(r); return r.actual >= x.bear && r.actual <= x.bull; }).length / s.length)} (vol ${sh(med(s.map(vf))!)})`).join("  ")}`);
     // Realised cross-sectional dispersion vs the band's implied one: log(1+actual) - log(1+Base) / sigma.
-    const zr = rows.map((r) => (Math.log(1 + r.actual) - Math.log(1 + v2(r).base)) / r.vol);
-    p(`  standardised v2 errors (log): median ${f2(med(zr)!)}  sd ${sd(zr).toFixed(2)}  (a calibrated band has sd ~1; |z|<=1.28 holds 80%)`);
+    const zr = rows.map((r) => (Math.log(1 + r.actual) - Math.log(1 + v2(r).base)) / vf(r));
+    p(`  ${"".padEnd(12)} standardised errors (log): median ${f2(med(zr)!)}  sd ${sd(zr).toFixed(2)}  (calibrated: sd ~1)`);
+    }
   }
 
   // Pooled summary across periods (P1 and P3 do not overlap; P2 overlaps both by six months).
