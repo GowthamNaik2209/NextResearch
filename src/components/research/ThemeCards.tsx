@@ -4,8 +4,7 @@ import Link from "next/link";
 import { NA, croreShort } from "@/lib/format";
 
 // The Analysis "Deep dive" view: one card per industry or policy (it used to be the landing page's
-// Themes grid). The card opens the industry's page; its Charts button switches the Analysis block
-// to that industry's chart in place.
+// Themes grid). The card opens the industry's page; its Charts button opens the stock chart pop-up there.
 export type SectorCard = {
   slug: string;
   icon: string;
@@ -49,7 +48,7 @@ export function ThemeCards({
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {live.map((s) => (
         // The whole card opens the industry's page (the title link stretches over it); the Charts
-        // button sits above that overlay and shows the industry's chart instead.
+        // button sits above that overlay and opens the stock chart pop-up on this industry.
         <div
           key={s.slug}
           className="group relative flex flex-col gap-3 rounded-2xl border border-line bg-panel p-5 transition hover:-translate-y-0.5 hover:border-accent hover:shadow-lg"
@@ -60,6 +59,8 @@ export function ThemeCards({
               <button
                 type="button"
                 onClick={() => onCharts(s.slug)}
+                aria-label={`Stock charts: ${s.name}`}
+                aria-haspopup="dialog"
                 className="relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-accent px-3 text-xs font-semibold text-accent transition hover:bg-accent hover:text-bg"
               >
                 <svg aria-hidden width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">

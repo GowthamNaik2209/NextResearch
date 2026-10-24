@@ -52,7 +52,11 @@ const getJson = <T,>(url: string) => fetch(url).then((r) => (r.ok ? (r.json() as
 // Bars are dated "YYYY-MM-DD" (IST trading days); fmtDay/fmtMonth read them in UTC, so a viewer
 // west of UTC no longer sees each bar labelled with the previous day.
 
-export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | null }) {
+// `height` sizes the plot: the stock pop-up's default, or a shorter one where more sits above it
+// (the Analysis Charts pop-up's dropdowns), so the axis and zoom controls stay in view.
+const PLOT_HEIGHT = "h-[46vh] min-h-[260px] sm:h-[min(400px,48vh)]";
+
+export function ChartView({ ticker, quote, height = PLOT_HEIGHT }: { ticker: string; quote?: Quote | null; height?: string }) {
   const [range, setRange] = useState<ChartRange>("1Y");
   const [mode, setMode] = useState<Mode>("line");
   const [showVol, setShowVol] = useState(true);
@@ -335,7 +339,7 @@ export function ChartView({ ticker, quote }: { ticker: string; quote?: Quote | n
         )}
       </div>
 
-      <div className="relative h-[46vh] min-h-[260px] rounded-2xl border border-line bg-panel p-2 sm:h-[min(400px,48vh)]">
+      <div className={"relative rounded-2xl border border-line bg-panel p-2 " + height}>
         <div className="relative h-full w-full">
           <div ref={boxRef} className="h-full w-full" />
           {volOn && volHover && (

@@ -4,7 +4,6 @@ import { buildHeroThemeRows, buildSearchIndex, getPlatformStats } from "@/lib/se
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ReadingList } from "@/components/research/ReadingList";
-import { getCurrentUser } from "@/lib/auth";
 import { analysisProps, analysisView } from "@/lib/analysis-props";
 import { IdeasSection } from "@/components/IdeasSection";
 import { Hero } from "@/components/landing/Hero";
@@ -22,7 +21,6 @@ import { ensureFinancials } from "@/lib/financials/load";
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ report?: string; ipo?: string; view?: string; sector?: string }> }) {
   await ensureFinancials();
   const { report, ipo, view, sector } = await searchParams;
-  const user = await getCurrentUser();
   const sectors = listSectors();
   // The sector previewed in the hero and featured below: Data Center if it has a thesis,
   // otherwise the first live sector that does.
@@ -39,7 +37,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
         {featured && <FeaturedThesis sector={featured} />}
 
-        {/* The Analysis block, the same one as /docs (Deep dive, Reports, Charts). It keeps the old
+        {/* The Analysis block, the same one as /docs (Deep dive, Reports, the Charts pop-up). It keeps the old
             Themes section's #themes anchor, so the hero's buttons and shared links still land here. */}
         <section id="themes" aria-labelledby="analysis-heading" className="mx-auto flex max-w-6xl scroll-mt-20 flex-col gap-6 px-5 pb-20">
           {/* Old shared links point at #sectors. */}
@@ -50,10 +48,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
               Every industry and policy we cover: a deep dive into its supply chain and listed companies, a ten-slide report for
-              investors, and a chart backtesting its stocks as a basket you can customise.
+              investors, and a price chart for each of its listed stocks.
             </p>
           </div>
-          <ReadingList {...analysisProps({ report, ipo, view })} signedIn={!!user} initial={report} initialIpo={ipo} initialView={analysisView(view)} initialSector={sector} />
+          <ReadingList {...analysisProps({ report, ipo, view })} initial={report} initialIpo={ipo} initialView={analysisView(view)} initialSector={sector} initialCharts={view === "charts"} />
         </section>
 
         <section className="mx-auto max-w-6xl px-5 pb-20">
