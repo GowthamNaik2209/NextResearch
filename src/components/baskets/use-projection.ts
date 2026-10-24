@@ -83,11 +83,14 @@ export function useProjection({
   }, [on, stocks, weighting, weights, settings, picked, picksChosen]);
 
   const steps = 52 * settings.h;
-  const seed = useMemo(() => seedOf(`${stocks.map((s) => `${s.ticker}:${core?.shares.get(s.ticker)?.toFixed(6)}`).join(",")}|${settings.h}|${settings.scenario}|${settings.exit}`), [stocks, core, settings]);
+  // The simulated paths always run around the Base case, whichever case is chosen (SIM_NOTE).
+  const seed = useMemo(() => seedOf(`${stocks.map((s) => `${s.ticker}:${core?.shares.get(s.ticker)?.toFixed(6)}`).join(",")}|${settings.h}`), [stocks, core, settings.h]);
   const ret = core?.basket.ret ?? null;
-  const sim = useMemo(() => (on && ret != null && vol != null && vol > 0 ? simulate(ret, settings.h, vol, seed) : null), [on, ret, vol, settings.h, seed]);
+  const simRet = core?.cases.base ?? null;
+  const sim = useMemo(() => (on && simRet != null && vol != null && vol > 0 ? simulate(simRet, settings.h, vol, seed) : null), [on, simRet, vol, settings.h, seed]);
   const pRet = core?.picks?.ret ?? null;
-  const pSim = useMemo(() => (on && pRet != null && pVol != null && pVol > 0 ? simulate(pRet, settings.h, pVol, seed ^ 0x9e3779b9) : null), [on, pRet, pVol, settings.h, seed]);
+  const pSimRet = core?.picksCases?.base ?? null;
+  const pSim = useMemo(() => (on && pSimRet != null && pVol != null && pVol > 0 ? simulate(pSimRet, settings.h, pVol, seed ^ 0x9e3779b9) : null), [on, pSimRet, pVol, settings.h, seed]);
   const pVolStatus = pVolLoad?.status;
 
   const volStatus = volLoad?.status;

@@ -34,9 +34,9 @@ import { useProjection, schemeShares } from "./use-projection";
 import { ProjectionCards } from "./ProjectionCards";
 import { ProjectionStats } from "./ProjectionStats";
 import { ProjectionAnalysis } from "./ProjectionAnalysis";
-import { EXIT_LABEL, HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, forPicks } from "./projection-view";
+import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, forPicks } from "./projection-view";
 import type { ChartProjection } from "./BasketChart";
-import { caseReturn, HORIZONS, SCENARIOS, type ExitBasis, type Horizon, type Scenario } from "@/lib/baskets/projection";
+import { caseReturn, GROWTH_FADE, HORIZONS, IC, LONG_RUN_GROWTH, MARGIN_SHIFT_A_YEAR, MARKET, SCENARIOS, VOL_FLOOR, type Horizon, type Scenario } from "@/lib/baskets/projection";
 import { annualVol, basketPath, projectBasket, seedOf, simulate, stockPath, weeklyDates, type ProjectionSettings } from "@/lib/baskets/projection-basket";
 import { relativeStats, seriesStats } from "@/lib/baskets/stats";
 import { basketWorkbook, workbookFileName } from "@/lib/baskets/workbook";
@@ -99,6 +99,8 @@ const stocksWord = (n: number) => `${n} stock${n === 1 ? "" : "s"}`;
 const NO_PE = "No P/E in our last data update: a loss over the latest twelve months, or none reported";
 /** A 0-1 share as a percentage, one decimal. */
 const pct1 = (share: number) => `${(share * 100).toFixed(1)}%`;
+/** A market input (a fraction) as a percentage, two decimals: 7.47%. */
+const pctOf = (v: number) => `${(v * 100).toFixed(2)}%`;
 
 const RANGES: { id: ChartRange; long: string }[] = [
   { id: "1M", long: "1 month" },
@@ -115,18 +117,27 @@ const STRATEGY_PARAMS = ["wt", "rb", "band", "cw", "cap", "lcap"];
 const strategyUrlParams = (s: Strategy) => [...new URLSearchParams(strategyQuery(s))].map(([k, v]) => [k === "w" ? "wt" : k, v] as const);
 
 // Projections' settings in the page URL (docs/PROJECTIONS.md), so a link reopens the same projection.
+// "pe" belonged to the removed exit-multiple choice: still cleared, so an old link's is tidied away.
 const PROJECTION_PARAMS = ["proj", "ph", "ps", "pe"];
-const DEFAULT_PROJECTION: ProjectionSettings = { h: 1, scenario: "base", exit: "own" };
+const DEFAULT_PROJECTION: ProjectionSettings = { h: 1, scenario: "base" };
 
 /** A stock just taken off, held as a placeholder row at its place in the list (see `display`). */
 type Ghost = { ticker: string; name: string; index: number; h: { table?: number; phone?: number } };
 
-type Sort = "contribution" | "return" | "weight" | "pe" | "mcap" | "name";
-const SORTS: { id: Sort; label: string }[] = [
+type Sort = "contribution" | "return" | "weight" | "pe" | "mcap" | "name" | "bear" | "base" | "bull";
+/** With Projections on, the table shows each stock's three cases (the chosen one is "return" too). */
+const CASE_SORTS: Sort[] = ["bear", "base", "bull"];
+/** Names sort A to Z and P/E low to high on the first tap; every other column high to low. */
+const sortAscFirst = (id: Sort) => id === "name" || id === "pe";
+const sortWords = (id: Sort, rev: boolean) => (id === "name" ? (rev ? "Z to A" : "A to Z") : sortAscFirst(id) !== rev ? "low to high" : "high to low");
+const SORTS: { id: Sort; label: string; proj?: boolean }[] = [
   { id: "contribution", label: "Pts added" },
   { id: "return", label: "Return" },
+  { id: "bear", label: "Bear case", proj: true },
+  { id: "base", label: "Base case", proj: true },
+  { id: "bull", label: "Bull case", proj: true },
   { id: "weight", label: "Share now" },
-  { id: "pe", label: "P/E (low first)" },
+  { id: "pe", label: "P/E" },
   { id: "mcap", label: "Market cap" },
   { id: "name", label: "Name" },
 ];
@@ -244,7 +255,13 @@ export function BasketDetail(p: BasketDetailProps) {
   const draft = p.mode === "draft";
   const [editing, setEditing] = useState(draft || (p.isOwner && p.mode === "saved" && p.stocks.length === 0));
   const [renaming, setRenaming] = useState(false);
-  const [sort, setSort] = useState<Sort>("contribution");
+  const [sort, setSortBy] = useState<Sort>("contribution");
+  // A second tap on the same heading reverses it (names A to Z, P/E low first, the rest high first).
+  const [sortRev, setSortRev] = useState(false);
+  const setSort = (id: Sort, rev?: boolean) => {
+    setSortRev(rev ?? (id === sort ? !sortRev : false));
+    setSortBy(id);
+  };
   // The stock table measures weight and contribution within the whole basket, or (once stocks
   // are picked on the chart) within just those picks, backtested as their own basket.
   const [scope, setScope] = useState<"all" | "picks">("all");
@@ -283,7 +300,6 @@ export function BasketDetail(p: BasketDetailProps) {
       url.searchParams.set("proj", "1");
       if (next.h !== DEFAULT_PROJECTION.h) url.searchParams.set("ph", String(next.h));
       if (next.scenario !== DEFAULT_PROJECTION.scenario) url.searchParams.set("ps", next.scenario);
-      if (next.exit !== DEFAULT_PROJECTION.exit) url.searchParams.set("pe", next.exit);
     }
     window.history.replaceState(window.history.state, "", url);
   };
@@ -292,11 +308,9 @@ export function BasketDetail(p: BasketDetailProps) {
     if (q.get("proj") !== "1") return;
     const h = Number(q.get("ph"));
     const sc = q.get("ps");
-    const ex = q.get("pe");
     const set: ProjectionSettings = {
       h: (HORIZONS as number[]).includes(h) ? (h as Horizon) : DEFAULT_PROJECTION.h,
       scenario: (SCENARIOS as string[]).includes(sc ?? "") ? (sc as Scenario) : DEFAULT_PROJECTION.scenario,
-      exit: ex === "ind" || ex === "own" ? (ex as ExitBasis) : DEFAULT_PROJECTION.exit,
     };
     projRef.current = { on: true, set };
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the projection a link asked for once on mount
@@ -308,7 +322,6 @@ export function BasketDetail(p: BasketDetailProps) {
     url.searchParams.set("proj", "1");
     if (set.h !== DEFAULT_PROJECTION.h) url.searchParams.set("ph", String(set.h));
     if (set.scenario !== DEFAULT_PROJECTION.scenario) url.searchParams.set("ps", set.scenario);
-    if (set.exit !== DEFAULT_PROJECTION.exit) url.searchParams.set("pe", set.exit);
     window.history.replaceState(window.history.state, "", url);
   }, []);
 
@@ -435,11 +448,11 @@ export function BasketDetail(p: BasketDetailProps) {
   const chartProjection = useMemo((): ChartProjection | null => {
     if (!projection) return null;
     const steps = projection.dates.length - 1;
-    const { h, scenario, exit } = projection.settings;
+    const { h, scenario } = projection.settings;
     const values: Record<string, number[]> = { [basketKey]: projection.path };
     const why: Record<string, string> = {};
     for (const st of stocks) {
-      const r = caseReturn(st.proj, h, scenario, exit);
+      const r = caseReturn(st.proj, h, scenario);
       if (r != null) values[`s:${st.ticker}`] = stockPath(r, steps);
       else why[`s:${st.ticker}`] = `left out: ${(st.proj && !st.proj.ok ? st.proj.reason : "no figures in our last data update").replace(/^./, (c) => c.toLowerCase())}`;
     }
@@ -456,8 +469,18 @@ export function BasketDetail(p: BasketDetailProps) {
   useEffect(() => {
     if (!projOn || !leftCount || leftSeen.current) return;
     leftSeen.current = true;
+    // Once per basket and set of left-out stocks in this browser: a reload doesn't show it again
+    // (the "N left out" chip still opens it).
+    const seenKey = `nr-leftout:${basketKey}:${projection?.basket.leftOut.map((l) => l.ticker).join(",") ?? ""}`;
+    try {
+      if (localStorage.getItem(seenKey)) return;
+      localStorage.setItem(seenKey, "1");
+    } catch {
+      // Storage blocked: show it, as before.
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- opens the note once, on the first projection with a left-out stock
     setLeftNote(true);
-  }, [projOn, leftCount]);
+  }, [projOn, leftCount, basketKey, projection]);
 
   // The table's backtest: the basket's own, or the picks' when it shows just the picks (the cards
   // and panels load their lines themselves; the basket's is asked for here too, so it is ready).
@@ -470,15 +493,24 @@ export function BasketDetail(p: BasketDetailProps) {
   const tHoldings = new Map(((projection ? projection.table.holdings : tData?.holdings) ?? []).map((h) => [h.ticker, h]));
   // Every stock in the table's current sort: the table's rows, the chart's Stocks menu and Select
   // all (in either place) all follow this one order, so Select all ticks the top rows you see.
+  const sortValue = (st: BasketStock): number | null => {
+    if (sort === "pe") return st.pe;
+    if (sort === "mcap") return st.mcapCr;
+    // A case's projected return over the chosen horizon.
+    if (CASE_SORTS.includes(sort) && projection) return caseReturn(st.proj, projection.settings.h, sort as Scenario);
+    const h = tHoldings.get(st.ticker);
+    if (!h) return null;
+    // A case column picked with Projections then switched off sorts by the return.
+    return sort === "return" || CASE_SORTS.includes(sort) ? h.ret : sort === "weight" ? h.endWeight : h.contribution;
+  };
+  const sortDir = (sortAscFirst(sort) ? 1 : -1) * (sortRev ? -1 : 1);
   const sortedLive = [...stocks].sort((a, b) => {
-    if (sort === "name") return a.name.localeCompare(b.name);
+    if (sort === "name") return sortDir * a.name.localeCompare(b.name);
     // Stocks with no figure go last either way.
-    if (sort === "pe") return (a.pe ?? Infinity) - (b.pe ?? Infinity);
-    if (sort === "mcap") return (b.mcapCr ?? -1) - (a.mcapCr ?? -1);
-    const ha = tHoldings.get(a.ticker);
-    const hb = tHoldings.get(b.ticker);
-    const v = (h: typeof ha) => (!h ? -Infinity : sort === "return" ? h.ret : sort === "weight" ? h.endWeight : h.contribution);
-    return v(hb) - v(ha);
+    const va = sortValue(a);
+    const vb = sortValue(b);
+    if (va == null || vb == null || !Number.isFinite(va) || !Number.isFinite(vb)) return (va == null || !Number.isFinite(va) ? 1 : 0) - (vb == null || !Number.isFinite(vb) ? 1 : 0);
+    return sortDir * (va - vb) || a.name.localeCompare(b.name);
   });
   // While the weight boxes are open the rows keep the order they had when the boxes opened: typing a
   // weight moves its stock's figures (and, with Projections on, at once), and a row that jumped would
@@ -490,7 +522,7 @@ export function BasketDetail(p: BasketDetailProps) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- takes the order once as the boxes open, drops it as they close
     setHeldOrder(boxesOpen ? liveOrder.split(",") : null);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- on opening or closing the boxes, or a new sort picked (which re-sorts at once)
-  }, [boxesOpen, sort]);
+  }, [boxesOpen, sort, sortRev]);
   const sortedAll = heldOrder
     ? [...stocks].sort((a, b) => {
         const ia = heldOrder.indexOf(a.ticker);
@@ -815,12 +847,15 @@ export function BasketDetail(p: BasketDetailProps) {
       let proj = projection ? { settings, on: true, sim: projection.sim, vol: projection.vol, dates: projection.dates, path: projection.path } : null;
       if (!proj) {
         const vol = past.status === "ok" ? annualVol(past.data.points) : null;
-        const b = projectBasket(stocks.map((st) => ({ ticker: st.ticker, weight: shares.get(st.ticker) ?? 0, proj: st.proj })), settings);
+        const items = stocks.map((st) => ({ ticker: st.ticker, weight: shares.get(st.ticker) ?? 0, proj: st.proj }));
+        const b = projectBasket(items, settings);
+        // The simulated paths run around the Base case, as on the page (SIM_NOTE).
+        const baseRet = settings.scenario === "base" ? b.ret : projectBasket(items, { ...settings, scenario: "base" }).ret;
         const start = past.status === "ok" && past.data.points.length ? past.data.points[past.data.points.length - 1].t : new Date().toISOString().slice(0, 10);
         proj = {
           settings,
           on: false,
-          sim: b.ret != null && vol ? simulate(b.ret, settings.h, vol, seedOf(`${tickers.join(",")}|export`)) : null,
+          sim: baseRet != null && vol ? simulate(baseRet, settings.h, vol, seedOf(`${tickers.join(",")}|export`)) : null,
           vol,
           dates: weeklyDates(start, settings.h),
           path: basketPath(b.holdings, 52 * settings.h),
@@ -1016,7 +1051,7 @@ export function BasketDetail(p: BasketDetailProps) {
     </div>
   );
 
-  // Projections: the switch, then (on) how far ahead, which case and where the multiple ends up.
+  // Projections: the switch, then (on) how far ahead and which case.
   const projSwitch = (
     <button
       type="button"
@@ -1051,12 +1086,13 @@ export function BasketDetail(p: BasketDetailProps) {
   const projControls = (
     <>
       {projSeg("Next", "h", HORIZONS, (h) => `${h}Y`, (h) => `Project ${HORIZON_LONG[h]} ahead`)}
-      {projSeg("Case", "scenario", SCENARIOS, (c) => SCENARIO_LABEL[c], (c) =>
-        c === "bear" ? "Slower growth, lowest margin, exit multiple 10% lower" : c === "bull" ? "Faster growth, highest margin, exit multiple 10% higher" : "Its usual growth and margin",
-      )}
       <div className="flex items-center gap-1.5">
-        {projSeg("Exit at", "exit", ["own", "ind"] as const, (e) => EXIT_LABEL[e as ExitBasis], (e) =>
-          e === "own" ? "Today’s P/E moves toward the stock’s own median of the last 3 years" : "Today’s P/E moves toward its industry’s median P/E",
+        {projSeg("Case", "scenario", SCENARIOS, (c) => SCENARIO_LABEL[c], (c) =>
+          c === "bear"
+            ? "Each stock's 10th-percentile outcome at its own volatility: 1 in 10 years for a stock this volatile end lower"
+            : c === "bull"
+              ? "Each stock's 90th-percentile outcome at its own volatility: 1 in 10 years for a stock this volatile end higher"
+              : "The return the market prices in for each stock's risk, plus a small tilt from its fundamentals",
         )}
         <InfoTip label="How projections work" wide>
           <p className="font-semibold">How a projection is worked out</p>
@@ -1066,48 +1102,51 @@ export function BasketDetail(p: BasketDetailProps) {
               data update. Any other stock is left out, and its share of the basket is spread over the rest in proportion to their weights.
             </li>
             <li>
-              <b>Growth.</b> Its usual yearly revenue growth (the median of its years; lower if its overall rate is lower, or if its latest year slowed, which is averaged in), faded 40% of the way toward
-              10% a year, since fast growth rarely lasts. Kept between −25% and +40% a year.
+              <b>Market return.</b> The return the market prices in for the stock&rsquo;s risk: the 10-year G-sec yield ({pctOf(MARKET.rf)}, {MARKET.rfAsOf}) plus its beta
+              times India&rsquo;s equity risk premium ({pctOf(MARKET.erp)}, Damodaran, {MARKET.erpAsOf}), less its dividend yield, since this is a price projection.
+              Beta is from 2 years of weekly returns against the Nifty 50, pulled a third of the way to 1; a stock without 2 years of prices counts as 1.
             </li>
             <li>
-              <b>Margin.</b> Its net margin moves from today&rsquo;s a third of the way a year toward its aim, by at most 15% of today&rsquo;s
-              margin a year. A one-off year is left out.
+              <b>Fundamentals tilt.</b> A score from its results: one year&rsquo;s return on its revenue growth (its usual rate, faded {Math.round(GROWTH_FADE * 100)}% of the way
+              toward {Math.round(LONG_RUN_GROWTH * 100)}% a year) and its net margin moving a third of the way toward the average of its own usual margin and its
+              industry&rsquo;s (by at most {Math.round(MARGIN_SHIFT_A_YEAR * 100)}% of today&rsquo;s; a one-off year left out), with today&rsquo;s P/E held. The score is
+              measured against every company we cover (standardised, within ±3), and the tilt is IC {IC} × volatility × that score: a stock with 30% volatility one
+              standard deviation above the middle gets +1.5 points. Loss-makers (no positive P/E or margin) get the market return only.
             </li>
             <li>
-              <b>Valuation.</b> Today&rsquo;s P/E moves a third of the way a year toward its target, kept between 0.7× and 1.4× today&rsquo;s.
-              Loss-makers use price to sales on revenue instead.
+              <b>Base</b> = market return + tilt. Across stocks it mostly reflects beta, so it isn&rsquo;t a ranking or a stock-picking signal: in our out-of-sample test its
+              rank correlation with what stocks then did was close to zero (+0.01, +0.01 and −0.11 over three one-year periods).
             </li>
             <li>
-              <b>Price.</b> Return = today&rsquo;s earnings grown at that rate and margin, times the exit P/E, against today&rsquo;s price. Each
-              case is kept between −60% and +80% a year.
+              <b>Bear and Bull.</b> The 10th and 90th percentile of a year at the stock&rsquo;s own volatility over the last year (never below {Math.round(VOL_FLOOR * 100)}%; estimated
+              from the 52-week range while its price history loads): (1 + Base) × e<sup>−σ²h/2 ∓ 1.28σ√h</sup> − 1. Tested out of sample over three one-year periods
+              (Oct 2024 to Oct 2026), the Bear-to-Bull range held 91%, 90% and 81% of what stocks actually did, against an aim of 80%.
             </li>
             <li>
-              <b>Basket.</b> Bought today at your weights and held, no rebalancing. Its return is the weighted sum of its stocks&rsquo;; points
-              added are each stock&rsquo;s weight × return.
+              <b>Basket.</b> Bought today at your weights and held, no rebalancing. Each case is the weighted sum of its stocks&rsquo; same case; points added are each
+              stock&rsquo;s weight × return. So the basket&rsquo;s Bear and Bull assume every stock at its own 10th or 90th percentile at once, which is wider than the
+              basket&rsquo;s real range: its stocks don&rsquo;t all have a bad year together.
             </li>
             <li>
-              <b>Range and risk.</b> 1,000 simulated weekly paths that end around the chosen case and swing like the basket did over the past
-              year. The likely range holds 8 in 10 paths; drawdowns and the chance of a loss come from the same paths.
+              <b>Likely range and risk.</b> The basket-level range: 1,000 simulated weekly paths around the <b>Base</b> case whichever case is chosen (Bear and Bull are already the extremes), swinging like the basket did over the
+              past year. The likely range holds 8 in 10 paths; drawdowns and the chance of a loss come from the same paths.
             </li>
           </ol>
           <p className="mt-2 font-semibold">The options</p>
           <ul className="mt-1 space-y-1">
             <li>
-              <b>Next 1Y / 2Y</b>: how far ahead. The margin and P/E move a third of the way toward their targets in 1 year, two thirds in 2.
+              <b>Next 1Y / 2Y</b>: how far ahead. Over 2 years the market return is compounded, the tilt is counted once (a one-year signal), and Bear and Bull are about
+              √2 times as far from the middle.
             </li>
             <li>
-              <b>Bear</b>: slower growth (by a quarter of the range of its past years, at least 3 points a year), its lowest margin of those years
-              and an exit multiple 10% lower (20% for price to sales).
+              <b>Bear</b>: each stock&rsquo;s 10th-percentile outcome: 1 in 10 years for a stock this volatile end lower.
             </li>
             <li>
-              <b>Base</b>: its usual growth, a margin halfway between today&rsquo;s and its median, and the target multiple.
+              <b>Base</b>: the market return for its risk plus its fundamentals tilt. It sits above the middle of the Bear-Bull range, since a volatile stock&rsquo;s
+              typical year is below its average one.
             </li>
             <li>
-              <b>Bull</b>: faster growth by the same amount, its highest margin and an exit multiple 10% higher (20% for price to sales).
-            </li>
-            <li>
-              <b>Exit at Own P/E</b>: the target is the median of its P/E today, 1 year ago and 3 years ago. <b>Industry P/E</b>: the median
-              P/E of its home industry&rsquo;s listed companies (if none is known, its own).
+              <b>Bull</b>: each stock&rsquo;s 90th-percentile outcome: 1 in 10 years end higher.
             </li>
             <li>
               <b>Weighting</b>: Equal, M-cap and Custom work as in the backtest; the projection follows your weights at once.
@@ -1136,14 +1175,24 @@ export function BasketDetail(p: BasketDetailProps) {
   );
 
   // The holdings table's sortable headers: numbers sort high to low, P/E low to high, names A to Z.
-  const sortHead = (id: Sort, label: string, right = true) => (
-    <th scope="col" aria-sort={sort === id ? (id === "name" || id === "pe" ? "ascending" : "descending") : "none"} className={"px-2 py-1.5 font-semibold " + (right ? "text-right" : "text-left")}>
-      <button type="button" onClick={() => setSort(id)} className={"tap-y inline-flex min-h-6 items-center whitespace-nowrap uppercase tracking-wider hover:text-ink pointer-coarse:min-h-9 " + (sort === id ? "text-ink" : "")}>
-        {label}
-        {sort === id && <span aria-hidden>{id === "name" || id === "pe" ? " ▲" : " ▼"}</span>}
-      </button>
-    </th>
-  );
+  const sortHead = (id: Sort, label: string, right = true) => {
+    const on = sort === id;
+    const asc = on && sortAscFirst(id) !== sortRev;
+    return (
+      <th scope="col" aria-sort={on ? (asc ? "ascending" : "descending") : "none"} className={"px-2 py-1.5 font-semibold " + (right ? "text-right" : "text-left")}>
+        <button
+          type="button"
+          onClick={() => setSort(id)}
+          aria-label={on ? `${label}, ${sortWords(id, sortRev)}. Tap for ${sortWords(id, !sortRev)}` : `Sort by ${label}, ${sortWords(id, false)}`}
+          title={on ? `${sortWords(id, sortRev)} · tap again for ${sortWords(id, !sortRev)}` : sortWords(id, false)}
+          className={"tap-y inline-flex min-h-6 items-center whitespace-nowrap uppercase tracking-wider hover:text-ink pointer-coarse:min-h-9 " + (on ? "text-ink" : "")}
+        >
+          {label}
+          {on && <span aria-hidden>{asc ? " ▲" : " ▼"}</span>}
+        </button>
+      </th>
+    );
+  };
   // A saved basket always has the column: a stock whose price at adding isn't recorded yet shows
   // "—" with the reason, rather than the column coming and going.
   const sinceShown = p.mode === "saved";
@@ -1270,7 +1319,7 @@ export function BasketDetail(p: BasketDetailProps) {
     />
   );
   // Every column of the desktop table, for a row that spans them all (a removed stock's placeholder).
-  const tableCols = 8 + (p.pickedOn ? 1 : 0) + (sinceShown ? 1 : 0) + (xColumn ? 1 : 0);
+  const tableCols = 8 + (projOn ? 2 : 0) + (p.pickedOn ? 1 : 0) + (sinceShown ? 1 : 0) + (xColumn ? 1 : 0);
   // A removed stock's placeholder: its name and the Undo (which brings back every stock taken off
   // while the offer is open, as the header's does).
   const ghostLine = (g: Ghost) => (
@@ -1813,12 +1862,20 @@ export function BasketDetail(p: BasketDetailProps) {
                       </span>
                       <label className="flex items-center gap-1.5">
                         <span className="sr-only">Sort by</span>
-                        <select aria-label="Sort by" value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="min-h-9 rounded border border-line bg-bg px-1.5 text-xs text-ink">
-                          {SORTS.map((s) => (
-                            <option key={s.id} value={s.id}>
-                              {projOn && s.id === "weight" ? "Share at end" : projOn && s.id === "return" ? "Projected return" : s.label}
-                            </option>
-                          ))}
+                        <select
+                          aria-label="Sort by"
+                          value={`${sort}:${sortRev ? 1 : 0}`}
+                          onChange={(e) => {
+                            const [id, rev] = e.target.value.split(":");
+                            setSort(id as Sort, rev === "1");
+                          }} className="min-h-9 rounded border border-line bg-bg px-1.5 text-xs text-ink">
+                          {SORTS.filter((s) => (projOn ? s.id !== "return" : !s.proj)).flatMap((s) =>
+                            [false, true].map((rev) => (
+                              <option key={`${s.id}:${rev}`} value={`${s.id}:${rev ? 1 : 0}`}>
+                                {projOn && s.id === "weight" ? "Share at end" : s.label}: {sortWords(s.id, rev)}
+                              </option>
+                            )),
+                          )}
                         </select>
                       </label>
                     </div>
@@ -1867,6 +1924,26 @@ export function BasketDetail(p: BasketDetailProps) {
                               {h ? (
                                 <>
                                   <div className={"font-mono text-[13px] font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{signedPct(h.ret)}</div>
+                                  {projOn && (() => {
+                                    // The other two cases under the chosen one.
+                                    const other = SCENARIOS.filter((sc) => sc !== projSet.scenario);
+                                    return (
+                                      <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft">
+                                        {other.map((sc, i) => {
+                                          const r = caseReturn(s.proj, projSet.h, sc);
+                                          return (
+                                            <span key={sc}>
+                                              {i > 0 && " · "}
+                                              {/* The case the list is sorted by, when it is one of these two, stands out. */}
+                                              <span className={sort === sc ? "font-semibold text-ink" : undefined}>
+                                                <span className="font-sans">{sc === "bear" ? "Bear" : sc === "bull" ? "Bull" : "Base"}</span> {r == null ? NA : signedPct(r * 100)}
+                                              </span>
+                                            </span>
+                                          );
+                                        })}
+                                      </div>
+                                    );
+                                  })()}
                                   <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft" title={projOn ? (editingWeights ? "Share at the end" : "Target share today → share at the end") : editingWeights ? "Share now" : "Target share → share now"}>
                                     {editingWeights ? `${projOn ? "end" : "now"} ${pct1(h.endWeight)}` : `${pct1(h.weight)} → ${pct1(h.endWeight)}`}
                                   </div>
@@ -1906,7 +1983,9 @@ export function BasketDetail(p: BasketDetailProps) {
                         tall empty space under the shorter one. */}
                     <div className="relative hidden sm:block">
                     <div ref={tableBoxRef} className="max-h-[36rem] overflow-auto">
-                      <table className="w-full border-collapse text-xs">
+                      {/* With Projections on (three case columns) or a Picked on column, the table keeps a width the
+                          names can read at and scrolls sideways inside its box on a tablet instead of squeezing them. */}
+                      <table className={"w-full border-collapse text-xs " + (projOn || p.pickedOn ? "min-w-[52rem]" : "")}>
                         <thead className="sticky top-0 z-[1] bg-panel-2 text-[10px] uppercase tracking-wider text-ink-soft">
                           <tr className="border-b border-line">
                             <th scope="col" className="w-10 pl-2 pr-0">
@@ -1923,7 +2002,15 @@ export function BasketDetail(p: BasketDetailProps) {
                               <span className="inline-block min-w-[4.75rem]">Target %</span>
                             </th>
                             {sortHead("weight", projOn ? "End %" : "Now %")}
-                            {sortHead("return", "Return")}
+                            {projOn ? (
+                              <>
+                                {sortHead("bear", "Bear")}
+                                {sortHead("base", "Base")}
+                                {sortHead("bull", "Bull")}
+                              </>
+                            ) : (
+                              sortHead("return", "Return")
+                            )}
                             {sortHead("contribution", "Pts added")}
                             {sortHead("pe", "P/E")}
                             {sortHead("mcap", "M-cap")}
@@ -1984,11 +2071,23 @@ export function BasketDetail(p: BasketDetailProps) {
                                   <>
                                     {!editingWeights && <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono text-ink-soft">{pct1(h.weight)}</td>}
                                     <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{pct1(h.endWeight)}</td>
-                                    <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{signedPct(h.ret)}</td>
+                                    {projOn ? (
+                                      SCENARIOS.map((sc) => {
+                                        const r = caseReturn(s.proj, projSet.h, sc);
+                                        const chosen = sc === projSet.scenario;
+                                        return (
+                                          <td key={sc} className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (chosen ? "font-semibold " : "text-[11px] ") + (r == null ? "text-ink-soft" : r >= 0 ? "text-pos" : "text-danger")}>
+                                            {r == null ? NA : signedPct(r * 100)}
+                                          </td>
+                                        );
+                                      })
+                                    ) : (
+                                      <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{signedPct(h.ret)}</td>
+                                    )}
                                     <td className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (h.contribution >= 0 ? "text-pos" : "text-danger")}>{signedPts(h.contribution, 2)}</td>
                                   </>
                                 ) : (
-                                  <td colSpan={editingWeights ? 3 : 4} className="px-2 py-1.5 text-right text-[11px] text-ink-soft">
+                                  <td colSpan={(editingWeights ? 3 : 4) + (projOn ? 2 : 0)} className="px-2 py-1.5 text-right text-[11px] text-ink-soft">
                                     {ex ?? (tbt?.status === "error" ? NA : "…")}
                                   </td>
                                 )}
@@ -2012,7 +2111,7 @@ export function BasketDetail(p: BasketDetailProps) {
                                   <span className="block font-mono font-semibold">{t}</span>
                                   <span className="block text-[10px]">No longer listed in our maps</span>
                                 </td>
-                                <td colSpan={(sinceShown ? 7 : 6) + (p.pickedOn ? 1 : 0)} className="px-2 py-1.5 text-right text-[11px]">
+                                <td colSpan={(sinceShown ? 7 : 6) + (p.pickedOn ? 1 : 0) + (projOn ? 2 : 0)} className="px-2 py-1.5 text-right text-[11px]">
                                   Left out of the backtest
                                 </td>
                                 {xColumn && <td className="w-9 px-1 py-1">{showRemove ? removeButton({ ticker: t, name: t }, true) : <span aria-hidden className="block w-7 pointer-coarse:w-9" />}</td>}
@@ -2026,7 +2125,7 @@ export function BasketDetail(p: BasketDetailProps) {
                     <p className="border-t border-line/70 px-3 py-1.5 text-[11px] text-ink-soft">
                       {projOn ? (
                         <>
-                          Projected return over the next {HORIZON_LONG[projSet.h]}, {projSet.scenario} case · <b className="font-semibold">target</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} today (a left-out stock&rsquo;s share spread over the rest),{" "}
+                          <b className="font-semibold">Bear, Base, Bull</b> each stock&rsquo;s projected return over the next {HORIZON_LONG[projSet.h]} in each case (the {projSet.scenario} case in bold; tap a heading to sort) · <b className="font-semibold">target</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} today (a left-out stock&rsquo;s share spread over the rest),{" "}
                           <b className="font-semibold">end</b> if held to the end · <b className="font-semibold">pts</b> what it adds to the projected return · P/E and market cap from our last data update
                         </>
                       ) : (
@@ -2057,13 +2156,14 @@ export function BasketDetail(p: BasketDetailProps) {
 
           {projOn ? (
             <p className="text-[11px] leading-relaxed text-ink-soft">
-              How it is projected: each stock with at least 3 consecutive years of revenue and net profit grows from today&rsquo;s earnings at its
-              usual revenue growth, faded part of the way toward 10% a year, with its margin moving toward its usual one (Bear: slower growth, lowest
-              margin; Bull: faster growth, highest margin), valued at a P/E moving a third of the way a year toward{" "}
-              {projSet.exit === "own" ? "its own median" : "its home industry’s median"}, held within 0.7× and 1.4× today&rsquo;s (price to sales for loss-makers), with each case kept within
-              −60% and +80% a year. The basket is bought today at {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights" : "weights by market cap"} and held;
-              a stock left out has its share spread over the rest in proportion. The likely range and drawdowns come from 1,000 simulated paths that swing
-              like the basket did over the past year. Price change only. {PROJECTION_DISCLAIMER} See the Assumptions tab for each stock&rsquo;s inputs, and{" "}
+              How it is projected: each stock with at least 3 consecutive years of revenue and net profit and 3 years of trading is projected on the
+              return the market prices in for its risk (the 10-year G-sec yield, {pctOf(MARKET.rf)} on {MARKET.rfAsOf}, plus its beta times India&rsquo;s equity risk
+              premium, {pctOf(MARKET.erp)}, {MARKET.erpAsOf}, less its dividend yield), with a small tilt from its growth and margin (loss-makers: the market return
+              only). Bear and Bull are its 10th and 90th percentile outcomes at its own volatility over the last year. The basket is bought today at{" "}
+              {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights" : "weights by market cap"} and held, each case the weighted
+              sum of its stocks&rsquo;, so the basket&rsquo;s Bear and Bull have every stock at its own extreme at once; a stock left out has its share spread over the
+              rest in proportion. The likely range and drawdowns, the basket-level range, come from 1,000 simulated paths that swing like the basket did over the past
+              year. Price change only. {PROJECTION_DISCLAIMER} See the Assumptions tab for each stock&rsquo;s inputs, and{" "}
               <Link href="/baskets/projections" className="tap-y text-accent hover:underline">
                 the full method
               </Link>

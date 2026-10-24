@@ -21,7 +21,25 @@ function unzipStored(b: Uint8Array): Record<string, Uint8Array> {
 }
 const strFromU8 = (u: Uint8Array) => new TextDecoder().decode(u);
 
-const proj = (r: number) => ({ ok: true as const, years: 5, method: "pe" as const, growth: [0.05, 0.1, 0.15] as [number, number, number], margin: [0.08, 0.1, 0.12] as [number, number, number], multipleNow: 20, targetOwn: 20, targetInd: 22, span: "FY22-FY26", capped: false, ret: { own: { "1": [r - 0.1, r, r + 0.1] as [number, number, number], "2": [r, r * 2, r * 3] as [number, number, number] }, ind: { "1": [r, r, r] as [number, number, number], "2": [r, r, r] as [number, number, number] } } });
+const proj = (r: number) => ({
+  ok: true as const,
+  years: 5,
+  method: "pe" as const,
+  span: "FY22-FY26",
+  beta: 1.1,
+  betaSource: "prices" as const,
+  vol: 0.3,
+  volSource: "prices" as const,
+  divYield: 0.01,
+  market: 0.142,
+  growth: 0.12,
+  marginNow: 0.1,
+  marginThen: 0.105,
+  score: 0.176,
+  z: 0.5,
+  tilt: 0.0075,
+  ret: { "1": [r - 0.1, r, r + 0.1] as [number, number, number], "2": [r, r * 2, r * 3] as [number, number, number] },
+});
 const stock = (ticker: string, p: BasketStock["proj"]): BasketStock => ({ ticker, name: `${ticker} Ltd`, mcapCr: 1000, pe: 20, role: "", layer: "Layer", industries: [{ slug: "ev4w", name: "EV" }], layerIn: {}, proj: p });
 
 test("xlsx: column names, sheet names, a valid zip with every part", () => {
@@ -60,16 +78,30 @@ test("workbook: every sheet, projections with picks and the left-out stock", () 
     bench: [{ t: "2025-10-24", c: 20000 }, { t: "2026-10-23", c: 22000 }],
     stats: null,
     rel: null,
-    projection: { settings: { h: 1, scenario: "base", exit: "own" }, on: true, sim: null, vol: 0.2, dates: ["2026-10-23", "2026-10-30"], path: [0, 1] },
+    projection: { settings: { h: 1, scenario: "base" }, on: true, sim: null, vol: 0.2, dates: ["2026-10-23", "2026-10-30"], path: [0, 1] },
     disclaimer: "Not advice.",
   });
   assert.deepEqual(sheets.map((s) => s.name), ["Overview", "Stocks", "Backtest stats", "Backtest series", "Projection", "Projection path", "Method"]);
   const stocksSheet = sheets[1].rows;
   assert.equal(stocksSheet[3][11], "No");
   assert.equal(stocksSheet[3][12], "2 years of results (needs 3)");
-  // Base 1Y own for the basket: A 0.625 × 20% + B 0.375 × −10% = 8.75%.
-  const proj1 = sheets[4].rows.find((r) => r[0] === "Next 1 year · exit at Own P/E")!;
+  // v2 columns: beta, its source, volatility % and the 2Y Bull at the end.
+  const head = stocksSheet[0];
+  const col = (name: string) => head.indexOf(name);
+  assert.equal(stocksSheet[1][col("Beta")], 1.1);
+  assert.equal(stocksSheet[1][col("Beta source")], "2Y weekly vs Nifty 50");
+  assert.equal(stocksSheet[1][col("Volatility %")], 30);
+  assert.equal(stocksSheet[1][col("Tilt %")], 0.75);
+  assert.equal(stocksSheet[1][col("2Y Bull %")], 60);
+  assert.ok(!head.some((h) => typeof h === "string" && /exit|capped|multiple/i.test(h)));
+  // Base 1Y for the basket: A 0.625 × 20% + B 0.375 × −10% = 8.75%; 2Y Bull: 0.625 × 60% + 0.375 × −30% = 26.25%.
+  const proj1 = sheets[4].rows.find((r) => r[0] === "Next 1 year")!;
   assert.equal(proj1[2], 8.75);
+  assert.equal(sheets[4].rows.find((r) => r[0] === "Next 2 years")![3], 26.25);
+  // The method sheet carries the market inputs and their dates.
+  const method = sheets[6].rows.map((r) => r[0]).join("\n");
+  assert.match(method, /7\.47% \(23 Oct 2026\)/);
+  assert.match(method, /7\.08% \(Jan 2026\)/);
   // Your picks: A and C, C left out, so A alone: 20%.
   const picksAt = sheets[4].rows.findIndex((r) => r[0] === "Your 2 picks");
   assert.equal(sheets[4].rows[picksAt + 1][2], 20);

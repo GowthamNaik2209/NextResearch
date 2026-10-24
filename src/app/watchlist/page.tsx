@@ -10,6 +10,7 @@ import { getQuote, type Quote } from "@/lib/live/yahoo";
 import { basketStock } from "@/lib/baskets/industry";
 import { IndustryChips } from "@/components/baskets/IndustryChips";
 import { ensureFinancials } from "@/lib/financials/load";
+import { ensureRiskStats } from "@/lib/baskets/projection-risk-data";
 import { parseRupees } from "@/lib/financials/rows";
 import { croreShort, fmtDay, NA, signedPct } from "@/lib/format";
 import { croreFromLabel, fmtPrice, freshQuote, pctTone } from "@/components/stock/merge";
@@ -32,6 +33,7 @@ async function quotes(tickers: string[]): Promise<Map<string, Quote>> {
 
 export default async function WatchlistPage() {
   await ensureFinancials();
+  await ensureRiskStats();
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/watchlist");
 

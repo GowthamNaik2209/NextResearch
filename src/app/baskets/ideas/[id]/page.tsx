@@ -8,6 +8,7 @@ import { getIdea } from "@/lib/baskets/ideas-data";
 import { basketStock, dominantIndustry } from "@/lib/baskets/industry";
 import { compareProps } from "@/lib/baskets/page-props";
 import { ensureFinancials } from "@/lib/financials/load";
+import { ensureRiskStats } from "@/lib/baskets/projection-risk-data";
 import { sep } from "@/lib/format";
 
 // A rule-based basket (a "basket idea" in the code): today's list for one rule, as a basket anyone can chart and save as their own.
@@ -19,6 +20,7 @@ const dayOf = (iso: string) => sep(new Date(iso).toLocaleDateString("en-IN", { d
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   await ensureFinancials();
+  await ensureRiskStats();
   const { id } = await params;
   const got = await getIdea(id).catch(() => null);
   if (!got) return { title: "Page not found", robots: { index: false } };
@@ -31,6 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function IdeaPage({ params }: { params: Promise<{ id: string }> }) {
   await ensureFinancials();
+  await ensureRiskStats();
   const { id } = await params;
   const [got, user] = await Promise.all([getIdea(id).catch(() => null), getCurrentUser()]);
   if (!got) notFound();

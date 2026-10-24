@@ -6,6 +6,7 @@ import { MAX_BASKETS_PER_USER, MAX_BASKET_STOCKS, getIndustryBasket } from "@/li
 import { cleanName, cleanTickers, cleanWeights, fillAddPrices, getVisibleBasket, toSaved } from "@/lib/baskets/store";
 import { uniqueName } from "@/lib/baskets/names";
 import { ensureFinancials } from "@/lib/financials/load";
+import { ensureRiskStats } from "@/lib/baskets/projection-risk-data";
 import { cleanPickedFrom } from "@/lib/baskets/picked-from";
 import { toPercents } from "@/lib/baskets/strategy";
 
@@ -14,6 +15,7 @@ export const maxDuration = 60;
 // GET: the signed-in user's baskets, newest first.
 export async function GET() {
   await ensureFinancials();
+  await ensureRiskStats();
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ baskets: [], signedIn: false });
   const rows = await prisma.basket.findMany({ where: { userId: user.id }, include: { items: { orderBy: { addedAt: "asc" } } }, orderBy: { createdAt: "desc" } });
@@ -27,6 +29,7 @@ export async function GET() {
 // kept so its layer label survives a reload; a copy keeps the original's.
 export async function POST(request: Request) {
   await ensureFinancials();
+  await ensureRiskStats();
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "not authenticated" }, { status: 401 });
   const body = await request.json().catch(() => ({}));

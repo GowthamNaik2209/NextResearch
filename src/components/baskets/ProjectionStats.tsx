@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { NA, pct, signedPct } from "@/lib/format";
 import { signedPts } from "@/lib/baskets/fmt";
 import { rangeEnd } from "./ProjectionCards";
-import { EXIT_LABEL, HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, type ProjectionView } from "./projection-view";
+import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, SIM_NOTE, type ProjectionView } from "./projection-view";
 
 // The stats grid with Projections on (docs/PROJECTIONS.md): the basket's projected return in each
 // case, the likely range, chances of a loss and of a 10% fall, the drawdowns of the simulated paths
@@ -76,19 +76,19 @@ export function ProjectionStats({
       cls: tone(cagr),
       help: "The projected return as compound growth a year. Over a 1-year horizon it is the same figure.",
     },
-    { label: "Bear case", value: signedPct(bear), cls: tone(bear), help: "The basket's projected return with slower growth, the lowest margin and a lower exit multiple." },
-    { label: "Bull case", value: signedPct(bull), cls: tone(bull), help: "The basket's projected return with faster growth, the highest margin and a higher exit multiple." },
+    { label: "Bear case", value: signedPct(bear), cls: tone(bear), help: "The weighted average of each stock's Bear case, its 10th-percentile outcome at its own volatility. It assumes every stock at its own low at once, so it is wider than the basket's real range: see Likely range." },
+    { label: "Bull case", value: signedPct(bull), cls: tone(bull), help: "The weighted average of each stock's Bull case, its 90th-percentile outcome at its own volatility. It assumes every stock at its own high at once, so it is wider than the basket's real range: see Likely range." },
     {
       label: "Likely range",
       ...range,
-      sub: "8 in 10 paths",
+      sub: view && view.settings.scenario !== "base" ? "8 in 10 paths · around Base" : "8 in 10 paths",
       cls: sim && last >= 0 && tone(sim.lo[last]) === tone(sim.hi[last]) ? tone(sim.lo[last]) : "text-ink",
-      help: "Where 8 in 10 of 1,000 simulated paths end: the chosen case as the middle, swinging like the basket did over the past year.",
+      help: `Where 8 in 10 of 1,000 simulated paths end. ${SIM_NOTE} This is the basket-level range, since its stocks don't all move together.`,
     },
-    { label: "Chance of loss", ...pLoss, sub: "at the end, simulated", help: "Share of the simulated paths that end below today's value." },
-    { label: "10% fall", ...pFall, sub: "chance, at some point", help: "Share of the simulated paths that fall 10% or more from a high at some point." },
+    { label: "Chance of loss", ...pLoss, sub: "at the end, simulated", help: "Share of the simulated paths (around the Base case, whichever case is chosen) that end below today's value." },
+    { label: "10% fall", ...pFall, sub: "chance, at some point", help: "Share of the simulated paths (around the Base case) that fall 10% or more from a high at some point." },
     { label: "Volatility", ...volCell, sub: "past year, annualised", help: "How much the basket swung over the past year (its 1-year backtest), scaled to a year. The simulated paths swing by this much." },
-    { label: "Max drawdown", ...ddT, sub: "typical path", cls: sim && sim.maxDdTypical < 0 ? "text-danger" : "text-ink-soft", help: "Deepest fall from a high on the typical simulated path (the median of the paths' worst falls)." },
+    { label: "Max drawdown", ...ddT, sub: "typical path", cls: sim && sim.maxDdTypical < 0 ? "text-danger" : "text-ink-soft", help: "Deepest fall from a high on the typical simulated path (the median of the paths' worst falls), around the Base case." },
     { label: "Bad drawdown", ...ddB, sub: "1 in 10 paths", cls: sim && sim.maxDdBad < 0 ? "text-danger" : "text-ink-soft", help: "Deepest fall from a high that 1 in 10 simulated paths reach or pass." },
     { label: "Return / risk", ...rr, sub: "a year ÷ volatility", help: "Projected return a year divided by the past year's volatility. Higher is better." },
     {
@@ -106,17 +106,16 @@ export function ProjectionStats({
     { label: "Nifty 50", value: NA, sub: "not projected", help: "We have no forecast for an index, so the Nifty 50 isn't projected." },
   ];
 
-  const exit = view ? EXIT_LABEL[view.settings.exit] : "";
   return (
     <section aria-label="Projection statistics" className="rounded-md border border-line bg-panel">
       <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-1.5">
-        <H className="text-balance text-[10px] font-semibold uppercase tracking-wider text-ink-soft sm:text-[11px]">
+        <H className="min-w-0 flex-1 text-balance text-[10px] font-semibold uppercase tracking-wider text-ink-soft sm:text-[11px]">
           <span className="whitespace-nowrap">Projection statistics</span>
           {scope ? ` · ${scope}` : ""} · <span className={compact ? "" : "sm:hidden"}>{h}Y</span>
           {!compact && <span className="whitespace-nowrap max-sm:hidden">next {HORIZON_LONG[h]}</span>}
           {/* The side column is narrow: the case takes its own line there rather than breaking mid-title. */}
           {view && (
-            <span title={`${view.caseLabel}, exit at ${exit}`} className={compact ? "block truncate" : ""}>
+            <span title={view.caseLabel} className={compact ? "block truncate text-[9px] tracking-wide" : ""}>
               {compact ? "" : " · "}
               {view.caseLabel}
             </span>
@@ -158,7 +157,7 @@ export function ProjectionStats({
               <b className="font-semibold text-ink">{c.label}</b>: {c.help}
             </li>
           ))}
-          <li>Bought today at the target weights and held; rebalancing doesn&rsquo;t apply. Exit at {exit || "the chosen multiple"}.</li>
+          <li>Bought today at the target weights and held; rebalancing doesn&rsquo;t apply.</li>
           <li>{PROJECTION_DISCLAIMER}</li>
         </ul>
       </details>

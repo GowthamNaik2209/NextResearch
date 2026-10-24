@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { NA, signedPct } from "@/lib/format";
 import { shownPct, signedPts } from "@/lib/baskets/fmt";
-import { PROJECTION_DISCLAIMER, SCENARIO_LABEL, type ProjectionView } from "./projection-view";
+import { PROJECTION_DISCLAIMER, SCENARIO_LABEL, SIM_NOTE, type ProjectionView } from "./projection-view";
 
 // The return cards above a basket chart with Projections on (docs/PROJECTIONS.md): the basket in
 // the chosen case, Your picks, the spread from Bear to Bull and the likely range of the simulated
@@ -90,16 +90,16 @@ export function ProjectionCards({ view, empty, dense = false }: { view: Projecti
         sub={base != null ? `Base ${signedPct(base * 100)}` : undefined}
         note={loading || (bear != null && bull != null) ? undefined : empty ? "add stocks to see" : "nothing projected"}
         dense={dense}
-        title={`The basket's projected return in the Bear and Bull cases, same horizon and exit.${quiet}`}
+        title={`The basket's projected return in the Bear and Bull cases, same horizon: every stock at its own 10th or 90th percentile at once, so wider than the basket's own range (see Likely range).${quiet}`}
       />
       <Card
         label="Likely range"
         value={sim && last >= 0 ? <RangeText lo={sim.lo[last]} hi={sim.hi[last]} /> : null}
         loading={loading || (view?.simState === "loading" && view.basket.ret != null)}
-        sub={sim ? "8 in 10 simulated paths" : view?.simState === "none" && view.basket.ret != null ? "needs a past year of prices" : undefined}
+        sub={sim ? (view && view.settings.scenario !== "base" ? "8 in 10 paths · around Base" : "8 in 10 simulated paths") : view?.simState === "none" && view.basket.ret != null ? "needs a past year of prices" : undefined}
         note={loading ? undefined : empty ? "add stocks to see" : view?.basket.ret == null ? "nothing projected" : undefined}
         dense={dense}
-        title={`Where 8 in 10 of 1,000 simulated paths end: the chosen case as the middle, swinging like the basket did over the past year.${quiet}`}
+        title={`Where 8 in 10 of 1,000 simulated paths end. ${SIM_NOTE}${quiet}`}
       />
     </section>
   );

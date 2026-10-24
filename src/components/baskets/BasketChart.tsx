@@ -28,7 +28,7 @@ export type CompareBasket = {
   slug: string;
   name: string;
   icon: string;
-  /** Its projected return at each weighting, for every horizon, case and exit (docs/PROJECTIONS.md). */
+  /** Its projected return at each weighting, for every horizon and case (docs/PROJECTIONS.md). */
   proj?: Record<"equal" | "mcap", BasketCaseReturns>;
 };
 
@@ -205,7 +205,7 @@ export function BasketChart({
   const projected = useMemo(() => {
     if (!projection) return null;
     const steps = projection.dates.length - 1;
-    const { h, scenario, exit } = projection.settings;
+    const { h, scenario } = projection.settings;
     const values = new Map<string, number[]>();
     const why = new Map<string, string>();
     for (const l of lines) {
@@ -220,7 +220,7 @@ export function BasketChart({
       }
       if (l.key.startsWith("x:sector=")) {
         const slug = decodeURIComponent(l.key.slice(9).split("&")[0]);
-        const r = industries.find((b) => b.slug === slug)?.proj?.[projection.compareWeighting]?.[exit]?.[`${h}`]?.[SCENARIOS.indexOf(scenario)];
+        const r = industries.find((b) => b.slug === slug)?.proj?.[projection.compareWeighting]?.[`${h}`]?.[SCENARIOS.indexOf(scenario)];
         if (r != null) values.set(l.key, stockPath(r, steps));
         else why.set(l.key, "no stock in it has 3 years of results and trading");
         continue;
@@ -621,7 +621,7 @@ export function BasketChart({
       <p className="text-[11px] leading-relaxed text-ink-soft">
         {projection ? (
           <>
-            Weekly steps from the last close, every line from 0% today; each stock grows smoothly to its projected return. The likely range is from 1,000 simulated paths that swing like the basket did over the past year. Indices aren&rsquo;t projected. Model projection from reported financials and past prices, not a forecast or a recommendation.
+            Weekly steps from the last close, every line from 0% today; each stock grows smoothly to its projected return. The likely range is from 1,000 simulated paths around the Base case, whichever case is chosen, that swing like the basket did over the past year. Indices aren&rsquo;t projected. Model projection from market pricing, past prices and reported financials, not a forecast or a recommendation.
           </>
         ) : (
           <>

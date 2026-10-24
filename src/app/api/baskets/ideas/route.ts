@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getIdeasWithReturns } from "@/lib/baskets/ideas-data";
 import { basketStock } from "@/lib/baskets/industry";
 import { ensureFinancials } from "@/lib/financials/load";
+import { ensureRiskStats } from "@/lib/baskets/projection-risk-data";
 
 // The first build of the day's lists reads ~260 price histories (10 at a time), and each card's
 // figure is its idea's own backtest.
@@ -12,6 +13,7 @@ export const maxDuration = 60;
 // it refreshes).
 export async function GET() {
   await ensureFinancials();
+  await ensureRiskStats();
   try {
     const { asOf, ideas, complete } = await getIdeasWithReturns();
     return NextResponse.json(

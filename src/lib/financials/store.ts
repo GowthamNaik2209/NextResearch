@@ -69,6 +69,14 @@ export function listFinancials(): SupplierFinancials[] {
   return Object.values(installed());
 }
 
+/**
+ * Something the derived tables also read changed (a basket stock's projection reads its price
+ * statistics, ../baskets/projection-risk-data.ts): rebuild them as after an install.
+ */
+export function invalidateDerived() {
+  version++;
+}
+
 /** A memo that rebuilds after each install, for derived tables (company pages, screens, footprints). */
 export function memoByFinancials<T>(build: () => T): () => T {
   let v = -1;

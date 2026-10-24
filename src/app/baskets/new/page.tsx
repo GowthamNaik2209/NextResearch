@@ -10,6 +10,7 @@ import { getVisibleBasket } from "@/lib/baskets/store";
 import { parseWeights } from "@/lib/baskets/strategy";
 import { compareProps, pickerProps } from "@/lib/baskets/page-props";
 import { ensureFinancials } from "@/lib/financials/load";
+import { ensureRiskStats } from "@/lib/baskets/projection-risk-data";
 import { primarySector } from "@/lib/sector-content";
 
 export const metadata = { title: "Create a basket", robots: { index: false, follow: false } };
@@ -28,6 +29,7 @@ type Search = { with?: string; idea?: string; from?: string; wt?: string; cw?: s
 // link keeps them. A start with more stocks than a basket holds takes the first ones and says so.
 export default async function NewBasketPage({ searchParams }: { searchParams: Promise<Search> }) {
   await ensureFinancials();
+  await ensureRiskStats();
   const sp = await searchParams;
   const user = await getCurrentUser();
   if (!user) {
