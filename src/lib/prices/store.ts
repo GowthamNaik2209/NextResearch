@@ -15,7 +15,9 @@ import { rollUp, sinceDays, storedRange, toCandles, toPoints, type StoredBar } f
 const DAY = 86_400_000;
 // The store moves once a day: a reader's copy may be this old.
 const TTL_MS = 15 * 60 * 1000;
-// A store read slower than this gives up and the caller fetches Yahoo (as slow a deadline as Yahoo's own).
+// A store query slower than this gives up and the caller fetches Yahoo (as slow a deadline as Yahoo's
+// own). It times the query, not the wait for a turn (READS_AT_ONCE), which a busy instance's
+// background reads can make long without anything being wrong.
 const READ_TIMEOUT_MS = 8000;
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
@@ -36,7 +38,7 @@ async function oneRead<T>(read: () => Promise<T>): Promise<T> {
   if (reading >= READS_AT_ONCE) await new Promise<void>((r) => waiting.push(r));
   reading++;
   try {
-    return await read();
+    return await withTimeout(read(), READ_TIMEOUT_MS);
   } finally {
     reading--;
     waiting.shift()?.();
@@ -66,7 +68,7 @@ let absentUntil = 0;
 async function storedBars(key: string, range: ChartRange): Promise<(Loaded & { interval: "1d" | "1wk" | "1mo"; lastDay: string | null }) | null> {
   const r = storedRange(range);
   if (!r || Date.now() < absentUntil) return null;
-  const got = await withTimeout(load(key, r.days), READ_TIMEOUT_MS).catch((e: unknown) => {
+  const got = await load(key, r.days).catch((e: unknown) => {
     if ((e as { code?: string })?.code === "P2021") absentUntil = Date.now() + 10 * 60_000;
     else console.error(`price store: reading ${key} failed`, e);
     return null;
