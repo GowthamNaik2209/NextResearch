@@ -38,7 +38,7 @@ const CONCURRENCY = 8;
 const PRICES_BUDGET_MS = 25_000;
 
 /** The promise's value, or null if it isn't settled by `deadline` (ms since the epoch). */
-function byDeadline<T>(p: Promise<T | null>, deadline: number): Promise<T | null> {
+export function byDeadline<T>(p: Promise<T | null>, deadline: number): Promise<T | null> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const late = new Promise<null>((r) => (timer = setTimeout(() => r(null), Math.max(0, deadline - Date.now()))));
   return Promise.race([p, late]).finally(() => clearTimeout(timer));
