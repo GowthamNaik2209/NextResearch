@@ -1,6 +1,7 @@
 // Server side of the basket backtest: fetch each stock's closes for the range (shared with the
 // stock pop-up's cache) and run the pure backtest over them, bought and held or rebalanced by the
 // strategy. Cached per basket composition and strategy.
+import { after } from "next/server";
 import { cached } from "@/lib/live/cache";
 import { getChartWithFallback, getSymbolChart, type ChartRange } from "@/lib/live/yahoo";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
@@ -26,6 +27,8 @@ export type BasketBacktest = {
   turnover: number;
   trades: number;
   rebalances: Rebalance[];
+  /** Stocks whose prices were still loading at the time budget (left out as no data this time). */
+  pending?: string[];
 };
 
 // Upstream calls in flight at once: a 57-stock industry would otherwise fire 57 Yahoo requests together.
@@ -37,10 +40,24 @@ const CONCURRENCY = 8;
 // a reload a moment later has it.
 const PRICES_BUDGET_MS = 25_000;
 
-/** The promise's value, or null if it isn't settled by `deadline` (ms since the epoch). */
-export function byDeadline<T>(p: Promise<T | null>, deadline: number): Promise<T | null> {
+/**
+ * The promise's value, or null if it isn't settled by `deadline` (ms since the epoch); then `onLate`
+ * is called and the promise is kept running after the response, so what it fetches is cached.
+ */
+export function byDeadline<T>(p: Promise<T | null>, deadline: number, onLate?: () => void): Promise<T | null> {
   let timer: ReturnType<typeof setTimeout> | undefined;
-  const late = new Promise<null>((r) => (timer = setTimeout(() => r(null), Math.max(0, deadline - Date.now()))));
+  const late = new Promise<null>(
+    (r) =>
+      (timer = setTimeout(() => {
+        onLate?.();
+        try {
+          after(() => p.catch(() => {}));
+        } catch {
+          // Outside a request (a script): nothing to keep alive.
+        }
+        r(null);
+      }, Math.max(0, deadline - Date.now()))),
+  );
   return Promise.race([p, late]).finally(() => clearTimeout(timer));
 }
 
@@ -58,8 +75,8 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
   return out;
 }
 
-/** A stock left out for lack of prices: usually an upstream blip rather than a stock with no history. */
-export const missingPrices = (r: Pick<BasketBacktest, "excluded">) => r.excluded.some((e) => e.reason === "no-data");
+/** Some stock's prices were still loading when the backtest stopped waiting (not a stock with no history). */
+export const pricesPending = (r: Pick<BasketBacktest, "pending">) => !!r.pending?.length;
 
 /**
  * @param opts `joinLate`: a stock listed during the period joins on its first trading day instead
@@ -74,7 +91,8 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
   const ttl = range === "3Y" || range === "5Y" || range === "MAX" ? 60 * 60 * 1000 : 5 * 60 * 1000;
   return cached(key, ttl, async () => {
     const deadline = Date.now() + PRICES_BUDGET_MS;
-    const series = await mapLimit(stocks, CONCURRENCY, (s) => byDeadline(getChartWithFallback(s.ticker, range).catch(() => null), deadline));
+    const pending: string[] = [];
+    const series = await mapLimit(stocks, CONCURRENCY, (s) => byDeadline(getChartWithFallback(s.ticker, range).catch(() => null), deadline, () => pending.push(s.ticker)));
     const slackDays = slackDaysFor(range);
     // Joining at listing: the range's trading days (the Nifty 50's, the line every basket is
     // compared with), so the basket starts on the range's first day with the money for stocks not
@@ -111,7 +129,7 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
       const p = series[i]?.points;
       if (p?.length) last[s.ticker] = p[p.length - 1].c;
     });
-    return { range, weighting: strategy.weighting, strategy, ...result, last };
-    // Missing a stock's prices (Yahoo failing or slow): kept a minute, not the full TTL.
-  }, (r) => missingPrices(r));
+    return { range, weighting: strategy.weighting, strategy, ...result, last, ...(pending.length ? { pending } : {}) };
+    // A stock's prices still loading (Yahoo slow): kept a minute, not the full TTL.
+  }, pricesPending);
 }
