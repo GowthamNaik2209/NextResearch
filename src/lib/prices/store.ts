@@ -26,14 +26,33 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 
 type Loaded = { source: string; exchange: Exchange; bars: StoredBar[] };
 
+// At most this many store reads at once per instance: background work (the projections' statistics,
+// a rule-based list build) reads hundreds of series, and must leave the rest of the instance's small
+// database pool (src/lib/prisma.ts, 5) to page queries. A read takes milliseconds, so they queue briefly.
+const READS_AT_ONCE = 2;
+let reading = 0;
+const waiting: (() => void)[] = [];
+async function oneRead<T>(read: () => Promise<T>): Promise<T> {
+  if (reading >= READS_AT_ONCE) await new Promise<void>((r) => waiting.push(r));
+  reading++;
+  try {
+    return await read();
+  } finally {
+    reading--;
+    waiting.shift()?.();
+  }
+}
+
 /** A series' bars for the last `days` (one query per key and span, kept in memory a few minutes). */
 function load(key: string, days: number): Promise<Loaded | null> {
   return cached(`store1:${key}:${days}`, TTL_MS, async () => {
-    const s = await prisma.priceSeries.findUnique({ where: { key }, select: { source: true, exchange: true, lastDay: true } });
+    const s = await oneRead(() => prisma.priceSeries.findUnique({ where: { key }, select: { source: true, exchange: true, lastDay: true } }));
     // Stale: the top-up has stopped for this series (or altogether); Yahoo is the better answer.
     if (!s?.lastDay || Date.now() - s.lastDay.getTime() > MAX_QUOTE_AGE_DAYS * DAY) return null;
     const from = new Date(Date.now() - days * DAY);
-    const rows = await prisma.priceBar.findMany({ where: { key, day: { gte: from } }, orderBy: { day: "asc" }, select: { day: true, open: true, high: true, low: true, close: true, volume: true } });
+    const rows = await oneRead(() =>
+      prisma.priceBar.findMany({ where: { key, day: { gte: from } }, orderBy: { day: "asc" }, select: { day: true, open: true, high: true, low: true, close: true, volume: true } }),
+    );
     if (rows.length < 2) return null;
     const bars = rows.map((r) => ({ t: r.day.toISOString().slice(0, 10), o: r.open, h: r.high, l: r.low, c: r.close, v: r.volume }));
     return { source: s.source, exchange: s.exchange === "BSE" ? "BSE" : "NSE", bars };

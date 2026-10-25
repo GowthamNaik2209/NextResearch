@@ -16,13 +16,23 @@ import { sep } from "@/lib/format";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+// The day's lists couldn't be read (being rebuilt after a deploy or a new trading day, or prices
+// slow): "unavailable", which the page shows as "being updated", not as a missing page (404).
+// null: no idea by that id.
+const loadIdea = (id: string) =>
+  getIdea(id).catch((e: unknown) => {
+    console.error(`[ideas] idea ${id}: lists unavailable`, e);
+    return "unavailable" as const;
+  });
+
 const dayOf = (iso: string) => sep(new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" }));
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   await ensureFinancials();
   await ensureRiskStats();
   const { id } = await params;
-  const got = await getIdea(id).catch(() => null);
+  const got = await loadIdea(id);
+  if (got === "unavailable") return { title: "Rule-based basket", robots: { index: false } };
   if (!got) return { title: "Page not found", robots: { index: false } };
   return {
     title: `${got.idea.title}: a rule-based stock basket`,
@@ -35,7 +45,8 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
   await ensureFinancials();
   await ensureRiskStats();
   const { id } = await params;
-  const [got, user] = await Promise.all([getIdea(id).catch(() => null), getCurrentUser()]);
+  const [got, user] = await Promise.all([loadIdea(id), getCurrentUser()]);
+  if (got === "unavailable") return <Updating />;
   if (!got) notFound();
   const { idea, asOf } = got;
   const stocks = idea.stocks.map((s) => basketStock(s.ticker)).filter((s) => s !== null);
@@ -65,6 +76,22 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
           pickedOn={Object.fromEntries(idea.stocks.map((s) => [s.ticker, s.stat]))}
           {...compareProps(dominantIndustry(stocks.map((s) => s.ticker)))}
         />
+      </main>
+      <SiteFooter />
+    </>
+  );
+}
+
+function Updating() {
+  return (
+    <>
+      <SiteHeader />
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-3 px-5 py-14">
+        <Link href="/baskets#ideas" className="-my-1 inline-flex min-h-8 items-center self-start text-xs font-semibold text-accent hover:underline pointer-coarse:min-h-9">
+          &larr; Rule-based baskets
+        </Link>
+        <h1 className="font-display text-2xl font-bold text-ink">Today&rsquo;s list is being updated</h1>
+        <p className="max-w-xl text-sm leading-relaxed text-ink-soft">The rule-based baskets are re-ranked from the latest closing prices. Reload in a minute to see this one.</p>
       </main>
       <SiteFooter />
     </>
