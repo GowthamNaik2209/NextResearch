@@ -5,7 +5,8 @@
 import { unstable_cache } from "next/cache";
 import { after } from "next/server";
 import { listSectors, companyLinkKey, companyLinkExposure, findSupplierByTicker, strengthPoints } from "@/lib/sector-content";
-import { HISTORY_FROM, getChartWithFallback, getSymbolChart } from "@/lib/live/yahoo";
+import { HISTORY_FROM } from "@/lib/live/yahoo";
+import { basketChart, basketSymbolChart } from "@/lib/prices/store";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listBasketUniverse } from "./industry";
 import { ensureFinancials } from "@/lib/financials/load";
@@ -102,7 +103,7 @@ const dayHistory = unstable_cache(
   // `day` is only part of the cache key.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (ticker: string, day: string): Promise<{ t: string; c: number }[] | null> => {
-    const pts = (await getChartWithFallback(ticker, "5Y").catch(() => null))?.points;
+    const pts = (await basketChart(ticker, "5Y").catch(() => null))?.points;
     return pts && pts.length >= 2 ? pts : null;
   },
   ["basket-ideas-history-5y-v2"],
@@ -142,7 +143,7 @@ async function priceSnapshot(): Promise<PriceSnapshot> {
  * hour the lists were built: a rebuild after midnight on yesterday's closes still says yesterday.
  */
 async function lastTradingDay(): Promise<string | null> {
-  const pts = (await getSymbolChart(BENCHMARKS.nifty50.symbol, "1M").catch(() => null))?.points;
+  const pts = (await basketSymbolChart(BENCHMARKS.nifty50.symbol, "1M").catch(() => null))?.points;
   return pts?.length ? pts[pts.length - 1].t : null;
 }
 

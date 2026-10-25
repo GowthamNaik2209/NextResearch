@@ -3,7 +3,8 @@
 // strategy. Cached per basket composition and strategy.
 import { after } from "next/server";
 import { cached } from "@/lib/live/cache";
-import { getChartWithFallback, getSymbolChart, type ChartRange } from "@/lib/live/yahoo";
+import type { ChartRange } from "@/lib/live/yahoo";
+import { basketChart, basketSymbolChart } from "@/lib/prices/store";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { basketWeights, runBacktest, slackDaysFor, splitHeld, type BacktestExcluded, type BacktestHolding, type JoinOptions, type PricePoint } from "./backtest";
 import { basketStock } from "./industry";
@@ -92,13 +93,13 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
   return cached(key, ttl, async () => {
     const deadline = Date.now() + PRICES_BUDGET_MS;
     const pending: string[] = [];
-    const series = await mapLimit(stocks, CONCURRENCY, (s) => byDeadline(getChartWithFallback(s.ticker, range).catch(() => null), deadline, () => pending.push(s.ticker)));
+    const series = await mapLimit(stocks, CONCURRENCY, (s) => byDeadline(basketChart(s.ticker, range).catch(() => null), deadline, () => pending.push(s.ticker)));
     const slackDays = slackDaysFor(range);
     // Joining at listing: the range's trading days (the Nifty 50's, the line every basket is
     // compared with), so the basket starts on the range's first day with the money for stocks not
     // yet listed waiting in cash, and the chart, statistics and drawdown all share that first day.
     if (opts.joinLate && !opts.calendar) {
-      const nifty = await getSymbolChart(BENCHMARKS.nifty50.symbol, range).catch(() => null);
+      const nifty = await basketSymbolChart(BENCHMARKS.nifty50.symbol, range).catch(() => null);
       opts = { ...opts, calendar: nifty?.points.map((p) => p.t) ?? [] };
     }
     // Equal and market cap weigh the whole list, as they always have (a missing market cap gets

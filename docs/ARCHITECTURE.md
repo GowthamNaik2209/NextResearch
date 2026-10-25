@@ -208,6 +208,38 @@ today's run, waiting while a chunk holds the lease, writes everyone dated today 
 `--only A,B` (dry run with before/after), `--fix-history=A,B --apply`, `--add=T,...` (a new
 company, dated at the published date so it shows at once). See Playbook 1.5.
 
+### Price store - `src/lib/prices/`
+
+Every company with a page and every benchmark keeps its last five years of daily bars (open, high,
+low, close, volume) in the database (`PriceSeries`, `PriceBar`), so baskets don't fetch Yahoo on a
+visit (a cold rule-based list or industry table used to fetch hundreds of histories and could run
+past a function's 60 s).
+
+- *Reads* (`store.ts`): the baskets (backtests, industry figures, rule-based lists, the projections'
+  beta and volatility) read the store first and fall back to Yahoo when it can't serve: no series
+  yet, the "All" range (not kept), or a last bar older than 6 days (the top-up has stopped). The
+  stock pop-up's charts read Yahoo first (the day's live moves) and fall back to the store. Weekly
+  bars for 3Y/5Y are rolled up from the daily ones the way Yahoo dates them (Monday). Daily ranges
+  match the Yahoo charts point for point; weekly ones too, except a point or two in weeks with a
+  weekend session, where Yahoo's weekly close disagrees with its own daily closes. Backtests from
+  the store equal the Yahoo ones. Kept in memory 15 min per instance; a read slower than 8 s
+  falls back to Yahoo.
+- *Top-up* (`refresh.ts`): after 18:30 IST each trading day (as the company figures), one
+  `PriceRun` per day holds a lease; each chunk fetches the series not yet checked for that day.
+  A new series is fetched whole (Yahoo's symbol walk, else Screener's closes, but never because
+  Yahoo was down); after that only the last two weeks. It is fetched whole again and replaced when
+  those disagree with stored closes by more than 2%, when a day-to-day move tops 45% (a split Yahoo
+  dates months from the drop), when it is on Screener's closes (Yahoo is asked again), and at least
+  weekly. Bars after the day being topped up are never stored (no intraday price as a close).
+  Least recently checked series go first; eight failures in a row stop the chunk (Yahoo down); a
+  day missed is caught up by the next top-up. Vercel Cron calls
+  `/api/prices/refresh` at 19:30 IST on weekdays (`CRON_SECRET`, as the financials cron;
+  `PRICES_AUTO_REFRESH=0` turns it off).
+- *By hand:* `npx tsx scripts/refresh-prices.ts` (status), `--apply` (the first fill, or catching
+  up), `--only=LT,^NSEI --apply`. About 290 series x 1,250 bars: ~360k rows, ~50 MB.
+- *Status:* `SELECT * FROM "PriceRun" ORDER BY day DESC`, and `"PriceSeries"."checkedDay"` per series.
+- Before the tables exist (code deployed ahead of its migration) the reads skip the store and use Yahoo.
+
 If the database is unreachable, an instance keeps serving the table it has installed (and the data
 cache its last copy); a cold instance with neither cannot render pages until it is back. Run the
 migration and the data copy together: with `tracked` rows missing, the table reads as empty.
@@ -227,6 +259,8 @@ Node functions don't support it.) Moving the database to Mumbai would let both m
 | `KpiSnapshot` | one dated price/valuation/ratio row per company per refresh (the app reads the latest on or before the published date) | `write.ts` |
 | `FinancialSnapshot` | FY22-FY26 revenue/net profit, one row per year | `write.ts` (by hand only) |
 | `FinancialsRun` | one automatic refresh per trading day: `snapshotDate`, `status` (RUNNING/PUBLISHED/FAILED), progress, lease | `refresh.ts` |
+| `PriceSeries`, `PriceBar` | the price store: per stock/benchmark its source (Yahoo symbol or `screener`), first/last/checked day; daily OHLCV bars keyed by (key, day) | `prices/refresh.ts` |
+| `PriceRun` | one price top-up per trading day: progress, failures, lease | `prices/refresh.ts` |
 | `Profile` | mirror of a Supabase auth user (`ensureProfile`, on sign-in and before a watchlist or basket write) | app |
 | `Watchlist` | user x company, `priceAtAdd` | `/api/watchlist` |
 | `Basket`, `BasketItem` | a user's baskets; items keyed by ticker, with `priceAtAdd`, custom `weight` and `pickedFrom` (industry slug) | `/api/baskets` |

@@ -169,3 +169,48 @@ model BasketItem {
 
   @@unique([basketId, ticker])
 }
+
+// The price store: every mapped stock's and benchmark's daily bars for the last five years, topped up
+// after each NSE trading day (src/lib/prices/refresh.ts), so baskets and charts read our own copy
+// instead of fetching Yahoo on a visit (src/lib/prices/store.ts).
+//
+// One row per stock (its content ticker, e.g. "LT") or benchmark (its Yahoo symbol, e.g. "^NSEI").
+model PriceSeries {
+  key         String    @id
+  // Where the bars come from: the Yahoo symbol that answered (e.g. "LT.NS", "EMBASSY-RR.NS"), or
+  // "screener" (closes only, no open/high/low/volume) for a stock Yahoo has no prices for.
+  source      String
+  exchange    String    @default("NSE")
+  // First and last day stored (IST trading days at UTC midnight), and the trading day last topped up to.
+  firstDay    DateTime? @db.Date
+  lastDay     DateTime? @db.Date
+  checkedDay  DateTime? @db.Date
+  // A full five-year re-fetch (first fill, or old closes changed: a split Yahoo adjusted afterwards).
+  fullAt      DateTime?
+  updatedAt   DateTime  @updatedAt
+}
+
+model PriceBar {
+  key    String
+  day    DateTime @db.Date
+  open   Float?
+  high   Float?
+  low    Float?
+  close  Float
+  volume Float?
+
+  @@id([key, day])
+}
+
+// One top-up of the price store per NSE trading day; `leaseUntil` lets one chunk at a time work on
+// it across instances. Readers don't look at it: each stock's bars are usable as soon as written.
+model PriceRun {
+  id         String    @id @default(cuid())
+  day        DateTime  @unique @db.Date
+  done       Int       @default(0)
+  total      Int       @default(0)
+  failed     String[]  @default([])
+  finishedAt DateTime?
+  leaseUntil DateTime?
+  startedAt  DateTime  @default(now())
+}

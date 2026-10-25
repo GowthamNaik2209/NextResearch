@@ -6,23 +6,15 @@
 // Vercel Cron sends `Authorization: Bearer $CRON_SECRET`; without CRON_SECRET set the route refuses
 // everything, so local dev never writes. FINANCIALS_AUTO_REFRESH=0 turns it off along with the visit
 // trigger. Crons run on production deployments only.
-import { timingSafeEqual } from "node:crypto";
+import { cronAuthorized } from "@/lib/cron-auth";
 import { runFinancialsChunk } from "@/lib/financials/auto";
 
 // One chunk takes up to ~4 minutes of Screener fetches; leave room to save and publish.
 export const maxDuration = 300;
 const BUDGET_MS = 230_000;
 
-function authorized(request: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  const got = Buffer.from(request.headers.get("authorization") ?? "");
-  const want = Buffer.from(`Bearer ${secret}`);
-  return got.length === want.length && timingSafeEqual(got, want);
-}
-
 export async function GET(request: Request) {
-  if (!authorized(request)) return Response.json({ error: "unauthorized" }, { status: 401 });
+  if (!cronAuthorized(request)) return Response.json({ error: "unauthorized" }, { status: 401 });
   if (process.env.FINANCIALS_AUTO_REFRESH === "0") return Response.json({ status: "disabled" });
   try {
     return Response.json(await runFinancialsChunk(BUDGET_MS));
