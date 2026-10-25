@@ -30,6 +30,19 @@ export type BasketBacktest = {
 
 // Upstream calls in flight at once: a 57-stock industry would otherwise fire 57 Yahoo requests together.
 const CONCURRENCY = 8;
+// How long a backtest waits for its stocks' prices. When Yahoo is slow or rate-limiting, a stock can
+// take tens of seconds (a timeout, then Screener's fallback), and a big basket would run past the
+// function's 60s limit and fail outright (504). Past this, a stock still loading counts as having no
+// prices; its fetch carries on and fills the price cache, and the answer is kept only briefly, so
+// a reload a moment later has it.
+const PRICES_BUDGET_MS = 25_000;
+
+/** The promise's value, or null if it isn't settled by `deadline` (ms since the epoch). */
+function byDeadline<T>(p: Promise<T | null>, deadline: number): Promise<T | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<null>((r) => (timer = setTimeout(() => r(null), Math.max(0, deadline - Date.now()))));
+  return Promise.race([p, late]).finally(() => clearTimeout(timer));
+}
 
 async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
   const out = new Array<R>(items.length);
@@ -45,6 +58,9 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
   return out;
 }
 
+/** A stock left out for lack of prices: usually an upstream blip rather than a stock with no history. */
+export const missingPrices = (r: Pick<BasketBacktest, "excluded">) => r.excluded.some((e) => e.reason === "no-data");
+
 /**
  * @param opts `joinLate`: a stock listed during the period joins on its first trading day instead
  *   of being left out (the Recent listings rule-based basket: each stock backtested from its listing).
@@ -57,7 +73,8 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
   const key = `basket3:${plain ? strategy.weighting : strategyQuery(strategy)}:${range}:${sorted.join(",")}${opts.joinLate ? ":J2" : ""}`;
   const ttl = range === "3Y" || range === "5Y" || range === "MAX" ? 60 * 60 * 1000 : 5 * 60 * 1000;
   return cached(key, ttl, async () => {
-    const series = await mapLimit(stocks, CONCURRENCY, (s) => getChartWithFallback(s.ticker, range).catch(() => null));
+    const deadline = Date.now() + PRICES_BUDGET_MS;
+    const series = await mapLimit(stocks, CONCURRENCY, (s) => byDeadline(getChartWithFallback(s.ticker, range).catch(() => null), deadline));
     const slackDays = slackDaysFor(range);
     // Joining at listing: the range's trading days (the Nifty 50's, the line every basket is
     // compared with), so the basket starts on the range's first day with the money for stocks not
@@ -95,5 +112,6 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
       if (p?.length) last[s.ticker] = p[p.length - 1].c;
     });
     return { range, weighting: strategy.weighting, strategy, ...result, last };
-  });
+    // Missing a stock's prices (Yahoo failing or slow): kept a minute, not the full TTL.
+  }, (r) => missingPrices(r));
 }

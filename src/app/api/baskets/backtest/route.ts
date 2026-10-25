@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { isChartRange } from "@/lib/live/yahoo";
 import { basketStock, getIndustryBasket } from "@/lib/baskets/industry";
-import { backtestBasket } from "@/lib/baskets/run";
+import { backtestBasket, missingPrices } from "@/lib/baskets/run";
 import { parseStrategy, shortHash } from "@/lib/baskets/strategy";
 import { cleanTickers, getVisibleBasket } from "@/lib/baskets/store";
 import { ensureFinancials } from "@/lib/financials/load";
@@ -60,6 +60,8 @@ export async function GET(req: Request) {
   const data = await backtestBasket(tickers, range, strategy, { joinLate: q.get("join") === "listing" });
   if (!data.points.length) return NextResponse.json({ error: "unavailable" }, { status: 502 });
   // A private basket's response must not sit in a shared CDN cache.
-  const cache = shared ? "public, s-maxage=300, stale-while-revalidate=900" : "private, max-age=60";
+  // One missing a stock's prices (Yahoo failing or slow) is held a short while, so a reload soon fills it in.
+  const brief = missingPrices(data);
+  const cache = shared ? (brief ? "public, s-maxage=30" : "public, s-maxage=300, stale-while-revalidate=900") : brief ? "private, max-age=10" : "private, max-age=60";
   return NextResponse.json({ ...data, source: "basket" }, { headers: { "Cache-Control": cache } });
 }

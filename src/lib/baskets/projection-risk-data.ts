@@ -50,6 +50,8 @@ const cachedRisk = unstable_cache(
 const stats = new Map<string, RiskStats>();
 let loading: Promise<void> | null = null;
 let checkedAt = 0;
+// The load a request has already waited the full WAIT_MS for.
+let waitedOn: Promise<void> | null = null;
 
 /** A stock's installed price statistics, or null when they aren't loaded (yet). */
 export function riskStatsFor(ticker: string): RiskStats | null {
@@ -76,7 +78,12 @@ export async function ensureRiskStats(): Promise<void> {
     });
   }
   const work = loading;
-  const done = await Promise.race([work.then(() => true), new Promise<false>((r) => setTimeout(() => r(false), WAIT_MS))]);
+  // The hourly re-check with statistics already installed runs in the background: only an
+  // instance with none yet waits, and only once per load (a basket page calls this up to three
+  // times per view, and every view during a slow load would otherwise wait again).
+  const wait = stats.size === 0 && waitedOn !== work;
+  const done = wait && (await Promise.race([work.then(() => true), new Promise<false>((r) => setTimeout(() => r(false), WAIT_MS))]));
+  if (wait && !done) waitedOn = work;
   if (!done)
     try {
       after(() => work);
