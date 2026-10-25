@@ -8,7 +8,7 @@ import { unstable_cache } from "next/cache";
 import { getSymbolChart } from "@/lib/live/yahoo";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listIndustryBaskets } from "./industry";
-import { backtestBasket } from "./run";
+import { backtestBasket, pricesPending } from "./run";
 import { heldStrategy } from "./strategy";
 import { basketFigures, seriesStats, type BasketFigures } from "./stats";
 import type { PricePoint } from "./backtest";
@@ -49,6 +49,8 @@ const cachedFigure = unstable_cache(
     const b = listIndustryBaskets().find((x) => x.slug === slug);
     if (!b?.stocks.length) throw new Error(`no stocks in ${slug}`);
     const [bt, bench] = await Promise.all([backtestBasket(b.stocks.map((s) => s.ticker), RANGE, heldStrategy()), cachedBench().catch(() => null)]);
+    // Not kept with a stock's prices still loading (Yahoo slow): that would be a different basket's figure all day.
+    if (pricesPending(bt)) throw new Error(`prices still loading for ${slug}`);
     const fig = bt.points.length ? basketFigures(bt.points, bench) : null;
     if (!fig) throw new Error(`no backtest for ${slug}`);
     return fig;

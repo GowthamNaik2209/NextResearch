@@ -103,6 +103,9 @@ const ordered = (ticker: string, kind: "q" | "c", list: string[]) => {
 // Exchange-local (IST) calendar day, so a bar never lands on the previous date.
 const istDay = (d: Date) => new Date(d.getTime() + 5.5 * 3_600_000).toISOString().slice(0, 10);
 
+// A timeout, rate limit or outage, as opposed to Yahoo answering that it has no such symbol.
+const upstreamDown = (e: unknown) => /yahoo timeout|too many requests|\b429\b|\b50[234]\b|fetch failed|ECONNRESET|ETIMEDOUT/i.test(e instanceof Error ? e.message : String(e));
+
 async function yahooSeries(ticker: string, range: ChartRange): Promise<Series | null> {
   // An up-to-date symbol can still hold only weeks of history (SIKA/TANAA/SPELS on `.NS` start
   // Aug 2026 while `.BO` goes back years), so a short one is kept as a fallback and the next
@@ -111,7 +114,14 @@ async function yahooSeries(ticker: string, range: ChartRange): Promise<Series | 
   const days = PARAMS[range].days ?? 1100;
   let best: { symbol: string; data: Series } | null = null;
   for (const symbol of ordered(ticker, "c", chartSymbols(ticker))) {
-    const data = await yahooSeriesFor(symbol, range).catch(() => null);
+    let down = false;
+    const data = await yahooSeriesFor(symbol, range).catch((e: unknown) => {
+      down = upstreamDown(e);
+      return null;
+    });
+    // Yahoo itself is failing (timing out or rate-limiting), not this symbol: the next symbols
+    // would fail the same way, 8s each, so stop here (the caller falls back to Screener).
+    if (down) break;
     // A frozen symbol's history ends where it froze. Weekly/monthly bars are dated at the start
     // of their period, so allow that much extra slack for 3Y/MAX.
     const lastT = data?.points[data.points.length - 1]?.t;

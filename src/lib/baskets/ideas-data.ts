@@ -9,7 +9,7 @@ import { HISTORY_FROM, getChartWithFallback, getSymbolChart } from "@/lib/live/y
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listBasketUniverse } from "./industry";
 import { ensureFinancials } from "@/lib/financials/load";
-import { backtestBasket } from "./run";
+import { backtestBasket, byDeadline, pricesPending } from "./run";
 import { heldStrategy } from "./strategy";
 import { detectOutlier } from "./outliers";
 import { buildIdeas, priceStat, withBacktestReturns, type Idea, type IdeaBacktest, type IdeaStockInfo, type PriceSnapshot, type PriceStat } from "./ideas";
@@ -84,17 +84,57 @@ export function ideaStockInfo(): IdeaStockInfo[] {
   });
 }
 
+// How long one build spends fetching histories. All ~260 at once can outlast the function's 60s
+// (Yahoo slow or rate-limiting, Screener fallbacks), and a build cut off by the limit used to lose
+// everything it had fetched, so every later visit started over and was cut off again (Vercel
+// "Task timed out after 60 seconds" on the idea pages). Past this the build stops, the histories it
+// has stay in the cache below, and the next visit carries on from there.
+const SNAPSHOT_BUDGET_MS = 30_000;
+
+/**
+ * A stock's five-year closes for one trading day's lists, kept one by one in the shared cache
+ * (every instance reads it). Keyed by the day, so a new day fetches afresh rather than serving
+ * yesterday's copy. No prices is kept too (null), so a stock that fails doesn't cost every later
+ * build another timeout (the lists leave it out, as they always did); it is re-asked after a few
+ * hours in case it was a blip.
+ */
+const dayHistory = unstable_cache(
+  // `day` is only part of the cache key.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async (ticker: string, day: string): Promise<{ t: string; c: number }[] | null> => {
+    const pts = (await getChartWithFallback(ticker, "5Y").catch(() => null))?.points;
+    return pts && pts.length >= 2 ? pts : null;
+  },
+  ["basket-ideas-history-5y-v2"],
+  { revalidate: 3 * 60 * 60 },
+);
+
 async function priceSnapshot(): Promise<PriceSnapshot> {
   const tickers = listBasketUniverse().map((s) => s.ticker);
   const now = Date.now();
-  const charts = await mapLimit(tickers, CONCURRENCY, (t) => getChartWithFallback(t, "5Y").catch(() => null));
+  const asOf = (await lastTradingDay()) ?? new Date(now).toISOString();
+  const day = asOf.slice(0, 10);
+  const deadline = now + SNAPSHOT_BUDGET_MS;
+  let cut = false;
+  // A fetch still running at the deadline isn't waited for; it carries on and fills the cache.
+  const charts = await mapLimit(tickers, CONCURRENCY, async (t) => {
+    if (Date.now() >= deadline) {
+      cut = true;
+      return null;
+    }
+    // Still loading at the deadline isn't "no prices": the build is cut short.
+    return byDeadline(dayHistory(t, day).catch(() => null), deadline, () => void (cut = true));
+  });
+  // Cut short: thrown, so the cache keeps serving the last full lists (none are built from part of
+  // the stocks); the histories fetched so far are kept, and the next build finishes the rest.
+  if (cut) throw new Error("basket ideas: price histories still loading, carrying on next visit");
   const stats: Record<string, PriceStat> = {};
   tickers.forEach((t, i) => {
-    const st = charts[i] ? priceStat(charts[i]!.points, now) : null;
+    const st = charts[i] ? priceStat(charts[i]!, now) : null;
     if (st) stats[t] = st;
   });
   if (Object.keys(stats).length < tickers.length * MIN_COVERAGE) throw new Error(`basket ideas: prices for only ${Object.keys(stats).length} of ${tickers.length} stocks`);
-  return { asOf: (await lastTradingDay()) ?? new Date(now).toISOString(), stats };
+  return { asOf, stats };
 }
 
 /**
@@ -147,7 +187,8 @@ const ideaFigure = unstable_cache(
   async (asOf: string, id: string): Promise<IdeaBacktest> => {
     const { ideas } = await getIdeas();
     const idea = ideas.find((i) => i.id === id);
-    const bt = idea ? await ideaBacktest(idea) : null;
+    // Kept for the day only when no stock's prices were still loading (a slow Yahoo can leave some out).
+    const bt = idea ? await ideaBacktest(idea, true) : null;
     if (!bt) throw new Error(`no backtest for idea ${id} (${asOf})`);
     return bt;
   },
@@ -179,13 +220,15 @@ export async function getIdeasWithReturns(): Promise<IdeasPayload & { complete: 
   return { asOf, ideas: withBacktestReturns(ideas, { ...got }), complete: done && ideas.every((i) => got[i.id]) };
 }
 
-async function ideaBacktest(idea: Idea): Promise<IdeaBacktest | null> {
+/** `complete`: null when a stock's prices were still loading, rather than a figure from the others. */
+async function ideaBacktest(idea: Idea, complete = false): Promise<IdeaBacktest | null> {
   const bt = await backtestBasket(
     idea.stocks.map((s) => s.ticker),
     idea.range,
     heldStrategy(),
     { joinLate: !!idea.joinAtListing },
   ).catch(() => null);
+  if (complete && bt && pricesPending(bt)) return null;
   const pts = bt?.points ?? [];
   // Measured as the page's return card measures the same series.
   return pts.length < 2 ? null : { ret: (pts[pts.length - 1].c / pts[0].c - 1) * 100, holdings: bt!.holdings };
