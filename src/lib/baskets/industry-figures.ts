@@ -5,7 +5,7 @@
 // Kept in Next's shared data cache for an hour, so a visit doesn't wait for the backtests.
 import { after } from "next/server";
 import { unstable_cache } from "next/cache";
-import { getSymbolChart } from "@/lib/live/yahoo";
+import { basketSymbolChart } from "@/lib/prices/store";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listIndustryBaskets } from "./industry";
 import { backtestBasket, pricesPending } from "./run";
@@ -37,7 +37,7 @@ export type IndustryFigures = {
 // visit carries on from there. An error (no prices) is never cached: the next visit tries again.
 const cachedBench = unstable_cache(
   async (): Promise<PricePoint[]> => {
-    const pts = (await getSymbolChart(BENCHMARKS.nifty50.symbol, RANGE))?.points;
+    const pts = (await basketSymbolChart(BENCHMARKS.nifty50.symbol, RANGE))?.points;
     if (!pts?.length) throw new Error("no Nifty 50 series");
     return pts;
   },

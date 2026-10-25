@@ -79,6 +79,14 @@ npx tsx scripts/refresh-financials.ts --add=TICKER --apply   # a company we don'
 
 The site picks new figures up within about half an hour, without a deploy.
 
+Daily prices (five years per stock and benchmark, for the baskets and charts) live in the database
+too and top themselves up after each trading day (see "Price store" in docs/ARCHITECTURE.md):
+
+```bash
+npx tsx scripts/refresh-prices.ts            # status: what is stored, what is behind
+npx tsx scripts/refresh-prices.ts --apply    # fetch and store what is due (shared live DB: get a go-ahead first)
+```
+
 ## Refreshing the seed data
 
 `prisma/seed-source/extracted.json` holds the curated news and the content's company list. It is

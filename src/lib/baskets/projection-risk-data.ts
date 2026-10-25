@@ -7,7 +7,7 @@
 // projected with a beta of 1 and a volatility from its 52-week range (shown as such).
 import { after } from "next/server";
 import { unstable_cache } from "next/cache";
-import { getChartWithFallback, getSymbolChart } from "@/lib/live/yahoo";
+import { basketChart, basketSymbolChart } from "@/lib/prices/store";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listCompanyPages } from "@/lib/sector-content/companies";
 import { invalidateDerived } from "@/lib/financials/store";
@@ -27,7 +27,7 @@ export type RiskStats = RiskInput & { asOf: string };
 
 const cachedIndex = unstable_cache(
   async (): Promise<PricePoint[]> => {
-    const pts = (await getSymbolChart(BENCHMARKS.nifty50.symbol, "2Y"))?.points;
+    const pts = (await basketSymbolChart(BENCHMARKS.nifty50.symbol, "2Y"))?.points;
     if (!pts?.length) throw new Error("no Nifty 50 series");
     return pts;
   },
@@ -37,7 +37,7 @@ const cachedIndex = unstable_cache(
 
 const cachedRisk = unstable_cache(
   async (ticker: string): Promise<RiskStats> => {
-    const [chart, index] = await Promise.all([getChartWithFallback(ticker, "2Y"), cachedIndex()]);
+    const [chart, index] = await Promise.all([basketChart(ticker, "2Y"), cachedIndex()]);
     const pts = chart?.points;
     // An error is never cached: the next visit tries again.
     if (!pts || pts.length < 2) throw new Error(`no price history for ${ticker}`);

@@ -106,36 +106,45 @@ const istDay = (d: Date) => new Date(d.getTime() + 5.5 * 3_600_000).toISOString(
 // A timeout, rate limit or outage, as opposed to Yahoo answering that it has no such symbol.
 const upstreamDown = (e: unknown) => /yahoo timeout|too many requests|\b429\b|\b50[234]\b|fetch failed|ECONNRESET|ETIMEDOUT/i.test(e instanceof Error ? e.message : String(e));
 
-async function yahooSeries(ticker: string, range: ChartRange): Promise<Series | null> {
+type Fetch = { days: number | null; interval: BarInterval };
+
+async function yahooSeries(ticker: string, range: ChartRange, p: Fetch = PARAMS[range]): Promise<Series | null> {
+  return (await yahooSeriesWalk(ticker, range, p))?.data ?? null;
+}
+
+async function yahooSeriesWalk(ticker: string, range: ChartRange, p: Fetch = PARAMS[range], onDown?: () => void): Promise<{ symbol: string; data: Series } | null> {
   // An up-to-date symbol can still hold only weeks of history (SIKA/TANAA/SPELS on `.NS` start
   // Aug 2026 while `.BO` goes back years), so a short one is kept as a fallback and the next
   // symbol is tried for the full range.
   // "All" has no fixed start; a series under three years old is treated as short there too.
-  const days = PARAMS[range].days ?? 1100;
+  const days = p.days ?? 1100;
   let best: { symbol: string; data: Series } | null = null;
   for (const symbol of ordered(ticker, "c", chartSymbols(ticker))) {
     let down = false;
-    const data = await yahooSeriesFor(symbol, range).catch((e: unknown) => {
+    const data = await yahooSeriesFor(symbol, range, p).catch((e: unknown) => {
       down = upstreamDown(e);
       return null;
     });
     // Yahoo itself is failing (timing out or rate-limiting), not this symbol: the next symbols
     // would fail the same way, 8s each, so stop here (the caller falls back to Screener).
-    if (down) break;
+    if (down) {
+      onDown?.();
+      break;
+    }
     // A frozen symbol's history ends where it froze. Weekly/monthly bars are dated at the start
     // of their period, so allow that much extra slack for 3Y/MAX.
     const lastT = data?.points[data.points.length - 1]?.t;
-    const slackDays = MAX_QUOTE_AGE_DAYS + (range === "MAX" ? 31 : range === "3Y" || range === "5Y" ? 7 : 0);
+    const slackDays = MAX_QUOTE_AGE_DAYS + (p.interval === "1mo" ? 31 : p.interval === "1wk" ? 7 : 0);
     if (!data || !lastT || Date.now() - Date.parse(lastT) > slackDays * DAY) continue;
     const firstT = data.points[0].t;
     if (Date.parse(firstT) - (Date.now() - days * DAY) <= 45 * DAY) {
       resolved.set(`c:${ticker}`, symbol);
-      return data;
+      return { symbol, data };
     }
     if (!best || firstT < best.data.points[0].t) best = { symbol, data };
   }
   if (best) resolved.set(`c:${ticker}`, best.symbol);
-  return best?.data ?? null;
+  return best;
 }
 
 // Yahoo lists some Indian splits without adjusting the prices before them (BONDADA 5:1,
@@ -202,8 +211,7 @@ function barsFrom(quotes: ChartRes["quotes"], interval: BarInterval): OhlcBar[] 
   return bars;
 }
 
-async function yahooSeriesFor(symbol: string, range: ChartRange): Promise<Series | null> {
-  const p = PARAMS[range];
+async function yahooSeriesFor(symbol: string, range: ChartRange, p: Fetch = PARAMS[range]): Promise<Series | null> {
   const res = (await withTimeout(
     yf.chart(symbol, { period1: p.days ? new Date(Date.now() - p.days * DAY) : new Date("1990-01-01"), interval: p.interval, events: "split" }, LENIENT),
   )) as ChartRes;
@@ -306,6 +314,44 @@ async function getRawChart(ticker: string, range: ChartRange, screenerCompanyId?
     } catch {}
     return null;
   });
+}
+
+// ---------------------------------------------------------------- daily bars for the price store
+
+/** Daily candles and closes (split-adjusted as the charts are), and the Yahoo symbol they came from. */
+export type DailyHistory = { symbol: string; exchange: Exchange; bars: OhlcBar[]; points: PricePoint[] };
+
+const daily = (days: number): Fetch => ({ days, interval: "1d" });
+const toDaily = (symbol: string, s: Series | null): DailyHistory | null => (s ? { symbol, exchange: s.exchange, bars: s.bars, points: s.points } : null);
+
+/**
+ * A stock's daily bars for the last `days`, choosing its Yahoo symbol as the charts do; null when
+ * Yahoo has none. Throws when Yahoo is failing (timeout, rate limit), so "Yahoo is down" is never
+ * taken for "Yahoo has no prices for this stock". Not cached.
+ */
+export async function yahooDailyHistory(ticker: string, days: number): Promise<DailyHistory | null> {
+  let down = false;
+  const got = await yahooSeriesWalk(ticker, "5Y", daily(days), () => (down = true));
+  if (down && !got) throw new Error("yahoo down");
+  return got ? toDaily(got.symbol, got.data) : null;
+}
+
+/** Daily bars for the last `days` from one known Yahoo symbol (an index, or a stock's resolved symbol). Throws when Yahoo fails. Not cached. */
+export async function yahooDailyFor(symbol: string, days: number): Promise<DailyHistory | null> {
+  return toDaily(symbol, await yahooSeriesFor(symbol, "5Y", daily(days)));
+}
+
+/** Screener's daily closes for the last `days` (stocks Yahoo has no prices for), or null. */
+export async function screenerDailyCloses(ticker: string, days: number): Promise<PricePoint[] | null> {
+  const f = await getFundamentals(ticker).catch(() => null);
+  if (!f?.companyId) return null;
+  const url = `https://www.screener.in/api/company/${f.companyId}/chart/?q=Price&days=${days}&consolidated=true`;
+  const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(TIMEOUT_MS) });
+  if (!res.ok) return null;
+  const json = await res.json();
+  const values: [string, string][] | undefined = json?.datasets?.find((d: { metric: string }) => d.metric === "Price")?.values;
+  const points = (values ?? []).map(([t, c]) => ({ t, c: parseFloat(c) })).filter((p) => Number.isFinite(p.c) && p.c > 0);
+  return points.length > 1 ? points : null;
 }
 
 /** Candles + volume for a ticker (same symbol choice as getChart's Yahoo path), or null: no Screener fallback. */
