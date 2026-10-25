@@ -193,8 +193,10 @@ export async function runPriceChunk(prisma: PrismaClient, opts: PriceChunkOption
   const run = await claimPriceRun(prisma, target, leaseSeconds);
   if (!run) return { status: "busy", day };
 
-  // A series that failed this day isn't retried by later chunks (tomorrow's top-up tries again).
-  const failedToday = new Set(run.failed);
+  // A series that failed this day isn't retried by later chunks (tomorrow's top-up tries again),
+  // unless named by hand (the script's --only).
+  const failedToday = new Set(opts.only ? [] : run.failed);
+  if (opts.only) run.failed = run.failed.filter((k) => !opts.only!.includes(k));
   // Least recently checked first (never fetched before all), so a chunk that runs out of time
   // leaves different series behind each day rather than the same ones.
   const checkedAt = (k: string) => series.get(k)?.checkedDay?.getTime() ?? 0;
@@ -205,6 +207,7 @@ export async function runPriceChunk(prisma: PrismaClient, opts: PriceChunkOption
   let inARow = 0;
   let stopped = false;
   let next = 0;
+  const retried = new Set<string>();
   try {
     await Promise.all(
       Array.from({ length: opts.workers ?? WORKERS }, async () => {
@@ -214,12 +217,20 @@ export async function runPriceChunk(prisma: PrismaClient, opts: PriceChunkOption
           try {
             how = await topUp(prisma, k.key, k.benchmark, series.get(k.key), target);
           } catch (e) {
-            log(`${k.key}: ${String(e).slice(0, 160)}`);
+            log(`${k.key}: ${String(e).replace(/\s+/g, " ").slice(-300)}`);
           }
           if (how === "whole" || how === "top-up") {
             inARow = 0;
             if (how === "whole") whole++;
             else toppedUp++;
+          } else if (how === null && !retried.has(k.key)) {
+            // An error (a Yahoo or database blip, ~4% of the first fill): once more, at the end of the queue.
+            retried.add(k.key);
+            todo.push(k);
+            if (++inARow >= FAILS_IN_A_ROW && !stopped) {
+              stopped = true;
+              log(`${FAILS_IN_A_ROW} series failed in a row (Yahoo down or refusing us); stopping this chunk`);
+            }
           } else {
             run.failed = [...run.failed, k.key];
             if (++inARow >= FAILS_IN_A_ROW && !stopped) {
