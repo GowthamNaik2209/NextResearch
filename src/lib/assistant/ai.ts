@@ -1,18 +1,19 @@
-// Optional AI rewrite of an assistant answer, through Groq's free tier (Llama 3.1 8B Instant, an
-// open-weights model; Groq's API is OpenAI-compatible, so this is a plain fetch with no SDK).
+// Optional AI rewrite of an assistant answer, through Groq's free tier (gpt-oss-20b, an
+// open-weights model; ../llm/groq.ts). Llama 3.1 8B Instant, used at first, is not offered on
+// every free account.
 // Off unless GROQ_API_KEY is set. The model only rephrases the code-written facts: anything that
 // fails the checks below - a number not in the facts, advice wording, an error, a slow reply - and
 // the reader gets the code-written answer instead. Every question here comes from a fixed list per
 // page, so answers are cached per (context, question) and the number of model calls stays bounded
 // however many people use the site.
 import { cached } from "../live/cache";
+import { groqComplete } from "../llm/groq";
 import type { AssistantQuestion } from "./index";
 
-const MODEL = "llama-3.1-8b-instant";
-const ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
-const TIMEOUT_MS = 6_000;
-// Bump when the prompt changes, so cached answers are rewritten.
-const PROMPT_VERSION = 1;
+const MODEL = "openai/gpt-oss-20b" as const;
+const TIMEOUT_MS = 8_000;
+// Bump when the prompt or model changes, so cached answers are rewritten.
+const PROMPT_VERSION = 2;
 // Content only changes with a deploy (which empties this cache), so a day is plenty.
 const TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -53,30 +54,22 @@ export function checkAnswer(text: string, facts: string[]): boolean {
 }
 
 async function callGroq(question: AssistantQuestion, title: string): Promise<string | null> {
-  const key = process.env.GROQ_API_KEY;
-  if (!key) return null;
+  if (!aiEnabled()) return null;
   try {
-    const res = await fetch(ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({
+    const r = await groqComplete(
+      {
         model: MODEL,
-        temperature: 0.2,
-        max_tokens: 220,
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: `Page: ${title}\nQuestion: ${question.q}\nFacts:\n${question.facts.map((f) => `- ${f}`).join("\n")}` },
-        ],
-      }),
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
-    if (!res.ok) {
-      // 429 is the free tier's daily/minute limit: expected under load, and the fallback covers it.
-      if (res.status !== 429) console.warn(`[assistant] Groq answered ${res.status}`);
-      return null;
-    }
-    const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-    const text = data.choices?.[0]?.message?.content?.trim().replace(/\s+/g, " ") ?? "";
+        system: SYSTEM,
+        user: `Page: ${title}\nQuestion: ${question.q}\nFacts:\n${question.facts.map((f) => `- ${f}`).join("\n")}`,
+        // gpt-oss reasons before it answers, and those tokens count here too.
+        maxTokens: 500,
+        reasoning: "low",
+        timeoutMs: TIMEOUT_MS,
+      },
+      // The fallback covers a rate limit (429 is expected under load on the free tier): no waiting.
+      { maxWaits: 0 },
+    );
+    const text = r.text.trim().replace(/\s+/g, " ");
     return checkAnswer(text, question.facts) ? text : null;
   } catch {
     return null;
