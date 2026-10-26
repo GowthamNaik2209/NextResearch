@@ -73,8 +73,15 @@ export type GuidanceMetric = (typeof GUIDANCE_METRICS)[number];
 export const PERIOD_KINDS = ["FY", "H1", "H2", "Q", "multi_year", "unspecified"] as const;
 export type PeriodKind = (typeof PERIOD_KINDS)[number];
 
+export const GUIDANCE_SCOPES = ["company", "segment", "product"] as const;
+export type GuidanceScope = (typeof GUIDANCE_SCOPES)[number];
+
 export type GuidanceItem = Quoted & {
   metric: GuidanceMetric;
+  /** company = consolidated figure; segment = a geography or business line (US, India, specialty);
+   *  product = one drug / product / programme / launch. Only company scope is checked against
+   *  reported results: a remark that one product's sales will fall says nothing about the total. */
+  scope: GuidanceScope;
   period_kind: PeriodKind;
   /** e.g. 2027 for FY27; for multi_year the last year of the range. null when not stated. */
   target_fiscal_year: number | null;

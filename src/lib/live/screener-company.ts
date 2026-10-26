@@ -41,7 +41,7 @@ const num = (s: string) => {
   return Number.isFinite(n) ? n : null;
 };
 
-function sectionTable(html: string, id: string): string | null {
+export function sectionTable(html: string, id: string): string | null {
   const i = html.indexOf(`id="${id}"`);
   if (i < 0) return null;
   const j = html.indexOf("<table", i);
@@ -49,7 +49,7 @@ function sectionTable(html: string, id: string): string | null {
   return j < 0 || k < 0 ? null : html.slice(j, k);
 }
 
-function parseDataTable(table: string) {
+export function parseDataTable(table: string) {
   const head = table.match(/<thead>([\s\S]*?)<\/thead>/)?.[1] ?? "";
   const cols = [...head.matchAll(/<th[^>]*>([\s\S]*?)<\/th>/g)].map((m) => strip(m[1])).slice(1);
   const rows = [...(table.match(/<tbody>([\s\S]*?)<\/tbody>/)?.[1] ?? "").matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)].map((m) => {
