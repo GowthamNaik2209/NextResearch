@@ -128,7 +128,7 @@ function iposContext(): AssistantContext {
       ask(
         "stages",
         "What do the IPO status labels mean?",
-        "Filed: the company has sent its draft prospectus (DRHP) to SEBI. Approved: SEBI has cleared it. Upcoming: dates are set. Open: you can apply now. Listed: recently started trading.",
+        "Filed: the company has sent its draft prospectus (DRHP) to SEBI. SEBI approved: SEBI has cleared it; 'on hold' or 'paused' means the company has not set dates yet. Upcoming: dates are set. Open: you can apply now. Closed: bidding has ended and the shares list on the date shown. Listed: recently started trading.",
       ),
       ask(
         "deck",

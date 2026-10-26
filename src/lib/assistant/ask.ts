@@ -176,6 +176,12 @@ export function splitReply(reply: string, titles: string[] = []): { answer: stri
   return { answer, sources: [...new Set([...byNumber, ...byTitle])] };
 }
 
+/** Links for the pages used; the general "NextResearch" page only when nothing more specific is. */
+function sourcesOf(contexts: AssistantContext[]): AskSource[] {
+  const specific = contexts.filter((c) => c.key !== "platform");
+  return (specific.length ? specific : contexts).map((c) => ({ key: c.key, title: c.title, href: hrefForKey(c.key) }));
+}
+
 /** What the reader sees when there is no AI answer: each matched page's own summary answer. */
 function fallback(contexts: AssistantContext[], note: string): AskAnswer {
   const lead = contexts.slice(0, 2).map((c) => {
@@ -185,7 +191,7 @@ function fallback(contexts: AssistantContext[], note: string): AskAnswer {
   return {
     answer: lead.join("\n\n") || "We couldn't find that in NextResearch's data.",
     ai: false,
-    sources: contexts.map((c) => ({ key: c.key, title: c.title, href: hrefForKey(c.key) })),
+    sources: sourcesOf(contexts),
     note,
   };
 }
@@ -212,7 +218,7 @@ async function writeAnswer(question: string, contexts: AssistantContext[]): Prom
     if (!checkAnswer(answer, facts)) return fallback(contexts, "The AI answer didn't match our figures, so here is what our pages say.");
     const used = (out.sources ?? []).filter((n) => n >= 1 && n <= contexts.length).map((n) => contexts[n - 1]);
     const cited = used.length ? used : contexts;
-    return { answer, ai: true, sources: cited.map((c) => ({ key: c.key, title: c.title, href: hrefForKey(c.key) })), note: null };
+    return { answer, ai: true, sources: sourcesOf(cited), note: null };
   } catch (e) {
     const busy = e instanceof GroqError && e.status === 429;
     console.warn(`[assistant] ask fell back: ${String(e).slice(0, 160)}`);
@@ -224,13 +230,18 @@ export function aiAskEnabled(): boolean {
   return !!process.env.GROQ_API_KEY;
 }
 
-/** Answer a typed question asked on `pathname` (with its context query params). */
-export async function answerQuestion(question: string, pathname: string, params: URLSearchParams): Promise<AskAnswer> {
+/**
+ * Answer a typed question asked on `pathname` (with its context query params). `ai: false` (a
+ * signed-out reader) answers from the matched pages' own text, with no model call: the free AI
+ * allowance is kept for signed-in readers, but nobody gets a question left unanswered.
+ */
+export async function answerQuestion(question: string, pathname: string, params: URLSearchParams, opts: { ai?: boolean } = {}): Promise<AskAnswer> {
   const q = question.trim().slice(0, MAX_QUESTION_CHARS);
   const current = contextKeyForPath(pathname, params);
   const contexts = findKeys(q, buildContext(current) ? current : "platform")
     .map((k) => buildContext(k))
     .filter((c): c is AssistantContext => !!c);
+  if (opts.ai === false) return fallback(contexts, "Here is what our pages say. Log in for an AI-written answer to your exact question.");
   if (!aiAskEnabled()) return fallback(contexts, "AI answers are switched off, so here is what our pages say.");
   const norm = q.toLowerCase().replace(/[^a-z0-9& ]+/g, " ").replace(/\s+/g, " ").trim();
   return cached(`ask:${VERSION}:${contexts.map((c) => c.key).join(",")}:${norm}`, TTL_MS, () => writeAnswer(q, contexts), (a) => !a.ai);

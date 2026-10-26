@@ -7,8 +7,9 @@ import { usePathname, useSearchParams } from "next/navigation";
 // "Ask NextResearch": a chat button in the bottom-right corner of every page. Opening it (a click,
 // or hovering it with a mouse) shows a few suggested questions about what the page is showing
 // (lib/assistant decides which); answers come from /api/assistant - code-written from our data, or
-// reworded by the AI layer when it is on. Signed-in readers can also type their own question
-// (/api/assistant/ask), and the landing page's search box sends questions here ("nr:ask" event).
+// reworded by the AI layer when it is on. Anyone can also type a question (/api/assistant/ask):
+// signed-in readers get an AI-written answer, signed-out readers the matched pages' own answers.
+// The landing page's search box sends questions here ("nr:ask" event).
 // Mounted once in the root layout.
 
 type Question = { id: string; q: string; a: string };
@@ -116,10 +117,24 @@ export function AssistantWidget() {
   }, [open]);
 
   const turns = ctx && log.key === ctx.key ? log.turns : [];
-  // Keep the newest answer in view.
+  // Bring the newest exchange into view from its start (the question), not the end of a long answer;
+  // also on reopening the panel.
   useEffect(() => {
-    logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: "smooth" });
-  }, [log, typed]);
+    const box = logRef.current;
+    const last = box?.querySelector<HTMLElement>("[data-turn]:last-of-type");
+    if (!box || !last) return;
+    box.scrollTo({ top: Math.max(0, last.offsetTop - box.offsetTop - 8), behavior: "smooth" });
+  }, [log, typed, open]);
+
+  // Opened on purpose (click, Enter, a question sent from the search box): move focus into the
+  // panel's question box, so keyboard readers carry on there instead of tabbing back to it.
+  // The box appears once askState has loaded (it is re-read on every open), so focus waits for it.
+  const focusBox = useRef(false);
+  useEffect(() => {
+    if (!focusBox.current || !open || !askState) return;
+    inputRef.current?.focus({ preventScroll: true });
+    focusBox.current = false;
+  }, [open, askState]);
 
   const askTyped = (question: string) => {
     const q = question.trim();
@@ -156,6 +171,7 @@ export function AssistantWidget() {
       if (!q) return;
       setOpen(true);
       setPinned(true);
+      focusBox.current = true;
       pendingAsk.current = q;
       setDraft(q);
     };
@@ -166,7 +182,7 @@ export function AssistantWidget() {
     if (!askState || !pendingAsk.current) return;
     const q = pendingAsk.current;
     pendingAsk.current = null;
-    if (askState.signedIn && askState.ai) askTyped(q);
+    askTyped(q);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [askState]);
 
@@ -239,7 +255,7 @@ export function AssistantWidget() {
             {failed && !ctx && <p className="text-sm text-ink-soft">Couldn&apos;t load questions. Check your connection and try again.</p>}
             {ctx && <p className="text-sm text-ink-soft">Pick a question about {ctx.title}.</p>}
             {turns.map((t) => (
-              <div key={t.id} className="flex flex-col gap-2">
+              <div key={t.id} data-turn className="flex flex-col gap-2">
                 <p className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-accent px-3 py-2 text-sm font-medium text-bg">{t.q}</p>
                 <div className="mr-auto max-w-[92%] rounded-2xl rounded-bl-md bg-panel-2 px-3 py-2 text-sm leading-relaxed text-ink">
                   {t.a == null ? (
@@ -258,7 +274,7 @@ export function AssistantWidget() {
               </div>
             ))}
             {typed.turns.map((t) => (
-              <div key={t.id} className="flex flex-col gap-2">
+              <div key={t.id} data-turn className="flex flex-col gap-2">
                 <p className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-accent px-3 py-2 text-sm font-medium text-bg">{t.q}</p>
                 <div className={"mr-auto max-w-[92%] rounded-2xl rounded-bl-md px-3 py-2 text-sm leading-relaxed " + (t.error ? "bg-danger/10 text-ink" : "bg-panel-2 text-ink")}>
                   {t.a == null ? (
@@ -307,7 +323,7 @@ export function AssistantWidget() {
             )}
           </div>
 
-          {askState?.ai && askState.signedIn && (
+          {askState && (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -327,7 +343,7 @@ export function AssistantWidget() {
                 maxLength={300}
                 enterKeyHint="send"
                 autoComplete="off"
-                placeholder="Ask anything about our data"
+                placeholder={askState.signedIn ? "Ask anything about our data" : "Ask about a company or theme"}
                 aria-label="Ask your own question"
                 className="min-w-0 flex-1 rounded-xl border border-line bg-bg px-3 py-2 text-base text-ink outline-none placeholder:text-ink-soft focus:border-accent sm:text-sm"
               />
@@ -344,12 +360,11 @@ export function AssistantWidget() {
             </form>
           )}
           {askState?.ai && !askState.signedIn && (
-            <p className="border-t border-line px-4 py-2.5 text-xs text-ink">
-              {draft ? <span className="mb-1 block truncate text-ink-soft">&ldquo;{draft}&rdquo;</span> : null}
-              <Link href={`/login?next=${encodeURIComponent(pathname)}`} className="font-semibold text-accent hover:underline">
-                Sign in
+            <p className="px-4 pb-2 text-xs text-ink-soft">
+              <Link href={`/login?next=${encodeURIComponent(pathname)}`} className="tap-y inline-block py-1 text-[13px] font-semibold text-accent hover:underline">
+                Log in
               </Link>{" "}
-              to ask your own questions. It&apos;s free.
+              for AI-written answers to your own questions. It&apos;s free.
             </p>
           )}
           <p className="border-t border-line px-4 py-2 text-[11px] leading-snug text-ink-soft">
@@ -367,6 +382,7 @@ export function AssistantWidget() {
           else {
             setOpen(true);
             setPinned(true);
+            focusBox.current = true;
           }
         }}
         onMouseEnter={hoverOpen}
