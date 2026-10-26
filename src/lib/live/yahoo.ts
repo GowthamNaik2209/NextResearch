@@ -7,6 +7,7 @@ import { cached } from "./cache";
 import { isFreshQuote, MAX_QUOTE_AGE_DAYS } from "./freshness";
 import { getFundamentals, type Fundamentals } from "./screener-company";
 import { samePeriod, type BarInterval, type OhlcBar } from "./ohlc-format";
+import { adjustDemergers } from "./demergers";
 
 const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"], validation: { logErrors: false } });
 // Yahoo occasionally returns a shape the library's schema rejects (symbol-specific);
@@ -272,8 +273,13 @@ export async function getSymbolChart(symbol: string, range: ChartRange): Promise
 // Corporate actions that make earlier prices a different security: history starts after them.
 // Both the closes (/chart) and the candles (/ohlc) read this, so a pop-up showing both costs one
 // upstream walk. Null (Yahoo has nothing up to date) is held only briefly by cached().
+// Demergers Yahoo left unadjusted are scaled here (./demergers.ts), as the price store's reads are.
 const getYahooSeries = (ticker: string, range: ChartRange) =>
-  cached(`yseries1:${ticker}:${range}`, chartTtl(range), () => yahooSeries(ticker, range).catch(() => null));
+  cached(`yseries2:${ticker}:${range}`, chartTtl(range), () =>
+    yahooSeries(ticker, range)
+      .then((s) => s && { ...s, points: adjustDemergers(ticker, s.points, s.interval), bars: adjustDemergers(ticker, s.bars, s.interval) })
+      .catch(() => null),
+  );
 
 // Tata Motors' demerger (14 Oct 2025) split off the commercial-vehicle arm; the listed
 // passenger-vehicle company (TMPV) is not comparable with the pre-demerger stock.
