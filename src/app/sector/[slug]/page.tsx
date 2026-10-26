@@ -19,6 +19,9 @@ import { companySlug, sectorCompanies, sectorCompanyCounts } from "@/lib/sector-
 import { NOT_FOUND_METADATA, SITE_URL, jsonLd, midSentence } from "@/lib/site";
 import type { Metadata } from "next";
 import { Points } from "@/components/Points";
+import { IndustryActions, type HeatStock } from "@/components/charts/IndustryHeatmap";
+import { actionClass } from "@/components/charts/action-class";
+import { getIndustryBasket } from "@/lib/baskets/industry";
 import { ensureFinancials } from "@/lib/financials/load";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
@@ -99,6 +102,11 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
   const integratorsShown = companies.length - otherCompanies.length;
 
   const deck = buildDeck(sector.slug);
+  // The heatmap's stocks: the industry basket's, grouped in the map's layer order.
+  const zoneOrder = new Map(sector.zones.map((z, i) => [z.label, i]));
+  const heatStocks: HeatStock[] = (sector.muted ? [] : (getIndustryBasket(sector.slug)?.stocks ?? []))
+    .map((s) => ({ ticker: s.ticker, name: s.name, layer: s.layer, mcapCr: s.mcapCr }))
+    .sort((a, b) => (zoneOrder.get(a.layer) ?? 99) - (zoneOrder.get(b.layer) ?? 99) || (b.mcapCr ?? -1) - (a.mcapCr ?? -1));
 
   return (
     <>
@@ -131,46 +139,40 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
             narrative sections to reach. Companies/bottlenecks stay sections on
             this same page rather than separate modes, deep-linking into the
             explorer with the right zone/company preselected via ?zone=/&company=. */}
-        <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-panel-2 p-5">
-          <Link
-            href={`/sector/${sector.slug}/explore`}
-            className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90"
-          >
-            Explore the map &rarr;
+        <IndustryActions slug={sector.slug} name={sector.name} stocks={heatStocks} basketHref={sector.muted ? null : `/baskets/industry/${sector.slug}`}>
+          <Link href={`/sector/${sector.slug}/explore`} className={actionClass(true)}>
+            <span className="sm:hidden">3D map</span>
+            <span className="hidden sm:inline">Explore the map &rarr;</span>
           </Link>
           {GUIDED_TOUR_ENABLED && (
-            <Link
-              href={`/sector/${sector.slug}/explore?tour=1`}
-              className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink"
-            >
-              Start guided tour
+            <Link href={`/sector/${sector.slug}/explore?tour=1`} className={actionClass(false)}>
+              <span className="sm:hidden">Tour</span>
+              <span className="hidden sm:inline">Start guided tour</span>
             </Link>
           )}
           {deck && (
-            <OpenReportButton slug={deck.slug} className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink">
-              Read curated report
+            <OpenReportButton slug={deck.slug} className={actionClass(false)}>
+              <span className="sm:hidden">Report</span>
+              <span className="hidden sm:inline">Read curated report</span>
             </OpenReportButton>
           )}
-          <a href="#companies" className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink">
-            Find companies
+          <a href="#companies" className={actionClass(false)}>
+            <span className="sm:hidden">Companies</span>
+            <span className="hidden sm:inline">Find companies</span>
           </a>
           {!sector.muted && (
-            <Link
-              href={`/baskets/industry/${sector.slug}`}
-              className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink"
-            >
-              {sector.category === "policy" ? "Open policy basket" : "Open industry basket"}
+            <Link href={`/baskets/industry/${sector.slug}`} className={actionClass(false)}>
+              <span className="sm:hidden">Basket</span>
+              <span className="hidden sm:inline">{sector.category === "policy" ? "Open policy basket" : "Open industry basket"}</span>
             </Link>
           )}
           {hasBottlenecks && (
-            <a
-              href="#bottlenecks"
-              className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-soft hover:border-accent hover:text-ink"
-            >
-              Explore bottlenecks
+            <a href="#bottlenecks" className={actionClass(false)}>
+              <span className="sm:hidden">Bottlenecks</span>
+              <span className="hidden sm:inline">Explore bottlenecks</span>
             </a>
           )}
-        </section>
+        </IndustryActions>
 
         {(!!sector.thesisSummary?.length || !!sector.whyNow?.length) && (
           <section className="grid gap-5 sm:grid-cols-2">

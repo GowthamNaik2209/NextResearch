@@ -7,7 +7,7 @@ import { BasketIdeas } from "@/components/baskets/BasketIdeas";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { basketStock, listIndustryBaskets } from "@/lib/baskets/industry";
-import { BasketsPanel, BasketsSummary, type IndustryRow, type SavedRow } from "@/components/baskets/BasketsTable";
+import { BasketsPanel, BasketsSummary, ThemeWall, type IndustryRow, type SavedRow } from "@/components/baskets/BasketsTable";
 import { industrySeriesKey } from "@/components/baskets/series";
 import { toSaved } from "@/lib/baskets/store";
 import { industryFigures } from "@/lib/baskets/industry-figures";
@@ -144,10 +144,17 @@ export default async function BasketsPage() {
                 Tap a column heading to sort (again to reverse), or use the Sort menu on a phone.
               </InfoTip>
             </div>
-            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock on each industry or policy map, at equal weight.</p>
+            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock on each industry or policy map, at equal weight. The heatmap shows the past year at a glance; tap a tile to jump to its row.</p>
           </div>
           {/* The figures are worked out on the server and stream in; until then the rows show loading. */}
-          <Suspense fallback={<BasketsPanel title="All industries & policies" rows={industryRows} initialSort="ret" deferred />}>
+          <Suspense
+            fallback={
+              <>
+                <ThemeWall rows={industryRows} />
+                <BasketsPanel title="All industries & policies" rows={industryRows} initialSort="ret" deferred />
+              </>
+            }
+          >
             <IndustryTable rows={industryRows} />
           </Suspense>
         </section>
@@ -160,7 +167,12 @@ export default async function BasketsPage() {
 async function IndustryTable({ rows }: { rows: IndustryRow[] }) {
   const { figs, benchRet } = await figures();
   const seed = { figs: Object.fromEntries(Object.entries(figs).map(([slug, f]) => [industrySeriesKey(slug), f])), benchRet };
-  return <BasketsPanel title="All industries & policies" rows={rows} initialSort="ret" seed={seed} />;
+  return (
+    <>
+      <ThemeWall rows={rows} seed={seed} />
+      <BasketsPanel title="All industries & policies" rows={rows} initialSort="ret" seed={seed} />
+    </>
+  );
 }
 
 async function Summary({ mineCount }: { mineCount: number | null }) {

@@ -8,7 +8,7 @@ import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
 import type { BasketStock } from "@/lib/baskets/industry";
 import { StockLink } from "@/components/stock/StockLink";
-import { BasketBreakdown, type BreakdownTab } from "./BasketBreakdown";
+import { BasketBreakdown, type BreakdownTab, type WeightView } from "./BasketBreakdown";
 import { BasketChart, defaultSelection, stockLine, type CompareBasket } from "./BasketChart";
 import { DISTINCT_LINES, LINES_FULL, MAX_CHART_STOCKS, planAdd } from "@/lib/baskets/selection";
 import { useBasketSelection } from "./use-basket-selection";
@@ -273,6 +273,7 @@ export function BasketDetail(p: BasketDetailProps) {
   // return, returns, weights, industries).
   const [stockView, setStockView] = useState<"charts" | "list">("list");
   const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>("contribution");
+  const [weightView, setWeightView] = useState<WeightView>("bars");
   const [busy, setBusy] = useState(false);
   // Create basket: "creating" while the server saves it, then "opening" while its page loads.
   const [createStep, setCreateStep] = useState<"creating" | "opening" | null>(null);
@@ -1862,6 +1863,8 @@ export function BasketDetail(p: BasketDetailProps) {
                       byIndustry={p.mode !== "industry"}
                       tab={breakdownTab}
                       onTab={setBreakdownTab}
+                      weightView={weightView}
+                      onWeightView={setWeightView}
                     />
                   ) : tbt?.status !== "error" ? (
                     <div aria-busy className="m-3 h-80 animate-pulse rounded bg-line/50" />
