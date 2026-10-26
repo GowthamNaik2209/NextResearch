@@ -104,6 +104,7 @@ function IndustryHeatmap({ slug, name, stocks, basketHref }: { slug: string; nam
                 {up} of {known}
               </b>{" "}
               listed stocks are up over the past {long}, by layer of the supply chain.
+              {all.length > known && ` ${all.length - known} not listed for the whole ${long} (shown —).`}
             </>
           )}
         </p>

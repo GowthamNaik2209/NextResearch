@@ -35,6 +35,7 @@ export function BasketBreakdown({
   ahead = false,
   weightView = "bars",
   onWeightView,
+  missing = 0,
 }: {
   holdings: BacktestHolding[];
   stockOf: (ticker: string) => BasketStock | undefined;
@@ -51,6 +52,8 @@ export function BasketBreakdown({
   /** The Weights tab's view, kept by the page like the tab. */
   weightView?: WeightView;
   onWeightView?: (v: WeightView) => void;
+  /** Stocks in view left out of the figures (no prices for the period, or no projection). */
+  missing?: number;
 }) {
   const over = ahead ? `the next ${rangeLong}` : `the past ${rangeLong}`;
   const nameOf = (t: string) => stockOf(t)?.name ?? t;
@@ -143,7 +146,7 @@ export function BasketBreakdown({
         </div>
       )}
       {heat ? (
-        <WeightHeatmap holdings={holdings} stockOf={stockOf} ahead={ahead} rangeLong={rangeLong} />
+        <WeightHeatmap holdings={holdings} stockOf={stockOf} ahead={ahead} rangeLong={rangeLong} missing={missing} />
       ) : active === "weights" ? (
         <WeightBars rows={view.rows} stockOf={stockOf} ahead={ahead} />
       ) : (
@@ -260,7 +263,7 @@ function WeightBars({ rows, stockOf, ahead = false }: { rows: BarRow[]; stockOf:
 
 // Every stock as a tile: sized by its weight at the end against an equal share (so an equal-weight
 // basket is an even grid and a cap-weighted one shows its giants), coloured by its own return.
-function WeightHeatmap({ holdings, stockOf, ahead, rangeLong }: { holdings: BacktestHolding[]; stockOf: (t: string) => BasketStock | undefined; ahead: boolean; rangeLong: string }) {
+function WeightHeatmap({ holdings, stockOf, ahead, rangeLong, missing }: { holdings: BacktestHolding[]; stockOf: (t: string) => BasketStock | undefined; ahead: boolean; rangeLong: string; missing: number }) {
   const even = holdings.length ? 1 / holdings.length : 1;
   const cells: HeatCell[] = [...holdings]
     .sort((a, b) => b.endWeight - a.endWeight || b.ret - a.ret)
@@ -272,7 +275,7 @@ function WeightHeatmap({ holdings, stockOf, ahead, rangeLong }: { holdings: Back
         label: name,
         value: h.ret,
         sub: `${w.toFixed(1)}%`,
-        size: h.endWeight >= even * 2.5 ? 3 : h.endWeight >= even * 1.5 ? 2 : 1,
+        size: h.endWeight >= even * 4 ? 4 : h.endWeight >= even * 2.5 ? 3 : h.endWeight >= even * 1.25 ? 2 : 1,
         ticker: h.ticker,
         title: `${name}: ${h.ret >= 0 ? "+" : ""}${h.ret.toFixed(1)}% ${ahead ? "projected over the next" : "over the past"} ${rangeLong}, ${w.toFixed(1)}% of the basket`,
       };
@@ -281,7 +284,12 @@ function WeightHeatmap({ holdings, stockOf, ahead, rangeLong }: { holdings: Back
   return (
     <div className="flex flex-col gap-2">
       <HeatGrid cells={cells} scale={scale} label={`Heatmap of ${cells.length} stocks`} />
-      <HeatLegend scale={scale} note={<>Bigger tile = bigger weight{ahead ? " if held" : " now"} · the % in the corner</>} />
+      <HeatLegend scale={scale} note={<>Largest weight first; bigger tile = bigger weight{ahead ? " if held" : " now"} (the small %)</>} />
+      {missing > 0 && (
+        <p className="text-[11px] text-ink-soft">
+          {missing} {missing === 1 ? "stock isn’t" : "stocks aren’t"} shown: no {ahead ? "projection" : `prices for the whole ${rangeLong}`} (see the Table).
+        </p>
+      )}
     </div>
   );
 }

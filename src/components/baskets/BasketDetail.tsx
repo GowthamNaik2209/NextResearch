@@ -535,6 +535,8 @@ export function BasketDetail(p: BasketDetailProps) {
       })
     : sortedLive;
   const rows = tableScope === "picks" ? sortedAll.filter((s) => chartSel.picks[s.ticker] != null) : sortedAll;
+  // The Breakdown's stocks: those in view with a figure (prices for the whole period, or a projection).
+  const bdHoldings = ((projection ? projection.table.holdings : tData?.holdings) ?? []).filter((h) => rows.some((s) => s.ticker === h.ticker));
   // A stock just taken off leaves a placeholder row where it was ("Removed X · Undo"), at the
   // row's own height, while the Undo offer is open: the Undo is where the tap was (a phone's
   // header is far above), and the rows under it don't move until the offer goes.
@@ -1855,7 +1857,8 @@ export function BasketDetail(p: BasketDetailProps) {
                 ) : stockView === "charts" ? (
                   projection || tData ? (
                     <BasketBreakdown
-                      holdings={((projection ? projection.table.holdings : tData?.holdings) ?? []).filter((h) => rows.some((s) => s.ticker === h.ticker))}
+                      holdings={bdHoldings}
+                      missing={rows.length - bdHoldings.length}
                       stockOf={(t) => byTicker.get(t)}
                       rangeLong={projOn ? HORIZON_LONG[projSet.h] : rangeLong}
                       ahead={projOn}
