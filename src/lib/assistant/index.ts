@@ -64,7 +64,7 @@ export function buildContext(key: string): AssistantContext | null {
 
 function topMovers(n: number): CompanyMetrics[] {
   return listCompanyMetrics()
-    .filter((c) => c.cagr1y != null && !c.screenOut)
+    .filter((c) => c.cagr1y != null && !c.outlier)
     .sort((a, b) => b.cagr1y! - a.cagr1y!)
     .slice(0, n);
 }
@@ -150,7 +150,7 @@ function sectorContext(slug: string): AssistantContext | null {
   const n = sectorNumbers(slug);
   // Price moves among the companies the theme is really about (not lenders on its edge), and not
   // ones whose latest year is a one-off.
-  const movers = core.filter((c) => !c.screenOut && c.cagr1y != null).sort((x, y) => y.cagr1y! - x.cagr1y!);
+  const movers = core.filter((c) => !c.outlier && c.cagr1y != null).sort((x, y) => y.cagr1y! - x.cagr1y!);
   const biggest = core.filter((c) => c.mcapCr != null).sort((x, y) => y.mcapCr! - x.mcapCr!).slice(0, 5);
   const pes = core.filter((c) => c.pe != null && c.pe > 0).sort((x, y) => x.pe! - y.pe!);
   const asOf = commonAsOf(cs.map((c) => c.ticker));
@@ -253,14 +253,14 @@ function companyContext(slug: string): AssistantContext | null {
 
   const rev = f?.rev ?? [];
   const np = f?.np ?? [];
-  const yr = (i: number, arr: number[]) => (arr.length === FY.length ? FY[i] : `year ${i + 1}`);
+  const yr = (i: number, arr: (number | null)[]) => (arr.length === FY.length ? FY[i] : `year ${i + 1}`);
+  // Years without a figure are null; the sentence needs both ends.
+  const [rev0, revN, np0, npN] = [rev[0], rev[rev.length - 1], np[0], np[np.length - 1]];
   const growth =
-    rev.length >= 2 && rev[0] != null && rev[rev.length - 1] != null
+    rev.length >= 2 && rev0 != null && revN != null
       ? [
-          `Revenue went from ${crore(rev[0])} in ${yr(0, rev)} to ${crore(rev[rev.length - 1])} in ${yr(rev.length - 1, rev)}.`,
-          np.length >= 2 && np[0] != null && np[np.length - 1] != null
-            ? `Net profit went from ${crore(np[0])} to ${crore(np[np.length - 1])} over the same years.`
-            : "",
+          `Revenue went from ${crore(rev0)} in ${yr(0, rev)} to ${crore(revN)} in ${yr(rev.length - 1, rev)}.`,
+          np.length >= 2 && np0 != null && npN != null ? `Net profit went from ${crore(np0)} to ${crore(npN)} over the same years.` : "",
           m?.revGrowthPct != null ? `Latest-year revenue growth: ${dec(m.revGrowthPct)}%.` : "",
         ]
           .filter(Boolean)

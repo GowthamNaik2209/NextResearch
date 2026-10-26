@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { before, test } from "node:test";
 import { listSectors } from "../sector-content";
 import { listCompanyPages } from "../sector-content/companies";
 import { listIpos } from "../ipo-content";
 import { buildContext, contextKeyForPath } from "./index";
 import { checkAnswer } from "./ai";
+import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
+
+// Company figures come from the database (DATABASE_URL), as in the app.
+before(installFinancialsFromDatabase);
 
 // Every page the assistant can be opened on - so a new sector, company or IPO that breaks an
 // answer (empty text, "undefined", "NaN") fails here rather than in front of a reader.

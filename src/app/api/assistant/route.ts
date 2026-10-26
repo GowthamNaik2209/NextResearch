@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { buildContext, contextKeyForPath } from "@/lib/assistant";
 import { aiAnswer, aiEnabled } from "@/lib/assistant/ai";
+import { ensureFinancials } from "@/lib/financials/load";
 
 // GET /api/assistant?path=/sector/defence&qs=report%3Ddefence
 //   -> the page's context: { key, title, asOf, ai, questions: [{ id, q, a }] } (code-written answers)
@@ -9,6 +10,8 @@ import { aiAnswer, aiEnabled } from "@/lib/assistant/ai";
 //      otherwise the code-written one. Only fixed (context, question) pairs exist, so both responses
 //      are CDN-cacheable and model calls stay bounded however many people ask.
 export async function GET(req: NextRequest) {
+  // Answers quote the company table, which the app loads from the database on first use.
+  await ensureFinancials();
   const sp = req.nextUrl.searchParams;
   const ctxKey = sp.get("ctx");
   const qid = sp.get("q");
