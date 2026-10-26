@@ -37,7 +37,15 @@ model Company {
   financialsNote String?
   // Latest year dominated by a one-off (e.g. SPARC's FY26 voucher sale): kept out of the idea screens.
   screenOut      Boolean             @default(false)
+  // BSE scrip code (e.g. "524715"): what BSE's corporate-announcements feed keys on. Read from the
+  // company's Screener page (scripts/refresh-quarterly.ts); null for NSE-only listings.
+  bseCode        String?
   financials     FinancialSnapshot[]
+  quarterly      QuarterlyResult[]
+  concallFilings ConcallFiling[]
+  concalls       ConcallSummary[]
+  guidance       ConcallGuidance[]
+  digests        ConcallDigest[]
   kpis           KpiSnapshot[]
   watchlistedBy  Watchlist[]
   createdAt      DateTime            @default(now())
@@ -176,18 +184,18 @@ model BasketItem {
 //
 // One row per stock (its content ticker, e.g. "LT") or benchmark (its Yahoo symbol, e.g. "^NSEI").
 model PriceSeries {
-  key         String    @id
+  key        String    @id
   // Where the bars come from: the Yahoo symbol that answered (e.g. "LT.NS", "EMBASSY-RR.NS"), or
   // "screener" (closes only, no open/high/low/volume) for a stock Yahoo has no prices for.
-  source      String
-  exchange    String    @default("NSE")
+  source     String
+  exchange   String    @default("NSE")
   // First and last day stored (IST trading days at UTC midnight), and the trading day last topped up to.
-  firstDay    DateTime? @db.Date
-  lastDay     DateTime? @db.Date
-  checkedDay  DateTime? @db.Date
+  firstDay   DateTime? @db.Date
+  lastDay    DateTime? @db.Date
+  checkedDay DateTime? @db.Date
   // A full five-year re-fetch (first fill, or old closes changed: a split Yahoo adjusted afterwards).
-  fullAt      DateTime?
-  updatedAt   DateTime  @updatedAt
+  fullAt     DateTime?
+  updatedAt  DateTime  @updatedAt
 }
 
 model PriceBar {
@@ -212,5 +220,178 @@ model PriceRun {
   failed     String[]  @default([])
   finishedAt DateTime?
   leaseUntil DateTime?
+  startedAt  DateTime  @default(now())
+}
+
+// ---------------------------------------------------------------------------------------------
+// Quarterly results (src/lib/financials/quarterly.ts): Screener's quarterly table, one row per
+// company per fiscal quarter, so management guidance on revenue, margin and profit can be checked
+// against what was delivered. Upserted (Screener restates); FY = Indian fiscal year ending March,
+// FY27 -> fiscalYear 2027, Q1 = Apr-Jun.
+model QuarterlyResult {
+  id                String   @id @default(cuid())
+  companyId         String
+  company           Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  fiscalYear        Int
+  quarter           Int
+  periodEnd         DateTime @db.Date
+  // "consolidated" | "standalone": the same basis rule as the annual figures.
+  basis             String
+  revenueCr         Decimal?
+  expensesCr        Decimal?
+  operatingProfitCr Decimal?
+  opmPct            Decimal?
+  otherIncomeCr     Decimal?
+  depreciationCr    Decimal?
+  interestCr        Decimal?
+  pbtCr             Decimal?
+  netProfitCr       Decimal?
+  epsRs             Decimal?
+  source            String   @default("screener")
+  fetchedAt         DateTime @default(now())
+
+  @@unique([companyId, fiscalYear, quarter])
+}
+
+// ---------------------------------------------------------------------------------------------
+// Earnings calls (src/lib/concalls): every transcript filed on BSE/NSE for a tracked company since
+// FY22, summarised by Claude. We keep our own summary, quotes of a few words with page numbers, and
+// the link to the exchange filing; never the transcript itself. Append-only: the daily job adds
+// filings as companies file them, the backfill fills the past (scripts/concall-backfill.ts).
+
+// One row per transcript filing found. Status moves found -> fetched -> batched -> summarised, or
+// stops at a failure status (scanned | not_transcript | download_failed | failed) with `error`.
+model ConcallFiling {
+  id         String          @id @default(cuid())
+  companyId  String
+  company    Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  exchange   String // "BSE" | "NSE"
+  exchangeId String // BSE NEWSID / NSE seq_id: the dedupe key across runs
+  url        String // the exchange attachment: the source link users see
+  title      String
+  filedAt    DateTime
+  // The results quarter the call discussed (read from the transcript; null until summarised).
+  fiscalYear Int?
+  quarter    Int?
+  pdfSha256  String?
+  pages      Int?
+  status     String          @default("found")
+  error      String?
+  // Batch API request this filing went out in (custom_id = filing id), while status = batched.
+  batchId    String?
+  attempts   Int             @default(0)
+  summary    ConcallSummary?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@unique([exchange, exchangeId])
+  @@index([companyId, filedAt])
+  @@index([status])
+}
+
+// Claude's summary of one call. `summary` holds the ConcallSummaryJson shape
+// (src/lib/concalls/types.ts): demand, risks, initiatives, tone, key Q&A, each item with quote + page.
+// Guidance is also split out into ConcallGuidance rows for the track record.
+model ConcallSummary {
+  id            String            @id @default(cuid())
+  filingId      String            @unique
+  filing        ConcallFiling     @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  companyId     String
+  company       Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  fiscalYear    Int
+  quarter       Int
+  callDate      DateTime?         @db.Date
+  tone          String // positive | cautiously positive | neutral | cautious | negative
+  toneNote      String
+  summary       Json
+  checksPassed  Int // items whose quote and numbers were found in the PDF text
+  checksTotal   Int
+  model         String
+  promptVersion String
+  inputTokens   Int
+  outputTokens  Int
+  costUsd       Decimal
+  guidance      ConcallGuidance[]
+  createdAt     DateTime          @default(now())
+
+  @@index([companyId, fiscalYear, quarter])
+}
+
+// One forward-looking statement from a call, with the period it is about, so it can be lined up
+// against QuarterlyResult / FinancialSnapshot once that period has reported
+// (src/lib/concalls/track-record.ts fills actual / verdict).
+model ConcallGuidance {
+  id               String         @id @default(cuid())
+  summaryId        String
+  summary          ConcallSummary @relation(fields: [summaryId], references: [id], onDelete: Cascade)
+  companyId        String
+  company          Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  // GuidanceMetric in src/lib/concalls/types.ts (revenue_growth, ebitda_margin, capex, ...).
+  metric           String
+  // "FY" | "H1" | "H2" | "Q" | "multi_year" | "unspecified"
+  periodKind       String
+  targetFiscalYear Int?
+  targetQuarter    Int?
+  low              Decimal?
+  high             Decimal?
+  unit             String? // "%", "bps", "Rs cr", "$ mn", "x"
+  direction        String? // "up" | "down" | "flat" when only directional
+  statement        String
+  quote            String
+  page             Int
+  // Filled by the track record once the target period has reported.
+  actual           Decimal?
+  actualNote       String?
+  verdict          String? // beat | met | missed | pending | not_checkable
+  checkedAt        DateTime?
+
+  @@index([companyId, metric, targetFiscalYear])
+}
+
+// Multi-call digests for the company page: what management said over the last year or last few
+// years, how guidance moved, how it compared with delivery. Regenerated when a new call lands.
+// scope: "year" (last 4 calls) | "multi_year" (since FY22); one row per company per scope, replaced.
+model ConcallDigest {
+  id         String   @id @default(cuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  scope      String
+  // The latest call it includes (fiscalYear * 10 + quarter), so it is rebuilt when a newer one lands.
+  throughKey Int
+  digest     Json
+  model      String
+  costUsd    Decimal
+  updatedAt  DateTime @updatedAt
+
+  @@unique([companyId, scope])
+}
+
+// Industry roll-ups per quarter from the sector's company summaries (sector-content slug).
+model ConcallRollup {
+  id         String   @id @default(cuid())
+  sectorSlug String
+  fiscalYear Int
+  quarter    Int
+  rollup     Json
+  companies  String[]
+  model      String
+  costUsd    Decimal
+  updatedAt  DateTime @updatedAt
+
+  @@unique([sectorSlug, fiscalYear, quarter])
+}
+
+// One daily pass of the concall job (src/lib/concalls/daily.ts): discover the day's filings, fetch,
+// submit a batch, collect finished batches. `leaseUntil`: one chunk at a time across instances.
+model ConcallRun {
+  id         String    @id @default(cuid())
+  day        DateTime  @unique @db.Date
+  found      Int       @default(0)
+  batched    Int       @default(0)
+  summarised Int       @default(0)
+  failed     Int       @default(0)
+  note       String?
+  leaseUntil DateTime?
+  finishedAt DateTime?
   startedAt  DateTime  @default(now())
 }
