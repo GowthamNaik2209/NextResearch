@@ -26,7 +26,7 @@ const MAX_FACT_CHARS = 10_000;
 // it (the 20B called 0.9% "lower" than 0.7%). Same free-plan limits; ~1-3 s an answer.
 const MODEL = "openai/gpt-oss-120b" as const;
 // Bump when the prompt or retrieval changes, so cached answers are rewritten.
-const VERSION = 4;
+const VERSION = 6;
 const TTL_MS = 6 * 60 * 60 * 1000;
 
 export type AskSource = { key: string; title: string; href: string };
@@ -64,8 +64,16 @@ export function keyForHref(href: string): string | null {
  * for Sun Pharmaceutical); a short form (ticker, initials) when it appears as a word and is 3+
  * letters, or is written in capitals in the question ("LT", "M&M").
  */
-export function mentionAt(entry: Pick<SearchEntry, "kind" | "label" | "aliases">, question: string): number {
+export function mentionAt(entry: Pick<SearchEntry, "kind" | "label" | "aliases" | "href">, question: string): number {
   const qw = words(question);
+  if (entry.kind === "sector") {
+    // A theme also goes by its short name (the slug: "pharma", "datacenter") or the start of its
+    // first word ("pharmaceutical" for Pharmaceuticals; five letters or more).
+    const slug = entry.href.split("/")[2] ?? "";
+    const first = words(entry.label)[0] ?? "";
+    const i = qw.findIndex((w, k) => w === slug || (k + 1 < qw.length && w + qw[k + 1] === slug) || (w.length >= 5 && first.startsWith(w)));
+    if (i >= 0) return i;
+  }
   const lw = words(entry.label.replace(/\s+IPO$/i, "")).filter((w) => !STOP.has(w) && /[a-z0-9]{2}/.test(w));
   if (!lw.length) return -1;
   // A theme is named by its first word ("defence" for Defence Procurement, "railways"); theme
@@ -137,7 +145,8 @@ const SYSTEM = [
   "Use ONLY the facts given under the numbered sources. Do not add any number, date, name or claim that is not in them.",
   "Keep figures exactly as written, with the same units (Rs ... Cr, %, P/E); write Rs, not the rupee sign.",
   "Compare numbers carefully: a larger number is higher. Report what the figures show; do not explain why (no 'reflecting', 'justifies', 'due to') unless a fact says so.",
-  "If the facts do not answer the question, say so in one sentence and say which of the sources is closest; never guess.",
+  "If the facts do not answer the question, say so in one sentence and name the page (the source's title) that comes closest; never guess, and never mention source numbers in the answer.",
+  "If asked whether to buy, sell or hold, first say NextResearch doesn't give investment advice, then give the figures that bear on it.",
   "Answer in at most 5 short, plain sentences, under 120 words. No headings, no lists, no markdown.",
   "Never tell the reader to buy, sell, hold or invest, and never predict prices.",
   "End with one last line listing the numbers of the sources you used, like: Sources: 1, 2",
@@ -150,14 +159,21 @@ export const toThousands = (s: string) => s.replace(/\d{1,3}(?:,\d{2})+,\d{3}\b/
 export const toIndian = (s: string) => s.replace(/\d{1,3}(?:,\d{3})+\b/g, (n) => Number(n.replace(/,/g, "")).toLocaleString("en-IN"));
 
 /**
- * Splits the model's reply into the answer and the source numbers on its last line. Plain text
- * rather than Groq's strict JSON mode, which sometimes fails server-side ("Failed to generate JSON").
+ * Splits the model's reply into the answer and its closing "Sources: ..." line. The line usually
+ * lists source numbers, sometimes source titles ("Sources: Pharmaceuticals"); both are read, and
+ * the line never reaches the reader. Plain text rather than Groq's strict JSON mode, which
+ * sometimes fails server-side ("Failed to generate JSON").
  */
-export function splitReply(reply: string): { answer: string; sources: number[] } {
-  const m = reply.trim().match(/\n?\s*\**sources?\**:?\**\s*([\d,\s]*)\.?\s*$/i);
-  const sources = (m?.[1].match(/\d+/g) ?? []).map(Number);
-  const answer = (m ? reply.trim().slice(0, m.index) : reply).trim().replace(/\s+/g, " ");
-  return { answer, sources };
+export function splitReply(reply: string, titles: string[] = []): { answer: string; sources: number[] } {
+  const text = reply.trim();
+  const m = text.match(/(?:^|[\s.])\**sources?\**\s*:\**\s*([^\n]*)$/i);
+  const tail = m?.[1] ?? "";
+  // Only numbers that can be a source: a date in the line ("as of 26 Oct 2026") is not one.
+  const max = titles.length || 9;
+  const byNumber = (tail.match(/\b\d+\b/g) ?? []).map(Number).filter((n) => n >= 1 && n <= max);
+  const byTitle = titles.flatMap((t, i) => (tail.toLowerCase().includes(t.toLowerCase()) ? [i + 1] : []));
+  const answer = (m ? text.slice(0, m.index! + (m[0].match(/^[\s.]/) ? 1 : 0)) : text).trim().replace(/\s+/g, " ");
+  return { answer, sources: [...new Set([...byNumber, ...byTitle])] };
 }
 
 /** What the reader sees when there is no AI answer: each matched page's own summary answer. */
@@ -190,7 +206,7 @@ async function writeAnswer(question: string, contexts: AssistantContext[]): Prom
       // A reader is waiting: one short wait for the minute's allowance, then the fallback.
       { maxWaits: 1 },
     );
-    const out = splitReply(r.text);
+    const out = splitReply(r.text, contexts.map((c) => c.title));
     const answer = toIndian(out.answer);
     if (!answer) return fallback(contexts, "The AI answer isn't available right now, so here is what our pages say.");
     if (!checkAnswer(answer, facts)) return fallback(contexts, "The AI answer didn't match our figures, so here is what our pages say.");
