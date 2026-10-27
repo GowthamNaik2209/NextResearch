@@ -8,8 +8,7 @@ export async function SiteFooter() {
   const user = await getCurrentUser();
   return (
     <footer className="border-t border-line bg-panel">
-      {/* The bottom padding keeps the last line clear of the floating Ask button (52px + 16px). */}
-      <div className="mx-auto max-w-6xl px-5 pt-10 pb-24 sm:pb-10">
+      <div className="mx-auto max-w-6xl px-5 py-10">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
             <span className="font-display text-base font-bold text-ink">NextResearch</span>

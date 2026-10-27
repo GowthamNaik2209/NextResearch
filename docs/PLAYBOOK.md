@@ -87,10 +87,7 @@ the contract up front so they can run at the same time:
    and `refresh-financials.ts --add=` for new tickers.
    Afterwards compare DB tickers with content tickers; orphaned rows from ticker renames can be
    deleted once no watchlist uses them.
-6. Open the "Ask NextResearch" chat button on the new sector page and one of its company pages:
-   the questions and answers come from the content, so they should already be right; `npm test`
-   (`assistant.test.ts`) fails if any answer is empty, too long or broken.
-7. Run the QA routine (section 3).
+6. Run the QA routine (section 3).
 
 ### 1.4 Policies (since Oct 2026)
 

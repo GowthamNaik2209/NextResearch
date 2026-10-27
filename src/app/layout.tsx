@@ -9,7 +9,6 @@ import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { Suspense } from "react";
 import { ReturnToStock } from "@/components/stock/ReturnToStock";
-import { AssistantWidget } from "@/components/AssistantWidget";
 import { InlineScript } from "@/components/InlineScript";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL, jsonLd } from "@/lib/site";
 import "./globals.css";
@@ -109,10 +108,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             the rest of every page prerenderable. */}
         <Suspense fallback={null}>
           <ReturnToStock />
-        </Suspense>
-        {/* Same reason: it reads the page's ?ipo= / ?report= to pick its questions. */}
-        <Suspense fallback={null}>
-          <AssistantWidget />
         </Suspense>
         <Analytics />
       </body>

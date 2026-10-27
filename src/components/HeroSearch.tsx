@@ -4,7 +4,6 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SearchEntry } from "@/lib/sector-content/stats";
-import { askAssistant } from "./AssistantWidget";
 
 // Lower is better. The label leads: an exact name, then a name that starts with the term, then
 // one with a word that does ("steel" -> "Tata Steel"), then anywhere in it. Aliases (ticker,
@@ -28,10 +27,6 @@ const KIND_LABEL: Record<SearchEntry["kind"], string> = { sector: "Theme", ipo: 
 const unlisted = (e: SearchEntry) => (e.kind === "company" && e.sub.startsWith("Unlisted") ? 1 : 0);
 /** Results shown before "Show all": enough to scan, short enough to fit under the box on a phone. */
 const FIRST = 8;
-// Text that reads as a question rather than a name gets an "Ask AI" row on top, which Enter picks:
-// a question mark, a question word first, or three words or more ("hal vs bel valuation").
-const QUESTION = /^(what|which|who|whom|how|why|when|where|is|are|was|does|do|did|can|could|should|will|compare|tell|show|list|explain)\b/;
-const isQuestion = (t: string) => t.length >= 6 && (t.includes("?") || QUESTION.test(t) || t.split(/\s+/).length >= 3);
 
 export function HeroSearch({ index }: { index: SearchEntry[] }) {
   const router = useRouter();
@@ -53,14 +48,6 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
       .map((x) => x.e);
   }, [term, index]);
   const results = all ? matches : matches.slice(0, FIRST);
-  const askable = isQuestion(term);
-  // The Ask AI row is option 0 when shown; results follow it.
-  const offset = askable ? 1 : 0;
-  const total = results.length + offset;
-  const ask = () => {
-    setOpen(false);
-    askAssistant(q.trim());
-  };
   const hidden = matches.length - results.length;
   const showList = open && term.length >= 2;
 
@@ -86,17 +73,16 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
       if (!showList) setOpen(true);
-      if (!total) return;
+      if (!results.length) return;
       const step = e.key === "ArrowDown" ? 1 : -1;
-      setActive((i) => (i + step + total) % total);
+      setActive((i) => (i + step + results.length) % results.length);
       return;
     }
-    if (e.key === "Enter" && showList && total) {
+    if (e.key === "Enter" && showList && results.length) {
       e.preventDefault();
-      const i = active >= 0 ? active : 0;
-      if (askable && i === 0) return ask();
+      const pick = results[active >= 0 ? active : 0];
       setOpen(false);
-      router.push(results[i - offset].href);
+      router.push(pick.href);
     }
   };
 
@@ -128,9 +114,9 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
           type="search"
           enterKeyHint="go"
           autoComplete="off"
-          placeholder="Search or ask, e.g. HAL vs BEL"
+          placeholder="Company, theme or IPO, e.g. L&T"
           role="combobox"
-          aria-label="Search companies, industries, policies and IPOs, or ask a question"
+          aria-label="Search companies, industries, policies and IPOs"
           aria-expanded={showList}
           aria-controls={listId}
           aria-autocomplete="list"
@@ -141,34 +127,12 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
       {showList && (
         <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-line bg-panel shadow-xl">
         <ul id={listId} role="listbox" aria-label="Search results" className="max-h-[min(60vh,32rem)] overflow-y-auto overscroll-contain">
-          {askable && (
-            <li id={optionId(0)} role="option" aria-selected={active === 0}>
-              <button
-                type="button"
-                tabIndex={-1}
-                onClick={ask}
-                onMouseEnter={() => setActive(0)}
-                className={"flex w-full items-center gap-3 border-b border-line px-4 py-2.5 text-left " + (active === 0 ? "bg-accent/10 shadow-[inset_3px_0_0_var(--accent)]" : "hover:bg-panel-2")}
-              >
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" className="flex-none text-accent" aria-hidden>
-                  <path d="M12 3l1.8 4.9L19 9.7l-4.6 2.6L13 17.5 12 13l-4.8-1.4L12 9.6z" />
-                  <path d="M19 15l.8 2.2 2.2.8-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" />
-                </svg>
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold text-ink">Ask AI: &ldquo;{q.trim()}&rdquo;</span>
-                  <span className="block truncate text-xs text-ink-soft">Answered from NextResearch data</span>
-                </span>
-              </button>
-            </li>
-          )}
-          {results.length === 0 && !askable && (
+          {results.length === 0 && (
             <li role="presentation" className="px-4 py-3 text-sm text-ink-soft">
               No match — try a sector name, a ticker or part of a company name.
             </li>
           )}
-          {results.map((r, j) => {
-            const i = j + offset;
-            return (
+          {results.map((r, i) => (
             <li key={r.href} id={optionId(i)} role="option" aria-selected={i === active}>
               <Link
                 href={r.href}
@@ -186,8 +150,7 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
                 </span>
               </Link>
             </li>
-            );
-          })}
+          ))}
         </ul>
         {hidden > 0 && (
           <button
