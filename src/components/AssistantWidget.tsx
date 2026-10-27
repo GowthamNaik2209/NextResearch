@@ -396,9 +396,11 @@ export function AssistantWidget() {
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         ) : (
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z" />
-            <path d="M8.5 11h.01M12 11h.01M15.5 11h.01" strokeWidth="2.6" />
+          // A sparkle (the usual mark for an AI feature), filled and optically centred: a large
+          // four-point star with a small one above right.
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden>
+            <path d="M11 5c.7 4.4 3.1 6.8 7.5 7.5-4.4.7-6.8 3.1-7.5 7.5-.7-4.4-3.1-6.8-7.5-7.5C7.9 11.8 10.3 9.4 11 5z" />
+            <path d="M18.5 2.5c.3 1.4.9 2 2.3 2.3-1.4.3-2 .9-2.3 2.3-.3-1.4-.9-2-2.3-2.3 1.4-.3 2-.9 2.3-2.3z" />
           </svg>
         )}
       </button>

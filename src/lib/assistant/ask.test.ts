@@ -48,7 +48,8 @@ test("a company needs more than a shared first word; a short form needs 3 letter
 });
 
 test("the plain word IPO means the IPO list; a named IPO means its page", () => {
-  assert.deepEqual(keys("which ipos are coming up"), ["ipos", "platform"]);
+  // The IPO guide topic comes along: it explains the status labels.
+  assert.deepEqual(keys("which ipos are coming up"), ["ipos", "guide:ipos", "platform"]);
   assert.deepEqual(keys("When does Zepto list?"), ["ipo:zepto", "platform"]);
 });
 
@@ -71,4 +72,13 @@ test("numbers go to the model in thousands grouping and come back in Indian grou
   assert.equal(toThousands("Rs 3,19,944 Cr vs Rs 27,610 Cr"), "Rs 319,944 Cr vs Rs 27,610 Cr");
   assert.equal(toIndian("Rs 319,944 Cr vs Rs 27,610 Cr"), "Rs 3,19,944 Cr vs Rs 27,610 Cr");
   assert.equal(toIndian("P/E 34.3 in 2026"), "P/E 34.3 in 2026");
+});
+
+test("questions about how the site works land on its guide", () => {
+  assert.deepEqual(keys("how do you do projections in baskets?"), ["guide:projections", "guide:baskets", "platform"]);
+  assert.deepEqual(keys("how are bear and bull worked out"), ["guide:projections", "platform"]);
+  assert.deepEqual(keys("what is the drift band"), ["guide:weights", "platform"]);
+  assert.deepEqual(keys("how do I use this site"), ["guide:overview", "platform"]);
+  // A company question stays on the company.
+  assert.deepEqual(keys("Compare HAL and BEL valuation"), ["company:hal", "company:bel", "platform"]);
 });

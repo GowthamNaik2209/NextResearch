@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SearchEntry } from "@/lib/sector-content/stats";
 import { askAssistant } from "./AssistantWidget";
+import type { Suggestion } from "@/lib/assistant/suggest";
 
 // Lower is better. The label leads: an exact name, then a name that starts with the term, then
 // one with a word that does ("steel" -> "Tata Steel"), then anywhere in it. Aliases (ticker,
@@ -31,6 +32,20 @@ const FIRST = 8;
 // Text that reads as a question rather than a name gets an "Ask AI" row on top, which Enter picks:
 // a question mark, a question word first, or three words or more ("hal vs bel valuation").
 const QUESTION = /^(what|which|who|whom|how|why|when|where|is|are|was|does|do|did|can|could|should|will|compare|tell|show|list|explain)\b/;
+// One row of the dropdown, in keyboard order.
+type Row =
+  | { type: "ask"; text: string }
+  | { type: "question"; text: string }
+  | { type: "page"; label: string; sub: string; href: string; badge: string };
+
+const SPARKLE = (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" className="flex-none text-accent" aria-hidden>
+    <path d="M12 3l1.8 4.9L19 9.7l-4.6 2.6L13 17.5 12 13l-4.8-1.4L12 9.6z" />
+    <path d="M19 15l.8 2.2 2.2.8-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" />
+  </svg>
+);
+const QUESTIONS_SHOWN = 3;
+
 const isQuestion = (t: string) => t.length >= 6 && (t.includes("?") || QUESTION.test(t) || t.split(/\s+/).length >= 3);
 
 export function HeroSearch({ index }: { index: SearchEntry[] }) {
@@ -54,12 +69,45 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
   }, [term, index]);
   const results = all ? matches : matches.slice(0, FIRST);
   const askable = isQuestion(term);
-  // The Ask AI row is option 0 when shown; results follow it.
-  const offset = askable ? 1 : 0;
-  const total = results.length + offset;
-  const ask = () => {
+
+  // Suggestions from our data for what was typed (/api/assistant/suggest: the pages the words
+  // point to and questions about them), fetched a moment after typing stops.
+  const [sugg, setSugg] = useState<{ term: string; s: Suggestion } | null>(null);
+  useEffect(() => {
+    if (term.length < 3) return;
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      fetch(`/api/assistant/suggest?q=${encodeURIComponent(term)}`, { signal: ctrl.signal })
+        .then((r) => (r.ok ? (r.json() as Promise<Suggestion>) : Promise.reject()))
+        .then((s) => setSugg({ term, s }))
+        .catch(() => {});
+    }, 180);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [term]);
+  const s = sugg && sugg.term === term ? sugg.s : null;
+
+  // A question leads with Ask AI, then suggested questions and the pages it names; a name leads
+  // with the matching pages, so Enter still opens HAL when "hal" is typed.
+  const rows = useMemo((): Row[] => {
+    const shown = new Set(results.map((r) => r.href));
+    const questions: Row[] = (s?.questions ?? [])
+      .filter((x) => x.toLowerCase() !== term)
+      .slice(0, QUESTIONS_SHOWN)
+      .map((text) => ({ type: "question", text }));
+    const pages: Row[] = (s?.pages ?? [])
+      .filter((p) => !shown.has(p.href))
+      .map((p) => ({ type: "page", label: p.title, sub: p.kind === "Guide" ? "How NextResearch works" : p.kind, href: p.href, badge: p.kind }));
+    const names: Row[] = results.map((r) => ({ type: "page", label: r.label, sub: r.sub, href: r.href, badge: KIND_LABEL[r.kind] }));
+    return askable ? [{ type: "ask", text: q.trim() }, ...questions, ...pages, ...names] : [...names, ...pages, ...questions];
+  }, [askable, q, results, s, term]);
+  const total = rows.length;
+  const pick = (row: Row) => {
     setOpen(false);
-    askAssistant(q.trim());
+    if (row.type === "page") router.push(row.href);
+    else askAssistant(row.text);
   };
   const hidden = matches.length - results.length;
   const showList = open && term.length >= 2;
@@ -93,10 +141,7 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
     }
     if (e.key === "Enter" && showList && total) {
       e.preventDefault();
-      const i = active >= 0 ? active : 0;
-      if (askable && i === 0) return ask();
-      setOpen(false);
-      router.push(results[i - offset].href);
+      pick(rows[active >= 0 ? active : 0]);
     }
   };
 
@@ -141,51 +186,36 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
       {showList && (
         <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-line bg-panel shadow-xl">
         <ul id={listId} role="listbox" aria-label="Search results" className="max-h-[min(60vh,32rem)] overflow-y-auto overscroll-contain">
-          {askable && (
-            <li id={optionId(0)} role="option" aria-selected={active === 0}>
-              <button
-                type="button"
-                tabIndex={-1}
-                onClick={ask}
-                onMouseEnter={() => setActive(0)}
-                className={"flex w-full items-center gap-3 border-b border-line px-4 py-2.5 text-left " + (active === 0 ? "bg-accent/10 shadow-[inset_3px_0_0_var(--accent)]" : "hover:bg-panel-2")}
-              >
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" className="flex-none text-accent" aria-hidden>
-                  <path d="M12 3l1.8 4.9L19 9.7l-4.6 2.6L13 17.5 12 13l-4.8-1.4L12 9.6z" />
-                  <path d="M19 15l.8 2.2 2.2.8-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" />
-                </svg>
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold text-ink">Ask AI: &ldquo;{q.trim()}&rdquo;</span>
-                  <span className="block truncate text-xs text-ink-soft">Answered from NextResearch data</span>
-                </span>
-              </button>
-            </li>
-          )}
-          {results.length === 0 && !askable && (
+          {total === 0 && (
             <li role="presentation" className="px-4 py-3 text-sm text-ink-soft">
               No match — try a sector name, a ticker or part of a company name.
             </li>
           )}
-          {results.map((r, j) => {
-            const i = j + offset;
+          {rows.map((row, i) => {
+            const cls =
+              "flex w-full items-center gap-3 px-4 py-2.5 text-left " +
+              (i === active ? "bg-accent/10 shadow-[inset_3px_0_0_var(--accent)]" : "hover:bg-panel-2") +
+              (row.type !== "page" && rows[i + 1]?.type === "page" ? " border-b border-line" : "");
             return (
-            <li key={r.href} id={optionId(i)} role="option" aria-selected={i === active}>
-              <Link
-                href={r.href}
-                tabIndex={-1}
-                onClick={() => setOpen(false)}
-                onMouseEnter={() => setActive(i)}
-                className={"flex items-center justify-between gap-3 px-4 py-2.5 " + (i === active ? "bg-accent/10 shadow-[inset_3px_0_0_var(--accent)]" : "hover:bg-panel-2")}
-              >
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold text-ink">{r.label}</span>
-                  <span className="block truncate text-xs text-ink-soft">{r.sub}</span>
-                </span>
-                <span className="flex-none rounded-full border border-line px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
-                  {KIND_LABEL[r.kind]}
-                </span>
-              </Link>
-            </li>
+              <li key={`${row.type}:${row.type === "page" ? row.href : row.text}`} id={optionId(i)} role="option" aria-selected={i === active}>
+                {row.type === "page" ? (
+                  <Link href={row.href} tabIndex={-1} onClick={() => setOpen(false)} onMouseEnter={() => setActive(i)} className={cls + " justify-between"}>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-ink">{row.label}</span>
+                      <span className="block truncate text-xs text-ink-soft">{row.sub}</span>
+                    </span>
+                    <span className="flex-none rounded-full border border-line px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">{row.badge}</span>
+                  </Link>
+                ) : (
+                  <button type="button" tabIndex={-1} onClick={() => pick(row)} onMouseEnter={() => setActive(i)} className={cls}>
+                    {SPARKLE}
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-ink">{row.type === "ask" ? <>Ask AI: &ldquo;{row.text}&rdquo;</> : row.text}</span>
+                      <span className="block truncate text-xs text-ink-soft">{row.type === "ask" ? "Answered from NextResearch data" : "Suggested question"}</span>
+                    </span>
+                  </button>
+                )}
+              </li>
             );
           })}
         </ul>

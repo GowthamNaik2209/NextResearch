@@ -16,6 +16,7 @@ import { buildSearchIndex, type SearchEntry } from "../sector-content/stats";
 import { groqComplete, GroqError } from "../llm/groq";
 import { checkAnswer } from "./ai";
 import { buildContext, contextKeyForPath, type AssistantContext } from "./index";
+import { guideTopic, matchGuide } from "./guide";
 
 export const MAX_QUESTION_CHARS = 300;
 const MAX_SOURCES = 4;
@@ -26,7 +27,7 @@ const MAX_FACT_CHARS = 10_000;
 // it (the 20B called 0.9% "lower" than 0.7%). Same free-plan limits; ~1-3 s an answer.
 const MODEL = "openai/gpt-oss-120b" as const;
 // Bump when the prompt or retrieval changes, so cached answers are rewritten.
-const VERSION = 6;
+const VERSION = 7;
 const TTL_MS = 6 * 60 * 60 * 1000;
 
 export type AskSource = { key: string; title: string; href: string };
@@ -103,6 +104,8 @@ export function findKeys(question: string, currentKey: string, index: SearchEntr
   const keys = [...new Set(named)];
   // "Which IPOs are coming up?" names no IPO: the IPO list answers it.
   if (!keys.some((k) => k.startsWith("ipo:")) && /\bipos?\b/i.test(question)) keys.push("ipos");
+  // How the site works ("how do projections work?"): the guide topics the question is about.
+  for (const t of matchGuide(question)) keys.push(`guide:${t.id}`);
   // The page the reader is on answers "it" and "this sector"; listed after named pages so a
   // question about something else leads with that.
   if (!keys.includes(currentKey)) keys.push(currentKey);
@@ -112,12 +115,22 @@ export function findKeys(question: string, currentKey: string, index: SearchEntr
 
 const hrefForKey = (key: string): string => {
   const [kind, slug] = key.split(":");
+  if (kind === "guide") return guideTopic(slug)?.href ?? "/";
   if (kind === "sector") return `/sector/${slug}`;
   if (kind === "company") return `/company/${slug}`;
   if (kind === "ipo") return `/ipos?ipo=${slug}`;
   if (kind === "ipos") return "/ipos";
   return "/";
 };
+
+/** A page's facts as a context: the content pages from ./index, the guide topics from ./guide. */
+export function contextFor(key: string): AssistantContext | null {
+  if (key.startsWith("guide:")) {
+    const t = guideTopic(key.slice(6));
+    return t ? { key, title: t.title, asOf: null, questions: [{ id: "guide", q: t.title, a: t.facts.join(" "), facts: t.facts }] } : null;
+  }
+  return buildContext(key);
+}
 
 /** Each source's fact lines, numbered by source, cut to the size the model is given. */
 export function factsFor(contexts: AssistantContext[]): { text: string; facts: string[] } {
@@ -239,7 +252,7 @@ export async function answerQuestion(question: string, pathname: string, params:
   const q = question.trim().slice(0, MAX_QUESTION_CHARS);
   const current = contextKeyForPath(pathname, params);
   const contexts = findKeys(q, buildContext(current) ? current : "platform")
-    .map((k) => buildContext(k))
+    .map((k) => contextFor(k))
     .filter((c): c is AssistantContext => !!c);
   if (opts.ai === false) return fallback(contexts, "Here is what our pages say. Log in for an AI-written answer to your exact question.");
   if (!aiAskEnabled()) return fallback(contexts, "AI answers are switched off, so here is what our pages say.");
