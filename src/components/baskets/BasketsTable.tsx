@@ -9,6 +9,7 @@ import { Panel } from "./Panel";
 import { industrySeriesKey, loadSeries, savedBasketQuery } from "./series";
 import { heldStrategy, strategyQuery } from "@/lib/baskets/strategy";
 import { PROJECTION_DISCLAIMER } from "./projection-view";
+import { HeatGrid, HeatLegend, heatScale, type HeatCell } from "@/components/charts/Heatmap";
 
 // The Baskets page's dense tables: one row per basket with its 1Y return, deepest fall and lead
 // over the Nifty 50, and its projected return over the next year in the Bear, Base and Bull cases
@@ -339,7 +340,7 @@ export function BasketsTable({
             );
             return (
               // The whole row opens the basket: the name's link stretches over it (::after).
-              <li role="row" key={key} className={GRID + " relative min-h-10 border-b border-line px-3 py-1.5 transition last:border-b-0 hover:bg-panel-2 has-[a:focus-visible]:bg-panel-2"}>
+              <li role="row" key={key} id={r.kind === "industry" ? rowId(r.slug) : undefined} className={GRID + " relative min-h-10 scroll-mt-24 border-b border-line px-3 py-1.5 transition last:border-b-0 hover:bg-panel-2 has-[a:focus-visible]:bg-panel-2"}>
                 <span role="rowheader" className="flex min-w-0 flex-col">
                   <Link
                     href={hrefOf(r)}
@@ -453,6 +454,68 @@ export function BasketsPanel({
     <Panel label={title} tools={tools}>
       {has ? <BasketsTable rows={rows} sort={sort} onSort={setSort} label={title} seed={seed} deferred={deferred} /> : <div className="px-3 py-3 text-xs leading-relaxed text-ink-soft">{children}</div>}
     </Panel>
+  );
+}
+
+// ---- the theme wall ----
+
+const rowId = (slug: string) => `basket-row-${slug}`;
+/** A tile's name: the part before any bracket, slash or "&" ("Data Center / AI Infrastructure" is "Data Center"). */
+const shortName = (name: string) => name.split(/ \(| \/ | & | \+ /)[0];
+const FLASH = ["bg-accent/15", "ring-2", "ring-inset", "ring-accent"];
+
+/** Scrolls the industry table to a basket's row and lights it up for a moment. */
+function jumpToRow(slug: string) {
+  // The visible row: a streamed page can briefly keep a hidden copy of the table with the same ids.
+  const el = [...document.querySelectorAll<HTMLElement>(`[id="${rowId(slug)}"]`)].find((x) => x.offsetParent);
+  if (!el) return;
+  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  el.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "center" });
+  el.classList.add(...FLASH);
+  window.setTimeout(() => el.classList.remove(...FLASH), 1800);
+}
+
+/**
+ * Every industry and policy basket as a tile, best 1Y return first, green to red. It reads the
+ * same figures as the table under it (the server's seed, then the browser's own backtests), so a
+ * tile and its row always agree; tapping a tile scrolls to that row.
+ */
+export function ThemeWall({ rows, seed }: { rows: IndustryRow[]; seed?: TableSeed }) {
+  const v = useSyncExternalStore(subscribe, getVersion, getVersion);
+  const hydrated = useHydrated();
+  const cells = useMemo(() => {
+    const retOf = (slug: string) => {
+      const key = industrySeriesKey(slug);
+      const e = hydrated ? (typeof figs.get(key) === "object" ? figs.get(key) : seed?.figs[key]) : seed?.figs[key];
+      return e && typeof e === "object" && Number.isFinite(e.ret) ? e.ret : null;
+    };
+    return rows
+      .filter((r) => r.count > 0)
+      .map((r): HeatCell => {
+        const ret = retOf(r.slug);
+        return {
+          key: r.slug,
+          label: shortName(r.name),
+          value: ret,
+          sub: r.category === "policy" ? "Policy" : undefined,
+          title: `${r.name}${ret != null ? `: ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}% over the past year` : ""} · tap to see its row`,
+          onClick: () => jumpToRow(r.slug),
+        };
+      })
+      .sort((a, b) => (a.value == null ? 1 : b.value == null ? -1 : b.value - a.value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- v: re-read the store as figures arrive
+  }, [rows, seed, hydrated, v]);
+  const scale = heatScale(cells.map((c) => c.value));
+  return (
+    <div className="flex flex-col gap-2 rounded-md border border-line bg-panel p-2 sm:p-3">
+      <HeatGrid
+        cells={cells}
+        scale={scale}
+        label="Industry and policy baskets by 1Y return"
+        className="grid grid-cols-3 auto-rows-[3.25rem] gap-1 min-[480px]:grid-cols-4 sm:auto-rows-[3.5rem] md:grid-cols-6 lg:grid-cols-8"
+      />
+      <HeatLegend scale={scale} note="1Y return at equal weight, best first · tap a tile for its row below" />
+    </div>
   );
 }
 

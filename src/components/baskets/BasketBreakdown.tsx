@@ -1,6 +1,7 @@
 "use client";
 
 import { StockLink } from "@/components/stock/StockLink";
+import { HeatGrid, HeatLegend, heatScale, type HeatCell } from "@/components/charts/Heatmap";
 import type { BacktestHolding } from "@/lib/baskets/backtest";
 import type { BasketStock } from "@/lib/baskets/industry";
 import {
@@ -19,6 +20,8 @@ import {
 // drifted and, for a mix, which industries carried it. Each opens with a one-line takeaway. They
 // follow the table's All / Your picks switch, so they can describe just the stocks picked.
 export type BreakdownTab = "contribution" | "returns" | "weights" | "industries";
+/** The Weights tab as bars (weight now against where it started) or a heatmap (size weight, colour return). */
+export type WeightView = "bars" | "heatmap";
 type Tab = BreakdownTab;
 
 export function BasketBreakdown({
@@ -30,6 +33,9 @@ export function BasketBreakdown({
   tab,
   onTab,
   ahead = false,
+  weightView = "bars",
+  onWeightView,
+  missing = 0,
 }: {
   holdings: BacktestHolding[];
   stockOf: (ticker: string) => BasketStock | undefined;
@@ -43,6 +49,11 @@ export function BasketBreakdown({
   onTab: (t: Tab) => void;
   /** A projection (Projections on): `rangeLong` is the horizon ahead ("1 year") and the words look forward. */
   ahead?: boolean;
+  /** The Weights tab's view, kept by the page like the tab. */
+  weightView?: WeightView;
+  onWeightView?: (v: WeightView) => void;
+  /** Stocks in view left out of the figures (no prices for the period, or no projection). */
+  missing?: number;
 }) {
   const over = ahead ? `the next ${rangeLong}` : `the past ${rangeLong}`;
   const nameOf = (t: string) => stockOf(t)?.name ?? t;
@@ -56,6 +67,7 @@ export function BasketBreakdown({
     ...(byIndustry && inds.length > 1 ? [{ id: "industries" as const, label: "By industry" }] : []),
   ];
   const active = tabs.some((t) => t.id === tab) ? tab : "contribution";
+  const heat = active === "weights" && weightView === "heatmap";
 
   const view = {
     contribution: {
@@ -74,7 +86,9 @@ export function BasketBreakdown({
     },
     weights: {
       headline: weightHeadline(holdings, nameOf, picks ? "your picks" : "the basket", ahead),
-      sub: ahead
+      sub: heat
+        ? `Each tile is a stock: bigger the larger its share of ${picks ? "your picks" : "the basket"}, green or red by its ${ahead ? "projected " : ""}price change over ${over}. Tap one for the stock.`
+        : ahead
         ? `Share of ${picks ? "your picks" : "the basket"} at the end of ${over} if held, against today's target (left-out stocks' share spread over the rest).`
         : `Share of ${picks ? "your picks" : "the basket"} at the end, against its target. Winners grow, losers shrink.`,
       rows: weightRows(holdings),
@@ -93,12 +107,23 @@ export function BasketBreakdown({
   const seg = (on: boolean) => "min-h-8 pointer-coarse:min-h-9 rounded-full px-3 text-[11px] font-semibold transition sm:text-xs " + (on ? "bg-accent text-bg" : "text-ink-soft hover:text-ink");
   return (
     <section aria-label="Breakdown" className="flex flex-col gap-3 p-3 sm:p-4">
-      <div role="tablist" aria-label="Breakdown" className="-mx-1 flex gap-0.5 overflow-x-auto px-1">
-        {tabs.map((t) => (
-          <button key={t.id} type="button" role="tab" aria-selected={active === t.id} onClick={() => onTab(t.id)} className={seg(active === t.id) + " flex-none"}>
-            {t.label}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+        <div role="tablist" aria-label="Breakdown" className="-mx-1 flex min-w-0 gap-0.5 overflow-x-auto px-1">
+          {tabs.map((t) => (
+            <button key={t.id} type="button" role="tab" aria-selected={active === t.id} onClick={() => onTab(t.id)} className={seg(active === t.id) + " flex-none"}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        {active === "weights" && onWeightView && (
+          <div role="group" aria-label="Show weights as" className="flex flex-none gap-0.5 rounded-full border border-line p-0.5">
+            {(["bars", "heatmap"] as const).map((v) => (
+              <button key={v} type="button" aria-pressed={weightView === v} onClick={() => onWeightView(v)} className={seg(weightView === v).replace("min-h-8 pointer-coarse:min-h-9", "min-h-7 pointer-coarse:min-h-8")}>
+                {v === "bars" ? "Bars" : "Heatmap"}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <div className="border-l-4 border-accent pl-3">
         {view.headline && <h3 className="text-balance font-display text-lg font-bold leading-snug text-ink sm:text-xl">{view.headline}</h3>}
@@ -120,7 +145,13 @@ export function BasketBreakdown({
           )}
         </div>
       )}
-      {active === "weights" ? <WeightBars rows={view.rows} stockOf={stockOf} ahead={ahead} /> : <Bars rows={view.rows} unit={view.unit} stockOf={stockOf} />}
+      {heat ? (
+        <WeightHeatmap holdings={holdings} stockOf={stockOf} ahead={ahead} rangeLong={rangeLong} missing={missing} />
+      ) : active === "weights" ? (
+        <WeightBars rows={view.rows} stockOf={stockOf} ahead={ahead} />
+      ) : (
+        <Bars rows={view.rows} unit={view.unit} stockOf={stockOf} />
+      )}
     </section>
   );
 }
@@ -227,5 +258,38 @@ function WeightBars({ rows, stockOf, ahead = false }: { rows: BarRow[]; stockOf:
       )}
     </ul>
     </>
+  );
+}
+
+// Every stock as a tile: sized by its weight at the end against an equal share (so an equal-weight
+// basket is an even grid and a cap-weighted one shows its giants), coloured by its own return.
+function WeightHeatmap({ holdings, stockOf, ahead, rangeLong, missing }: { holdings: BacktestHolding[]; stockOf: (t: string) => BasketStock | undefined; ahead: boolean; rangeLong: string; missing: number }) {
+  const even = holdings.length ? 1 / holdings.length : 1;
+  const cells: HeatCell[] = [...holdings]
+    .sort((a, b) => b.endWeight - a.endWeight || b.ret - a.ret)
+    .map((h) => {
+      const name = stockOf(h.ticker)?.name ?? h.ticker;
+      const w = h.endWeight * 100;
+      return {
+        key: h.ticker,
+        label: name,
+        value: h.ret,
+        sub: `${w.toFixed(1)}%`,
+        size: h.endWeight >= even * 4 ? 4 : h.endWeight >= even * 2.5 ? 3 : h.endWeight >= even * 1.25 ? 2 : 1,
+        ticker: h.ticker,
+        title: `${name}: ${h.ret >= 0 ? "+" : ""}${h.ret.toFixed(1)}% ${ahead ? "projected over the next" : "over the past"} ${rangeLong}, ${w.toFixed(1)}% of the basket`,
+      };
+    });
+  const scale = heatScale(cells.map((c) => c.value));
+  return (
+    <div className="flex flex-col gap-2">
+      <HeatGrid cells={cells} scale={scale} label={`Heatmap of ${cells.length} stocks`} />
+      <HeatLegend scale={scale} note={<>Largest weight first; bigger tile = bigger weight{ahead ? " if held" : " now"} (the small %)</>} />
+      {missing > 0 && (
+        <p className="text-[11px] text-ink-soft">
+          {missing} {missing === 1 ? "stock isn’t" : "stocks aren’t"} shown: no {ahead ? "projection" : `prices for the whole ${rangeLong}`} (see the Table).
+        </p>
+      )}
+    </div>
   );
 }
