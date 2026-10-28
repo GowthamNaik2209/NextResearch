@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { ACCOUNT_MENU_EVENT } from "./KeyboardShortcuts";
 
 // Phone-only navigation: the header's text links are hidden below `md`, so this hamburger
 // opens the same destinations as a dropdown. Closes on a pick, outside tap or Escape.
@@ -18,6 +19,13 @@ const ITEMS: [string, string][] = [
 export function MobileMenu({ hideFrom = "md:hidden" }: { hideFrom?: string } = {}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  // ⌥P opens the account menu; close this one so the two dropdowns never overlap.
+  useEffect(() => {
+    const close = () => setOpen(false);
+    window.addEventListener(ACCOUNT_MENU_EVENT, close);
+    return () => window.removeEventListener(ACCOUNT_MENU_EVENT, close);
+  }, []);
 
   useEffect(() => {
     if (!open) return;

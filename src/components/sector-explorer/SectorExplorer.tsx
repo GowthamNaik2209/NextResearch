@@ -22,6 +22,7 @@ import { CompanyComparison } from "./CompanyComparison";
 import { WatchlistButton } from "./WatchlistButton";
 import { UserMenu } from "@/components/UserMenu";
 import { MobileMenu } from "@/components/MobileMenu";
+import { ShortcutLink } from "@/components/KeyboardShortcuts";
 import "./explorer.css";
 
 const TOUR_STEP_MS = 3400;
@@ -524,10 +525,10 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
     <div className={"nr-explorer" + (isControlsOpen ? " controls-open" : "")}>
       <header>
         <div className="title-block">
-          <Link href="/" className="brand tap-target" style={{ textDecoration: "none" }} aria-label="NextResearch home">
+          <ShortcutLink href="/" shortcut="H" label="Home" className="brand tap-target" style={{ textDecoration: "none" }} aria-label="NextResearch home">
             <span className="brand-full">NextResearch</span>
             <span className="brand-mark" aria-hidden>N</span>
-          </Link>
+          </ShortcutLink>
           {/* The sector's own name, as on its overview page and across the site (the authored
               headerTitle strings mixed "EV ANATOMY" with "RARE-EARTH MAGNETS (REPM)"). */}
           <h1 title={sector.name}>{sector.name}</h1>
@@ -548,16 +549,17 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
         <div className="user-nav">
           {/* Same phone-only site menu as the rest of the site (it hides itself from md up). */}
           <MobileMenu hideFrom="min-[1001px]:hidden" />
-          <Link
+          <ShortcutLink
             href="/watchlist"
+            shortcut="W"
+            label="Watchlist"
             className="tap-target flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
             aria-label="Watchlist"
-            title="Watchlist"
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 21s-7.5-4.6-10.2-9.3C.1 8.9 1 5.3 4.3 4.1c2.3-.8 4.6.1 5.9 2 .5.7 1.4 1.9 1.8 2.5.4-.6 1.3-1.8 1.8-2.5 1.3-1.9 3.6-2.8 5.9-2 3.3 1.2 4.2 4.8 2.5 7.6C19.5 16.4 12 21 12 21z" />
             </svg>
-          </Link>
+          </ShortcutLink>
           <UserMenu key={`${userEmail ?? "anon"}-${displayName}`} email={userEmail} displayName={displayName} />
         </div>
       </header>

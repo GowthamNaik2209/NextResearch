@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore, type ComponentProps } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { setTheme } from "./ThemeToggle";
 
 // Top-bar shortcuts: Option + letter on a Mac, Alt + letter on Windows/Linux. ⌘/Ctrl combos
@@ -22,19 +22,27 @@ const ROUTES: Record<string, string> = {
 // UserMenu listens for this to open/close the account dropdown (⌥P).
 export const ACCOUNT_MENU_EVENT = "nr:toggle-account-menu";
 
+// Inputs you don't type into (checkbox, radio, range slider, button) keep the shortcuts on.
+const NON_TEXT_INPUTS = ["checkbox", "radio", "range", "button", "submit", "reset", "color", "file", "image"];
+
 function isTyping(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false;
-  return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
+  if (target instanceof HTMLInputElement) return !NON_TEXT_INPUTS.includes(target.type);
+  return target.isContentEditable || ["TEXTAREA", "SELECT"].includes(target.tagName);
 }
 
 export function KeyboardShortcuts() {
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!e.altKey || e.metaKey || e.ctrlKey || e.shiftKey || e.repeat || isTyping(e.target)) return;
       const route = ROUTES[e.code];
-      if (route) router.push(route);
+      // Already on the landing page: scroll directly, since pushing the same "/#how" again
+      // (after scrolling back up) is a no-op.
+      if (e.code === "Slash" && pathname === "/") document.getElementById("how")?.scrollIntoView({ behavior: "smooth" });
+      else if (route) router.push(route);
       else if (e.code === "KeyN") setTheme("dark");
       else if (e.code === "KeyL") setTheme("light");
       else if (e.code === "KeyP") window.dispatchEvent(new Event(ACCOUNT_MENU_EVENT));
@@ -44,7 +52,7 @@ export function KeyboardShortcuts() {
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [router]);
+  }, [router, pathname]);
 
   return null;
 }
