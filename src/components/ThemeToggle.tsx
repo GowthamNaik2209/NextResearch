@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
+import { useShortcutHint, withHint } from "./KeyboardShortcuts";
 
 const STORAGE_KEY = "nr-theme";
 
@@ -16,6 +17,14 @@ const getTheme = (): "light" | "dark" => (document.documentElement.getAttribute(
 // null on the server / first hydration pass so the markup matches before the attribute is read.
 const getServerTheme = () => null;
 
+// Shared with the ⌥N / ⌥L keyboard shortcuts.
+export function setTheme(next: "light" | "dark") {
+  document.documentElement.setAttribute("data-theme", next);
+  try {
+    localStorage.setItem(STORAGE_KEY, next);
+  } catch {}
+}
+
 // "switch" is the labelled pill inside the account menu; "icon" is the compact round button
 // in the header bar (sized like the watchlist and account icons beside it).
 export function ThemeToggle({ variant = "switch" }: { variant?: "switch" | "icon" }) {
@@ -30,15 +39,12 @@ export function ThemeToggle({ variant = "switch" }: { variant?: "switch" | "icon
     } catch {}
   }, []);
 
-  function toggle() {
-    const next = theme === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", next);
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {}
-  }
+  const toggle = () => setTheme(theme === "dark" ? "light" : "dark");
 
   const isLight = theme === "light";
+  const nightHint = useShortcutHint("N");
+  const lightHint = useShortcutHint("L");
+  const actionLabel = isLight ? withHint("Switch to dark mode", nightHint) : withHint("Switch to light mode", lightHint);
 
   if (variant === "icon")
     return (
@@ -46,7 +52,7 @@ export function ThemeToggle({ variant = "switch" }: { variant?: "switch" | "icon
         type="button"
         onClick={toggle}
         aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
-        title={isLight ? "Switch to dark mode" : "Switch to light mode"}
+        title={actionLabel}
         className="tap-target flex h-8 w-8 flex-none items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink sm:h-9 sm:w-9"
       >
         {/* Before hydration the theme is unknown (null): show the moon, the light default's action. */}
@@ -61,7 +67,7 @@ export function ThemeToggle({ variant = "switch" }: { variant?: "switch" | "icon
       role="switch"
       aria-checked={isLight}
       aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
-      title={isLight ? "Switch to dark mode" : "Switch to light mode"}
+      title={actionLabel}
       className="tap-y relative flex h-7 w-14 flex-none items-center rounded-full border border-line bg-panel-2 px-1 transition-colors"
     >
       <MoonIcon className="absolute left-1.5 h-3.5 w-3.5 text-ink-soft" />

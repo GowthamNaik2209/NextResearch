@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout, updateDisplayName } from "@/app/auth/actions";
 import { ThemeToggle } from "./ThemeToggle";
+import { ACCOUNT_MENU_EVENT, useShortcutHint, withHint } from "./KeyboardShortcuts";
 
 type Props = {
   email: string | null;
@@ -18,6 +19,17 @@ export function UserMenu({ email, displayName }: Props) {
   // The name sits beside the avatar only on the landing page; everywhere else
   // the account button is the bare avatar (the name is still in the dropdown).
   const showName = usePathname() === "/";
+  const hint = useShortcutHint("P");
+
+  // ⌥P / Alt+P (KeyboardShortcuts) toggles the dropdown.
+  useEffect(() => {
+    const toggle = () => {
+      setOpen((v) => !v);
+      setEditing(false);
+    };
+    window.addEventListener(ACCOUNT_MENU_EVENT, toggle);
+    return () => window.removeEventListener(ACCOUNT_MENU_EVENT, toggle);
+  }, []);
 
   // Close on an outside click/tap, Escape, or page scroll (the dropdown hangs off a sticky
   // header, so scrolling the page under it left it floating over unrelated content).
@@ -56,7 +68,7 @@ export function UserMenu({ email, displayName }: Props) {
           aria-haspopup="true"
           aria-expanded={open}
           aria-label="Account"
-          title="Account"
+          title={withHint("Account", hint)}
         >
           <UserIcon />
         </button>
@@ -92,6 +104,7 @@ export function UserMenu({ email, displayName }: Props) {
           aria-haspopup="true"
           aria-expanded={open}
           aria-label={`Account: ${label}`}
+          title={withHint(label, hint)}
         >
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/15 text-accent sm:h-7 sm:w-7">
             <UserIcon small />
@@ -108,7 +121,7 @@ export function UserMenu({ email, displayName }: Props) {
           aria-haspopup="true"
           aria-expanded={open}
           aria-label={`Account: ${label}`}
-          title={label}
+          title={withHint(label, hint)}
         >
           <UserIcon />
         </button>
