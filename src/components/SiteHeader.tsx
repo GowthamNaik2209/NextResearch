@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { UserMenu } from "./UserMenu";
 import { MobileMenu } from "./MobileMenu";
 import { ThemeToggle } from "./ThemeToggle";
+import { ShortcutLink } from "./KeyboardShortcuts";
 
 export async function SiteHeader() {
   const user = await getCurrentUser();
@@ -14,34 +15,35 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-5">
-        <Link href="/" className="tap-target flex items-center gap-2">
+        <ShortcutLink href="/" shortcut="H" label="Home" className="tap-target flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent font-display text-sm font-bold text-bg">N</span>
           <span className="font-display text-base font-bold tracking-tight text-ink">NextResearch</span>
-        </Link>
+        </ShortcutLink>
         {/* Tighter spacing on phones so menu + watchlist + account (with the name chip on the
             landing page) still fit beside the logo at 375px; tablets keep the text links on one
             row by tightening the gaps until lg. */}
         <nav className="flex items-center gap-2 sm:gap-3 lg:gap-5">
           {/* Analysis holds the industries (Deep dive), reports and charts; it replaced Themes. */}
-          <Link href="/docs" className={link}>Analysis</Link>
-          <Link href="/baskets" className={link}>Baskets</Link>
-          <Link href="/connections" className={link}>Connections</Link>
-          <Link href="/updates" className={link}>Updates</Link>
-          <Link href="/#how" className={link}>How it works</Link>
+          <ShortcutLink href="/docs" className={link} shortcut="A" label="Analysis" />
+          <ShortcutLink href="/baskets" className={link} shortcut="B" label="Baskets" />
+          <ShortcutLink href="/connections" className={link} shortcut="C" label="Connections" />
+          <ShortcutLink href="/updates" className={link} shortcut="U" label="Updates" />
+          <ShortcutLink href="/#how" className={link} shortcut="/" label="How it works" />
           <MobileMenu />
           {/* Not on phones (logo + menu + heart + Sign up + account already fill 375px) nor at
               md, where the five text links take the room; the account menu still has it there. */}
           <span className="hidden sm:contents md:hidden lg:contents">
             <ThemeToggle variant="icon" />
           </span>
-          <Link
+          <ShortcutLink
             href="/watchlist"
+            shortcut="W"
+            label="Watchlist"
             className="tap-target flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
             aria-label="Watchlist"
-            title="Watchlist"
           >
             <HeartIcon />
-          </Link>
+          </ShortcutLink>
           {/* Signed-out only, so it never shares the row with the landing-page name chip. All widths
               see the same "Sign up" label everywhere (it fits beside the logo and icons at 375px). */}
           {!user && (

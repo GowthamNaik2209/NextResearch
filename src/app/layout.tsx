@@ -10,6 +10,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { Suspense } from "react";
 import { ReturnToStock } from "@/components/stock/ReturnToStock";
 import { InlineScript } from "@/components/InlineScript";
+import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL, jsonLd } from "@/lib/site";
 import "./globals.css";
 
@@ -109,6 +110,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Suspense fallback={null}>
           <ReturnToStock />
         </Suspense>
+        {/* ⌥/Alt + letter top-bar shortcuts, on every page. */}
+        <KeyboardShortcuts />
         <Analytics />
       </body>
     </html>
