@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getIndustryBasket, listIndustryBaskets } from "@/lib/baskets/industry";
 import { compareProps } from "@/lib/baskets/page-props";
 import { ensureFinancials } from "@/lib/financials/load";
-import { ensureRiskStats, riskStatsReady } from "@/lib/baskets/projection-risk-data";
+import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk-data";
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 
 export async function generateStaticParams() {
@@ -32,6 +32,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function IndustryBasketPage({ params }: { params: Promise<{ slug: string }> }) {
   await ensureFinancials();
   await ensureRiskStats();
+  // Read now: the load can finish during the awaits below, after the stocks were built on stand-ins.
+  const statsLoading = riskStatsLoading();
   const { slug } = await params;
   const b = getIndustryBasket(slug);
   if (!b) notFound();
@@ -41,7 +43,7 @@ export default async function IndustryBasketPage({ params }: { params: Promise<{
     <>
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-4xl lg:max-w-page flex-1 flex-col gap-4 px-5 py-14">
-        {!riskStatsReady() && <ProjectionStatsPending />}
+        {statsLoading && <ProjectionStatsPending />}
         {/* Back to the theme the basket is built from (where "Open industry basket" opens it), and to the hub. */}
         <nav aria-label="Back" className="-my-1 flex flex-wrap items-center gap-x-4 text-xs font-semibold text-accent">
           <Link href={`/sector/${b.slug}`} className="inline-flex min-h-8 items-center text-balance hover:underline pointer-coarse:min-h-9">

@@ -101,7 +101,8 @@ stock's Base by the same amount, never the order of stocks or the width of the r
    below 20% a year. Until a stock's price statistics are loaded (the first visits after the cache
    is cleared), σ is estimated from the 52-week range, ln(high ÷ low) ÷ √(8/π), and beta is 1; the
    Assumptions table says so. While a server instance has no statistics at all yet, basket pages
-   show a one-line note and refresh themselves every few seconds until they are in
+   show a one-line note and refresh themselves (every few seconds, then further apart, for about
+   two minutes) until they are in
    (`ProjectionStatsPending`), so a first visit doesn't show figures the next visit changes.
 3. **Market return** = rf + beta × ERP − dividend yield (a price projection; CAPM gives the total
    return including dividends).
