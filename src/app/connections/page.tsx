@@ -23,7 +23,7 @@ export default async function ConnectionsPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-5 py-14">
+      <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-6 px-5 py-14">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight text-ink">Connected companies</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
@@ -59,7 +59,7 @@ export default async function ConnectionsPage() {
                 ) : (
                   <div className="flex items-center gap-3">{head}</div>
                 )}
-                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {c.sectors.map((s) => (
                     <Link key={s.sectorSlug} href={s.href} className="rounded-lg border border-line bg-panel-2 px-3 py-2 transition-colors hover:border-accent">
                       <div className="text-xs font-semibold text-ink">{s.sectorName}</div>

@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 export async function ClosingCta() {
   if (await getCurrentUser()) return null;
   return (
-    <section className="mx-auto max-w-6xl px-5 py-20">
+    <section className="mx-auto max-w-page px-5 py-20">
       <div className="rounded-3xl bg-accent px-8 py-12 text-center">
         <h2 className="font-display text-3xl font-bold tracking-tight text-bg">Build your basket around a theme, not a tip.</h2>
         <p className="mx-auto mt-3 max-w-lg text-sm text-bg/80">Create an account to keep your own baskets, backtested against the Nifty 50, and a watchlist of the companies you follow.</p>

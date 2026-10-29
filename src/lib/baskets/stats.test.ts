@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { periodsPerYear, relativeStats, seriesStats } from "./stats";
+import { monthlyCapture } from "./analysis";
 import type { PricePoint } from "./backtest";
 
 const near = (a: number | null | undefined, b: number, eps = 1e-9) => assert.ok(a != null && Math.abs(a - b) < eps, `${a} != ${b}`);
@@ -67,15 +68,42 @@ test("best and worst calendar month chain from month ends", () => {
   near(s.worstMonth!.ret, -10);
 });
 
-test("beta and capture against a benchmark", () => {
+test("beta against a benchmark; capture waits for ten months", () => {
   const bench = daily([100, 110, 99, 108.9, 98.01]);
   // A line that moves exactly twice the index each bar.
   const line = daily([100, 120, 96, 115.2, 92.16]);
   const r = relativeStats(line, bench)!;
   near(r.beta, 2);
-  assert.ok(r.upCapture! > 190 && r.upCapture! < 210);
-  assert.ok(r.downCapture! > 190 && r.downCapture! < 210);
+  assert.equal(r.upCapture, null);
+  assert.equal(r.downCapture, null);
   near(r.benchRet, -1.99, 1e-9);
+});
+
+test("capture is the Capture panel's monthly figure, not a per-bar one", () => {
+  // Month-end closes from Dec 2023 to Dec 2024: the index alternates +10% / -10% months and the
+  // line does twice that. Inside one month, a daily wiggle the index doesn't have.
+  const months = ["2023-12-29", "2024-01-31", "2024-02-29", "2024-03-29", "2024-04-30", "2024-05-31", "2024-06-28", "2024-07-31", "2024-08-30", "2024-09-30", "2024-10-31", "2024-11-29", "2024-12-31"];
+  const bench: PricePoint[] = [];
+  const line: PricePoint[] = [];
+  let b = 100;
+  let a = 100;
+  months.forEach((t, i) => {
+    if (i > 0) {
+      const up = i % 2 === 1;
+      b *= up ? 1.1 : 0.9;
+      a *= up ? 1.2 : 0.8;
+    }
+    bench.push({ t, c: b });
+    line.push({ t, c: a });
+  });
+  line.splice(1, 0, { t: "2024-01-15", c: line[0].c * 1.5 });
+  bench.splice(1, 0, { t: "2024-01-15", c: bench[0].c });
+  const r = relativeStats(line, bench)!;
+  const m = monthlyCapture(line, bench);
+  near(r.upCapture, m.upCapture!);
+  near(r.downCapture, m.downCapture!);
+  near(r.upCapture, 200, 1e-6);
+  near(r.downCapture, 200, 1e-6);
 });
 
 test("the benchmark is read at the line's dates, carrying its last close over its holidays", () => {

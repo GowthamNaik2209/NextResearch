@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 // The documented `@vercel/analytics/next` entry point fails to resolve under
 // this project's Turbopack dev server ("Module not found", reproducible even
@@ -11,6 +11,7 @@ import { Suspense } from "react";
 import { ReturnToStock } from "@/components/stock/ReturnToStock";
 import { InlineScript } from "@/components/InlineScript";
 import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
+import { AppResume } from "@/components/AppResume";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL, jsonLd } from "@/lib/site";
 import "./globals.css";
 
@@ -40,6 +41,8 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
+  // Added to an iPhone home screen: opens full-screen, named "NextResearch" under the icon.
+  appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "default" },
   keywords: [
     "Indian stock market research",
     "supply chain stocks India",
@@ -65,6 +68,12 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true, googleBot: { "max-image-preview": "large", "max-snippet": -1 } },
 };
 
+// The browser bar / status bar colour: the light page background. ThemeToggle's setTheme (and
+// the init script below) switch it to the dark one when dark mode is on.
+export const viewport: Viewport = {
+  themeColor: "#f8f4ea",
+};
+
 const SITE_JSON_LD = {
   "@context": "https://schema.org",
   "@graph": [
@@ -87,7 +96,7 @@ const SITE_JSON_LD = {
 // tells React to accept whatever this script leaves in the DOM instead of
 // treating the light->dark rewrite as a mismatch. Keep the storage key and
 // values in sync with ThemeToggle.tsx.
-const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem("nr-theme");if(t==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}`;
+const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem("nr-theme");if(t==="dark"){document.documentElement.setAttribute("data-theme","dark");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content","#0c1110")}}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -112,6 +121,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </Suspense>
         {/* ⌥/Alt + letter top-bar shortcuts, on every page. */}
         <KeyboardShortcuts />
+        <AppResume />
         <Analytics />
       </body>
     </html>
