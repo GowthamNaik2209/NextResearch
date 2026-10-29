@@ -50,7 +50,7 @@ export default async function WatchlistPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-5 py-14">
+      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-5 py-14 lg:max-w-page">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="font-display text-2xl font-bold text-ink">Watchlist</h1>
@@ -74,7 +74,8 @@ export default async function WatchlistPage() {
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          // Side by side from desktop width; every card has the same three lines, so a row lines up.
+          <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
             {rows.map((row) => {
               const ticker = row.company.ticker;
               const supplier = findSupplierByTicker(ticker);
@@ -171,7 +172,7 @@ export default async function WatchlistPage() {
 
         {rows.length > 0 && (
           <WatchlistNewsGate tickers={rows.map((r) => r.company.ticker)}>
-            <section className="mt-4">
+            <section className="mt-4 max-w-3xl">
               <h2 className="font-display text-lg font-bold text-ink">News on your watchlist</h2>
               <div className="mt-3">
                 <NewsFeed tickers={rows.map((r) => r.company.ticker)} limit={8} showSector={false} />

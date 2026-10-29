@@ -9,7 +9,7 @@ const FEATURES: [title: string, body: string][] = [
 
 export function CompanyFeatures() {
   return (
-    <section className="mx-auto max-w-6xl px-5 py-20">
+    <section className="mx-auto max-w-page px-5 py-20">
       <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">What you see on every company</h2>
       <p className="mt-2 max-w-xl text-sm text-ink-soft">The checklist most investors run by hand, in one panel.</p>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

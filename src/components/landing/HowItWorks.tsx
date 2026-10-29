@@ -28,7 +28,7 @@ const STEPS: { title: string; body: string; link: { href: string; label: string 
 export function HowItWorks() {
   return (
     <section id="how" className="scroll-mt-20 border-y border-line">
-      <div className="mx-auto max-w-6xl px-5 py-16">
+      <div className="mx-auto max-w-page px-5 py-16">
         <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">From an industry to your own basket in four steps</h2>
         <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((s, i) => (

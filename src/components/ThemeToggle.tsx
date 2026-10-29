@@ -20,6 +20,8 @@ const getServerTheme = () => null;
 // Shared with the ⌥N / ⌥L keyboard shortcuts.
 export function setTheme(next: "light" | "dark") {
   document.documentElement.setAttribute("data-theme", next);
+  // The status bar / browser bar follows the page background (--bg; layout.tsx's viewport).
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0c1110" : "#f8f4ea");
   try {
     localStorage.setItem(STORAGE_KEY, next);
   } catch {}
@@ -31,11 +33,12 @@ export function ThemeToggle({ variant = "switch" }: { variant?: "switch" | "icon
   const theme = useSyncExternalStore(subscribe, getTheme, getServerTheme);
 
   // React Strict Mode's dev remount resets <html> to the attributes JSX manages, wiping what
-  // the inline script applied - re-apply the saved choice (a no-op in production).
+  // the inline script applied - re-apply the saved choice. Also sets the status bar colour
+  // when the theme-color tag arrived after the inline script ran.
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved === "dark" || saved === "light") document.documentElement.setAttribute("data-theme", saved);
+      if (saved === "dark" || saved === "light") setTheme(saved);
     } catch {}
   }, []);
 

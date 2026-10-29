@@ -11,7 +11,7 @@ export function StatsStrip({ stats }: { stats: ReturnType<typeof getPlatformStat
   ];
   return (
     <div className="border-t border-line bg-panel">
-      <dl className="mx-auto grid max-w-6xl grid-cols-2 gap-y-4 px-5 py-6 sm:grid-cols-4">
+      <dl className="mx-auto grid max-w-page grid-cols-2 gap-y-4 px-5 py-6 sm:grid-cols-4">
         {items.map(([n, label]) => (
           <div key={label}>
             <dt className="font-display text-3xl font-bold text-ink">{n}</dt>

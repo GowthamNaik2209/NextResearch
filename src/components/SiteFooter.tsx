@@ -8,7 +8,7 @@ export async function SiteFooter() {
   const user = await getCurrentUser();
   return (
     <footer className="border-t border-line bg-panel">
-      <div className="mx-auto max-w-6xl px-5 py-10">
+      <div className="mx-auto max-w-page px-5 py-10">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
             <span className="font-display text-base font-bold text-ink">NextResearch</span>

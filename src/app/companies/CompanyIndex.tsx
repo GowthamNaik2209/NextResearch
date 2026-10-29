@@ -59,7 +59,7 @@ export function CompanyIndex({ companies }: { companies: IndexCompany[] }) {
       {[...byLetter.entries()].map(([letter, list]) => (
         <section key={letter} id={`letter-${letter === "#" ? "num" : letter}`} className="scroll-mt-[200px] sm:scroll-mt-[140px]">
           <h2 className="font-display text-lg font-bold text-accent">{letter}</h2>
-          <ul className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {list.map((c) => (
               <li key={c.slug} className="text-sm">
                 <Link href={`/company/${c.slug}`} className="tap-y font-semibold text-ink hover:text-accent hover:underline">
