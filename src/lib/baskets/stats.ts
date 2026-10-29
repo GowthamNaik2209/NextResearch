@@ -4,6 +4,7 @@
 // Pure (no fetching), so it is unit-tested on its own.
 import type { PricePoint } from "./backtest";
 import { shownPct } from "./fmt";
+import { CAPTURE_MIN_MONTHS, monthlyCapture } from "./analysis";
 
 export type SeriesStats = {
   /** Total change over the series, %. */
@@ -34,7 +35,8 @@ export type SeriesStats = {
 export type RelativeStats = {
   /** Slope of the line's bar returns on the benchmark's. */
   beta: number | null;
-  /** How much of the benchmark's rise (up capture) and fall (down capture) the line took, %. */
+  /** How much of the benchmark's rise (up capture) and fall (down capture) the line took over its up
+   *  (down) calendar months, %; null under ten months (analysis.ts monthlyCapture). */
   upCapture: number | null;
   downCapture: number | null;
   /** The benchmark's own change over the same dates, %. */
@@ -57,7 +59,6 @@ export function periodsPerYear(points: PricePoint[]): number {
 }
 
 /** Geometric mean of bar returns (fractions): the steady per-bar rate that compounds to the same total. */
-export const geoMean = (xs: number[]) => Math.pow(xs.reduce((n, x) => n * (1 + x), 1), 1 / xs.length) - 1;
 
 const returns = (points: PricePoint[]) => points.slice(1).map((p, i) => p.c / points[i].c - 1);
 const mean = (xs: number[]) => xs.reduce((n, x) => n + x, 0) / xs.length;
@@ -171,15 +172,11 @@ export function relativeStats(points: PricePoint[], bench: PricePoint[]): Relati
   }
   const beta = varB > 0 ? cov / varB : null;
 
-  // Capture: the line's compound return over the benchmark's up (or down) bars, per bar, over the
-  // benchmark's own - 100 means it moved one for one with the index on those bars.
-  const capture = (up: boolean) => {
-    const idx = rb.map((x, i) => (up ? x > 0 : x < 0) ? i : -1).filter((i) => i >= 0);
-    if (!idx.length) return null;
-    const b = geoMean(idx.map((i) => rb[i]));
-    return b === 0 ? null : (geoMean(idx.map((i) => ra[i])) / b) * 100;
-  };
+  // Capture on calendar months, the usual measure and the same figures as the Capture panel
+  // (daily bars read close to 100% for anything that tracks the index). Under ten months: none.
+  const m = monthlyCapture(points, bench);
+  const enough = m.months >= CAPTURE_MIN_MONTHS;
 
   const benchRet = (aligned[aligned.length - 1].b / aligned[0].b - 1) * 100;
-  return { beta, upCapture: capture(true), downCapture: capture(false), benchRet };
+  return { beta, upCapture: enough ? m.upCapture : null, downCapture: enough ? m.downCapture : null, benchRet };
 }

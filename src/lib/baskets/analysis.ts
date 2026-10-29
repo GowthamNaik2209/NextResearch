@@ -3,7 +3,6 @@
 // date-based window and capture on monthly returns. Series may be daily (1M-2Y) or weekly (3Y/5Y);
 // nothing here assumes a bar frequency. Pure (no fetching, no DOM), so it is unit-tested on its own.
 import type { PricePoint } from "./backtest";
-import { geoMean } from "./stats";
 
 const DAY = 86_400_000;
 const daysBetween = (a: string, b: string) => Math.round((Date.parse(b) - Date.parse(a)) / DAY);
@@ -145,6 +144,12 @@ export function rollingReturn(points: PricePoint[], days: number): RollingPoint[
   }
   return out;
 }
+
+/** Compound mean return per bar, from simple returns as fractions. */
+const geoMean = (xs: number[]) => Math.pow(xs.reduce((n, x) => n * (1 + x), 1), 1 / xs.length) - 1;
+
+/** A handful of months gives wild capture ratios (three up months can read −13%), so it waits for ten. */
+export const CAPTURE_MIN_MONTHS = 10;
 
 export type MonthlyCapture = {
   /** The line's compound monthly return over the benchmark's up (down) months, per month, over the benchmark's, %. */

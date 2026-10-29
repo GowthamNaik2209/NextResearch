@@ -4,7 +4,7 @@ import { Fragment, useMemo, useRef, useState, type PointerEvent as ReactPointerE
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { PricePoint } from "@/lib/baskets/backtest";
 import { periodsPerYear } from "@/lib/baskets/stats";
-import { alignTo, captureIsGood, drawdownEpisodes, monthlyCapture, monthlyMatrix, rollingReturn, underwater } from "@/lib/baskets/analysis";
+import { CAPTURE_MIN_MONTHS, alignTo, captureIsGood, drawdownEpisodes, monthlyCapture, monthlyMatrix, rollingReturn, underwater } from "@/lib/baskets/analysis";
 import { fmtDay, NA, pct, signedPct } from "@/lib/format";
 import { useSeries } from "./use-series";
 import { MINI_SEG, Panel, miniSegBtn } from "./Panel";
@@ -293,8 +293,7 @@ function RollingView({ points, bench, benchName, range, name }: { points: PriceP
 function CaptureView({ points, bench, benchName }: { points: PricePoint[]; bench: PricePoint[]; benchName: string }) {
   const c = useMemo(() => monthlyCapture(points, bench), [points, bench]);
   if (!bench.length) return <Note>{benchName} could not be loaded, so capture can&rsquo;t be worked out.</Note>;
-  // A handful of months gives wild ratios (three up months can read −13%), so it waits for ten.
-  if (c.months < 10) return <Note>Capture needs at least ten calendar months: pick 1Y or longer.</Note>;
+  if (c.months < CAPTURE_MIN_MONTHS) return <Note>Capture needs at least ten calendar months: pick 1Y or longer.</Note>;
   const bars = [
     { label: "Up capture", v: c.upCapture, n: c.upMonths, good: (v: number) => captureIsGood("up", v), help: `of the ${benchName}'s rise, over its ${c.upMonths} up month${c.upMonths === 1 ? "" : "s"}` },
     { label: "Down capture", v: c.downCapture, n: c.downMonths, good: (v: number) => captureIsGood("down", v), help: `of the ${benchName}'s fall, over its ${c.downMonths} down month${c.downMonths === 1 ? "" : "s"}` },
@@ -358,7 +357,7 @@ function CaptureView({ points, bench, benchName }: { points: PricePoint[]; bench
       <p className="mt-1 text-[10px] leading-snug text-ink-soft">
         Calendar months, counted as in the stats grid: the part month the range starts in is left out, the month in progress is in. Beating the {benchName} means a better month than
         it, even when both fell. Up capture above 100% means the basket rose more than the {benchName} in its up months; down capture below 100% means it fell less in its down months, and
-        below 0% that it rose in them. The stats grid&rsquo;s capture compares single bars, so it can differ; this monthly one is the usual measure.
+        below 0% that it rose in them. The stats grid shows these same two figures.
       </p>
     </div>
   );

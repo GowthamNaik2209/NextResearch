@@ -116,12 +116,14 @@ export function BasketStats({
     {
       label: "Up capture",
       value: pct(r?.upCapture, 0),
-      help: `How much of the ${BENCH.name}'s rise the basket took, on the ${freq} bars the index went up. Above 100% beats it.`,
+      sub: r && r.upCapture == null ? "needs 1Y or longer" : undefined,
+      help: `How much of the ${BENCH.name}'s rise the basket took, in the calendar months the index went up. Above 100% beats it.`,
     },
     {
       label: "Down capture",
       value: pct(r?.downCapture, 0),
-      help: `How much of the ${BENCH.name}'s fall the basket took, on the bars the index went down. Below 100% loses less.`,
+      sub: r && r.downCapture == null ? "needs 1Y or longer" : undefined,
+      help: `How much of the ${BENCH.name}'s fall the basket took, in the calendar months the index went down. Below 100% loses less.`,
     },
     {
       label: "Best month",
