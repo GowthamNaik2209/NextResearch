@@ -52,6 +52,8 @@ const getJson = <T,>(url: string) => fetch(url).then((r) => (r.ok ? (r.json() as
 // Bars are dated "YYYY-MM-DD" (IST trading days); fmtDay/fmtMonth read them in UTC, so a viewer
 // west of UTC no longer sees each bar labelled with the previous day.
 
+const fmtOhlc = (v: number) => v.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 // `height` sizes the plot: the stock pop-up's default, or a shorter one where more sits above it
 // (the Analysis Charts pop-up's dropdowns), so the axis and zoom controls stay in view.
 const PLOT_HEIGHT = "h-[46vh] min-h-[260px] sm:h-[min(400px,48vh)]";
@@ -227,6 +229,9 @@ export function ChartView({ ticker, quote, height = PLOT_HEIGHT }: { ticker: str
   // A weekly/monthly candle is dated at the start of its period.
   const shownDate = !shown ? "" : candles && range === "MAX" ? fmtMonth(shown.t) : candles && coarse ? `Week of ${fmtDay(shown.t)}` : fmtDay(shown.t);
   const volLabel = range === "MAX" ? "Vol (month)" : coarse ? "Vol (week)" : "Vol";
+  // Each figure in the OHLC row is as wide as the period's highest price, and the volume as wide
+  // as "125 Cr": on a phone the row wraps, and it must wrap the same way under every bar.
+  const ohlcW = `${fmtOhlc(bars.reduce((m, b) => Math.max(m, b.h), 0)).length}ch`;
   const noCandles = status === "ok" && !canCandle;
   const noCandlesNote = "Candles need open/high/low prices, which aren't available for this stock right now";
 
@@ -313,26 +318,31 @@ export function ChartView({ ticker, quote, height = PLOT_HEIGHT }: { ticker: str
             </div>
           )}
         </div>
-        {shownBar && (candles || (volOn && shownBar.v != null)) && (
-          <dl className="flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[11px] text-ink-soft">
+        {/* The OHLC / volume row keeps its line whether or not the crosshair is on a bar with
+            figures (today's live bar has no volume yet): a missing figure is hidden, not
+            unmounted, so the chart below never jumps as the cursor moves. */}
+        {status === "ok" && (candles || volOn) && (
+          <dl className="flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[11px] tabular-nums text-ink-soft">
             {candles &&
               (
                 [
-                  ["O", shownBar.o],
-                  ["H", shownBar.h],
-                  ["L", shownBar.l],
-                  ["C", shownBar.c],
+                  ["O", shownBar?.o],
+                  ["H", shownBar?.h],
+                  ["L", shownBar?.l],
+                  ["C", shownBar?.c],
                 ] as const
               ).map(([k, v]) => (
-                <div key={k} className="flex gap-1">
+                <div key={k} className={"flex gap-1" + (v == null ? " invisible" : "")}>
                   <dt>{k}</dt>
-                  <dd className="text-ink">{v.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</dd>
+                  <dd className="text-right text-ink" style={{ minWidth: ohlcW }}>
+                    {fmtOhlc(v ?? 0)}
+                  </dd>
                 </div>
               ))}
             {volOn && (
-              <div className="flex gap-1">
+              <div className={"flex gap-1" + (shownBar?.v == null ? " invisible" : "")}>
                 <dt>{volLabel}</dt>
-                <dd className="text-ink">{fmtVolume(shownBar.v)}</dd>
+                <dd className="min-w-[6ch] text-ink">{fmtVolume(shownBar?.v)}</dd>
               </div>
             )}
           </dl>
