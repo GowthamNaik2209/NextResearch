@@ -22,6 +22,8 @@ const CONCURRENCY = 8;
 const WAIT_MS = 1_500;
 // How often an instance asks the shared cache again (it refreshes once a day).
 const RECHECK_MS = 60 * 60 * 1000;
+// How soon an instance tries again after a load that found nothing.
+const EMPTY_RETRY_MS = 60 * 1000;
 
 export type RiskStats = RiskInput & { asOf: string };
 
@@ -59,12 +61,13 @@ export function riskStatsFor(ticker: string): RiskStats | null {
 }
 
 /**
- * Whether this instance has any statistics installed. Until it has, every stock is projected on
- * the stand-ins (beta 1, volatility from the 52-week range), so a page says so and refreshes
- * itself (ProjectionStatsPending) rather than showing figures that change on the next visit.
+ * Whether this instance is still loading its first statistics. Until they are in, every stock is
+ * projected on the stand-ins (beta 1, volatility from the 52-week range), so a page says so and
+ * refreshes itself (ProjectionStatsPending) rather than showing figures that change on the next
+ * visit. A load that came back empty (the price store down) isn't pending: the stand-ins stay.
  */
-export function riskStatsReady(): boolean {
-  return stats.size > 0;
+export function riskStatsLoading(): boolean {
+  return stats.size === 0 && loading !== null;
 }
 
 /** Loads every basket stock's price statistics (from the shared cache where it has them) and installs them. */
@@ -84,6 +87,8 @@ export async function ensureRiskStats(): Promise<void> {
     ).then(() => {
       install(got);
       loading = null;
+      // Nothing came back (the price store down): try again in a minute, not an hour.
+      if (!got.size) checkedAt = Date.now() - RECHECK_MS + EMPTY_RETRY_MS;
     });
   }
   const work = loading;
