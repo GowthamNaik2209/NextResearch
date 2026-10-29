@@ -51,7 +51,7 @@ export const heatFmt = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math
 const SPAN = { 1: "", 2: "col-span-2", 3: "col-span-3 sm:col-span-2 sm:row-span-2", 4: "col-span-4 sm:col-span-3 sm:row-span-2" } as const;
 
 /** The default grid: four across on a phone, six on a tablet, eight from desktop. */
-export const HEAT_GRID = "grid grid-flow-row-dense grid-cols-4 auto-rows-[3.25rem] gap-1 sm:grid-cols-6 sm:auto-rows-[3.5rem] lg:grid-cols-8 xl:grid-cols-10 2xl:grid-cols-12";
+export const HEAT_GRID = "grid grid-flow-row-dense grid-cols-4 auto-rows-[3.25rem] gap-1 sm:grid-cols-6 sm:auto-rows-[3.5rem] lg:grid-cols-8";
 
 export function HeatGrid({ cells, scale, className = HEAT_GRID, label }: { cells: HeatCell[]; scale: number; className?: string; label: string }) {
   return (

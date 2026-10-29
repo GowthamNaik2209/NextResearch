@@ -109,7 +109,13 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
               </p>
             </div>
             {supplier.dataStatus && (
-              <span className="text-[11px] text-ink-soft sm:mt-1">
+              <span
+                className={
+                  supplier.dataStatus === "demo"
+                    ? "text-[11px] text-ink-soft sm:mt-1"
+                    : "rounded-full border border-amber/40 bg-amber/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-ink"
+                }
+              >
                 {supplier.dataStatus === "demo" ? "From publicly available information" : supplier.dataStatus}
               </span>
             )}
@@ -122,7 +128,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           <aside className="flex flex-col gap-10 lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1 lg:gap-4 lg:self-start">
             {stats.length > 0 && (
               <section>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
                   {stats.map((s) => (
                     <div key={s.label} className="rounded-xl border border-line bg-panel p-4">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">{s.label}</p>

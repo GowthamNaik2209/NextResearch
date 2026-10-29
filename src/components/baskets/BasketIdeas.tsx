@@ -46,7 +46,7 @@ export function BasketIdeas() {
       // The first build of the day reads every stock's prices, so this can take a few seconds:
       // the cards' outline shows at once, with a line saying what is happening.
       <div aria-busy className="flex flex-col gap-2">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {/* As many outlines as there are cards (Biggest gainers + the other lists), so none appear below later. */}
           {Array.from({ length: SKELETON_CARDS }, (_, i) => (
             <div key={i} className={PANEL + " flex flex-col gap-2 p-3 " + (i === 0 ? TOP_CARD_H : CARD_H)}>
@@ -95,7 +95,7 @@ export function BasketIdeas() {
   return (
     <div className="flex flex-col gap-2">
       {/* grid-cols-1 (minmax(0,1fr)), so a long figure beside a stock truncates instead of widening the page. */}
-      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {top && (
           <li>
             <IdeaCard

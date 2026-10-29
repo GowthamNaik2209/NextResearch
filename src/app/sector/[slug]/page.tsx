@@ -127,7 +127,13 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
               </div>
             </div>
             {sector.dataStatus && (
-              <span className="text-[11px] text-ink-soft sm:mt-1">
+              <span
+                className={
+                  sector.dataStatus === "demo"
+                    ? "text-[11px] text-ink-soft sm:mt-1"
+                    : "rounded-full border border-amber/40 bg-amber/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-ink"
+                }
+              >
                 {sector.dataStatus === "demo" ? "From publicly available information" : sector.dataStatus}
               </span>
             )}
@@ -215,7 +221,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
               ? "The map groups the anatomy into these areas before you drop into individual components."
               : "The 3D map lets you click into each of these components for supplier and financial detail."}
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {(domains.length > 0 ? domains : sector.zones).map((item) => {
               const zoneId = "title" in item ? (item.leadZoneId ?? firstZoneIdByDomain.get(item.id)) : item.id;
               const card = (
@@ -253,7 +259,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                   </>
                 )}
               </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {integratorCompanies.map(({ key, company }) => {
                   const ticker = company.listed ? tickerForSupplier(company) : null;
                   return (

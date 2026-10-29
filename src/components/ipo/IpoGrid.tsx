@@ -56,7 +56,7 @@ export function IpoGrid({ ipos, initial, initialDeck }: { ipos: IpoCardData[]; i
       {groups.map((g) => (
         <section key={g.id} aria-label={g.label}>
           {groups.length > 1 && <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-ink-soft">{g.label}</h3>}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {g.items.map((d) => (
               <IpoCard key={d.slug} deck={d} onOpen={() => openFromCard(d.slug)} />
             ))}
