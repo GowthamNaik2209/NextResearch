@@ -602,7 +602,8 @@ export function BasketChart({
                   )}
                   {sub && <span className="block text-[10px] leading-snug text-ink-soft">{sub}</span>}
                 </span>
-                <span className="shrink-0 font-mono text-sm font-semibold text-ink">
+                {/* A fixed minimum width: the figure follows the crosshair, and a wider one must not re-wrap the name beside it. */}
+                <span className="min-w-[7ch] shrink-0 text-right font-mono text-sm font-semibold tabular-nums text-ink">
                   {failed ? (
                     <button type="button" onClick={() => retry(line.key)} className="text-xs font-semibold text-accent underline">
                       Retry
