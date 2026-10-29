@@ -116,17 +116,17 @@ function TileFill({ style, children }: { style: CSSProperties; children: ReactNo
 }
 
 /** The key under a grid: what the colour means and the size it tops out at. */
-export function HeatLegend({ scale, note }: { scale: number; note?: ReactNode }) {
+export function HeatLegend({ scale, note, format = heatFmt }: { scale: number; note?: ReactNode; format?: (v: number) => string }) {
   const steps = [-1, -0.5, 0, 0.5, 1];
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-ink-soft sm:text-[11px]">
       <span className="flex items-center gap-1">
         <span aria-hidden className="h-2.5 w-4 rounded-sm border border-line/60" style={heatStyle(-scale * 4, scale)} />
-        <span className="font-mono">{heatFmt(-scale)}</span>
+        <span className="font-mono">{format(-scale)}</span>
         {steps.map((s) => (
           <span key={s} aria-hidden className="h-2.5 w-4 rounded-sm border border-line/60" style={heatStyle(s * scale, scale)} />
         ))}
-        <span className="font-mono">{heatFmt(scale)}</span>
+        <span className="font-mono">{format(scale)}</span>
         <span aria-hidden className="h-2.5 w-4 rounded-sm border border-line/60" style={heatStyle(scale * 4, scale)} />
         <span>and beyond</span>
       </span>

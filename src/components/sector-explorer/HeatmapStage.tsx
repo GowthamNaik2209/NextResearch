@@ -5,15 +5,17 @@ import { companyLinkKey, parseCrore, type SectorWithSlug } from "@/lib/sector-co
 import type { ChartRange } from "@/lib/live/yahoo";
 import { forgetSeries, industrySeriesKey, loadSeries } from "@/components/baskets/series";
 import { HeatLegend, heatFmt, heatScale, heatStyle } from "@/components/charts/Heatmap";
-import type { ImpactMap } from "./engine";
+import { pts, rankByHistory, type Combined, type Episodes } from "./macro";
 
 // The explorer's stage for a sector drawn as a heatmap instead of a 3D model (stage: "heatmap", the
 // Nifty 50): every stock as a tile, grouped by the sector's zones (NSE's industries), coloured by
 // its price change over the period picked. It reads the industry basket's own backtest (the same
 // request and cache as the basket page and the overview's heatmap), so the figures agree. Picking
 // an industry lifts its group to the top, fades the rest and re-scales the colours to its own
-// spread; a what-if scenario marks the industries it touches. A tile opens the stock in the
-// explorer's panel, where the stock pop-up is one tap away, as on the 3D maps.
+// spread. With what-if scenarios picked (several combine) it has two more views: Impact, each
+// stock's net reading, and History, each stock's actual move against the index over the scenarios'
+// past episodes. A tile opens the stock in the explorer's panel, where the stock pop-up is one tap
+// away, as on the 3D maps.
 
 type Range = ChartRange | "1D";
 
@@ -25,7 +27,14 @@ const RANGES: { id: Range; long: string }[] = [
   { id: "3Y", long: "past 3 years" },
 ];
 
-const SEVERITY = ["", "Low", "Medium", "High"];
+type View = "returns" | "impact" | "history";
+const VIEWS: { id: View; label: string }[] = [
+  { id: "returns", label: "Returns" },
+  { id: "impact", label: "Impact" },
+  { id: "history", label: "History" },
+];
+const netWord = (n: number) => (n > 0 ? "Tailwind" : n < 0 ? "Headwind" : "Mixed");
+const netStrength = (n: number) => (Math.abs(n) >= 3 ? "High" : Math.abs(n) === 2 ? "Medium" : "Low");
 
 type Stock = { key: string; ticker: string; name: string; mcapCr: number | null };
 type Group = { id: string; label: string; color: string; stocks: Stock[] };
@@ -34,7 +43,8 @@ export function HeatmapStage({
   sector,
   zoneId,
   hoverZoneId,
-  impact,
+  combined,
+  episodes,
   supplierKey,
   onPickZone,
   onPickStock,
@@ -42,12 +52,17 @@ export function HeatmapStage({
   sector: SectorWithSlug;
   zoneId: string | null;
   hoverZoneId: string | null;
-  impact: ImpactMap | null;
+  /** The picked scenarios' net readings; null with none picked. */
+  combined: Combined | null;
+  episodes: Episodes;
   supplierKey: string | null;
   onPickZone: (id: string | null) => void;
   onPickStock: (zoneId: string, key: string) => void;
 }) {
   const [range, setRange] = useState<Range>("1D");
+  // Impact is what a pick is about, so it is the view while scenarios are picked (until changed).
+  const [chosenView, setView] = useState<View>("impact");
+  const view: View = combined ? chosenView : "returns";
   // A newly picked industry moves to the top: bring the top into view.
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -113,9 +128,14 @@ export function HeatmapStage({
   const median = caps.length ? caps[Math.floor(caps.length / 2)] : 0;
   const sizeOf = (c: number | null) => (!c || !median ? 1 : c >= median * 4 ? 3 : c >= median * 1.6 ? 2 : 1);
 
-  const valueOf = (s: Stock) => ret.get(s.ticker) ?? null;
+  const history = new Map(episodes.status === "ok" ? rankByHistory(sector, episodes.list).map((r) => [r.key, r.vsIndex]) : []);
+  const netOf = (s: Stock) => combined?.stocks.get(s.key) ?? null;
+  const valueOf = (s: Stock) => (view === "impact" ? netOf(s) : view === "history" ? (history.get(s.key) ?? null) : (ret.get(s.ticker) ?? null));
+  // Impact on a tile: an arrow and its strength ("▲ High"), short enough for the smallest tile.
+  const fmt = (v: number) => (view === "impact" ? (v ? `${v > 0 ? "▲" : "▼"} ${netStrength(v)}` : "Mixed") : view === "history" ? pts(v) : heatFmt(v));
   // Re-heatmapped: with an industry picked the colours span that industry's own moves.
-  const scale = heatScale((picked ? picked.stocks : groups.flatMap((g) => g.stocks)).map(valueOf));
+  const scale = view === "impact" ? 3 : heatScale((picked ? picked.stocks : groups.flatMap((g) => g.stocks)).map(valueOf));
+  const busy = view === "returns" ? loading : view === "history" ? episodes.status === "loading" : false;
   const avg = (g: Group) => {
     const v = g.stocks.map(valueOf).filter((x): x is number => x != null);
     return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
@@ -128,7 +148,29 @@ export function HeatmapStage({
     <div className="heat-stage-inner" ref={scrollRef}>
       <div className="heat-top">
         <p className="heat-summary">
-          {got === "error" ? (
+          {view === "impact" ? (
+            (() => {
+              const nets = all.map(netOf).filter((x): x is number => x != null);
+              return (
+                <>
+                  Picked scenarios: <b>{nets.filter((x) => x > 0).length} tailwind</b>,{" "}
+                  <b>{nets.filter((x) => x < 0).length} headwind</b>, {all.length - nets.filter((x) => x !== 0).length} untouched or mixed.
+                </>
+              );
+            })()
+          ) : view === "history" ? (
+            episodes.status === "ok" ? (
+              <>
+                Each stock against the Nifty 50 in {episodes.list.length === 1 ? episodes.list[0].label : `${episodes.list.length} past episodes, averaged`}.
+              </>
+            ) : episodes.status === "loading" ? (
+              "Replaying the past episodes…"
+            ) : episodes.status === "error" ? (
+              "The past episodes couldn’t load right now. Try again in a moment."
+            ) : (
+              "The picked scenarios have no past episode to replay."
+            )
+          ) : got === "error" ? (
             "The prices couldn’t load right now. Try again in a moment."
           ) : loading ? (
             `Loading the ${sector.name} stocks…`
@@ -147,20 +189,34 @@ export function HeatmapStage({
             </>
           )}
         </p>
-        <div role="group" aria-label="Period" className="heat-ranges">
-          {RANGES.map((r) => (
-            <button key={r.id} type="button" aria-pressed={range === r.id} onClick={() => setRange(r.id)}>
-              {r.id}
-            </button>
-          ))}
+        <div className="heat-switches">
+          {combined && (
+            <div role="group" aria-label="Colour by" className="heat-ranges">
+              {VIEWS.map((v) => (
+                <button key={v.id} type="button" aria-pressed={view === v.id} onClick={() => setView(v.id)}>
+                  {v.label}
+                </button>
+              ))}
+            </div>
+          )}
+          {view === "returns" && (
+            <div role="group" aria-label="Period" className="heat-ranges">
+              {RANGES.map((r) => (
+                <button key={r.id} type="button" aria-pressed={range === r.id} onClick={() => setRange(r.id)}>
+                  {r.id}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       <div className="heat-groups">
         {ordered.map((g) => {
-          const hit = impact?.[g.id];
-          const dim = (zoneId && g.id !== zoneId) || (impact && !hit && !zoneId);
-          const a = avg(g);
+          const zoneNet = combined?.zones.get(g.id);
+          const touched = zoneNet != null || g.stocks.some((s) => netOf(s));
+          const dim = (zoneId && g.id !== zoneId) || (combined && view !== "history" && !touched && !zoneId);
+          const a = view === "impact" ? null : avg(g);
           return (
             <section
               key={g.id}
@@ -172,33 +228,55 @@ export function HeatmapStage({
                 <span className="name">
                   {g.label} <span className="count">· {g.stocks.length}</span>
                 </span>
-                {hit && (
-                  <span className={"scn-tag " + hit.effect}>
-                    {hit.effect === "headwind" ? "Headwind" : "Tailwind"} · {SEVERITY[hit.severity]}
+                {zoneNet != null && (
+                  <span className={"scn-tag " + (zoneNet > 0 ? "tailwind" : zoneNet < 0 ? "headwind" : "mixed")}>
+                    {netWord(zoneNet)}
+                    {zoneNet ? ` · ${netStrength(zoneNet)}` : ""}
                   </span>
                 )}
-                {a != null && !loading && <span className="avg">{heatFmt(a)}</span>}
+                {a != null && !busy && <span className="avg">{fmt(a)}</span>}
               </button>
               <ul className="heat-grid" aria-label={`${g.label} stocks`}>
                 {g.stocks.map((s) => {
                   const v = valueOf(s);
-                  const waiting = loading || pendingSet.has(s.ticker);
+                  const net = netOf(s);
+                  const waiting = view === "returns" ? loading || pendingSet.has(s.ticker) : busy;
                   const size = sizeOf(s.mcapCr);
                   const title =
-                    v != null ? `${s.name}: ${heatFmt(v)} ${period}` : waiting ? `${s.name}: prices loading` : `${s.name}: no prices ${period}`;
+                    view === "impact"
+                      ? `${s.name}: ${v ? `${netWord(v).toLowerCase()} (${netStrength(v).toLowerCase()})` : "not directly touched"} under the picked scenarios`
+                      : view === "history"
+                        ? v != null
+                          ? `${s.name}: ${pts(v)} against the Nifty 50 in the past episodes`
+                          : waiting
+                            ? s.name
+                            : `${s.name}: not trading in the past episodes`
+                        : v != null
+                          ? `${s.name}: ${heatFmt(v)} ${period}`
+                          : waiting
+                            ? `${s.name}: prices loading`
+                            : `${s.name}: no prices ${period}`;
                   return (
                     <li key={s.key} className={"s" + size}>
                       <button
                         type="button"
                         title={title}
                         aria-pressed={g.id === zoneId && supplierKey === s.key}
-                        className={"heat-tile" + (hit ? " " + hit.effect : "")}
+                        className={"heat-tile" + (view !== "impact" && net ? (net > 0 ? " tailwind" : " headwind") : "")}
                         style={heatStyle(v, scale)}
                         onClick={() => onPickStock(g.id, s.key)}
                       >
                         <span className="nm">{s.name}</span>
                         <span className="v">
-                          {v != null ? heatFmt(v) : waiting ? <span aria-label="Loading" className="sk" /> : <span className="na">—</span>}
+                          {view === "impact" ? (
+                            v != null ? fmt(v) : <span className="na">—</span>
+                          ) : v != null ? (
+                            fmt(v)
+                          ) : waiting ? (
+                            <span aria-label="Loading" className="sk" />
+                          ) : (
+                            <span className="na">—</span>
+                          )}
                         </span>
                       </button>
                     </li>
@@ -210,7 +288,13 @@ export function HeatmapStage({
         })}
       </div>
       <div className="heat-foot">
-        <HeatLegend scale={scale} note={picked ? `Colours span ${picked.label} only · tap a tile for the stock` : "Bigger tile = bigger company · tap a tile for the stock"} />
+        {view === "impact" ? (
+          <p className="heat-note">Green tailwind, red headwind, deeper = stronger (summed over the picked scenarios) · tap a tile for the stock</p>
+        ) : view === "history" ? (
+          <HeatLegend scale={scale} format={pts} note="Against the Nifty 50 · tap a tile for the stock" />
+        ) : (
+          <HeatLegend scale={scale} note={picked ? `Colours span ${picked.label} only · tap a tile for the stock` : "Bigger tile = bigger company · tap a tile for the stock"} />
+        )}
       </div>
     </div>
   );

@@ -14,11 +14,13 @@ import {
 } from "@/lib/sector-content/core";
 import { loadSector } from "@/lib/sector-content/sectors/load";
 import { installFinancials } from "@/lib/financials/store";
-import { listScenarios, scenarioCompanies, scenarioZoneImpacts } from "@/lib/sector-content/scenarios";
+import { listScenarioSections, listScenarios, scenarioCompanies, scenarioZoneImpacts } from "@/lib/sector-content/scenarios";
 import { mountExplorer, type ExplorerController, type ExplorerDom, type ImpactMap } from "./engine";
 import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
 import { SupplierDetail } from "./SupplierDetail";
 import { HeatmapStage } from "./HeatmapStage";
+import { MacroPanel } from "./MacroPanel";
+import { combineScenarios, useEpisodes } from "./macro";
 import { CompanyComparison } from "./CompanyComparison";
 import { WatchlistButton } from "./WatchlistButton";
 import { UserMenu } from "@/components/UserMenu";
@@ -96,7 +98,8 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
   // Open from the start for a deep link (?zone= or ?scenario=), rather than once the mount effect runs.
   const [isPanelOpen, setIsPanelOpen] = useState(() => {
     const z = searchParams0.get("zone");
-    return (!!z && sector.zones.some((x) => x.id === z)) || listScenarios(slug).some((x) => x.id === searchParams0.get("scenario"));
+    const picked = (searchParams0.get("scenario") ?? "").split(",");
+    return (!!z && sector.zones.some((x) => x.id === z)) || listScenarios(slug).some((x) => picked.includes(x.id));
   });
   // Phones/tablets: the open sheet starts at a "peek" height so the picked part stays in
   // view above it; it expands to full height on a tap/drag of the handle, on scrolling
@@ -159,11 +162,17 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
     };
   }, [isControlsOpen]);
   const scenarios = listScenarios(slug);
-  // Deep link: ?scenario=<id>; an unknown id is ignored.
-  const [scenarioId, setScenarioId] = useState<string | null>(() => {
-    const id = searchParams0.get("scenario");
-    return id && scenarios.some((x) => x.id === id) ? id : null;
+  // Grouped scenarios (the Nifty 50's macro drivers) can be picked several at a time and combine;
+  // a 3D map's scenarios are one at a time.
+  const scenarioSections = listScenarioSections(slug);
+  const multiScenario = isHeatmap && scenarioSections.length > 0;
+  // Deep link: ?scenario=<id>[,<id>...]; unknown ids are ignored.
+  const [scenarioIds, setScenarioIds] = useState<string[]>(() => {
+    const ids = (searchParams0.get("scenario") ?? "").split(",").filter((id) => scenarios.some((x) => x.id === id));
+    return multiScenario ? [...new Set(ids)] : ids.slice(0, 1);
   });
+  const scenarioId = scenarioIds[0] ?? null;
+  const scenarioKey = scenarioIds.join(",");
   const [isTouring, setIsTouring] = useState(false);
   const [isMuted, setIsMutedState] = useState(false);
   const [tourCaption, setTourCaption] = useState<string | null>(null);
@@ -316,7 +325,8 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
     setCurrentZoneId(validZone);
     setCurrentSupplier(validCompany);
     // A ?scenario= link opens on the scenario's sheet, as a ?zone= link opens on the system's.
-    setIsPanelOpen(!!validZone || listScenarios(sector.slug).some((x) => x.id === searchParams.get("scenario")));
+    const linked = (searchParams.get("scenario") ?? "").split(",");
+    setIsPanelOpen(!!validZone || listScenarios(sector.slug).some((x) => linked.includes(x.id)));
     setIsSheetFull(!!validCompany);
 
     // ?tour=1 (from the overview page's "Start guided tour" action) auto-starts
@@ -342,6 +352,11 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
   const scenario = scenarioId ? scenarios.find((x) => x.id === scenarioId) ?? null : null;
   const scenarioZones = scenario ? scenarioZoneImpacts(sector, scenario) : [];
   const scenarioCos = scenario ? scenarioCompanies(sector, scenario) : [];
+  // Several picked (the heatmap): their combined reading and past episodes.
+  const picked = scenarioIds.flatMap((id) => scenarios.filter((x) => x.id === id));
+  const combined = useMemo(() => combineScenarios(sector, picked), [sector, scenarioKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const episodes = useEpisodes(sector.slug, multiScenario ? picked : []);
+  const scenarioLabel = picked.length > 1 ? `${picked.length} scenarios` : (scenario?.title ?? "");
 
   // Pushes the active scenario into the 3D scene. Runs after the mount effect above (declaration
   // order), so the controller exists on first load too.
@@ -357,11 +372,24 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
     (id: string | null) => {
       stopTour();
       controllerRef.current?.selectZone(null);
-      setScenarioId(id);
+      setScenarioIds(id ? [id] : []);
       setIsPanelOpen(!!id);
       setIsSheetFull(false);
     },
     [stopTour]
+  );
+
+  // Grouped scenarios: a pick adds to (or takes away from) the ones already picked.
+  const handleToggleScenario = useCallback(
+    (id: string) => {
+      stopTour();
+      controllerRef.current?.selectZone(null);
+      const next = scenarioIds.includes(id) ? scenarioIds.filter((x) => x !== id) : [...scenarioIds, id];
+      setScenarioIds(next);
+      setIsPanelOpen(next.length > 0);
+      setIsSheetFull(false);
+    },
+    [stopTour, scenarioIds]
   );
 
   // One-way sync: selection state -> URL. Never reads searchParams back into state
@@ -379,14 +407,14 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
     else params.delete("zone");
     if (currentSupplier) params.set("company", currentSupplier);
     else params.delete("company");
-    if (scenarioId) params.set("scenario", scenarioId);
+    if (scenarioKey) params.set("scenario", scenarioKey);
     else params.delete("scenario");
     params.delete("tour");
     const query = params.toString();
     const url = query ? `${pathname}?${query}` : pathname;
     if (url !== window.location.pathname + window.location.search) window.history.replaceState(null, "", url);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentZoneId, currentSupplier, scenarioId]);
+  }, [currentZoneId, currentSupplier, scenarioKey]);
 
   const zone = currentZoneId ? sector.zones.find((z) => z.id === currentZoneId) ?? null : null;
   // Normalized to plain keys once here — a zone's suppliers may be bare keys or
@@ -507,7 +535,7 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
   useEffect(() => {
     if (!currentSupplier) panelRef.current?.scrollTo({ top: 0 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentZoneId, scenarioId]);
+  }, [currentZoneId, scenarioKey]);
 
   // Sheet handle: a tap steps closed -> peek -> full -> peek; a drag moves it a step up or
   // down (dragging down from peek closes it). Pointer events so it works for touch and mouse.
@@ -684,15 +712,52 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
                 onClick={() => setIsScenarioMenuOpen((o) => !o)}
                 aria-expanded={isScenarioMenuOpen}
                 aria-controls="nrScenarioList"
-                aria-label={scenario ? `What if scenarios (showing: ${scenario.title})` : "What if scenarios"}
+                aria-label={scenario ? `What if scenarios (showing: ${scenarioLabel})` : "What if scenarios"}
               >
-                <span>{scenario ? `What if: ${scenario.title}` : "What if…"}</span>
+                <span>{scenario ? `What if: ${scenarioLabel}` : "What if…"}</span>
                 <span className="chev" aria-hidden>
                   &#9662;
                 </span>
               </button>
-              <div id="nrScenarioList" className={"scn-list" + (isScenarioMenuOpen ? " expanded" : "")}>
-                {scenarios.map((sc) => (
+              <div id="nrScenarioList" className={"scn-list" + (multiScenario ? " grouped" : "") + (isScenarioMenuOpen ? " expanded" : "")}>
+                {multiScenario ? (
+                  <>
+                    {/* Grouped by macro driver; picks add up across groups. A group opens by itself
+                        while it holds a pick. */}
+                    {scenarioSections.map((sec) => {
+                      const inSec = scenarios.filter((x) => x.section === sec.id);
+                      const on = inSec.filter((x) => scenarioIds.includes(x.id)).length;
+                      if (!inSec.length) return null;
+                      return (
+                        <details key={sec.id} className="scn-sec" open={on > 0 || undefined}>
+                          <summary>
+                            <span>{sec.title}</span>
+                            {on > 0 && <b>{on}</b>}
+                          </summary>
+                          {inSec.map((sc) => (
+                            <button
+                              key={sc.id}
+                              type="button"
+                              aria-pressed={scenarioIds.includes(sc.id)}
+                              className={"scn-btn" + (scenarioIds.includes(sc.id) ? " active" : "")}
+                              title={sc.blurb}
+                              onClick={() => handleToggleScenario(sc.id)}
+                            >
+                              <span className="scn-check" aria-hidden />
+                              {sc.title}
+                            </button>
+                          ))}
+                        </details>
+                      );
+                    })}
+                    {scenarioIds.length > 0 && (
+                      <button type="button" className="scn-clear" onClick={() => handlePickScenario(null)}>
+                        Clear {scenarioIds.length > 1 ? `all ${scenarioIds.length}` : "the scenario"}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  scenarios.map((sc) => (
                   <button
                     key={sc.id}
                     type="button"
@@ -703,7 +768,8 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
                   >
                     {sc.title}
                   </button>
-                ))}
+                  ))
+                )}
               </div>
               {/* No separate "Clear scenario" here: the lit scenario toggles off, and the stage's
                   "What if: … ×" pill clears it from anywhere. */}
@@ -787,10 +853,10 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
               </svg>
             </button>
             {scenario && (
-              <button type="button" className="scn-pill" onClick={() => handlePickScenario(null)} title="Clear scenario">
-                <span>What if: {scenario.title}</span>
+              <button type="button" className="scn-pill" onClick={() => handlePickScenario(null)} title={picked.length > 1 ? "Clear the scenarios" : "Clear scenario"}>
+                <span>What if: {scenarioLabel}</span>
                 <b aria-hidden>&times;</b>
-                <span className="sr-only">Clear scenario</span>
+                <span className="sr-only">{picked.length > 1 ? "Clear the scenarios" : "Clear scenario"}</span>
               </button>
             )}
             <HeatmapStage
@@ -798,7 +864,8 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
               zoneId={currentZoneId}
               hoverZoneId={hoverZoneId}
               supplierKey={effectiveSupplier}
-              impact={scenario ? Object.fromEntries(scenarioZones.map((z) => [z.zone, { severity: z.severity, effect: z.effect }])) : null}
+              combined={picked.length ? combined : null}
+              episodes={episodes}
               onPickZone={handleSelectZone}
               onPickStock={(zoneId, key) => {
                 handleSelectZone(zoneId);
@@ -923,7 +990,7 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
           >
             <span className="grip" />
             <span className="panel-handle-text">
-              {zone ? zone.label : scenario ? `What if: ${scenario.title}` : isHeatmap ? "Tap an industry or a stock for details" : "Tap a part for supplier & financial details"}
+              {zone ? zone.label : scenario ? `What if: ${scenarioLabel}` : isHeatmap ? "Tap an industry or a stock for details" : "Tap a part for supplier & financial details"}
             </span>
             <button
               className="panel-close-btn"
@@ -962,7 +1029,21 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
                 setIsSheetFull(true);
             }}
           >
-            {!zone && scenario ? (
+            {!zone && scenario && multiScenario ? (
+              <MacroPanel
+                sector={sector}
+                picked={picked}
+                sections={scenarioSections}
+                combined={combined}
+                episodes={episodes}
+                onRemove={handleToggleScenario}
+                onPickZone={handleSelectZone}
+                onPickStock={(zoneId, key) => {
+                  handleSelectZone(zoneId);
+                  handlePickSupplier(key);
+                }}
+              />
+            ) : !zone && scenario ? (
               <>
                 <h2>{scenario.title}</h2>
                 <p className="zdesc">{scenario.story}</p>
@@ -1056,7 +1137,21 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
                   <span className="zc-tag" style={{ background: zone.color }} />
                   {zone.label}
                 </h2>
-                {scenario && (
+                {scenario && multiScenario ? (
+                  <div className="scn-banner">
+                    <b>{scenarioLabel}:</b>{" "}
+                    {(() => {
+                      const net = combined.zones.get(zone.id) ?? 0;
+                      const hits = picked.flatMap((sc) => sc.impacts.filter((i) => i.zone === zone.id).map((i) => i.why));
+                      return combined.zones.has(zone.id)
+                        ? `${net > 0 ? "net tailwind" : net < 0 ? "net headwind" : "mixed"} for this industry. ${hits.join("; ")}.`
+                        : "this industry is not directly touched.";
+                    })()}{" "}
+                    <button className="scn-clear" onClick={() => handleSelectZone(null)}>
+                      Back to the scenarios
+                    </button>
+                  </div>
+                ) : scenario && (
                   <div className="scn-banner">
                     <b>{scenario.title}:</b>{" "}
                     {(() => {
