@@ -12,7 +12,8 @@ import { industrySeriesKey } from "@/components/baskets/series";
 import { toSaved } from "@/lib/baskets/store";
 import { industryFigures } from "@/lib/baskets/industry-figures";
 import { ensureFinancials } from "@/lib/financials/load";
-import { ensureRiskStats } from "@/lib/baskets/projection-risk-data";
+import { ensureRiskStats, riskStatsReady } from "@/lib/baskets/projection-risk-data";
+import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { basketCases } from "@/lib/baskets/projection-data";
 
 export const metadata = {
@@ -69,6 +70,7 @@ export default async function BasketsPage() {
     <>
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 px-5 py-14 lg:max-w-page">
+        {!riskStatsReady() && <ProjectionStatsPending />}
         <div className="min-w-0">
           <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Baskets</h1>
           <p className="mt-1.5 max-w-3xl text-xs leading-relaxed text-ink-soft sm:text-sm">

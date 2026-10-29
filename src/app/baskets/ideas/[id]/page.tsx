@@ -8,7 +8,8 @@ import { getIdea } from "@/lib/baskets/ideas-data";
 import { basketStock, dominantIndustry } from "@/lib/baskets/industry";
 import { compareProps } from "@/lib/baskets/page-props";
 import { ensureFinancials } from "@/lib/financials/load";
-import { ensureRiskStats } from "@/lib/baskets/projection-risk-data";
+import { ensureRiskStats, riskStatsReady } from "@/lib/baskets/projection-risk-data";
+import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { sep } from "@/lib/format";
 
 // A rule-based basket (a "basket idea" in the code): today's list for one rule, as a basket anyone can chart and save as their own.
@@ -55,6 +56,7 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
     <>
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-4xl lg:max-w-page flex-1 flex-col gap-4 px-5 py-14">
+        {!riskStatsReady() && <ProjectionStatsPending />}
         <Link href="/baskets#ideas" className="-my-1 inline-flex min-h-8 items-center self-start text-xs font-semibold text-accent hover:underline pointer-coarse:min-h-9">
           &larr; Rule-based baskets
         </Link>

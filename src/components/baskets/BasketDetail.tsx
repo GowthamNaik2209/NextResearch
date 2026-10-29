@@ -1948,24 +1948,18 @@ export function BasketDetail(p: BasketDetailProps) {
                                 <>
                                   <div className={"font-mono text-[13px] font-semibold " + (h.ret >= 0 ? "text-pos" : "text-danger")}>{signedPct(h.ret)}</div>
                                   {projOn && (() => {
-                                    // The other two cases under the chosen one.
+                                    // The other two cases under the chosen one, a line each: side by side
+                                    // they made this column so wide that a phone squeezed the stock's name.
                                     const other = SCENARIOS.filter((sc) => sc !== projSet.scenario);
-                                    return (
-                                      <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft">
-                                        {other.map((sc, i) => {
-                                          const r = caseReturn(s.proj, projSet.h, sc);
-                                          return (
-                                            <span key={sc}>
-                                              {i > 0 && " · "}
-                                              {/* The case the list is sorted by, when it is one of these two, stands out. */}
-                                              <span className={sort === sc ? "font-semibold text-ink" : undefined}>
-                                                <span className="font-sans">{sc === "bear" ? "Bear" : sc === "bull" ? "Bull" : "Base"}</span> {r == null ? NA : signedPct(r * 100)}
-                                              </span>
-                                            </span>
-                                          );
-                                        })}
-                                      </div>
-                                    );
+                                    return other.map((sc) => {
+                                      const r = caseReturn(s.proj, projSet.h, sc);
+                                      return (
+                                        // The case the list is sorted by, when it is one of these two, stands out.
+                                        <div key={sc} className={"whitespace-nowrap font-mono text-[11px] " + (sort === sc ? "font-semibold text-ink" : "text-ink-soft")}>
+                                          <span className="font-sans">{sc === "bear" ? "Bear" : sc === "bull" ? "Bull" : "Base"}</span> {r == null ? NA : signedPct(r * 100)}
+                                        </div>
+                                      );
+                                    });
                                   })()}
                                   <div className="whitespace-nowrap font-mono text-[11px] text-ink-soft" title={projOn ? (editingWeights ? "Share at the end" : "Target share today → share at the end") : editingWeights ? "Share now" : "Target share → share now"}>
                                     {editingWeights ? `${projOn ? "end" : "now"} ${pct1(h.endWeight)}` : `${pct1(h.weight)} → ${pct1(h.endWeight)}`}
