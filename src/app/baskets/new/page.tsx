@@ -10,7 +10,8 @@ import { getVisibleBasket } from "@/lib/baskets/store";
 import { parseWeights } from "@/lib/baskets/strategy";
 import { compareProps, pickerProps } from "@/lib/baskets/page-props";
 import { ensureFinancials } from "@/lib/financials/load";
-import { ensureRiskStats } from "@/lib/baskets/projection-risk-data";
+import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk-data";
+import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { primarySector } from "@/lib/sector-content";
 
 export const metadata = { title: "Create a basket", robots: { index: false, follow: false } };
@@ -30,6 +31,8 @@ type Search = { with?: string; idea?: string; from?: string; wt?: string; cw?: s
 export default async function NewBasketPage({ searchParams }: { searchParams: Promise<Search> }) {
   await ensureFinancials();
   await ensureRiskStats();
+  // Read now: the load can finish during the awaits below, after the stocks were built on stand-ins.
+  const statsLoading = riskStatsLoading();
   const sp = await searchParams;
   const user = await getCurrentUser();
   if (!user) {
@@ -102,6 +105,7 @@ export default async function NewBasketPage({ searchParams }: { searchParams: Pr
     <>
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-4xl lg:max-w-page flex-1 flex-col gap-4 px-5 py-14">
+        {statsLoading && <ProjectionStatsPending />}
         <Link href={back.href} className="self-start text-xs font-semibold text-accent hover:underline">
           &larr; {back.label}
         </Link>
