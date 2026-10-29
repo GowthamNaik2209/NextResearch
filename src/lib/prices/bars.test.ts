@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { historyChanged, rollUp, splitLike, sinceDays, storedRange, toCandles, toPoints, type StoredBar } from "./bars";
+import { historyChanged, rollUp, splitLike, sinceDays, storedRange, toCandles, toPoints, STORE_DAYS, type StoredBar } from "./bars";
 
 const bar = (t: string, c: number, extra: Partial<StoredBar> = {}): StoredBar => ({ t, o: c, h: c + 1, l: c - 1, c, v: 100, ...extra });
 
@@ -60,4 +60,11 @@ test("split-like jumps: a 2:1 drop after the last stored close, or within the ne
   assert.equal(splitLike(100, [{ c: 104 }, { c: 52 }]), true);
   assert.equal(splitLike(100, [{ c: 90 }, { c: 120 }]), false);
   assert.equal(splitLike(null, [{ c: 100 }, { c: 98 }]), false);
+});
+
+test("the Nifty 50's series keep their history back to 2000, the rest five years", async () => {
+  const { keepDays } = await import("./refresh");
+  const now = Date.parse("2026-10-29T00:00:00Z");
+  assert.equal(keepDays(false, now), STORE_DAYS);
+  assert.equal(keepDays(true, now), 9798);
 });

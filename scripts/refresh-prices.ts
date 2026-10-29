@@ -5,6 +5,8 @@
 //   npx tsx scripts/refresh-prices.ts                  status only: what is stored, what is due (no writes)
 //   npx tsx scripts/refresh-prices.ts --apply          fetch and store everything due, chunk after chunk
 //   npx tsx scripts/refresh-prices.ts --only=LT,BEL --apply   just these keys (tickers, or ^NSEI etc.)
+//   npx tsx scripts/refresh-prices.ts --only=nifty50 --refetch --apply   the Nifty 50's stocks and index,
+//       fetched again even if done today (a first fill of their whole history)
 //
 // Writes go to DATABASE_URL (.env); the run prints which database first. It takes the day's
 // PriceRun lease like the cron, so the two never work at once (it waits while the cron holds it).
@@ -16,12 +18,16 @@ import { databaseLabel, scriptPrisma } from "./db";
 
 const args = process.argv.slice(2);
 const APPLY = args.includes("--apply");
-const ONLY = args.find((a) => a.startsWith("--only="))?.split("=")[1]?.split(",") ?? undefined;
+const REFETCH = args.includes("--refetch");
+// "--only=nifty50": every deep series (the Nifty 50's stocks and the index).
+const ONLY_ARG = args.find((a) => a.startsWith("--only="))?.split("=")[1]?.split(",");
+const onlyKeys = () => (ONLY_ARG?.includes("nifty50") ? storeKeys().filter((k) => k.deep).map((k) => k.key) : ONLY_ARG);
 const prisma = scriptPrisma();
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function status() {
   const target = latestDueTradingDay(new Date());
+  const ONLY = onlyKeys();
   const keys = storeKeys().filter((k) => !ONLY || ONLY.includes(k.key));
   const series = new Map((await prisma.priceSeries.findMany()).map((s) => [s.key, s]));
   const bars = await prisma.priceBar.count();
@@ -44,7 +50,7 @@ async function main() {
     return;
   }
   for (let chunk = 1; ; chunk++) {
-    const r = await runPriceChunk(prisma, { budgetMs: 10 * 60_000, only: ONLY, log: (m) => console.log(`  ${m}`) });
+    const r = await runPriceChunk(prisma, { budgetMs: 10 * 60_000, only: onlyKeys(), refetch: REFETCH, log: (m) => console.log(`  ${m}`) });
     if (r.status === "up-to-date") break;
     if (r.status === "busy") {
       console.log("  another run holds the lease (the cron?); waiting a minute");

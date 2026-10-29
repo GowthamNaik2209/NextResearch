@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { listed } = sectorCompanyCounts(sector);
   const title =
     sector.stage === "heatmap"
-      ? `${sector.name} stocks: heatmap by industry & ${listed} listed companies`
+      ? `${sector.name} stocks by industry: macro what-ifs & ${listed} listed companies`
       : `${sector.name} stocks in India: supply chain map & ${listed} listed companies`;
   const description = `${sector.tagline}. ${sector.thesisSummary?.join(" ") ?? ""}`.slice(0, 300);
   return {
@@ -107,9 +107,10 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
   const integratorsShown = companies.length - otherCompanies.length;
 
   const deck = buildDeck(sector.slug);
-  // The heatmap's stocks: the industry basket's, grouped in the map's layer order.
+  // The heatmap's stocks: the industry basket's, grouped in the map's layer order. A heatmap sector
+  // (the Nifty 50) has none here: its heatmap, with the what-ifs, is the explorer itself.
   const zoneOrder = new Map(sector.zones.map((z, i) => [z.label, i]));
-  const heatStocks: HeatStock[] = (sector.muted ? [] : (getIndustryBasket(sector.slug)?.stocks ?? []))
+  const heatStocks: HeatStock[] = (sector.muted || isHeatmap ? [] : (getIndustryBasket(sector.slug)?.stocks ?? []))
     .map((s) => ({ ticker: s.ticker, name: s.name, layer: s.layer, mcapCr: s.mcapCr }))
     .sort((a, b) => (zoneOrder.get(a.layer) ?? 99) - (zoneOrder.get(b.layer) ?? 99) || (b.mcapCr ?? -1) - (a.mcapCr ?? -1));
 
@@ -151,15 +152,8 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
             this same page rather than separate modes, deep-linking into the
             explorer with the right zone/company preselected via ?zone=/&company=. */}
         {/* A heatmap sector (the Nifty 50) has no 3D model: its explorer is the heatmap with the
-            what-if and industry panels, and the stock heatmap below starts open. */}
-        <IndustryActions
-          slug={sector.slug}
-          name={sector.name}
-          stocks={heatStocks}
-          basketHref={sector.muted ? null : `/baskets/industry/${sector.slug}`}
-          defaultOpen={isHeatmap}
-          groupWord={isHeatmap ? "industry" : "layer of the supply chain"}
-        >
+            what-if and industry panels, so this page has no Stock heatmap button of its own. */}
+        <IndustryActions slug={sector.slug} name={sector.name} stocks={heatStocks} basketHref={sector.muted ? null : `/baskets/industry/${sector.slug}`}>
           <Link href={`/sector/${sector.slug}/explore`} className={actionClass(true)}>
             <span className="sm:hidden">{isHeatmap ? "Explore" : "3D map"}</span>
             <span className="hidden sm:inline">{isHeatmap ? "Explore the heatmap" : "Explore the map"} &rarr;</span>
