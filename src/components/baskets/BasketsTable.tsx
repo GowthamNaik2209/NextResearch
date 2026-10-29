@@ -512,7 +512,7 @@ export function ThemeWall({ rows, seed }: { rows: IndustryRow[]; seed?: TableSee
         cells={cells}
         scale={scale}
         label="Industry and policy baskets by 1Y return"
-        className="grid grid-cols-3 auto-rows-[3.25rem] gap-1 min-[480px]:grid-cols-4 sm:auto-rows-[3.5rem] md:grid-cols-6 lg:grid-cols-8"
+        className="grid grid-cols-3 auto-rows-[3.25rem] gap-1 min-[480px]:grid-cols-4 sm:auto-rows-[3.5rem] md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 2xl:grid-cols-12"
       />
       <HeatLegend scale={scale} note="1Y return at equal weight, best first · tap a tile for its row below" />
     </div>

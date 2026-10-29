@@ -77,6 +77,19 @@
   }
 }
 
+/* The one page width for data pages, header and footer: the old 72rem (max-w-6xl) on laptops,
+   widening on big screens so tables, charts and grids use the room. Reading text keeps its own
+   narrower cap (max-w-3xl) inside it. */
+@utility max-w-page {
+  max-width: 72rem;
+  @media (width >= 80rem) {
+    max-width: 80rem;
+  }
+  @media (width >= 96rem) {
+    max-width: 92rem;
+  }
+}
+
 /* Phones: a row of filter chips scrolls sideways instead of wrapping into a wall of rows. */
 @utility scrollbar-none {
   scrollbar-width: none;

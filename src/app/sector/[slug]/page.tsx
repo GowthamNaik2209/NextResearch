@@ -111,23 +111,23 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-12 px-5 py-14">
+      <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-8 px-5 pt-6 pb-14 sm:gap-12 sm:py-14">
         <div>
           <Link href="/docs" className="tap-target text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
             &larr; All deep dives
           </Link>
-          <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="flex h-11 w-11 flex-none items-center justify-center rounded-md border border-line bg-panel-2 font-mono text-sm font-bold text-accent">
+          <div className="mt-3 flex flex-wrap items-start justify-between gap-x-4 gap-y-2 sm:mt-4">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md border border-line bg-panel-2 font-mono text-xs font-bold text-accent sm:h-11 sm:w-11 sm:text-sm">
                 {sector.icon}
               </div>
               <div>
-                <h1 className="font-display text-3xl font-bold text-ink">{sector.name}</h1>
+                <h1 className="font-display text-2xl leading-tight font-bold text-ink sm:text-3xl">{sector.name}</h1>
                 <p className="mt-1 text-sm text-ink-soft">{sector.tagline}</p>
               </div>
             </div>
             {sector.dataStatus && (
-              <span className="rounded-full border border-amber/40 bg-amber/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-ink">
+              <span className="text-[11px] text-ink-soft sm:mt-1">
                 {sector.dataStatus === "demo" ? "From publicly available information" : sector.dataStatus}
               </span>
             )}
@@ -215,7 +215,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
               ? "The map groups the anatomy into these areas before you drop into individual components."
               : "The 3D map lets you click into each of these components for supplier and financial detail."}
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {(domains.length > 0 ? domains : sector.zones).map((item) => {
               const zoneId = "title" in item ? (item.leadZoneId ?? firstZoneIdByDomain.get(item.id)) : item.id;
               const card = (
@@ -253,7 +253,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                   </>
                 )}
               </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                 {integratorCompanies.map(({ key, company }) => {
                   const ticker = company.listed ? tickerForSupplier(company) : null;
                   return (

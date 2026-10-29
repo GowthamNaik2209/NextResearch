@@ -82,7 +82,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-10 px-5 py-14">
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-10 px-5 py-14 lg:max-w-page">
         <div>
           {/* Every company page: "Companies / <its primary theme>" (multi-theme companies used to
               drop the theme, so pages differed). */}
@@ -109,164 +109,172 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
               </p>
             </div>
             {supplier.dataStatus && (
-              <span className="rounded-full border border-amber/40 bg-amber/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-ink">
+              <span className="text-[11px] text-ink-soft sm:mt-1">
                 {supplier.dataStatus === "demo" ? "From publicly available information" : supplier.dataStatus}
               </span>
             )}
           </div>
         </div>
 
-        {stats.length > 0 && (
-          <section>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {stats.map((s) => (
-                <div key={s.label} className="rounded-xl border border-line bg-panel p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">{s.label}</p>
-                  <p className="mt-1 whitespace-nowrap font-mono text-base font-semibold text-ink sm:text-lg">{s.value}</p>
+        {/* From desktop width: the story on the left, the numbers and the live card in a side
+            column that stays in view. Phones keep one column, numbers first. */}
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem]">
+          <aside className="flex flex-col gap-10 lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1 lg:gap-4 lg:self-start">
+            {stats.length > 0 && (
+              <section>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
+                  {stats.map((s) => (
+                    <div key={s.label} className="rounded-xl border border-line bg-panel p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">{s.label}</p>
+                      <p className="mt-1 whitespace-nowrap font-mono text-base font-semibold text-ink sm:text-lg">{s.value}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            {/* These are the seed snapshot, not live - say so, since the live card one click below will differ. */}
-            <p className="mt-2 text-xs text-ink-soft">
-              Company snapshot as of {asOf}: the same figures in the live card, baskets and watchlist. The live card updates only the price
-              and chart.
-            </p>
-          </section>
-        )}
+                {/* These are the seed snapshot, not live - say so, since the live card one click below will differ. */}
+                <p className="mt-2 text-xs text-ink-soft">
+                  Company snapshot as of {asOf}: the same figures in the live card, baskets and watchlist. The live card updates only the price
+                  and chart.
+                </p>
+              </section>
+            )}
 
-        <OpenStockCard
-          ticker={c.ticker}
-          supplier={supplier}
-          className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-panel-2 p-5 transition hover:border-accent"
-        >
-          <div>
-            <p className="text-sm font-semibold text-ink">Live price, chart and full financials</p>
-            <p className="mt-1 text-xs text-ink-soft">Opens the company card with the live price, chart, news and statements.</p>
-          </div>
-          <span className="flex-none rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg">Open &rarr;</span>
-        </OpenStockCard>
+            <OpenStockCard
+              ticker={c.ticker}
+              supplier={supplier}
+              className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-panel-2 p-5 transition hover:border-accent lg:flex-col lg:items-stretch"
+            >
+              <div>
+                <p className="text-sm font-semibold text-ink">Live price, chart and full financials</p>
+                <p className="mt-1 text-xs text-ink-soft">Opens the company card with the live price, chart, news and statements.</p>
+              </div>
+              <span className="flex-none rounded-lg bg-accent px-4 py-2 text-center text-sm font-semibold text-bg">Open &rarr;</span>
+            </OpenStockCard>
+          </aside>
 
-        <section>
-          <h2 className="font-display text-xl font-bold text-ink">Where {c.name} sits in the supply chain</h2>
-          <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-            {c.name} appears in {appearances.length} supply-chain layer{appearances.length > 1 ? "s" : ""}{" "}
-            {multiSector ? `across ${sectorNames.length} themes: ${listJoin(sectorNames)}` : `in one theme, ${sectorNames[0]}`}.
-          </p>
-          <div className="mt-5 flex flex-col gap-4">
-            {appearances.map((a) => (
-              <div key={`${a.sectorSlug}:${a.zoneId}`} className="rounded-2xl border border-line bg-panel p-5">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-ink">
-                    <Link href={`/sector/${a.sectorSlug}`} className="tap-y hover:text-accent hover:underline">
-                      {a.sectorName}
-                    </Link>{" "}
-                    <span className="text-ink-soft">&rsaquo; {a.zoneLabel}</span>
-                  </h3>
-                  {a.exposure && (
-                    <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
-                      {a.exposure}
-                    </span>
-                  )}
-                </div>
-                {(a.role !== primary.role || multiSector) && <p className="mt-2 text-sm text-ink-soft">{a.role}</p>}
-                {a.peers.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">Other companies in this layer</p>
-                    <div className="mt-2 flex flex-wrap gap-1.5 pointer-coarse:gap-y-4">
-                      {a.peers.map((p) =>
-                        p.slug ? (
-                          <Link
-                            key={p.name}
-                            href={`/company/${p.slug}`}
-                            className="tap-y rounded-full border border-line px-2.5 py-0.5 text-xs text-ink hover:border-accent hover:text-accent"
-                          >
-                            {p.name}
-                          </Link>
-                        ) : (
-                          <span key={p.name} className="rounded-full border border-dashed border-line px-2.5 py-0.5 text-xs text-ink-soft">
-                            {p.name} (unlisted)
-                          </span>
-                        )
+          <div className="flex min-w-0 flex-col gap-10 lg:col-start-1 lg:row-start-1">
+            <section>
+              <h2 className="font-display text-xl font-bold text-ink">Where {c.name} sits in the supply chain</h2>
+              <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                {c.name} appears in {appearances.length} supply-chain layer{appearances.length > 1 ? "s" : ""}{" "}
+                {multiSector ? `across ${sectorNames.length} themes: ${listJoin(sectorNames)}` : `in one theme, ${sectorNames[0]}`}.
+              </p>
+              <div className="mt-5 flex flex-col gap-4">
+                {appearances.map((a) => (
+                  <div key={`${a.sectorSlug}:${a.zoneId}`} className="rounded-2xl border border-line bg-panel p-5">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <h3 className="text-sm font-semibold text-ink">
+                        <Link href={`/sector/${a.sectorSlug}`} className="tap-y hover:text-accent hover:underline">
+                          {a.sectorName}
+                        </Link>{" "}
+                        <span className="text-ink-soft">&rsaquo; {a.zoneLabel}</span>
+                      </h3>
+                      {a.exposure && (
+                        <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
+                          {a.exposure}
+                        </span>
                       )}
                     </div>
+                    {(a.role !== primary.role || multiSector) && <p className="mt-2 text-sm text-ink-soft">{a.role}</p>}
+                    {a.peers.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">Other companies in this layer</p>
+                        <div className="mt-2 flex flex-wrap gap-1.5 pointer-coarse:gap-y-4">
+                          {a.peers.map((p) =>
+                            p.slug ? (
+                              <Link
+                                key={p.name}
+                                href={`/company/${p.slug}`}
+                                className="tap-y rounded-full border border-line px-2.5 py-0.5 text-xs text-ink hover:border-accent hover:text-accent"
+                              >
+                                {p.name}
+                              </Link>
+                            ) : (
+                              <span key={p.name} className="rounded-full border border-dashed border-line px-2.5 py-0.5 text-xs text-ink-soft">
+                                {p.name} (unlisted)
+                              </span>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    <Link
+                      href={`/sector/${a.sectorSlug}/explore?zone=${encodeURIComponent(a.zoneId)}&company=${encodeURIComponent(a.companyKey)}`}
+                      className="tap-y mt-4 inline-block text-xs font-semibold text-accent hover:underline pointer-coarse:mt-5"
+                    >
+                      View in the 3D map &rarr;
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {rev.length > 0 && (
+              <section>
+                <h2 className="font-display text-xl font-bold text-ink">Revenue and profit</h2>
+                <div className="mt-4 overflow-x-auto rounded-2xl border border-line">
+                  <table className="w-full text-sm">
+                    <thead className="bg-panel-2 text-[10px] uppercase tracking-widest text-ink-soft">
+                      <tr>
+                        <th className="px-3 py-2 text-left sm:px-4">₹ Cr</th>
+                        {FY_LABELS.map((y, i) => (
+                          <th key={y} className={"px-3 py-2 text-right sm:px-4 " + (i < FY_LABELS.length - PHONE_YEARS ? "hidden sm:table-cell" : "")}>
+                            {y}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="font-mono">
+                      {[
+                        { label: "Revenue", vals: rev },
+                        { label: "Net profit", vals: np },
+                      ].map((row) => (
+                        <tr key={row.label} className="border-t border-line">
+                          <td className="px-3 py-2 font-sans text-ink-soft sm:px-4">{row.label}</td>
+                          {FY_LABELS.map((y, i) => (
+                            <td key={y} className={"px-3 py-2 text-right text-ink sm:px-4 " + (i < FY_LABELS.length - PHONE_YEARS ? "hidden sm:table-cell" : "")}>
+                              {crCell(row.vals[i])}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {rev[rev.length - 1] != null && (
+                  <p className="mt-2 text-xs text-ink-soft">
+                    Latest-year revenue {croreShort(rev[rev.length - 1])} ({FY_LABELS[FY_LABELS.length - 1]}, company-wide).
+                    <span className="sm:hidden"> Wider screens show FY22 onwards.</span>
+                  </p>
+                )}
+              </section>
+            )}
+
+            {((supplier.strengths?.length ?? 0) > 0 || (supplier.risks?.length ?? 0) > 0) && (
+              <section className="grid gap-4 sm:grid-cols-2">
+                {supplier.strengths && supplier.strengths.length > 0 && (
+                  <div className="rounded-2xl border border-line bg-panel p-5">
+                    <h2 className="text-xs font-bold uppercase tracking-widest text-pos">Strengths{multiSector ? ` · in ${primary.sectorName}` : ""}</h2>
+                    <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-ink">
+                      {supplier.strengths.map((s) => (
+                        <li key={s}>{s}</li>
+                      ))}
+                    </ul>
                   </div>
                 )}
-                <Link
-                  href={`/sector/${a.sectorSlug}/explore?zone=${encodeURIComponent(a.zoneId)}&company=${encodeURIComponent(a.companyKey)}`}
-                  className="tap-y mt-4 inline-block text-xs font-semibold text-accent hover:underline pointer-coarse:mt-5"
-                >
-                  View in the 3D map &rarr;
-                </Link>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {rev.length > 0 && (
-          <section>
-            <h2 className="font-display text-xl font-bold text-ink">Revenue and profit</h2>
-            <div className="mt-4 overflow-x-auto rounded-2xl border border-line">
-              <table className="w-full text-sm">
-                <thead className="bg-panel-2 text-[10px] uppercase tracking-widest text-ink-soft">
-                  <tr>
-                    <th className="px-3 py-2 text-left sm:px-4">₹ Cr</th>
-                    {FY_LABELS.map((y, i) => (
-                      <th key={y} className={"px-3 py-2 text-right sm:px-4 " + (i < FY_LABELS.length - PHONE_YEARS ? "hidden sm:table-cell" : "")}>
-                        {y}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="font-mono">
-                  {[
-                    { label: "Revenue", vals: rev },
-                    { label: "Net profit", vals: np },
-                  ].map((row) => (
-                    <tr key={row.label} className="border-t border-line">
-                      <td className="px-3 py-2 font-sans text-ink-soft sm:px-4">{row.label}</td>
-                      {FY_LABELS.map((y, i) => (
-                        <td key={y} className={"px-3 py-2 text-right text-ink sm:px-4 " + (i < FY_LABELS.length - PHONE_YEARS ? "hidden sm:table-cell" : "")}>
-                          {crCell(row.vals[i])}
-                        </td>
+                {supplier.risks && supplier.risks.length > 0 && (
+                  <div className="rounded-2xl border border-line bg-panel p-5">
+                    <h2 className="text-xs font-bold uppercase tracking-widest text-danger">Risks{multiSector ? ` · in ${primary.sectorName}` : ""}</h2>
+                    <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-ink">
+                      {supplier.risks.map((s) => (
+                        <li key={s}>{s}</li>
                       ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {rev[rev.length - 1] != null && (
-              <p className="mt-2 text-xs text-ink-soft">
-                Latest-year revenue {croreShort(rev[rev.length - 1])} ({FY_LABELS[FY_LABELS.length - 1]}, company-wide).
-                <span className="sm:hidden"> Wider screens show FY22 onwards.</span>
-              </p>
+                    </ul>
+                  </div>
+                )}
+              </section>
             )}
-          </section>
-        )}
-
-        {((supplier.strengths?.length ?? 0) > 0 || (supplier.risks?.length ?? 0) > 0) && (
-          <section className="grid gap-4 sm:grid-cols-2">
-            {supplier.strengths && supplier.strengths.length > 0 && (
-              <div className="rounded-2xl border border-line bg-panel p-5">
-                <h2 className="text-xs font-bold uppercase tracking-widest text-pos">Strengths{multiSector ? ` · in ${primary.sectorName}` : ""}</h2>
-                <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-ink">
-                  {supplier.strengths.map((s) => (
-                    <li key={s}>{s}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {supplier.risks && supplier.risks.length > 0 && (
-              <div className="rounded-2xl border border-line bg-panel p-5">
-                <h2 className="text-xs font-bold uppercase tracking-widest text-danger">Risks{multiSector ? ` · in ${primary.sectorName}` : ""}</h2>
-                <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-ink">
-                  {supplier.risks.map((s) => (
-                    <li key={s}>{s}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </section>
-        )}
+          </div>
+        </div>
 
         <script
           type="application/ld+json"

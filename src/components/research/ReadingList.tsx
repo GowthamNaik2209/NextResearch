@@ -184,7 +184,7 @@ export function ReadingList({
       </div>
       {view === "deep" && tab !== "ipo" && <ThemeCards sectors={sectorCards} comingSoon={comingSoon} filter={tab} onCharts={setChartSlug} />}
       {view === "reports" && tab !== "ipo" && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {shown.map((d) => (
             <ReportCard key={d.slug} deck={d} onOpen={() => {
               setAdopt(false);

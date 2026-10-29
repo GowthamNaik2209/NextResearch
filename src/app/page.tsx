@@ -39,7 +39,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
         {/* The Analysis block, the same one as /docs (Deep dive, Reports, the Charts pop-up). It keeps the old
             Themes section's #themes anchor, so the hero's buttons and shared links still land here. */}
-        <section id="themes" aria-labelledby="analysis-heading" className="mx-auto flex max-w-6xl scroll-mt-20 flex-col gap-6 px-5 pb-20">
+        <section id="themes" aria-labelledby="analysis-heading" className="mx-auto flex max-w-page scroll-mt-20 flex-col gap-6 px-5 pb-20">
           {/* Old shared links point at #sectors. */}
           <span id="sectors" aria-hidden className="block scroll-mt-20" />
           <div>
@@ -54,7 +54,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <ReadingList {...analysisProps({ report, ipo, view })} initial={report} initialIpo={ipo} initialView={analysisView(view)} initialSector={sector} initialCharts={view === "charts"} />
         </section>
 
-        <section className="mx-auto max-w-6xl px-5 pb-20">
+        <section className="mx-auto max-w-page px-5 pb-20">
           <IdeasSection ideas={buildIdeas()} asOf={dataAsOfRange()} />
         </section>
 

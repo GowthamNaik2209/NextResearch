@@ -45,7 +45,7 @@ export function ThemeCards({
   const soon = [...inTab.filter((s) => s.muted), ...comingSoon.filter((s) => filter === "all" || (s.category ?? "sector") === filter)];
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {live.map((s) => (
         // The whole card opens the industry's page (the title link stretches over it); the Charts
         // button sits above that overlay and opens the stock chart pop-up on this industry.
