@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ensureFinancials } from "@/lib/financials/load";
-import { ensureRiskStats, riskStatsFor } from "@/lib/baskets/projection-risk-data";
+import { ensureRiskStats, riskStatsFor, riskStatsReady } from "@/lib/baskets/projection-risk-data";
+import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { listBasketUniverse } from "@/lib/baskets/industry";
 import { homeIndustryOf, projectionInputFor, projectionScale } from "@/lib/baskets/projection-data";
 import {
@@ -141,6 +142,7 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
     <>
       <SiteHeader />
       <main className="mx-auto flex w-full min-w-0 max-w-4xl flex-1 flex-col gap-6 px-4 py-14 sm:px-5">
+        {!riskStatsReady() && <ProjectionStatsPending />}
         <nav aria-label="Back" className="-my-1 flex flex-wrap items-center gap-x-4 text-xs font-semibold text-accent">
           <Link href="/baskets" className="inline-flex min-h-8 items-center hover:underline pointer-coarse:min-h-9">
             &larr; Baskets

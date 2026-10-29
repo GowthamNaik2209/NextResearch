@@ -8,7 +8,8 @@ import { basketStock, dominantIndustry } from "@/lib/baskets/industry";
 import { compareProps, pickerProps } from "@/lib/baskets/page-props";
 import { getVisibleBasket } from "@/lib/baskets/store";
 import { ensureFinancials } from "@/lib/financials/load";
-import { ensureRiskStats } from "@/lib/baskets/projection-risk-data";
+import { ensureRiskStats, riskStatsReady } from "@/lib/baskets/projection-risk-data";
+import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 
 // Shared baskets are reachable by link but never indexed: they are a person's own picks.
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -42,6 +43,7 @@ export default async function SavedBasketPage({ params }: { params: Promise<{ id
     <>
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-4xl lg:max-w-page flex-1 flex-col gap-4 px-5 py-14">
+        {!riskStatsReady() && <ProjectionStatsPending />}
         <Link href="/baskets" className="self-start text-xs font-semibold text-accent hover:underline">
           &larr; {b.isOwner ? "Your baskets" : "Baskets"}
         </Link>

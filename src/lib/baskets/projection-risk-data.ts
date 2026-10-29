@@ -58,6 +58,15 @@ export function riskStatsFor(ticker: string): RiskStats | null {
   return stats.get(ticker) ?? null;
 }
 
+/**
+ * Whether this instance has any statistics installed. Until it has, every stock is projected on
+ * the stand-ins (beta 1, volatility from the 52-week range), so a page says so and refreshes
+ * itself (ProjectionStatsPending) rather than showing figures that change on the next visit.
+ */
+export function riskStatsReady(): boolean {
+  return stats.size > 0;
+}
+
 /** Loads every basket stock's price statistics (from the shared cache where it has them) and installs them. */
 export async function ensureRiskStats(): Promise<void> {
   if (!loading && Date.now() - checkedAt < RECHECK_MS) return;
