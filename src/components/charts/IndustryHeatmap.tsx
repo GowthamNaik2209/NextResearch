@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { BacktestHolding } from "@/lib/baskets/backtest";
 import { forgetSeries, industrySeriesKey, loadSeries } from "@/components/baskets/series";
@@ -27,26 +27,8 @@ const RANGES: { id: ChartRange; label: string; long: string }[] = [
  * full width under the row. Phones get one row of short labels that scrolls sideways, without
  * the panel around it; from desktop width the row sits on one line.
  */
-export function IndustryActions({
-  children,
-  slug,
-  name,
-  stocks,
-  basketHref,
-  defaultOpen = false,
-  groupWord = "layer of the supply chain",
-}: {
-  children: ReactNode;
-  slug: string;
-  name: string;
-  stocks: HeatStock[];
-  basketHref: string | null;
-  /** Open on arrival (the Nifty 50, where the heatmap is the page's main view). */
-  defaultOpen?: boolean;
-  /** What a group of tiles is, in "listed stocks are up …, by <groupWord>". */
-  groupWord?: string;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
+export function IndustryActions({ children, slug, name, stocks, basketHref }: { children: ReactNode; slug: string; name: string; stocks: HeatStock[]; basketHref: string | null }) {
+  const [open, setOpen] = useState(false);
   return (
     <section className="flex flex-col gap-3 sm:rounded-2xl sm:border sm:border-line sm:bg-panel-2 sm:p-4 lg:p-5">
       <div className="scrollbar-none -mx-5 flex gap-1.5 overflow-x-auto px-5 max-sm:*:flex-none sm:mx-0 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:px-0 lg:flex-nowrap">
@@ -60,18 +42,14 @@ export function IndustryActions({
       </div>
       {open && (
         <div id="industry-heatmap">
-          {/* Its stock tiles read the URL (useSearchParams), so a heatmap open on arrival (defaultOpen)
-              needs a boundary to prerender; the loading line stands in until it is up. */}
-          <Suspense fallback={<p className="rounded-xl border border-line bg-panel p-4 text-sm text-ink-soft">Loading {name}’s listed stocks…</p>}>
-            <IndustryHeatmap slug={slug} name={name} stocks={stocks} basketHref={basketHref} groupWord={groupWord} />
-          </Suspense>
+          <IndustryHeatmap slug={slug} name={name} stocks={stocks} basketHref={basketHref} />
         </div>
       )}
     </section>
   );
 }
 
-function IndustryHeatmap({ slug, name, stocks, basketHref, groupWord }: { slug: string; name: string; stocks: HeatStock[]; basketHref: string | null; groupWord: string }) {
+function IndustryHeatmap({ slug, name, stocks, basketHref }: { slug: string; name: string; stocks: HeatStock[]; basketHref: string | null }) {
   const [range, setRange] = useState<ChartRange>("1Y");
   const [got, setGot] = useState<{ range: ChartRange; holdings: BacktestHolding[]; pending: Set<string> } | "error" | null>(null);
   // A cold backtest answers before every stock's prices are in (`pending`): those tiles keep their
@@ -146,7 +124,7 @@ function IndustryHeatmap({ slug, name, stocks, basketHref, groupWord }: { slug: 
               <b className="font-semibold text-ink">
                 {up} of {known}
               </b>{" "}
-              listed stocks are up over the past {long}, by {groupWord}.
+              listed stocks are up over the past {long}, by layer of the supply chain.
               {pending.size > 0 && ` ${pending.size} still loading.`}
               {all.length - known - pending.size > 0 && ` ${all.length - known - pending.size} not listed for the whole ${long} (shown —).`}
             </>

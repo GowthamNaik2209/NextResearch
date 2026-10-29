@@ -677,6 +677,8 @@
  .macro-rank .vs.up{ color:#2E9E71 }
  .macro-rank .vs.down{ color:var(--danger) }
  @media (max-width: 1000px){
+  /* The open menu sits above the bottom sheet (20), which covered its lower sections once a pick had opened it. */
+  &.controls-open .rail{ z-index:21 }
   .scn-list.grouped.expanded{ flex-direction:column; flex-wrap:nowrap }
   .scn-sec > .scn-btn{ font-size:11px }
  }

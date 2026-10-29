@@ -153,7 +153,7 @@ export function HeatmapStage({
               const nets = all.map(netOf).filter((x): x is number => x != null);
               return (
                 <>
-                  Picked scenarios: <b>{nets.filter((x) => x > 0).length} tailwind</b>,{" "}
+                  Under the picks: <b>{nets.filter((x) => x > 0).length} tailwind</b>,{" "}
                   <b>{nets.filter((x) => x < 0).length} headwind</b>, {all.length - nets.filter((x) => x !== 0).length} untouched or mixed.
                 </>
               );
@@ -168,7 +168,7 @@ export function HeatmapStage({
             ) : episodes.status === "error" ? (
               "The past episodes couldn’t load right now. Try again in a moment."
             ) : (
-              "The picked scenarios have no past episode to replay."
+              "Nothing to replay: what’s picked has no fair past episode."
             )
           ) : got === "error" ? (
             "The prices couldn’t load right now. Try again in a moment."
@@ -228,7 +228,8 @@ export function HeatmapStage({
                 <span className="name">
                   {g.label} <span className="count">· {g.stocks.length}</span>
                 </span>
-                {zoneNet != null && (
+                {/* History colours by what happened, so the scenario's reading stays out of it. */}
+                {zoneNet != null && view !== "history" && (
                   <span className={"scn-tag " + (zoneNet > 0 ? "tailwind" : zoneNet < 0 ? "headwind" : "mixed")}>
                     {netWord(zoneNet)}
                     {zoneNet ? ` · ${netStrength(zoneNet)}` : ""}
@@ -262,7 +263,7 @@ export function HeatmapStage({
                         type="button"
                         title={title}
                         aria-pressed={g.id === zoneId && supplierKey === s.key}
-                        className={"heat-tile" + (view !== "impact" && net ? (net > 0 ? " tailwind" : " headwind") : "")}
+                        className={"heat-tile" + (view === "returns" && net ? (net > 0 ? " tailwind" : " headwind") : "")}
                         style={heatStyle(v, scale)}
                         onClick={() => onPickStock(g.id, s.key)}
                       >

@@ -22,7 +22,7 @@ export function defineNifty50(h) {
       "Most Indian mutual fund, ETF and FPI money is benchmarked to the Nifty 50, so its moves set the tone for the whole market.",
       "Banks and lenders are well over a third of the index - RBI rate and liquidity moves now flow straight into it.",
       "IT, the second-largest block, is caught between US tariff and visa costs and AI changing how services are bought.",
-      "Consumption got a lift from the Sept 2025 GST rate cuts and income-tax relief; the question is whether it lasts into FY28.",
+      "Consumption got a lift from the Sep 2025 GST rate cuts and income-tax relief; the question is whether it lasts into FY28.",
     ],
     thesisSummary: [
       "The index is a bet on Indian credit growth first: private banks, SBI and NBFCs drive most of its earnings.",
@@ -95,7 +95,7 @@ export function defineNifty50(h) {
        desc:"India's largest car, SUV, tractor, motorcycle and premium-motorcycle makers, plus Jaguar Land Rover's owner.",
        domainId:"consumption", displayOrder:4, dataStatus:"demo",
        roleInSystem:"Designs, builds and sells cars, SUVs, tractors and two-wheelers to Indian households and export markets. The group is a mid-sized block of the index, a little smaller than IT.",
-       whyItMatters:"Vehicle sales are a fast read on household confidence, rural incomes and credit availability. The Sept 2025 GST cut on small cars and two-wheelers reset prices and demand.",
+       whyItMatters:"Vehicle sales are a fast read on household confidence, rural incomes and credit availability. The Sep 2025 GST cut on small cars and two-wheelers reset prices and demand.",
        valuePoolDescription:"SUVs and premium motorcycles carry the best margins; entry cars and scooters are price-sensitive. Exports (Bajaj, Maruti) and JLR (Tata Motors PV) add overseas exposure.",
        bottlenecks:["Rare-earth magnets and chips sourced largely from China", "Dealer inventory and financing", "EV battery cell supply"],
        keyDrivers:["GST rate cuts and income-tax relief lifting affordability", "Rural incomes and the monsoon (tractors, two-wheelers)", "New SUV and EV launches"],
@@ -111,7 +111,7 @@ export function defineNifty50(h) {
        whyItMatters:"Staples are where investors hide when growth slows. Their volume growth is the cleanest read on mass-market and rural spending.",
        valuePoolDescription:"Strong brands and deep distribution give high returns on capital and steady cash flow. Growth is now contested by quick-commerce, D2C brands and regional players, and by input-cost swings (palm oil, tea, coffee, wheat).",
        bottlenecks:["Slow urban mass-market demand", "Input inflation in edible oils, tea, coffee and cocoa", "Shelf-space shifting to quick-commerce apps"],
-       keyDrivers:["Rural demand after a good monsoon", "GST cuts on everyday items (Sept 2025)", "Premium products and new channels"],
+       keyDrivers:["Rural demand after a good monsoon", "GST cuts on everyday items (Sep 2025)", "Premium products and new channels"],
        keyRisks:["Higher tax on cigarettes (ITC)", "Competition from smaller, faster brands", "Commodity cost spikes squeezing margins"],
        investorMetrics:["Underlying volume growth", "Gross margin", "Rural vs urban growth", "Share of sales via quick-commerce"],
        relatedComponents:["durables","consvc","auto"],
@@ -274,10 +274,10 @@ export function defineNifty50(h) {
       coalindia: {name:"Coal India", listed:true, role:"State-owned miner producing most of India's coal, the fuel behind most of its electricity", dataStatus:"demo", sourceDate:ASOF, strengths:["Near-monopoly with low-cost open-cast mines", "High dividend payout"], risks:["Slow coal demand when renewables and hydro run strong", "Long-term energy transition and e-auction price swings"], f:co("COALINDIA")},
 
       // ---- Automobile and Auto Components ----
-      maruti: {name:"Maruti Suzuki India", listed:true, role:"India's largest carmaker, a Suzuki subsidiary, now also a major car exporter", dataStatus:"demo", sourceDate:ASOF, strengths:["Widest dealer and service network in the country", "Small cars benefited most from the Sept 2025 GST cut"], risks:["Lost share in SUVs to Mahindra, Tata and Hyundai", "Late to EVs, launching its first EV only recently"], f:co("MARUTI")},
+      maruti: {name:"Maruti Suzuki India", listed:true, role:"India's largest carmaker, a Suzuki subsidiary, now also a major car exporter", dataStatus:"demo", sourceDate:ASOF, strengths:["Widest dealer and service network in the country", "Small cars benefited most from the Sep 2025 GST cut"], risks:["Lost share in SUVs to Mahindra, Tata and Hyundai", "Late to EVs, launching its first EV only recently"], f:co("MARUTI")},
       mm: {name:"Mahindra & Mahindra", listed:true, role:"India's leading SUV and tractor maker, with stakes in financial services, IT (Tech Mahindra) and electric SUVs", dataStatus:"demo", sourceDate:ASOF, strengths:["Leads in SUVs with strong brands (Scorpio, XUV, Thar)", "Market leader in tractors, a direct play on rural incomes"], risks:["Tractor demand swings with the monsoon", "Heavy EV investment"], f:co("M&M")},
       bajajauto: {name:"Bajaj Auto", listed:true, role:"Motorcycle and three-wheeler maker with the largest export business among Indian two-wheeler companies, and control of KTM", dataStatus:"demo", sourceDate:ASOF, strengths:["Exports to Latin America, Africa and Asia diversify demand", "Growing electric scooter (Chetak) and three-wheeler share"], risks:["KTM's turnaround under Bajaj ownership carries execution risk", "Competition in entry motorcycles and EV scooters"], f:co("BAJAJ-AUTO")},
-      eichermot: {name:"Eicher Motors", listed:true, role:"Owner of Royal Enfield, the dominant mid-size (250-750cc) motorcycle brand, and a truck and bus JV with Volvo", dataStatus:"demo", sourceDate:ASOF, strengths:["Near-monopoly in its segment with strong pricing power", "Growing exports and new models"], risks:["Higher GST (40%) on motorcycles above 350cc since Sept 2025 hits its larger models", "Competition from Triumph-Bajaj, Harley-Hero and Honda"], f:co("EICHERMOT")},
+      eichermot: {name:"Eicher Motors", listed:true, role:"Owner of Royal Enfield, the dominant mid-size (250-750cc) motorcycle brand, and a truck and bus JV with Volvo", dataStatus:"demo", sourceDate:ASOF, strengths:["Near-monopoly in its segment with strong pricing power", "Growing exports and new models"], risks:["Higher GST (40%) on motorcycles above 350cc since Sep 2025 hits its larger models", "Competition from Triumph-Bajaj, Harley-Hero and Honda"], f:co("EICHERMOT")},
       tmpv: {name:"Tata Motors PV", listed:true, role:"Tata Motors' passenger-vehicle company after the Oct 2025 demerger - Indian cars and EVs plus Jaguar Land Rover", dataStatus:"demo", sourceDate:ASOF, strengths:["Leader in Indian electric cars", "JLR's luxury Range Rover and Defender brands earn most of the profit"], risks:["JLR was shut for weeks by a cyberattack in late 2025 and faces US tariffs on UK-built cars", "JLR's shift to EVs needs heavy spending"], f:co("TMPV")},
 
       // ---- Fast Moving Consumer Goods ----

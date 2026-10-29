@@ -56,12 +56,25 @@ export function MacroPanel({
   })();
 
   const zones = sector.zones.filter((z) => combined.zones.has(z.id)).sort((a, b) => Math.abs(combined.zones.get(b.id)!) - Math.abs(combined.zones.get(a.id)!));
-  // A named company's own reason, from the first picked scenario that names it.
-  const why = new Map<string, string>();
-  for (const sc of picked) for (const [key, r] of scenarioStockReadings(sector, sc)) if (r.own && !why.has(key)) why.set(key, r.why);
+  // Companies a picked scenario names, each with every picked scenario's reading of it - its own
+  // reason, or its industry's - so the net tag beside them adds up from what is listed.
+  const named = new Set<string>();
+  for (const sc of picked) for (const [key, r] of scenarioStockReadings(sector, sc)) if (r.own) named.add(key);
+  const why = new Map<string, string[]>();
+  for (const key of named)
+    for (const sc of picked) {
+      const r = scenarioStockReadings(sector, sc).get(key);
+      if (r) why.set(key, [...(why.get(key) ?? []), one ? r.why : `${sc.title}: ${r.why}${r.own ? "" : " (its industry)"} (${r.effect})`]);
+    }
 
   const epList = episodes.status === "ok" ? episodes.list : [];
   const ranked = rankByHistory(sector, epList);
+  // What the ranking leaves out: picks with no past episode, and stocks trading in none of the windows.
+  const noEpisode = picked.filter((sc) => !sc.episode);
+  const rankedKeys = new Set(ranked.map((r) => r.key));
+  const unranked = epList.length
+    ? sector.zones.flatMap((z) => z.suppliers.map((l) => (typeof l === "string" ? l : l.key))).filter((k) => sector.suppliers[k]?.listed && !rankedKeys.has(k))
+    : [];
   const shown = showAll ? ranked : [...ranked.slice(0, 8), ...(ranked.length > 13 ? ranked.slice(-5) : ranked.slice(8))];
   const zoneLabel = (id: string) => sector.zones.find((z) => z.id === id)?.label ?? "";
 
@@ -95,9 +108,16 @@ export function MacroPanel({
             <span className="nt" style={{ width: `${split.untouched}%` }} />
           </div>
           <p className="role" style={{ marginTop: 6 }}>
-            About <b>{split.headwind.toFixed(0)}%</b> of the index by market cap faces a headwind
-            {split.headwindLeads.length > 0 && ` (led by ${split.headwindLeads.join(", ")})`}, <b>{split.tailwind.toFixed(0)}%</b> a tailwind
-            {split.tailwindLeads.length > 0 && ` (${split.tailwindLeads.join(", ")})`}; {split.untouched.toFixed(0)}% is not directly touched.
+            {/* Only the sides that carry any weight, so a pick that only helps doesn't read "0% faces a headwind". */}
+            {[
+              split.headwind >= 0.5 && `about ${split.headwind.toFixed(0)}% faces a headwind${split.headwindLeads.length ? ` (led by ${split.headwindLeads.join(", ")})` : ""}`,
+              split.tailwind >= 0.5 && `${split.tailwind.toFixed(0)}% a tailwind${split.tailwindLeads.length ? ` (${split.tailwindLeads.join(", ")})` : ""}`,
+              split.untouched >= 0.5 && `${split.untouched.toFixed(0)}% is not directly touched`,
+            ]
+              .filter(Boolean)
+              .join("; ")
+              .replace(/^./, (c) => `By market cap, ${c}`)}
+            .
           </p>
         </div>
       )}
@@ -124,13 +144,15 @@ export function MacroPanel({
         <div>
           <div className="chart-label">Companies that move differently</div>
           <div style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 5 }}>
-            {[...why].map(([key, reason]) => {
+            {[...why].map(([key, reasons]) => {
               const z = sector.zones.find((zz) => zz.suppliers.some((l) => (typeof l === "string" ? l : l.key) === key));
               return (
                 <button key={key} className="scn-row" onClick={() => z && onPickStock(z.id, key)}>
                   <span>
                     {sector.suppliers[key]?.name}
-                    <small>{reason}</small>
+                    {reasons.map((r) => (
+                      <small key={r}>{r}</small>
+                    ))}
                   </span>
                   <NetTag net={combined.stocks.get(key) ?? 0} />
                 </button>
@@ -166,7 +188,11 @@ export function MacroPanel({
               ))}
             </ul>
             <p className="fine" style={{ marginTop: 6 }}>
-              Each stock’s actual move against the Nifty 50 over {epList.length === 1 ? "that window" : "those windows"}, averaged over the ones it was trading through. Tap one for its details.
+              {epList.length === 1
+                ? "Each stock’s actual move against the Nifty 50 over that window."
+                : "Each stock’s actual move against the Nifty 50 over those windows, averaged over the ones it was trading through."}{" "}
+              Tap one for its details.
+              {noEpisode.length > 0 && ` Not replayed: ${noEpisode.map((x) => x.title).join(", ")} (no fair past episode).`}
             </p>
             <ol className="macro-rank">
               {shown.map((r, i) => {
@@ -188,6 +214,13 @@ export function MacroPanel({
                 );
               })}
             </ol>
+            {unranked.length > 0 && (
+              <p className="fine" style={{ marginTop: 6 }}>
+                Not ranked, as not trading in {epList.length === 1 ? "that window" : "any of these windows"}:{" "}
+                {unranked.map((k) => sector.suppliers[k].name).join(", ")}
+                {unranked.includes("tmpv") && " (Tata Motors PV’s own history starts at its Oct 2025 demerger)"}.
+              </p>
+            )}
             {ranked.length > 13 && (
               <button type="button" className="scn-clear" onClick={() => setShowAll((s) => !s)}>
                 {showAll ? "Show top and bottom only" : `Show all ${ranked.length}`}

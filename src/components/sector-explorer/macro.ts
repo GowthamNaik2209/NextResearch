@@ -30,23 +30,35 @@ const loaded = new Map<string, EpisodeData>();
 export function useEpisodes(slug: string, picked: Scenario[]): Episodes {
   const withEp = picked.filter((s) => s.episode);
   const key = withEp.map((s) => `${s.episode!.from}:${s.episode!.to}`).join(",");
-  const [got, setGot] = useState<{ key: string; ok: boolean } | null>(null);
+  const [got, setGot] = useState<{ key: string; ok: boolean; tries: number } | null>(null);
+  // A failed load is asked again twice, a few seconds apart, before the panel says so.
+  const tries = got?.key === key ? got.tries : 0;
   useEffect(() => {
     if (!key) return;
     const missing = key.split(",").filter((w) => !loaded.has(w));
     if (!missing.length) return;
     let live = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const fail = () => {
+      if (!live) return;
+      if (tries < 2) timer = setTimeout(() => live && setGot({ key, ok: true, tries: tries + 1 }), 3000);
+      else setGot({ key, ok: false, tries });
+    };
     fetch(`/api/episodes?sector=${encodeURIComponent(slug)}&w=${missing.join(",")}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(r)))
       .then((j: { episodes: EpisodeData[] }) => {
         for (const e of j.episodes) loaded.set(`${e.from}:${e.to}`, e);
-        if (live) setGot({ key, ok: true });
+        // A window the answer left out would otherwise keep the panel "replaying" for good.
+        if (missing.every((w) => loaded.has(w))) {
+          if (live) setGot({ key, ok: true, tries });
+        } else fail();
       })
-      .catch(() => live && setGot({ key, ok: false }));
+      .catch(fail);
     return () => {
       live = false;
+      clearTimeout(timer);
     };
-  }, [slug, key]);
+  }, [slug, key, tries]);
   if (!key) return { status: "idle" };
   const list = withEp.map((s) => ({ ...s.episode!, scenario: s.title, data: loaded.get(`${s.episode!.from}:${s.episode!.to}`) }));
   if (list.every((e) => e.data)) return { status: "ok", list: list as (ScenarioEpisode & { scenario: string; data: EpisodeData })[] };
@@ -90,5 +102,11 @@ export function rankByHistory(sector: SectorWithSlug, episodes: { data: EpisodeD
 }
 
 /** "+4.2 pts" / "−3.1 pts". */
-export const pts = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(1)} pts`;
-export const fmtDay = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+export const pts = (v: number) => {
+  // Signed by the shown figure, so a tiny move reads "0.0 pts", never "−0.0 pts".
+  const shown = Number(v.toFixed(1));
+  return `${shown > 0 ? "+" : shown < 0 ? "−" : ""}${Math.abs(shown).toFixed(1)} pts`;
+};
+// "12 Sep 2008", as the episode labels write it (the browsers' en-IN and en-GB say "Sept").
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+export const fmtDay = (d: string) => `${Number(d.slice(8, 10))} ${MONTHS[Number(d.slice(5, 7)) - 1]} ${d.slice(0, 4)}`;

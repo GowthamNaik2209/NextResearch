@@ -534,8 +534,8 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
   // scrolled to (a company pick scrolls to its details in the effect above).
   useEffect(() => {
     if (!currentSupplier) panelRef.current?.scrollTo({ top: 0 });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentZoneId, scenarioKey]);
+    // Also on closing a company (Esc), back to its system's top.
+  }, [currentZoneId, scenarioKey, currentSupplier]);
 
   // Sheet handle: a tap steps closed -> peek -> full -> peek; a drag moves it a step up or
   // down (dragging down from peek closes it). Pointer events so it works for touch and mouse.
@@ -647,7 +647,8 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
             // Picking a layer / system / camera view closes the overlay so the model is visible
             // again; the "Systems" dropdown toggle only expands its own list.
             const btn = (e.target as HTMLElement).closest("button");
-            if (btn && !btn.classList.contains("zone-more-btn")) setIsControlsOpen(false);
+            // Grouped scenarios add up, so their menu stays open for the next pick.
+            if (btn && !btn.classList.contains("zone-more-btn") && !btn.closest(".scn-list.grouped")) setIsControlsOpen(false);
           }}
         >
           {!isHeatmap && (

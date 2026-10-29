@@ -7,7 +7,8 @@ import { episodeMoves, type EpisodeWindow } from "@/lib/prices/episodes";
 // Each listed stock's move (and the Nifty 50's) over each past window, from the price store: the
 // explorer's "last time this happened" and its history ranking. Past prices don't change, so the CDN
 // keeps an answer for a day.
-const MAX_WINDOWS = 12;
+// Every scenario's episode at once (26 scenarios today), with room to grow.
+const MAX_WINDOWS = 40;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export async function GET(req: Request) {
@@ -16,7 +17,10 @@ export async function GET(req: Request) {
   const b = getIndustryBasket(q.get("sector") ?? "");
   if (!b) return NextResponse.json({ error: "unknown industry" }, { status: 404 });
   const windows: EpisodeWindow[] = [];
-  for (const part of (q.get("w") ?? "").split(",").filter(Boolean).slice(0, MAX_WINDOWS)) {
+  const parts = (q.get("w") ?? "").split(",").filter(Boolean);
+  // Too many is refused outright: dropping some silently left the explorer waiting for them.
+  if (parts.length > MAX_WINDOWS) return NextResponse.json({ error: "too many windows" }, { status: 400 });
+  for (const part of parts) {
     const [from, to] = part.split(":");
     if (!DATE.test(from ?? "") || !DATE.test(to ?? "") || from >= to) return NextResponse.json({ error: "bad window" }, { status: 400 });
     windows.push({ from, to });

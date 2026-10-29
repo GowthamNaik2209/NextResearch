@@ -44,8 +44,8 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
     stocks: [
       T("bajfinance", 3, "Borrows in the bond market, so funding costs fall fast"),
       T("shriramfin", 3, "High-cost borrower; cheaper money widens its spread"),
-      T("hdfcbank", 1, "More loans, but loan yields reset before deposit costs"),
-      T("kotakbank", 1, "Margins squeezed first as loans reprice"),
+      T("hdfcbank", 1, "Loan yields reset before deposit costs, so margins dip first", "headwind"),
+      T("kotakbank", 1, "Margins squeezed first as loans reprice", "headwind"),
       T("sbilife", 1, "Bond gains help; lower yields squeeze guaranteed-return products"),
       T("hdfclife", 1, "Bond gains help; lower yields squeeze guaranteed-return products"),
       T("bse", 2, "Cheap money brings more trading activity"),
@@ -106,7 +106,7 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
     stocks: [
       T("bajfinance", 3, "Funding costs jump as investors avoid NBFC paper"),
       T("shriramfin", 3, "Truck-loan lender reliant on market funding"),
-      T("jiofin", 2, "Non-bank lender; same funding lens"),
+      T("jiofin", 1, "Non-bank lender, though it borrows little so far"),
       T("bajajfinsv", 2, "Value tied to Bajaj Finance"),
       T("hdfcbank", 1, "Deposit-rich bank gains share", "tailwind"),
       T("icicibank", 1, "Deposit-rich bank gains share", "tailwind"),
@@ -178,7 +178,7 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
       label: "Record-low CPI, May-Aug 2017",
       from: "2017-05-12",
       to: "2017-08-02",
-      note: "CPI fell to a record low near 1.5% in June 2017 and the RBI cut on 2 Aug 2017. A fair analogue for disinflation lifting the market.",
+      note: "CPI fell to what was then a record low, about 1.5%, in June 2017 and the RBI cut on 2 Aug 2017. A fair analogue for disinflation lifting the market.",
     },
   },
   // ---------------------------------------------------------------- Rupee & external
@@ -308,7 +308,7 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
       T("indigo", 3, "Jet fuel is its biggest cost"),
       T("adaniports", 1, "A port, not an airline: only slower trade hurts"),
       T("asianpaint", 3, "Crude derivatives are a big share of costs"),
-      T("titan", 1, "Gold demand matters more than crude"),
+      T("titan", 1, "Inflation squeezes discretionary jewellery buying"),
       T("maruti", 2, "Petrol prices and inflation hit car demand"),
     ],
     episode: {
@@ -339,11 +339,11 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
     stocks: [
       T("ongc", 3, "Lower realisation per barrel", "headwind"),
       T("reliance", 1, "Cheaper feedstock; inventory losses short-term", "tailwind"),
-      T("coalindia", 1, "Little direct link to oil", "headwind"),
+      T("coalindia", 1, "Energy sentiment sours, though its own coal prices barely move", "headwind"),
       T("indigo", 3, "Jet fuel is its biggest cost"),
       T("adaniports", 1, "A port, not an airline: small gain from trade"),
       T("asianpaint", 3, "Crude derivatives are a big share of costs"),
-      T("titan", 1, "Gold, not crude, drives it"),
+      T("titan", 1, "Lower inflation leaves a little more for jewellery; gold prices matter more"),
     ],
     episode: {
       label: "Oil crash, Sep 2014-Jan 2015",
@@ -379,7 +379,7 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
       label: "China stimulus, Sep-Oct 2024",
       from: "2024-09-23",
       to: "2024-10-03",
-      note: "China's rate cuts and property support from 24 Sep 2024 lifted metals; the Nifty peaked on 27 Sep and then fell as foreign money moved to China. A close analogue.",
+      note: "China's rate cuts and property support from 24 Sep 2024 lifted metals; the Nifty hit its record on 26-27 Sep and then fell as foreign money moved to China. A close analogue.",
     },
   },
   {
@@ -493,7 +493,7 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
       T("bajfinance", 2, "Collections disrupted"),
       T("hdfcbank", 1, "Deposits flood in as old notes are banked", "tailwind"),
       T("sbin", 1, "Deposits flood in as old notes are banked", "tailwind"),
-      T("tcs", 1, "Export earner; untouched by domestic cash", "tailwind"),
+      T("tcs", 1, "Earns in dollars: a relative haven when domestic demand stalls", "tailwind"),
     ],
     episode: {
       label: "Demonetisation, Nov-Dec 2016",
@@ -542,7 +542,7 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
     title: "Tax cuts for consumers",
     blurb: "Lower GST and income tax put money in pockets",
     story:
-      "Cutting taxes on everyday goods and on middle-class incomes leaves households more to spend. Cars, two-wheelers, cement and staples gain most because their prices fall directly; retailers and consumer lenders follow. In 2025 the budget cut income tax in February and the GST Council cut rates on many goods from 22 Sep, while tobacco and luxury goods moved to a higher slab.",
+      "Cutting taxes on everyday goods and on middle-class incomes leaves households more to spend. Cars, two-wheelers, cement and staples gain most because their prices fall directly; retailers and consumer lenders follow. In 2025 the budget cut income tax in February and the GST Council cut rates on many goods from 22 Sep, with a new 40% slab for luxury items such as big cars and bikes.",
     effect: "tailwind",
     impacts: [
       S("auto", 3, "Small cars and bikes moved from 28% to 18% GST"),
@@ -553,12 +553,12 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
     ],
     stocks: [
       T("maruti", 3, "Small cars gained most from the cut"),
-      T("eichermot", 1, "Bikes above 350cc moved to the 40% slab", "headwind"),
+      T("eichermot", 2, "Royal Enfield's 350cc bikes moved to 18%; only its bigger bikes went to 40%", "tailwind"),
       T("ultracemco", 2, "Cement price per bag falls"),
       T("bajfinance", 3, "Consumer loans for the purchases"),
       T("itc", 1, "Foods gain; cigarettes left out of the cuts"),
-      T("sbilife", 1, "Premiums GST-free, but loss of input credit hurts margins"),
-      T("hdfclife", 1, "Premiums GST-free, but loss of input credit hurts margins"),
+      T("sbilife", 1, "Premiums now GST-free; lost input credit trims part of the gain"),
+      T("hdfclife", 1, "Premiums now GST-free; lost input credit trims part of the gain"),
       T("trent", 2, "Value fashion gains from more spending"),
     ],
     episode: {
@@ -626,7 +626,7 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
       T("adanient", 3, "Group seen as tied to policy continuity"),
       T("adaniports", 3, "Group seen as tied to policy continuity"),
       T("reliance", 1, "Private, diversified; fell less"),
-      T("indigo", 1, "Private airline; little policy link"),
+      T("indigo", 1, "No policy link, but travel stocks sell off with confidence"),
       T("hindunilvr", 2, "Defensive; welfare spending helps", "tailwind"),
     ],
     episode: {
@@ -665,9 +665,9 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
       T("hindalco", 3, "Novelis debt and aluminium prices"),
       T("lt", 3, "Order cancellations and working capital"),
       T("icicibank", 3, "Overseas exposure and funding fears"),
-      T("hindunilvr", 1, "Defensive staples"),
-      T("itc", 1, "Defensive cash generator"),
-      T("ongc", 1, "Lower crude also cuts its subsidy burden"),
+      T("hindunilvr", 1, "Defensive staples fall less than the market", "tailwind"),
+      T("itc", 1, "Defensive cash generator; falls less than the market", "tailwind"),
+      T("ongc", 1, "Crude collapses with world demand, cutting what it earns per barrel"),
     ],
     episode: {
       label: "Lehman collapse, Sep-Oct 2008",
@@ -763,7 +763,7 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
       S("it", 1, "Weaker rupee helps", "tailwind"),
     ],
     stocks: [
-      T("hdfcbank", 3, "Largest foreign holding in India"),
+      T("hdfcbank", 1, "Largest foreign holding, though domestic funds tend to absorb the selling"),
       T("reliance", 2, "Large foreign holding"),
       T("trent", 3, "Expensive growth name derated"),
       T("eternal", 2, "Expensive growth name derated"),
@@ -771,10 +771,10 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
       T("indigo", 1, "Weaker rupee raises dollar costs"),
     ],
     episode: {
-      label: "FPI selloff, Oct 2024-Feb 2025",
-      from: "2024-09-27",
+      label: "FPI selloff, Sep 2024-Feb 2025",
+      from: "2024-09-26",
       to: "2025-02-28",
-      note: "From the Nifty's record close on 27 Sep 2024, record FPI selling, weak earnings and a strong dollar took it down about 15% by end-February. A close analogue.",
+      note: "From the Nifty's record close on 26 Sep 2024, record FPI selling, weak earnings and a strong dollar took it down about 15% by end-February. A close analogue.",
     },
   },
   {
@@ -805,7 +805,7 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
       T("hindunilvr", 1, "Defensive; lags in a risk-on rally"),
     ],
     episode: {
-      label: "Fed pivot rally, Nov-Dec 2023",
+      label: "Fed pivot rally, Oct-Dec 2023",
       from: "2023-10-26",
       to: "2023-12-29",
       note: "US yields peaked in October 2023 and the Fed signalled cuts in December; heavy FPI buying took the Nifty up about 15% from 26 Oct. State election wins in early December added to it.",
@@ -828,7 +828,7 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
     stocks: [
       T("bel", 3, "Air-defence, radar and EW orders", "tailwind"),
       T("indigo", 2, "Northern airports shut and routes diverted"),
-      T("adaniports", 1, "A port, not an airline; little direct effect"),
+      T("adaniports", 1, "Not an airline, but group stocks sell off on risk"),
       T("adanient", 1, "Airports in affected regions close"),
       T("lt", 1, "Defence business gains", "tailwind"),
     ],
