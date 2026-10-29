@@ -428,14 +428,18 @@ function LineChart({ dates, series, height = 150 }: { dates: string[]; series: L
   return (
     <div className="px-3 pb-2">
       <div className="flex min-h-5 flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] sm:text-[11px]" aria-live="polite">
-        <span className="font-mono text-ink-soft">{dates[at] ? day(dates[at]) : ""}</span>
+        {/* Fixed widths for the date and each figure (as wide as the longest they can be), so the
+            row never re-wraps, and the chart below never moves, as the crosshair moves. */}
+        <span className="inline-block font-mono tabular-nums text-ink-soft" style={{ minWidth: `${day("2000-12-31").length}ch` }}>
+          {dates[at] ? day(dates[at]) : ""}
+        </span>
         {series.map((s) => {
           const v = s.values[at];
           return (
             <span key={s.name} className="inline-flex items-center gap-1">
               <span className="inline-block h-0.5 w-3" style={{ background: s.color }} aria-hidden />
               <span className="text-ink-soft">{s.name}</span>
-              <span className="font-mono font-semibold text-ink">{v == null ? NA : fmt(v)}</span>
+              <span className="inline-block min-w-[6ch] text-right font-mono font-semibold tabular-nums text-ink">{v == null ? NA : fmt(v)}</span>
             </span>
           );
         })}
