@@ -5,6 +5,11 @@
 // all of this, so server code can keep importing "@/lib/sector-content".
 import { syntheticTicker } from "@/lib/slugify";
 
+export type SectorCategory = "sector" | "policy" | "index";
+
+/** What a theme is called in running text: "industry", "policy" or "index". */
+export const categoryWord = (c: SectorCategory | undefined) => (c === "policy" ? "policy" : c === "index" ? "index" : "industry");
+
 export type SectorView = {
   id: string;
   label: string;
@@ -162,8 +167,13 @@ export type SectorDef = {
   // value chain; "policy" groups by a single government/regulatory move and the
   // stocks it benefits (e.g. ALMM -> domestic solar module manufacturing) - same
   // underlying zones/suppliers/3D-explorer shape, just a different entry point
-  // and filtered into its own tab on the landing page.
-  category?: "sector" | "policy";
+  // and filtered into its own tab on the landing page. "index" is a market index (the Nifty 50):
+  // its stocks grouped by the index provider's own industries, shown as a heatmap instead of a 3D
+  // model (see `stage`), listed first under All and never a company's home while it has another.
+  category?: SectorCategory;
+  // "heatmap": the explorer's stage is a stock heatmap (HeatmapStage) instead of the three.js model;
+  // layers and camera views are not shown and `build` is never called.
+  stage?: "model" | "heatmap";
   // True hides this sector's landing-page card behind the same muted,
   // non-clickable "Coming soon" treatment as a _comingSoon placeholder, while
   // keeping its real zones/suppliers/3D build intact and still reachable by
@@ -209,7 +219,7 @@ export type SectorDef = {
   portraitFit?: boolean;
 };
 
-export type ComingSoonSector = { icon: string; name: string; tagline: string; category?: "sector" | "policy" };
+export type ComingSoonSector = { icon: string; name: string; tagline: string; category?: SectorCategory };
 
 // A sector plus the registry key it is addressed by in URLs.
 export type SectorWithSlug = SectorDef & { slug: string };

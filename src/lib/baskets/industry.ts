@@ -2,7 +2,7 @@
 // sector maps, so it is derived here rather than stored, and changes whenever the content does.
 // The same per-stock record (name, market cap, role, every industry it appears in) backs the
 // rows of saved baskets and the watchlist.
-import { listSectors, findSupplierByTicker, parseCrore } from "@/lib/sector-content";
+import { listSectors, findSupplierByTicker, parseCrore, type SectorCategory } from "@/lib/sector-content";
 import { getCompanyPage, companySlug, listCompanyPages, primaryAppearance } from "@/lib/sector-content/companies";
 import { getCompanyFootprint } from "@/lib/sector-content/exposure";
 import { sectorBenchmarks, type Benchmark } from "@/lib/sector-content/benchmarks";
@@ -40,7 +40,7 @@ export type IndustryBasket = {
   name: string;
   icon: string;
   tagline: string;
-  category: "sector" | "policy";
+  category: SectorCategory;
   stocks: BasketStock[];
   indices: Benchmark[];
 };

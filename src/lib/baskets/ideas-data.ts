@@ -41,7 +41,8 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
 export function ideaStockInfo(): IdeaStockInfo[] {
   // Each stock's strongest place in a layer with only one or two listed suppliers.
   const scarce = new Map<string, NonNullable<IdeaStockInfo["scarce"]>>();
-  for (const s of listSectors().filter((x) => !x.muted)) {
+  // An index's industries hold every big company in them, not a scarce supplier: left out.
+  for (const s of listSectors().filter((x) => !x.muted && x.category !== "index")) {
     for (const z of s.zones) {
       const listed = new Map<string, number>();
       for (const link of z.suppliers) {
@@ -60,7 +61,7 @@ export function ideaStockInfo(): IdeaStockInfo[] {
       }
     }
   }
-  const policySlugs = new Set(listSectors().filter((x) => x.category === "policy").map((x) => x.slug));
+  const policySlugs = new Set(listSectors().filter((x) => x.category === "policy" || x.category === "index").map((x) => x.slug));
   return listBasketUniverse().map((st) => {
     const f = findSupplierByTicker(st.ticker)?.f;
     // The company table's snapshot (kpi is [pe, bookValue, divYield, roce, roe, faceValue]).
@@ -76,7 +77,7 @@ export function ideaStockInfo(): IdeaStockInfo[] {
       np: f?.np ?? undefined,
       outlier: !!detectOutlier(f),
       trust: /\b(REIT|InvIT)\b|Trust\b/i.test(st.name),
-      // Industries only: a policy map (PLI, ALMM) isn't another industry the company sells into.
+      // Industries only: a policy map (PLI, ALMM) or the Nifty 50 isn't another industry the company sells into.
       industries: st.industries.filter((i) => !policySlugs.has(i.slug)).length,
       policies: st.industries.filter((i) => policySlugs.has(i.slug)).length,
       notIpo: /\b(REIT|InvIT)\b|Trust\b/i.test(st.name) || st.ticker in HISTORY_FROM,

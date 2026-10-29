@@ -23,6 +23,8 @@ export type FootprintZone = {
 export type FootprintSector = {
   sectorSlug: string;
   sectorName: string;
+  /** A market index (the Nifty 50), not an industry or policy: it doesn't make a company "connected". */
+  isIndex?: boolean;
   zones: FootprintZone[];
   /** Deep link to the company in this sector's 3D explorer. */
   href: string;
@@ -57,6 +59,7 @@ function build(): Map<string, CompanyFootprint> {
       fp.sectors.push({
         sectorSlug: s.slug,
         sectorName: s.name,
+        ...(s.category === "index" ? { isIndex: true } : {}),
         zones: e.zones,
         href: `/sector/${s.slug}/explore?zone=${encodeURIComponent(first.id)}&company=${encodeURIComponent(e.firstKey)}`,
       });
@@ -78,10 +81,11 @@ export function footprintScore(fp: CompanyFootprint): number {
   return n;
 }
 
-/** Companies present in 2+ sectors, widest footprint first. */
+/** Companies present in 2+ sectors (an index doesn't count), widest footprint first. */
 export function listConnectedCompanies(): CompanyFootprint[] {
   cache ??= build();
   return [...cache.values()]
+    .map((c) => (c.sectors.some((s) => s.isIndex) ? { ...c, sectors: c.sectors.filter((s) => !s.isIndex) } : c))
     .filter((c) => c.sectors.length > 1)
     .sort(
       (a, b) =>

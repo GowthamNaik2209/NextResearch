@@ -89,11 +89,13 @@ for (const sector of listSectors()) {
   if (!sector.muted) {
     if (listScenarios(sector.slug).length === 0) fail(`[${sector.slug}] live sector has no scenarios (src/lib/sector-content/scenarios.ts)`);
     if (getResearchForSector(sector.slug).length === 0) fail(`[${sector.slug}] live sector has no reading-list links (src/lib/sector-content/docs.ts)`);
-    if (!sector.integratorZoneId) fail(`[${sector.slug}] live sector has no integratorZoneId`);
+    // An index (the Nifty 50) has no end assembler and, for now, no deck of its own.
+    const isIndex = sector.category === "index";
+    if (!sector.integratorZoneId && !isIndex) fail(`[${sector.slug}] live sector has no integratorZoneId`);
     if (!sector.whyNow?.length || !sector.thesisSummary?.length) fail(`[${sector.slug}] live sector is missing whyNow/thesisSummary`);
     const report = getReport(sector.slug);
-    if (!report) fail(`[${sector.slug}] live sector has no research deck (src/lib/sector-content/reports/)`);
-    else validateReport(report, sector).forEach(fail);
+    if (report) validateReport(report, sector).forEach(fail);
+    else if (!isIndex) fail(`[${sector.slug}] live sector has no research deck (src/lib/sector-content/reports/)`);
   }
 
   checkTypedFigures({ ...sector, views: undefined }, `[${sector.slug}]`);

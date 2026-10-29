@@ -33,7 +33,7 @@ export default async function CompaniesPage() {
         <div>
           <h1 className="font-display text-3xl font-bold text-ink">Companies</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            {companies.length} listed Indian companies, each placed in the supply-chain layers it actually serves. Pick one to see its
+            {companies.length} listed Indian companies, each placed in the supply-chain layers it actually serves (and Nifty 50 members under their NSE industry). Pick one to see its
             role, its peers in each layer and its financials.
           </p>
         </div>

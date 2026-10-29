@@ -15,15 +15,17 @@ export const getPlatformStats = memoByFinancials(() => {
   const tickers = new Set<string>();
   const listedTickers = new Set<string>();
   let zones = 0;
+  // The Nifty 50 adds its companies, but it is not a map: its industries aren't systems and it isn't
+  // counted among the industries and policies.
   for (const s of sectors) {
-    zones += s.zones.length;
+    if (s.category !== "index") zones += s.zones.length;
     for (const sup of Object.values(s.suppliers)) {
       const t = tickerForSupplier(sup);
       tickers.add(t);
       if (sup.listed) listedTickers.add(t);
     }
   }
-  return { sectors: sectors.length, zones, companies: tickers.size, listed: listedTickers.size };
+  return { sectors: sectors.filter((s) => s.category !== "index").length, zones, companies: tickers.size, listed: listedTickers.size };
 });
 
 export type SearchEntry = {
@@ -58,7 +60,7 @@ const contentIndex = memoByFinancials((): SearchEntry[] => {
   const out: SearchEntry[] = sectors.map((s) => ({
     kind: "sector" as const,
     label: s.name,
-    sub: s.category === "policy" ? "Policy" : "Industry",
+    sub: s.category === "policy" ? "Policy" : s.category === "index" ? "Index" : "Industry",
     href: `/sector/${s.slug}`,
   }));
   const companies = new Map<string, { name: string; listed: boolean; ticker: string; sectors: string[]; href: string; zone: string }>();

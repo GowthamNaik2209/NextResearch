@@ -39,6 +39,8 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
   const sector = getSector(slug);
   if (!sector) notFound();
   const deck = buildDeck(slug);
+  // An index without a deck (the Nifty 50) has no report page; its reading list is on its overview.
+  if (!deck && sector.category === "index") notFound();
   // The deck's own reading list first, then any hub links it does not already include.
   const seen = new Set(deck?.report.reading.map((l) => l.url));
   const links = [...(deck?.report.reading ?? []), ...getResearchForSector(slug).filter((l) => !seen.has(l.url))];

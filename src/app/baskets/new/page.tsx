@@ -12,7 +12,7 @@ import { compareProps, pickerProps } from "@/lib/baskets/page-props";
 import { ensureFinancials } from "@/lib/financials/load";
 import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk-data";
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
-import { primarySector } from "@/lib/sector-content";
+import { categoryWord, primarySector } from "@/lib/sector-content";
 
 export const metadata = { title: "Create a basket", robots: { index: false, follow: false } };
 
@@ -71,7 +71,7 @@ export default async function NewBasketPage({ searchParams }: { searchParams: Pr
     back = { href: `/baskets/ideas/${idea.id}`, label: idea.title };
     industry = dominantIndustry(all.map((s) => s.ticker));
   } else if (ind) {
-    const word = ind.category === "policy" ? "policy" : "industry";
+    const word = categoryWord(ind.category);
     all = ind.stocks;
     name = `My ${ind.name} basket`;
     description = `Starting from the ${ind.name} ${word} basket. Take off the stocks you don’t want, add others, then create it as your basket.`;

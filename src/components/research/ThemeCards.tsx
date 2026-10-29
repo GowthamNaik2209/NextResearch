@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { NA, croreShort } from "@/lib/format";
+import type { SectorCategory } from "@/lib/sector-content/core";
 
 // The Analysis "Deep dive" view: one card per industry or policy (it used to be the landing page's
 // Themes grid). The card opens the industry's page; its Charts button opens the stock chart pop-up there.
@@ -10,7 +11,7 @@ export type SectorCard = {
   icon: string;
   name: string;
   tagline: string;
-  category?: "sector" | "policy";
+  category?: SectorCategory;
   muted?: boolean;
   zones: number;
   companies: number;
@@ -19,7 +20,7 @@ export type SectorCard = {
   medianRoce: number | null;
   combinedRevenueCr: number | null;
 };
-export type ComingSoonSector = { icon: string; name: string; tagline: string; category?: "sector" | "policy" };
+export type ComingSoonSector = { icon: string; name: string; tagline: string; category?: SectorCategory };
 
 export type ThemeTab = "sector" | "policy" | "ipo";
 /** Fired by the hero's theme window to open the Analysis block's Deep dive on a tab ("all" from "Browse deep dives"). */
@@ -92,7 +93,7 @@ export function ThemeCards({
           <div className="flex gap-2 font-mono text-[11px] text-ink-soft">
             <span>
               {/* `zones` counts the map's systems (zones), not its 3-5 peel-away layers. */}
-              <b className="text-ink">{s.zones}</b> systems
+              <b className="text-ink">{s.zones}</b> {s.category === "index" ? "industries" : "systems"}
             </span>
             <span>·</span>
             <span>

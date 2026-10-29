@@ -1,0 +1,333 @@
+// @ts-nocheck
+// Nifty 50 - index content: the 50 stocks of NSE's flagship index, grouped by NSE's own industry
+// classification (from its Nifty 50 constituent file, Oct 2026), with the popular six-bucket view
+// (financials, tech, consumption, energy & materials, infrastructure, healthcare) as domains.
+// Shown as a heatmap, not a 3D model: zones carry no real positions and build() draws nothing.
+// Same untyped authored shape as a PRODUCTS.* entry in ../products.ts (see SectorDef in ../index.ts).
+// `h` hands over products.ts's shared helpers: co() (a company's figures by ticker, from the database), ASOF, SRC.
+
+export function defineNifty50(h) {
+  const { co, ASOF } = h;
+
+  const op = (key) => ({ key, exposureType: "operator", exposureStrength: "high" });
+
+  return {
+    id: "nifty50", icon: "50", name: "Nifty 50",
+    tagline: "India's 50 largest listed companies, grouped by industry - see which part of the market is moving the index",
+    category: "index",
+    stage: "heatmap",
+    headerTitle: "NIFTY 50",
+    headerSub: "NSE's flagship index of 50 large, liquid companies across 15 industries - banks and lenders are the biggest block, followed by IT, oil & gas, autos and consumer staples",
+    whyNow: [
+      "Most Indian mutual fund, ETF and FPI money is benchmarked to the Nifty 50, so its moves set the tone for the whole market.",
+      "Banks and lenders are well over a third of the index - RBI rate and liquidity moves now flow straight into it.",
+      "IT, the second-largest block, is caught between US tariff and visa costs and AI changing how services are bought.",
+      "Consumption got a lift from the Sept 2025 GST rate cuts and income-tax relief; the question is whether it lasts into FY28.",
+    ],
+    thesisSummary: [
+      "The index is a bet on Indian credit growth first: private banks, SBI and NBFCs drive most of its earnings.",
+      "Exporters (IT, pharma, parts of autos and metals) hedge a weak rupee; domestic plays (banks, FMCG, cement, power) ride Indian growth.",
+      "Energy, metals and cement are the cyclical end - commodity prices and government capex decide their year.",
+      "Concentration is the risk: a handful of the largest names move the whole index, so a stock-level event can look like a market call.",
+    ],
+    featuredSignals: [
+      "RBI policy rate, liquidity and bank credit vs deposit growth",
+      "FPI flows and the rupee vs the US dollar",
+      "Brent crude and India's import bill",
+      "US tech spending, tariffs and H-1B rules (IT exporters)",
+      "Monthly GST collections, auto sales and rural demand",
+      "Government capex and the order books of L&T, BEL and the power utilities",
+    ],
+    dataStatus: "demo",
+    layerNames: ["Nifty 50"],
+    shellMaxOpacity: 1, exoBaseOpacity: 1,
+    defaultView: "overview",
+    views: [{ id: "overview", label: "Overview", pos: [0, 0, 10], target: [0, 0, 0] }],
+    domains: [
+      {id:"financials", title:"Financials", shortTitle:"Financials", description:"Banks, NBFCs, insurers, an exchange and a financial holding company - the largest block of the index, driven by credit growth, deposit costs and asset quality.", color:"#1F5FAD", relatedDomains:["consumption","infra"]},
+      {id:"tech", title:"Technology & Telecom", shortTitle:"Tech", description:"IT services exporters and India's leading telecom operator - dollar earners and a domestic data business.", color:"#7A4FC7", relatedDomains:["financials"]},
+      {id:"consumption", title:"Consumption", shortTitle:"Consumption", leadZoneId:"fmcg", description:"Staples, durables, retail, food delivery and vehicles - what Indian households spend on, from soap to SUVs.", color:"#D9822B", relatedDomains:["financials","healthcare"]},
+      {id:"energy", title:"Energy & Materials", shortTitle:"Energy", description:"Oil, gas, coal, power, metals and cement - the commodity and utility end of the index, tied to global prices and government capex.", color:"#B23A3A", relatedDomains:["infra"]},
+      {id:"infra", title:"Infrastructure & Industrials", shortTitle:"Infra", description:"Construction, defence electronics, ports and the largest airline - the capex and logistics side of the economy.", color:"#2E8B57", relatedDomains:["energy","financials"]},
+      {id:"healthcare", title:"Healthcare", shortTitle:"Healthcare", description:"Drugmakers selling in India and the US, and hospital chains growing beds in Indian cities.", color:"#0E9AA7", relatedDomains:["consumption"]},
+    ],
+    zones: [
+      {id:"fin", color:"#1F5FAD", label:"Financial Services", layer:0, pos:[0,0,0], side:"left",
+       desc:"Private and public banks, consumer and vehicle lenders, life insurers, an exchange and two holding companies.",
+       domainId:"financials", displayOrder:1, dataStatus:"demo",
+       roleInSystem:"Banks take deposits and lend to households and companies; NBFCs fill gaps in consumer, vehicle and small-business credit; insurers pool long-term savings; BSE runs a stock exchange. Together they are by far the largest industry in the Nifty 50 - well over a third of the index.",
+       whyItMatters:"Because the block is so large, the index rarely moves far without the big private banks and SBI. Credit growth, deposit costs and bad loans in this group are the main driver of Nifty earnings.",
+       valuePoolDescription:"Large private banks earn the best returns on equity through cheap current and savings deposits and cross-selling; SBI wins on scale and government links; consumer NBFCs earn high yields with higher credit risk. Insurers and the exchange are fee businesses with lighter balance sheets.",
+       bottlenecks:["Deposit growth lagging loan growth, pushing up funding costs", "RBI rules on risk weights, liquidity and unsecured lending", "Stress in unsecured personal loans and microfinance"],
+       keyDrivers:["RBI rate cuts and liquidity (lower funding costs, faster credit growth)", "Retail and small-business credit demand", "Household savings moving into insurance, funds and markets"],
+       keyRisks:["Net interest margins squeezed as loan rates reset down faster than deposit rates", "A turn in the credit cycle (unsecured, small business, vehicles)", "Regulatory action on products, derivatives trading or insurance commissions"],
+       investorMetrics:["Loan and deposit growth, loan-to-deposit ratio", "Net interest margin and cost of funds", "Gross NPA, credit cost and slippages", "Insurance new-business margin (VNB)"],
+       relatedComponents:["auto","consvc","construction"],
+       suppliers:[op("hdfcbank"), op("icicibank"), op("sbin"), op("bajfinance"), op("kotakbank"), op("axisbank"), op("bajajfinsv"), op("jiofin"), op("sbilife"), op("hdfclife"), op("shriramfin"), op("bse")]},
+
+      {id:"it", color:"#7A4FC7", label:"Information Technology", layer:0, pos:[0,0,0], side:"left",
+       desc:"India's largest IT services exporters, earning mostly in US dollars from US and European clients.",
+       domainId:"tech", displayOrder:2, dataStatus:"demo",
+       roleInSystem:"IT services firms build and run software, cloud and back-office systems for global banks, retailers, manufacturers and telcos, mostly from Indian delivery centres. The group is roughly a tenth of the index, the second-largest industry.",
+       whyItMatters:"IT is the index's main dollar earner and a hedge when the rupee weakens. It also sets the tone for white-collar hiring in India.",
+       valuePoolDescription:"Large, cash-rich businesses with high returns on capital and steady dividends and buybacks. Growth now depends on winning AI, cloud and cost-cutting deals, as generative AI shrinks the effort (and fees) on traditional work.",
+       bottlenecks:["Client budgets in the US and Europe", "Visa costs and onshore staffing rules", "Pricing pressure as AI automates coding and support"],
+       keyDrivers:["US and European tech and outsourcing spend", "Large cost-takeout and AI deals", "A weaker rupee lifting margins"],
+       keyRisks:["US slowdown or tariff shock hitting client spending", "Higher US H-1B fees and immigration curbs", "AI-led deflation in contract values"],
+       investorMetrics:["Constant-currency revenue growth", "Large-deal wins (total contract value)", "EBIT margin", "Headcount and utilisation"],
+       relatedComponents:["telecom","fin"],
+       suppliers:[op("tcs"), op("infy"), op("hcltech"), op("techm")]},
+
+      {id:"oilgas", color:"#B23A3A", label:"Oil Gas & Consumable Fuels", layer:0, pos:[0,0,0], side:"left",
+       desc:"Reliance's refining-to-retail-to-telecom conglomerate, the state oil producer ONGC and the coal monopoly Coal India.",
+       domainId:"energy", displayOrder:3, dataStatus:"demo",
+       roleInSystem:"Produces and refines India's crude oil, gas and coal - the fuels behind transport, power and industry. Reliance alone is one of the index's largest weights, making this group close to a tenth of the Nifty.",
+       whyItMatters:"Crude and coal prices feed straight into inflation, the rupee and power costs. Reliance's moves often decide the index's day on their own.",
+       valuePoolDescription:"Upstream producers (ONGC, Coal India) earn more when global prices are high but face government pricing and windfall taxes. Reliance mixes refining margins with consumer businesses (Jio, retail) that are valued separately.",
+       bottlenecks:["Government control of gas, fuel and coal pricing", "Ageing domestic oil fields", "Rail and evacuation capacity for coal"],
+       keyDrivers:["Global crude, gas and coal prices", "Refining margins", "Jio and retail growth at Reliance"],
+       keyRisks:["Windfall taxes or subsidy burdens when prices spike", "Energy transition reducing long-run coal and oil demand", "Russian crude discounts and sanctions shifting refinery economics"],
+       investorMetrics:["Gross refining margin", "Oil and gas output", "Coal offtake and e-auction premium", "Jio ARPU and subscriber growth"],
+       relatedComponents:["power","metals","telecom"],
+       suppliers:[op("reliance"), op("ongc"), op("coalindia")]},
+
+      {id:"auto", color:"#D9822B", label:"Automobile and Auto Components", layer:0, pos:[0,0,0], side:"left",
+       desc:"India's largest car, SUV, tractor, motorcycle and premium-motorcycle makers, plus Jaguar Land Rover's owner.",
+       domainId:"consumption", displayOrder:4, dataStatus:"demo",
+       roleInSystem:"Designs, builds and sells cars, SUVs, tractors and two-wheelers to Indian households and export markets. The group is a mid-sized block of the index, a little smaller than IT.",
+       whyItMatters:"Vehicle sales are a fast read on household confidence, rural incomes and credit availability. The Sept 2025 GST cut on small cars and two-wheelers reset prices and demand.",
+       valuePoolDescription:"SUVs and premium motorcycles carry the best margins; entry cars and scooters are price-sensitive. Exports (Bajaj, Maruti) and JLR (Tata Motors PV) add overseas exposure.",
+       bottlenecks:["Rare-earth magnets and chips sourced largely from China", "Dealer inventory and financing", "EV battery cell supply"],
+       keyDrivers:["GST rate cuts and income-tax relief lifting affordability", "Rural incomes and the monsoon (tractors, two-wheelers)", "New SUV and EV launches"],
+       keyRisks:["Demand fading once the GST-cut boost passes", "EV transition eroding incumbents' share", "Commodity cost spikes (steel, aluminium)"],
+       investorMetrics:["Monthly wholesale and retail volumes", "Market share by segment", "EBITDA margin", "Export volumes"],
+       relatedComponents:["metals","fin","fmcg"],
+       suppliers:[op("maruti"), op("mm"), op("bajajauto"), op("eichermot"), op("tmpv")]},
+
+      {id:"fmcg", color:"#E0A526", label:"Fast Moving Consumer Goods", layer:0, pos:[0,0,0], side:"left",
+       desc:"Soap, shampoo, packaged food, tea, coffee and cigarettes - daily essentials sold through millions of shops.",
+       domainId:"consumption", displayOrder:5, dataStatus:"demo",
+       roleInSystem:"Makes and distributes everyday household products. ITC and Hindustan Unilever dominate the group, which is a mid-sized defensive block of the index.",
+       whyItMatters:"Staples are where investors hide when growth slows. Their volume growth is the cleanest read on mass-market and rural spending.",
+       valuePoolDescription:"Strong brands and deep distribution give high returns on capital and steady cash flow. Growth is now contested by quick-commerce, D2C brands and regional players, and by input-cost swings (palm oil, tea, coffee, wheat).",
+       bottlenecks:["Slow urban mass-market demand", "Input inflation in edible oils, tea, coffee and cocoa", "Shelf-space shifting to quick-commerce apps"],
+       keyDrivers:["Rural demand after a good monsoon", "GST cuts on everyday items (Sept 2025)", "Premium products and new channels"],
+       keyRisks:["Higher tax on cigarettes (ITC)", "Competition from smaller, faster brands", "Commodity cost spikes squeezing margins"],
+       investorMetrics:["Underlying volume growth", "Gross margin", "Rural vs urban growth", "Share of sales via quick-commerce"],
+       relatedComponents:["durables","consvc","auto"],
+       suppliers:[op("itc"), op("hindunilvr"), op("nestleind"), op("tataconsum")]},
+
+      {id:"telecom", color:"#9B59B6", label:"Telecommunication", layer:0, pos:[0,0,0], side:"left",
+       desc:"Bharti Airtel - mobile, broadband and enterprise data in India and across Africa.",
+       domainId:"tech", displayOrder:6, dataStatus:"demo",
+       roleInSystem:"Runs mobile and fixed networks carrying India's calls and data. Bharti Airtel is the only telecom stock in the index and one of its largest single weights.",
+       whyItMatters:"India's mobile market is now effectively a two-player game (Jio and Airtel) with a weak third, so tariff hikes flow to profits. Airtel's weight alone makes it an index mover.",
+       valuePoolDescription:"Heavy upfront spend on spectrum and towers, then strong cash flow as average revenue per user (ARPU) rises. Africa and enterprise data add growth.",
+       bottlenecks:["Spectrum costs and auction timing", "Fibre and tower rollout", "Regulatory approval for tariff moves"],
+       keyDrivers:["Tariff hikes and premium (postpaid, 5G) mix", "Home broadband and enterprise data", "Africa growth"],
+       keyRisks:["Price competition if Vodafone Idea is revived", "African currency swings", "Spectrum and AGR-type dues"],
+       investorMetrics:["ARPU", "Subscriber adds and postpaid share", "Capex intensity", "Net debt"],
+       relatedComponents:["it","oilgas"],
+       suppliers:[op("bhartiartl")]},
+
+      {id:"construction", color:"#2E8B57", label:"Construction", layer:0, pos:[0,0,0], side:"left",
+       desc:"Larsen & Toubro - India's largest engineering and construction company.",
+       domainId:"infra", displayOrder:7, dataStatus:"demo",
+       roleInSystem:"Builds roads, metros, power and water projects, factories, refineries and defence platforms in India and the Middle East. L&T is the only construction stock in the index, a few percent of it.",
+       whyItMatters:"L&T's order book is the market's best single read on government and private capex in India and Gulf energy spending.",
+       valuePoolDescription:"A large, diversified order book gives multi-year revenue visibility; margins are thin in civil construction and better in hydrocarbons, defence and its IT subsidiaries.",
+       bottlenecks:["Land acquisition and approvals delay projects", "Working capital tied up in government receivables", "Skilled labour"],
+       keyDrivers:["Union and state capex budgets", "Middle East oil and gas projects", "Private manufacturing capex"],
+       keyRisks:["Slowdown in government spending", "Fixed-price contracts hit by cost overruns", "Geopolitical risk in the Gulf"],
+       investorMetrics:["Order inflow and order book", "Core EPC margin", "Share of international orders", "Working capital days"],
+       relatedComponents:["capgoods","constmat","power"],
+       suppliers:[op("lt")]},
+
+      {id:"health", color:"#0E9AA7", label:"Healthcare", layer:0, pos:[0,0,0], side:"left",
+       desc:"Drugmakers selling branded and generic medicines in India and the US, and India's two largest listed hospital chains.",
+       domainId:"healthcare", displayOrder:8, dataStatus:"demo",
+       roleInSystem:"Makes medicines for Indian and export markets and runs private hospitals in big cities. The group is a few percent of the index - smaller than its role in the economy.",
+       whyItMatters:"Pharma is a defensive export earner; hospitals are one of the clearest structural growth stories as insurance coverage and incomes rise.",
+       valuePoolDescription:"Specialty and complex generics earn more than plain US generics, which face price erosion. Hospitals earn more per bed as they mature, so new beds dilute margins first.",
+       bottlenecks:["USFDA inspections of plants", "Doctor and nurse supply for new hospital beds", "Price control on essential drugs in India"],
+       keyDrivers:["Specialty drug launches in the US", "GLP-1 (semaglutide) generics as patents expire in several markets", "New hospital beds and rising revenue per bed"],
+       keyRisks:["US tariffs or pricing rules on drugs", "Price erosion in US generics", "Regulatory caps on hospital pricing"],
+       investorMetrics:["US sales and new launches", "USFDA inspection outcomes", "Hospital occupancy and revenue per occupied bed (ARPOB)"],
+       relatedComponents:["fmcg","fin"],
+       suppliers:[op("sunpharma"), op("cipla"), op("maxhealth"), op("apollohosp"), op("drreddy")]},
+
+      {id:"metals", color:"#6B6E76", label:"Metals & Mining", layer:0, pos:[0,0,0], side:"left",
+       desc:"India's two largest steelmakers, the aluminium-copper major Hindalco, and the Adani group's flagship incubator.",
+       domainId:"energy", displayOrder:9, dataStatus:"demo",
+       roleInSystem:"Mines, smelts and rolls the steel, aluminium and copper used in construction, cars and packaging. NSE also places Adani Enterprises here because coal trading and mining are a large part of its revenue. A few percent of the index.",
+       whyItMatters:"Metals are the most cyclical block: they lead when China and global demand recover and fall hardest when prices drop.",
+       valuePoolDescription:"Integrated producers with captive iron ore or bauxite earn through the cycle; Indian steel enjoys safeguard-duty protection against cheap imports. Hindalco's Novelis adds a global rolled-aluminium business.",
+       bottlenecks:["Coking coal imports for steel", "Iron ore and bauxite mining approvals", "Carbon costs, including Europe's CBAM border tax"],
+       keyDrivers:["Indian infrastructure and housing steel demand", "Global aluminium and copper prices", "Safeguard duty on steel imports"],
+       keyRisks:["Chinese steel exports pushing prices down", "Coking coal price spikes", "Group-level governance and legal risk (Adani)"],
+       investorMetrics:["Steel and aluminium realisations", "EBITDA per tonne", "Net debt", "Capacity additions"],
+       relatedComponents:["auto","construction","constmat","oilgas"],
+       suppliers:[op("jswsteel"), op("tatasteel"), op("adanient"), op("hindalco")]},
+
+      {id:"power", color:"#F2C230", label:"Power", layer:0, pos:[0,0,0], side:"left",
+       desc:"NTPC, India's largest power generator, and Power Grid, which runs most of the inter-state transmission network.",
+       domainId:"energy", displayOrder:10, dataStatus:"demo",
+       roleInSystem:"Generates and transmits electricity. Both are state-controlled utilities with regulated returns, a small single-digit share of the index.",
+       whyItMatters:"Power demand is rising with AC use, data centres and manufacturing, and renewables need new transmission lines - both companies sit in the path of that capex.",
+       valuePoolDescription:"Regulated return on equity gives steady, bond-like earnings and dividends. Growth comes from new capacity: renewables and nuclear at NTPC, new lines at Power Grid.",
+       bottlenecks:["Land and right-of-way for lines", "Coal supply for thermal plants", "Equipment (transformers, turbines) lead times"],
+       keyDrivers:["Peak power demand growth", "Renewable energy and transmission tenders", "Government capex in the grid"],
+       keyRisks:["Weaker-than-expected demand in cool, wet summers", "Competitive bidding lowering transmission returns", "State distribution company dues"],
+       investorMetrics:["Capacity added and under construction", "Plant load factor", "Regulated equity base", "Capex vs plan"],
+       relatedComponents:["oilgas","construction","capgoods"],
+       suppliers:[op("ntpc"), op("powergrid")]},
+
+      {id:"durables", color:"#C0507E", label:"Consumer Durables", layer:0, pos:[0,0,0], side:"left",
+       desc:"Titan (jewellery, watches, eyewear) and Asian Paints (decorative paints).",
+       domainId:"consumption", displayOrder:11, dataStatus:"demo",
+       roleInSystem:"Sells discretionary, brand-led products to middle- and upper-income households. A small slice of the index.",
+       whyItMatters:"Both are long-time compounders whose growth tracks urban affluence, weddings and home upgrades.",
+       valuePoolDescription:"Brand and distribution moats give high returns. Paint margins depend on crude-linked raw materials and competition; jewellery depends on gold prices and studded mix.",
+       bottlenecks:["Gold price swings change jewellery demand and inventory value", "Dealer reach in smaller towns", "Raw material costs (crude derivatives, titanium dioxide)"],
+       keyDrivers:["Urban discretionary spending", "Wedding season and festive demand", "Housing and repainting cycles"],
+       keyRisks:["New paint competition (Birla Opus, JSW) cutting prices", "Gold price spikes hurting volumes", "Slow urban demand"],
+       investorMetrics:["Volume vs value growth (paints)", "Jewellery like-for-like growth", "Gross margin", "Store and dealer additions"],
+       relatedComponents:["fmcg","consvc","constmat"],
+       suppliers:[op("titan"), op("asianpaint")]},
+
+      {id:"consvc", color:"#E8684A", label:"Consumer Services", layer:0, pos:[0,0,0], side:"left",
+       desc:"Eternal (Zomato, Blinkit) and Trent (Westside, Zudio) - food delivery, quick commerce and value fashion retail.",
+       domainId:"consumption", displayOrder:12, dataStatus:"demo",
+       roleInSystem:"Runs consumer platforms and store chains for urban India. A small but fast-growing part of the index.",
+       whyItMatters:"These are the market's new-economy consumption plays, valued on growth rather than current profits, so they swing more than staples.",
+       valuePoolDescription:"Food delivery is now profitable and a two-player market; quick commerce is growing fast but still investing heavily. Trent's value fashion earns high store returns.",
+       bottlenecks:["Dark-store and store real estate in cities", "Delivery fleet and labour rules for gig workers", "Supply of trend-led apparel"],
+       keyDrivers:["Urban consumption and convenience spending", "Store and dark-store expansion", "Higher order values and ad income"],
+       keyRisks:["Quick-commerce price war burning cash", "Slowing same-store growth", "Rich valuations that fall hard on misses"],
+       investorMetrics:["Gross order value growth", "Contribution and adjusted EBITDA margin", "Store additions and revenue per sq ft"],
+       relatedComponents:["fmcg","durables","fin"],
+       suppliers:[op("eternal"), op("trent")]},
+
+      {id:"constmat", color:"#9C6B30", label:"Construction Materials", layer:0, pos:[0,0,0], side:"left",
+       desc:"UltraTech, India's largest cement maker, and its parent Grasim (fibres, chemicals, paints, financial services).",
+       domainId:"energy", displayOrder:13, dataStatus:"demo",
+       roleInSystem:"Makes the cement used in housing and infrastructure. A small slice of the index, tied closely to construction activity.",
+       whyItMatters:"Cement demand is a direct read on housing and government infrastructure spend; the industry is consolidating around UltraTech and Adani's Ambuja.",
+       valuePoolDescription:"Scale, limestone reserves and logistics decide costs. Prices are regional and seasonal; consolidation is improving pricing power.",
+       bottlenecks:["Limestone reserves and mining approvals", "Fuel (pet coke, coal) and freight costs", "Monsoon months slow construction"],
+       keyDrivers:["Housing and infrastructure demand", "Industry consolidation", "Lower fuel costs"],
+       keyRisks:["Price wars as new capacity arrives", "Fuel cost spikes", "Heavy acquisition spending"],
+       investorMetrics:["Volume growth and capacity utilisation", "Realisation and EBITDA per tonne", "Capacity additions"],
+       relatedComponents:["construction","metals","durables"],
+       suppliers:[op("ultracemco"), op("grasim")]},
+
+      {id:"capgoods", color:"#3D5A80", label:"Capital Goods", layer:0, pos:[0,0,0], side:"left",
+       desc:"Bharat Electronics - India's largest defence electronics maker.",
+       domainId:"infra", displayOrder:14, dataStatus:"demo",
+       roleInSystem:"Makes radars, missile systems, communication and electronic-warfare equipment, mostly for the Indian armed forces. The only capital-goods stock in the index, a small weight.",
+       whyItMatters:"BEL is the market's main listed play on India's push to buy defence equipment made at home.",
+       valuePoolDescription:"A large order book from the defence ministry gives years of visibility; margins are healthy for a state company. Exports and non-defence work are small but growing.",
+       bottlenecks:["Timing of large defence orders", "Imported components and chips", "Execution capacity"],
+       keyDrivers:["Defence capex and 'Make in India' procurement", "Air-defence and radar demand after recent conflicts", "Exports"],
+       keyRisks:["Order delays", "Margin pressure on large system contracts", "Rich valuation"],
+       investorMetrics:["Order inflow and order book", "EBITDA margin", "Execution (revenue vs guidance)"],
+       relatedComponents:["construction","power"],
+       suppliers:[op("bel")]},
+
+      {id:"services", color:"#1E9E76", label:"Services", layer:0, pos:[0,0,0], side:"left",
+       desc:"Adani Ports, the largest private port operator, and IndiGo, India's dominant airline.",
+       domainId:"infra", displayOrder:15, dataStatus:"demo",
+       roleInSystem:"Moves India's cargo and air travellers. A small slice of the index.",
+       whyItMatters:"Port volumes track trade; air traffic tracks discretionary travel. Both companies have dominant shares of their markets.",
+       valuePoolDescription:"Ports earn high margins once built and gain from logistics add-ons; airlines are thin-margin and fuel-sensitive, with IndiGo the clear low-cost leader.",
+       bottlenecks:["Airport slots and aircraft deliveries", "Engine availability (grounded planes)", "Port land and hinterland rail links"],
+       keyDrivers:["Trade volumes and container growth", "Domestic air traffic growth", "International expansion"],
+       keyRisks:["Jet fuel price spikes and a weak rupee (airline)", "Global trade slowdown and tariffs (ports)", "Regulatory penalties and group-level governance risk"],
+       investorMetrics:["Cargo volumes", "Airline yield and load factor", "Cost per available seat km"],
+       relatedComponents:["oilgas","construction"],
+       suppliers:[op("adaniports"), op("indigo")]},
+    ],
+    suppliers: {
+      // ---- Financial Services ----
+      hdfcbank: {name:"HDFC Bank", listed:true, role:"India's largest private bank, now also carrying the former HDFC Ltd's home-loan book after the 2023 merger", dataStatus:"demo", sourceDate:ASOF, strengths:["Largest deposit franchise among private banks and a long record of low bad loans", "Subsidiaries in insurance (HDFC Life), funds (HDFC AMC) and broking add fee income"], risks:["Still working down a high loan-to-deposit ratio left by the merger, which limits loan growth", "Margins pressured as policy rate cuts reprice loans faster than deposits"], f:co("HDFCBANK")},
+      icicibank: {name:"ICICI Bank", listed:true, role:"Second-largest private bank, strong in retail and business banking with a digital-first model", dataStatus:"demo", sourceDate:ASOF, strengths:["Consistently high return on assets and among the lowest credit costs in the sector", "Well-capitalised, with insurance, AMC and broking subsidiaries"], risks:["Leadership succession at the top after a long, successful tenure", "Unsecured retail and small-business stress if the cycle turns"], f:co("ICICIBANK")},
+      sbin: {name:"State Bank of India", listed:true, role:"India's largest bank by assets and branches, majority owned by the government", dataStatus:"demo", sourceDate:ASOF, strengths:["Unmatched deposit base and reach across rural and urban India", "Valuable subsidiaries (SBI Life, SBI Cards, SBI Funds)"], risks:["Government ownership can push it into policy lending and wage settlements", "Large corporate book exposes it to infrastructure and power stress"], f:co("SBIN")},
+      bajfinance: {name:"Bajaj Finance", listed:true, role:"India's largest consumer lender (NBFC) - consumer durables, personal, small-business, gold and home loans", dataStatus:"demo", sourceDate:ASOF, strengths:["Huge customer base and point-of-sale financing network cross-sold through its app", "Strong risk analytics and access to cheap funding"], risks:["Rising credit costs in unsecured personal and small-business loans", "RBI tightening on unsecured lending and NBFC risk weights"], f:co("BAJFINANCE")},
+      kotakbank: {name:"Kotak Mahindra Bank", listed:true, role:"Private bank with a large wealth, broking, asset management and insurance group", dataStatus:"demo", sourceDate:ASOF, strengths:["Conservative balance sheet with one of the highest capital ratios", "Diversified earnings from Kotak Securities, AMC and life insurance"], risks:["Lost growth during the 2024 RBI ban on digital onboarding (lifted Feb 2025)", "Slower deposit growth than larger peers"], f:co("KOTAKBANK")},
+      axisbank: {name:"Axis Bank", listed:true, role:"Third-largest private bank, with a big credit-card and corporate book enlarged by Citi's India consumer business", dataStatus:"demo", sourceDate:ASOF, strengths:["Citi India integration added affluent customers and a large card base", "Strong corporate and transaction banking"], risks:["Weaker deposit franchise than HDFC Bank and ICICI Bank", "Credit-card and unsecured retail stress"], f:co("AXISBANK")},
+      bajajfinsv: {name:"Bajaj Finserv", listed:true, role:"Holding company owning a majority of Bajaj Finance and the group's life and general insurers", dataStatus:"demo", sourceDate:ASOF, strengths:["Took full ownership of the insurance businesses by buying out Allianz's stakes", "Exposure to lending, insurance and asset management in one stock"], risks:["Trades at a holding-company discount to the sum of its parts", "Its value moves mostly with Bajaj Finance"], f:co("BAJAJFINSV")},
+      jiofin: {name:"Jio Financial Services", listed:true, role:"Reliance group's financial-services arm, demerged in 2023 - lending, payments, insurance broking and a BlackRock joint venture in asset management and broking", dataStatus:"demo", sourceDate:ASOF, strengths:["Reliance's customer reach (Jio, retail) and strong capital base", "JVs with BlackRock (funds, broking) and Allianz (reinsurance)"], risks:["Earnings are still small relative to its valuation", "New, unproven businesses in crowded markets"], f:co("JIOFIN")},
+      sbilife: {name:"SBI Life Insurance", listed:true, role:"One of India's largest private life insurers, selling mainly through SBI's branch network", dataStatus:"demo", sourceDate:ASOF, strengths:["Cheapest distribution in the industry via SBI's branches", "Large protection and savings book with steady renewals"], risks:["Heavy reliance on a single bank channel", "Loss of input tax credit after the 2025 GST exemption on individual policies, and surrender-value rules"], f:co("SBILIFE")},
+      hdfclife: {name:"HDFC Life Insurance", listed:true, role:"Leading private life insurer, selling through HDFC Bank and other banks and agents", dataStatus:"demo", sourceDate:ASOF, strengths:["Strong product range across savings, protection and annuities", "Bank tie-up with HDFC Bank's large customer base"], risks:["Margin pressure from GST changes and regulatory caps on commissions and surrender charges", "Competition from bank-owned and new insurers"], f:co("HDFCLIFE")},
+      shriramfin: {name:"Shriram Finance", listed:true, role:"Largest lender for used commercial vehicles, also lending to small businesses and on gold", dataStatus:"demo", sourceDate:ASOF, strengths:["Deep reach among truck owners and small businesses that banks rarely serve", "Japan's MUFG agreed to take a large minority stake, lowering its funding cost"], risks:["Freight and rural cycles drive borrowers' ability to repay", "Higher funding cost than banks"], f:co("SHRIRAMFIN")},
+      bse: {name:"BSE", listed:true, role:"Asia's oldest stock exchange, now a fast-growing equity derivatives venue after relaunching Sensex options", dataStatus:"demo", sourceDate:ASOF, strengths:["Gained a large share of index-options trading against NSE", "High-margin fee business with operating leverage"], risks:["SEBI curbs on retail derivatives trading and expiry days hit volumes", "Earnings concentrated in options trading"], f:co("BSE")},
+
+      // ---- Information Technology ----
+      tcs: {name:"Tata Consultancy Services", listed:true, role:"India's largest IT services company and the Tata group's main profit engine", dataStatus:"demo", sourceDate:ASOF, strengths:["Scale, client relationships across banking and retail, and best-in-class margins", "Large cash returns through dividends and buybacks"], risks:["Slowest growth in years as clients cut discretionary spend", "Workforce restructuring and AI reshaping its labour-heavy model"], f:co("TCS")},
+      infy: {name:"Infosys", listed:true, role:"Second-largest IT services company, strong in digital, cloud and consulting-led deals", dataStatus:"demo", sourceDate:ASOF, strengths:["Strong large-deal wins and cost-takeout work", "Topaz AI platform and deep client relationships in financial services"], risks:["US tariffs and H-1B fee increases raise onshore costs", "Dependence on US financial services and retail clients"], f:co("INFY")},
+      hcltech: {name:"HCL Technologies", listed:true, role:"IT services company with a large infrastructure-management business and its own software products", dataStatus:"demo", sourceDate:ASOF, strengths:["Software products (HCLSoftware) add higher-margin, recurring revenue", "Leading in infrastructure and engineering services"], risks:["Software segment growth is uneven", "Client-specific ramp-downs and pricing pressure"], f:co("HCLTECH")},
+      techm: {name:"Tech Mahindra", listed:true, role:"Mahindra group's IT services arm, heavy in telecom clients, in a margin turnaround", dataStatus:"demo", sourceDate:ASOF, strengths:["Turnaround plan under CEO Mohit Joshi has lifted margins from lows", "Deep telecom and network expertise"], risks:["Telecom clients' spending is weak globally", "Margins still below larger peers"], f:co("TECHM")},
+
+      // ---- Oil Gas & Consumable Fuels ----
+      reliance: {name:"Reliance Industries", listed:true, role:"India's largest company - oil-to-chemicals refining, Jio telecom, Reliance Retail and a new-energy giga-factory build-out", dataStatus:"demo", sourceDate:ASOF, strengths:["Jio and Retail are market leaders that could be valued separately through listings", "One of the world's most complex refineries"], risks:["Refining and petrochemical margins are cyclical", "Heavy capex in new energy before returns show"], f:co("RELIANCE")},
+      ongc: {name:"Oil and Natural Gas Corporation", listed:true, role:"State-owned producer of most of India's crude oil and gas, also owning HPCL and a stake in IOC", dataStatus:"demo", sourceDate:ASOF, strengths:["Dominant domestic producer with large reserves", "Higher prices allowed for gas from new wells"], risks:["Output from ageing fields keeps declining", "Government can impose windfall taxes or subsidy sharing"], f:co("ONGC")},
+      coalindia: {name:"Coal India", listed:true, role:"State-owned miner producing most of India's coal, the fuel behind most of its electricity", dataStatus:"demo", sourceDate:ASOF, strengths:["Near-monopoly with low-cost open-cast mines", "High dividend payout"], risks:["Slow coal demand when renewables and hydro run strong", "Long-term energy transition and e-auction price swings"], f:co("COALINDIA")},
+
+      // ---- Automobile and Auto Components ----
+      maruti: {name:"Maruti Suzuki India", listed:true, role:"India's largest carmaker, a Suzuki subsidiary, now also a major car exporter", dataStatus:"demo", sourceDate:ASOF, strengths:["Widest dealer and service network in the country", "Small cars benefited most from the Sept 2025 GST cut"], risks:["Lost share in SUVs to Mahindra, Tata and Hyundai", "Late to EVs, launching its first EV only recently"], f:co("MARUTI")},
+      mm: {name:"Mahindra & Mahindra", listed:true, role:"India's leading SUV and tractor maker, with stakes in financial services, IT (Tech Mahindra) and electric SUVs", dataStatus:"demo", sourceDate:ASOF, strengths:["Leads in SUVs with strong brands (Scorpio, XUV, Thar)", "Market leader in tractors, a direct play on rural incomes"], risks:["Tractor demand swings with the monsoon", "Heavy EV investment"], f:co("M&M")},
+      bajajauto: {name:"Bajaj Auto", listed:true, role:"Motorcycle and three-wheeler maker with the largest export business among Indian two-wheeler companies, and control of KTM", dataStatus:"demo", sourceDate:ASOF, strengths:["Exports to Latin America, Africa and Asia diversify demand", "Growing electric scooter (Chetak) and three-wheeler share"], risks:["KTM's turnaround under Bajaj ownership carries execution risk", "Competition in entry motorcycles and EV scooters"], f:co("BAJAJ-AUTO")},
+      eichermot: {name:"Eicher Motors", listed:true, role:"Owner of Royal Enfield, the dominant mid-size (250-750cc) motorcycle brand, and a truck and bus JV with Volvo", dataStatus:"demo", sourceDate:ASOF, strengths:["Near-monopoly in its segment with strong pricing power", "Growing exports and new models"], risks:["Higher GST (40%) on motorcycles above 350cc since Sept 2025 hits its larger models", "Competition from Triumph-Bajaj, Harley-Hero and Honda"], f:co("EICHERMOT")},
+      tmpv: {name:"Tata Motors PV", listed:true, role:"Tata Motors' passenger-vehicle company after the Oct 2025 demerger - Indian cars and EVs plus Jaguar Land Rover", dataStatus:"demo", sourceDate:ASOF, strengths:["Leader in Indian electric cars", "JLR's luxury Range Rover and Defender brands earn most of the profit"], risks:["JLR was shut for weeks by a cyberattack in late 2025 and faces US tariffs on UK-built cars", "JLR's shift to EVs needs heavy spending"], f:co("TMPV")},
+
+      // ---- Fast Moving Consumer Goods ----
+      itc: {name:"ITC", listed:true, role:"India's largest cigarette maker, also in packaged foods, paperboard and agri-business", dataStatus:"demo", sourceDate:ASOF, strengths:["Cigarette business generates very high cash flow and dividends", "Fast-growing foods portfolio (Aashirvaad, Sunfeast, Bingo)"], risks:["Steep rise in excise on cigarettes from Feb 2026 hurts volumes and pricing", "Paperboard business faces cheap imports"], f:co("ITC")},
+      hindunilvr: {name:"Hindustan Unilever", listed:true, role:"India's largest FMCG company (soaps, detergents, shampoo, tea) and a Unilever subsidiary", dataStatus:"demo", sourceDate:ASOF, strengths:["Biggest distribution network and a portfolio of leading brands", "Strong cash generation and high return on capital"], risks:["Slow volume growth and competition from smaller and D2C brands", "Royalty payments to Unilever and portfolio changes such as the ice-cream demerger"], f:co("HINDUNILVR")},
+      nestleind: {name:"Nestle India", listed:true, role:"Maker of Maggi noodles, Nescafe, KitKat and infant nutrition", dataStatus:"demo", sourceDate:ASOF, strengths:["Category-leading brands with pricing power", "Very high return on capital"], risks:["Cocoa, coffee and milk cost inflation", "Higher royalty to the Swiss parent"], f:co("NESTLEIND")},
+      tataconsum: {name:"Tata Consumer Products", listed:true, role:"Tata group's food and beverage company - tea, salt, coffee, pulses, Ching's and Capital Foods", dataStatus:"demo", sourceDate:ASOF, strengths:["Tata Salt and Tata Tea are national brands with wide reach", "Acquisitions (Capital Foods, Organic India) add faster-growing categories"], risks:["Tea price swings squeeze margins", "Integrating acquisitions while growing new categories"], f:co("TATACONSUM")},
+
+      // ---- Telecommunication ----
+      bhartiartl: {name:"Bharti Airtel", listed:true, role:"India's second-largest mobile operator by subscribers and the highest earner per user, with large African operations", dataStatus:"demo", sourceDate:ASOF, strengths:["Highest ARPU in the industry thanks to premium and postpaid customers", "Airtel Africa and Indus Towers add growth and infrastructure value"], risks:["Tariff hikes depend on competitors following", "Spectrum and network capex needs"], f:co("BHARTIARTL")},
+
+      // ---- Construction ----
+      lt: {name:"Larsen & Toubro", listed:true, role:"India's largest engineering and construction company, also owning stakes in LTIMindtree and L&T Technology Services", dataStatus:"demo", sourceDate:ASOF, strengths:["Record order book across infrastructure, hydrocarbons and defence", "Strong position in Middle East oil and gas projects"], risks:["Thin margins on large fixed-price civil projects", "Dependence on Gulf orders exposes it to regional conflict"], f:co("LT")},
+
+      // ---- Healthcare ----
+      sunpharma: {name:"Sun Pharmaceutical Industries", listed:true, role:"India's largest drugmaker, with a growing US specialty business (Ilumya and other branded drugs)", dataStatus:"demo", sourceDate:ASOF, strengths:["Leader in Indian branded generics", "Specialty drugs in the US earn high margins"], risks:["US tariffs on branded drugs could hit its specialty business", "USFDA issues at some plants"], f:co("SUNPHARMA")},
+      cipla: {name:"Cipla", listed:true, role:"Drugmaker strong in respiratory medicines in India, the US and South Africa", dataStatus:"demo", sourceDate:ASOF, strengths:["Leader in inhalers and respiratory drugs", "Strong Indian branded business"], risks:["Sales of its generic cancer drug (lenalidomide) in the US are tapering off", "New CEO from 2026 needs to deliver new US launches"], f:co("CIPLA")},
+      maxhealth: {name:"Max Healthcare Institute", listed:true, role:"One of India's largest hospital chains, focused on north India and expanding beds fast", dataStatus:"demo", sourceDate:ASOF, strengths:["High revenue per bed and strong margins", "Large pipeline of new beds in big cities"], risks:["New beds dilute margins as they ramp up", "Rich valuation"], f:co("MAXHEALTH")},
+      apollohosp: {name:"Apollo Hospitals Enterprise", listed:true, role:"India's largest hospital chain, also running pharmacies, diagnostics and the Apollo 24/7 digital platform", dataStatus:"demo", sourceDate:ASOF, strengths:["Trusted brand across hospitals, pharmacies and clinics", "Pharmacy and digital health business being restructured into a separate entity"], risks:["Digital and pharmacy business still losing money", "Heavy capex for new hospitals"], f:co("APOLLOHOSP")},
+      drreddy: {name:"Dr. Reddy's Laboratories", listed:true, role:"Generic drugmaker selling mainly in the US, India, Russia and Europe", dataStatus:"demo", sourceDate:ASOF, strengths:["Early mover in semaglutide (GLP-1) generics in markets where the patent expired", "Strong balance sheet with little debt"], risks:["Its key US generic (lenalidomide) is fading", "Price erosion in US generics"], f:co("DRREDDY")},
+
+      // ---- Metals & Mining ----
+      jswsteel: {name:"JSW Steel", listed:true, role:"India's largest steelmaker by capacity, expanding fast", dataStatus:"demo", sourceDate:ASOF, strengths:["Rapid capacity growth and modern plants", "Protected by safeguard duty on steel imports"], risks:["High debt from expansion", "Depends on imported coking coal"], f:co("JSWSTEEL")},
+      tatasteel: {name:"Tata Steel", listed:true, role:"Steelmaker with large Indian plants and European operations in the Netherlands and the UK", dataStatus:"demo", sourceDate:ASOF, strengths:["Low-cost Indian operations with captive iron ore", "Switching UK steelmaking to cleaner electric-arc furnaces"], risks:["European operations have lost money for years", "Steel price cycles and Chinese exports"], f:co("TATASTEEL")},
+      adanient: {name:"Adani Enterprises", listed:true, role:"Adani group's incubator - airports, roads, data centres, green hydrogen and solar manufacturing, plus coal trading and mining (why NSE classifies it under Metals & Mining)", dataStatus:"demo", sourceDate:ASOF, strengths:["Owns India's largest private airport network", "Incubates new businesses that can be listed later"], risks:["US charges against group leaders (Nov 2024) and governance questions", "Heavy debt to fund many large projects at once"], f:co("ADANIENT")},
+      hindalco: {name:"Hindalco Industries", listed:true, role:"Aditya Birla group's aluminium and copper major, owner of Novelis (global rolled aluminium)", dataStatus:"demo", sourceDate:ASOF, strengths:["Integrated from bauxite to aluminium in India", "Novelis supplies beverage cans and car makers worldwide"], risks:["A 2025 fire at Novelis's Oswego plant disrupted supply", "Aluminium price swings"], f:co("HINDALCO")},
+
+      // ---- Power ----
+      ntpc: {name:"NTPC", listed:true, role:"India's largest power generator, mainly coal-fired, adding renewables (NTPC Green) and nuclear", dataStatus:"demo", sourceDate:ASOF, strengths:["Regulated returns give steady earnings", "Big renewable pipeline and nuclear plans"], risks:["Coal supply and cost", "Slower demand in mild summers"], f:co("NTPC")},
+      powergrid: {name:"Power Grid Corporation of India", listed:true, role:"State-owned operator of most of India's inter-state transmission lines", dataStatus:"demo", sourceDate:ASOF, strengths:["Regulated, steady returns and high dividend", "Large pipeline of lines to connect renewables"], risks:["Competitive bidding lowers returns on new lines", "Execution delays from right-of-way issues"], f:co("POWERGRID")},
+
+      // ---- Consumer Durables ----
+      titan: {name:"Titan Company", listed:true, role:"Tata group's jewellery (Tanishq), watches and eyewear company", dataStatus:"demo", sourceDate:ASOF, strengths:["Tanishq is India's most trusted jewellery brand", "Gains share from unorganised jewellers"], risks:["High gold prices reduce volumes", "Expansion abroad is costly"], f:co("TITAN")},
+      asianpaint: {name:"Asian Paints", listed:true, role:"India's largest decorative paint company", dataStatus:"demo", sourceDate:ASOF, strengths:["Largest dealer network and strong brand", "High return on capital"], risks:["New entrants (Birla Opus, JSW Paints) cut prices and margins", "Raw material cost swings"], f:co("ASIANPAINT")},
+
+      // ---- Consumer Services ----
+      eternal: {name:"Eternal (Zomato)", listed:true, role:"Parent of Zomato (food delivery), Blinkit (quick commerce), District (going out) and Hyperpure", dataStatus:"demo", sourceDate:ASOF, strengths:["Profitable food delivery business with a strong share", "Blinkit leads quick commerce in many cities"], risks:["Quick-commerce competition (Swiggy Instamart, Zepto, Flipkart, Amazon) burns cash", "Gig-worker rules and costs"], f:co("ETERNAL")},
+      trent: {name:"Trent", listed:true, role:"Tata group's fashion retailer - Westside, Zudio and Star", dataStatus:"demo", sourceDate:ASOF, strengths:["Zudio's value fashion has driven very fast store growth", "High store returns"], risks:["Same-store growth has slowed", "Premium valuation"], f:co("TRENT")},
+
+      // ---- Construction Materials ----
+      ultracemco: {name:"UltraTech Cement", listed:true, role:"India's largest cement maker, part of the Aditya Birla group", dataStatus:"demo", sourceDate:ASOF, strengths:["Biggest capacity and national reach", "Recent acquisitions (India Cements, Kesoram) add capacity in the south"], risks:["Cement price wars", "Fuel cost spikes"], f:co("ULTRACEMCO")},
+      grasim: {name:"Grasim Industries", listed:true, role:"Aditya Birla group holding company - parent of UltraTech, plus viscose fibre, chemicals, Birla Opus paints and Aditya Birla Capital", dataStatus:"demo", sourceDate:ASOF, strengths:["Controls UltraTech and Aditya Birla Capital", "Birla Opus has quickly become a big paint player"], risks:["Heavy spending on paints before profits", "Viscose fibre and chemicals are cyclical"], f:co("GRASIM")},
+
+      // ---- Capital Goods ----
+      bel: {name:"Bharat Electronics", listed:true, role:"State-owned defence electronics maker - radars, missiles and communication systems", dataStatus:"demo", sourceDate:ASOF, strengths:["Large order book from the armed forces", "Air-defence and radar demand rising after recent conflicts"], risks:["Timing of large orders", "Rich valuation"], f:co("BEL")},
+
+      // ---- Services ----
+      adaniports: {name:"Adani Ports and SEZ", listed:true, role:"India's largest private port operator, also running logistics and ports abroad (Israel, Australia, Sri Lanka)", dataStatus:"demo", sourceDate:ASOF, strengths:["Largest share of India's port cargo", "Logistics and marine services add growth"], risks:["Group-level governance concerns", "Global trade slowdown"], f:co("ADANIPORTS")},
+      indigo: {name:"InterGlobe Aviation (IndiGo)", listed:true, role:"India's largest airline with most of the domestic market, now expanding into long-haul flights", dataStatus:"demo", sourceDate:ASOF, strengths:["Dominant share and lowest costs", "Large aircraft order book"], risks:["Mass cancellations in Dec 2025 under new pilot-rest rules led to regulator action", "Jet fuel prices and a weak rupee"], f:co("INDIGO")},
+    },
+    build: function () { return {}; },
+  };
+}

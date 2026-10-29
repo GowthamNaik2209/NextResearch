@@ -13,6 +13,7 @@
 // or refresh a company's figures with scripts/refresh-financials.ts, never in these files.
 // NEWS here is unused by the app (curated headlines are read from
 // prisma/seed-source/extracted.json by ./insights.ts) and kept for the extract script.
+import nifty50 from "./sectors/nifty50";
 import ev4w from "./sectors/ev4w";
 import semiconductors from "./sectors/semiconductors";
 import datacenter from "./sectors/datacenter";
@@ -162,7 +163,7 @@ import { ASOF, SRC } from "./sectors/shared";
  // and works for any product that follows this contract. A new sector also needs
  // its loader line in ./sectors/load.ts (validate:content checks the two match).
  // ======================================================================
- var PRODUCTS = { ev4w, semiconductors, datacenter, railways, naval, aerospace, telecom5g, solarmodules, energy, realestate, pharma, semicon2, rareearth, defenceproc, ecms };
+ var PRODUCTS = { nifty50, ev4w, semiconductors, datacenter, railways, naval, aerospace, telecom5g, solarmodules, energy, realestate, pharma, semicon2, rareearth, defenceproc, ecms };
 
  PRODUCTS._comingSoon = [
  {icon:"PH", name:"Smartphone", tagline:"Display, SoC, camera module & battery supply chain"},
