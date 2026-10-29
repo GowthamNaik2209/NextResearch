@@ -175,6 +175,18 @@ const ALIASES: Record<string, string[]> = {
   MINDACORP: ["minda corp", "spark minda"],
   BHARATFORG: ["bharat forge", "kalyani strategic"],
   CGPOWER: ["cg power", "cg semi"],
+  // Nifty 50 names (Oct 2026).
+  RELIANCE: ["reliance", "ril", "reliance jio", "reliance retail"],
+  KOTAKBANK: ["kotak bank", "kotak mahindra bank"],
+  HINDUNILVR: ["hul"],
+  HCLTECH: ["hcl tech", "hcltech"],
+  INDIGO: ["indigo"],
+  ETERNAL: ["zomato", "blinkit"],
+  EICHERMOT: ["eicher", "royal enfield"],
+  TITAN: ["titan"],
+  TRENT: ["zudio"],
+  ADANIPORTS: ["apsez"],
+  MAXHEALTH: ["max healthcare"],
 };
 // Headlines that name the company but are about a sibling it no longer owns. Tata Motors
 // demerged in Oct 2025: the commercial-vehicle business kept the "Tata Motors Ltd" name (TMCV),
@@ -187,6 +199,12 @@ const NOT_ABOUT: Record<string, RegExp> = {
   // The US region, not the company.
   MIDWESTLTD: /\b(us|u s|american|the) midwest\b|\bmidwest (farmers?|states?|region|storms?|weather|drought|crops?)/i,
   BPL: /\bbpl (cards?|card ?holders?|families|households|category|list|beneficiar)|below (the )?poverty/i,
+  // The exchange's indices and listings, not the company's own news.
+  BSE: /\b(bse )?sensex\b|\bbse[- ](listed|smallcap|midcap|500|100|200|sme)\b|\bon (the )?bse\b|\bnse (and|&) bse\b|\bbse (and|&) nse\b/i,
+  // Unilever plc and the global group, not its Indian listing.
+  HINDUNILVR: /\bunilever (plc|ceo|global|group)\b/i,
+  // The word and the moon of Saturn, not the jeweller; the lost submersible.
+  TITAN: /\btitan (submersible|sub|moon)\b|\boceangate\b/i,
 };
 // Tickers that are ordinary words ("US Embassy ..."), so they don't identify the company on their own.
 const WORD_TICKERS = new Set(["EMBASSY", "ACI"]);
@@ -198,8 +216,15 @@ const OTHER_COMPANIES = [
   "Tata Motors Commercial", "Tata Motors CV", "Siemens Energy", "Waaree Renewable", "Borosil Ltd", "Kirloskar Ferrous",
   "Kirloskar Industries", "Motherson Sumi Systems", "Indian Railway Catering", "Mahanagar Gas",
   "Sun Pharma Advanced Research", "Torrent Power", "Zydus Wellness", "Apollo Tyres", "Piramal Enterprises", "Piramal Finance",
-  "Aarti Industries", "Abbott Laboratories", "Embassy Developments", "Bosch Ltd", "SBI Life", "SBI Cards", "SBI Card",
-  "SBI Funds", "SBI Mutual Fund", "SBI General", "HDFC Life", "HDFC AMC", "Brookfield Asset Management",
+  "Aarti Industries", "Abbott Laboratories", "Embassy Developments", "Bosch Ltd", "SBI Cards", "SBI Card",
+  "SBI Funds", "SBI Mutual Fund", "SBI General", "HDFC AMC", "HDFC Asset Management", "HDFC Securities", "HDFC Ergo",
+  "ICICI Prudential", "ICICI Lombard", "ICICI Securities", "ICICI Pru", "Axis Mutual Fund", "Axis Securities", "Axis Finance",
+  "Axis Max Life", "Kotak Mahindra AMC", "Kotak Securities", "Kotak Mutual Fund", "Bajaj Housing Finance", "Bajaj Allianz",
+  "Bajaj Electricals", "Bajaj Consumer", "Bajaj Hindusthan", "Reliance Power", "Reliance Infrastructure", "Reliance Infra",
+  "Reliance Capital", "Reliance Communications", "Reliance Home Finance", "Reliance Nippon", "Reliance General Insurance",
+  "Jio BlackRock", "ITC Hotels", "HCL Infosystems", "Indigo Paints", "Max Financial", "Max Life", "Max Estates",
+  "Shriram Properties", "Shriram Pistons", "Power Grid InvIT", "PowerGrid InvIT", "Tata Investment", "Nestle SA",
+  "Brookfield Asset Management",
   "Midwest Energy", "Midwest Advanced Materials", "Bajaj Auto Credit", "Hinduja Leyland Finance", "ACI Worldwide",
   "Jyoti Structures", "Kalyani Steels", "Ola Cabs", "ASM International", "Bharat FIH", "Indian Rare Earths",
   "NMDC Steel", "TVS Supply Chain", "TVS Srichakra", "TVS Holdings",

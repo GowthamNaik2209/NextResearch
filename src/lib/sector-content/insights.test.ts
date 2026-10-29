@@ -42,7 +42,8 @@ test("news is newest-first and never dated in the future", () => {
 
 test("platform stats and per-sector numbers are derived from the content", () => {
   const stats = getPlatformStats();
-  assert.equal(stats.sectors, listSectors().filter((s) => !s.muted).length);
+  // The Nifty 50 is an index, not one of the industries and policies the strip counts.
+  assert.equal(stats.sectors, listSectors().filter((s) => !s.muted && s.category !== "index").length);
   assert.ok(stats.listed > 0 && stats.listed <= stats.companies);
   const n = sectorNumbers("datacenter");
   assert.ok(n.medianPe != null && n.medianRoce != null && n.combinedRevenueCr != null);

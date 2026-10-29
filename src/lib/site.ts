@@ -29,7 +29,7 @@ export const SITE_DESCRIPTION =
  */
 export function themeNames(max = Infinity): string {
   const names = listSectors()
-    .filter((s) => !s.muted)
+    .filter((s) => !s.muted && s.category !== "index")
     .map((s) => midSentence(s.name.replace(/\s*\(.*?\)/g, "").split(" / ")[0].trim()));
   if (names.length > max) return `${names.slice(0, max).join(", ")} and more`;
   return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : names.join("");

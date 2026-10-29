@@ -8,7 +8,7 @@
 import { companyLinkKey, listSectorSlugs, listSectors, tickerForSupplier } from "../src/lib/sector-content/index.js";
 import { SECTOR_LOADERS } from "../src/lib/sector-content/sectors/load.js";
 import { getResearchForSector } from "../src/lib/sector-content/docs.js";
-import { listScenarios } from "../src/lib/sector-content/scenarios.js";
+import { listScenarioSections, listScenarios } from "../src/lib/sector-content/scenarios.js";
 import { getReport } from "../src/lib/sector-content/reports/index.js";
 import { validateReport } from "../src/lib/sector-content/reports/validate.js";
 
@@ -89,11 +89,13 @@ for (const sector of listSectors()) {
   if (!sector.muted) {
     if (listScenarios(sector.slug).length === 0) fail(`[${sector.slug}] live sector has no scenarios (src/lib/sector-content/scenarios.ts)`);
     if (getResearchForSector(sector.slug).length === 0) fail(`[${sector.slug}] live sector has no reading-list links (src/lib/sector-content/docs.ts)`);
-    if (!sector.integratorZoneId) fail(`[${sector.slug}] live sector has no integratorZoneId`);
+    // An index (the Nifty 50) has no end assembler and, for now, no deck of its own.
+    const isIndex = sector.category === "index";
+    if (!sector.integratorZoneId && !isIndex) fail(`[${sector.slug}] live sector has no integratorZoneId`);
     if (!sector.whyNow?.length || !sector.thesisSummary?.length) fail(`[${sector.slug}] live sector is missing whyNow/thesisSummary`);
     const report = getReport(sector.slug);
-    if (!report) fail(`[${sector.slug}] live sector has no research deck (src/lib/sector-content/reports/)`);
-    else validateReport(report, sector).forEach(fail);
+    if (report) validateReport(report, sector).forEach(fail);
+    else if (!isIndex) fail(`[${sector.slug}] live sector has no research deck (src/lib/sector-content/reports/)`);
   }
 
   checkTypedFigures({ ...sector, views: undefined }, `[${sector.slug}]`);
@@ -107,6 +109,20 @@ for (const sector of listSectors()) {
     scenarioIds.add(sc.id);
     for (const imp of sc.impacts) {
       if (!zoneIds.has(imp.zone)) fail(`[${sector.slug}] scenario "${sc.id}" touches unknown zone "${imp.zone}"`);
+    }
+    // Sections, named companies and past episodes (the Nifty 50's macro scenarios).
+    const sections = listScenarioSections(sector.slug);
+    if (sections.length && !sections.some((x) => x.id === sc.section)) fail(`[${sector.slug}] scenario "${sc.id}" has no section among ${sections.map((x) => x.id).join(", ")}`);
+    if (!sections.length && sc.section) fail(`[${sector.slug}] scenario "${sc.id}" has a section but the sector has no SCENARIO_SECTIONS`);
+    for (const st of sc.stocks ?? []) {
+      if (!supplierKeys.has(st.key)) fail(`[${sector.slug}] scenario "${sc.id}" names unknown company "${st.key}"`);
+      else if (!sector.suppliers[st.key].listed) fail(`[${sector.slug}] scenario "${sc.id}" names unlisted company "${st.key}"`);
+    }
+    const ep = sc.episode;
+    if (ep) {
+      const ok = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d) && !Number.isNaN(Date.parse(d));
+      if (!ok(ep.from) || !ok(ep.to) || ep.from >= ep.to) fail(`[${sector.slug}] scenario "${sc.id}" episode dates must be YYYY-MM-DD with from < to`);
+      else if (ep.from < "2000-01-01" || Date.parse(ep.to) > Date.now()) fail(`[${sector.slug}] scenario "${sc.id}" episode must fall between 2000 and today`);
     }
   }
 

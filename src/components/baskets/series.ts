@@ -13,6 +13,11 @@ export type Series = {
   holdings?: BacktestHolding[];
   excluded?: BacktestExcluded[];
   last?: Record<string, number>;
+  /** 1M basket backtests: each stock's move on `dayOf` (the latest trading day most stocks have), %. */
+  day?: Record<string, number>;
+  dayOf?: string;
+  /** Stocks whose prices were still loading when the backtest answered (shown as loading, asked again). */
+  pending?: string[];
   /** Basket backtests: the strategy it ran and the trading its rebalancing took. */
   strategy?: Strategy;
   turnover?: number;
@@ -48,6 +53,11 @@ export function loadSeries(key: string, range: ChartRange): Promise<Load> {
     inflight.set(id, p);
   }
   return p;
+}
+
+/** Drops a loaded series, so the next load fetches it again (a backtest whose prices were still loading). */
+export function forgetSeries(key: string, range: ChartRange) {
+  loaded.delete(`${key}|${range}`);
 }
 
 /**

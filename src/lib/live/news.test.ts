@@ -196,6 +196,41 @@ test("isAbout handles real estate names: REITs, short forms and look-alike words
   assert.ok(!isAbout("Mahindra Lifespace launches Rs 1,200 crore project in Pune", mm));
 });
 
+test("isAbout handles Nifty 50 names: banks and their group companies, the exchange, look-alikes", () => {
+  const hdfc = { name: "HDFC Bank", ticker: "HDFCBANK" };
+  assert.ok(isAbout("HDFC Bank Q2 profit rises 11%", hdfc));
+  assert.ok(!isAbout("HDFC Life Q2 VNB margin expands", hdfc));
+  assert.ok(!isAbout("HDFC AMC shares hit record high", hdfc));
+  const kotak = { name: "Kotak Mahindra Bank", ticker: "KOTAKBANK" };
+  assert.ok(isAbout("Kotak Bank shares jump after Q2 beat", kotak));
+  const mm = { name: "Mahindra & Mahindra", ticker: "M&M" };
+  assert.ok(!isAbout("Kotak Mahindra Bank shares jump after Q2 beat", mm), "Kotak Mahindra Bank is not M&M");
+  const ril = { name: "Reliance Industries", ticker: "RELIANCE" };
+  assert.ok(isAbout("Reliance shares rise as Jio tariff hike kicks in", ril));
+  assert.ok(isAbout("RIL Q2 results: profit beats estimates", ril));
+  assert.ok(!isAbout("Reliance Power shares hit upper circuit", ril));
+  assert.ok(!isAbout("Reliance Infrastructure wins arbitration award", ril));
+  const bse = { name: "BSE", ticker: "BSE" };
+  assert.ok(isAbout("BSE shares surge 8% on record F&O volumes", bse));
+  assert.ok(!isAbout("Sensex jumps 600 points as banks rally", bse));
+  assert.ok(!isAbout("BSE Sensex ends higher led by IT stocks", bse));
+  const indigo = { name: "InterGlobe Aviation (IndiGo)", ticker: "INDIGO" };
+  assert.ok(isAbout("IndiGo adds 10 new international routes", indigo));
+  assert.ok(!isAbout("Indigo Paints Q2 revenue up 7%", indigo));
+  const eternal = { name: "Eternal (Zomato)", ticker: "ETERNAL" };
+  assert.ok(isAbout("Zomato parent Eternal's Q2 profit jumps", eternal));
+  assert.ok(isAbout("Blinkit adds 300 dark stores in Q2", eternal));
+  const hul = { name: "Hindustan Unilever", ticker: "HINDUNILVR" };
+  assert.ok(isAbout("HUL Q2 volume growth at 4%", hul));
+  assert.ok(!isAbout("Unilever plc names new CEO", hul));
+  const itc = { name: "ITC", ticker: "ITC" };
+  assert.ok(isAbout("ITC Q2 cigarette volumes grow 6%", itc));
+  assert.ok(!isAbout("ITC Hotels Q2 RevPAR rises 12%", itc));
+  const bajfin = { name: "Bajaj Finance", ticker: "BAJFINANCE" };
+  assert.ok(isAbout("Bajaj Finance AUM grows 25%", bajfin));
+  assert.ok(!isAbout("Bajaj Housing Finance Q2 profit up 20%", bajfin));
+});
+
 test("cleanSource shows a bare domain when Google gives a URL as the publisher", () => {
   assert.equal(cleanSource("https://www.siam.in/"), "siam.in");
   assert.equal(cleanSource("www.nseindia.com"), "nseindia.com");

@@ -45,7 +45,12 @@ export function heatStyle(v: number | null, scale: number): CSSProperties {
   return { background: `color-mix(in srgb, var(${v >= 0 ? "--pos" : "--danger"}) ${pct}%, var(--panel))` };
 }
 
-export const heatFmt = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}%`;
+export const heatFmt = (v: number) => {
+  const digits = Math.abs(v) >= 100 ? 0 : 1;
+  // Signed by the shown figure, so a tiny move reads "0.0%", never "−0.0%".
+  const shown = Number(v.toFixed(digits));
+  return `${shown > 0 ? "+" : shown < 0 ? "−" : ""}${Math.abs(shown).toFixed(digits)}%`;
+};
 
 // On a phone the bigger tiles grow wider but stay one row high, so a long list stays short.
 const SPAN = { 1: "", 2: "col-span-2", 3: "col-span-3 sm:col-span-2 sm:row-span-2", 4: "col-span-4 sm:col-span-3 sm:row-span-2" } as const;
@@ -111,17 +116,17 @@ function TileFill({ style, children }: { style: CSSProperties; children: ReactNo
 }
 
 /** The key under a grid: what the colour means and the size it tops out at. */
-export function HeatLegend({ scale, note }: { scale: number; note?: ReactNode }) {
+export function HeatLegend({ scale, note, format = heatFmt }: { scale: number; note?: ReactNode; format?: (v: number) => string }) {
   const steps = [-1, -0.5, 0, 0.5, 1];
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-ink-soft sm:text-[11px]">
       <span className="flex items-center gap-1">
         <span aria-hidden className="h-2.5 w-4 rounded-sm border border-line/60" style={heatStyle(-scale * 4, scale)} />
-        <span className="font-mono">{heatFmt(-scale)}</span>
+        <span className="font-mono">{format(-scale)}</span>
         {steps.map((s) => (
           <span key={s} aria-hidden className="h-2.5 w-4 rounded-sm border border-line/60" style={heatStyle(s * scale, scale)} />
         ))}
-        <span className="font-mono">{heatFmt(scale)}</span>
+        <span className="font-mono">{format(scale)}</span>
         <span aria-hidden className="h-2.5 w-4 rounded-sm border border-line/60" style={heatStyle(scale * 4, scale)} />
         <span>and beyond</span>
       </span>

@@ -20,6 +20,7 @@ import { semicon2 } from "./semicon2";
 import { rareearth } from "./rareearth";
 import { defenceproc } from "./defenceproc";
 import { ecms } from "./ecms";
+import type { SectorCategory } from "@/lib/sector-content/core";
 
 export type { SectorReport, Tone } from "./types";
 
@@ -72,7 +73,7 @@ export type Deck = {
   slug: string;
   name: string;
   icon: string;
-  category: "sector" | "policy";
+  category: SectorCategory;
   report: Omit<SectorReport, "beneficiaries" | "companyNews">;
   zoneLabels: Record<string, { label: string; companies: number }>;
   companies: DeckCompany[];

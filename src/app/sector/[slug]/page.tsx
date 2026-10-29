@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  categoryWord,
   companyLinkKey,
   getSector,
   listSectorSlugs,
@@ -38,7 +39,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const sector = getSector(slug);
   if (!sector) return NOT_FOUND_METADATA;
   const { listed } = sectorCompanyCounts(sector);
-  const title = `${sector.name} stocks in India: supply chain map & ${listed} listed companies`;
+  const title =
+    sector.stage === "heatmap"
+      ? `${sector.name} stocks by industry: macro what-ifs & ${listed} listed companies`
+      : `${sector.name} stocks in India: supply chain map & ${listed} listed companies`;
   const description = `${sector.tagline}. ${sector.thesisSummary?.join(" ") ?? ""}`.slice(0, 300);
   return {
     title,
@@ -55,6 +59,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
   if (!sector) notFound();
 
   const domains = sector.domains ?? [];
+  const isHeatmap = sector.stage === "heatmap";
   // First zone belonging to each domain, in authored order — what a domain card
   // deep-links into, since a domain itself has no single 3D anchor of its own.
   const firstZoneIdByDomain = new Map<string, string>();
@@ -102,9 +107,10 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
   const integratorsShown = companies.length - otherCompanies.length;
 
   const deck = buildDeck(sector.slug);
-  // The heatmap's stocks: the industry basket's, grouped in the map's layer order.
+  // The heatmap's stocks: the industry basket's, grouped in the map's layer order. A heatmap sector
+  // (the Nifty 50) has none here: its heatmap, with the what-ifs, is the explorer itself.
   const zoneOrder = new Map(sector.zones.map((z, i) => [z.label, i]));
-  const heatStocks: HeatStock[] = (sector.muted ? [] : (getIndustryBasket(sector.slug)?.stocks ?? []))
+  const heatStocks: HeatStock[] = (sector.muted || isHeatmap ? [] : (getIndustryBasket(sector.slug)?.stocks ?? []))
     .map((s) => ({ ticker: s.ticker, name: s.name, layer: s.layer, mcapCr: s.mcapCr }))
     .sort((a, b) => (zoneOrder.get(a.layer) ?? 99) - (zoneOrder.get(b.layer) ?? 99) || (b.mcapCr ?? -1) - (a.mcapCr ?? -1));
 
@@ -145,10 +151,12 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
             narrative sections to reach. Companies/bottlenecks stay sections on
             this same page rather than separate modes, deep-linking into the
             explorer with the right zone/company preselected via ?zone=/&company=. */}
+        {/* A heatmap sector (the Nifty 50) has no 3D model: its explorer is the heatmap with the
+            what-if and industry panels, so this page has no Stock heatmap button of its own. */}
         <IndustryActions slug={sector.slug} name={sector.name} stocks={heatStocks} basketHref={sector.muted ? null : `/baskets/industry/${sector.slug}`}>
           <Link href={`/sector/${sector.slug}/explore`} className={actionClass(true)}>
-            <span className="sm:hidden">3D map</span>
-            <span className="hidden sm:inline">Explore the map &rarr;</span>
+            <span className="sm:hidden">{isHeatmap ? "Explore" : "3D map"}</span>
+            <span className="hidden sm:inline">{isHeatmap ? "Explore the heatmap" : "Explore the map"} &rarr;</span>
           </Link>
           {GUIDED_TOUR_ENABLED && (
             <Link href={`/sector/${sector.slug}/explore?tour=1`} className={actionClass(false)}>
@@ -169,7 +177,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
           {!sector.muted && (
             <Link href={`/baskets/industry/${sector.slug}`} className={actionClass(false)}>
               <span className="sm:hidden">Basket</span>
-              <span className="hidden sm:inline">{sector.category === "policy" ? "Open policy basket" : "Open industry basket"}</span>
+              <span className="hidden sm:inline">{`Open ${categoryWord(sector.category)} basket`}</span>
             </Link>
           )}
           {hasBottlenecks && (
@@ -217,7 +225,9 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
             {domains.length > 0 ? "Major areas" : "Inside this theme"}
           </h2>
           <p className="mt-1 text-xs text-ink-soft">
-            {domains.length > 0
+            {isHeatmap
+              ? "The index's industries, grouped the way investors usually bucket them. Each card opens the heatmap on the group's lead industry."
+              : domains.length > 0
               ? "The map groups the anatomy into these areas before you drop into individual components."
               : "The 3D map lets you click into each of these components for supplier and financial detail."}
           </p>
@@ -333,7 +343,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
         )}
 
         <section id="companies" className="scroll-mt-20">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Companies in this theme</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">{isHeatmap ? "Companies in this index" : "Companies in this theme"}</h2>
           <p className="mt-1 text-xs text-ink-soft">
             {companies.length} companies, {listedCompanies.length} listed.
             {integratorsShown > 0 && (
@@ -384,7 +394,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                         >
                           <span className="h-1.5 w-1.5 rounded-full" style={{ background: z.zoneColor }} />
                           {z.zoneLabel}
-                          {z.exposureType && (
+                          {z.exposureType && !isHeatmap && (
                             <span>
                               &middot; {EXPOSURE_TYPE_LABEL[z.exposureType]}
                               {z.exposureStrength ? ` (${EXPOSURE_STRENGTH_LABEL[z.exposureStrength]})` : ""}

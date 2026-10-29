@@ -5,7 +5,8 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
-import { getCompanyPage, listCompanyPages, primaryAppearance } from "@/lib/sector-content/companies";
+import { getCompanyPage, listCompanyPages, primaryAppearance, type CompanyPage } from "@/lib/sector-content/companies";
+import { getSector } from "@/lib/sector-content";
 import { NOT_FOUND_METADATA, SITE_URL, jsonLd } from "@/lib/site";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { ensureFinancials } from "@/lib/financials/load";
@@ -26,6 +27,8 @@ const crCell = (v: number | null | undefined) => (v != null && v < 0 ? `−${inr
 const listJoin = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 // Phones show the latest three years so the table never needs a sideways swipe.
 const PHONE_YEARS = 3;
+// An index (the Nifty 50) is membership, not a place in a supply chain: shown in its own section.
+const inIndex = (a: { sectorSlug: string }) => getSector(a.sectorSlug)?.category === "index";
 
 export async function generateStaticParams() {
   await ensureFinancials();
@@ -37,12 +40,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const c = getCompanyPage(slug);
   if (!c) return NOT_FOUND_METADATA;
-  const sectors = [...new Set(c.appearances.map((a) => a.sectorName))];
-  const layers = [...new Set(c.appearances.map((a) => a.zoneLabel))];
-  const title = `${c.name} (${c.ticker}): supply chain role, peers & financials`;
-  const description = `Where ${c.name} sits in India's ${listJoin(sectors)} supply chain${sectors.length > 1 ? "s" : ""} - ${layers
-    .slice(0, 3)
-    .join(", ")}. ${primaryAppearance(c).role}. Peers, revenue and profit trend.`.slice(0, 300);
+  const chains = c.appearances.filter((a) => !inIndex(a));
+  const sectors = [...new Set(chains.map((a) => a.sectorName))];
+  const layers = [...new Set(chains.map((a) => a.zoneLabel))];
+  const indices = c.appearances.filter(inIndex);
+  const title = chains.length ? `${c.name} (${c.ticker}): supply chain role, peers & financials` : `${c.name} (${c.ticker}): ${indices[0].sectorName} stock, peers & financials`;
+  const description = (
+    chains.length
+      ? `Where ${c.name} sits in India's ${listJoin(sectors)} supply chain${sectors.length > 1 ? "s" : ""} - ${layers.slice(0, 3).join(", ")}. ${primaryAppearance(c).role}. Peers, revenue and profit trend.`
+      : `${c.name} in the ${indices[0].sectorName}, under ${indices[0].zoneLabel}. ${primaryAppearance(c).role}. Peers, revenue and profit trend.`
+  ).slice(0, 300);
   return {
     title,
     description,
@@ -56,11 +63,14 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const c = getCompanyPage(slug);
   if (!c) notFound();
-  const { supplier, appearances } = c;
+  const { supplier } = c;
+  const appearances = c.appearances.filter((a) => !inIndex(a));
+  const indexAppearances = c.appearances.filter(inIndex);
   const f = supplier.f;
   // The same snapshot figures, through the same reader, as the stock pop-up (mergeStats).
   const s0 = mergeStats(f, null);
   const sectorNames = [...new Set(appearances.map((a) => a.sectorName))];
+  const allThemes = [...new Set(c.appearances.map((a) => a.sectorName))];
   const multiSector = sectorNames.length > 1;
   // The supplier record (role, strengths, risks) is the one from the company's strongest link
   // (companies.ts), and multi-sector companies get a line naming every sector they appear in.
@@ -105,7 +115,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                 {multiSector ? `${primary.sectorName}: ${primary.role}` : primary.role}
               </p>
               <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">
-                Mapped in {sectorNames.length} theme{sectorNames.length > 1 ? "s" : ""}: {listJoin(sectorNames)}.
+                Mapped in {allThemes.length} theme{allThemes.length > 1 ? "s" : ""}: {listJoin(allThemes)}.
               </p>
             </div>
             {supplier.dataStatus && (
@@ -158,61 +168,34 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           </aside>
 
           <div className="flex min-w-0 flex-col gap-10 lg:col-start-1 lg:row-start-1">
-            <section>
-              <h2 className="font-display text-xl font-bold text-ink">Where {c.name} sits in the supply chain</h2>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                {c.name} appears in {appearances.length} supply-chain layer{appearances.length > 1 ? "s" : ""}{" "}
-                {multiSector ? `across ${sectorNames.length} themes: ${listJoin(sectorNames)}` : `in one theme, ${sectorNames[0]}`}.
-              </p>
-              <div className="mt-5 flex flex-col gap-4">
-                {appearances.map((a) => (
-                  <div key={`${a.sectorSlug}:${a.zoneId}`} className="rounded-2xl border border-line bg-panel p-5">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <h3 className="text-sm font-semibold text-ink">
-                        <Link href={`/sector/${a.sectorSlug}`} className="tap-y hover:text-accent hover:underline">
-                          {a.sectorName}
-                        </Link>{" "}
-                        <span className="text-ink-soft">&rsaquo; {a.zoneLabel}</span>
-                      </h3>
-                      {a.exposure && (
-                        <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
-                          {a.exposure}
-                        </span>
-                      )}
-                    </div>
-                    {(a.role !== primary.role || multiSector) && <p className="mt-2 text-sm text-ink-soft">{a.role}</p>}
-                    {a.peers.length > 0 && (
-                      <div className="mt-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">Other companies in this layer</p>
-                        <div className="mt-2 flex flex-wrap gap-1.5 pointer-coarse:gap-y-4">
-                          {a.peers.map((p) =>
-                            p.slug ? (
-                              <Link
-                                key={p.name}
-                                href={`/company/${p.slug}`}
-                                className="tap-y rounded-full border border-line px-2.5 py-0.5 text-xs text-ink hover:border-accent hover:text-accent"
-                              >
-                                {p.name}
-                              </Link>
-                            ) : (
-                              <span key={p.name} className="rounded-full border border-dashed border-line px-2.5 py-0.5 text-xs text-ink-soft">
-                                {p.name} (unlisted)
-                              </span>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    <Link
-                      href={`/sector/${a.sectorSlug}/explore?zone=${encodeURIComponent(a.zoneId)}&company=${encodeURIComponent(a.companyKey)}`}
-                      className="tap-y mt-4 inline-block text-xs font-semibold text-accent hover:underline pointer-coarse:mt-5"
-                    >
-                      View in the 3D map &rarr;
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            </section>
+            {appearances.length > 0 && (
+              <section>
+                <h2 className="font-display text-xl font-bold text-ink">Where {c.name} sits in the supply chain</h2>
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                  {c.name} appears in {appearances.length} supply-chain layer{appearances.length > 1 ? "s" : ""}{" "}
+                  {multiSector ? `across ${sectorNames.length} themes: ${listJoin(sectorNames)}` : `in one theme, ${sectorNames[0]}`}.
+                </p>
+                <div className="mt-5 flex flex-col gap-4">
+                  {appearances.map((a) => (
+                    <AppearanceCard key={`${a.sectorSlug}:${a.zoneId}`} a={a} showRole={a.role !== primary.role || multiSector} peersLabel="Other companies in this layer" linkLabel="View in the 3D map" />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {indexAppearances.length > 0 && (
+              <section>
+                <h2 className="font-display text-xl font-bold text-ink">Index membership</h2>
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                  {c.name} is in the {listJoin(indexAppearances.map((a) => `${a.sectorName} (NSE industry: ${a.zoneLabel})`))}.
+                </p>
+                <div className="mt-5 flex flex-col gap-4">
+                  {indexAppearances.map((a) => (
+                    <AppearanceCard key={`${a.sectorSlug}:${a.zoneId}`} a={a} showRole={false} peersLabel={`Other ${a.sectorName} stocks in this industry`} linkLabel="View on the heatmap" index />
+                  ))}
+                </div>
+              </section>
+            )}
 
             {rev.length > 0 && (
               <section>
@@ -310,5 +293,53 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
       </main>
       <SiteFooter />
     </>
+  );
+}
+
+// One place a company appears: a supply-chain layer (with its exposure) or an index's industry (without).
+function AppearanceCard({ a, showRole, peersLabel, linkLabel, index = false }: { a: CompanyPage["appearances"][number]; showRole: boolean; peersLabel: string; linkLabel: string; index?: boolean }) {
+  return (
+    <div className="rounded-2xl border border-line bg-panel p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="text-sm font-semibold text-ink">
+          <Link href={`/sector/${a.sectorSlug}`} className="tap-y hover:text-accent hover:underline">
+            {a.sectorName}
+          </Link>{" "}
+          <span className="text-ink-soft">&rsaquo; {a.zoneLabel}</span>
+        </h3>
+        {a.exposure && !index && (
+          <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">{a.exposure}</span>
+        )}
+      </div>
+      {showRole && <p className="mt-2 text-sm text-ink-soft">{a.role}</p>}
+      {a.peers.length > 0 && (
+        <div className="mt-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">{peersLabel}</p>
+          <div className="mt-2 flex flex-wrap gap-1.5 pointer-coarse:gap-y-4">
+            {a.peers.map((p) =>
+              p.slug ? (
+                <Link
+                  key={p.name}
+                  href={`/company/${p.slug}`}
+                  className="tap-y rounded-full border border-line px-2.5 py-0.5 text-xs text-ink hover:border-accent hover:text-accent"
+                >
+                  {p.name}
+                </Link>
+              ) : (
+                <span key={p.name} className="rounded-full border border-dashed border-line px-2.5 py-0.5 text-xs text-ink-soft">
+                  {p.name} (unlisted)
+                </span>
+              )
+            )}
+          </div>
+        </div>
+      )}
+      <Link
+        href={`/sector/${a.sectorSlug}/explore?zone=${encodeURIComponent(a.zoneId)}&company=${encodeURIComponent(a.companyKey)}`}
+        className="tap-y mt-4 inline-block text-xs font-semibold text-accent hover:underline pointer-coarse:mt-5"
+      >
+        {linkLabel} &rarr;
+      </Link>
+    </div>
   );
 }

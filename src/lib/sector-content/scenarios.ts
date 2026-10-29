@@ -6,16 +6,29 @@
 // strength in that layer. Nothing here predicts prices or is a recommendation.
 //
 // Zone ids must exist in the sector (checked by `npm run validate:content`).
-import { companyLinkExposure, companyLinkKey, tickerForSupplier, type ExposureStrength, type SectorDef } from "./core";
+import { companyLinkExposure, companyLinkKey, parseCrore, tickerForSupplier, type ExposureStrength, type SectorDef } from "./core";
 import { SEMICON2_SCENARIOS } from "./policies/semicon2.extras";
 import { RAREEARTH_SCENARIOS } from "./policies/rareearth.extras";
 import { DEFENCEPROC_SCENARIOS } from "./policies/defenceproc.extras";
 import { ECMS_SCENARIOS } from "./policies/ecms.extras";
+import { NIFTY50_SCENARIOS, NIFTY50_SCENARIO_SECTIONS } from "./indices/nifty50.extras";
 
 export type Severity = 1 | 2 | 3; // 3 = directly hit / directly helped
 export type ScenarioEffect = "headwind" | "tailwind";
 
 export type ScenarioImpact = { zone: string; severity: Severity; effect?: ScenarioEffect; why: string };
+
+/** One company hit differently from its zone (the Nifty 50's NSE groups mix winners and losers: ONGC vs IndiGo under a crude spike). `key` is its supplier key in the sector. */
+export type StockImpact = { key: string; severity: Severity; effect?: ScenarioEffect; why: string };
+
+/**
+ * A real past stretch that played out like the scenario, from the stored daily history (the Nifty
+ * 50 keeps it back to 2000): the explorer shows each stock's actual move between the two days.
+ */
+export type ScenarioEpisode = { label: string; from: string; to: string; note: string };
+
+/** A heading the explorer groups its scenarios under (the Nifty 50's macro drivers). */
+export type ScenarioSection = { id: string; title: string };
 
 export type Scenario = {
   id: string;
@@ -27,6 +40,12 @@ export type Scenario = {
   /** Default effect for impacts that do not set their own. */
   effect: ScenarioEffect;
   impacts: ScenarioImpact[];
+  /** Its heading in the scenario list, when the sector groups them (SCENARIO_SECTIONS). */
+  section?: string;
+  /** Companies that move differently from their zone. */
+  stocks?: StockImpact[];
+  /** "Last time this happened". */
+  episode?: ScenarioEpisode;
 };
 
 const S = (zone: string, severity: Severity, why: string, effect?: ScenarioEffect): ScenarioImpact => ({ zone, severity, why, effect });
@@ -593,10 +612,20 @@ export const SCENARIOS: Record<string, Scenario[]> = {
   rareearth: RAREEARTH_SCENARIOS,
   defenceproc: DEFENCEPROC_SCENARIOS,
   ecms: ECMS_SCENARIOS,
+  nifty50: NIFTY50_SCENARIOS,
 };
 
 export function listScenarios(slug: string): Scenario[] {
   return SCENARIOS[slug] ?? [];
+}
+
+/** The headings a sector groups its scenarios under, in order; none for a flat list. */
+const SCENARIO_SECTIONS: Record<string, ScenarioSection[]> = {
+  nifty50: NIFTY50_SCENARIO_SECTIONS,
+};
+
+export function listScenarioSections(slug: string): ScenarioSection[] {
+  return SCENARIO_SECTIONS[slug] ?? [];
 }
 
 export type ScenarioZoneImpact = { zone: string; label: string; severity: Severity; effect: ScenarioEffect; why: string };
@@ -612,6 +641,8 @@ export type ScenarioCompany = {
   zoneLabel: string;
   severity: Severity;
   strength?: ExposureStrength;
+  /** Set when the scenario names this company itself (a StockImpact): why it moves. */
+  why?: string;
 };
 
 const STRENGTH_POINTS: Record<ExposureStrength, number> = { high: 3, medium: 2, low: 1 };
@@ -655,5 +686,82 @@ export function scenarioCompanies(sector: SectorDef, sc: Scenario): ScenarioComp
       }
     }
   }
-  return [...best.values()].sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+  // A company the scenario names itself takes that reading over its zone's (scored as a high-exposure link).
+  for (const st of sc.stocks ?? []) {
+    const sup = sector.suppliers[st.key];
+    const zone = sector.zones.find((z) => z.suppliers.some((l) => companyLinkKey(l) === st.key));
+    if (!sup?.listed || !zone) continue;
+    best.set(st.key, {
+      key: st.key,
+      name: sup.name,
+      ticker: tickerForSupplier(sup),
+      score: st.severity * STRENGTH_POINTS.high,
+      effect: st.effect ?? sc.effect,
+      zoneId: zone.id,
+      zoneLabel: zone.label,
+      severity: st.severity,
+      why: st.why,
+    });
+  }
+  // Ties (common where every company has the same exposure, as in the Nifty 50) go to the bigger company.
+  const cap = (key: string) => parseCrore(sector.suppliers[key]?.f?.mcap) ?? -1;
+  return [...best.values()].sort((a, b) => b.score - a.score || cap(b.key) - cap(a.key) || a.name.localeCompare(b.name));
+}
+
+export type StockReading = { severity: Severity; effect: ScenarioEffect; why: string; own: boolean };
+
+/** Every listed company's reading under a scenario: its own (StockImpact) when named, else its zone's; untouched ones are absent. */
+export function scenarioStockReadings(sector: SectorDef, sc: Scenario): Map<string, StockReading> {
+  const out = new Map<string, StockReading>();
+  for (const imp of sc.impacts) {
+    const zone = sector.zones.find((z) => z.id === imp.zone);
+    for (const link of zone?.suppliers ?? []) {
+      const key = companyLinkKey(link);
+      const prev = out.get(key);
+      if (!prev || imp.severity > prev.severity) out.set(key, { severity: imp.severity, effect: imp.effect ?? sc.effect, why: imp.why, own: false });
+    }
+  }
+  for (const st of sc.stocks ?? []) out.set(st.key, { severity: st.severity, effect: st.effect ?? sc.effect, why: st.why, own: true });
+  return out;
+}
+
+export type IndexSplit = {
+  /** Shares of the listed companies' combined market cap, 0-100. */
+  headwind: number;
+  tailwind: number;
+  untouched: number;
+  /** Zones carrying the most market cap on each side, biggest first (up to three). */
+  headwindLeads: string[];
+  tailwindLeads: string[];
+};
+
+/** How much of the index (by market cap) a scenario leans against and for: an editorial reading weighted by size, not a forecast. */
+export function scenarioIndexSplit(sector: SectorDef, sc: Scenario): IndexSplit | null {
+  const readings = scenarioStockReadings(sector, sc);
+  const side = { headwind: 0, tailwind: 0, untouched: 0 };
+  const byZone = { headwind: new Map<string, number>(), tailwind: new Map<string, number>() };
+  for (const z of sector.zones)
+    for (const link of z.suppliers) {
+      const key = companyLinkKey(link);
+      const sup = sector.suppliers[key];
+      const cap = sup?.listed ? parseCrore(sup.f?.mcap) : null;
+      if (!cap) continue;
+      const r = readings.get(key);
+      if (!r) {
+        side.untouched += cap;
+        continue;
+      }
+      side[r.effect] += cap;
+      byZone[r.effect].set(z.label, (byZone[r.effect].get(z.label) ?? 0) + cap);
+    }
+  const total = side.headwind + side.tailwind + side.untouched;
+  if (!total) return null;
+  const leads = (m: Map<string, number>) => [...m].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([label]) => label);
+  return {
+    headwind: (side.headwind / total) * 100,
+    tailwind: (side.tailwind / total) * 100,
+    untouched: (side.untouched / total) * 100,
+    headwindLeads: leads(byZone.headwind),
+    tailwindLeads: leads(byZone.tailwind),
+  };
 }

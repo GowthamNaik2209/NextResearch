@@ -474,7 +474,10 @@
  .panel-wrap.peek{ transform:translateY(max(0px, calc(100% - 40vh))) }
  /* In the peek the system's description is held to three lines so its companies show up in
     that first strip rather than below the fold (it shows in full once the sheet is expanded). */
- .panel-wrap.peek .zdesc{ display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden }
+ /* flex:none: in the short peeking sheet the panel's column squeezed it to a sliver of one line. */
+ /* The gap below moves from padding to margin: inside the clamped box the padding let a sliver of the
+    fourth line show under the ellipsis. */
+ .panel-wrap.peek .zdesc{ flex:none; padding-bottom:0; margin-bottom:12px; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden }
  .panel-handle{
  display:flex; align-items:center; justify-content:center; gap:8px; position:relative; flex:none;
  padding:14px 52px 10px; cursor:pointer; border-bottom:1px solid var(--line); touch-action:none; user-select:none;
@@ -570,6 +573,120 @@
   .scn-pill{ bottom:auto; top:52px; left:12px; transform:none }
  }
 }
+
+/* ---- Heatmap stage (stage: "heatmap", the Nifty 50): tiles instead of a 3D model ---- */
+.nr-explorer {
+ .heat-stage{ display:flex; flex-direction:column; background:var(--bg) }
+ .heat-stage .scn-pill{ position:static; transform:none; align-self:flex-start; margin:10px 14px 0; max-width:calc(100% - 28px) }
+ .heat-stage-inner{ flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:12px; padding:12px 14px 16px }
+ .heat-top{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px }
+ .heat-summary{ margin:0; min-width:0; font-size:12.5px; color:var(--ink-soft) }
+ .heat-summary b{ color:var(--ink); font-weight:600 }
+ .heat-ranges{ display:flex; flex:none; gap:2px; border:1px solid var(--line); border-radius:999px; padding:2px }
+ .heat-ranges button{ min-height:28px; border:none; border-radius:999px; padding:0 10px; background:none; color:var(--ink-soft); font:inherit; font-size:11.5px; font-weight:600; cursor:pointer }
+ .heat-ranges button:hover{ color:var(--ink) }
+ .heat-ranges button[aria-pressed="true"]{ background:var(--accent); color:var(--bg) }
+ .heat-groups{ display:flex; flex-direction:column; gap:12px }
+ .heat-group{ display:flex; flex-direction:column; gap:5px; transition:opacity .2s }
+ /* Another industry picked, or one a scenario leaves untouched: faded back but still readable and tappable. */
+ .heat-group.dim{ opacity:.4 }
+ .heat-group.dim:hover{ opacity:.75 }
+ .heat-group-head{
+  display:flex; align-items:center; gap:6px; width:100%; min-height:28px; padding:2px 8px 2px 0; text-align:left;
+  background:none; border:none; border-radius:6px; color:var(--ink); font:inherit; cursor:pointer;
+ }
+ .heat-group-head .dot{ width:9px; height:9px; border-radius:50%; flex:none; background:var(--zc) }
+ .heat-group-head{ flex-wrap:wrap; row-gap:3px }
+ .heat-group-head .name{ font-size:11px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; min-width:0 }
+ .heat-group-head .count{ font-weight:400; letter-spacing:0; color:var(--ink-soft); white-space:nowrap }
+ .heat-group-head .avg{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; color:var(--ink-soft) }
+ .heat-group-head:hover .name, .heat-group.hover .heat-group-head .name{ color:var(--accent) }
+ .heat-group.picked .heat-group-head{ background:color-mix(in srgb, var(--zc) 16%, transparent); padding-left:8px }
+ .heat-grid{
+  list-style:none; margin:0; padding:0; display:grid; grid-auto-flow:row dense; gap:4px;
+  grid-template-columns:repeat(auto-fill, minmax(96px, 1fr)); grid-auto-rows:62px;
+ }
+ .heat-grid li{ min-width:0 }
+ .heat-grid li.s2{ grid-column:span 2 }
+ .heat-grid li.s3{ grid-column:span 2; grid-row:span 2 }
+ .heat-tile{
+  display:flex; flex-direction:column; gap:2px; width:100%; height:100%; overflow:hidden; padding:6px 7px; text-align:left;
+  border:1px solid color-mix(in srgb, var(--line) 60%, transparent); border-radius:7px; color:var(--ink); font:inherit; cursor:pointer;
+  transition:border-color .15s, box-shadow .15s;
+ }
+ .heat-tile:hover{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) }
+ .heat-tile:focus-visible{ outline:2px solid var(--accent); outline-offset:1px }
+ .heat-tile[aria-pressed="true"]{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) }
+ .heat-tile.headwind{ box-shadow:inset 0 0 0 2px #E8705E }
+ .heat-tile.tailwind{ box-shadow:inset 0 0 0 2px #3FBF8A }
+ .heat-tile .nm{ flex:none; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; font-size:11px; font-weight:600; line-height:1.2; word-break:break-word }
+ .heat-tile .v{ margin-top:auto; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; letter-spacing:-.2px }
+ .heat-grid li.s3 .heat-tile .nm{ font-size:13px }
+ .heat-grid li.s3 .heat-tile .v{ font-size:16px }
+ .heat-tile .na{ font-weight:400; color:var(--ink-soft) }
+ .heat-tile .sk{ display:inline-block; width:34px; height:10px; border-radius:3px; background:color-mix(in srgb, var(--line) 80%, transparent); animation:nr-pulse 1.4s ease-in-out infinite }
+ .heat-foot{ padding-top:2px }
+ @media (max-width: 1000px){
+  /* The round controls button sits at the stage's top-right corner (no reset button here). */
+  .heat-stage .controls-btn{ top:10px }
+  .heat-top{ padding-right:48px }
+  .heat-stage .scn-pill{ margin-right:60px; max-width:calc(100% - 74px) }
+  .heat-stage-inner{ padding:10px 10px 96px }
+  .heat-grid{ grid-template-columns:repeat(auto-fill, minmax(80px, 1fr)); grid-auto-rows:60px }
+  .heat-tile{ padding:5px 6px }
+  .heat-tile .nm{ font-size:10.5px }
+ }
+}
+/* ---- Macro what-ifs (the Nifty 50): grouped multi-select scenarios, the combined panel ---- */
+.nr-explorer {
+ .heat-switches{ display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end }
+ .heat-note{ margin:0; font-size:11px; color:var(--ink-soft) }
+ .scn-tag.mixed{ background:var(--chip); color:var(--ink-soft) }
+ .scn-list.grouped{ gap:4px }
+ .scn-sec{ border:1px solid var(--line); border-radius:8px; background:var(--panel) }
+ .scn-sec > summary{
+  display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer; list-style:none;
+  padding:7px 9px; font-size:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--ink-soft);
+ }
+ .scn-sec > summary::-webkit-details-marker{ display:none }
+ .scn-sec > summary::after{ content:"\25BE"; font-size:10px; transition:transform .15s }
+ .scn-sec[open] > summary::after{ transform:rotate(180deg) }
+ .scn-sec > summary b{ margin-left:auto; min-width:18px; padding:0 5px; border-radius:9px; background:var(--accent); color:var(--bg); font-size:10px; text-align:center }
+ .scn-sec[open] > summary{ color:var(--ink) }
+ .scn-sec > .scn-btn{ display:flex; align-items:flex-start; gap:7px; width:calc(100% - 12px); margin:0 6px 5px }
+ .scn-check{ flex:none; width:13px; height:13px; margin-top:1px; border:1.5px solid var(--ink-soft); border-radius:3px }
+ .scn-btn.active .scn-check{ background:var(--accent); border-color:var(--accent); box-shadow:inset 0 0 0 2px var(--chip) }
+ .macro-picked{ display:flex; flex-direction:column; gap:5px; padding-bottom:12px; border-bottom:1px solid var(--line) }
+ .macro-chip{ display:flex; align-items:center; justify-content:space-between; gap:8px; background:var(--chip); border:1px solid var(--line); border-radius:7px; padding:6px 6px 6px 9px; font-size:12px; color:var(--ink) }
+ .macro-chip small{ display:block; font-size:9.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--ink-soft) }
+ .macro-chip button{ flex:none; width:26px; height:26px; border:none; border-radius:50%; background:none; color:var(--ink-soft); font-size:16px; cursor:pointer }
+ .macro-chip button:hover{ color:var(--danger) }
+ .macro-split{ display:flex; height:8px; margin-top:6px; border-radius:4px; overflow:hidden; background:var(--chip) }
+ .macro-split .hw{ background:#E8705E }
+ .macro-split .tw{ background:#3FBF8A }
+ .macro-split .nt{ background:var(--line) }
+ .macro-episodes{ list-style:none; margin:4px 0 0; padding:0; display:flex; flex-direction:column; gap:6px; font-size:11.5px; color:var(--ink-soft) }
+ .macro-episodes b{ color:var(--ink) }
+ .macro-episodes small{ display:block; margin-top:1px; font-size:10.5px }
+ .macro-rank{ list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:4px }
+ .macro-rank li.gap{ margin-top:10px; padding-top:8px; border-top:1px dashed var(--line) }
+ .macro-rank .scn-row{ gap:8px }
+ .macro-rank .rk{ flex:none; width:20px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-align:right }
+ .macro-rank .nm{ flex:1; min-width:0 }
+ .macro-rank .vs{ flex:none; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700 }
+ .macro-rank .vs.up{ color:#2E9E71 }
+ .macro-rank .vs.down{ color:var(--danger) }
+ @media (max-width: 1000px){
+  /* The open menu sits above the bottom sheet (20), which covered its lower sections once a pick had opened it. */
+  &.controls-open .rail{ z-index:21 }
+  .scn-list.grouped.expanded{ flex-direction:column; flex-wrap:nowrap }
+  .scn-sec > .scn-btn{ font-size:11px }
+ }
+}
+
+/* Beats the light theme's studio-grey stage backdrop (it is for the 3D models). */
+:root[data-theme="light"] .nr-explorer .heat-stage{ background:var(--bg) }
+@keyframes nr-pulse { 50% { opacity:.45 } }
 
 /* Touch screens: rail controls at least 36px tall for a reliable tap - on phones and tablets,
    and on a tablet held sideways, which gets the desktop rail. Mouse users keep the dense rail. */
