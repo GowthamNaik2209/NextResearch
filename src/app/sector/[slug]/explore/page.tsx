@@ -17,6 +17,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const sector = getSector(slug);
   if (!sector) return NOT_FOUND_METADATA;
+  if (sector.stage === "heatmap")
+    return {
+      title: `${sector.name} — interactive stock heatmap by industry`,
+      description: `Every ${sector.name} stock as a heatmap, grouped by NSE industry, with what-if scenarios and each company's financials.`,
+      alternates: { canonical: `/sector/${slug}` },
+    };
   return {
     title: `${sector.name} — interactive 3D supply-chain explorer`,
     description: `Walk through India's ${midSentence(sector.name)} supply chain layer by layer in 3D and open any listed company's financials.`,
@@ -47,7 +53,7 @@ export default async function SectorExplorePage({ params }: { params: Promise<{ 
       {/* SectorExplorer reads ?zone=/&company=/&tour= via useSearchParams for deep
           linking and the guided tour — Next requires a Suspense boundary around any
           client component that does, even one rendered from a static page like this. */}
-      <Suspense fallback={<ExplorerLoading />}>
+      <Suspense fallback={<ExplorerLoading heatmap={sector.stage === "heatmap"} />}>
         <SectorExplorer slug={slug} figures={figures} userEmail={user?.email ?? null} displayName={displayName} />
       </Suspense>
     </div>
@@ -57,11 +63,11 @@ export default async function SectorExplorePage({ params }: { params: Promise<{ 
 // Shown until the explorer's script has loaded (useSearchParams makes it render on the client
 // only, so the server sends just this). On a phone that can take a while; a blank screen read
 // as broken.
-function ExplorerLoading() {
+function ExplorerLoading({ heatmap }: { heatmap: boolean }) {
   return (
     <div role="status" className="flex flex-1 items-center justify-center gap-2 bg-bg text-sm text-ink-soft">
       <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
-      Loading the 3D explorer…
+      {heatmap ? "Loading the heatmap…" : "Loading the 3D explorer…"}
     </div>
   );
 }

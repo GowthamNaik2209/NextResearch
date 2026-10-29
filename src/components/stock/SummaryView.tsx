@@ -66,6 +66,9 @@ export function SummaryView({
   // REITs: P/E, ROE and dividend yield are shown as "n/m" (not meaningful) with REIT_NOTE below.
   const nm = (v: string) => (s.reit ? "n/m" : v);
   const rev = revenueSeries(f);
+  // Supply chains the company sits in, and the indices it belongs to (the Nifty 50), listed apart.
+  const chains = api?.footprint?.sectors.filter((x) => !x.isIndex) ?? [];
+  const indices = api?.footprint?.sectors.filter((x) => x.isIndex) ?? [];
   const asOf = s.asOf ? `as of ${s.asOf}` : "snapshot";
   const maxRev = Math.max(1, ...rev.map((r) => r.revenue ?? 0));
   const tl = f?.tl;
@@ -118,13 +121,15 @@ export function SummaryView({
         {s.reit && <p className="mt-2 text-[11px] leading-snug text-ink-soft">n/m = not meaningful for a REIT. {REIT_NOTE}</p>}
       </div>
 
-      {(api?.footprint?.sectors.length ?? 0) > 1 && (
+      {/* A company in one chain shows it here too when it is also in an index (the block below);
+          otherwise one chain is already the pop-up's own description. */}
+      {(chains.length > 1 || (chains.length === 1 && indices.length > 0)) && (
         <div>
           {/* The pop-up doesn't know which sector page opened it, so count and list all of them
               (an "N other" heading over a list that included the current sector disagreed). */}
-          <Label>Appears in {api!.footprint!.sectors.length} supply chains</Label>
+          <Label>Appears in {chains.length} supply chain{chains.length > 1 ? "s" : ""}</Label>
           <ul className="mt-2 flex flex-col gap-1.5">
-            {api!.footprint!.sectors.map((fs) => (
+            {chains.map((fs) => (
               <li key={fs.sectorSlug}>
                 <Link href={fs.href} className="block rounded-lg border border-line bg-panel-2 px-3 py-2 transition-colors hover:border-accent">
                   <div className="text-[12.5px] font-semibold text-ink">{fs.sectorName}</div>
@@ -137,6 +142,23 @@ export function SummaryView({
                       })
                       .join(" · ")}
                   </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Index membership (the Nifty 50), with the index's own industry for the stock. */}
+      {indices.length > 0 && (
+        <div>
+          <Label>In the index</Label>
+          <ul className="mt-2 flex flex-col gap-1.5">
+            {indices.map((fs) => (
+              <li key={fs.sectorSlug}>
+                <Link href={fs.href} className="block rounded-lg border border-line bg-panel-2 px-3 py-2 transition-colors hover:border-accent">
+                  <div className="text-[12.5px] font-semibold text-ink">{fs.sectorName}</div>
+                  <div className="mt-0.5 text-[11px] leading-snug text-ink-soft">{fs.zones.map((z) => z.label).join(" · ")}</div>
                 </Link>
               </li>
             ))}

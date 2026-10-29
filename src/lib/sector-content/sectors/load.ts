@@ -9,6 +9,7 @@ type SectorModule = { default: unknown };
 
 // Static import() calls (not a template path), so the bundler emits exactly one chunk per sector.
 export const SECTOR_LOADERS: Record<string, () => Promise<SectorModule>> = {
+  nifty50: () => import("./nifty50"),
   ev4w: () => import("./ev4w"),
   semiconductors: () => import("./semiconductors"),
   datacenter: () => import("./datacenter"),

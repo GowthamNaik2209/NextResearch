@@ -10,6 +10,7 @@ import { industrySeriesKey, loadSeries, savedBasketQuery } from "./series";
 import { heldStrategy, strategyQuery } from "@/lib/baskets/strategy";
 import { PROJECTION_DISCLAIMER } from "./projection-view";
 import { HeatGrid, HeatLegend, heatScale, type HeatCell } from "@/components/charts/Heatmap";
+import type { SectorCategory } from "@/lib/sector-content/core";
 
 // The Baskets page's dense tables: one row per basket with its 1Y return, deepest fall and lead
 // over the Nifty 50, and its projected return over the next year in the Bear, Base and Bull cases
@@ -24,7 +25,7 @@ export type RowProjection = [number | null, number | null, number | null] | null
 /** A saved basket of the viewer's, as the page hands it over (plain, serializable). */
 export type SavedRow = { kind: "saved"; id: string; name: string; isPublic: boolean; weighting: "equal" | "mcap" | "custom"; weights?: Record<string, number> | null; tickers: string[]; names: string[]; proj?: RowProjection };
 /** An industry or policy basket (every listed stock it maps, equal weight). */
-export type IndustryRow = { kind: "industry"; slug: string; name: string; category: "sector" | "policy"; count: number; proj?: RowProjection };
+export type IndustryRow = { kind: "industry"; slug: string; name: string; category: SectorCategory; count: number; proj?: RowProjection };
 export type BasketRow = SavedRow | IndustryRow;
 
 type Fig = BasketFigures;
@@ -325,7 +326,7 @@ export function BasketsTable({
             const badge =
               r.kind === "saved"
                 ? { text: r.isPublic ? "Shared" : "Private", on: r.isPublic }
-                : { text: r.category === "policy" ? "Policy" : "Sector", on: r.category === "policy" };
+                : { text: r.category === "policy" ? "Policy" : r.category === "index" ? "Index" : "Sector", on: r.category !== "sector" };
             const stocksWord = `${n} ${n === 1 ? "stock" : "stocks"}`;
             // Sorted by Max DD on a phone, where that column is hidden: the figure joins the sub-line.
             const sortedCase = sort && (sort.by === "bear" || sort.by === "base" || sort.by === "bull") ? sort.by : null;
@@ -497,7 +498,7 @@ export function ThemeWall({ rows, seed }: { rows: IndustryRow[]; seed?: TableSee
           key: r.slug,
           label: shortName(r.name),
           value: ret,
-          sub: r.category === "policy" ? "Policy" : undefined,
+          sub: r.category === "policy" ? "Policy" : r.category === "index" ? "Index" : undefined,
           title: `${r.name}${ret != null ? `: ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}% over the past year` : ""} · tap to see its row`,
           onClick: () => jumpToRow(r.slug),
         };

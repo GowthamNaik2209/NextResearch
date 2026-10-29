@@ -2,6 +2,7 @@ import { SEMICON2_DOCS } from "./policies/semicon2.extras";
 import { RAREEARTH_DOCS } from "./policies/rareearth.extras";
 import { DEFENCEPROC_DOCS } from "./policies/defenceproc.extras";
 import { ECMS_DOCS } from "./policies/ecms.extras";
+import { NIFTY50_DOCS } from "./indices/nifty50.extras";
 
 // Curated external reading list per sector — first-class industry/research
 // sources (McKinsey, IEA, trade bodies, etc.) for people who want to read
@@ -70,6 +71,7 @@ export const SECTOR_DOCS: Record<string, ResearchLink[]> = {
   rareearth: RAREEARTH_DOCS,
   defenceproc: DEFENCEPROC_DOCS,
   ecms: ECMS_DOCS,
+  nifty50: NIFTY50_DOCS,
 };
 
 export function getResearchForSector(slug: string): ResearchLink[] {

@@ -3,7 +3,7 @@
 // through ./sectors/load.ts instead of this file, which pulls in all of them.
 import { PRODUCTS as PRODUCTS_RAW } from "./products";
 import { financialsVersion, getFinancials, listFinancials } from "@/lib/financials/store";
-import { linkWeight, companyLinkKey, type ComingSoonSector, type SectorDef, type SectorSupplier, type SectorWithSlug, type SupplierFinancials } from "./core";
+import { isSideLink, linkWeight, companyLinkKey, type ComingSoonSector, type SectorDef, type SectorSupplier, type SectorWithSlug, type SupplierFinancials } from "./core";
 
 export * from "./core";
 
@@ -47,12 +47,17 @@ type Home = { slug: string; key: string; weight: number };
 let homeByTicker: Map<string, Home> | null = null;
 
 // Strongest link wins; ties keep the earlier sector (industries come before the policies that reuse
-// their companies) and the earlier zone. Muted sectors only count for a company found nowhere else,
-// and a listed supplier linked from no zone resolves to its first record.
+// their companies) and the earlier zone. An index (the Nifty 50) is a company's home only where no
+// industry or policy maps it in the chain itself - it beats a side link (HDFC Bank as a home-loan
+// lender to real estate), never a direct one - and muted sectors only count for a company found
+// nowhere else; a listed supplier linked from no zone resolves to its first record.
+const homePenalty = (s: SectorDef) => (s.muted ? 100 : s.category === "index" ? 50 : 0);
 function homes(): Map<string, Home> {
   if (homeByTicker) return homeByTicker;
   const best = new Map<string, Home>();
-  const ordered = [...SECTOR_KEYS.filter((k) => !PRODUCTS[k].muted), ...SECTOR_KEYS.filter((k) => PRODUCTS[k].muted)];
+  // Companies an industry or policy maps in the chain itself (not only as a lender or enabler beside it).
+  const direct = new Set<string>();
+  const ordered = [...SECTOR_KEYS].sort((a, b) => homePenalty(PRODUCTS[a]) - homePenalty(PRODUCTS[b]));
   for (const slug of ordered) {
     const sector = PRODUCTS[slug];
     for (const z of sector.zones)
@@ -61,9 +66,13 @@ function homes(): Map<string, Home> {
         const sup = sector.suppliers[key];
         const t = sup?.f?.ticker;
         if (!sup?.listed || !t) continue;
-        const weight = linkWeight(link) - (sector.muted ? 100 : 0);
+        const weight = linkWeight(link) - homePenalty(sector);
         const prev = best.get(t);
-        if (!prev || weight > prev.weight) best.set(t, { slug, key, weight });
+        const live = !sector.muted && sector.category !== "index";
+        if (live && !isSideLink(link)) direct.add(t);
+        // Ordered live sectors first, so by the index's turn `direct` is complete.
+        const overSide = sector.category === "index" && !sector.muted && !!prev && prev.weight > -homePenalty(sector) && !direct.has(t);
+        if (!prev || weight > prev.weight || overSide) best.set(t, { slug, key, weight: overSide ? Infinity : weight });
       }
   }
   for (const slug of ordered)

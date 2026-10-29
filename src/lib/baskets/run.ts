@@ -24,6 +24,11 @@ export type BasketBacktest = {
   excluded: BacktestExcluded[];
   /** Each stock's latest close in the range (for the move since it was added to a saved basket). */
   last: Record<string, number>;
+  /** 1M only (daily closes): each stock's move on `dayOf`, % (the Nifty 50 heatmap's 1D). */
+  day?: Record<string, number>;
+  /** The trading day `day` is for: the latest one most stocks have (stored closes end on the last
+   * close, a stock fetched live from Yahoo also has today's), so every tile is the same day. */
+  dayOf?: string;
   /** Rebalancing: total one-way turnover (% of the basket), trades, and each rebalance. 0 and [] when held. */
   turnover: number;
   trades: number;
@@ -74,6 +79,27 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
     }),
   );
   return out;
+}
+
+/**
+ * Each stock's move on one shared day, against its close before: the latest day at least 80% of
+ * them have. Stored closes end on the last close and a stock fetched live from Yahoo also has
+ * today's, so going by each stock's own last day mixed two days, and going by the most common last
+ * day left the rest blank while a top-up was half done.
+ */
+export function dayMoves(list: { ticker: string; points: PricePoint[] | null }[]): { day: Record<string, number>; dayOf: string } | null {
+  const withPrices = list.filter((x) => x.points?.length);
+  const has = new Map<string, number>();
+  // The last few days of each series are enough to find the shared one.
+  for (const { points } of withPrices) for (const p of points!.slice(-5)) has.set(p.t, (has.get(p.t) ?? 0) + 1);
+  const dayOf = [...has].filter(([, n]) => n >= withPrices.length * 0.8).sort((a, b) => b[0].localeCompare(a[0]))[0]?.[0];
+  if (!dayOf) return null;
+  const day: Record<string, number> = {};
+  for (const { ticker, points } of list) {
+    const i = points?.findIndex((p) => p.t === dayOf) ?? -1;
+    if (i > 0 && points![i - 1].c > 0) day[ticker] = (points![i].c / points![i - 1].c - 1) * 100;
+  }
+  return { day, dayOf };
 }
 
 /** Some stock's prices were still loading when the backtest stopped waiting (not a stock with no history). */
@@ -130,7 +156,8 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
       const p = series[i]?.points;
       if (p?.length) last[s.ticker] = p[p.length - 1].c;
     });
-    return { range, weighting: strategy.weighting, strategy, ...result, last, ...(pending.length ? { pending } : {}) };
+    const daily = range === "1M" ? dayMoves(stocks.map((s, i) => ({ ticker: s.ticker, points: series[i]?.points ?? null }))) : null;
+    return { range, weighting: strategy.weighting, strategy, ...result, last, ...(daily ?? {}), ...(pending.length ? { pending } : {}) };
     // A stock's prices still loading (Yahoo slow): kept a minute, not the full TTL.
   }, pricesPending);
 }

@@ -45,7 +45,12 @@ export function heatStyle(v: number | null, scale: number): CSSProperties {
   return { background: `color-mix(in srgb, var(${v >= 0 ? "--pos" : "--danger"}) ${pct}%, var(--panel))` };
 }
 
-export const heatFmt = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}%`;
+export const heatFmt = (v: number) => {
+  const digits = Math.abs(v) >= 100 ? 0 : 1;
+  // Signed by the shown figure, so a tiny move reads "0.0%", never "−0.0%".
+  const shown = Number(v.toFixed(digits));
+  return `${shown > 0 ? "+" : shown < 0 ? "−" : ""}${Math.abs(shown).toFixed(digits)}%`;
+};
 
 // On a phone the bigger tiles grow wider but stay one row high, so a long list stays short.
 const SPAN = { 1: "", 2: "col-span-2", 3: "col-span-3 sm:col-span-2 sm:row-span-2", 4: "col-span-4 sm:col-span-3 sm:row-span-2" } as const;

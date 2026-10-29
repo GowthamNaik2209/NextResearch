@@ -1,6 +1,6 @@
 import { before, test } from "node:test";
 import assert from "node:assert/strict";
-import { findSupplierByTicker, getSector, linkWeight, listSectors, primaryLink, primarySector } from "./index";
+import { findSupplierByTicker, getSector, isSideLink, linkWeight, listSectors, primaryLink, primarySector } from "./index";
 import { listCompanyPages, primaryAppearance } from "./companies";
 import { listCompanyMetrics } from "./insights";
 import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
@@ -34,7 +34,8 @@ test("every listed company has the same home sector on every surface", () => {
 });
 
 test("a company's home is its strongest link in a live sector", () => {
-  for (const s of listSectors().filter((x) => !x.muted))
+  // An index (the Nifty 50) is a home only for a company no industry or policy maps (homes() in index.ts).
+  for (const s of listSectors().filter((x) => !x.muted && x.category !== "index"))
     for (const z of s.zones)
       for (const link of z.suppliers) {
         const sup = s.suppliers[typeof link === "string" ? link : link.key];
@@ -46,4 +47,19 @@ test("a company's home is its strongest link in a live sector", () => {
         );
         assert.ok(homeWeight >= linkWeight(link), `${sup.f.ticker}: ${s.slug}/${z.id} outranks its home ${home.slug}`);
       }
+});
+
+test("the Nifty 50 is a company's home only where no industry or policy maps it in the chain itself", () => {
+  const nifty = getSector("nifty50")!;
+  const direct = new Set<string>();
+  for (const x of listSectors().filter((x) => !x.muted && x.category !== "index"))
+    for (const z of x.zones)
+      for (const link of z.suppliers) {
+        const sup = x.suppliers[typeof link === "string" ? link : link.key];
+        if (sup?.listed && sup.f?.ticker && !isSideLink(link)) direct.add(sup.f.ticker);
+      }
+  for (const sup of Object.values(nifty.suppliers)) {
+    const t = sup.f!.ticker;
+    assert.equal(primarySector(t) === "nifty50", !direct.has(t), `${t}: home ${primarySector(t)}`);
+  }
 });

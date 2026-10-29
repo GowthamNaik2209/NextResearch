@@ -6,11 +6,12 @@
 // strength in that layer. Nothing here predicts prices or is a recommendation.
 //
 // Zone ids must exist in the sector (checked by `npm run validate:content`).
-import { companyLinkExposure, companyLinkKey, tickerForSupplier, type ExposureStrength, type SectorDef } from "./core";
+import { companyLinkExposure, companyLinkKey, parseCrore, tickerForSupplier, type ExposureStrength, type SectorDef } from "./core";
 import { SEMICON2_SCENARIOS } from "./policies/semicon2.extras";
 import { RAREEARTH_SCENARIOS } from "./policies/rareearth.extras";
 import { DEFENCEPROC_SCENARIOS } from "./policies/defenceproc.extras";
 import { ECMS_SCENARIOS } from "./policies/ecms.extras";
+import { NIFTY50_SCENARIOS } from "./indices/nifty50.extras";
 
 export type Severity = 1 | 2 | 3; // 3 = directly hit / directly helped
 export type ScenarioEffect = "headwind" | "tailwind";
@@ -593,6 +594,7 @@ export const SCENARIOS: Record<string, Scenario[]> = {
   rareearth: RAREEARTH_SCENARIOS,
   defenceproc: DEFENCEPROC_SCENARIOS,
   ecms: ECMS_SCENARIOS,
+  nifty50: NIFTY50_SCENARIOS,
 };
 
 export function listScenarios(slug: string): Scenario[] {
@@ -655,5 +657,7 @@ export function scenarioCompanies(sector: SectorDef, sc: Scenario): ScenarioComp
       }
     }
   }
-  return [...best.values()].sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+  // Ties (common where every company has the same exposure, as in the Nifty 50) go to the bigger company.
+  const cap = (key: string) => parseCrore(sector.suppliers[key]?.f?.mcap) ?? -1;
+  return [...best.values()].sort((a, b) => b.score - a.score || cap(b.key) - cap(a.key) || a.name.localeCompare(b.name));
 }

@@ -7,6 +7,7 @@ import { CloseButton, ModalShell } from "./StockModal";
 import { PriceTag } from "./PriceTag";
 import { freshQuote, mergeStats } from "./merge";
 import { useStockData } from "./useStockData";
+import type { SectorCategory } from "@/lib/sector-content/core";
 
 // lightweight-charts loads with the pop-up, not with the Analysis page.
 const ChartView = dynamic(() => import("./ChartView").then((m) => m.ChartView), {
@@ -18,7 +19,7 @@ const ChartView = dynamic(() => import("./ChartView").then((m) => m.ChartView), 
 export type ChartPickerIndustry = {
   slug: string;
   name: string;
-  category: "sector" | "policy";
+  category: SectorCategory;
   layers: string[];
   /** `core`: the industry is the company's main one (a picker opens on a core stock, not on a
    * conglomerate that is only a supplier here). */
@@ -153,7 +154,8 @@ function Picker({
     window.history.pushState({ nrStock: true }, "", url);
   };
 
-  const sectors = industries.filter((x) => x.category !== "policy");
+  const indices = industries.filter((x) => x.category === "index");
+  const sectors = industries.filter((x) => x.category === "sector");
   const policies = industries.filter((x) => x.category === "policy");
   const count = (l: string) => ind.stocks.filter((s) => s.layer === l).length;
   const select = "w-full min-w-0 truncate rounded-lg border border-line bg-panel px-3 py-1.5 text-base font-semibold text-ink sm:py-2 sm:text-sm";
@@ -183,6 +185,15 @@ function Picker({
           <label className={label + " col-span-2 sm:col-span-1"}>
             Industry
             <select value={ind.slug} onChange={(e) => pickIndustry(e.target.value)} className={select}>
+              {indices.length > 0 && (
+                <optgroup label="Indices">
+                  {indices.map((x) => (
+                    <option key={x.slug} value={x.slug}>
+                      {x.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
               <optgroup label="Industries">
                 {sectors.map((x) => (
                   <option key={x.slug} value={x.slug}>
@@ -202,9 +213,9 @@ function Picker({
             </select>
           </label>
           <label className={label}>
-            Layer
+            {ind.category === "index" ? "Group" : "Layer"}
             <select value={layer} onChange={(e) => pickLayer(e.target.value)} className={select}>
-              <option value={ALL}>All layers ({ind.stocks.length})</option>
+              <option value={ALL}>{ind.category === "index" ? "All groups" : "All layers"} ({ind.stocks.length})</option>
               {ind.layers.map((l) => (
                 <option key={l} value={l}>
                   {l} ({count(l)})

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { BacktestHolding } from "@/lib/baskets/backtest";
-import { industrySeriesKey, loadSeries } from "@/components/baskets/series";
+import { forgetSeries, industrySeriesKey, loadSeries } from "@/components/baskets/series";
 import { HeatGrid, HeatLegend, heatScale, type HeatCell } from "./Heatmap";
 import { actionClass } from "./action-class";
 
@@ -27,8 +27,26 @@ const RANGES: { id: ChartRange; label: string; long: string }[] = [
  * full width under the row. Phones get one row of short labels that scrolls sideways, without
  * the panel around it; from desktop width the row sits on one line.
  */
-export function IndustryActions({ children, slug, name, stocks, basketHref }: { children: ReactNode; slug: string; name: string; stocks: HeatStock[]; basketHref: string | null }) {
-  const [open, setOpen] = useState(false);
+export function IndustryActions({
+  children,
+  slug,
+  name,
+  stocks,
+  basketHref,
+  defaultOpen = false,
+  groupWord = "layer of the supply chain",
+}: {
+  children: ReactNode;
+  slug: string;
+  name: string;
+  stocks: HeatStock[];
+  basketHref: string | null;
+  /** Open on arrival (the Nifty 50, where the heatmap is the page's main view). */
+  defaultOpen?: boolean;
+  /** What a group of tiles is, in "listed stocks are up …, by <groupWord>". */
+  groupWord?: string;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <section className="flex flex-col gap-3 sm:rounded-2xl sm:border sm:border-line sm:bg-panel-2 sm:p-4 lg:p-5">
       <div className="scrollbar-none -mx-5 flex gap-1.5 overflow-x-auto px-5 max-sm:*:flex-none sm:mx-0 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:px-0 lg:flex-nowrap">
@@ -42,27 +60,47 @@ export function IndustryActions({ children, slug, name, stocks, basketHref }: { 
       </div>
       {open && (
         <div id="industry-heatmap">
-          <IndustryHeatmap slug={slug} name={name} stocks={stocks} basketHref={basketHref} />
+          {/* Its stock tiles read the URL (useSearchParams), so a heatmap open on arrival (defaultOpen)
+              needs a boundary to prerender; the loading line stands in until it is up. */}
+          <Suspense fallback={<p className="rounded-xl border border-line bg-panel p-4 text-sm text-ink-soft">Loading {name}’s listed stocks…</p>}>
+            <IndustryHeatmap slug={slug} name={name} stocks={stocks} basketHref={basketHref} groupWord={groupWord} />
+          </Suspense>
         </div>
       )}
     </section>
   );
 }
 
-function IndustryHeatmap({ slug, name, stocks, basketHref }: { slug: string; name: string; stocks: HeatStock[]; basketHref: string | null }) {
+function IndustryHeatmap({ slug, name, stocks, basketHref, groupWord }: { slug: string; name: string; stocks: HeatStock[]; basketHref: string | null; groupWord: string }) {
   const [range, setRange] = useState<ChartRange>("1Y");
-  const [got, setGot] = useState<{ range: ChartRange; holdings: BacktestHolding[] } | "error" | null>(null);
+  const [got, setGot] = useState<{ range: ChartRange; holdings: BacktestHolding[]; pending: Set<string> } | "error" | null>(null);
+  // A cold backtest answers before every stock's prices are in (`pending`): those tiles keep their
+  // placeholder rather than read as "not listed", and it is asked again a few times until they arrive.
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
     let live = true;
-    loadSeries(industrySeriesKey(slug), range).then((l) => {
-      if (live) setGot(l.status === "ok" ? { range, holdings: l.data.holdings ?? [] } : "error");
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const key = industrySeriesKey(slug);
+    loadSeries(key, range).then((l) => {
+      if (!live) return;
+      if (l.status !== "ok") return setGot("error");
+      const pending = new Set(l.data.pending ?? []);
+      setGot({ range, holdings: l.data.holdings ?? [], pending });
+      // The server keeps a part-loaded answer up to a minute, so keep asking for about two.
+      if (pending.size && retry < 12)
+        timer = setTimeout(() => {
+          forgetSeries(key, range);
+          setRetry((n) => n + 1);
+        }, 10_000);
     });
     return () => {
       live = false;
+      clearTimeout(timer);
     };
-  }, [slug, range]);
+  }, [slug, range, retry]);
 
   const loading = got == null || (got !== "error" && got.range !== range);
+  const pending = got && got !== "error" && !loading ? got.pending : new Set<string>();
   const ret = new Map(got && got !== "error" && !loading ? got.holdings.map((h) => [h.ticker, h.ret]) : []);
   const long = RANGES.find((r) => r.id === range)!.long;
   // Biggest companies take bigger tiles: against the industry's median market cap.
@@ -79,10 +117,15 @@ function IndustryHeatmap({ slug, name, stocks, basketHref }: { slug: string; nam
       key: s.ticker,
       label: s.name,
       value: v,
-      pending: loading,
+      pending: loading || pending.has(s.ticker),
       size: sizeOf(s.mcapCr),
       ticker: s.ticker,
-      title: v != null ? `${s.name}: ${v >= 0 ? "+" : ""}${v.toFixed(1)}% over the past ${long}` : loading ? s.name : `${s.name}: not listed for the whole ${long}`,
+      title:
+        v != null
+          ? `${s.name}: ${v >= 0 ? "+" : ""}${v.toFixed(1)}% over the past ${long}`
+          : loading || pending.has(s.ticker)
+            ? `${s.name}: prices loading`
+            : `${s.name}: not listed for the whole ${long}`,
     });
   }
   const all = groups.flatMap((g) => g.cells);
@@ -103,8 +146,9 @@ function IndustryHeatmap({ slug, name, stocks, basketHref }: { slug: string; nam
               <b className="font-semibold text-ink">
                 {up} of {known}
               </b>{" "}
-              listed stocks are up over the past {long}, by layer of the supply chain.
-              {all.length > known && ` ${all.length - known} not listed for the whole ${long} (shown —).`}
+              listed stocks are up over the past {long}, by {groupWord}.
+              {pending.size > 0 && ` ${pending.size} still loading.`}
+              {all.length - known - pending.size > 0 && ` ${all.length - known - pending.size} not listed for the whole ${long} (shown —).`}
             </>
           )}
         </p>
