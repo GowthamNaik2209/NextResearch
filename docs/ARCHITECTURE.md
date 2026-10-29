@@ -213,7 +213,11 @@ company, dated at the published date so it shows at once). See Playbook 1.5.
 Every company with a page and every benchmark keeps its last five years of daily bars (open, high,
 low, close, volume) in the database (`PriceSeries`, `PriceBar`), so baskets don't fetch Yahoo on a
 visit (a cold rule-based list or industry table used to fetch hundreds of histories and could run
-past a function's 60 s).
+past a function's 60 s). The Nifty 50's stocks and the Nifty 50 index keep their whole daily history
+instead (from 2000, or their listing; Yahoo's index starts Sep 2007), for the explorer's what-if
+episodes: their weekly re-read covers the last five years and keeps the older bars, and changed
+history (a split) brings the whole series again. First fill: `scripts/refresh-prices.ts
+--only=nifty50 --refetch --apply`.
 
 - *Reads* (`store.ts`): the baskets (backtests, industry figures, rule-based lists, the projections'
   beta and volatility) read the store first and fall back to Yahoo when it can't serve: no series
