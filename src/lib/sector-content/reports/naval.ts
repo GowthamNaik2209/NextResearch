@@ -13,8 +13,8 @@ export const naval: SectorReport = {
   },
   keyStats: [
     { label: "Ships under construction", value: "~60", sub: "in Indian yards (Navy, 2025)" },
-    { label: "Defence production, FY25", value: "₹1.51L Cr", sub: "record; ~18% YoY (MoD)" },
-    { label: "Defence exports, FY25", value: "₹23,622 Cr", sub: "up ~12% YoY (MoD)" },
+    { label: "Defence production, FY26", value: "₹1.78L Cr", sub: "record; +15.6% YoY (MoD)" },
+    { label: "Defence exports, FY26", value: "₹38,424 Cr", sub: "up ~63% YoY (MoD)" },
     { label: "Navy fleet goal", value: "175-200 ships", sub: "by ~2035, from ~140 today" },
   ],
   thesis: [
@@ -23,8 +23,8 @@ export const naval: SectorReport = {
       body: "Frigates, destroyers, corvettes, submarines and support ships are on order or in the pipeline, giving listed yards order books of roughly 4-8x annual revenue.",
     },
     {
-      title: "Indigenization moves value onshore",
-      body: "Positive indigenization lists and 'Buy (Indian-IDDM)' rules push hull steel, sensors, weapons and machinery to domestic suppliers, not just final assembly.",
+      title: "Indigenisation moves value onshore",
+      body: "Positive indigenisation lists and 'Buy (Indian-IDDM)' rules push hull steel, sensors, weapons and machinery to domestic suppliers, not just final assembly.",
     },
     {
       title: "Execution, not demand, is the constraint",
@@ -81,7 +81,7 @@ export const naval: SectorReport = {
     narrative: [
       "The Navy has shifted from a buyer's to a builder's navy: nearly all ships on order are being built in India, at four defence PSU yards plus private yards led by L&T.",
       "Spending is lumpy and long-cycle - a frigate takes 6-8 years from contract to delivery - so revenue tracks contracts signed years earlier, smoothing near-term volatility.",
-      "Gaps remain in gas turbines, submarine AIP, and some weapons and sensors, which are still imported or licence-built; these are the next indigenization targets.",
+      "Gaps remain in gas turbines, submarine AIP, and some weapons and sensors, which are still imported or licence-built; these are the next indigenisation targets.",
     ],
     chart: {
       title: "India defence production (all segments)",
@@ -93,12 +93,13 @@ export const naval: SectorReport = {
         { label: "FY22", value: 95 },
         { label: "FY23", value: 109 },
         { label: "FY24", value: 127 },
-        { label: "FY25", value: 151 },
+        { label: "FY25", value: 154 },
+        { label: "FY26", value: 178 },
         { label: "FY29P", value: 300, projected: true },
       ],
     },
     snapshot: [
-      { label: "Defence capital outlay, FY26 BE", value: "~₹1.80L Cr", tone: "pos" },
+      { label: "Defence capital outlay, FY27 BE", value: "₹2.19L Cr", tone: "pos" },
       { label: "Share of capital buys from India", value: "~75%", tone: "pos" },
       { label: "Typical frigate build time", value: "6-8 years", tone: "neutral" },
       { label: "Listed shipyard order books", value: "~4-8x revenue", tone: "pos" },
@@ -109,7 +110,7 @@ export const naval: SectorReport = {
 
   valueChain: [
     { stage: "Hull steel & special alloys", zoneIds: ["hull"], margin: "10-15% EBITDA", moat: "high", note: "Warship-grade DMR steel and titanium/maraging alloys have few qualified makers." },
-    { stage: "Propulsion & machinery", zoneIds: ["propulsion", "components"], margin: "10-15% EBITDA", moat: "medium", note: "Gas turbines still imported; gensets, gearboxes, pumps and HVAC are localizing." },
+    { stage: "Propulsion & machinery", zoneIds: ["propulsion", "components"], margin: "10-15% EBITDA", moat: "medium", note: "Gas turbines still imported; gensets, gearboxes, pumps and HVAC are localising." },
     { stage: "Weapons & ammunition", zoneIds: ["combat"], margin: "15-25% EBITDA", moat: "high", note: "Missiles, torpedoes and explosives sit with a handful of licensed producers." },
     { stage: "Sensors & electronics", zoneIds: ["electronics"], margin: "20-30% EBITDA", moat: "high", note: "Radars, sonars, EW and combat management - the richest profit pool per ship." },
     { stage: "Shipyards & integration", zoneIds: ["shipyard"], margin: "10-20% EBITDA", moat: "high", note: "Few yards can build warships; margins improve as legacy fixed-price contracts roll off." },
@@ -118,8 +119,8 @@ export const naval: SectorReport = {
   drivers: [
     { title: "Fleet expansion", metric: "175-200 ships", body: "Navy targets a larger fleet by ~2035 to cover the Indian Ocean, replacing ageing frigates, minesweepers and submarines." },
     { title: "Submarine programmes", metric: "₹70,000 Cr+", body: "P-75I conventional submarines and follow-on Scorpenes are among the largest single shipbuilding contracts in the pipeline." },
-    { title: "Indigenization rules", metric: "~75% domestic", body: "A rising share of the capital acquisition budget is earmarked for Indian industry, with positive lists banning imports of many items." },
-    { title: "Exports & commercial", metric: "₹23,622 Cr", body: "Defence exports and the commercial shipbuilding push give yards a second order stream beyond the Indian Navy." },
+    { title: "Indigenisation rules", metric: "~75% domestic", body: "A rising share of the capital acquisition budget is earmarked for Indian industry, with positive lists banning imports of many items." },
+    { title: "Exports & commercial", metric: "₹38,424 Cr", body: "Defence exports and the commercial shipbuilding push give yards a second order stream beyond the Indian Navy." },
   ],
   mix: {
     title: "Union defence budget split, FY26 BE (approx.)",
@@ -150,7 +151,7 @@ export const naval: SectorReport = {
       { point: "Gas turbines, AIP and some weapons still depend on foreign partners.", impact: "neg" },
     ],
     legal: [
-      { point: "DAP 'Buy (Indian-IDDM)' preference and positive indigenization lists favour local suppliers.", impact: "pos" },
+      { point: "DAP 'Buy (Indian-IDDM)' preference and positive indigenisation lists favour local suppliers.", impact: "pos" },
       { point: "Offset and transfer-of-technology terms add contract complexity and delays.", impact: "neutral" },
     ],
     environmental: [

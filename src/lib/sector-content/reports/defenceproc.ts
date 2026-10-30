@@ -117,7 +117,7 @@ export const defenceproc: SectorReport = {
   ],
 
   drivers: [
-    { title: "Record approvals", metric: "₹6.81L Cr AoN in FY26", body: "Nearly 4x FY25; 2026 rounds added ~₹7.6L Cr more, led by fighters, air defence and drones." },
+    { title: "Record approvals", metric: "₹6.81L Cr AoN in FY26", body: "Nearly 4x FY25; calendar-2026 rounds (Feb-Sep) total ~₹7.6L Cr, led by fighters, air defence and drones." },
     { title: "Domestic reserve", metric: "75% of capital acquisition", body: "₹1.39L Cr of the FY27 acquisition budget can only be spent with Indian industry." },
     { title: "Import bans", metric: "5,400+ DPSU items", body: "Six Positive Indigenisation Lists force primes to buy parts, sub-systems and spares in India." },
     { title: "Exports", metric: "₹38,424 Cr, +63% (FY26)", body: "Shells, rockets, guns and air defence sell abroad, smoothing Indian budget timing; target ₹50,000 Cr by 2029." },

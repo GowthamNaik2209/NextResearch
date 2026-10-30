@@ -22,8 +22,8 @@ export function defineRareearth(h) {
     headerSub: "The ₹7,280 Cr sintered rare-earth permanent magnet scheme - from beach-sand minerals to the magnets in EV motors, wind turbines and missiles",
     whyNow: [
       "China makes ~94% of the world's sintered rare-earth magnets (IEA, 2024) and has used export licences as leverage since April 2025.",
-      "Its tougher October 2025 curbs are only paused until 10 Nov 2026 - weeks away.",
-      "India's ₹7,280 Cr magnet scheme drew 20 bids (L&T, Coal India, 20 Microns and others); the five winners are still to be named.",
+      "Its tougher October 2025 curbs were paused for one year only, to 10 Nov 2026.",
+      "India's ₹7,280 Cr magnet scheme drew 20 bids (L&T, Coal India, 20 Microns and others); no winners had been named by 20 Oct 2026.",
       "India's magnet use is expected to double from 2025 to 2030, the government says - and today almost all of it is imported, about 93% from China.",
     ],
     thesisSummary: [
@@ -34,7 +34,7 @@ export function defineRareearth(h) {
     ],
     featuredSignals: [
       "MHI's technical shortlist and financial-bid results naming the five REPM beneficiaries",
-      "China's decision when the export-curb pause ends on 10 Nov 2026",
+      "China's next move on export curbs after the one-year pause (to 10 Nov 2026)",
       "IREL NdPr oxide output and its 500-tonne allocation to the three lowest bidders",
       "First commercial sintered magnets from Indian plants (Midwest/MAM Hyderabad line)",
       "EV two-wheeler output and motor redesigns (ferrite, reduced heavy rare earths)",
@@ -87,7 +87,7 @@ export function defineRareearth(h) {
       valuePoolDescription:"Magnets are a small share of a motor's cost but a hard bottleneck: without them, the motor (and the vehicle) cannot ship. The scheme does not pay motor makers anything; their gain is lower supply risk and, over time, negotiating power against Chinese suppliers.",
       bottlenecks:["Nearly all NdFeB magnets used in Indian motors are imported, mainly from China", "Chinese export licences need end-use certificates and take weeks per shipment", "Magnet grades for traction motors need heavy rare earths (dysprosium, terbium) that India does not refine at scale"],
       keyDrivers:["EV adoption in cars, buses, three-wheelers and commercial vehicles", "Second-source qualification of Indian magnets once scheme plants start (from about 2028)", "Motor designs that cut or remove heavy rare earths"],
-      keyRisks:["A new round of Chinese curbs after the 10 Nov 2026 pause ends", "Indian magnets may cost more than Chinese ones even with the incentive", "Qualification of a new magnet supplier for a traction motor can take a year or more"],
+      keyRisks:["Chinese curbs returning after the one-year pause (to 10 Nov 2026)", "Indian magnets may cost more than Chinese ones even with the incentive", "Qualification of a new magnet supplier for a traction motor can take a year or more"],
       investorMetrics:["Share of motors on magnet-light or magnet-free designs", "Months of magnet inventory held", "Domestic vs imported magnet mix disclosed in calls"],
       relatedComponents:["ev_2w","magnet_making","recycling"],
       suppliers:[{key:"sona", exposureType:"direct_supplier", exposureStrength:"high"}, {key:"unominda", exposureType:"direct_supplier", exposureStrength:"medium"}, {key:"bharatforge", exposureType:"direct_supplier", exposureStrength:"low"}, {key:"lt", exposureType:"emerging_entrant", exposureStrength:"low"}]},

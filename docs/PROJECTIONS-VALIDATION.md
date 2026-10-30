@@ -94,7 +94,7 @@ With the industry P/E exit the top-minus-bottom spread is −23 pts (median −1
 | Aerospace Component Manufacturing & MRO | 21 | −0.06 | 24% | +35% | +11% |
 | Data Center / AI Infrastructure | 13 | −0.12 | 38% | +33% | +18% |
 | Energy Generation | 11 | +0.15 | 18% | −16% | +18% |
-| Naval Shipbuilding & Defense Shipyards | 10 | −0.32 | 40% | −16% | +8% |
+| Naval Shipbuilding & Defence Shipyards | 10 | −0.32 | 40% | −16% | +8% |
 
 7 of 9 industries are negative; at these sizes no single industry figure is meaningful on its own,
 but the sign is consistent.

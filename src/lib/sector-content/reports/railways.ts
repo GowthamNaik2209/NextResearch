@@ -3,7 +3,7 @@ import type { SectorReport } from "./types";
 export const railways: SectorReport = {
   slug: "railways",
   title: "India Railways & Rolling Stock",
-  subtitle: "A state-funded capex cycle shifting from track to trains, safety and signaling",
+  subtitle: "A state-funded capex cycle shifting from track to trains, safety and signalling",
   asOf: "Oct 2026",
 
   stance: {
@@ -109,9 +109,9 @@ export const railways: SectorReport = {
   },
 
   valueChain: [
-    { stage: "Wheels, bogies & bearings", zoneIds: ["bogies"], margin: "15-20% EBITDA", moat: "medium", note: "Forged wheels long imported; Titagarh-RKFL plant localizes them." },
+    { stage: "Wheels, bogies & bearings", zoneIds: ["bogies"], margin: "15-20% EBITDA", moat: "medium", note: "Forged wheels long imported; Titagarh-RKFL plant localises them." },
     { stage: "Traction & braking", zoneIds: ["traction", "braking"], margin: "12-20% EBITDA", moat: "high", note: "Propulsion and brake systems need RDSO approval and long track records." },
-    { stage: "Signaling & Kavach", zoneIds: ["signaling"], margin: "20-30% EBITDA", moat: "high", note: "Only a handful of approved Kavach vendors; highest margins in the chain." },
+    { stage: "Signalling & Kavach", zoneIds: ["signaling"], margin: "20-30% EBITDA", moat: "high", note: "Only a handful of approved Kavach vendors; highest margins in the chain." },
     { stage: "Trainset & wagon integration", zoneIds: ["rolling_stock"], margin: "8-13% EBITDA", moat: "medium", note: "L1 tenders and long maintenance contracts; scale and execution decide returns." },
     { stage: "Track, civil & electrification EPC", zoneIds: ["epc"], margin: "5-10% EBITDA", moat: "low", note: "Largest spend pool but crowded bidding keeps margins thin." },
     { stage: "Financing, ticketing & digital", zoneIds: ["psu"], margin: "Annuity-like", moat: "high", note: "IRFC leasing and IRCTC ticketing are monopolies with regulated returns." },
@@ -120,8 +120,8 @@ export const railways: SectorReport = {
   drivers: [
     { title: "Record budget support", metric: "~₹2.5L Cr+", body: "Gross budgetary support funds nearly all rail capex, insulating spend from Railways' thin operating surplus." },
     { title: "Trainset upgrade", metric: "Vande Bharat + sleeper", body: "Orders for chair-car, sleeper and Amrit Bharat trains replace ageing ICF coaches with higher-content trainsets." },
-    { title: "Safety mandate", metric: "Kavach 4.0", body: "Train-protection rollout across trunk routes after recent accidents gives signaling vendors a multi-year pipeline." },
-    { title: "Urban metro build-out", metric: "~1,000 km live", body: "Metro projects under construction in a dozen-plus cities drive coach, signaling and civil orders." },
+    { title: "Safety mandate", metric: "Kavach 4.0", body: "Train-protection rollout across trunk routes after recent accidents gives signalling vendors a multi-year pipeline." },
+    { title: "Urban metro build-out", metric: "~1,000 km live", body: "Metro projects under construction in a dozen-plus cities drive coach, signalling and civil orders." },
   ],
   mix: {
     title: "Indian Railways revenue mix, FY25 (approx.)",
@@ -135,7 +135,7 @@ export const railways: SectorReport = {
 
   pestle: {
     political: [
-      { point: "Rail modernization and Make in India rolling stock are flagship central priorities with cross-party support.", impact: "pos" },
+      { point: "Rail modernisation and Make in India rolling stock are flagship central priorities with cross-party support.", impact: "pos" },
       { point: "Fares are politically sensitive, keeping passenger losses and dependence on the Budget high.", impact: "neg" },
     ],
     economic: [
@@ -163,8 +163,8 @@ export const railways: SectorReport = {
   beneficiaries: [
     { key: "titagarh", tier: "core", why: "Vande Bharat sleeper (with BHEL), metro coaches and wagons; forged-wheel JV with RKFL." },
     { key: "beml", tier: "core", why: "Built the first Vande Bharat sleeper; major metro coach supplier." },
-    { key: "hblengineering", tier: "core", why: "Approved Kavach vendor; signaling and train electronics now a large share of revenue." },
-    { key: "siemenschain", tier: "direct", why: "Electric locomotives, metro trainsets and signaling; large 9,000 HP loco order." },
+    { key: "hblengineering", tier: "core", why: "Approved Kavach vendor; signalling and train electronics now a large share of revenue." },
+    { key: "siemenschain", tier: "direct", why: "Electric locomotives, metro trainsets and signalling; large 9,000 HP loco order." },
     { key: "kernex", tier: "direct", why: "Kavach-class train protection is the core business; revenue scaling rapidly." },
     { key: "jupiterwagons", tier: "direct", why: "Wagons, brakes and wheels; most exposed to the wagon order cycle." },
     { key: "ramkrishnaforgings", tier: "direct", why: "Consortium partner for IR's forged wheel plant." },
@@ -176,7 +176,7 @@ export const railways: SectorReport = {
   companyNews: [
     { key: "beml", date: "Jan 2026", development: "First Vande Bharat sleeper rake entered commercial service.", impact: "Validates a domestic sleeper trainset and opens a larger long-haul fleet order pipeline.", tone: "pos" },
     { key: "jupiterwagons", date: "FY26", development: "Revenue fell as wagon deliveries slowed with thinner fresh tenders.", impact: "Shows how cyclical wagon demand is once the post-COVID ordering wave fades.", tone: "neg" },
-    { key: "hblengineering", date: "FY26", development: "Profit roughly tripled on Kavach execution.", impact: "Kavach is now a meaningful profit pool for approved signaling vendors.", tone: "pos" },
+    { key: "hblengineering", date: "FY26", development: "Profit roughly tripled on Kavach execution.", impact: "Kavach is now a meaningful profit pool for approved signalling vendors.", tone: "pos" },
     { key: "titagarh", date: "2025-26", development: "Vande Bharat sleeper and metro programmes ramped while wagon volumes dipped.", impact: "Mix shift toward passenger trainsets is the key earnings swing factor.", tone: "neutral" },
     { key: "rvnl", date: "FY26", development: "Profit fell as legacy nomination work tapered and competitive bids took over.", impact: "Rail EPC margins are compressing as more work moves to open tendering.", tone: "neg" },
     { key: "kernex", date: "FY26", development: "Revenue more than doubled on Kavach orders.", impact: "Adds vendor capacity needed for a faster national Kavach rollout.", tone: "pos" },
@@ -184,13 +184,13 @@ export const railways: SectorReport = {
 
   risks: [
     { risk: "Rail capex plateaus or is cut in a tight Budget", mitigant: "Safety and trainset spend are priority lines; extra-budgetary funding via IRFC", severity: "high" },
-    { risk: "Aggressive L1 bidding compresses margins", mitigant: "Selective bidding; higher-margin signaling and component work", severity: "medium" },
+    { risk: "Aggressive L1 bidding compresses margins", mitigant: "Selective bidding; higher-margin signalling and component work", severity: "medium" },
     { risk: "Lumpy order awards cause revenue volatility", mitigant: "Large multi-year trainset and maintenance contracts", severity: "medium" },
-    { risk: "Supply bottlenecks in wheels and propulsion", mitigant: "Domestic forged wheel plant; localized IGBT and bogie capacity", severity: "low" },
+    { risk: "Supply bottlenecks in wheels and propulsion", mitigant: "Domestic forged wheel plant; localised IGBT and bogie capacity", severity: "low" },
   ],
   outlook: {
     bull: "Capex climbs past ₹3L Cr by FY28 with large sleeper, metro and Kavach orders lifting both volumes and margins.",
-    base: "Capex grows ~5-6% a year; trainset, signaling and component makers outgrow EPC and wagon players.",
+    base: "Capex grows ~5-6% a year; trainset, signalling and component makers outgrow EPC and wagon players.",
     bear: "Budget support flattens, order inflow stays thin and L1 pricing erodes margins across the chain.",
   },
   reading: [

@@ -7,7 +7,7 @@ export const RAREEARTH_SCENARIOS: Scenario[] = [
   {
     id: "china-curbs-return",
     title: "China's curbs come back",
-    blurb: "The pause on China's Oct 2025 export controls lapses after 10 Nov 2026",
+    blurb: "China paused its Oct 2025 export controls for one year only, to 10 Nov 2026",
     story:
       "China paused its tougher October 2025 rare-earth and magnet controls for a year, to 10 November 2026; the April 2025 licensing regime is still in force. If the pause lapses, Indian magnet buyers face licence delays again before any Indian plant can produce (scheme plants need about two years from award). Motor and e-scooter makers are hit first, as in mid-2025. The upside goes to anyone who can make magnets or oxide outside China, which strengthens the case for the scheme and for faster awards.",
     effect: "headwind",
