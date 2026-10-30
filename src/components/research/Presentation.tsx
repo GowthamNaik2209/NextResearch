@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import type { SectorSupplier } from "@/lib/sector-content";
@@ -33,6 +33,9 @@ type Props = {
 
 // The history step back owed by a deck that just closed (see the Back handling below).
 let pendingBack: number | null = null;
+// Set when a footer link closes the deck to go to another page: that link replaces the deck's
+// history entry, so the usual step back must not run (it would undo the navigation).
+let leavingByLink = false;
 
 // Pop-up slide presentation (research decks and IPO decks) — the same blurred backdrop +
 // tilting card as the stock pop-up (.nr-pop-* in globals.css), sized like a presentation.
@@ -88,6 +91,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
     } else {
       window.history.pushState(window.history.state, "", url);
     }
+    leavingByLink = false;
     let leftByBack = false;
     const onPop = () => {
       leftByBack = true;
@@ -96,7 +100,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
-      if (leftByBack) return;
+      if (leftByBack || leavingByLink) return;
       pendingBack = window.setTimeout(() => {
         pendingBack = null;
         window.history.back();
@@ -105,6 +109,21 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
     // adoptHistoryEntry only matters on the first run (how this opening got its entry).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paramName, paramValue]);
+
+  // A footer link leaves for another page: it takes over the deck's history entry (so Back returns
+  // to the page the deck was opened on) and the deck closes without stepping back. A link to the
+  // page the deck sits on (no #section) only closes it, so no duplicate entry is left for Back.
+  const leave = useCallback(
+    (href: string) => (e: MouseEvent) => {
+      const to = new URL(href, window.location.href);
+      const here = new URL(window.location.href);
+      if (paramName) here.searchParams.delete(paramName);
+      if (!to.hash && to.pathname === here.pathname && to.search === here.search) e.preventDefault();
+      else leavingByLink = true;
+      onClose();
+    },
+    [onClose, paramName]
+  );
 
   useEffect(() => {
     const prevOverflow = document.body.style.overflow;
@@ -306,7 +325,8 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
           ) : (
             <Link
               href={cta.href}
-              onClick={onClose}
+              replace
+              onClick={leave(cta.href)}
               className="inline-flex min-w-0 items-center gap-2 rounded-lg bg-accent px-3 py-2.5 text-xs font-semibold text-bg hover:opacity-90 sm:px-4 sm:text-sm"
             >
               <span className="truncate sm:hidden">{cta.short}</span>
@@ -317,7 +337,8 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
           {extra && (
             <Link
               href={extra.href}
-              onClick={onClose}
+              replace
+              onClick={leave(extra.href)}
               className="hidden flex-none items-center gap-1.5 rounded-lg border border-line px-3 py-2.5 text-xs font-semibold text-ink-soft hover:border-accent hover:text-ink sm:inline-flex sm:text-sm"
             >
               {extra.label}
