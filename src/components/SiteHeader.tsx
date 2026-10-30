@@ -4,31 +4,27 @@ import { UserMenu } from "./UserMenu";
 import { MobileMenu } from "./MobileMenu";
 import { ThemeToggle } from "./ThemeToggle";
 import { ShortcutLink } from "./KeyboardShortcuts";
+import { NavPill } from "./NavPill";
 
 export async function SiteHeader() {
   const user = await getCurrentUser();
   const displayName = (user?.user_metadata?.display_name as string | undefined) ?? null;
-  // nowrap: at 768px "How it works" and "Analysis" used to break onto two lines.
-  // Touch tablets (md+, where these show) get 40px-tall links; a mouse keeps the compact look.
-  const link = "tap-y hidden whitespace-nowrap text-sm font-medium text-ink-soft hover:text-ink md:inline-block pointer-coarse:py-2.5";
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">
-      <div className="mx-auto flex max-w-page items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-5">
-        <ShortcutLink href="/" shortcut="H" label="Home" className="tap-target flex items-center gap-2">
+      {/* md+: logo | centred section pill | actions. The equal 1fr side columns keep the pill on
+          the page's centre line whatever the width of the account chip. */}
+      <div className="mx-auto flex max-w-page items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-5 md:grid md:grid-cols-[1fr_auto_1fr] md:gap-2 lg:gap-4">
+        <ShortcutLink href="/" shortcut="H" label="Home" className="tap-target flex items-center gap-2 justify-self-start">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent font-display text-sm font-bold text-bg">N</span>
           <span className="font-display text-base font-bold tracking-tight text-ink">NextResearch</span>
         </ShortcutLink>
+        {/* Analysis holds the industries (Deep dive), reports and charts; it replaced Themes. */}
+        <NavPill />
         {/* Tighter spacing on phones so menu + watchlist + account (with the name chip on the
-            landing page) still fit beside the logo at 375px; tablets keep the text links on one
-            row by tightening the gaps until lg. */}
-        <nav className="flex items-center gap-2 sm:gap-3 lg:gap-5">
-          {/* Analysis holds the industries (Deep dive), reports and charts; it replaced Themes. */}
-          <ShortcutLink href="/docs" className={link} shortcut="A" label="Analysis" />
-          <ShortcutLink href="/baskets" className={link} shortcut="B" label="Baskets" />
-          <ShortcutLink href="/connections" className={link} shortcut="C" label="Connections" />
-          <ShortcutLink href="/updates" className={link} shortcut="U" label="Updates" />
-          <ShortcutLink href="/#how" className={link} shortcut="/" label="How it works" />
+            landing page) still fit beside the logo at 375px; at md the tighter gaps keep logo + pill +
+            Sign up inside 768px. */}
+        <div className="flex items-center gap-2 justify-self-end sm:gap-3 md:gap-2 lg:gap-3">
           <MobileMenu />
           {/* Not on phones (logo + menu + heart + Sign up + account already fill 375px) nor at
               md, where the five text links take the room; the account menu still has it there. */}
@@ -52,7 +48,7 @@ export async function SiteHeader() {
             </Link>
           )}
           <UserMenu key={`${user?.id ?? "anon"}-${displayName}`} email={user?.email ?? null} displayName={displayName} />
-        </nav>
+        </div>
       </div>
     </header>
   );
