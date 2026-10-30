@@ -49,6 +49,21 @@ export function parseAsOf(s: string): Date {
   return new Date(Date.UTC(Number(m[3]), month, Number(m[1])));
 }
 
+/** parseAsOf for dates that may be missing or malformed (sitemap, structured data): null instead of throwing. */
+export function asOfDate(s: string | null | undefined): Date | null {
+  if (!s) return null;
+  try {
+    return parseAsOf(s);
+  } catch {
+    return null;
+  }
+}
+
+/** "20 Oct 2026" -> "2026-10-20" (schema.org dates), or null for a missing or unreadable date. */
+export function isoDay(s: string | null | undefined): string | null {
+  return asOfDate(s)?.toISOString().slice(0, 10) ?? null;
+}
+
 /** 1166.6 -> "Rs 1,167"; 65.3 -> "Rs 65.3" (whole rupees from Rs 100 up, as Screener shows them). */
 export function formatPrice(p: number): string {
   return `Rs ${p >= 100 ? Math.round(p).toLocaleString("en-IN") : p.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;

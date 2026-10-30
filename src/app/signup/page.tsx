@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { redirect } from "next/navigation";
 import { safeNext } from "@/lib/safe-next";
 import { getCurrentUser } from "@/lib/auth";
+import { TrackOnMount } from "@/components/TrackOnMount";
 
 export const metadata = { title: "Create an account", robots: { index: false, follow: true } };
 
@@ -31,6 +32,7 @@ export default async function SignupPage({
         {checkEmail ? (
           <p className="mt-4 rounded-lg border border-accent/40 bg-accent/10 px-3 py-2 text-sm text-ink">
             Check your email to confirm your account.
+            <TrackOnMount name="sign_up" params={{ method: "email" }} />
           </p>
         ) : null}
         {error ? (

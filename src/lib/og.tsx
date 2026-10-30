@@ -7,15 +7,20 @@ import { BRAND, SITE_NAME } from "@/lib/site";
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_CONTENT_TYPE = "image/png";
 
+// Kept light on purpose: a link preview is seen at thumbnail size in WhatsApp, X and LinkedIn, so the
+// card is a big title, at most one short line and two numbers. A longer line is dropped, not cut.
+const MAX_SUBTITLE = 72;
+const MAX_STATS = 2;
+
 export type OgCard = {
   kicker: string;
   title: string;
   subtitle?: string;
   stats?: { label: string; value: string }[];
-  chips?: string[];
 };
 
-export function renderOgCard({ kicker, title, subtitle, stats = [], chips = [] }: OgCard) {
+export function renderOgCard({ kicker, title, subtitle, stats = [] }: OgCard) {
+  const line = subtitle && subtitle.length <= MAX_SUBTITLE ? subtitle : null;
   return new ImageResponse(
     (
       <div
@@ -66,42 +71,19 @@ export function renderOgCard({ kicker, title, subtitle, stats = [], chips = [] }
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <div style={{ fontSize: title.length > 48 ? 54 : 66, fontWeight: 700, lineHeight: 1.08, letterSpacing: -1, display: "flex" }}>
+        {/* Full width with block text: as flex items the lines wrapped at ~60% of the card. */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 20, width: "100%" }}>
+          <div style={{ fontSize: title.length > 40 ? 64 : 80, fontWeight: 700, lineHeight: 1.05, letterSpacing: -1, display: "block", width: "100%" }}>
             {title}
           </div>
-          {subtitle && (
-            <div style={{ fontSize: 28, color: BRAND.inkSoft, lineHeight: 1.35, display: "flex" }}>
-              {subtitle.length > 150 ? subtitle.slice(0, 147) + "..." : subtitle}
-            </div>
-          )}
-          {chips.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-              {chips.slice(0, 5).map((c) => (
-                <div
-                  key={c}
-                  style={{
-                    display: "flex",
-                    fontSize: 20,
-                    padding: "6px 14px",
-                    borderRadius: 999,
-                    border: `2px solid ${BRAND.line}`,
-                    background: BRAND.panel,
-                    color: BRAND.ink,
-                  }}
-                >
-                  {c}
-                </div>
-              ))}
-            </div>
-          )}
+          {line && <div style={{ fontSize: 32, color: BRAND.inkSoft, lineHeight: 1.3, display: "block", width: "100%" }}>{line}</div>}
         </div>
 
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", gap: 44 }}>
-            {stats.slice(0, 4).map((s) => (
+          <div style={{ display: "flex", gap: 56 }}>
+            {stats.slice(0, MAX_STATS).map((s) => (
               <div key={s.label} style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ fontSize: 40, fontWeight: 700, color: BRAND.accent, display: "flex" }}>{s.value}</div>
+                <div style={{ fontSize: 48, fontWeight: 700, color: BRAND.accent, display: "flex" }}>{s.value}</div>
                 <div style={{ fontSize: 18, color: BRAND.inkSoft, textTransform: "uppercase", letterSpacing: 1, display: "flex" }}>
                   {s.label}
                 </div>

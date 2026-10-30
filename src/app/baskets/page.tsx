@@ -15,12 +15,14 @@ import { ensureFinancials } from "@/lib/financials/load";
 import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk-data";
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { basketCases } from "@/lib/baskets/projection-data";
+import { shareMeta } from "@/lib/site";
 
 export const metadata = {
   title: "Stock baskets: build your own from any mix of Indian industries",
   description:
     "Create a stock basket from any mix of the industries NextResearch maps, from EVs and railways to defence, pharma and real estate, or start from a rule-based basket re-ranked daily: biggest gainers, highest ROCE, scarce suppliers, companies in 3+ industries, recent listings, consistent compounders, growth at a reasonable price, turnarounds and widening margins. Each one is backtested against the Nifty 50 and shareable by link.",
   alternates: { canonical: "/baskets" },
+  ...shareMeta({ title: "Stock baskets", line: "Mix any Indian industries, backtested against the Nifty 50.", path: "/baskets" }),
 };
 
 // The industry table and the summary strip above it read the same figures: worked out once per request.
