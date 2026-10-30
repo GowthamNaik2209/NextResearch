@@ -7,7 +7,10 @@ import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { getCompanyPage, listCompanyPages, primaryAppearance, type CompanyPage } from "@/lib/sector-content/companies";
 import { getSector } from "@/lib/sector-content";
-import { NOT_FOUND_METADATA, SITE_URL, jsonLd } from "@/lib/site";
+import { NOT_FOUND_METADATA, SITE_URL, jsonLd, shareMeta } from "@/lib/site";
+import { FaqSection } from "@/components/FaqSection";
+import { companyFaq, companyWhere, faqJsonLd } from "@/lib/faq";
+import { isoDay } from "@/lib/financials/rows";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { ensureFinancials } from "@/lib/financials/load";
 import { FISCAL_YEARS } from "@/lib/financials/rows";
@@ -54,7 +57,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title,
     description,
     alternates: { canonical: `/company/${slug}` },
-    openGraph: { title, description, url: `/company/${slug}`, type: "article" },
+    ...shareMeta({
+      title: `${c.name} (${c.ticker})`,
+      line: companyWhere(c, primaryAppearance(c), inIndex),
+      path: `/company/${slug}`,
+      type: "article",
+      image: null,
+    }),
   };
 }
 
@@ -86,6 +95,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
     { label: "Dividend yield", value: s0.divYield != null ? fmtYield(s0.divYield) : undefined },
   ].filter((s): s is { label: string; value: string } => !!s.value);
 
+  const faqs = companyFaq(c, primary, { asOf, stats }, inIndex);
   const rev = f?.rev ?? [];
   const np = f?.np ?? [];
 
@@ -262,6 +272,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                 )}
               </section>
             )}
+
+            <FaqSection faqs={faqs} headingClassName="font-display text-xl font-bold text-ink" />
           </div>
         </div>
 
@@ -278,6 +290,14 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                   description: primary.role,
                   url: `${SITE_URL}/company/${slug}`,
                 },
+                {
+                  "@type": "WebPage",
+                  url: `${SITE_URL}/company/${slug}`,
+                  name: `${c.name} (${c.ticker})`,
+                  ...(isoDay(asOf) ? { dateModified: isoDay(asOf) } : {}),
+                  isPartOf: { "@id": `${SITE_URL}/#website` },
+                },
+                ...(faqs.length ? [faqJsonLd(faqs)] : []),
                 {
                   "@type": "BreadcrumbList",
                   itemListElement: [

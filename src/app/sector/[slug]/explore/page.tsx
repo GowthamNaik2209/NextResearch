@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getSector, listSectorSlugs } from "@/lib/sector-content";
 import { SectorExplorer } from "@/components/sector-explorer/SectorExplorer";
 import { getCurrentUser } from "@/lib/auth";
-import { NOT_FOUND_METADATA, midSentence } from "@/lib/site";
+import { NOT_FOUND_METADATA, midSentence, shareMeta } from "@/lib/site";
 import { ensureFinancials, financialsFor } from "@/lib/financials/load";
 
 export async function generateStaticParams() {
@@ -22,12 +22,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: `${sector.name} — interactive stock heatmap by industry`,
       description: `Every ${sector.name} stock as a heatmap, grouped by NSE industry, with what-if scenarios and each company's financials.`,
       alternates: { canonical: `/sector/${slug}` },
+      ...shareMeta({ title: `${sector.name}: stock heatmap`, line: "Every stock by industry, with what-ifs.", path: `/sector/${slug}`, image: `/sector/${slug}/opengraph-image` }),
     };
   return {
     title: `${sector.name} — interactive 3D supply-chain explorer`,
     description: `Walk through India's ${midSentence(sector.name)} supply chain layer by layer in 3D and open any listed company's financials.`,
     // The overview page is the indexable version of this content; the explorer is a WebGL canvas.
     alternates: { canonical: `/sector/${slug}` },
+    ...shareMeta({ title: `${sector.name}: 3D supply chain`, line: "Walk the chain layer by layer.", path: `/sector/${slug}`, image: `/sector/${slug}/opengraph-image` }),
   };
 }
 

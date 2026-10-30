@@ -6,6 +6,7 @@ import { footprintScore, listConnectedCompanies } from "@/lib/sector-content/exp
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { findSupplierByTicker } from "@/lib/sector-content";
 import { ensureFinancials } from "@/lib/financials/load";
+import { shareMeta } from "@/lib/site";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
 export const revalidate = 900;
@@ -14,6 +15,7 @@ export const metadata = {
   title: "Connected companies: Indian stocks that span several supply chains",
   description: "Listed Indian companies that show up in more than one industry or policy supply chain - see every layer each one supplies.",
   alternates: { canonical: "/connections" },
+  ...shareMeta({ title: "Companies in several supply chains", line: "Indian stocks that supply more than one industry.", path: "/connections" }),
 };
 
 export default async function ConnectionsPage() {

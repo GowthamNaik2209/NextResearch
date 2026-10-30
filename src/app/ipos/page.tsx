@@ -4,22 +4,14 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { IpoGrid } from "@/components/ipo/IpoGrid";
 import { getIpoDeck, ipoCards } from "@/lib/analysis-props";
 import { ensureFinancials } from "@/lib/financials/load";
+import { shareMeta } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Upcoming IPOs in India: prospectus summaries",
   description:
     "Ten-slide summaries of the biggest upcoming Indian IPOs - issue structure, business model, DRHP financials, use of proceeds, shareholding, peer valuation and risk factors.",
   alternates: { canonical: "/ipos" },
-  openGraph: {
-    title: "Upcoming IPOs in India: prospectus summaries",
-    description: "Ten-slide summaries of the biggest upcoming Indian IPOs - issue, business, financials, peers and risks.",
-    url: "/ipos",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Upcoming IPOs in India: prospectus summaries",
-    description: "Ten-slide summaries of the biggest upcoming Indian IPOs - issue, business, financials, peers and risks.",
-  },
+  ...shareMeta({ title: "Upcoming IPOs in India", line: "Each prospectus in ten slides.", path: "/ipos", image: null }),
 };
 
 export default async function IposPage({ searchParams }: { searchParams: Promise<{ ipo?: string }> }) {

@@ -15,8 +15,7 @@ export default async function Image() {
   return renderOgCard({
     kicker: "Upcoming IPOs",
     title: "Prospectus summaries",
-    subtitle: "Issue, business, financials, peers and risks - ten slides per IPO.",
-    chips: ipos.slice(0, 5).map((r) => r.name),
+    subtitle: "Each upcoming IPO in ten slides.",
     stats: [{ label: "IPOs covered", value: String(ipos.length) }],
   });
 }

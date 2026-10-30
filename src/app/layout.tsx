@@ -12,7 +12,8 @@ import { ReturnToStock } from "@/components/stock/ReturnToStock";
 import { InlineScript } from "@/components/InlineScript";
 import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { AppResume } from "@/components/AppResume";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL, jsonLd } from "@/lib/site";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { CONTACT_EMAIL, GA_ID, INSTAGRAM_URL, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL, SITE_VERIFICATION, jsonLd, shareMeta } from "@/lib/site";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -56,16 +57,12 @@ export const metadata: Metadata = {
     "NSE BSE company research",
   ],
   alternates: { canonical: "/" },
-  openGraph: {
-    type: "website",
-    siteName: SITE_NAME,
-    locale: "en_IN",
-    url: "/",
-    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
-    description: SITE_DESCRIPTION,
-  },
-  twitter: { card: "summary_large_image" },
+  ...shareMeta({ title: SITE_NAME, line: "See where every listed Indian company sits in the supply chain.", path: "/", image: null }),
   robots: { index: true, follow: true, googleBot: { "max-image-preview": "large", "max-snippet": -1 } },
+  verification: {
+    google: SITE_VERIFICATION.google,
+    other: SITE_VERIFICATION.bing ? { "msvalidate.01": SITE_VERIFICATION.bing } : undefined,
+  },
 };
 
 // The browser bar / status bar colour: the light page background. ThemeToggle's setTheme (and
@@ -77,7 +74,16 @@ export const viewport: Viewport = {
 const SITE_JSON_LD = {
   "@context": "https://schema.org",
   "@graph": [
-    { "@type": "Organization", "@id": `${SITE_URL}/#org`, name: SITE_NAME, url: SITE_URL, description: SITE_DESCRIPTION },
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#org`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      description: SITE_DESCRIPTION,
+      logo: `${SITE_URL}/icons/icon-512.png`,
+      email: CONTACT_EMAIL,
+      sameAs: [INSTAGRAM_URL],
+    },
     {
       "@type": "WebSite",
       "@id": `${SITE_URL}/#website`,
@@ -123,6 +129,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <KeyboardShortcuts />
         <AppResume />
         <Analytics />
+        {GA_ID && <GoogleAnalytics id={GA_ID} />}
       </body>
     </html>
   );

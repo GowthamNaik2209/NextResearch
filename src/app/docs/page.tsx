@@ -3,7 +3,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { ReadingList } from "@/components/research/ReadingList";
 import { analysisProps, analysisView } from "@/lib/analysis-props";
 import { ensureFinancials } from "@/lib/financials/load";
-import { themeNames } from "@/lib/site";
+import { themeNames, shareMeta } from "@/lib/site";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -12,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "Analysis: deep dives, research reports and stock charts for Indian industries, policies and IPOs",
     description: `Every industry and policy NextResearch maps - ${themeNames(10)} - as a deep dive into its supply chain and listed companies, a curated 10-slide research report, and a chart backtesting its listed stocks as a basket against the Nifty 50, plus prospectus summaries of upcoming IPOs.`,
     alternates: { canonical: "/docs" },
+    ...shareMeta({ title: "Analysis: industries, policies and IPOs", line: "Deep dives, 10-slide reports and basket charts.", path: "/docs" }),
   };
 }
 

@@ -5,11 +5,13 @@ import { NewsFeed } from "@/components/NewsFeed";
 import { ThemeChips } from "./ThemeChips";
 import { listSectors } from "@/lib/sector-content";
 import { ensureFinancials } from "@/lib/financials/load";
+import { shareMeta } from "@/lib/site";
 
 export const metadata = {
   title: "Updates: industry, policy and company news",
   description: "Latest news across the industries, policies and listed companies NextResearch covers.",
   alternates: { canonical: "/updates" },
+  ...shareMeta({ title: "Industry and company news", line: "The latest across every theme NextResearch maps.", path: "/updates" }),
 };
 
 export default async function UpdatesPage({ searchParams }: { searchParams: Promise<{ sector?: string }> }) {

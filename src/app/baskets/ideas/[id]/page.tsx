@@ -11,6 +11,7 @@ import { ensureFinancials } from "@/lib/financials/load";
 import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk-data";
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { sep } from "@/lib/format";
+import { shareMeta } from "@/lib/site";
 
 // A rule-based basket (a "basket idea" in the code): today's list for one rule, as a basket anyone can chart and save as their own.
 // The list moves with prices, so the page is rendered per request from the day's cached lists.
@@ -39,6 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     title: `${got.idea.title}: a rule-based stock basket`,
     description: `${got.idea.blurb} Re-ranked daily and backtested against the Nifty 50 on NextResearch.`,
     alternates: { canonical: `/baskets/ideas/${id}` },
+    ...shareMeta({ title: got.idea.title, line: "A rule-based stock basket, re-ranked daily.", path: `/baskets/ideas/${id}` }),
   };
 }
 

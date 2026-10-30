@@ -7,7 +7,7 @@ import { OpenReportButton } from "@/components/research/OpenReport";
 import { getSector, listSectorSlugs } from "@/lib/sector-content";
 import { getResearchForSector } from "@/lib/sector-content/docs";
 import { buildDeck } from "@/lib/sector-content/reports";
-import { NOT_FOUND_METADATA, midSentence } from "@/lib/site";
+import { NOT_FOUND_METADATA, midSentence, shareMeta } from "@/lib/site";
 import { ensureFinancials } from "@/lib/financials/load";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title,
     description: `Curated research on ${midSentence(sector.name)} in India: a 10-slide report plus the primary sources behind it. ${sector.tagline}.`,
     alternates: { canonical: `/docs/${slug}` },
-    openGraph: { title, url: `/docs/${slug}`, type: "article" },
+    ...shareMeta({ title: `${sector.name}: research report`, line: "A 10-slide report, with its sources.", path: `/docs/${slug}`, type: "article", image: null }),
   };
 }
 

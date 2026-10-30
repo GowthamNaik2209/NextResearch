@@ -10,6 +10,7 @@ import { getVisibleBasket } from "@/lib/baskets/store";
 import { ensureFinancials } from "@/lib/financials/load";
 import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk-data";
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
+import { shareMeta } from "@/lib/site";
 
 // Shared baskets are reachable by link but never indexed: they are a person's own picks.
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -22,6 +23,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     title: b ? `${b.name}: a stock basket` : "Page not found",
     description: b ? `${b.items.length} stocks, backtested against the Nifty 50 and their industry on NextResearch.` : undefined,
     robots: { index: false, follow: false },
+    // Shared by link, so the preview names the basket rather than the home page.
+    ...(b ? shareMeta({ title: b.name, line: `A basket of ${b.items.length} stocks, backtested against the Nifty 50.`, path: `/baskets/${id}` }) : {}),
   };
 }
 
