@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { cached } from "@/lib/live/cache";
 import { MAX_QUOTE_AGE_DAYS } from "@/lib/live/freshness";
 import { getChartWithFallback, getOhlcChart, getSymbolChart, HISTORY_FROM, type ChartData, type ChartRange, type Exchange, type OhlcData } from "@/lib/live/yahoo";
+import { adjustDemergers } from "@/lib/live/demergers";
 import { rollUp, sinceDays, storedRange, toCandles, toPoints, type StoredBar } from "./bars";
 
 const DAY = 86_400_000;
@@ -76,7 +77,10 @@ async function storedBars(key: string, range: ChartRange): Promise<(Loaded & { i
   if (!got) return null;
   // Corporate actions that make earlier prices a different security (as the Yahoo charts cut them).
   const from = HISTORY_FROM[key];
-  const daily = sinceDays(from ? got.bars.filter((b) => b.t >= from) : got.bars, r.days, Date.now());
+  // Demergers Yahoo left unadjusted (Screener's closes already are), scaled on the daily bars so
+  // the weekly roll-up is exact.
+  const kept = sinceDays(from ? got.bars.filter((b) => b.t >= from) : got.bars, r.days, Date.now());
+  const daily = got.source === "screener" ? kept : adjustDemergers(key, kept, "1d");
   // A week or month starting before the cut is left out whole, as Yahoo's bars are.
   const bars = rollUp(daily, r.interval).filter((b) => !from || b.t >= from);
   return bars.length >= 2 ? { ...got, bars, interval: r.interval, lastDay: daily[daily.length - 1]?.t ?? null } : null;
