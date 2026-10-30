@@ -3,13 +3,13 @@ import type { SectorReport } from "./types";
 export const telecom5g: SectorReport = {
   slug: "telecom5g",
   title: "India 5G & Telecom Infrastructure",
-  subtitle: "From a rollout sprint to a long densification and monetization cycle",
+  subtitle: "From a rollout sprint to a long densification and monetisation cycle",
   asOf: "Oct 2026",
 
   stance: {
-    label: "Mixed: monetize > build",
+    label: "Mixed: monetise > build",
     tone: "neutral",
-    line: "Coverage capex has peaked; value now shifts to operators raising ARPU and to towers, fiber and power that densification keeps pulling.",
+    line: "Coverage capex has peaked; value now shifts to operators raising ARPU and to towers, fibre and power that densification keeps pulling.",
   },
   keyStats: [
     { label: "5G subscribers, 2025", value: "~39 Cr", sub: "approx. (Ericsson Mobility Report)" },
@@ -20,15 +20,15 @@ export const telecom5g: SectorReport = {
   thesis: [
     {
       title: "Capex peaked, densification continues",
-      body: "Jio and Airtel built nationwide 5G in ~2 years (FY23-25). Spend now moves from new coverage to capacity sites, fiberization and small cells - steadier, but lower.",
+      body: "Jio and Airtel built nationwide 5G in ~2 years (FY23-25). Spend now moves from new coverage to capacity sites, fibreisation and small cells - steadier, but lower.",
     },
     {
       title: "Market is now a profitable duopoly-plus",
       body: "Tariff hikes in Dec 2021 and Jul 2024 (~11-25%) lifted ARPU toward ₹200-250. Further hikes are the main lever for returns on 5G spend.",
     },
     {
-      title: "Passive infra and fiber are the durable pools",
-      body: "Towers, fiber backhaul and backup power scale with every site and tenancy. Equipment makers face lumpy orders and Nokia/Ericsson/Samsung competition.",
+      title: "Passive infra and fibre are the durable pools",
+      body: "Towers, fibre backhaul and backup power scale with every site and tenancy. Equipment makers face lumpy orders and Nokia/Ericsson/Samsung competition.",
     },
   ],
 
@@ -50,7 +50,7 @@ export const telecom5g: SectorReport = {
     {
       date: "Jun-Jul 2025",
       title: "Starlink cleared for India",
-      body: "SpaceX's Starlink received a GMPCS licence and IN-SPACe authorization; satellite spectrum will be assigned administratively, not auctioned.",
+      body: "SpaceX's Starlink received a GMPCS licence and IN-SPACe authorisation; satellite spectrum will be assigned administratively, not auctioned.",
       impact: "neutral",
       tag: "Satcom",
     },
@@ -81,7 +81,7 @@ export const telecom5g: SectorReport = {
     narrative: [
       "India is the world's second-largest telecom market, with ~116 Cr wireless users and very cheap data. Jio and Airtel dominate; Vi and state-run BSNL trail.",
       "5G launched in Oct 2022 and reached nearly every district within two years, largely on non-standalone (Airtel) and standalone (Jio) networks. Operator capex has since started to taper.",
-      "The next leg is densification, fiber-to-the-site, fixed wireless access and enterprise use cases, while the ₹12,195 Cr telecom PLI pushes equipment manufacturing onshore.",
+      "The next leg is densification, fibre-to-the-site, fixed wireless access and enterprise use cases, while the ₹12,195 Cr telecom PLI pushes equipment manufacturing onshore.",
     ],
     chart: {
       title: "5G subscriptions in India",
@@ -99,7 +99,7 @@ export const telecom5g: SectorReport = {
     snapshot: [
       { label: "Blended ARPU, Airtel / Jio", value: "~₹250 / ~₹210", tone: "pos" },
       { label: "5G share of mobile subs, 2025", value: "~33%", tone: "pos" },
-      { label: "Fiberized towers", value: "~40%", tone: "neg" },
+      { label: "Fibre-connected towers", value: "~40%", tone: "neg" },
       { label: "Telecom PLI outlay", value: "₹12,195 Cr", tone: "neutral" },
       { label: "BharatNet (amended) outlay", value: "₹1.39L Cr", tone: "pos" },
       { label: "Vi balance-sheet stress", value: "High", tone: "neg" },
@@ -107,7 +107,7 @@ export const telecom5g: SectorReport = {
   },
 
   valueChain: [
-    { stage: "Fiber & cable", zoneIds: ["fiber"], margin: "10-18% EBITDA", moat: "medium", note: "Cyclical; global fiber prices and BharatNet orders drive utilization." },
+    { stage: "Fibre & cable", zoneIds: ["fiber"], margin: "10-18% EBITDA", moat: "medium", note: "Cyclical; global fibre prices and BharatNet orders drive utilisation." },
     { stage: "Network equipment & components", zoneIds: ["ran", "antennas", "ems"], margin: "8-20% EBITDA", moat: "medium", note: "Global vendors dominate RAN; domestic players win on PLI and trusted-source rules." },
     { stage: "Towers & passive infra", zoneIds: ["towers"], margin: "~50% EBITDA", moat: "high", note: "Annuity-like rentals; tenancy additions drive incremental returns." },
     { stage: "Power systems", zoneIds: ["power"], margin: "10-15% EBITDA", moat: "medium", note: "Li-ion and solar hybrids replace diesel at sites; content rises with densification." },
@@ -118,8 +118,8 @@ export const telecom5g: SectorReport = {
   drivers: [
     { title: "Data consumption", metric: "~25 GB/month", body: "Video and short-form content keep per-user data growing at a double-digit pace, forcing capacity additions." },
     { title: "ARPU repair", metric: "₹300 target", body: "Operators publicly target ~₹300 ARPU; each ₹10 rise adds thousands of crore to industry EBITDA." },
-    { title: "Fixed wireless & home broadband", metric: "~1 Cr+ FWA homes", body: "Jio AirFiber and Airtel Xstream AirFiber use 5G for home broadband, lifting network utilization." },
-    { title: "Domestic manufacturing push", metric: "₹12,195 Cr PLI", body: "Telecom PLI and trusted-source rules favour local makers of fiber, routers, RAN and CPE gear." },
+    { title: "Fixed wireless & home broadband", metric: "~1 Cr+ FWA homes", body: "Jio AirFiber and Airtel Xstream AirFiber use 5G for home broadband, lifting network utilisation." },
+    { title: "Domestic manufacturing push", metric: "₹12,195 Cr PLI", body: "Telecom PLI and trusted-source rules favour local makers of fibre, routers, RAN and CPE gear." },
   ],
   mix: {
     title: "Wireless subscriber share by operator, 2025 (approx.)",
@@ -163,8 +163,8 @@ export const telecom5g: SectorReport = {
     { key: "bhartiairtel_op", tier: "core", why: "Highest ARPU among peers; first in line to gain from tariff hikes and premium 5G users." },
     { key: "industowers", tier: "core", why: "Largest tower company; earns rentals on every new 5G site and tenancy." },
     { key: "altiusinvit", tier: "core", why: "Second-largest tower portfolio after buying American Tower's India business." },
-    { key: "hfcl_fiber", tier: "direct", why: "Optical fiber, cable and 5G transport gear; gains from fiberization and BharatNet." },
-    { key: "sterlitetech", tier: "direct", why: "Pure-play optical fiber and cable maker; volumes tied to fiber-to-site and FTTH." },
+    { key: "hfcl_fiber", tier: "direct", why: "Optical fibre, cable and 5G transport gear; gains from fibreisation and BharatNet." },
+    { key: "sterlitetech", tier: "direct", why: "Pure-play optical fibre and cable maker; volumes tied to fibre-to-site and FTTH." },
     { key: "tejasnetworks", tier: "direct", why: "Indigenous RAN and optical transport maker; key supplier to BSNL's 4G/5G stack." },
     { key: "pacedigitek", tier: "direct", why: "Tower EPC plus DC power and battery systems for telecom sites." },
     { key: "bondada", tier: "indirect", why: "Telecom site EPC and O&M contractor; growth follows operator rollouts." },
@@ -182,13 +182,13 @@ export const telecom5g: SectorReport = {
 
   risks: [
     { risk: "Vodafone Idea fails to fund capex or dues", mitigant: "Government equity stake and AGR restructuring; new fundraising", severity: "high" },
-    { risk: "Operator capex keeps falling after 5G peak", mitigant: "Densification, fiberization and FWA keep a base level of spend", severity: "medium" },
+    { risk: "Operator capex keeps falling after 5G peak", mitigant: "Densification, fibreisation and FWA keep a base level of spend", severity: "medium" },
     { risk: "Tariff hikes stall on political or competitive pressure", mitigant: "Two-player pricing discipline; data use keeps rising", severity: "medium" },
     { risk: "Satcom and Wi-Fi offload reduce rural tower need", mitigant: "Satellite capacity is costly and complements, not replaces, towers", severity: "low" },
   ],
   outlook: {
-    bull: "ARPU passes ₹300 by FY28 as 5G monetizes via FWA and enterprise, while Vi revives and adds tenancies across towers and fiber.",
-    base: "Steady ARPU gains, flat-to-lower capex, and passive infra and fiber growing mid-to-high single digits through FY30P.",
+    bull: "ARPU passes ₹300 by FY28 as 5G monetises via FWA and enterprise, while Vi revives and adds tenancies across towers and fibre.",
+    base: "Steady ARPU gains, flat-to-lower capex, and passive infra and fibre growing mid-to-high single digits through FY30P.",
     bear: "Vi weakens further, tariff hikes stall, and equipment makers face an order drought after the 5G and BSNL peaks.",
   },
   reading: [

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { returnToStockPath } from "@/lib/safe-next";
+import { track } from "@/lib/analytics";
 
 type Props = { ticker: string; name?: string };
 
@@ -121,6 +122,7 @@ export async function saveToWatchlist(ticker: string): Promise<boolean> {
   }).catch(() => null);
   if (!res?.ok) return false;
   setLiked(ticker, true);
+  track("add_to_wishlist", { ticker });
   return true;
 }
 
@@ -199,6 +201,7 @@ export function WatchlistButton({ ticker, name }: Props) {
             })
         ).catch(() => null);
         if (res?.ok) {
+          if (!wasLiked) track("add_to_wishlist", { ticker });
           setNeedsAuth(false);
           flipped = null;
         } else if (res?.status === 401) {

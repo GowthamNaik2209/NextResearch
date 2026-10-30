@@ -10,6 +10,7 @@ import { ensureFinancials } from "@/lib/financials/load";
 import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk-data";
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { categoryWord } from "@/lib/sector-content/core";
+import { shareMeta } from "@/lib/site";
 
 export async function generateStaticParams() {
   await ensureFinancials();
@@ -27,6 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `${b.name} stock basket: ${b.stocks.length} listed stocks backtested`,
     description: `${b.category === "index" ? `All ${b.stocks.length} ${b.name} stocks` : `All ${b.stocks.length} listed ${b.name} stocks NextResearch maps`}, as one basket backtested against the Nifty 50${b.indices[0] ? ` and the ${b.indices[0].name}` : ""}, with each stock's return and contribution.`,
     alternates: { canonical: `/baskets/industry/${b.slug}` },
+    ...shareMeta({ title: `${b.name} stock basket`, line: `${b.stocks.length} stocks, backtested against the Nifty 50.`, path: `/baskets/industry/${b.slug}`, image: `/sector/${b.slug}/opengraph-image` }),
   };
 }
 

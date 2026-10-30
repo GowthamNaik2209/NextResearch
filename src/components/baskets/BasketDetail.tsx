@@ -42,6 +42,7 @@ import { relativeStats, seriesStats } from "@/lib/baskets/stats";
 import { basketWorkbook, workbookFileName } from "@/lib/baskets/workbook";
 import { buildXlsx } from "@/lib/xlsx";
 import { loadSeries } from "./series";
+import { track } from "@/lib/analytics";
 import {
   BAND_CHOICES,
   REBALANCE_RULES,
@@ -921,6 +922,7 @@ export function BasketDetail(p: BasketDetailProps) {
     const res = await fetch("/api/baskets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tickers, name: name.trim(), weighting: savedWeighting, ...savedWeights, ...pickedFromFor(tickers), ...(p.sourceSector ? { sourceSector: p.sourceSector } : {}) }) }).catch(() => null);
     const json = res ? await res.json().catch(() => null) : null;
     if (res?.ok && json?.id) {
+      track("create_basket", { stocks: tickers.length });
       // What the chart was compared with here goes with it, so the new basket's page opens on the
       // same lines (its own default would add its industry's index and basket).
       try {

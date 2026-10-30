@@ -14,13 +14,13 @@ export const semiconductors: SectorReport = {
   keyStats: [
     { label: "India chip demand, 2024", value: "~$45-50 bn", sub: "approx. (IESA / Counterpoint)" },
     { label: "ISM first-phase outlay", value: "₹76,000 Cr", sub: "approved Dec 2021" },
-    { label: "Approved fab/OSAT projects", value: "10", sub: "~₹1.6L Cr investment" },
+    { label: "Approved fab/OSAT projects", value: "12", sub: ">₹1.64L Cr; 5 producing (ISM)" },
     { label: "Chips imported", value: ">90%", sub: "first local packaging ramping" },
   ],
   thesis: [
     {
       title: "Packaging comes before wafers",
-      body: "Nine of the ten approved projects are OSAT/ATMP or compound-semiconductor units that ramp in 2-3 years, while the Tata-PSMC Dholera fab is a 2027+ story.",
+      body: "Eleven of the 12 approved projects are OSAT/ATMP, compound-semiconductor or display units that ramp in 2-3 years, while the Tata-PSMC Dholera fab is guided to mid-2028.",
     },
     {
       title: "Incentives de-risk the capex",
@@ -28,15 +28,15 @@ export const semiconductors: SectorReport = {
     },
     {
       title: "Picks and shovels earn first",
-      body: "Gases, ultra-pure chemicals and water, cleanroom HVAC and design services get paid during construction and qualification, years before fab utilization matters.",
+      body: "Gases, ultra-pure chemicals and water, cleanroom HVAC and design services get paid during construction and qualification, years before fab utilisation matters.",
     },
   ],
 
   developments: [
     {
-      date: "2026",
-      title: "ISM 2.0 on the policy agenda",
-      body: "With the first-phase outlay nearly fully committed, the government has signalled a second phase aimed at more fabs, equipment and materials.",
+      date: "Jul 2026",
+      title: "Semicon 2.0 approved",
+      body: "Cabinet approved Semicon 2.0 (₹1.27L Cr) on 15 Jul 2026 to fund fabs, packaging, equipment, materials and design.",
       impact: "pos",
       tag: "Policy",
     },
@@ -100,7 +100,7 @@ export const semiconductors: SectorReport = {
     snapshot: [
       { label: "Demand growth, 2024-30P", value: "~14% CAGR", tone: "pos" },
       { label: "Central fiscal support", value: "~50% of capex", tone: "pos" },
-      { label: "Commercial fabs operating", value: "0 (first by 2027P)", tone: "neg" },
+      { label: "Commercial fabs operating", value: "0 (Dholera guided mid-2028)", tone: "neg" },
       { label: "Share of global chip designers", value: "~20%", tone: "pos" },
       { label: "Chip import dependence", value: ">90%", tone: "neg" },
       { label: "ISM outlay committed", value: "Nearly all", tone: "neutral" },
@@ -111,7 +111,7 @@ export const semiconductors: SectorReport = {
     { stage: "Chip design & IP", zoneIds: ["design_services"], margin: "15-20% EBITDA", moat: "medium", note: "India's existing strength; services today, product IP still rare." },
     { stage: "Gases & chemicals", zoneIds: ["gases", "chemicals"], margin: "20-30% EBITDA", moat: "high", note: "Purity qualification is slow, sticky and pays for decades." },
     { stage: "Cleanroom & utilities", zoneIds: ["cleanroom_utilities"], margin: "8-12% EBITDA", moat: "medium", note: "HVAC, ultra-pure water and power - project revenue during construction." },
-    { stage: "Wafer fabrication", zoneIds: ["wafer_fab"], margin: "Loss-making in ramp", moat: "high", note: "Mature nodes (28-110nm) first; returns hinge on utilization and yields." },
+    { stage: "Wafer fabrication", zoneIds: ["wafer_fab"], margin: "Loss-making in ramp", moat: "high", note: "Mature nodes (28-110nm) first; returns hinge on utilisation and yields." },
     { stage: "OSAT / ATMP", zoneIds: ["atmp"], margin: "15-25% EBITDA at scale", moat: "medium", note: "Most near-term capacity; lower capex and faster ramp than fabs." },
     { stage: "EMS & system integration", zoneIds: ["ems_downstream"], margin: "3-8% EBITDA", moat: "low", note: "Captive demand for local chips; scale-driven, thin margins." },
   ],
@@ -141,7 +141,7 @@ export const semiconductors: SectorReport = {
     ],
     economic: [
       { point: "Subsidised capex and low labour cost help OSAT economics versus Southeast Asia.", impact: "pos" },
-      { point: "Global chip cycles and pricing set utilization; a downturn hurts sub-scale new entrants first.", impact: "neg" },
+      { point: "Global chip cycles and pricing set utilisation; a downturn hurts sub-scale new entrants first.", impact: "neg" },
     ],
     social: [
       { point: "Large engineering talent pool and design workforce support the ecosystem.", impact: "pos" },
@@ -163,7 +163,7 @@ export const semiconductors: SectorReport = {
 
   beneficiaries: [
     { key: "kaynes", tier: "core", why: "₹3,300 Cr Sanand OSAT with ISM support plus in-house EMS demand for its chips." },
-    { key: "cgpower", tier: "core", why: "Sanand OSAT JV with Renesas and Stars; pilot line already shipping samples." },
+    { key: "cgpower", tier: "core", why: "Sanand OSAT JV with Renesas and Stars; main plant inaugurated Jul 2026." },
     { key: "spelsemi", tier: "direct", why: "India's only listed legacy pure-play OSAT; small but a direct capacity proxy." },
     { key: "moschip", tier: "direct", why: "Fabless ASIC/SoC design services; benefits from DLI scheme and global outsourcing." },
     { key: "linde", tier: "direct", why: "Bulk and specialty gases - every fab and OSAT needs on-site supply." },
@@ -178,20 +178,20 @@ export const semiconductors: SectorReport = {
     { key: "cgpower", date: "Aug 2025", development: "Inaugurated the pilot line at its Sanand OSAT, ahead of the main plant.", impact: "First listed company to produce packaged chips in India under ISM.", tone: "pos" },
     { key: "kaynes", date: "Sep 2024", development: "Cabinet approved its ₹3,307 Cr OSAT at Sanand; first chips followed in 2025-26.", impact: "Gives listed investors a second OSAT pure play integrated with EMS.", tone: "pos" },
     { key: "dixon", date: "2025-26", development: "Expanded into display and camera modules via JVs under component incentives.", impact: "Deepens local component demand that future Indian chips can serve.", tone: "pos" },
-    { key: "moschip", date: "2025-26", development: "Grew design-services revenue strongly with larger ASIC and embedded programmes.", impact: "Shows India's design layer monetizing ahead of manufacturing.", tone: "pos" },
+    { key: "moschip", date: "2025-26", development: "Grew design-services revenue strongly with larger ASIC and embedded programmes.", impact: "Shows India's design layer monetising ahead of manufacturing.", tone: "pos" },
     { key: "spelsemi", date: "2025-26", development: "Revenue stayed small and losses persisted as large new OSATs came up.", impact: "Scale and customer qualification matter more than being first.", tone: "neg" },
   ],
 
   risks: [
     { risk: "Fab execution and yield delays", mitigant: "Experienced partners (PSMC, Renesas); milestone-linked subsidy", severity: "high" },
-    { risk: "Global chip downcycle hits new-plant utilization", mitigant: "Mature-node and auto/industrial focus; captive local demand", severity: "medium" },
+    { risk: "Global chip downcycle hits new-plant utilisation", mitigant: "Mature-node and auto/industrial focus; captive local demand", severity: "medium" },
     { risk: "Water, power and materials gaps at clusters", mitigant: "State-built utilities; local gas and chemical capacity", severity: "medium" },
-    { risk: "Incentive pause after ISM first phase", mitigant: "ISM 2.0 signalled; strong state-level competition", severity: "medium" },
+    { risk: "Semicon 2.0 support is slower or smaller than hoped", mitigant: "₹1.27L Cr Semicon 2.0 approved Jul 2026; strong state-level competition", severity: "medium" },
   ],
   outlook: {
     bull: "Dholera fab ramps on time, OSATs fill up with global customers and India meets ~15-20% of its chip demand locally by 2030.",
-    base: "OSATs ramp through FY27-28 and the first fab starts by 2027-28; local supply stays under 10% of demand by 2030.",
-    bear: "Fab delays and a chip downcycle leave plants under-utilized; India remains mainly an importer and packager.",
+    base: "OSATs ramp through FY27-28 and the first fab starts around 2028; local supply stays under 10% of demand by 2030.",
+    bear: "Fab delays and a chip downcycle leave plants under-utilised; India remains mainly an importer and packager.",
   },
   reading: [
     { title: "India Semiconductor Mission", source: "Ministry of Electronics & IT", url: "https://ism.gov.in/" },

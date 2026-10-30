@@ -17,7 +17,11 @@ import { OpenReportButton } from "@/components/research/OpenReport";
 import { buildDeck } from "@/lib/sector-content/reports";
 import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
 import { companySlug, sectorCompanies, sectorCompanyCounts } from "@/lib/sector-content/companies";
-import { NOT_FOUND_METADATA, SITE_URL, jsonLd, midSentence } from "@/lib/site";
+import { NOT_FOUND_METADATA, SITE_URL, jsonLd, midSentence, shareMeta } from "@/lib/site";
+import { FaqSection } from "@/components/FaqSection";
+import { faqJsonLd, sectorFaq } from "@/lib/faq";
+import { dataAsOf } from "@/lib/sector-content/insights";
+import { isoDay } from "@/lib/financials/rows";
 import type { Metadata } from "next";
 import { Points } from "@/components/Points";
 import { IndustryActions, type HeatStock } from "@/components/charts/IndustryHeatmap";
@@ -48,7 +52,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title,
     description,
     alternates: { canonical: `/sector/${slug}` },
-    openGraph: { title, description, url: `/sector/${slug}`, type: "article" },
+    ...shareMeta({
+      title: sector.stage === "heatmap" ? `${sector.name}: stocks by industry` : `${sector.name}: supply chain map`,
+      line: `${listed} listed companies across ${sector.zones.length} ${sector.stage === "heatmap" ? "industries" : "layers"}.`,
+      path: `/sector/${slug}`,
+      type: "article",
+      image: null,
+    }),
   };
 }
 
@@ -106,6 +116,8 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
   const otherCompanies = companies.filter((c) => !integratorTickers.has(c.ticker));
   const integratorsShown = companies.length - otherCompanies.length;
 
+  const faqs = sectorFaq(sector);
+  const updated = isoDay(dataAsOf());
   const deck = buildDeck(sector.slug);
   // The heatmap's stocks: the industry basket's, grouped in the map's layer order. A heatmap sector
   // (the Nifty 50) has none here: its heatmap, with the what-ifs, is the explorer itself.
@@ -414,6 +426,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
             })}
           </div>
         </section>
+        <FaqSection faqs={faqs} headingClassName="text-xs font-bold uppercase tracking-widest text-ink-soft" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -437,6 +450,14 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                     url: `${SITE_URL}/company/${companySlug(c.ticker)}`,
                   })),
                 },
+                {
+                  "@type": "WebPage",
+                  url: `${SITE_URL}/sector/${sector.slug}`,
+                  name: sector.name,
+                  ...(updated ? { dateModified: updated } : {}),
+                  isPartOf: { "@id": `${SITE_URL}/#website` },
+                },
+                ...(faqs.length ? [faqJsonLd(faqs)] : []),
               ],
             }),
           }}

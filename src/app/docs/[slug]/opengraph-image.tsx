@@ -1,4 +1,6 @@
+import { notFound } from "next/navigation";
 import { getSector, listSectorSlugs, tickerForSupplier } from "@/lib/sector-content";
+import { buildDeck } from "@/lib/sector-content/reports";
 import { OG_CONTENT_TYPE, OG_SIZE, renderOgCard } from "@/lib/og";
 import { ensureFinancials } from "@/lib/financials/load";
 
@@ -18,15 +20,15 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   await ensureFinancials();
   const { slug } = await params;
   const sector = getSector(slug);
-  if (!sector) return renderOgCard({ kicker: "Theme", title: "NextResearch" });
+  // Only where the report page exists (the Nifty 50 has none).
+  if (!sector || !buildDeck(slug)) notFound();
   const listed = new Set(Object.values(sector.suppliers).filter((s) => s.listed).map(tickerForSupplier));
   return renderOgCard({
     kicker: "Curated report",
     title: sector.name,
-    subtitle: sector.tagline,
-    chips: sector.zones.slice(0, 5).map((z) => z.label),
+    subtitle: "A 10-slide research report",
     stats: [
-      { label: "Layers", value: String(sector.zones.length) },
+      { label: sector.category === "index" ? "Industries" : "Layers", value: String(sector.zones.length) },
       { label: "Listed companies", value: String(listed.size) },
     ],
   });

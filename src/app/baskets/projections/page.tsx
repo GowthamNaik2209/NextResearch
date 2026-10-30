@@ -29,6 +29,7 @@ import {
 import { getSector } from "@/lib/sector-content";
 import { NA, fmtDay, signedPct } from "@/lib/format";
 import { ExampleStockSelect } from "./ExampleStockSelect";
+import { shareMeta } from "@/lib/site";
 
 // How the basket pages' Projections are worked out (docs/PROJECTIONS.md, section 4), in full, with a
 // worked example: any stock's own figures run through each step by the same code the baskets use,
@@ -40,6 +41,7 @@ export const metadata = {
   description:
     "The method behind NextResearch's 1- and 2-year basket projections: a market-implied Base (10-year G-sec yield plus beta times India's equity risk premium, less dividend yield) tilted slightly by fundamentals, a Bear–Bull range from each stock's own volatility, the out-of-sample evidence, and a worked example for any stock.",
   alternates: { canonical: "/baskets/projections" },
+  ...shareMeta({ title: "How basket projections work", line: "Bear, Base and Bull, explained.", path: "/baskets/projections" }),
 };
 
 const DISCLAIMER = "Model projection from market pricing, past prices and reported financials, not a forecast or a recommendation.";

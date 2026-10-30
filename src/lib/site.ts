@@ -50,6 +50,31 @@ export const BRAND = {
   darkAccent: "#f0b53f",
 } as const;
 
+// Search Console / Bing ownership tags and the GA4 measurement ID, all optional (unset renders nothing).
+// GA never loads on Vercel preview builds (staging), so test visits there stay out of the reports even
+// if the ID is copied to the Preview environment; set it for Production only.
+export const GA_ID = process.env.VERCEL_ENV === "preview" ? undefined : process.env.NEXT_PUBLIC_GA_ID;
+export const SITE_VERIFICATION = {
+  google: process.env.GOOGLE_SITE_VERIFICATION,
+  bing: process.env.BING_SITE_VERIFICATION,
+};
+
+/**
+ * Link-preview tags (WhatsApp, X, LinkedIn, iMessage): a short title and one short line, kept apart
+ * from the longer search description. A page that sets `openGraph` replaces the layout's whole
+ * object (pages that set none showed the home page's title and URL), so every indexable page sets
+ * these through here. Setting `openGraph` also drops the share card a route would inherit, so
+ * `image` names it (the root card by default). A route with its own opengraph-image file passes
+ * null: an explicit image would replace its card.
+ */
+export function shareMeta({ title, line, path, type = "website", image = "/opengraph-image" }: { title: string; line: string; path: string; type?: "website" | "article"; image?: string | null }) {
+  const images = image ? { images: [{ url: image, width: 1200, height: 630, alt: title }] } : {};
+  return {
+    openGraph: { type, siteName: SITE_NAME, locale: "en_IN", url: path, title, description: line, ...images },
+    twitter: { card: "summary_large_image" as const, title, description: line, ...images },
+  };
+}
+
 // JSON-LD payloads go into a raw <script>; escape "<" so authored text can never close it.
 export function jsonLd(data: unknown): string {
   return JSON.stringify(data).replace(/</g, "\\u003c");

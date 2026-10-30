@@ -44,7 +44,7 @@ export function defineNifty50(h) {
     defaultView: "overview",
     views: [{ id: "overview", label: "Overview", pos: [0, 0, 10], target: [0, 0, 0] }],
     domains: [
-      {id:"financials", title:"Financials", shortTitle:"Financials", description:"Banks, NBFCs, insurers, an exchange and a financial holding company - the largest block of the index, driven by credit growth, deposit costs and asset quality.", color:"#1F5FAD", relatedDomains:["consumption","infra"]},
+      {id:"financials", title:"Financials", shortTitle:"Financials", description:"Banks, NBFCs, insurers, an exchange and two financial holding companies - the largest block of the index, driven by credit growth, deposit costs and asset quality.", color:"#1F5FAD", relatedDomains:["consumption","infra"]},
       {id:"tech", title:"Technology & Telecom", shortTitle:"Tech", description:"IT services exporters and India's leading telecom operator - dollar earners and a domestic data business.", color:"#7A4FC7", relatedDomains:["financials"]},
       {id:"consumption", title:"Consumption", shortTitle:"Consumption", leadZoneId:"fmcg", description:"Staples, durables, retail, food delivery and vehicles - what Indian households spend on, from soap to SUVs.", color:"#D9822B", relatedDomains:["financials","healthcare"]},
       {id:"energy", title:"Energy & Materials", shortTitle:"Energy", description:"Oil, gas, coal, power, metals and cement - the commodity and utility end of the index, tied to global prices and government capex.", color:"#B23A3A", relatedDomains:["infra"]},

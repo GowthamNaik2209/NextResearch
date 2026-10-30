@@ -16,6 +16,12 @@ import {
 } from "./index";
 import { slugify } from "@/lib/slugify";
 
+/**
+ * Not listed on the NSE. A company that listed before its figures were added to the company table
+ * (Vikram Solar, Rico Auto) stays listed:false until then, and its note says "NSE-listed".
+ */
+export const isUnlisted = (s: SectorSupplier) => !s.listed && !/\bNSE-listed\b/.test([s.role, ...(s.notes ?? [])].join(" "));
+
 export type CompanyAppearance = {
   sectorSlug: string;
   sectorName: string;
@@ -27,7 +33,8 @@ export type CompanyAppearance = {
   // How central this layer is to the company (linkWeight in ./index).
   weight: number;
   supplier: SectorSupplier; // this sector's record (role, strengths, risks)
-  peers: { name: string; slug: string | null }[];
+  // unlisted: not listed on the NSE (a listed company whose figures aren't loaded yet has no slug but isn't unlisted).
+  peers: { name: string; slug: string | null; unlisted: boolean }[];
 };
 
 export type CompanyPage = {
@@ -65,7 +72,7 @@ function build(): Map<string, CompanyPage> {
         const peers = z.suppliers
           .map((l) => s.suppliers[companyLinkKey(l)])
           .filter((p): p is SectorSupplier => !!p && p.name !== sup.name)
-          .map((p) => ({ name: p.name, slug: p.listed && p.f?.ticker ? companySlug(p.f.ticker) : null }));
+          .map((p) => ({ name: p.name, slug: p.listed && p.f?.ticker ? companySlug(p.f.ticker) : null, unlisted: isUnlisted(p) }));
         page.appearances.push({
           sectorSlug: s.slug,
           sectorName: s.name,

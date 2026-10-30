@@ -20,7 +20,7 @@ export const datacenter: SectorReport = {
   thesis: [
     {
       title: "Data is generated here, stored elsewhere",
-      body: "India produces ~20% of the world's data but hosts only ~3% of global data-centre capacity. Localization rules, cheap mobile data and AI close that gap.",
+      body: "India produces ~20% of the world's data but hosts only ~3% of global data-centre capacity. Localisation rules, cheap mobile data and AI close that gap.",
     },
     {
       title: "Hyperscalers have committed real money",
@@ -80,7 +80,7 @@ export const datacenter: SectorReport = {
   overview: {
     narrative: [
       "India's data-centre base was built for enterprise colocation, banking and telecom. Cloud adoption, UPI-scale digital services and video lifted it past ~1 GW by 2024, and AI is now pulling in larger, denser campuses.",
-      "Policy is supportive: infrastructure status (2022), state data-centre policies with power and land incentives, data-localization rules and IndiaAI GPU subsidies.",
+      "Policy is supportive: infrastructure status (2022), state data-centre policies with power and land incentives, data-localisation rules and IndiaAI GPU subsidies.",
       "The binding constraints are reliable green power, grid connections, water for cooling and imported GPUs - not demand.",
     ],
     chart: {
@@ -110,14 +110,14 @@ export const datacenter: SectorReport = {
     { stage: "Grid, transformers & switchgear", zoneIds: ["transformers"], margin: "12-20% EBITDA", moat: "high", note: "Long lead times and capacity shortages give pricing power to scaled makers." },
     { stage: "Backup power", zoneIds: ["power_backup"], margin: "15-20% EBITDA", moat: "medium", note: "Gensets, UPS and battery banks; uptime certification keeps vendor lists short." },
     { stage: "Cooling", zoneIds: ["cooling"], margin: "8-12% EBITDA", moat: "medium", note: "Shift from air to liquid cooling for AI racks favours technology partners." },
-    { stage: "Cabling & fiber", zoneIds: ["cabling", "networking"], margin: "10-14% EBITDA", moat: "low", note: "Volume business; power cable demand rises with every MW, fiber with interconnects." },
+    { stage: "Cabling & fibre", zoneIds: ["cabling", "networking"], margin: "10-14% EBITDA", moat: "low", note: "Volume business; power cable demand rises with every MW, fibre with interconnects." },
     { stage: "Compute & distribution", zoneIds: ["compute"], margin: "Low single digit to ~15%", moat: "medium", note: "GPUs are imported; local value is server assembly, integration and distribution." },
     { stage: "Operators & landlords", zoneIds: ["operators"], margin: "40-50% EBITDA", moat: "high", note: "Land, power and hyperscaler contracts; capital-heavy with long paybacks." },
   ],
 
   drivers: [
     { title: "Cloud and AI workloads", metric: "$65 bn+ pledged", body: "Hyperscaler commitments to 2030 anchor multi-hundred-MW campuses in Mumbai, Chennai, Hyderabad and Vizag." },
-    { title: "Data localization", metric: "DPDP + RBI", body: "Payment-data rules and the DPDP Act push banks, fintechs and government data onshore." },
+    { title: "Data localisation", metric: "DPDP + RBI", body: "Payment-data rules and the DPDP Act push banks, fintechs and government data onshore." },
     { title: "Sovereign AI compute", metric: "30,000+ GPUs", body: "IndiaAI subsidised GPU capacity creates demand for high-density, liquid-cooled halls with Indian operators." },
     { title: "Data consumption", metric: "~25-30 GB/user/month", body: "Among the world's highest mobile data use drives content, OTT and edge capacity needs." },
   ],
@@ -151,7 +151,7 @@ export const datacenter: SectorReport = {
       { point: "Rapid GPU generations shorten hardware life and raise obsolescence risk for compute owners.", impact: "neutral" },
     ],
     legal: [
-      { point: "DPDP Act and sectoral localization rules (RBI, SEBI, IRDAI) favour onshore hosting.", impact: "pos" },
+      { point: "DPDP Act and sectoral localisation rules (RBI, SEBI, IRDAI) favour onshore hosting.", impact: "pos" },
       { point: "Cross-border data transfer rules can still change, affecting hyperscaler planning.", impact: "neutral" },
     ],
     environmental: [
@@ -170,7 +170,7 @@ export const datacenter: SectorReport = {
     { key: "schneiderElec", tier: "direct", why: "Power distribution and electrical infrastructure for DC halls." },
     { key: "bluestar", tier: "indirect", why: "Precision air conditioning and chillers for data-centre halls." },
     { key: "kei", tier: "indirect", why: "HV and LV power cables; data centres a growing institutional segment." },
-    { key: "sterliteTech", tier: "indirect", why: "Largest Indian optical fiber maker; DC interconnect and cabling solutions." },
+    { key: "sterliteTech", tier: "indirect", why: "Largest Indian optical fibre maker; DC interconnect and cabling solutions." },
   ],
 
   companyNews: [
@@ -179,12 +179,12 @@ export const datacenter: SectorReport = {
     { key: "hitachiEnergy", date: "2024-26", development: "Executing a ~₹2,000 Cr capacity expansion in transformers and grid equipment.", impact: "Eases transformer lead times that gate new DC grid connections.", tone: "pos" },
     { key: "cummins", date: "2025-26", development: "Data-centre gensets remain a key driver of high-horsepower power-gen demand.", impact: "Backup power scales directly with MW added.", tone: "pos" },
     { key: "kei", date: "2025-26", development: "Commissioning a greenfield cable plant at Sanand to add HV and EHV capacity.", impact: "More domestic EHV cable supply for campus grid connections.", tone: "pos" },
-    { key: "sterliteTech", date: "2025", development: "Demerged its global services arm to focus on optical networking and DC connectivity.", impact: "A cleaner listed play on fiber demand from data centres.", tone: "neutral" },
+    { key: "sterliteTech", date: "2025", development: "Demerged its global services arm to focus on optical networking and DC connectivity.", impact: "A cleaner listed play on fibre demand from data centres.", tone: "neutral" },
   ],
 
   risks: [
     { risk: "Power and grid-connection delays", mitigant: "Captive renewables, open access and state DC policies with dedicated substations", severity: "high" },
-    { risk: "AI capex cycle slows globally", mitigant: "Localization and enterprise cloud provide base-load demand", severity: "medium" },
+    { risk: "AI capex cycle slows globally", mitigant: "Localisation and enterprise cloud provide base-load demand", severity: "medium" },
     { risk: "GPU access limited by export controls", mitigant: "India's tier status and government-to-government AI deals", severity: "medium" },
     { risk: "Oversupply in Mumbai compresses rentals", mitigant: "Pre-leasing to hyperscalers; expansion into new cities", severity: "low" },
   ],
