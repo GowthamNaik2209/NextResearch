@@ -287,3 +287,21 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .nr-slide-next, .nr-slide-prev { animation: none; }
 }
+
+/* Frosted "liquid glass" surface for chrome that floats over content (the header's section pill).
+   Not for tables or charts: see-through backgrounds cost contrast on numbers. Falls back to a
+   solid panel when the device asks for less transparency or more contrast. */
+@utility glass {
+  background: color-mix(in srgb, var(--panel) 62%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 10%, transparent),
+    0 4px 16px -6px color-mix(in srgb, black 25%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    background: var(--panel);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
