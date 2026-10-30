@@ -3,8 +3,8 @@
 // FAQPage structured data. Every answer is built from the page's own content and the company table,
 // never hand-written, so it always matches what the page shows. Questions whose answer would repeat
 // a box on the same page word for word (a sector's "Why now", a company's risks) are left out.
-import { companyLinkKey, type SectorWithSlug } from "@/lib/sector-content";
-import { sectorCompanies, sectorCompanyCounts, type CompanyPage, type CompanyAppearance } from "@/lib/sector-content/companies";
+import { companyLinkKey, linkWeight, type ExposureStrength, type ExposureType, type SectorWithSlug } from "@/lib/sector-content";
+import { isUnlisted, sectorCompanies, sectorCompanyCounts, type CompanyPage, type CompanyAppearance } from "@/lib/sector-content/companies";
 import { croreFromLabel } from "@/components/stock/merge";
 import { croreShort } from "@/lib/format";
 import { dataAsOf } from "@/lib/sector-content/insights";
@@ -26,17 +26,32 @@ export const sentence = (t: string) => (/[.!?]$/.test(t.trim()) ? t.trim() : `${
 const possessive = (name: string) => (name.endsWith("s") ? `${name}'` : `${name}'s`);
 // Stat labels mid-sentence: "dividend yield", but P/E, ROCE and ROE as written.
 const midLabel = (label: string) => (/[a-z]/.test(label.slice(1)) ? label.toLowerCase() : label);
+// "the Sintered magnet making layer", but "the DC Operators & REIT Layer", not "...Layer layer".
+const layerName = (label: string) => (/\blayer$/i.test(label) ? label : `${label} layer`);
+// Only listed companies have a page and figures, so unlisted ones are named as such.
+const unlistedTag = (name: string, unlisted: boolean) => (unlisted ? `${name} (not NSE-listed)` : name);
+
+// How central a company is to a sector: its strongest link (3 high, 2 medium, 1 low; a lender or
+// other side link half a step lower), as the exposure badges on the page rate it.
+const weightOf = (zones: { exposureType?: ExposureType; exposureStrength?: ExposureStrength }[]) =>
+  Math.max(0, ...zones.map((z) => linkWeight({ key: "", ...z })));
 
 export function sectorFaq(sector: SectorWithSlug): Faq[] {
   const { listed } = sectorCompanyCounts(sector);
   const isIndex = sector.category === "index";
-  const largest = sectorCompanies(sector)
+  const ranked = sectorCompanies(sector)
     .filter((c) => c.supplier.listed && c.supplier.f?.ticker)
-    .map((c) => ({ c, cap: croreFromLabel(c.supplier.f?.mcap) }))
+    .map((c) => ({ c, cap: croreFromLabel(c.supplier.f?.mcap), w: weightOf(c.zones) }))
     .filter((x): x is typeof x & { cap: number } => x.cap != null)
-    .sort((a, b) => b.cap - a.cap)
-    .slice(0, 5)
-    .map(({ c, cap }) => `${c.supplier.name} (${croreShort(cap)})`);
+    .sort((a, b) => b.cap - a.cap);
+  // "Largest" counts only companies the sector is a main business for: ranked over all of them, Real
+  // Estate's were HDFC Bank, SBI and L&T (there as lenders and a contractor) and Rare-Earth Magnets'
+  // were L&T, HAL and Bajaj Auto. High exposure first; high or medium where too few are high.
+  const high = ranked.filter((x) => x.w >= 3);
+  const mid = ranked.filter((x) => x.w >= 2);
+  const [pool, exposure] = high.length >= 3 ? [high, "high exposure"] : mid.length >= 3 ? [mid, "high or medium exposure"] : [ranked, ""];
+  const largest = pool.slice(0, 5).map(({ c, cap }) => `${c.supplier.name} (${croreShort(cap)})`);
+  const largestLabel = exposure && pool.length < ranked.length ? `The largest with ${exposure}, by market cap` : "The largest by market cap";
   const zones = sector.zones.map((z) => z.label);
   const faqs: Faq[] = [];
 
@@ -46,12 +61,30 @@ export function sectorFaq(sector: SectorWithSlug): Faq[] {
   } else {
     faqs.push({
       q: `Which listed companies are in India's ${sector.name} supply chain?`,
-      a: `NextResearch maps ${listed} listed companies across ${zones.length} layers of the ${sector.name} supply chain.${largest.length ? ` The largest by market cap as of ${dataAsOf()}: ${listJoin(largest)}.` : ""}`,
+      a: `NextResearch maps ${listed} listed companies across ${zones.length} layers of the ${sector.name} supply chain.${largest.length ? ` ${largestLabel} as of ${dataAsOf()}: ${listJoin(largest)}.` : ""}`,
     });
     faqs.push({ q: `What are the layers of the ${sector.name} supply chain?`, a: `${zones.length} layers: ${listJoin(zones)}.` });
     const integrator = sector.integratorZoneId ? sector.zones.find((z) => z.id === sector.integratorZoneId) : undefined;
-    const ends = [...new Set((integrator?.suppliers ?? []).map((l) => sector.suppliers[companyLinkKey(l)]?.name).filter((n): n is string => !!n))];
-    if (integrator && ends.length) faqs.push({ q: `Who are the end players in ${sector.name}?`, a: `In the ${integrator.label} layer: ${listJoin(ends, 8)}.` });
+    // Main end players (high or medium exposure), largest first; low-exposure entrants (L&T and
+    // Titagarh among the naval shipyards) are named apart rather than as peers of the majors.
+    const capOf = new Map(ranked.map((x) => [x.c.supplier.name, x.cap]));
+    const ends = [
+      ...new Map(
+        (integrator?.suppliers ?? []).flatMap((l) => {
+          const sup = sector.suppliers[companyLinkKey(l)];
+          return sup ? [[unlistedTag(sup.name, isUnlisted(sup)), linkWeight(l)] as const] : [];
+        }),
+      ),
+    ].sort((a, b) => (capOf.get(b[0]) ?? -1) - (capOf.get(a[0]) ?? -1));
+    const main = ends.filter(([, w]) => w >= 2).map(([n]) => n);
+    const minor = ends.filter(([, w]) => w < 2).map(([n]) => n);
+    if (integrator && ends.length)
+      faqs.push({
+        q: `Who are the end players in ${sector.name}?`,
+        a: main.length
+          ? `In the ${layerName(integrator.label)}: ${listJoin(main, 8)}.${minor.length ? ` Also there, with low exposure: ${listJoin(minor, 4)}.` : ""}`
+          : `In the ${layerName(integrator.label)}: ${listJoin(minor, 8)}.`,
+      });
   }
   // One bottleneck from each layer that has them, tagged with its layer as the page tags them: the
   // first three of the whole list all came from the first layer and misdescribed the sector.
@@ -97,8 +130,8 @@ export function companyFaq(c: CompanyPage, primary: CompanyAppearance, figures: 
       a: `${c.name} (NSE: ${c.ticker}) is mapped in ${chains.length} supply-chain layer${chains.length > 1 ? "s" : ""}: ${listJoin(chains.map((a) => `${a.zoneLabel} (${a.sectorName})`), 4)}.`,
     });
   else faqs.push({ q: `Which industry is ${c.name} in?`, a: `${listJoin(c.appearances.map((a) => `${a.zoneLabel}, in the ${a.sectorName}`))}.` });
-  const peers = primary.peers.map((p) => p.name).filter((n) => n !== c.name);
-  const where = isIndex(primary) ? `In the ${possessive(primary.sectorName)} ${primary.zoneLabel} industry` : `In the ${primary.zoneLabel} layer of ${primary.sectorName}`;
+  const peers = primary.peers.filter((p) => p.name !== c.name).map((p) => unlistedTag(p.name, p.unlisted));
+  const where = isIndex(primary) ? `In the ${possessive(primary.sectorName)} ${primary.zoneLabel} industry` : `In the ${layerName(primary.zoneLabel)} of ${primary.sectorName}`;
   if (peers.length) faqs.push({ q: `Who are ${possessive(c.name)} peers?`, a: `${where}: ${listJoin(peers, 6)}.` });
   const valuation = figures.stats.filter((s) => s.label !== "Price");
   if (valuation.length) faqs.push({ q: `What is ${possessive(c.name)} market cap and valuation?`, a: `As of ${figures.asOf}: ${valuation.map((s) => `${midLabel(s.label)} ${s.value}`).join(", ")}.` });

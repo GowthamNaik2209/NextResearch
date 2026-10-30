@@ -103,7 +103,7 @@ export const rareearth: SectorReport = {
       { label: "China share of rare-earth refining (IEA)", value: ">90%", tone: "neg" },
       { label: "India magnet imports, FY25 (SBI)", value: "US$291m", tone: "neutral" },
       { label: "Share of FY25 magnet tonnage from China", value: "~93%", tone: "neg" },
-      { label: "China curb pause ends", value: "10 Nov 2026", tone: "neg" },
+      { label: "China curb pause runs to", value: "10 Nov 2026", tone: "neg" },
     ],
   },
 
@@ -116,7 +116,7 @@ export const rareearth: SectorReport = {
   ],
 
   drivers: [
-    { title: "Supply risk from China", metric: "Pause ends 10 Nov 2026", body: "April 2025 licensing is still in force and the tougher October 2025 controls are only suspended; every new curb strengthens the case for local supply." },
+    { title: "Supply risk from China", metric: "Paused to 10 Nov 2026", body: "April 2025 licensing is still in force and the tougher October 2025 controls are only suspended; every new curb strengthens the case for local supply." },
     { title: "EV and two-wheeler demand", metric: "Demand ~2x by 2030", body: "The government expects India's magnet use to double from 2025 to 2030, led by electric vehicles; the 2025 shortage showed how exposed e-scooters are." },
     { title: "A full policy stack", metric: "₹25,000 Cr+", body: "REPM (₹7,280 Cr), the National Critical Mineral Mission (₹16,300 Cr) and the recycling scheme (₹1,500 Cr) fund mining, processing, magnets and recycling together." },
     { title: "Defence indigenisation", metric: "US cut-off 1 Jan 2027", body: "Chinese licences exclude defence uses, and from 2027 US defence rules bar magnets mined or processed in China, pushing allies to build their own." },

@@ -9,7 +9,7 @@ export const ecms: SectorReport = {
   stance: {
     label: "Positive, execution-heavy",
     tone: "pos",
-    line: "Approvals have beaten every target; the next 18 months decide whether the PCB, module and laminate plants run full and profitably.",
+    line: "Approvals have beaten the investment and production targets (jobs still lag); the next 18 months decide whether the PCB, module and laminate plants run full and profitably.",
   },
   keyStats: [
     { label: "ECMS outlay", value: "₹40,000 Cr", sub: "up from ₹22,919 Cr (Budget 2026-27)" },
@@ -172,7 +172,7 @@ export const ecms: SectorReport = {
   ],
 
   companyNews: [
-    { key: "kaynes", date: "Aug 2026", development: "Its Chennai PCB plant was described as set to go live within about a month as the fifth tranche was announced.", impact: "The first large ECMS board fab to start - a test of yields and customer uptake.", tone: "pos" },
+    { key: "kaynes", date: "Aug 2026", development: "In Aug 2026 Kaynes said its Chennai PCB plant would go live within about a month; start-up not yet confirmed as of Oct 2026.", impact: "The first large ECMS board fab to start - a test of yields and customer uptake.", tone: "pos" },
     { key: "acutaas", date: "Aug 2026", development: "ECMS approval for its Jhagadia electrolyte-additives plant: ₹119 Cr eligible investment, up to 25% incentive through FY31.", impact: "Chemicals companies join the electronics supply chain via battery materials.", tone: "pos" },
     { key: "amber", date: "Jun 2026", development: "Broke ground on the Ascent-K HDI/flex PCB plant near Jewar and signed a cooperation pact with Germany's Schweizer Electronic.", impact: "Shows HDI capacity moving from approval to construction with European know-how.", tone: "pos" },
     { key: "srf", date: "May 2026", development: "Commissioned phase 1 of its capacitor-grade BOPP film line at Indore (~₹277 Cr).", impact: "First local supply of the dielectric film inside film capacitors.", tone: "pos" },

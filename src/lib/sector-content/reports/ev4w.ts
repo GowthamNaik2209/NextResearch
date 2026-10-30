@@ -3,13 +3,13 @@ import type { SectorReport } from "./types";
 export const ev4w: SectorReport = {
   slug: "ev4w",
   title: "India Electric Passenger Vehicles",
-  subtitle: "From import-heavy assembly to a localized EV component stack",
+  subtitle: "From import-heavy assembly to a localised EV component stack",
   asOf: "Oct 2026",
 
   stance: {
     label: "Structural tailwind",
     tone: "pos",
-    line: "Volumes are small but compounding; value accrues first to suppliers localizing cells, motors and power electronics.",
+    line: "Volumes are small but compounding; value accrues first to suppliers localising cells, motors and power electronics.",
   },
   keyStats: [
     { label: "e-PV sales, FY26", value: "~2.0 lakh", sub: "units, approx. (Vahan)" },
@@ -23,7 +23,7 @@ export const ev4w: SectorReport = {
       body: "e-PV volumes grew ~11x from FY22 to FY26 (doubling roughly every 14 months) as model choice widened from 3-4 nameplates to 25+, and battery packs got ~40% cheaper.",
     },
     {
-      title: "Localization is the profit pool",
+      title: "Localisation is the profit pool",
       body: "Cells, magnets and power semiconductors are mostly imported today. PLI-ACC, the rare-earth magnet scheme and SPMEPCI push that value onshore to listed component makers.",
     },
     {
@@ -64,7 +64,7 @@ export const ev4w: SectorReport = {
     {
       date: "Jun 2025",
       title: "SPMEPCI guidelines notified",
-      body: "Global OEMs committing ₹4,150 Cr+ of local investment may import CBUs at 15% duty (vs 70-110%) with localization targets of 25% in 3 years and 50% in 5.",
+      body: "Global OEMs committing ₹4,150 Cr+ of local investment may import CBUs at 15% duty (vs 70-110%) with localisation targets of 25% in 3 years and 50% in 5.",
       impact: "pos",
       tag: "Policy",
     },
@@ -112,8 +112,8 @@ export const ev4w: SectorReport = {
     { stage: "Cells & battery packs", zoneIds: ["battery", "bms"], margin: "8-12% EBITDA", moat: "high", note: "Largest cost pool; scale and chemistry know-how decide winners." },
     { stage: "Drivetrain & electronics", zoneIds: ["motor", "power_elec", "thermal"], margin: "15-25% EBITDA", moat: "medium", note: "Motors, inverters, e-axles - where listed suppliers already earn the best margins." },
     { stage: "Body, harness & precision parts", zoneIds: ["harness", "chassis", "cluster"], margin: "10-15% EBITDA", moat: "medium", note: "Incumbents retool existing lines; higher content per EV." },
-    { stage: "Vehicle OEMs", zoneIds: ["oem"], margin: "Low/negative on EVs", moat: "medium", note: "EV programmes still sub-scale; profitability tied to localization." },
-    { stage: "Charging & energy", zoneIds: ["charging"], margin: "Early, utilization-led", moat: "low", note: "Asset-heavy; returns depend on fleet growth and site utilization." },
+    { stage: "Vehicle OEMs", zoneIds: ["oem"], margin: "Low/negative on EVs", moat: "medium", note: "EV programmes still sub-scale; profitability tied to localisation." },
+    { stage: "Charging & energy", zoneIds: ["charging"], margin: "Early, utilisation-led", moat: "low", note: "Asset-heavy; returns depend on fleet growth and site utilisation." },
   ],
 
   drivers: [
@@ -152,7 +152,7 @@ export const ev4w: SectorReport = {
     ],
     legal: [
       { point: "CAFE III norms (from FY28) tighten fleet CO2 limits, pushing OEMs to sell more EVs.", impact: "pos" },
-      { point: "Localization (DVA) audits under PLI and SPMEPCI create compliance risk for importers.", impact: "neutral" },
+      { point: "Localisation (DVA) audits under PLI and SPMEPCI create compliance risk for importers.", impact: "neutral" },
     ],
     environmental: [
       { point: "Grid still ~70% coal-fired, but well-to-wheel emissions fall as renewables scale.", impact: "neutral" },
@@ -174,23 +174,23 @@ export const ev4w: SectorReport = {
   ],
 
   companyNews: [
-    { key: "tmpv", date: "Oct 2025", development: "Demerged and listed as a standalone passenger-vehicle company (incl. JLR).", impact: "A pure-play listed EV leader makes India's EV volume story directly investable.", tone: "pos" },
+    { key: "tmpv", date: "Oct 2025", development: "Became Tata Motors Passenger Vehicles (incl. JLR) after the commercial-vehicle business was demerged.", impact: "A pure-play listed EV leader makes India's EV volume story directly investable.", tone: "pos" },
     { key: "mm", date: "2025", development: "BE 6 / XEV 9e ramped; XEV 9S added on the INGLO skateboard.", impact: "Second scale EV platform intensifies price competition and lifts supplier volumes.", tone: "pos" },
     { key: "exide", date: "2025-26", development: "Commissioned first phase of its Bengaluru Li-ion cell giga-factory.", impact: "First meaningful domestic cell supply - reduces import dependence for packs.", tone: "pos" },
-    { key: "sonablw", date: "2025", development: "Magnet supply disruption forced alternate sourcing and magnet-light motor work.", impact: "Shows rare-earth risk sits with motor makers first; accelerates localization.", tone: "neg" },
+    { key: "sonablw", date: "2025", development: "Magnet supply disruption forced alternate sourcing and magnet-light motor work.", impact: "Shows rare-earth risk sits with motor makers first; accelerates localisation.", tone: "neg" },
     { key: "amararaja", date: "2025-26", development: "Building out cell lines under its Telangana giga-corridor and LFP technology licences.", impact: "Second domestic cell source; competition should lower pack costs.", tone: "pos" },
     { key: "tataPowerEV", date: "2025-26", development: "Expanded public and captive charging footprint across highways and cities.", impact: "Charging density is a gating factor for adoption beyond metros.", tone: "pos" },
   ],
 
   risks: [
     { risk: "Rare-earth / cell supply shock from China", mitigant: "Magnet scheme, PLI-ACC giga-plants, magnet-free motor designs", severity: "high" },
-    { risk: "Price war erodes OEM and supplier margins", mitigant: "Localization lowers cost; scale players gain share", severity: "medium" },
+    { risk: "Price war erodes OEM and supplier margins", mitigant: "Localisation lowers cost; scale players gain share", severity: "medium" },
     { risk: "Slow charging build-out outside metros", mitigant: "PM E-DRIVE ₹2,000 Cr for chargers; OEM-led networks", severity: "medium" },
     { risk: "PLI-ACC delays leave cells imported for longer", mitigant: "Penalty clauses; private projects outside PLI", severity: "medium" },
   ],
   outlook: {
-    bull: "Penetration reaches 12-15% by FY30 as sub-₹10 lakh EVs arrive and cell localization cuts pack cost below $80/kWh.",
-    base: "Penetration of ~8-10% by FY30 (~6-7 lakh units/yr) with suppliers localizing motors, harnesses and packs.",
+    bull: "Penetration reaches 12-15% by FY30 as sub-₹10 lakh EVs arrive and cell localisation cuts pack cost below $80/kWh.",
+    base: "Penetration of ~8-10% by FY30 (~6-7 lakh units/yr) with suppliers localising motors, harnesses and packs.",
     bear: "Tax parity with small ICE cars and supply shocks stall penetration around 5-6%.",
   },
   reading: [

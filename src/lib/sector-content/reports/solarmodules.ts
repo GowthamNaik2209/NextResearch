@@ -9,7 +9,7 @@ export const solarmodules: SectorReport = {
   stance: {
     label: "Policy-led tailwind",
     tone: "pos",
-    line: "ALMM does not create solar demand; it decides who supplies it. Value shifts to listed module makers now, cell makers from June 2026.",
+    line: "ALMM does not create solar demand; it decides who supplies it. Value moved first to listed module makers and, since June 2026, to cell makers.",
   },
   keyStats: [
     { label: "ALMM module capacity", value: ">100 GW", sub: "enlisted, approx. (MNRE, 2025)" },
@@ -24,7 +24,7 @@ export const solarmodules: SectorReport = {
     },
     {
       title: "The profit pool moves upstream in phases",
-      body: "Modules were listed first (2021); cells join via List-II from June 2026 and wafers are proposed for 2028. Each step moves margin from assemblers to integrated players.",
+      body: "Modules were listed first (2021); cells joined via List-II in June 2026 and wafers are proposed for 2028. Each step moves margin from assemblers to integrated players.",
     },
     {
       title: "Module oversupply, cell scarcity",
@@ -43,7 +43,7 @@ export const solarmodules: SectorReport = {
     {
       date: "Aug 2025",
       title: "Wafers proposed for ALMM List-III",
-      body: "MNRE signalled a third list for ingots and wafers from June 2028, extending the localization push further upstream.",
+      body: "MNRE signalled a third list for ingots and wafers from June 2028, extending the localisation push further upstream.",
       impact: "pos",
       tag: "Policy",
     },
@@ -190,7 +190,7 @@ export const solarmodules: SectorReport = {
   ],
   outlook: {
     bull: "List-II and List-III hold firm, cell capacity reaches ~60 GW+ by FY28 and integrated makers keep a durable premium.",
-    base: "Cell mandate holds with tight supply into FY27; module margins normalize while cell makers earn the premium.",
+    base: "Cell mandate holds with tight supply into FY27; module margins normalise while cell makers earn the premium.",
     bear: "Overcapacity and diluted mandates erode domestic premiums; only the most integrated players earn returns.",
   },
   reading: [
