@@ -235,7 +235,7 @@ function AssumptionsView({ view }: { view: ProjectionView }) {
         <li>
           <b className="font-semibold text-ink">Fundamentals tilt</b>: IC {IC} × volatility × its standardised fundamentals score (within ±3). The score is one year&rsquo;s return on revenue growth
           (its usual rate faded {Math.round(GROWTH_FADE * 100)}% toward {pct(LONG_RUN_GROWTH * 100, 0)}) and the net margin moving a third of the way toward the average of its own usual margin and its industry&rsquo;s, with today&rsquo;s P/E held;
-          it is measured against every company we cover. Loss-makers (no positive P/E or margin) get the market return only.
+          it is measured against every covered company. Loss-makers (no positive P/E or margin) get the market return only.
         </li>
         <li>
           <b className="font-semibold text-ink">Base</b> = market return + tilt (2 years: the market return compounded, the tilt once). <b className="font-semibold text-ink">Bear / Bull</b>: the 10th and 90th

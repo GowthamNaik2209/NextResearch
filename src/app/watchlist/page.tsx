@@ -50,7 +50,7 @@ export default async function WatchlistPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-5 py-14 lg:max-w-page">
+      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-5 pt-6 pb-14 sm:py-14 lg:max-w-page">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="font-display text-2xl font-bold text-ink">Watchlist</h1>

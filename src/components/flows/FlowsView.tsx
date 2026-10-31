@@ -330,8 +330,8 @@ function StakeCard({ stakes, period, sectorName }: { stakes: FlowsData["stakes"]
   return (
     <FlowCard
       className={TABLET_FULL}
-      title="Stake changes in our companies"
-      info="Foreign (FII) and domestic (DII) institutions' holding in each company we cover and its change over the period, biggest moves first; tap Holding or the change heading to sort. Companies file every quarter, so a period under three months shows the latest quarter. Under the change: quarters in a row it has moved that way."
+      title="Stake changes in covered companies"
+      info="Foreign (FII) and domestic (DII) institutions' holding in each covered company and its change over the period, biggest moves first; tap Holding or the change heading to sort. Companies file every quarter, so a period under three months shows the latest quarter. Under the change: quarters in a row it has moved that way."
       source={stakes?.quarter ? `Shareholding filings · latest ${fmtMonth(stakes.quarter)} quarter · % of equity` : "Shareholding filings · quarterly · % of equity"}
       note={[sectorName, periodMonths(period) < 3 ? "Latest quarter vs the one before" : null].filter(Boolean).join(" · ") || undefined}
     >
@@ -353,7 +353,7 @@ function DealsCard({ deals, period, range, sectorName }: { deals: FlowsData["dea
     <FlowCard
       className={TABLET_FULL}
       title="Bulk and block deals"
-      info="Named large trades by foreign (FII) and domestic (DII) institutions in companies we cover: bulk deals (one client trading over 0.5% of the company's shares in a day) and block deals (big negotiated trades), tagged from the client's name. Brokers' own desks, individuals and trades under ₹1 crore are left out. Tap a heading to sort."
+      info="Named large trades by foreign (FII) and domestic (DII) institutions in covered companies: bulk deals (one client trading over 0.5% of the company's shares in a day) and block deals (big negotiated trades), tagged from the client's name. Brokers' own desks, individuals and trades under ₹1 crore are left out. Tap a heading to sort."
       source={`NSE bulk and block deals · ${range} · FII and DII only`}
       note={sectorName}
     >

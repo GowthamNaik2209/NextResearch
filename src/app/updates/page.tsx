@@ -37,10 +37,10 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
       <SiteHeader />
       {/* The page width of the site's data pages, so a desktop uses its room: headlines in two columns,
           the FII / DII blocks side by side. The heading and controls keep a reading width. */}
-      <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-5 px-5 py-14">
+      <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-5 px-5 pt-6 pb-14 sm:py-14">
         <div className="max-w-3xl">
           <h1 className="font-display text-3xl font-bold tracking-tight text-ink">What&rsquo;s new</h1>
-          <p className="mt-2 text-sm leading-relaxed text-ink-soft">The latest headlines on the companies we cover, plus where institutional money is moving.</p>
+          <p className="mt-2 text-sm leading-relaxed text-ink-soft">The latest headlines on covered companies, plus where institutional money is moving.</p>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <IndustrySelect

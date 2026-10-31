@@ -1,6 +1,6 @@
 // Server side of basket projections: each stock's projection from the company table (the same
 // figures shown everywhere), its price statistics (./projection-risk-data.ts), its home industry's
-// median margin and the spread of fundamentals scores across every company we cover, and every
+// median margin and the spread of fundamentals scores across every covered company, and every
 // industry basket's projected return (the chart's "Compare with" lines). Rebuilt whenever new
 // figures or price statistics are installed.
 import { companyFinancials, getSector, listSectors, parseCrore, tickerForSupplier } from "@/lib/sector-content";
@@ -47,7 +47,7 @@ export function homeIndustryOf(ticker: string): string | null {
   return page ? primaryAppearance(page).sectorSlug : null;
 }
 
-/** The spread of fundamentals scores over every listed company we cover (against its home industry). */
+/** The spread of fundamentals scores over every covered listed company (against its home industry). */
 export const projectionScale = memoByFinancials((): ScoreScale => {
   const scores: number[] = [];
   for (const p of listCompanyPages()) {

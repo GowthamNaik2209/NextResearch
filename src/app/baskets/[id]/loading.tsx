@@ -7,7 +7,7 @@ export default function LoadingBasket() {
   return (
     <>
       <SiteHeader />
-      <main aria-busy className="mx-auto flex w-full max-w-4xl lg:max-w-page flex-1 flex-col gap-4 px-5 py-14">
+      <main aria-busy className="mx-auto flex w-full max-w-4xl lg:max-w-page flex-1 flex-col gap-4 px-5 pt-6 pb-14 sm:py-14">
         <span className="sr-only">Opening the basket…</span>
         <div className={`${bar} h-3 w-24`} />
         <div className={`${bar} h-9 w-64 max-w-full`} />

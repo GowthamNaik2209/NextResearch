@@ -50,7 +50,7 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
     <>
       <SiteHeader />
       {/* The site-wide 6xl container keeps the left edge in line with the header; the reading column stays narrow. */}
-      <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-8 px-5 py-14 [&>*]:max-w-3xl">
+      <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-8 px-5 pt-6 pb-14 sm:py-14 [&>*]:max-w-3xl">
         <div>
           <Link href="/docs" className="tap-target text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
             &larr; All reports
