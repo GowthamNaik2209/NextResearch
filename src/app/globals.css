@@ -16,6 +16,10 @@
   --pos: #5fcf8e;
   /* Third chart series (IPO profit bars): must stay distinct from --accent in each theme. */
   --series-3: var(--pos);
+  /* FII and DII flows (the FII / DII view on /updates): hues of their own (stepped for each theme),
+     so neither series reads as the red/green of a loss or gain. */
+  --fii: #3987e5;
+  --dii: #9085e9;
   color-scheme: dark;
 }
 
@@ -39,6 +43,8 @@
   --danger: #ac3628;
   --pos: #187043;
   --series-3: var(--amber);
+  --fii: #2a78d6;
+  --dii: #4a3aa7;
   color-scheme: light;
 }
 
@@ -110,6 +116,8 @@
   --color-amber-ink: var(--amber-ink);
   --color-danger: var(--danger);
   --color-pos: var(--pos);
+  --color-fii: var(--fii);
+  --color-dii: var(--dii);
   --font-display: var(--font-space-grotesk);
   --font-sans: var(--font-ibm-plex-sans);
   --font-mono: var(--font-ibm-plex-mono);

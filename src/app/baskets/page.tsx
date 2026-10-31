@@ -73,7 +73,7 @@ export default async function BasketsPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 px-5 py-14 lg:max-w-page">
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 px-5 pt-6 pb-14 sm:py-14 lg:max-w-page">
         {statsLoading && <ProjectionStatsPending />}
         <div className="min-w-0">
           <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Baskets</h1>

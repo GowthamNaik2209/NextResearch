@@ -1117,7 +1117,7 @@ export function BasketDetail(p: BasketDetailProps) {
               <b>Fundamentals tilt.</b> A score from its results: one year&rsquo;s return on its revenue growth (its usual rate, faded {Math.round(GROWTH_FADE * 100)}% of the way
               toward {Math.round(LONG_RUN_GROWTH * 100)}% a year) and its net margin moving a third of the way toward the average of its own usual margin and its
               industry&rsquo;s (by at most {Math.round(MARGIN_SHIFT_A_YEAR * 100)}% of today&rsquo;s; a one-off year left out), with today&rsquo;s P/E held. The score is
-              measured against every company we cover (standardised, within ±3), and the tilt is IC {IC} × volatility × that score: a stock with 30% volatility one
+              measured against every covered company (standardised, within ±3), and the tilt is IC {IC} × volatility × that score: a stock with 30% volatility one
               standard deviation above the middle gets +1.5 points. Loss-makers (no positive P/E or margin) get the market return only.
             </li>
             <li>

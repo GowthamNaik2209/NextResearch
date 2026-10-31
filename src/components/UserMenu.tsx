@@ -183,6 +183,13 @@ export function UserMenu({ email, displayName }: Props) {
               >
                 My baskets
               </Link>
+              <Link
+                href="/companies"
+                onClick={() => setOpen(false)}
+                className="mt-1 block rounded-lg border border-line px-2 py-1.5 pointer-coarse:py-2.5 text-xs text-ink-soft hover:border-accent hover:text-ink"
+              >
+                All companies
+              </Link>
               <form action={logout} className="mt-1">
                 <button
                   type="submit"

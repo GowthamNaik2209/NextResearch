@@ -47,7 +47,7 @@ export default async function SavedBasketPage({ params }: { params: Promise<{ id
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-4xl lg:max-w-page flex-1 flex-col gap-4 px-5 py-14">
+      <main className="mx-auto flex w-full max-w-4xl lg:max-w-page flex-1 flex-col gap-4 px-5 pt-6 pb-14 sm:py-14">
         {statsLoading && <ProjectionStatsPending />}
         <Link href="/baskets" className="self-start text-xs font-semibold text-accent hover:underline">
           &larr; {b.isOwner ? "Your baskets" : "Baskets"}

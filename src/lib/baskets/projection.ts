@@ -5,7 +5,7 @@
 // Bull are the 10th and 90th percentiles of a lognormal year at the stock's own 1-year realised
 // volatility. Tested out of sample in docs/PROJECTIONS-V2-PROTOTYPE.md.
 // Pure: the server feeds it a company's record, its price statistics (./projection-risk.ts) and the
-// spread of fundamentals scores across the companies we cover; the page reads the result. A stock
+// spread of fundamentals scores across covered companies; the page reads the result. A stock
 // needs at least 3 consecutive fiscal years of results and 3 years of trading; anything less is
 // left out, with the reason.
 
@@ -59,7 +59,7 @@ export type RiskInput = {
   vol: number | null;
 };
 
-/** The spread of fundamentals scores across the companies we cover, that a score is measured against. */
+/** The spread of fundamentals scores across covered companies, that a score is measured against. */
 export type ScoreScale = { median: number; sd: number; n: number };
 
 export type ProjectionInput = {
@@ -272,7 +272,7 @@ export function fundamentalScore(x: ProjectionInput): number | null {
   return g.ok ? (fundamentalsOf(x, g.run).f?.score ?? null) : null;
 }
 
-/** The median and standard deviation of a list of scores (the companies we cover). */
+/** The median and standard deviation of a list of scores (covered companies). */
 export function scoreScale(scores: number[]): ScoreScale {
   const n = scores.length;
   const m = median(scores) ?? 0;

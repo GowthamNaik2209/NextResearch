@@ -104,7 +104,7 @@ export default async function NewBasketPage({ searchParams }: { searchParams: Pr
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-4xl lg:max-w-page flex-1 flex-col gap-4 px-5 py-14">
+      <main className="mx-auto flex w-full max-w-4xl lg:max-w-page flex-1 flex-col gap-4 px-5 pt-6 pb-14 sm:py-14">
         {statsLoading && <ProjectionStatsPending />}
         <Link href={back.href} className="self-start text-xs font-semibold text-accent hover:underline">
           &larr; {back.label}

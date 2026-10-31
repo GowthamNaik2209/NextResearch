@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { afterEach, test } from "node:test";
-import { getFundamentals, isUsablePage, parseCompanyPage, parsePeers } from "./screener-company";
+import { getFundamentals, isUsablePage, parseCompanyPage, parsePeers, parseShareholdingHistory } from "./screener-company";
 
 const read = (name: string) => readFileSync(new URL(`./__fixtures__/${name}`, import.meta.url), "utf8");
 const page = read("screener-voltas.html");
@@ -87,4 +87,22 @@ test("parsePeers treats a 0 industry median (P/E, dividend yield, ROCE) as unava
   assert.equal(ind?.median.divYield, null);
   assert.equal(ind?.median.pe, 33.53);
   assert.equal(parsePeers(peers, null)?.median.divYield, 0.39);
+});
+
+test("parseShareholdingHistory keeps every quarter, plus earlier years' March filings, at their quarter ends", () => {
+  const q = parseShareholdingHistory(page);
+  // Mar 2017 - Mar 2023 from the yearly table, then the quarterly table's 12 quarters (Sep 2023 - Jun 2026).
+  assert.equal(q.length, 19);
+  assert.equal(q[0].quarter.toISOString().slice(0, 10), "2017-03-31");
+  assert.equal(q[0].fii, 20.72);
+  assert.equal(q[7].quarter.toISOString().slice(0, 10), "2023-09-30");
+  assert.ok(q.every((x, i) => i === 0 || x.quarter > q[i - 1].quarter), "oldest first, no duplicates");
+  assert.equal(q.at(-1)!.quarter.toISOString().slice(0, 10), "2026-06-30");
+  assert.deepEqual(
+    { promoters: q.at(-1)!.promoters, fii: q.at(-1)!.fii, dii: q.at(-1)!.dii, shareholders: q.at(-1)!.shareholders },
+    { promoters: 30.3, fii: 16.94, dii: 38.93, shareholders: 271399 },
+  );
+  // A row the company doesn't report stays null rather than 0.
+  assert.equal(q.at(-1)!.others, null);
+  assert.deepEqual(parseShareholdingHistory("<html></html>"), []);
 });

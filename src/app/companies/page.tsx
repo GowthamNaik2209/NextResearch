@@ -30,7 +30,7 @@ export default async function CompaniesPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-10 px-5 py-14">
+      <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-10 px-5 pt-6 pb-14 sm:py-14">
         <div>
           <h1 className="font-display text-3xl font-bold text-ink">Companies</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">

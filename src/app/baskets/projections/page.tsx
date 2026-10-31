@@ -145,7 +145,7 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full min-w-0 max-w-4xl flex-1 flex-col gap-6 px-4 py-14 sm:px-5">
+      <main className="mx-auto flex w-full min-w-0 max-w-4xl flex-1 flex-col gap-6 px-4 pt-6 pb-14 sm:py-14 sm:px-5">
         {statsLoading && <ProjectionStatsPending />}
         <nav aria-label="Back" className="-my-1 flex flex-wrap items-center gap-x-4 text-xs font-semibold text-accent">
           <Link href="/baskets" className="inline-flex min-h-8 items-center hover:underline pointer-coarse:min-h-9">
@@ -320,7 +320,7 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
           <div className="flex flex-col gap-2">
             <H3>e. Standardised score z and the tilt</H3>
             <P>
-              The score is measured against the scores of every listed company we cover that has one ({scale.n} today): z is how many standard
+              The score is measured against the scores of every covered listed company that has one ({scale.n} today): z is how many standard
               deviations it sits above or below their median, kept within ±{Z_MAX}. The tilt follows Grinold and Kahn: a forecast is the
               signal&rsquo;s skill (its information coefficient, IC) times the stock&rsquo;s volatility times its score. With IC at {IC}, a weak
               signal barely moves the projection: at σ 35% the tilt is at most about ±{(tiltMax * 100).toFixed(1)} points.
@@ -798,7 +798,7 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
               tilt = {IC} × {pct(ctx.vol, 2)} × {n2(ctx.z)} = {sPct(ctx.tilt, 2)}
             </Formula>
             <Note>
-              Median and standard deviation over the {ctx.scale.n} listed companies we cover that have a fundamentals score.
+              Median and standard deviation over the {ctx.scale.n} covered listed companies that have a fundamentals score.
             </Note>
           </div>
         </>

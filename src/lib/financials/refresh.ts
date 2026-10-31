@@ -20,7 +20,9 @@
 // template (the same rule as the live pop-up, src/lib/live/screener-company.ts).
 import { randomUUID } from "node:crypto";
 import type { PrismaClient } from "@/generated/prisma/client";
-import { isUsablePage, parseCompanyPage } from "@/lib/live/screener-company";
+import { isUsablePage, parseCompanyPage, parseShareholdingHistory } from "@/lib/live/screener-company";
+import { shareholdingWriter } from "@/lib/flows/shareholding";
+import type { ShareholdingQuarter } from "@/lib/flows/types";
 import type { SupplierFinancials } from "@/lib/sector-content";
 import { listIpos } from "@/lib/ipo-content";
 import { FISCAL_YEARS, formatAsOf, formatPrice } from "./rows";
@@ -84,6 +86,8 @@ export type Snap = {
   basis: "consolidated" | "standalone";
   latestRev: { year: string; value: number | null } | null;
   history: { years: string[]; rev: (number | null)[]; np: (number | null)[] } | null;
+  // Every quarter of the shareholding table (src/lib/flows/shareholding.ts stores them).
+  shareholding: ShareholdingQuarter[];
 };
 
 const yearOf = (label: string) => Number(label.match(/(\d{4})$/)?.[1] ?? 0);
@@ -158,6 +162,7 @@ export async function fetchSnapshot(ticker: string, standalone: boolean, tlSlug:
     basis,
     latestRev,
     history,
+    shareholding: parseShareholdingHistory(html),
   };
 }
 
@@ -354,6 +359,7 @@ export async function runChunk(prisma: PrismaClient, opts: ChunkOptions): Promis
 
     let wrote = 0;
     let blocked = false;
+    const saveShareholding = shareholdingWriter(prisma, log);
     let next = 0;
     const gap = opts.gapMs ?? 1000;
     // A couple of companies at a time, each worker pausing between requests (the script runs three).
@@ -377,11 +383,13 @@ export async function runChunk(prisma: PrismaClient, opts: ChunkOptions): Promis
         const fresh = s && name ? newCompanyFigures(old.ticker, s, target) : null;
         if (s && name && fresh) {
           await writeFinancials(prisma, fresh, target, { identity: { name, listed: true, role: "" } });
+          await saveShareholding(old.ticker, s.shareholding);
           log(`added newly listed ${old.ticker} (${name})`);
           run.done++;
           wrote++;
         } else if (s && !name) {
           await writeFinancials(prisma, withSnapshot(old, s, target), target, { identity: { name: old.ticker }, history: false });
+          await saveShareholding(old.ticker, s.shareholding);
           run.done++;
           wrote++;
         } else {

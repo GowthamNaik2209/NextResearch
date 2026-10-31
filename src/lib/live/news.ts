@@ -18,7 +18,7 @@ const MAX_AGE_DAYS = 30;
 // Not company news: price-prediction pages, "stock analysis" boilerplate, and multi-stock
 // tip lists ("Stocks to watch", "top 3 stocks to buy") - the latter also read as advice.
 const NOISE_TITLE =
-  /\b(price target|forecast|prediction|stock analysis|share price (today|live|history)|stocks? to (watch|buy|sell)|top \d+ stocks|stock picks?|buy or sell|target price|price-to-earnings ratio)\b/i;
+  /\b(price target|forecast|prediction|stock analysis|dividend history|share price (today|live|history)|stocks? to (watch|buy|sell)|top \d+ stocks|stock picks?|buy or sell|target price|price-to-earnings ratio)\b/i;
 // Quote / profile pages that Google News indexes as articles: "Tata Motors Limited (TMCV.NS)
 // Stock Price, News, Quote & History", "... Share Price Live Today", "Live Stock Price | NSE/BSE".
 const QUOTE_PAGE =
@@ -26,7 +26,7 @@ const QUOTE_PAGE =
 // Multi-company round-ups: "Q2 results today: DLF, Tata Elxsi, Indus Towers and more",
 // "Stocks in news: ...", "Earnings calendar ...". They mention the company in passing.
 const ROUNDUP =
-  /\b(results|earnings) (today|tomorrow|this week|calendar)\b|\bstocks? in (focus|news)\b|\b(earnings|results) (calendar|preview)\b|\bbuzzing stocks\b|\bf&o ban\b|\bothers to (post|report|announce)\b/i;
+  /\b(results|earnings) (today|tomorrow|this week|calendar)\b|\bstocks? in (focus|news)\b|\b(earnings|results) (calendar|preview)\b|\bbuzzing stocks\b|\b\d+ (?:[a-z0-9]+ ){0,2}stocks\b|\bf&o ban\b|\bothers to (post|report|announce)\b/i;
 /** A headline whose tail (after ":" or "-") is a list of 3+ names: "Q2 results: DLF, Havells, KEI, ..." */
 export function isListHeadline(headline: string): boolean {
   if (ROUNDUP.test(headline)) return true;
@@ -198,6 +198,10 @@ const NOT_ABOUT: Record<string, RegExp> = {
   // "Below poverty line" ration cards and households.
   // The US region, not the company.
   MIDWESTLTD: /\b(us|u s|american|the) midwest\b|\bmidwest (farmers?|states?|region|storms?|weather|drought|crops?)/i,
+  // The 2009 Pricol workers' case (convicts, prisoners), not the company's business.
+  PRICOLLTD: /\b(convicts?|prisoners?|life sentence|murder)\b/i,
+  // Vodafone Group plc and its other operators, not the Indian listing.
+  IDEA: /\bvodafone (group|plc|uk|spain|germany|egypt|turkey)\b|\bxavier niel\b/i,
   BPL: /\bbpl (cards?|card ?holders?|families|households|category|list|beneficiar)|below (the )?poverty/i,
   // The exchange's indices and listings, not the company's own news.
   BSE: /\b(bse )?sensex\b|\bbse[- ](listed|smallcap|midcap|500|100|200|sme)\b|\bon (the )?bse\b|\bnse (and|&) bse\b|\bbse (and|&) nse\b/i,
@@ -224,7 +228,7 @@ const OTHER_COMPANIES = [
   "Reliance Capital", "Reliance Communications", "Reliance Home Finance", "Reliance Nippon", "Reliance General Insurance",
   "Jio BlackRock", "ITC Hotels", "HCL Infosystems", "Indigo Paints", "Max Financial", "Max Life", "Max Estates",
   "Shriram Properties", "Shriram Pistons", "Power Grid InvIT", "PowerGrid InvIT", "Tata Investment", "Nestle SA",
-  "Brookfield Asset Management",
+  "Brookfield Asset Management", "NTPC Green Energy", "NTPC Green",
   "Midwest Energy", "Midwest Advanced Materials", "Bajaj Auto Credit", "Hinduja Leyland Finance", "ACI Worldwide",
   "Jyoti Structures", "Kalyani Steels", "Ola Cabs", "ASM International", "Bharat FIH", "Indian Rare Earths",
   "NMDC Steel", "TVS Supply Chain", "TVS Srichakra", "TVS Holdings",
@@ -267,10 +271,57 @@ export function isAbout(headline: string, company: { name: string; ticker: strin
   const own = words.join(" ");
   const distinctive = words.filter((w) => w.length >= 6 && !GENERIC.has(w) && !GROUP.has(w));
   const ticker = WORD_TICKERS.has(company.ticker) ? "" : normalize(company.ticker);
-  const keys = [openingOf(words), ticker, ...distinctive, ...(ALIASES[company.ticker] ?? [])].filter((k) => k.length >= 3);
+  // A company named after an everyday word: the bare word is no evidence on its own (see aboutWordName).
+  const word = WORD_NAMES[company.ticker];
+  const keys = [openingOf(words), ticker, ...distinctive, ...(ALIASES[company.ticker] ?? [])].filter((k) => k.length >= 3 && k !== word);
   const otherNames = [...rivals().filter((r) => r.ticker !== company.ticker && r.name !== own).flatMap((r) => r.phrases), ...OTHER_COMPANIES];
   const covering = otherNames.filter((p) => !` ${own} `.includes(` ${p} `)).flatMap((p) => spans(h, p));
-  return keys.some((k) => spans(h, k).some(([s, e]) => !covering.some(([cs, ce]) => cs <= s && ce >= e && ce - cs > e - s)));
+  if (keys.some((k) => spans(h, k).some(([s, e]) => !covering.some(([cs, ce]) => cs <= s && ce >= e && ce - cs > e - s)))) return true;
+  return word ? aboutWordName(headline, word) : false;
+}
+
+// Companies whose name is an everyday word, so most headlines with it are about something else:
+// "England skipper", "Skipper Shubman Gill", the "Supreme Court", "eternal love". Keyed by ticker,
+// the word as normalize() writes it.
+const WORD_NAMES: Record<string, string> = {
+  SKIPPER: "skipper",
+  SUPREMEIND: "supreme",
+  ETERNAL: "eternal",
+  ASTRAL: "astral",
+  // Names whose distinctive word is also everyday English ("Prince Harry", "a win for mankind",
+  // "Jupiter's moons"); their fuller names ("Mankind Pharma", "Prince Pipes") still match as before.
+  TRENT: "trent",
+  MANKIND: "mankind",
+  ENDURANCE: "endurance",
+  ANTHEM: "anthem",
+  CONCORDBIO: "concord",
+  PRESTIGE: "prestige",
+  CENTURYPLY: "century",
+  QUADFUTURE: "quadrant",
+  PANACEABIO: "panacea",
+  JWL: "jupiter",
+  BRIGADE: "brigade",
+  PRINCEPIPE: "prince",
+  CRAFTSMAN: "craftsman",
+};
+// Words that put a headline in a company's business; and contexts that take it out (sport, courts).
+const BUSINESS_CONTEXT =
+  // "shares" alone is also a verb ("skipper shares insights"): it counts only as a moving stock.
+  /\b(?:share price|shares? (?:jump|jumps|rise|rises|rose|fall|falls|fell|surge|surges|gain|gains|slump|slumps|drop|drops|rally|rallies|tank|climb|slide|hit|up|down|trade)|stocks?|q[1-4](?:\s?fy\s?\d{2,4})?|h[12]\s?fy\s?\d{2,4}|results?|profit|revenue|ebitda|orders?|contracts?|crores?|cr|nse|bse|dividend|ipo|qip|block deal|bulk deal|target price|towers?|transmission|plant|capacity|fy\s?\d{2,4}|earnings|margins?|buyback|stake|promoter|valuation|market cap|brokerage)\b|₹|\brs\.?\s?\d/i;
+const OFF_TOPIC =
+  /\b(?:cricket|odi|t20|test match|match|cup|captain|captaincy|vice-captain\w*|series|squad|rugby|football|hockey|innings|wickets?|batting|bowling|runs|ipl|coach|tournament|court|judges?|bench|petition|verdict)\b/i;
+
+/**
+ * Is a headline that names a word-named company only by that word about the company? Yes when it
+ * gives the company's own form ("Skipper Ltd", "SKIPPER.NS", "NSE: SKIPPER"), or capitalises the
+ * word as a name, beside business words and away from sport and courts ("Skipper Share Price Falls
+ * 5%"); no for "England skipper shares ..." or "Skipper Shubman Gill reaches New Zealand".
+ */
+function aboutWordName(headline: string, word: string): boolean {
+  const cap = word[0].toUpperCase() + word.slice(1);
+  const upper = word.toUpperCase();
+  if (new RegExp(`\\b(?:${cap}|${upper}) (?:Ltd|LTD|Limited|LIMITED|Industries|INDUSTRIES)\\b|\\b${upper}\\.(?:NS|BO)\\b|\\bNSE:\\s*${upper}\\b`).test(headline)) return true;
+  return new RegExp(`\\b(?:${cap}|${upper})\\b`).test(headline) && BUSINESS_CONTEXT.test(headline) && !OFF_TOPIC.test(headline);
 }
 
 const toItem = (h: Headline, c: CompanyMetrics): NewsItem => ({

@@ -361,3 +361,56 @@ test("isAbout handles the Oct 2026 policy companies' look-alikes", () => {
   ];
   for (const [h, name, ticker, want] of cases) assert.equal(isAbout(h, { name, ticker }), want, `${ticker}: ${h}`);
 });
+
+test("headlines about a namesake, a sister listing or many stocks at once are left out (Oct 2026 QA)", () => {
+  assert.equal(isAbout("CPM Pushes TVK Govt To Release Muslim Prisoners, Free Pricol Life Convicts", { name: "Pricol Ltd", ticker: "PRICOLLTD" }), false);
+  assert.equal(isAbout("Pricol Q2 profit rises 18% on two-wheeler demand", { name: "Pricol Ltd", ticker: "PRICOLLTD" }), true);
+  assert.equal(isAbout("French billionaire Xavier Niel gets CCI approval to acquire 16.2% stake in Vodafone", { name: "Vodafone Idea Ltd", ticker: "IDEA" }), false);
+  assert.equal(isAbout("NTPC Green Energy discloses Q2FY27 results", { name: "NTPC Ltd", ticker: "NTPC" }), false);
+  assert.equal(isListHeadline("Rs 235 Dividend, 1 Bonus Issue, 2 Stock Split: 34 stocks to trade ex-date this week"), true);
+  assert.equal(isListHeadline("TCS, Trent, Bharti Airtel, BSE: 8 NIFTY50 stocks that delivered more than 10% returns in October"), true);
+  const rss = `<rss><channel><item><title>Pricol Dividend History: Last ₹2.00, Yield &amp; Record Dates - Site</title><link>https://example.com/a</link><pubDate>Fri, 30 Oct 2026 10:00:00 GMT</pubDate><source>Site</source></item></channel></rss>`;
+  assert.deepEqual(parseGoogleNewsRss(rss, Date.parse("2026-10-31T00:00:00Z")), []);
+});
+
+test("a company named after an everyday word needs its business around the word (Skipper, Supreme, Eternal)", () => {
+  const skipper = { name: "Skipper", ticker: "SKIPPER" };
+  // About the company.
+  for (const h of [
+    "Skipper Limited Reports Record Q2 Revenue of ₹1,384 Crore",
+    "Skipper Share Price Falls 5.13%: Price, Valuation",
+    "SKIPPER.NS Q2 2026 Earnings: Revenue Up 20.33% YoY, EPS at ₹18.88 - Earnings Surprise Report",
+    "Skipper bags ₹740 crore transmission tower orders",
+  ])
+    assert.equal(isAbout(h, skipper), true, h);
+  // Team captains (Oct 2026, from the stock pop-up).
+  for (const h of [
+    "Discipline will be key to winning Skipper Cup final - Durutalo",
+    "Skipper Shubman Gill reaches New Zealand ahead of five-match ODI series",
+    "England skipper shares GRUESOME images of split ear injury after plastic surgery",
+    "Tilak Varma Relishes Vice-Captaincy, Actively Shares Insights with Skipper Shreyas Iyer",
+    "All Blacks skipper Ardie Savea shares pressure playbook with Kiwis ahead of World Cup",
+    '"Those were useful runs": Skipper Iyer hails Prince Yadav\'s cameo with bat after 14-run win over WI',
+  ])
+    assert.equal(isAbout(h, skipper), false, h);
+  const supreme = { name: "Supreme Industries", ticker: "SUPREMEIND" };
+  assert.equal(isAbout("Supreme Court stays NCLT order in insolvency case", supreme), false);
+  assert.equal(isAbout("Supreme Industries Q2 profit rises 12% on pipes volume", supreme), true);
+  const eternal = { name: "Eternal", ticker: "ETERNAL" };
+  assert.equal(isAbout("An eternal love story returns to theatres this Diwali", eternal), false);
+  assert.equal(isAbout("Eternal shares jump 6% after Blinkit orders surge", eternal), true);
+  assert.equal(isAbout("Zomato parent posts record quarter", eternal), true);
+  assert.equal(isAbout("Eternal vs Swiggy: How India's two quick commerce and food delivery giants fared in Q2FY27", eternal), true);
+});
+
+test("other companies with an everyday word in their name need it in context too (Oct 2026)", () => {
+  const mankind = { name: "Mankind Pharma", ticker: "MANKIND" };
+  assert.equal(isAbout("Mankind Pharma Q2 profit rises 12%", mankind), true);
+  assert.equal(isAbout("A giant leap for mankind: NASA marks moon landing anniversary", mankind), false);
+  const prince = { name: "Prince Pipes and Fittings", ticker: "PRINCEPIPE" };
+  assert.equal(isAbout("Prince Harry to attend Invictus Games opening", prince), false);
+  assert.equal(isAbout("Prince Pipes Q2 results: revenue up 9%", prince), true);
+  const jupiter = { name: "Jupiter Wagons Ltd", ticker: "JWL" };
+  assert.equal(isAbout("NASA probe sends new images of Jupiter's moons", jupiter), false);
+  assert.equal(isAbout("Jupiter Wagons bags ₹950 crore order from Indian Railways", jupiter), true);
+});

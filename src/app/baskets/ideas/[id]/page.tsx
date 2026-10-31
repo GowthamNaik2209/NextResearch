@@ -59,7 +59,7 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-4xl lg:max-w-page flex-1 flex-col gap-4 px-5 py-14">
+      <main className="mx-auto flex w-full max-w-4xl lg:max-w-page flex-1 flex-col gap-4 px-5 pt-6 pb-14 sm:py-14">
         {statsLoading && <ProjectionStatsPending />}
         <Link href="/baskets#ideas" className="-my-1 inline-flex min-h-8 items-center self-start text-xs font-semibold text-accent hover:underline pointer-coarse:min-h-9">
           &larr; Rule-based baskets
@@ -92,7 +92,7 @@ function Updating() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-3 px-5 py-14">
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-3 px-5 pt-6 pb-14 sm:py-14">
         <Link href="/baskets#ideas" className="-my-1 inline-flex min-h-8 items-center self-start text-xs font-semibold text-accent hover:underline pointer-coarse:min-h-9">
           &larr; Rule-based baskets
         </Link>

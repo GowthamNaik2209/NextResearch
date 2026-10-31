@@ -102,7 +102,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-10 px-5 py-14 lg:max-w-page">
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-10 px-5 pt-6 pb-14 sm:py-14 lg:max-w-page">
         <div>
           {/* Every company page: "Companies / <its primary theme>" (multi-theme companies used to
               drop the theme, so pages differed). */}
