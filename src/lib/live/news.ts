@@ -271,10 +271,37 @@ export function isAbout(headline: string, company: { name: string; ticker: strin
   const own = words.join(" ");
   const distinctive = words.filter((w) => w.length >= 6 && !GENERIC.has(w) && !GROUP.has(w));
   const ticker = WORD_TICKERS.has(company.ticker) ? "" : normalize(company.ticker);
-  const keys = [openingOf(words), ticker, ...distinctive, ...(ALIASES[company.ticker] ?? [])].filter((k) => k.length >= 3);
+  // A company named after an everyday word: the bare word is no evidence on its own (see aboutWordName).
+  const word = WORD_NAMES[company.ticker];
+  const keys = [openingOf(words), ticker, ...distinctive, ...(ALIASES[company.ticker] ?? [])].filter((k) => k.length >= 3 && k !== word);
   const otherNames = [...rivals().filter((r) => r.ticker !== company.ticker && r.name !== own).flatMap((r) => r.phrases), ...OTHER_COMPANIES];
   const covering = otherNames.filter((p) => !` ${own} `.includes(` ${p} `)).flatMap((p) => spans(h, p));
-  return keys.some((k) => spans(h, k).some(([s, e]) => !covering.some(([cs, ce]) => cs <= s && ce >= e && ce - cs > e - s)));
+  if (keys.some((k) => spans(h, k).some(([s, e]) => !covering.some(([cs, ce]) => cs <= s && ce >= e && ce - cs > e - s)))) return true;
+  return word ? aboutWordName(headline, word) : false;
+}
+
+// Companies whose name is an everyday word, so most headlines with it are about something else:
+// "England skipper", "Skipper Shubman Gill", the "Supreme Court", "eternal love". Keyed by ticker,
+// the word as normalize() writes it.
+const WORD_NAMES: Record<string, string> = { SKIPPER: "skipper", SUPREMEIND: "supreme", ETERNAL: "eternal", ASTRAL: "astral" };
+// Words that put a headline in a company's business; and contexts that take it out (sport, courts).
+const BUSINESS_CONTEXT =
+  // "shares" alone is also a verb ("skipper shares insights"): it counts only as a moving stock.
+  /\b(?:share price|shares? (?:jump|jumps|rise|rises|rose|fall|falls|fell|surge|surges|gain|gains|slump|slumps|drop|drops|rally|rallies|tank|climb|slide|hit|up|down|trade)|stocks?|q[1-4](?:\s?fy\s?\d{2,4})?|h[12]\s?fy\s?\d{2,4}|results?|profit|revenue|ebitda|orders?|contracts?|crores?|cr|nse|bse|dividend|ipo|qip|block deal|bulk deal|target price|towers?|transmission|plant|capacity|fy\s?\d{2,4}|earnings|margins?|buyback|stake|promoter|valuation|market cap|brokerage)\b|₹|\brs\.?\s?\d/i;
+const OFF_TOPIC =
+  /\b(?:cricket|odi|t20|test match|match|cup|captain|captaincy|vice-captain\w*|series|squad|rugby|football|hockey|innings|wickets?|batting|bowling|runs|ipl|coach|tournament|court|judges?|bench|petition|verdict)\b/i;
+
+/**
+ * Is a headline that names a word-named company only by that word about the company? Yes when it
+ * gives the company's own form ("Skipper Ltd", "SKIPPER.NS", "NSE: SKIPPER"), or capitalises the
+ * word as a name, beside business words and away from sport and courts ("Skipper Share Price Falls
+ * 5%"); no for "England skipper shares ..." or "Skipper Shubman Gill reaches New Zealand".
+ */
+function aboutWordName(headline: string, word: string): boolean {
+  const cap = word[0].toUpperCase() + word.slice(1);
+  const upper = word.toUpperCase();
+  if (new RegExp(`\\b(?:${cap}|${upper}) (?:Ltd|LTD|Limited|LIMITED|Industries|INDUSTRIES)\\b|\\b${upper}\\.(?:NS|BO)\\b|\\bNSE:\\s*${upper}\\b`).test(headline)) return true;
+  return new RegExp(`\\b(?:${cap}|${upper})\\b`).test(headline) && BUSINESS_CONTEXT.test(headline) && !OFF_TOPIC.test(headline);
 }
 
 const toItem = (h: Headline, c: CompanyMetrics): NewsItem => ({
