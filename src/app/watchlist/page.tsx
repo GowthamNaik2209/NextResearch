@@ -75,7 +75,9 @@ export default async function WatchlistPage() {
           </div>
         ) : (
           // Side by side from desktop width; every card has the same three lines, so a row lines up.
-          <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+          // grid-cols-1 (minmax(0, 1fr)) on phones too: an implicit column grew to a truncated line's full
+          // width and pushed the cards off the screen.
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
             {rows.map((row) => {
               const ticker = row.company.ticker;
               const supplier = findSupplierByTicker(ticker);

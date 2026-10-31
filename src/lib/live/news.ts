@@ -18,7 +18,7 @@ const MAX_AGE_DAYS = 30;
 // Not company news: price-prediction pages, "stock analysis" boilerplate, and multi-stock
 // tip lists ("Stocks to watch", "top 3 stocks to buy") - the latter also read as advice.
 const NOISE_TITLE =
-  /\b(price target|forecast|prediction|stock analysis|share price (today|live|history)|stocks? to (watch|buy|sell)|top \d+ stocks|stock picks?|buy or sell|target price|price-to-earnings ratio)\b/i;
+  /\b(price target|forecast|prediction|stock analysis|dividend history|share price (today|live|history)|stocks? to (watch|buy|sell)|top \d+ stocks|stock picks?|buy or sell|target price|price-to-earnings ratio)\b/i;
 // Quote / profile pages that Google News indexes as articles: "Tata Motors Limited (TMCV.NS)
 // Stock Price, News, Quote & History", "... Share Price Live Today", "Live Stock Price | NSE/BSE".
 const QUOTE_PAGE =
@@ -26,7 +26,7 @@ const QUOTE_PAGE =
 // Multi-company round-ups: "Q2 results today: DLF, Tata Elxsi, Indus Towers and more",
 // "Stocks in news: ...", "Earnings calendar ...". They mention the company in passing.
 const ROUNDUP =
-  /\b(results|earnings) (today|tomorrow|this week|calendar)\b|\bstocks? in (focus|news)\b|\b(earnings|results) (calendar|preview)\b|\bbuzzing stocks\b|\bf&o ban\b|\bothers to (post|report|announce)\b/i;
+  /\b(results|earnings) (today|tomorrow|this week|calendar)\b|\bstocks? in (focus|news)\b|\b(earnings|results) (calendar|preview)\b|\bbuzzing stocks\b|\b\d+ (?:[a-z0-9]+ ){0,2}stocks\b|\bf&o ban\b|\bothers to (post|report|announce)\b/i;
 /** A headline whose tail (after ":" or "-") is a list of 3+ names: "Q2 results: DLF, Havells, KEI, ..." */
 export function isListHeadline(headline: string): boolean {
   if (ROUNDUP.test(headline)) return true;
@@ -198,6 +198,10 @@ const NOT_ABOUT: Record<string, RegExp> = {
   // "Below poverty line" ration cards and households.
   // The US region, not the company.
   MIDWESTLTD: /\b(us|u s|american|the) midwest\b|\bmidwest (farmers?|states?|region|storms?|weather|drought|crops?)/i,
+  // The 2009 Pricol workers' case (convicts, prisoners), not the company's business.
+  PRICOLLTD: /\b(convicts?|prisoners?|life sentence|murder)\b/i,
+  // Vodafone Group plc and its other operators, not the Indian listing.
+  IDEA: /\bvodafone (group|plc|uk|spain|germany|egypt|turkey)\b|\bxavier niel\b/i,
   BPL: /\bbpl (cards?|card ?holders?|families|households|category|list|beneficiar)|below (the )?poverty/i,
   // The exchange's indices and listings, not the company's own news.
   BSE: /\b(bse )?sensex\b|\bbse[- ](listed|smallcap|midcap|500|100|200|sme)\b|\bon (the )?bse\b|\bnse (and|&) bse\b|\bbse (and|&) nse\b/i,
@@ -224,7 +228,7 @@ const OTHER_COMPANIES = [
   "Reliance Capital", "Reliance Communications", "Reliance Home Finance", "Reliance Nippon", "Reliance General Insurance",
   "Jio BlackRock", "ITC Hotels", "HCL Infosystems", "Indigo Paints", "Max Financial", "Max Life", "Max Estates",
   "Shriram Properties", "Shriram Pistons", "Power Grid InvIT", "PowerGrid InvIT", "Tata Investment", "Nestle SA",
-  "Brookfield Asset Management",
+  "Brookfield Asset Management", "NTPC Green Energy", "NTPC Green",
   "Midwest Energy", "Midwest Advanced Materials", "Bajaj Auto Credit", "Hinduja Leyland Finance", "ACI Worldwide",
   "Jyoti Structures", "Kalyani Steels", "Ola Cabs", "ASM International", "Bharat FIH", "Indian Rare Earths",
   "NMDC Steel", "TVS Supply Chain", "TVS Srichakra", "TVS Holdings",

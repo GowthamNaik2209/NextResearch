@@ -7,6 +7,7 @@
 // maintenance if screener.in changes its markup.
 import { cached } from "./cache";
 import { parseTopRatios, type ScreenerKpi } from "./screener-ratios";
+import type { ShareholdingQuarter } from "@/lib/flows/types";
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 
@@ -70,6 +71,41 @@ async function fetchText(url: string): Promise<string | null> {
 // (so no peers table either). Such a page is "unusable" and we read the standalone page instead.
 export function isUsablePage(html: string): boolean {
   return parseTopRatios(html)?.price != null && /data-warehouse-id="\d+"/.test(html);
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const SHAREHOLDING_ROWS: Record<string, Exclude<keyof ShareholdingQuarter, "quarter">> = {
+  Promoters: "promoters",
+  FIIs: "fii",
+  DIIs: "dii",
+  Government: "government",
+  Public: "public",
+  Others: "others",
+  "No. of Shareholders": "shareholders",
+};
+
+/**
+ * Every quarter in Screener's quarterly shareholding table (usually the last 12), oldest first, each
+ * dated at its quarter end ("Sep 2026" is 30 Sep 2026). A row the company doesn't report (Government
+ * for most) is null. Used by the daily company refresh to keep the FII/DII history in the database.
+ */
+export function parseShareholdingHistory(html: string): ShareholdingQuarter[] {
+  const table = sectionTable(html, "quarterly-shp") ?? sectionTable(html, "shareholding");
+  if (!table) return [];
+  const t = parseDataTable(table);
+  return t.cols
+    .map((label, i) => {
+      const m = label.match(/^([A-Z][a-z]{2}) (\d{4})$/);
+      const month = m ? MONTHS.indexOf(m[1]) : -1;
+      if (month < 0) return null;
+      const q: ShareholdingQuarter = { quarter: new Date(Date.UTC(Number(m![2]), month + 1, 0)), promoters: null, fii: null, dii: null, government: null, public: null, others: null, shareholders: null };
+      for (const r of t.rows) {
+        const key = SHAREHOLDING_ROWS[r.label];
+        if (key) q[key] = r.values[i] ?? null;
+      }
+      return q;
+    })
+    .filter((q): q is ShareholdingQuarter => q != null && (q.fii != null || q.dii != null || q.promoters != null));
 }
 
 // A growth value is shown only when it holds a number ("12%", "-3%"); blank cells read "%".

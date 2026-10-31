@@ -39,6 +39,7 @@ model Company {
   screenOut      Boolean             @default(false)
   financials     FinancialSnapshot[]
   kpis           KpiSnapshot[]
+  shareholdings  Shareholding[]
   watchlistedBy  Watchlist[]
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
@@ -213,4 +214,87 @@ model PriceRun {
   finishedAt DateTime?
   leaseUntil DateTime?
   startedAt  DateTime  @default(now())
+}
+
+// Institutional money (the FII / DII view on /updates, src/lib/flows/). Every figure is published by an
+// exchange or depository; none is per-stock daily flow, which nobody publishes.
+
+// A company's shareholding pattern for one quarter (% of equity), as filed with the exchanges and read
+// from Screener's quarterly table by the daily company refresh (src/lib/financials/refresh.ts). The
+// only per-stock FII/DII figure that is public; it changes four times a year.
+model Shareholding {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  // Quarter end (31 Mar / 30 Jun / 30 Sep / 31 Dec) at UTC midnight.
+  quarter      DateTime @db.Date
+  promoters    Float?
+  fii          Float?
+  dii          Float?
+  government   Float?
+  public       Float?
+  others       Float?
+  shareholders Int?
+  updatedAt    DateTime @updatedAt
+
+  @@unique([companyId, quarter])
+}
+
+// One NSE trading day of market-wide institutional activity: NSE's provisional FII/FPI and DII cash
+// figures (NSE + BSE + MSEI, ₹ crore) and FII/DII index-futures open interest (contracts) from NSE's
+// participant-wise OI file. The two arrive at different times, so either half can be missing.
+model MarketFlowDay {
+  day              DateTime @id @db.Date
+  fiiBuyCr         Float?
+  fiiSellCr        Float?
+  fiiNetCr         Float?
+  diiBuyCr         Float?
+  diiSellCr        Float?
+  diiNetCr         Float?
+  fiiIdxFutLong    Int?
+  fiiIdxFutShort   Int?
+  diiIdxFutLong    Int?
+  diiIdxFutShort   Int?
+  updatedAt        DateTime @updatedAt
+}
+
+// NSDL's fortnightly FPI equity investment by sector (BSE's 22-sector classification, ₹ crore).
+model SectorFpiFlow {
+  id          String   @id @default(cuid())
+  // Last day of the fortnight (the 15th or month end) and NSDL's own label ("October 01-15, 2026").
+  periodEnd   DateTime @db.Date
+  periodLabel String
+  sector      String
+  netEquityCr Float
+  aucEquityCr Float?
+
+  @@unique([periodEnd, sector])
+}
+
+enum DealKind {
+  BULK
+  BLOCK
+}
+
+enum DealSide {
+  BUY
+  SELL
+}
+
+// NSE bulk deals (one client trading over 0.5% of a company's equity in a day) and block deals, as
+// published, every listed symbol. A day's rows for one kind are replaced together, so a re-run never
+// doubles them (two identical trades on one day are real and both kept).
+model BulkDeal {
+  id           String   @id @default(cuid())
+  day          DateTime @db.Date
+  kind         DealKind
+  symbol       String
+  securityName String
+  clientName   String
+  side         DealSide
+  quantity     BigInt
+  price        Float
+
+  @@index([day])
+  @@index([symbol, day])
 }

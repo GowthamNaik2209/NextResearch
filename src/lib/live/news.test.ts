@@ -361,3 +361,14 @@ test("isAbout handles the Oct 2026 policy companies' look-alikes", () => {
   ];
   for (const [h, name, ticker, want] of cases) assert.equal(isAbout(h, { name, ticker }), want, `${ticker}: ${h}`);
 });
+
+test("headlines about a namesake, a sister listing or many stocks at once are left out (Oct 2026 QA)", () => {
+  assert.equal(isAbout("CPM Pushes TVK Govt To Release Muslim Prisoners, Free Pricol Life Convicts", { name: "Pricol Ltd", ticker: "PRICOLLTD" }), false);
+  assert.equal(isAbout("Pricol Q2 profit rises 18% on two-wheeler demand", { name: "Pricol Ltd", ticker: "PRICOLLTD" }), true);
+  assert.equal(isAbout("French billionaire Xavier Niel gets CCI approval to acquire 16.2% stake in Vodafone", { name: "Vodafone Idea Ltd", ticker: "IDEA" }), false);
+  assert.equal(isAbout("NTPC Green Energy discloses Q2FY27 results", { name: "NTPC Ltd", ticker: "NTPC" }), false);
+  assert.equal(isListHeadline("Rs 235 Dividend, 1 Bonus Issue, 2 Stock Split: 34 stocks to trade ex-date this week"), true);
+  assert.equal(isListHeadline("TCS, Trent, Bharti Airtel, BSE: 8 NIFTY50 stocks that delivered more than 10% returns in October"), true);
+  const rss = `<rss><channel><item><title>Pricol Dividend History: Last ₹2.00, Yield &amp; Record Dates - Site</title><link>https://example.com/a</link><pubDate>Fri, 30 Oct 2026 10:00:00 GMT</pubDate><source>Site</source></item></channel></rss>`;
+  assert.deepEqual(parseGoogleNewsRss(rss, Date.parse("2026-10-31T00:00:00Z")), []);
+});

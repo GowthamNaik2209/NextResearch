@@ -244,6 +244,30 @@ history (a split) brings the whole series again. First fill: `scripts/refresh-pr
 - *Status:* `SELECT * FROM "PriceRun" ORDER BY day DESC`, and `"PriceSeries"."checkedDay"` per series.
 - Before the tables exist (code deployed ahead of its migration) the reads skip the store and use Yahoo.
 
+### Institutional money - `src/lib/flows/`
+
+The FII / DII view on `/updates` (`?view=flows`) and the stake tags beside headlines. Every figure is
+published by an exchange or depository; there is no public per-stock daily FII/DII flow, so none is shown.
+
+| Table | Source | Updates | Written by |
+|---|---|---|---|
+| `Shareholding` | each company's quarterly shareholding filing, from Screener's quarterly table (12 quarters) | with the daily company refresh, no extra requests | `financials/refresh.ts` -> `flows/shareholding.ts`; `scripts/backfill-shareholding.ts` by hand |
+| `MarketFlowDay` | NSE provisional FII/DII cash (NSE+BSE+MSEI, latest day only: history starts when collection starts) and NSE participant-wise index-futures open interest | daily | `flows/refresh.ts` |
+| `SectorFpiFlow` | NSDL fortnightly FPI equity flows by sector (BSE classification) | fortnightly | `flows/refresh.ts` |
+| `BulkDeal` | NSE bulk and block deals, every symbol; a day+kind is replaced together | daily (last 5 days re-read) | `flows/refresh.ts` |
+
+- *Reads* (`query.ts`): each block loaded once and kept 10 min, then cut to an industry (its central
+  companies, as the news feed) or the user's watchlist. A block that can't be read (table empty or
+  not created) shows a "collected from ..." note in place; the others still show.
+- *Industry filter:* `flows/sectors.ts` maps each industry to NSDL's sectors (highlighted in the sector
+  chart); market-wide blocks say they are not split by industry.
+- *Deal clients* are tagged FII / DII / other from their names (`flows/parties.ts`); unsure is "other".
+- *Collection:* Vercel Cron calls `/api/flows/refresh` at 20:30 IST on weekdays (`CRON_SECRET`;
+  `FLOWS_AUTO_REFRESH=0` turns it off). By hand: `npx tsx scripts/refresh-flows.ts` (dry run),
+  `--apply --backfill=60`.
+- *Headline tone* (`src/lib/news-tone.ts`): a traffic light per headline from keyword rules over the
+  headline only (no model); shown by `NewsList` everywhere and filterable on `/updates` (`?tone=`).
+
 If the database is unreachable, an instance keeps serving the table it has installed (and the data
 cache its last copy); a cold instance with neither cannot render pages until it is back. Run the
 migration and the data copy together: with `tracked` rows missing, the table reads as empty.
@@ -265,6 +289,7 @@ Node functions don't support it.) Moving the database to Mumbai would let both m
 | `FinancialsRun` | one automatic refresh per trading day: `snapshotDate`, `status` (RUNNING/PUBLISHED/FAILED), progress, lease | `refresh.ts` |
 | `PriceSeries`, `PriceBar` | the price store: per stock/benchmark its source (Yahoo symbol or `screener`), first/last/checked day; daily OHLCV bars keyed by (key, day) | `prices/refresh.ts` |
 | `PriceRun` | one price top-up per trading day: progress, failures, lease | `prices/refresh.ts` |
+| `Shareholding`, `MarketFlowDay`, `SectorFpiFlow`, `BulkDeal` | institutional money for the FII / DII view (see "Institutional money") | `financials/refresh.ts`, `flows/refresh.ts` |
 | `Profile` | mirror of a Supabase auth user (`ensureProfile`, on sign-in and before a watchlist or basket write) | app |
 | `Watchlist` | user x company, `priceAtAdd` | `/api/watchlist` |
 | `Basket`, `BasketItem` | a user's baskets; items keyed by ticker, with `priceAtAdd`, custom `weight` and `pickedFrom` (industry slug) | `/api/baskets` |
@@ -307,7 +332,7 @@ after checking no watchlist references it (children cascade).
 | `/sector/[slug]` | server | Sector overview; company cards open the stock pop-up directly |
 | `/sector/[slug]/explore` | server shell + client | 3D explorer; deep links via `?zone=&company=&scenario=` |
 | `/company/[slug]`, `/companies` | server | One indexable page per listed company; A-Z list |
-| `/updates`, `/docs`, `/docs/[slug]` | server | Live news feed (filter `?sector=`); Analysis (nav label; route stays `/docs`): Reports view = 10-slide research deck per sector in a pop-up (`?report=<slug>` opens one); Charts view = `IndustryChartsView` (the industry basket's `BasketDetail`: its stocks vs the industry index and Nifty 50, rebased to % change; loaded only when opened) (`?view=charts&sector=<slug>`) |
+| `/updates`, `/docs`, `/docs/[slug]` | server | Live news feed with tone lights (industry dropdown `?sector=`, tone filter `?tone=pos\|neg\|neu`) and the FII / DII view (`?view=flows`); Analysis (nav label; route stays `/docs`): Reports view = 10-slide research deck per sector in a pop-up (`?report=<slug>` opens one); Charts view = `IndustryChartsView` (the industry basket's `BasketDetail`: its stocks vs the industry index and Nifty 50, rebased to % change; loaded only when opened) (`?view=charts&sector=<slug>`) |
 | `/ipos` | server | Upcoming-IPO decks (`?ipo=<slug>` opens one; also works on `/` and `/docs`) |
 | `/connections` | server | Companies present in 2+ supply chains, ranked by footprint (`sector-content/exposure.ts`) |
 | `/watchlist` | server | Auth required; rows open the stock pop-up |
@@ -316,6 +341,7 @@ after checking no watchlist references it (children cascade).
 | `/api/stock/[ticker]/chart?range=1M\|6M\|1Y\|3Y\|5Y\|MAX` | route | price history |
 | `/api/benchmark/[id]/chart?range=...` | route | index history for the ids in `sector-content/benchmarks.ts` (Nifty 50, Sensex, sector indices; ETF stand-ins where Yahoo has no index history) |
 | `/api/watchlist` | route | GET (returns `signedIn`, always 200) / POST / DELETE; the heart checks GET first so signed-out taps show the prompt without a 401 |
+| `/api/flows/refresh` | route | Vercel Cron (CRON_SECRET): collects the day's FII/DII cash, participant OI, bulk/block deals and new NSDL fortnights |
 
 ## Frontend structure
 

@@ -1,5 +1,5 @@
 // Vercel Cron sends `Authorization: Bearer $CRON_SECRET`; without CRON_SECRET set every request is
-// refused, so local dev never writes. Shared by the cron routes (financials, prices).
+// refused, so local dev never writes. Shared by the cron routes (financials, prices, flows).
 import { timingSafeEqual } from "node:crypto";
 
 export function cronAuthorized(request: Request): boolean {
