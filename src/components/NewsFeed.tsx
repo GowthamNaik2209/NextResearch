@@ -13,6 +13,8 @@ type Props = {
   showSector?: boolean;
   /** Tag headlines with the company's quarterly FII/DII stake move when it is notable. */
   stakeTags?: boolean;
+  /** Two columns of headlines from desktop width (a full-width page). */
+  twoColumns?: boolean;
   /** Show only headlines of this tone. */
   tone?: Tone;
   /** Above the list once headlines have loaded: gets each tone's count (the tone filter). */
@@ -31,7 +33,7 @@ export function NewsFeed(props: Props) {
   );
 }
 
-async function NewsFeedContent({ sectorSlug, tickers, limit, showSector = true, stakeTags = false, tone, header }: Props) {
+async function NewsFeedContent({ sectorSlug, tickers, limit, showSector = true, stakeTags = false, twoColumns = false, tone, header }: Props) {
   const { items: all, live } = tickers ? await getNewsForTickers(tickers, limit) : await getLatestNews({ sectorSlug, limit });
   const tones = all.map((n) => classifyTone(n.headline).tone);
   const counts: Record<Tone, number> = { pos: 0, neg: 0, neu: 0 };
@@ -47,7 +49,7 @@ async function NewsFeedContent({ sectorSlug, tickers, limit, showSector = true, 
         </p>
       ) : (
         <div>
-          <NewsList items={items} showSector={showSector} stakes={stakes} />
+          <NewsList items={items} showSector={showSector} stakes={stakes} twoColumns={twoColumns} />
           <p className="mt-2 text-[11px] text-ink-soft">
             {live ? "Live headlines via Google News, refreshed every 15 minutes." : "Live feed unavailable right now — showing curated headlines."}
           </p>

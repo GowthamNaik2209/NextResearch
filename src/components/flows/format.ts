@@ -43,7 +43,8 @@ export function stakeTag(m: StakeMove | undefined): { text: string; title: strin
 
 /** "Up 3 qtrs" / "Down 1 qtr" for a holding's streak, or a dash when flat. */
 export function streakText(n: number, change: number | null): string {
-  if (!n || change == null || change === 0) return NA;
+  // A change that rounds to 0.0 pp shows no streak beside it.
+  if (!n || change == null || Math.abs(change) < 0.05) return NA;
   return `${change > 0 ? "Up" : "Down"} ${n} qtr${n > 1 ? "s" : ""}`;
 }
 
@@ -52,3 +53,6 @@ export function fortnight(periodEnd: Date): string {
   const end = periodEnd.getUTCDate();
   return `${end <= 15 ? 1 : 16}–${fmtDay(periodEnd)}`;
 }
+
+/** A filing month in a narrow column: "Mar ’21". */
+export const shortMonth = (d: Date) => `${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getUTCMonth()]} ’${String(d.getUTCFullYear()).slice(2)}`;

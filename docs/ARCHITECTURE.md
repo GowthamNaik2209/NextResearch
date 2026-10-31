@@ -251,16 +251,19 @@ published by an exchange or depository; there is no public per-stock daily FII/D
 
 | Table | Source | Updates | Written by |
 |---|---|---|---|
-| `Shareholding` | each company's quarterly shareholding filing, from Screener's quarterly table (12 quarters) | with the daily company refresh, no extra requests | `financials/refresh.ts` -> `flows/shareholding.ts`; `scripts/backfill-shareholding.ts` by hand |
-| `MarketFlowDay` | NSE provisional FII/DII cash (NSE+BSE+MSEI, latest day only: history starts when collection starts) and NSE participant-wise index-futures open interest | daily | `flows/refresh.ts` |
+| `Shareholding` | each company's quarterly shareholding filing, from Screener's quarterly table (12 quarters) plus its yearly table's March filings back to 2017 | with the daily company refresh, no extra requests | `financials/refresh.ts` -> `flows/shareholding.ts`; `scripts/backfill-shareholding.ts` by hand |
+| `MarketFlowDay` | NSE provisional FII/DII cash (NSE+BSE+MSEI, latest day only, collected from 30 Oct 2026); official confirmed history by trade date: NSDL FPI equity on the exchanges (back to 2010; loaded from Oct 2021), NSDL DII equity (from Jun 2026), SEBI mutual-fund equity (a DII proxy); NSE participant-wise index-futures open interest (back to 2021) | daily | `flows/refresh.ts` (`--official=YYYY-MM` backfill) |
 | `SectorFpiFlow` | NSDL fortnightly FPI equity flows by sector (BSE classification) | fortnightly | `flows/refresh.ts` |
 | `BulkDeal` | NSE bulk and block deals, every symbol; a day+kind is replaced together | daily (last 5 days re-read) | `flows/refresh.ts` |
 
-- *Reads* (`query.ts`): each block loaded once and kept 10 min, then cut to an industry (its central
-  companies, as the news feed) or the user's watchlist. A block that can't be read (table empty or
+- *Reads* (`query.ts`): each table loaded once and kept 10 min, then cut to the period (`?period=` 1D-5Y,
+  `periods.ts`), an industry (stake changes and deals only: their companies, as the news feed) or the
+  user's watchlist (always all of it). Cash bars: daily up to 3M, weekly beyond, across the whole
+  period; a day uses NSE provisional figures where collected, else NSDL (FII; DII from Jun 2026), else
+  SEBI MF (DII), and the card names the source per date range. Stake changes compare the latest filing
+  with the last one at least the period back (quarterly for 12 quarters, March filings back to 2017). A block that can't be read (table empty or
   not created) shows a "collected from ..." note in place; the others still show.
-- *Industry filter:* `flows/sectors.ts` maps each industry to NSDL's sectors (highlighted in the sector
-  chart); market-wide blocks say they are not split by industry.
+- *Industry filter:* only stake changes and deals (exact, per company); every other block is market-wide.
 - *Deal clients* are tagged FII / DII / other from their names (`flows/parties.ts`); unsure is "other".
 - *Collection:* Vercel Cron calls `/api/flows/refresh` at 20:30 IST on weekdays (`CRON_SECRET`;
   `FLOWS_AUTO_REFRESH=0` turns it off). By hand: `npx tsx scripts/refresh-flows.ts` (dry run),

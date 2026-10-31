@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { parseFortnightList, parseSectorReport } from "./nsdl";
+import { nsdlDate, parseDiiReport, parseFortnightList, parseFpiArchive, parseSectorReport, tradeDatesFor } from "./nsdl";
 
 const fixture = (name: string) => readFileSync(join(__dirname, "__fixtures__", name), "utf8");
 const day = (s: string) => new Date(`${s}T00:00:00Z`);
@@ -48,9 +48,65 @@ test("a report in the older, narrower layout (before September 2024) reads the s
   assert.deepEqual(r.rows.at(-1), { sector: "Grand Total", netEquityCr: -14079, aucEquityCr: 6627680 });
 });
 
+test("a report from before Aug 2023 (single-quoted colspans, five columns a group) reads the same columns", () => {
+  const r = parseSectorReport(fixture("nsdl-sector-jul312023.html"));
+  assert.ok(r);
+  assert.deepEqual(r.periodEnd, day("2023-07-31"));
+  assert.equal(r.periodLabel, "July 16-31, 2023");
+  assert.deepEqual(r.rows[0], { sector: "Automobile and Auto Components", netEquityCr: 1609, aucEquityCr: 345726 });
+  assert.deepEqual(r.rows.at(-1), { sector: "Grand Total", netEquityCr: 15958, aucEquityCr: 5324288 });
+});
+
 test("a page that isn't a report is null", () => {
   assert.equal(parseSectorReport("<html><body>Server Error</body></html>"), null);
   // Equity no longer first in the INR block: refuse rather than read the wrong column.
   const shuffled = fixture("nsdl-sector-oct152026.html").replace(/<tr[^>]*>(?:(?!<\/tr>)[\s\S])*Sr\. No\.[\s\S]*?<\/tr>/, (tr) => tr.replace(/>Equity</g, ">Debt<"));
   assert.equal(parseSectorReport(shuffled), null);
+});
+
+// ---- confirmed daily FPI and DII figures ----
+
+test("FPI archive: the equity Stock Exchange row of each reporting day", () => {
+  const rows = parseFpiArchive(fixture("nsdl-fpi-archive-202610.html"));
+  assert.deepEqual(
+    rows.map((r) => [r.reportDay.toISOString().slice(0, 10), r.netCr]),
+    [
+      ["2026-10-01", -9569.57],
+      ["2026-10-27", -1340.52],
+      ["2026-10-28", 4197.9],
+      ["2026-10-29", 1113],
+      ["2026-10-30", -812.73],
+    ],
+  );
+  assert.deepEqual(rows[0], { reportDay: day("2026-10-01"), buyCr: 17667.9, sellCr: 27237.47, netCr: -9569.57 });
+});
+
+test("FPI archive: the 2021 layout (one Debt row, no MF/AIF rows) reads the same", () => {
+  const rows = parseFpiArchive(fixture("nsdl-fpi-archive-202110.html"));
+  assert.deepEqual(rows.map((r) => r.netCr), [-2034.15, 1594.89]);
+  assert.deepEqual(rows[0].reportDay, day("2021-10-01"));
+});
+
+test("DII report: only the Total / Equity / Stock Exchange row", () => {
+  assert.deepEqual(parseDiiReport(fixture("nsdl-dii-20261030.html")), { reportDay: day("2026-10-30"), buyCr: 18635.2, sellCr: 16732.99, netCr: 1902.2 });
+  assert.equal(parseDiiReport(fixture("nsdl-dii-nodata.html")), null);
+});
+
+test("a reporting day's trade date is the reporting day before it in NSDL's list", () => {
+  const list = ["2026-09-29", "2026-09-30", "2026-10-01", "2026-10-05", "2026-10-19", "2026-10-21", "2026-10-29", "2026-10-30"].map(day);
+  const t = tradeDatesFor(list);
+  const at = (s: string) => t.get(day(s).getTime())?.toISOString().slice(0, 10);
+  assert.equal(at("2026-10-30"), "2026-10-29");
+  assert.equal(at("2026-10-01"), "2026-09-30");
+  assert.equal(at("2026-10-05"), "2026-10-01"); // 2 Oct (Gandhi Jayanti) and the weekend between
+  assert.equal(at("2026-10-21"), "2026-10-19"); // 20 Oct (Dussehra)
+  // The first of the list, and one after a gap longer than a week, use our NSE calendar.
+  assert.equal(at("2026-09-29"), "2026-09-28");
+  assert.equal(at("2026-10-19"), "2026-10-16");
+  assert.equal(at("2026-10-29"), "2026-10-28");
+});
+
+test("NSDL's forms take DD-Mon-YYYY", () => {
+  assert.equal(nsdlDate(day("2026-10-31")), "31-Oct-2026");
+  assert.equal(nsdlDate(day("2021-03-05")), "05-Mar-2021");
 });

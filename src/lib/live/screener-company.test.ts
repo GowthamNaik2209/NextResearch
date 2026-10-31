@@ -89,10 +89,14 @@ test("parsePeers treats a 0 industry median (P/E, dividend yield, ROCE) as unava
   assert.equal(parsePeers(peers, null)?.median.divYield, 0.39);
 });
 
-test("parseShareholdingHistory keeps every quarter, dated at its quarter end", () => {
+test("parseShareholdingHistory keeps every quarter, plus earlier years' March filings, at their quarter ends", () => {
   const q = parseShareholdingHistory(page);
-  assert.equal(q.length, 12);
-  assert.equal(q[0].quarter.toISOString().slice(0, 10), "2023-09-30");
+  // Mar 2017 - Mar 2023 from the yearly table, then the quarterly table's 12 quarters (Sep 2023 - Jun 2026).
+  assert.equal(q.length, 19);
+  assert.equal(q[0].quarter.toISOString().slice(0, 10), "2017-03-31");
+  assert.equal(q[0].fii, 20.72);
+  assert.equal(q[7].quarter.toISOString().slice(0, 10), "2023-09-30");
+  assert.ok(q.every((x, i) => i === 0 || x.quarter > q[i - 1].quarter), "oldest first, no duplicates");
   assert.equal(q.at(-1)!.quarter.toISOString().slice(0, 10), "2026-06-30");
   assert.deepEqual(
     { promoters: q.at(-1)!.promoters, fii: q.at(-1)!.fii, dii: q.at(-1)!.dii, shareholders: q.at(-1)!.shareholders },

@@ -164,7 +164,8 @@ export async function fetchCashFlows(): Promise<CashFlowDay | null> {
 /** The participant OI file: index-futures long and short for FII and DII, dated by its title line. */
 export function parseParticipantOi(csv: string): ParticipantOiDay | null {
   // Title: "Participant wise Open Interest (no. of contracts) in Equity Derivatives as on Oct 30, 2026"
-  const t = csv.match(/as on\s+([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2}),?\s+(\d{4})/i);
+  // Files before about mid-2025 print the date without a space after the comma ("Jan 03,2022").
+  const t = csv.match(/as on\s+([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2}),?\s*(\d{4})/i);
   const month = t ? MONTHS.indexOf(t[1].toUpperCase()) : -1;
   if (!t || month < 0) return null;
   const day = new Date(Date.UTC(Number(t[3]), month, Number(t[2])));

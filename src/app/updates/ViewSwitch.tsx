@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Period } from "@/lib/flows/periods";
 import { updatesHref, type UpdatesView } from "./controls";
 
 const VIEWS: { view: UpdatesView; label: string }[] = [
@@ -8,7 +9,7 @@ const VIEWS: { view: UpdatesView; label: string }[] = [
 
 // Headlines or the FII / DII view, for the industry picked beside it. Links, so each view has its own
 // address and the browser's back button returns to the other.
-export function ViewSwitch({ view, sector }: { view: UpdatesView; sector?: string }) {
+export function ViewSwitch({ view, sector, period }: { view: UpdatesView; sector?: string; period?: Period }) {
   return (
     <nav aria-label="Updates view" className="ml-auto inline-flex flex-none rounded-full border border-line bg-panel p-[3px]">
       {VIEWS.map((v) => {
@@ -16,7 +17,7 @@ export function ViewSwitch({ view, sector }: { view: UpdatesView; sector?: strin
         return (
           <Link
             key={v.view}
-            href={updatesHref({ sector, view: v.view })}
+            href={updatesHref({ sector, view: v.view, period })}
             scroll={false}
             aria-current={on ? "page" : undefined}
             className={"tap-y inline-flex h-8 items-center whitespace-nowrap rounded-full px-3 text-[13px] font-semibold " + (on ? "bg-accent text-bg" : "text-ink-soft hover:text-ink")}

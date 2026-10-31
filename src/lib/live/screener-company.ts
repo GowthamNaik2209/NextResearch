@@ -43,7 +43,8 @@ const num = (s: string) => {
 };
 
 function sectionTable(html: string, id: string): string | null {
-  const i = html.indexOf(`id="${id}"`);
+  // A leading space: `data-tab-id="yearly-shp"` (the tab button) must not count as the section.
+  const i = html.indexOf(` id="${id}"`);
   if (i < 0) return null;
   const j = html.indexOf("<table", i);
   const k = html.indexOf("</table>", j);
@@ -84,13 +85,7 @@ const SHAREHOLDING_ROWS: Record<string, Exclude<keyof ShareholdingQuarter, "quar
   "No. of Shareholders": "shareholders",
 };
 
-/**
- * Every quarter in Screener's quarterly shareholding table (usually the last 12), oldest first, each
- * dated at its quarter end ("Sep 2026" is 30 Sep 2026). A row the company doesn't report (Government
- * for most) is null. Used by the daily company refresh to keep the FII/DII history in the database.
- */
-export function parseShareholdingHistory(html: string): ShareholdingQuarter[] {
-  const table = sectionTable(html, "quarterly-shp") ?? sectionTable(html, "shareholding");
+function shareholdingTable(table: string | null): ShareholdingQuarter[] {
   if (!table) return [];
   const t = parseDataTable(table);
   return t.cols
@@ -106,6 +101,21 @@ export function parseShareholdingHistory(html: string): ShareholdingQuarter[] {
       return q;
     })
     .filter((q): q is ShareholdingQuarter => q != null && (q.fii != null || q.dii != null || q.promoters != null));
+}
+
+/**
+ * A company's shareholding history, oldest first, each filing dated at its quarter end ("Sep 2026" is
+ * 30 Sep 2026): every quarter in Screener's quarterly table (usually the last 12), plus the March
+ * filings of earlier years from its yearly table (back to about 2017), so a five-year change has a
+ * base. A row the company doesn't report (Government for most) is null. Used by the daily company
+ * refresh to keep the FII/DII history in the database.
+ */
+export function parseShareholdingHistory(html: string): ShareholdingQuarter[] {
+  const quarterly = shareholdingTable(sectionTable(html, "quarterly-shp") ?? sectionTable(html, "shareholding"));
+  const have = new Set(quarterly.map((q) => q.quarter.getTime()));
+  // The yearly table's last column repeats the latest quarter; only its March columns are kept.
+  const yearly = shareholdingTable(sectionTable(html, "yearly-shp")).filter((q) => q.quarter.getUTCMonth() === 2 && !have.has(q.quarter.getTime()));
+  return [...yearly, ...quarterly].sort((a, b) => a.quarter.getTime() - b.quarter.getTime());
 }
 
 // A growth value is shown only when it holds a number ("12%", "-3%"); blank cells read "%".

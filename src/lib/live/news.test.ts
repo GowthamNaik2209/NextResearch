@@ -372,3 +372,25 @@ test("headlines about a namesake, a sister listing or many stocks at once are le
   const rss = `<rss><channel><item><title>Pricol Dividend History: Last ₹2.00, Yield &amp; Record Dates - Site</title><link>https://example.com/a</link><pubDate>Fri, 30 Oct 2026 10:00:00 GMT</pubDate><source>Site</source></item></channel></rss>`;
   assert.deepEqual(parseGoogleNewsRss(rss, Date.parse("2026-10-31T00:00:00Z")), []);
 });
+
+test("a company named with an ordinary word needs company context after it (Skipper, Oct 2026)", () => {
+  const skipper = { name: "Skipper", ticker: "SKIPPER" };
+  for (const h of [
+    "Discipline will be key to winning Skipper Cup final - Durutalo",
+    "Skipper Shubman Gill reaches New Zealand ahead of five-match ODI series",
+    "England skipper shares GRUESOME images of split ear injury after plastic surgery",
+    "All Blacks skipper Ardie Savea shares pressure playbook with Kiwis ahead of World Cup",
+    "\"Those were useful runs\": Skipper Iyer hails Prince Yadav's cameo with bat after 14-run win over WI",
+  ])
+    assert.equal(isAbout(h, skipper), false, h);
+  for (const h of [
+    "Skipper Limited Reports Record Q2 Revenue of ₹1,384 Crore",
+    "Skipper Share Price Falls 5.13%: Price, Valuation",
+    "SKIPPER.NS Q2 2026 Earnings: Revenue Up 20.33% YoY, EPS at ₹18.88",
+    "Skipper bags ₹737 crore order from Power Grid",
+  ])
+    assert.equal(isAbout(h, skipper), true, h);
+  // A longer key is context in itself.
+  assert.equal(isAbout("Mankind Pharma Q2 profit rises 12%", { name: "Mankind Pharma", ticker: "MANKIND" }), true);
+  assert.equal(isAbout("A win for mankind, says NASA chief", { name: "Mankind Pharma", ticker: "MANKIND" }), false);
+});

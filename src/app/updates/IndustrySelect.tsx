@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { DEFAULT_PERIOD, type Period } from "@/lib/flows/periods";
 import { updatesHref, type UpdatesView } from "./controls";
 
 type Option = { slug: string; name: string; group: "Industries" | "Policies" | "Indices" };
@@ -9,7 +10,7 @@ type Option = { slug: string; name: string; group: "Industries" | "Policies" | "
 // The industry picker on /updates: a native select (a phone opens its own picker, which shows the
 // long names in full). Picking one reloads the page for it in place; without JavaScript the form's
 // Show button does the same.
-export function IndustrySelect({ options, active, view }: { options: Option[]; active?: string; view: UpdatesView }) {
+export function IndustrySelect({ options, active, view, period }: { options: Option[]; active?: string; view: UpdatesView; /** Kept when the industry changes. */ period?: Period }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const groups = (["Industries", "Policies", "Indices"] as const).map((g) => [g, options.filter((o) => o.group === g)] as const).filter(([, os]) => os.length > 0);
@@ -17,6 +18,7 @@ export function IndustrySelect({ options, active, view }: { options: Option[]; a
   return (
     <form method="get" action="/updates" className="relative min-w-0 flex-[1_1_9rem] sm:max-w-sm">
       {view === "flows" && <input type="hidden" name="view" value="flows" />}
+      {period && period !== DEFAULT_PERIOD && <input type="hidden" name="period" value={period} />}
       <label htmlFor="sector" className="sr-only">
         Industry
       </label>
@@ -27,7 +29,7 @@ export function IndustrySelect({ options, active, view }: { options: Option[]; a
         aria-busy={pending}
         onChange={(e) => {
           const sector = e.target.value || undefined;
-          start(() => router.replace(updatesHref({ sector, view }), { scroll: false }));
+          start(() => router.replace(updatesHref({ sector, view, period }), { scroll: false }));
         }}
         className={
           "h-10 w-full cursor-pointer appearance-none truncate rounded-full border border-line bg-panel pl-4 pr-9 text-base font-semibold text-ink hover:border-ink-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:text-sm " +

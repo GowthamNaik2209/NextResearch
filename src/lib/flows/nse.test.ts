@@ -51,6 +51,14 @@ test("participant OI: FII and DII index futures, dated by the title line", () =>
   assert.deepEqual(oi.dii, { idxFutLong: 46993, idxFutShort: 6470 });
 });
 
+test("participant OI: the older layout (\"Jan 03,2022\", tabs in the header) parses too", () => {
+  const oi = parseParticipantOi(fixture("fao_participant_oi_03012022.csv"));
+  assert.ok(oi);
+  assert.deepEqual(oi.day, day("2022-01-03"));
+  assert.deepEqual(oi.fii, { idxFutLong: 127535, idxFutShort: 55563 });
+  assert.deepEqual(oi.dii, { idxFutLong: 14304, idxFutShort: 71357 });
+});
+
 test("participant OI: a page that isn't the file is null", () => {
   assert.equal(parseParticipantOi("<html>404</html>"), null);
   assert.equal(parseParticipantOi('"as on Oct 30, 2026"\nClient Type,Foo\nFII,1'), null);

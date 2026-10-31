@@ -10,7 +10,7 @@ export function FlowCard({
   info,
   source,
   note,
-  wide = false,
+  className = "",
   mine = false,
   children,
 }: {
@@ -19,14 +19,14 @@ export function FlowCard({
   source: ReactNode;
   /** An amber line under the source (e.g. "Market-wide · not split by industry"). */
   note?: ReactNode;
-  /** Spans both columns from tablet width. */
-  wide?: boolean;
+  /** Grid placement (column spans). */
+  className?: string;
   /** The user's own block (their watchlist): set apart with an accent border. */
   mine?: boolean;
   children: ReactNode;
 }) {
   return (
-    <section aria-label={title} className={"min-w-0 rounded-2xl border bg-panel px-4 py-3.5 " + (mine ? "border-accent/50 " : "border-line ") + (wide ? "sm:col-span-2" : "")}>
+    <section aria-label={title} className={"min-w-0 rounded-2xl border bg-panel px-4 py-3.5 " + (mine ? "border-accent/50 " : "border-line ") + className}>
       <div className="flex items-center gap-2">
         <h2 className="font-display text-[15px] font-medium text-ink">{title}</h2>
         <InfoTip label={`About ${title}`}>{info}</InfoTip>

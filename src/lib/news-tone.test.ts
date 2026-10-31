@@ -349,6 +349,7 @@ test("rules beyond the corpus: USFDA closures, losses, raids, splits, stakes, pe
 const QA_CASES: Case[] = [
   ["Polycab India Shares Gain as NCLAT Cancels Insolvency Proceedings", "pos", "Legal relief"],
   ["Asian Paints' Price Hikes Couldn't Cover Higher Costs", "neg", "Costs up"],
+  ["SBI Q2 FY27 Results Tuesday: Can the Bank Beat a Record Rs 21,121 Crore Profit?", "neu", "Results preview"],
   // As Google News serves it, with curly apostrophes.
   ["Asian Paints’ Price Hikes Couldn’t Cover Higher Costs", "neg", "Costs up"],
   ["Asian Paints' strokes of price hikes to fight inflation yet to brighten margins", "neu", "Yet to pay off"],

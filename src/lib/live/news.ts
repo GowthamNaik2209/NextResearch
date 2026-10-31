@@ -210,6 +210,15 @@ const NOT_ABOUT: Record<string, RegExp> = {
   // The word and the moon of Saturn, not the jeweller; the lost submersible.
   TITAN: /\btitan (submersible|sub|moon)\b|\boceangate\b/i,
 };
+// Name words that are also ordinary English ("England skipper", "Skipper Cup final", "Prince Harry"):
+// on their own they count only when company context follows them ("Skipper Ltd", "Skipper Q2",
+// "Skipper share price", "Skipper bags order"). A longer key ("Mankind Pharma") is context in itself.
+const COMMON_WORDS = new Set(
+  "skipper astral trent eternal mankind endurance anthem concord prestige century quadrant panacea jupiter brigade prince craftsman".split(" "),
+);
+const COMPANY_NEXT =
+  /^ (?:ltd|limited|india|share price|shares? (?:jump|rise|gain|fall|slip|surge|rally|tank|drop|zoom|climb|soar|plunge|decline)\w*|stock|q[1-4]|fy\d{2}|results?|earnings|ns|bse|nse|order|bags?|wins?|secures?|reports?|posts?|ipo|profit|revenue|net profit|board|plant|capacity|announces?|declares?|acquires?|share)\b/;
+
 // Tickers that are ordinary words ("US Embassy ..."), so they don't identify the company on their own.
 const WORD_TICKERS = new Set(["EMBASSY", "ACI"]);
 // Separately listed companies, outside our coverage, whose names contain one of ours. A match
@@ -274,7 +283,11 @@ export function isAbout(headline: string, company: { name: string; ticker: strin
   const keys = [openingOf(words), ticker, ...distinctive, ...(ALIASES[company.ticker] ?? [])].filter((k) => k.length >= 3);
   const otherNames = [...rivals().filter((r) => r.ticker !== company.ticker && r.name !== own).flatMap((r) => r.phrases), ...OTHER_COMPANIES];
   const covering = otherNames.filter((p) => !` ${own} `.includes(` ${p} `)).flatMap((p) => spans(h, p));
-  return keys.some((k) => spans(h, k).some(([s, e]) => !covering.some(([cs, ce]) => cs <= s && ce >= e && ce - cs > e - s)));
+  return keys.some((k) =>
+    spans(h, k).some(
+      ([s, e]) => !covering.some(([cs, ce]) => cs <= s && ce >= e && ce - cs > e - s) && (!COMMON_WORDS.has(k) || COMPANY_NEXT.test(h.slice(e - 1))),
+    ),
+  );
 }
 
 const toItem = (h: Headline, c: CompanyMetrics): NewsItem => ({

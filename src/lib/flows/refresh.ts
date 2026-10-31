@@ -15,10 +15,14 @@
 //   deals    the last five trading days (or `backfillDays`, if more) re-written: NSE sometimes
 //            amends a day after it first publishes it.
 //   sectors  the newest NSDL fortnight not yet stored, looking at the newest `fortnights` reports.
+//   official NSDL's confirmed FPI and DII days and SEBI's mutual-fund days for this month and the
+//            last (a few small requests), by trade date; the history before NSE's provisional
+//            figures were collected is scripts/refresh-flows.ts --official, by hand.
 import type { PrismaClient } from "@/generated/prisma/client";
-import { isTradingDay, latestDueTradingDay } from "@/lib/financials/trading-day";
+import { istDay, isTradingDay, latestDueTradingDay } from "@/lib/financials/trading-day";
 import { fetchCashFlows, fetchDeals, fetchLatestDealsArchive, fetchParticipantOi } from "./nse";
-import { fetchFortnightList, fetchSectorReport } from "./nsdl";
+import { fetchDiiReport, fetchFortnightList, fetchFpiArchiveMonth, fetchSectorReport, tradeDatesFor, type ReportedFlow } from "./nsdl";
+import { fetchMfMonth, type MfDay } from "./sebi";
 import type { CashFlowDay, Deal, DealKind, ParticipantOiDay, SectorFortnight } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -84,22 +88,124 @@ export async function writeSectorFortnight(prisma: PrismaClient, f: SectorFortni
 /** One day's deals of one kind, replacing what was stored for that day and kind (every symbol). */
 export async function replaceDeals(prisma: PrismaClient, day: Date, kind: DealKind, deals: Deal[]): Promise<number> {
   const rows = deals.filter((d) => d.kind === kind && d.day.getTime() === day.getTime());
-  await prisma.$transaction([
-    prisma.bulkDeal.deleteMany({ where: { day, kind } }),
-    prisma.bulkDeal.createMany({
-      data: rows.map((d) => ({
-        day,
-        kind,
-        symbol: d.symbol,
-        securityName: d.securityName,
-        clientName: d.clientName,
-        side: d.side,
-        quantity: BigInt(Math.round(d.quantity)),
-        price: d.price,
-      })),
-    }),
-  ]);
+  // Interactive, with the longer wait the company figures use: under load the shared pooler can take
+  // more than the default 2 s to hand out a connection for a batch.
+  await prisma.$transaction(
+    async (tx) => {
+      await tx.bulkDeal.deleteMany({ where: { day, kind } });
+      await tx.bulkDeal.createMany({
+        data: rows.map((d) => ({
+          day,
+          kind,
+          symbol: d.symbol,
+          securityName: d.securityName,
+          clientName: d.clientName,
+          side: d.side,
+          quantity: BigInt(Math.round(d.quantity)),
+          price: d.price,
+        })),
+      });
+    },
+    { maxWait: 10_000, timeout: 30_000 },
+  );
   return rows.length;
+}
+
+// ---- official daily history: NSDL FPI, NSDL DII, SEBI mutual funds -------------------------------
+
+/** One trade date's official net figures (₹ crore); a source left out is not touched. */
+export type OfficialFlowDay = { day: Date; fpiNsdlNetCr?: number; diiNsdlNetCr?: number; mfSebiNetCr?: number };
+
+/** What the official sources returned: NSDL rows by reporting day, SEBI rows by trade date. */
+export type OfficialFetch = { fpi: ReportedFlow[]; dii: ReportedFlow[]; mf: MfDay[]; failed: string[] };
+
+/**
+ * The fetched rows merged by trade date. NSDL's reporting days become trade dates through
+ * tradeDatesFor (src/lib/flows/nsdl.ts), using every reporting day either NSDL list holds.
+ */
+export function officialByTradeDate(f: Pick<OfficialFetch, "fpi" | "dii" | "mf">): OfficialFlowDay[] {
+  const trade = tradeDatesFor([...f.fpi, ...f.dii].map((r) => r.reportDay));
+  const out = new Map<number, OfficialFlowDay>();
+  const row = (day: Date) => {
+    const have = out.get(day.getTime());
+    if (have) return have;
+    const fresh: OfficialFlowDay = { day };
+    out.set(day.getTime(), fresh);
+    return fresh;
+  };
+  for (const r of f.fpi) row(trade.get(r.reportDay.getTime())!).fpiNsdlNetCr = r.netCr;
+  for (const r of f.dii) row(trade.get(r.reportDay.getTime())!).diiNsdlNetCr = r.netCr;
+  for (const r of f.mf) row(r.day).mfSebiNetCr = r.netCr;
+  return [...out.values()].sort((a, b) => a.day.getTime() - b.day.getTime());
+}
+
+/** Upserts the three official columns only (the provisional NSE and OI columns stay as they are). */
+export async function writeOfficialFlows(prisma: PrismaClient, rows: OfficialFlowDay[]): Promise<number> {
+  const CHUNK = 50;
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    await prisma.$transaction(
+      async (tx) => {
+        for (const r of rows.slice(i, i + CHUNK)) {
+          const data = { fpiNsdlNetCr: r.fpiNsdlNetCr, diiNsdlNetCr: r.diiNsdlNetCr, mfSebiNetCr: r.mfSebiNetCr };
+          await tx.marketFlowDay.upsert({ where: { day: r.day }, create: { day: r.day, ...data }, update: data });
+        }
+      },
+      { maxWait: 10_000, timeout: 30_000 },
+    );
+  }
+  return rows.length;
+}
+
+// NSDL's DII report starts here ("No Data Found" before).
+export const DII_REPORT_FROM = Date.UTC(2026, 5, 1);
+const monthEnd = (y: number, m: number) => new Date(Date.UTC(y, m + 1, 0));
+
+/**
+ * Fetches the official sources from the start of `from`'s month to `to` (an IST date): NSDL's FPI
+ * archive and SEBI's mutual-fund trends one request per month, NSDL's DII report one request per
+ * reporting day (from June 2026; only the newest `diiDays` when given). `paceMs` between requests.
+ */
+export async function fetchOfficialFlows(opts: { from: Date; to: Date; diiDays?: number; paceMs?: number; log?: (m: string) => void }): Promise<OfficialFetch> {
+  const log = opts.log ?? (() => {});
+  const pace = () => new Promise((r) => setTimeout(r, opts.paceMs ?? 0));
+  // One retry after a pause: NSDL's server drops the odd request in a long run.
+  const retry = async <T,>(get: () => Promise<T | null>): Promise<T | null> => {
+    const first = await get();
+    if (first !== null) return first;
+    await new Promise((r) => setTimeout(r, 3000));
+    return get();
+  };
+  const out: OfficialFetch = { fpi: [], dii: [], mf: [], failed: [] };
+  const months: Date[] = [];
+  for (let first = Date.UTC(opts.from.getUTCFullYear(), opts.from.getUTCMonth(), 1); first <= opts.to.getTime(); ) {
+    const d = new Date(first);
+    const end = monthEnd(d.getUTCFullYear(), d.getUTCMonth());
+    months.push(end.getTime() > opts.to.getTime() ? opts.to : end);
+    first = Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
+  }
+  for (const [i, upTo] of months.entries()) {
+    const label = upTo.toISOString().slice(0, 7);
+    if (i > 0) await pace();
+    const fpi = await retry(() => fetchFpiArchiveMonth(upTo));
+    if (fpi) out.fpi.push(...fpi);
+    else out.failed.push(`fpi ${label}`);
+    await pace();
+    const mf = await retry(() => fetchMfMonth(upTo));
+    if (mf) out.mf.push(...mf);
+    else out.failed.push(`mf ${label}`);
+    log(`official ${label}: NSDL FPI ${fpi ? fpi.length : "failed"}, SEBI MF ${mf ? mf.length : "failed"}`);
+  }
+  // DII: NSDL's own reporting days (from the FPI archive), newest first when limited.
+  let diiDays = out.fpi.map((r) => r.reportDay).filter((d) => d.getTime() >= DII_REPORT_FROM).reverse();
+  if (opts.diiDays) diiDays = diiDays.slice(0, opts.diiDays);
+  for (const day of diiDays) {
+    await pace();
+    const r = await retry(() => fetchDiiReport(day));
+    if (r) out.dii.push(r);
+    else out.failed.push(`dii ${day.toISOString().slice(0, 10)}`);
+  }
+  if (diiDays.length) log(`official: NSDL DII ${out.dii.length} of ${diiDays.length} reporting days`);
+  return out;
 }
 
 // ---- the run --------------------------------------------------------------------------------------
@@ -112,6 +218,8 @@ export type FlowsSummary = {
   oi: { status: "ok" | "partial" | "missing" | "failed"; written: string[]; missing: string[] };
   deals: { status: "ok" | "partial" | "failed"; source: "api" | "archive" | null; days: number; rows: Record<DealKind, number>; failed: DealKind[] };
   sectors: { status: "ok" | "up-to-date" | "partial" | "failed"; written: string[]; missing: string[] };
+  /** Days written per official source, the newest trade date each reached, and requests that failed. */
+  official: { status: "ok" | "partial" | "failed"; days: number; latest: { fpi: string | null; dii: string | null; mf: string | null }; failed: string[] };
 };
 
 export type FlowsOptions = {
@@ -136,6 +244,7 @@ export async function runFlowsRefresh(prisma: PrismaClient, opts: FlowsOptions =
     oi: { status: "failed", written: [], missing: [] },
     deals: { status: "failed", source: null, days: 0, rows: { BULK: 0, BLOCK: 0 }, failed: [] },
     sectors: { status: "failed", written: [], missing: [] },
+    official: { status: "failed", days: 0, latest: { fpi: null, dii: null, mf: null }, failed: [] },
   };
 
   // Cash: NSE's latest published day.
@@ -159,7 +268,9 @@ export async function runFlowsRefresh(prisma: PrismaClient, opts: FlowsOptions =
     });
     const have = new Set(stored.map((s) => s.day.getTime()));
     const due = window.filter((d) => !have.has(d.getTime()));
-    for (const day of due) {
+    for (const [i, day] of due.entries()) {
+      // A long backfill paces itself: hundreds of files back to back got throttled after about 300.
+      if (i > 0 && due.length > 5) await new Promise((r) => setTimeout(r, 400));
       const oi = await fetchParticipantOi(day);
       if (oi && oi.day.getTime() === day.getTime()) {
         await writeParticipantOi(prisma, oi);
@@ -248,6 +359,25 @@ export async function runFlowsRefresh(prisma: PrismaClient, opts: FlowsOptions =
     summary.sectors.status = due.length === 0 ? "up-to-date" : summary.sectors.missing.length === 0 ? "ok" : summary.sectors.written.length ? "partial" : "failed";
   } catch (e) {
     log(`sectors: ${errMsg(e)}`);
+  }
+
+  // Official figures: this month and the last (so the month's first reporting day has the one before
+  // it, and SEBI's week-late figures for last month's end arrive), and NSDL's DII for its newest days.
+  try {
+    const today = istDay(now);
+    const from = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1));
+    const got = await fetchOfficialFlows({ from, to: today, diiDays: 3, paceMs: 500, log });
+    const rows = officialByTradeDate(got);
+    summary.official.days = await writeOfficialFlows(prisma, rows);
+    const latestOf = (k: "fpiNsdlNetCr" | "diiNsdlNetCr" | "mfSebiNetCr") => {
+      const r = rows.filter((x) => x[k] !== undefined).at(-1);
+      return r ? iso(r.day) : null;
+    };
+    summary.official.latest = { fpi: latestOf("fpiNsdlNetCr"), dii: latestOf("diiNsdlNetCr"), mf: latestOf("mfSebiNetCr") };
+    summary.official.failed = got.failed;
+    summary.official.status = got.failed.length === 0 ? "ok" : rows.length ? "partial" : "failed";
+  } catch (e) {
+    log(`official: ${errMsg(e)}`);
   }
 
   return summary;

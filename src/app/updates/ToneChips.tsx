@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { InfoTip } from "@/components/InfoTip";
 import type { Tone } from "@/lib/news-tone";
+import type { Period } from "@/lib/flows/periods";
 import { updatesHref } from "./controls";
 
 const CHIPS: { tone?: Tone; label: string; dot?: string }[] = [
@@ -12,7 +13,7 @@ const CHIPS: { tone?: Tone; label: string; dot?: string }[] = [
 
 // Filters the headlines by their traffic light. A tone with no headlines right now is shown but
 // can't be picked.
-export function ToneChips({ counts, active, sector }: { counts: Record<Tone, number>; active?: Tone; sector?: string }) {
+export function ToneChips({ counts, active, sector, period }: { counts: Record<Tone, number>; active?: Tone; sector?: string; period?: Period }) {
   return (
     <nav aria-label="Filter by tone" className="flex flex-wrap items-center gap-2">
       {CHIPS.map((c) => {
@@ -33,7 +34,7 @@ export function ToneChips({ counts, active, sector }: { counts: Record<Tone, num
             {body}
           </span>
         ) : (
-          <Link key={c.label} href={updatesHref({ sector, view: "news", tone: c.tone })} scroll={false} aria-current={on ? "page" : undefined} className={cls}>
+          <Link key={c.label} href={updatesHref({ sector, view: "news", tone: c.tone, period })} scroll={false} aria-current={on ? "page" : undefined} className={cls}>
             {body}
           </Link>
         );

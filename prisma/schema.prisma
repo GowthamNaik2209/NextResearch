@@ -255,6 +255,12 @@ model MarketFlowDay {
   fiiIdxFutShort   Int?
   diiIdxFutLong    Int?
   diiIdxFutShort   Int?
+  // Official confirmed figures for days before NSE's provisional ones were collected (30 Oct 2026), by
+  // trade date, ₹ crore net: NSDL's FPI equity bought and sold on the exchanges (from 2010), NSDL's DII
+  // equity on the exchanges (from Jun 2026), and SEBI's mutual-fund equity (MFs only, a DII proxy).
+  fpiNsdlNetCr     Float?
+  diiNsdlNetCr     Float?
+  mfSebiNetCr      Float?
   updatedAt        DateTime @updatedAt
 }
 

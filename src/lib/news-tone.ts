@@ -26,7 +26,7 @@
 //   5. Company events: senior exits, pledges, stake sales / buys, orders, buy / sell calls and
 //      target changes, approvals, dividends / bonus / buyback / split, capex and capacity.
 //   6. Share-price moves (52-week high / low, circuits, "shares jump 5%"). These rank below
-//      company events: in "BEL falls despite ₹770 crore order" the order is the news.
+//      company events: in "BEL falls despite â¹770 crore order" the order is the news.
 //   7. Routine items (neutral): hold calls, fundraise, board meeting, results date, earnings
 //      call, AGM, record date, appointments, acquisitions, partnerships, results out.
 //   Questions and explainers ("Which stock will give the best dividend?") stay neutral.
@@ -43,7 +43,7 @@ const GENERAL = r("neu", "");
 
 // Direction words for a metric that comes before them ("profit rises", "revenue down 12%").
 const UP = String.raw`ris(?:e|es|en|ing)|rose|jump(?:s|ed)?|surg(?:e|es|ed|ing)|soar(?:s|ed)?|climb(?:s|ed)?|gr(?:ow|ows|ew|own|owth)|up|higher|increas(?:e|es|ed)|advanc(?:e|es|ed)|gain(?:s|ed)?|doubl(?:e|es|ed)|tripl(?:e|es|ed)|spik(?:e|es|ed)|zoom(?:s|ed)?|improv(?:e|es|ed)|expand(?:s|ed)?|rebound(?:s|ed)?|recover(?:s|ed)?|skyrocket(?:s|ed)?|leap(?:s|t)?|swell(?:s|ed)?|accelerat(?:e|es|ed)|strong|robust|record|tops?|\+\s?\d[\d,.]*%?`;
-const DOWN = String.raw`fall(?:s|en|ing)?|fell|drop(?:s|ped)?|declin(?:e|es|ed|ing)|dip(?:s|ped)?|slump(?:s|ed)?|plung(?:e|es|ed)|tumbl(?:e|es|ed)|slid(?:e|es)?|down|lower|contract(?:s|ed)?|shr(?:ink|inks|ank|unk)|eas(?:e|es|ed)|collaps(?:e|es|ed)|halv(?:e|es|ed)|crash(?:es|ed)?|s(?:ink|inks|ank)|weak(?:er|ens)?|erod(?:e|es|ed)|squeez(?:e|es|ed)|compress(?:es|ed)?|slip(?:s|ped)?|plummet(?:s|ed)?|nosediv(?:e|es|ed)|tank(?:s|ed)?|decreas(?:e|es|ed)|dent(?:s|ed)?|worr(?:y|ies)|pressure|lag(?:s|ged)?|trail(?:s|ed)?|slow(?:s|er|ed)?|sluggish|[-−–]\s?\d[\d,.]*%?`;
+const DOWN = String.raw`fall(?:s|en|ing)?|fell|drop(?:s|ped)?|declin(?:e|es|ed|ing)|dip(?:s|ped)?|slump(?:s|ed)?|plung(?:e|es|ed)|tumbl(?:e|es|ed)|slid(?:e|es)?|down|lower|contract(?:s|ed)?|shr(?:ink|inks|ank|unk)|eas(?:e|es|ed)|collaps(?:e|es|ed)|halv(?:e|es|ed)|crash(?:es|ed)?|s(?:ink|inks|ank)|weak(?:er|ens)?|erod(?:e|es|ed)|squeez(?:e|es|ed)|compress(?:es|ed)?|slip(?:s|ped)?|plummet(?:s|ed)?|nosediv(?:e|es|ed)|tank(?:s|ed)?|decreas(?:e|es|ed)|dent(?:s|ed)?|worr(?:y|ies)|pressure|lag(?:s|ged)?|trail(?:s|ed)?|slow(?:s|er|ed)?|sluggish|[-ââ]\s?\d[\d,.]*%?`;
 const UP_RE = new RegExp(String.raw`^(?:${UP})$`, "i");
 const DOWN_RE = new RegExp(String.raw`^(?:${DOWN})$`, "i");
 // Adjectives in front of a metric ("higher Q2 profit", "lower Revlimid sales", "record EBITDA").
@@ -132,11 +132,11 @@ const STAKE: Rule[] = [
 // Regulatory or tax "orders" are not order wins; they are handled by the trouble rules above.
 const ORDERS: Rule[] = [
   [/\border (?:cancell?ations?|cancell?ed|deferr\w+|delays?)\b|\bcancels? (?:the )?orders?\b|\borders? (?:cancell?ed|delayed)\b|\bloses? (?:an? )?(?:order|contract|bid|tender)\b|\bre-?invites? bids\b|\bscrap\w* (?:the )?(?:order|contract|tender)\b|\border delays?\b/i, "neg", "Order setback"],
-  [/\b(?:wins?|won|bags?|bagged|secures?|secured|receives?|received|gets?|got|lands?|landed|clinch\w*|grabs?|snags?|bag|awarded|adds?|win|signs?|inks?|powers? up|scores?)\b[^;:|]{0,70}?\b(?:orders?|contracts?|contact|loa|letter of (?:award|intent)|work orders?|tenders?|mandates?|supply deal)\b|\borders? (?:worth|win|wins|valued|of rs|of ₹|from|for \d)\b|\b(?:awards?|selected for|chosen for|l1 bidder|lowest bidder)\b[^;:]{0,60}\b(?:contracts?|contact|orders?|projects?|tenders?)\b|\border (?:inflows?|book) (?:crosses|rises|surges|jumps|grows|swells|hits|at record|up)\b|\bset to win\b|\border prospect\b|\b(?:largest|biggest|record|mega|major|repeat|big|maiden)\b(?: \S+){0,3} orders?\b/i, "pos", "Order win"],
+  [/\b(?:wins?|won|bags?|bagged|secures?|secured|receives?|received|gets?|got|lands?|landed|clinch\w*|grabs?|snags?|bag|awarded|adds?|win|signs?|inks?|powers? up|scores?)\b[^;:|]{0,70}?\b(?:orders?|contracts?|contact|loa|letter of (?:award|intent)|work orders?|tenders?|mandates?|supply deal)\b|\borders? (?:worth|win|wins|valued|of rs|of â¹|from|for \d)\b|\b(?:awards?|selected for|chosen for|l1 bidder|lowest bidder)\b[^;:]{0,60}\b(?:contracts?|contact|orders?|projects?|tenders?)\b|\border (?:inflows?|book) (?:crosses|rises|surges|jumps|grows|swells|hits|at record|up)\b|\bset to win\b|\border prospect\b|\b(?:largest|biggest|record|mega|major|repeat|big|maiden)\b(?: \S+){0,3} orders?\b/i, "pos", "Order win"],
 ];
 
-const SELL_CALL = /['‘’"“”]sell['‘’"“”]|\bsell (?:call|rating)\b|\bdowngrades? [^;:]{0,30}\bto (?:sell|reduce|underperform|underweight)\b|\b(?:recommend\w*|says|advises?) (?:selling|sell)\b|\bconsensus ['‘’"“”]?sell\b|^sell\b|\bsell these\b/i;
-const BUY_CALL = /['‘’"“”](?:buy|outperform|overweight|accumulate|add)['‘’"“”]|\b(?:buy|outperform|overweight) (?:rating|call)\b|^buy\b|\bturns? bullish\b|\bbullish (?:ratings?|call|view)\b|\btop pick\b|\binitiates? coverage\b[^;:]{0,30}\bbuy\b|\bfavou?rs\b|\bpreferred by\b|\bbullish on\b|\brecommends? buying\b|\b(?:maintains?|maintain|retains?|keeps?|reiterates?) (?:a |its )?['‘’"“”]?(?:buy|overweight|outperform|add|accumulate)\b/i;
+const SELL_CALL = /['ââ"ââ]sell['ââ"ââ]|\bsell (?:call|rating)\b|\bdowngrades? [^;:]{0,30}\bto (?:sell|reduce|underperform|underweight)\b|\b(?:recommend\w*|says|advises?) (?:selling|sell)\b|\bconsensus ['ââ"ââ]?sell\b|^sell\b|\bsell these\b/i;
+const BUY_CALL = /['ââ"ââ](?:buy|outperform|overweight|accumulate|add)['ââ"ââ]|\b(?:buy|outperform|overweight) (?:rating|call)\b|^buy\b|\bturns? bullish\b|\bbullish (?:ratings?|call|view)\b|\btop pick\b|\binitiates? coverage\b[^;:]{0,30}\bbuy\b|\bfavou?rs\b|\bpreferred by\b|\bbullish on\b|\brecommends? buying\b|\b(?:maintains?|maintain|retains?|keeps?|reiterates?) (?:a |its )?['ââ"ââ]?(?:buy|overweight|outperform|add|accumulate)\b/i;
 const RATING_QUESTION = /\bshould you\b|\bbuy,? (?:or )?sell\b|\bbuy or\b|\bsell or\b|\bbuy the dip\b|\bbuy-on-dips\b/i;
 
 const RATINGS: Rule[] = [
@@ -150,7 +150,7 @@ const TARGETS: Rule[] = [
 ];
 const UPSIDE = /\bupside\b/i;
 const DOWNSIDE = /\bdownside\b/i;
-const NEUTRAL_CALL = /^(?:neutral|hold)\b|['‘’"“”](?:neutral|hold)['‘’"“”]|\b(?:neutral|hold|equal-weight|market-perform) rating\b|\bmaintains? (?:neutral|hold)\b/i;
+const NEUTRAL_CALL = /^(?:neutral|hold)\b|['ââ"ââ](?:neutral|hold)['ââ"ââ]|\b(?:neutral|hold|equal-weight|market-perform) rating\b|\bmaintains? (?:neutral|hold)\b/i;
 const TARGET_KEPT = /\b(?:keeps?|retains?|maintains?|reiterates?)\b[^;:]{0,30}\btargets?\b/i;
 
 const APPROVALS: Rule[] = [
@@ -208,7 +208,7 @@ const PRICE_BARE_UP = /\b(?:rallies|surges|jumps|soars|zooms|climbs|gains|rises|
 const PRICE_BARE_DOWN = /\b(?:falls|drops|declines|dips|slumps|plunges|tumbles|slides|crashes|sinks|slips|tanks|sheds|plummets|skids|cracks|retreats|stumbles)\b/i;
 
 const ROUTINE: Rule[] = [
-  [/\b(?:rights issue|qip|qualified institutional placement|fund ?rais\w*|raises? \S*\s?(?:rs|₹|\$|inr)?\s?[\d,.]+\s?(?:crore|cr|bn|billion|million|mn)?\b[^;:]{0,20}\b(?:via|through|from)\b|ncds?|non-convertible|debt issue|bond issue|preferential (?:issue|allotment)|warrants|ipo)\b/i, "neu", "Fundraise"],
+  [/\b(?:rights issue|qip|qualified institutional placement|fund ?rais\w*|raises? \S*\s?(?:rs|â¹|\$|inr)?\s?[\d,.]+\s?(?:crore|cr|bn|billion|million|mn)?\b[^;:]{0,20}\b(?:via|through|from)\b|ncds?|non-convertible|debt issue|bond issue|preferential (?:issue|allotment)|warrants|ipo)\b/i, "neu", "Fundraise"],
   [/\b(?:esop|esos|rsu|stock options|performance share plan)\b/i, "neu", "ESOP allotment"],
   [/\bagm\b|\bannual general meeting\b|\begm\b|\bpostal ballot\b/i, "neu", "AGM"],
   [/\brecord date\b|\bex-date\b|\bex-dividend\b|\bturning ex\b/i, "neu", "Record date"],
@@ -237,8 +237,8 @@ const MARGIN_PRESSURE = /\bmargin (?:pressures?|squeeze|headwinds?)\b|\bpressure
 // Results scoring
 
 // Split into clauses so "profit rises, revenue falls" binds each verb to its own metric.
-const CLAUSE_SPLIT = /\s*[;|]\s*|,\s+|\s+[-–—]\s+|\s+(?:but|while|whereas|despite|though|although|as|amid|even as|after|with)\s+/i;
-const TOKEN = /[+\-−–]?\d[\d,.]*%?|[\p{L}][\p{L}'’&-]*|[+\-−–]/gu;
+const CLAUSE_SPLIT = /\s*[;|]\s*|,\s+|\s+[-ââ]\s+|\s+(?:but|while|whereas|despite|though|although|as|amid|even as|after|with)\s+/i;
+const TOKEN = /[+\-ââ]?\d[\d,.]*%?|[\p{L}][\p{L}'â&-]*|[+\-ââ]/gu;
 
 type Hit = { metric: Metric | "beat" | "loss"; sign: 1 | -1; weight: number; reason: string };
 
@@ -291,7 +291,7 @@ function metricHits(clause: string): Hit[] {
       if (!sign && /\b(?:fall|drop|decline|dip|slump|plunge|contraction|slowdown)s? in (?:\S+ ){0,3}$/i.test(lead)) sign = -1;
     }
     if (!sign) {
-      // "Revenue of ₹7,328 crore versus ₹5,760 crore": compare the two numbers.
+      // "Revenue of â¹7,328 crore versus â¹5,760 crore": compare the two numbers.
       const vs = after.match(/^[^\d]{0,15}([\d,.]+)[^\d]{0,20}?\b(?:versus|vs\.?|against|from)\b[^\d]{0,15}([\d,.]+)/i);
       if (vs) {
         const a = Number(vs[1].replace(/,/g, ""));
@@ -308,7 +308,7 @@ const GROWTH_PCT = /\b\d[\d.]*%\s+(?:yoy |y-o-y |qoq |annual )?growth\b|\bgrowth
 const LOSS_NARROWS = /\b(?:loss(?:es)?|deficit)\b[^;:,]{0,30}\b(?:narrow\w*|shrinks?|shrank|reduc\w+|lower|declines?|falls?|eases?|trims?|cut)\b|\bnarrow(?:er|s|ed)? (?:\w+ )?loss(?:es)?\b|\b(?:cuts?|trims?|reduces?) (?:\w+ )?loss(?:es)?\b|\bloss reduction\b/i;
 const LOSS_WIDENS = /\b(?:loss(?:es)?|deficit)\b[^;:,]{0,30}\b(?:widen\w*|deepen\w*|swell\w*|balloon\w*|jumps?|surges?|rises?|increases?|mounts?)\b|\bwider (?:\w+ )?loss(?:es)?\b/i;
 const BACK_TO_PROFIT = /\b(?:returns?|swings?|swung|turns?|turned|bounces?|back) (?:to|in|into)? ?(?:a )?(?:net )?(?:profit|black)\b|\bturns? profitable\b|\bswings? to [^;:]{0,25}\bprofit\b|\bprofit\b[^;:]{0,40}\b(?:against|from|vs\.?|versus) (?:a )?(?:year-ago|year ago|yoy|last year's|loss)\b|\bfirst(?:-ever)? (?:quarterly |annual )?profit\b|\breturns? to profit\b/i;
-const INTO_LOSS = /\b(?:swings?|slips?|slides?|turns?|plunges?) (?:in)?to (?:a )?(?:net )?loss\b|\b(?:posts?|reports?) (?:a )?(?:net )?loss\b|\bnet loss (?:at|of)\b|\bloss of (?:rs|₹|inr)\b/i;
+const INTO_LOSS = /\b(?:swings?|slips?|slides?|turns?|plunges?) (?:in)?to (?:a )?(?:net )?loss\b|\b(?:posts?|reports?) (?:a )?(?:net )?loss\b|\bnet loss (?:at|of)\b|\bloss of (?:rs|â¹|inr)\b/i;
 const BEAT = /\bbeats?\b|\btops? (?:street |analyst |the )?(?:estimates|expectations|forecasts|consensus)\b|\b(?:above|ahead of|better than) (?:street |analyst )?(?:estimates|expectations|forecasts|consensus)\b|\bbetter-than-expected\b|\bsurpass\w*|\bstrong(?:er)? (?:q[1-4]|quarter|results|numbers|show|earnings|quarterly)\b|\bstellar (?:q[1-4]|quarter|results|show)\b|\brobust (?:q[1-4]|quarter|results)\b|\b(?:strong|solid|robust|stellar) performance\b|\b(?:q[1-4]|results?|quarter) upbeat\b|\bupbeat (?:q[1-4]|results?|quarter)\b/i;
 const MISS = /\bmiss(?:es|ed)? (?:street |analyst )?(?:estimates|expectations|forecasts|consensus|eps|earnings|on)\b|\b(?:q[1-4]|results|earnings|eps|revenue|profit)\b[^;:]{0,20}\bmiss(?:es|ed)?\b|\b(?:below|short of|worse than) (?:street |analyst )?(?:estimates|expectations|forecasts|consensus)\b|\b(?:falls?|fell) short\b|\bworse-than-expected\b|\bweak (?:q[1-4]|quarter|results|numbers|show|earnings|quarterly)\b|\bdisappoint\w*\b|\bfails? to (?:cheer|impress)\b/i;
 // Words that make a metric match about something other than this quarter's numbers.
@@ -372,7 +372,7 @@ function priceMove(text: string): ToneResult | null {
  * the rule order). Always returns a tone; unknown headlines are amber "General update".
  */
 export function classifyTone(headline: string): ToneResult {
-  // Curly quotes as straight ones: real headlines arrive with 'Couldn’t', the rules are written with 'Couldn't'.
+  // Curly quotes as straight ones: real headlines arrive with 'Couldnât', the rules are written with 'Couldn't'.
   const h = headline.replace(/[\u2018\u2019\u2032]/g, "'").replace(/[\u201c\u201d]/g, '"').replace(/\s+/g, " ").trim();
   if (!h) return GENERAL;
 
@@ -389,8 +389,10 @@ export function classifyTone(headline: string): ToneResult {
   const quick = first(h, RELIEF) ?? first(h, TROUBLE) ?? first(h, INDEX) ?? first(h, GUIDANCE) ?? (RATING_QUESTION.test(h) ? null : first(h, RATINGS));
   if (quick) return quick;
 
-  // Explainers and comparisons phrased as a question ("Which stock will give the best dividend?").
+  // Explainers and comparisons phrased as a question ("Which stock will give the best dividend?"), also
+  // after a colon ("SBI Q2 Results Tuesday: Can the Bank Beat a Record Profit?" is a preview).
   if ((/^(?:which|does|do|can|is|are|will|should|could|would|where|how much|how)\b/i.test(h) || /\b(?:which|vs\.?)\b/i.test(h)) && /\?\s*$/.test(h)) return GENERAL;
+  if (/[:–—-]\s*(?:can|will|could|would)\b[^?]*\?\s*$/i.test(h) && /\b(?:q[1-4]|results?|earnings|quarterly)\b/i.test(h)) return r("neu", "Results preview");
 
   const preview = PREVIEW.test(h) && !/\b(?:reports?|posts?|announces?|declares?)\b/i.test(h);
   // "Board meets on 27 Oct for results, dividend" schedules a dividend; it has not been declared.

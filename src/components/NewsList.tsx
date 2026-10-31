@@ -9,14 +9,27 @@ import { classifyTone } from "@/lib/news-tone";
 import type { StakeMove } from "@/lib/flows/query";
 import { stakeTag } from "@/components/flows/format";
 
-export function NewsList({ items, showSector = true, stakes }: { items: NewsItem[]; showSector?: boolean; /** Quarterly FII/DII moves, tagged on each company's headlines. */ stakes?: Map<string, StakeMove> }) {
+export function NewsList({
+  items,
+  showSector = true,
+  stakes,
+  twoColumns = false,
+}: {
+  items: NewsItem[];
+  showSector?: boolean;
+  /** Quarterly FII/DII moves, tagged on each company's headlines. */
+  stakes?: Map<string, StakeMove>;
+  /** Two columns from desktop width, newest first along each row. */
+  twoColumns?: boolean;
+}) {
+  // Rows are cells on the line colour with a 1px gap, so the separators work in one column or two.
   return (
-    <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-panel">
+    <ul className={"grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-line bg-line " + (twoColumns ? "lg:grid-cols-2" : "")}>
       {items.map((n) => {
         const { tone, reason } = classifyTone(n.headline);
         const tag = stakes && stakeTag(stakes.get(n.ticker));
         return (
-          <li key={n.url + n.headline} className="flex gap-3 py-4 pl-4 pr-5 sm:pl-5">
+          <li key={n.url + n.headline} className="flex gap-3 bg-panel py-4 pl-4 pr-5 sm:pl-5">
             <ToneLight tone={tone} reason={reason} className="mt-0.5 self-start" />
             <div className="min-w-0 flex-1">
               {/* Touch screens space the rows out so each link's 36px tap area (tap-y) has room. */}
@@ -54,6 +67,8 @@ export function NewsList({ items, showSector = true, stakes }: { items: NewsItem
           </li>
         );
       })}
+      {/* An odd count leaves the last row's second cell empty: fill it with the panel colour. */}
+      {twoColumns && items.length % 2 === 1 && <li aria-hidden="true" className="hidden bg-panel lg:block" />}
     </ul>
   );
 }

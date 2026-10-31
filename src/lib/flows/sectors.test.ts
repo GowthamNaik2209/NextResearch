@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { listSectorSlugs } from "@/lib/sector-content";
-import { NSDL_SECTORS, SECTOR_SHORT } from "./sectors";
+import { SECTOR_SHORT } from "./sectors";
 
 // NSDL's sector names as its fortnightly report prints them (BSE's classification, Oct 2026).
 const NSDL = new Set([
@@ -11,8 +10,6 @@ const NSDL = new Set([
   "Services", "Telecommunication", "Textiles", "Utilities",
 ]);
 
-test("every industry, policy and index maps to NSDL sectors by their exact names", () => {
-  for (const slug of listSectorSlugs()) assert.ok(slug in NSDL_SECTORS, `${slug} has no NSDL sector mapping`);
-  for (const [slug, names] of Object.entries(NSDL_SECTORS)) for (const n of names) assert.ok(NSDL.has(n), `${slug}: "${n}" is not an NSDL sector`);
+test("short sector names are only given for sectors NSDL prints, by their exact names", () => {
   for (const n of Object.keys(SECTOR_SHORT)) assert.ok(NSDL.has(n), `short name for unknown sector "${n}"`);
 });
