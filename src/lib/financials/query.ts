@@ -4,8 +4,8 @@
 // that is still writing (./refresh.ts) never shows: every company switches together when it publishes.
 import type { PrismaClient } from "@/generated/prisma/client";
 import type { SupplierFinancials } from "@/lib/sector-content";
-import { FISCAL_YEARS, rowToFinancials } from "./rows";
-import { pickSnapshot, publishedCutoff } from "./trading-day";
+import { FISCAL_YEARS, rowToFinancials, type CompanyFinRow } from "./rows";
+import { publishedCutoff } from "./trading-day";
 
 let warnedNoRunsTable = false;
 
@@ -25,24 +25,49 @@ export async function readPublishedCutoff(prisma: PrismaClient): Promise<Date | 
   }
 }
 
-export async function readCompanyTableAt(prisma: PrismaClient, cutoff: Date | null): Promise<Record<string, SupplierFinancials>> {
-  const rows = await prisma.company.findMany({
-    where: { tracked: true },
-    orderBy: { ticker: "asc" },
-    select: {
-      ticker: true,
-      screenerSlug: true,
-      externalId: true,
-      financialsNote: true,
-      screenOut: true,
-      kpis: { where: cutoff ? { asOf: { lte: cutoff } } : undefined, orderBy: { asOf: "desc" }, take: 1 },
-      financials: { where: { year: { in: [...FISCAL_YEARS] } }, select: { year: true, revenueCr: true, netProfitCr: true } },
-      _count: { select: { kpis: true } },
-    },
+/**
+ * Each company's latest KpiSnapshot on or before `cutoff`. Asked for directly because a nested
+ * `kpis: { take: 1 }` makes Prisma fetch every snapshot ever written (one more per company each
+ * trading day) and drop all but one in memory: most of the table's database egress.
+ */
+async function latestKpis(prisma: PrismaClient, cutoff: Date | null) {
+  const latest = await prisma.kpiSnapshot.groupBy({
+    by: ["companyId"],
+    where: { company: { tracked: true }, ...(cutoff ? { asOf: { lte: cutoff } } : {}) },
+    _max: { asOf: true },
   });
+  // Nearly every company shares the published date, so one condition per distinct date.
+  const byDay = new Map<number, string[]>();
+  for (const l of latest) if (l._max.asOf) byDay.set(l._max.asOf.getTime(), [...(byDay.get(l._max.asOf.getTime()) ?? []), l.companyId]);
+  if (!byDay.size) return new Map<string, CompanyFinRow["kpis"][number] & { companyId: string }>();
+  const kpis = await prisma.kpiSnapshot.findMany({
+    where: { OR: [...byDay].map(([t, ids]) => ({ asOf: new Date(t), companyId: { in: ids } })) },
+    omit: { id: true },
+  });
+  return new Map(kpis.map((k) => [k.companyId, k]));
+}
+
+export async function readCompanyTableAt(prisma: PrismaClient, cutoff: Date | null): Promise<Record<string, SupplierFinancials>> {
+  const [rows, kpis] = await Promise.all([
+    prisma.company.findMany({
+      where: { tracked: true },
+      orderBy: { ticker: "asc" },
+      select: {
+        id: true,
+        ticker: true,
+        screenerSlug: true,
+        externalId: true,
+        financialsNote: true,
+        screenOut: true,
+        financials: { where: { year: { in: [...FISCAL_YEARS] } }, select: { year: true, revenueCr: true, netProfitCr: true } },
+        _count: { select: { kpis: true } },
+      },
+    }),
+    latestKpis(prisma, cutoff),
+  ]);
   return Object.fromEntries(
-    rows.flatMap((r) => {
-      const k = pickSnapshot(r.kpis, cutoff);
+    rows.flatMap(({ id, ...r }) => {
+      const k = kpis.get(id);
       // Held to a published date, a company whose first snapshot is newer (an IPO a run is adding)
       // joins the table when that run publishes, with everyone else.
       if (!k && r._count.kpis > 0) return [];

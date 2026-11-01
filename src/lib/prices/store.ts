@@ -6,16 +6,22 @@
 // Which callers read the store first: the baskets (backtests, industry figures, the rule-based
 // lists and the projections' price statistics). The stock pop-up's charts still fetch Yahoo first,
 // for the day's live moves, and fall back to the store.
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { cached } from "@/lib/live/cache";
 import { MAX_QUOTE_AGE_DAYS } from "@/lib/live/freshness";
 import { getChartWithFallback, getOhlcChart, getSymbolChart, HISTORY_FROM, type ChartData, type ChartRange, type Exchange, type OhlcData } from "@/lib/live/yahoo";
 import { adjustDemergers } from "@/lib/live/demergers";
-import { rollUp, sinceDays, storedRange, toCandles, toPoints, type StoredBar } from "./bars";
+import { rollUp, sinceDays, STORE_DAYS, storedRange, toCandles, toPoints, type StoredBar } from "./bars";
 
 const DAY = 86_400_000;
-// The store moves once a day: a reader's copy may be this old.
-const TTL_MS = 15 * 60 * 1000;
+// The store moves once a day: an instance's in-memory copy may be this old (it asks the shared cache
+// again after it; the daily top-up expires that).
+const TTL_MS = 30 * 60 * 1000;
+// Next's shared data cache: the daily top-up expires this tag; the clock catches a hand-run
+// scripts/refresh-prices.ts (or a top-up that couldn't expire it) within a day.
+export const PRICES_TAG = "price-store";
+const SHARED_REVALIDATE_SECONDS = 24 * 60 * 60;
 // A store query slower than this gives up and the caller fetches Yahoo (as slow a deadline as Yahoo's
 // own). It times the query, not the wait for a turn (READS_AT_ONCE), which a busy instance's
 // background reads can make long without anything being wrong.
@@ -46,19 +52,47 @@ async function oneRead<T>(read: () => Promise<T>): Promise<T> {
   }
 }
 
-/** A series' bars for the last `days` (one query per key and span, kept in memory a few minutes). */
-function load(key: string, days: number): Promise<Loaded | null> {
-  return cached(`store1:${key}:${days}`, TTL_MS, async () => {
+/**
+ * A series' whole stored span (every range is cut from it), read from the database at most about
+ * once a day across all server instances: reads are the bulk of the database's egress, and the
+ * store only moves when the daily top-up writes (which expires PRICES_TAG). An error, or a series
+ * too short to chart, is never cached: the next read tries again.
+ */
+const sharedLoad = unstable_cache(
+  async (key: string, candles: boolean): Promise<Loaded & { lastDay: string }> => {
     const s = await oneRead(() => prisma.priceSeries.findUnique({ where: { key }, select: { source: true, exchange: true, lastDay: true } }));
-    // Stale: the top-up has stopped for this series (or altogether); Yahoo is the better answer.
-    if (!s?.lastDay || Date.now() - s.lastDay.getTime() > MAX_QUOTE_AGE_DAYS * DAY) return null;
-    const from = new Date(Date.now() - days * DAY);
+    if (!s?.lastDay) throw new NoSeries(key);
+    const from = new Date(Date.now() - STORE_DAYS * DAY);
     const rows = await oneRead(() =>
-      prisma.priceBar.findMany({ where: { key, day: { gte: from } }, orderBy: { day: "asc" }, select: { day: true, open: true, high: true, low: true, close: true, volume: true } }),
+      prisma.priceBar.findMany({ where: { key, day: { gte: from } }, orderBy: { day: "asc" }, select: { day: true, close: true, open: candles, high: candles, low: candles, volume: candles } }),
     );
-    if (rows.length < 2) return null;
-    const bars = rows.map((r) => ({ t: r.day.toISOString().slice(0, 10), o: r.open, h: r.high, l: r.low, c: r.close, v: r.volume }));
-    return { source: s.source, exchange: s.exchange === "BSE" ? "BSE" : "NSE", bars };
+    if (rows.length < 2) throw new NoSeries(key);
+    const bars = rows.map((r) => ({ t: r.day.toISOString().slice(0, 10), o: r.open ?? null, h: r.high ?? null, l: r.low ?? null, c: r.close, v: r.volume ?? null }));
+    return { source: s.source, exchange: s.exchange === "BSE" ? "BSE" : "NSE", bars, lastDay: s.lastDay.toISOString() };
+  },
+  ["price-store-v1"],
+  { revalidate: SHARED_REVALIDATE_SECONDS, tags: [PRICES_TAG] },
+);
+
+class NoSeries extends Error {
+  constructor(key: string) {
+    super(`price store: no series for ${key}`);
+  }
+}
+
+/**
+ * A series' stored bars (kept in memory a while in front of the shared cache), or null. `candles`:
+ * with open/high/low/volume too; the line charts (every basket read) need only the closes.
+ */
+function load(key: string, candles: boolean): Promise<Loaded | null> {
+  return cached(`store2:${key}:${candles ? "ohlc" : "c"}`, TTL_MS, async () => {
+    const got = await sharedLoad(key, candles).catch((e: unknown) => {
+      if (e instanceof NoSeries) return null;
+      throw e;
+    });
+    // Stale: the top-up has stopped for this series (or altogether); Yahoo is the better answer.
+    if (!got || Date.now() - new Date(got.lastDay).getTime() > MAX_QUOTE_AGE_DAYS * DAY) return null;
+    return { source: got.source, exchange: got.exchange, bars: got.bars };
   });
 }
 
@@ -66,10 +100,10 @@ function load(key: string, days: number): Promise<Loaded | null> {
 // instead of failing, and logging, every read.
 let absentUntil = 0;
 
-async function storedBars(key: string, range: ChartRange): Promise<(Loaded & { interval: "1d" | "1wk" | "1mo"; lastDay: string | null }) | null> {
+async function storedBars(key: string, range: ChartRange, candles: boolean): Promise<(Loaded & { interval: "1d" | "1wk" | "1mo"; lastDay: string | null }) | null> {
   const r = storedRange(range);
   if (!r || Date.now() < absentUntil) return null;
-  const got = await load(key, r.days).catch((e: unknown) => {
+  const got = await load(key, candles).catch((e: unknown) => {
     if ((e as { code?: string })?.code === "P2021") absentUntil = Date.now() + 10 * 60_000;
     else console.error(`price store: reading ${key} failed`, e);
     return null;
@@ -96,7 +130,7 @@ function withLastDay(points: { t: string; c: number }[], lastDay: string | null)
 
 /** A stock's or benchmark's closes for a range from the store, or null. */
 export async function storedChart(key: string, range: ChartRange): Promise<ChartData | null> {
-  const s = await storedBars(key, range);
+  const s = await storedBars(key, range, false);
   if (!s) return null;
   const points = withLastDay(toPoints(s.bars), s.lastDay);
   return s.source === "screener" ? { range, points, source: "screener" } : { range, points, source: "yahoo", exchange: s.exchange };
@@ -104,7 +138,7 @@ export async function storedChart(key: string, range: ChartRange): Promise<Chart
 
 /** A stock's candles for a range from the store, or null (also for a closes-only series). */
 export async function storedOhlc(key: string, range: ChartRange): Promise<OhlcData | null> {
-  const s = await storedBars(key, range);
+  const s = await storedBars(key, range, true);
   const candles = s && s.source !== "screener" ? toCandles(s.bars) : null;
   if (!s || !candles) return null;
   return { range, interval: s.interval, bars: candles, points: withLastDay(toPoints(s.bars), s.lastDay), source: "yahoo", exchange: s.exchange };
