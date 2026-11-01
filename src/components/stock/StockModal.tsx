@@ -62,12 +62,24 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
           <div className="min-w-0 flex-1">
             {/* Long names wrap rather than being cut ("Samvardhana Motherson…"): the price and ✕ leave
                 the name ~180px on a phone, so no line clamp. */}
-            <h2 className="min-w-0 break-words font-display text-base font-bold leading-snug sm:text-xl">{supplier.name}</h2>
+            {/* The full view on a phone also holds Back: the scrip ("GRSE") is the title there, so a long
+                name can't wrap to three lines; the name sits under it, cut to fit. */}
+            <h2 className="min-w-0 break-words font-display text-base font-bold leading-snug sm:text-xl">
+              {full ? (
+                <>
+                  <span className="sm:hidden">{ticker}</span>
+                  <span className="max-sm:hidden">{supplier.name}</span>
+                </>
+              ) : (
+                supplier.name
+              )}
+            </h2>
             {/* The labelled Watch button sits on the ticker line, so it doesn't squeeze the name. */}
             <div className="mt-1 flex items-center gap-2">
               {/* The ticker never truncates; only the role gives way to the Watch pill. */}
               <p className="flex min-w-0 text-xs text-ink-soft">
-                <span className="flex-none font-mono">{supplier.listed ? `${freshQuote(api?.quote)?.exchange ?? "NSE"}: ${ticker}` : "Unlisted"}</span>
+                {full && <span className="min-w-0 truncate sm:hidden">{supplier.name}</span>}
+                <span className={"flex-none font-mono" + (full ? " max-sm:hidden" : "")}>{supplier.listed ? `${freshQuote(api?.quote)?.exchange ?? "NSE"}: ${ticker}` : "Unlisted"}</span>
                 <span className="hidden min-w-0 truncate sm:inline">&nbsp;· {supplier.role}</span>
               </p>
               <span className="flex-none">

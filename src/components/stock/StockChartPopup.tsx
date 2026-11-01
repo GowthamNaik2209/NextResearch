@@ -179,15 +179,26 @@ function Picker({
       <div className="flex flex-none items-start gap-3 border-b border-line bg-panel px-4 pt-4 pb-3 sm:px-6 sm:pt-5">
         {full && <BackToChartButton onClick={fv.exit} />}
         <div className="min-w-0 flex-1">
-          <h2 className="min-w-0 break-words font-display text-base font-bold leading-snug sm:text-xl">{stock?.name ?? ind.name}</h2>
+          {/* Full view on a phone: the scrip is the title (Back shares the row), the name under it, cut to fit. */}
+          <h2 className="min-w-0 break-words font-display text-base font-bold leading-snug sm:text-xl">
+            {full && stock ? (
+              <>
+                <span className="sm:hidden">{stock.ticker}</span>
+                <span className="max-sm:hidden">{stock.name}</span>
+              </>
+            ) : (
+              (stock?.name ?? ind.name)
+            )}
+          </h2>
           {stock && (
             <div className="mt-1 flex items-center gap-2">
               {/* The ticker never truncates; only the layer gives way to the Watch pill. */}
               <p className="flex min-w-0 text-xs text-ink-soft">
-                <span className="flex-none font-mono">
+                {full && <span className="min-w-0 truncate sm:hidden">{stock.name}</span>}
+                <span className={"flex-none font-mono" + (full ? " max-sm:hidden" : "")}>
                   {quote?.exchange ?? "NSE"}: {stock.ticker}
                 </span>
-                <span className="min-w-0 truncate">&nbsp;· {stock.layer}</span>
+                <span className={"min-w-0 truncate" + (full ? " max-sm:hidden" : "")}>&nbsp;· {stock.layer}</span>
               </p>
               <span className="flex-none">
                 <WatchlistButton key={stock.ticker} ticker={stock.ticker} name={stock.name} variant="pill" />

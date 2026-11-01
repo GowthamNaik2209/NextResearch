@@ -228,7 +228,7 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
 
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <Panel
-          title={projOn ? `${name} · projected, ${projection?.period ?? `next ${HORIZON_LONG[projSet.h]}`}` : `${name} vs Nifty 50 · past ${rangeLong}`}
+          title={projOn ? `${ticker} · projected, ${projection?.period ?? `next ${HORIZON_LONG[projSet.h]}`}` : `${ticker} vs Nifty 50 · past ${rangeLong}`}
           className="min-w-0"
           bodyClassName="p-3"
         >
