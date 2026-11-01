@@ -34,6 +34,7 @@ export function ReturnCards({
   picksSlot,
   benches,
   dense = false,
+  subject = "basket",
 }: {
   range: ChartRange;
   basket: CardLine;
@@ -45,6 +46,8 @@ export function ReturnCards({
   benches: CardLine[];
   /** The basket pages' flat strip (full width, square cells); the Analysis charts keep the cards. */
   dense?: boolean;
+  /** What the first card is, in an index card's gap ("basket +4.2 pts"): a stock's ticker on its own Backtest view. */
+  subject?: string;
 }) {
   const { get: at, retry } = useSeries([basket.key, picks?.key, ...benches.map((b) => b.key)], range);
   const ret = (key: string) => {
@@ -96,7 +99,16 @@ export function ReturnCards({
     };
   };
 
-  const b = card(basket);
+  // The first card's own history starting well after a benchmark's (a stock listed during the
+  // range): its card says from when, as the benchmarks' gaps are measured over its days.
+  const basketFrom = (() => {
+    const l = at(basket.key);
+    const first = benches.map((x) => at(x.key)).find((x) => x?.status === "ok" && x.data.points.length);
+    if (l?.status !== "ok" || !l.data.points.length || first?.status !== "ok") return null;
+    const from = l.data.points[0].t;
+    return Date.parse(from) - Date.parse(first.data.points[0].t) > slackDaysFor(range) * 86_400_000 ? from : null;
+  })();
+  const b = { ...card(basket), ...(basketFrom ? { note: `listed ${fmtMonth(basketFrom)}: return since then` } : {}) };
   const gap = (v: number | null, picksSide: boolean) => (b.value != null && v != null ? (picksSide ? shown(v) - shown(b.value) : shown(b.value) - shown(v)) : null);
   const p = picks ? card(picks) : null;
 
@@ -124,7 +136,7 @@ export function ReturnCards({
       {!picks && picksSlot && <Stat label={picksSlot.label} value={null} loading={false} note={picksSlot.note} dense={dense} />}
       {benches.map((line) => {
         const c = card(line, true);
-        return <Stat key={line.key || line.label} label={line.label} value={c.value} loading={c.loading} failed={c.failed} onRetry={c.onRetry} note={c.note} diff={gap(c.value, false)} dense={dense} />;
+        return <Stat key={line.key || line.label} label={line.label} value={c.value} loading={c.loading} failed={c.failed} onRetry={c.onRetry} note={c.note} diff={gap(c.value, false)} dense={dense} subject={subject} />;
       })}
     </section>
   );
@@ -146,6 +158,7 @@ function Stat({
   strong,
   dense,
   who = "basket",
+  subject = "basket",
 }: {
   label: string;
   value: number | null;
@@ -158,6 +171,7 @@ function Stat({
   strong?: boolean;
   dense?: boolean;
   who?: "basket" | "picks";
+  subject?: string;
 }) {
   // Always with its unit, at every width: a bare "+330.8" beside a % figure reads as a percent.
   const pts = diff == null ? null : `${signedPts(diff)} pts`;
@@ -179,11 +193,13 @@ function Stat({
       {diff != null && (
         <div className="text-[10px] leading-snug text-ink-soft sm:text-[11px]">
           {Math.abs(diff) < 0.05 ? (
-            "level with basket"
+            `level with ${subject}`
           ) : who === "picks" ? (
             <>{pts} vs basket</>
           ) : (
-            <>basket {pts}</>
+            <>
+              {subject} {pts}
+            </>
           )}
         </div>
       )}

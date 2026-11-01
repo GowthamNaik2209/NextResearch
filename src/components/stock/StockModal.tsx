@@ -11,11 +11,18 @@ import { PriceTag } from "./PriceTag";
 import { SummaryView } from "./SummaryView";
 import { NewsView } from "./NewsView";
 import { FundamentalsView } from "./FundamentalsView";
+import { BackToChartButton, BacktestButton } from "./BacktestButtons";
+import { onFullEntry, useFullView } from "./useFullView";
 
 // lightweight-charts is only needed once someone opens the Chart tab.
 const ChartView = dynamic(() => import("./ChartView").then((m) => m.ChartView), {
   ssr: false,
   loading: () => <p className="p-6 text-sm text-ink-soft">Loading chart…</p>,
+});
+// The full-screen Backtest view (basket panels and charts) loads only when it is opened.
+const StockBacktest = dynamic(() => import("./StockBacktest").then((m) => m.StockBacktest), {
+  ssr: false,
+  loading: () => <p className="p-6 text-sm text-ink-soft">Loading backtest…</p>,
 });
 
 const TABS: { id: StockTab; label: string }[] = [
@@ -38,15 +45,20 @@ type Props = {
 // (CSS .nr-pop in globals.css). Full-bleed sheet on phones, centred card on
 // larger screens. Closes via the ✕ button, Esc, or a click on the backdrop.
 export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onClose }: Props) {
-  const [tab, setTab] = useState<StockTab>(initialTab);
+  // Reopened on a full view's history entry (Forward, or a reload there): its Back lands on the chart.
+  const [tab, setTab] = useState<StockTab>(() => (onFullEntry() ? "chart" : initialTab));
   const f = supplier.f;
   const stats = mergeStats(f, api);
+  // Backtest & project (Chart tab) opens the full-screen view; its Back returns to the chart.
+  const fv = useFullView(onClose, { restore: true });
+  const full = fv.full && supplier.listed;
 
   return (
-    <ModalShell label={`${supplier.name} details`} onClose={onClose}>
+    <ModalShell label={full ? `${supplier.name} backtest` : `${supplier.name} details`} onClose={fv.close} full={full}>
       {(closeRef) => (
       <>
-        <div className="flex flex-none items-start gap-3 border-b border-line bg-panel px-4 pb-0 pt-4 sm:px-6 sm:pt-5">
+        <div className={"flex flex-none items-start gap-3 border-b border-line bg-panel px-4 pt-4 sm:px-6 sm:pt-5 " + (full ? "pb-3 sm:pb-4" : "pb-0")}>
+          {full && <BackToChartButton onClick={fv.exit} />}
           <div className="min-w-0 flex-1">
             {/* Long names wrap rather than being cut ("Samvardhana Motherson…"): the price and ✕ leave
                 the name ~180px on a phone, so no line clamp. */}
@@ -63,12 +75,19 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
               </span>
             </div>
           </div>
-          {supplier.listed && <PriceTag price={stats.price} quote={freshQuote(api?.quote)} asOf={stats.asOf} />}
-          <CloseButton closeRef={closeRef} onClose={onClose} />
+          {/* A phone's header in the full view also holds Back: the price gives way so the name keeps its room. */}
+          {supplier.listed && (
+            <div className={full ? "max-sm:hidden" : undefined}>
+              <PriceTag price={stats.price} quote={freshQuote(api?.quote)} asOf={stats.asOf} />
+            </div>
+          )}
+          <CloseButton closeRef={closeRef} onClose={fv.close} />
         </div>
 
-        {supplier.listed && (
-        <div role="tablist" aria-label="Stock details" className="flex flex-none gap-1 overflow-x-auto border-b border-line bg-panel px-2 py-2 sm:px-4">
+        {supplier.listed && !full && (
+        // On a phone the four tabs and Backtest share the row: tighter pills there, so it never scrolls.
+        <div className="flex flex-none items-center gap-1.5 border-b border-line bg-panel px-1.5 py-2 sm:gap-2 sm:px-4">
+        <div role="tablist" aria-label="Stock details" className="flex min-w-0 flex-1 gap-0.5 overflow-x-auto sm:gap-1">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -80,7 +99,7 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
                 // The pill style is the reference for stock tabs elsewhere (explorer card). tap-target
                 // grows the pill's hit area to 40px; touch screens (incl. tablets on sm sizing) also
                 // get a 40px-tall pill so the visible target matches.
-                "tap-target flex-none rounded-full px-2.5 py-1 text-xs font-semibold transition-colors sm:px-4 sm:py-1.5 sm:text-sm pointer-coarse:inline-flex pointer-coarse:min-h-10 pointer-coarse:items-center " +
+                "tap-target flex-none rounded-full px-2 py-1 text-xs font-semibold transition-colors min-[400px]:px-2.5 sm:px-4 sm:py-1.5 sm:text-sm pointer-coarse:inline-flex pointer-coarse:min-h-10 pointer-coarse:items-center " +
                 (tab === t.id ? "bg-accent text-bg" : "text-ink-soft hover:bg-panel-2 hover:text-ink")
               }
             >
@@ -88,14 +107,17 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
             </button>
           ))}
         </div>
+        {tab === "chart" && <BacktestButton variant="tab" onClick={fv.enter} />}
+        </div>
         )}
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
           {!supplier.listed && <UnlistedView supplier={supplier} />}
-          {supplier.listed && tab === "summary" && <SummaryView ticker={ticker} supplier={supplier} api={api} loading={apiLoading} showNarrative />}
-          {supplier.listed && tab === "chart" && <ChartView ticker={ticker} quote={freshQuote(api?.quote)} />}
-          {supplier.listed && tab === "news" && <NewsView ticker={ticker} name={supplier.name} supplier={supplier} api={api} />}
-          {supplier.listed && tab === "fundamentals" && <FundamentalsView supplier={supplier} api={api} loading={apiLoading} />}
+          {full && <StockBacktest ticker={ticker} name={supplier.name} />}
+          {supplier.listed && !full && tab === "summary" && <SummaryView ticker={ticker} supplier={supplier} api={api} loading={apiLoading} showNarrative />}
+          {supplier.listed && !full && tab === "chart" && <ChartView ticker={ticker} quote={freshQuote(api?.quote)} />}
+          {supplier.listed && !full && tab === "news" && <NewsView ticker={ticker} name={supplier.name} supplier={supplier} api={api} />}
+          {supplier.listed && !full && tab === "fundamentals" && <FundamentalsView supplier={supplier} api={api} loading={apiLoading} />}
         </div>
       </>
       )}
@@ -109,7 +131,18 @@ const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:n
 
 // Blurred backdrop + raised card, scroll lock, Esc / backdrop-click to close, focus on ✕, Tab kept
 // inside the card, and focus handed back to whatever opened it on close.
-export function ModalShell({ label, onClose, children }: { label: string; onClose: () => void; children: (closeRef: React.RefObject<HTMLButtonElement | null>) => React.ReactNode }) {
+// `full`: the whole screen on every size (the full-screen Backtest view), not the centred card.
+export function ModalShell({
+  label,
+  onClose,
+  full = false,
+  children,
+}: {
+  label: string;
+  onClose: () => void;
+  full?: boolean;
+  children: (closeRef: React.RefObject<HTMLButtonElement | null>) => React.ReactNode;
+}) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   // Parents pass a fresh onClose on every render; reading it through a ref keeps the effect below
@@ -156,7 +189,7 @@ export function ModalShell({ label, onClose, children }: { label: string; onClos
 
   return createPortal(
     <div
-      className="nr-pop-backdrop fixed inset-0 z-[200] flex items-stretch justify-center sm:items-center sm:p-8"
+      className={"nr-pop-backdrop fixed inset-0 z-[200] flex items-stretch justify-center " + (full ? "" : "sm:items-center sm:p-8")}
       onMouseDown={(e) => {
         if (e.target !== e.currentTarget) return;
         // Without preventDefault the press goes on to focus <body>, undoing the focus handed back on close.
@@ -169,7 +202,7 @@ export function ModalShell({ label, onClose, children }: { label: string; onClos
         role="dialog"
         aria-modal="true"
         aria-label={label}
-        className="nr-pop-card flex h-full w-full flex-col overflow-hidden border border-line bg-bg text-ink sm:h-[min(88vh,860px)] sm:max-w-[1040px] sm:rounded-3xl"
+        className={"nr-pop-card flex h-full w-full flex-col overflow-hidden border border-line bg-bg text-ink " + (full ? "" : "sm:h-[min(88vh,860px)] sm:max-w-[1040px] sm:rounded-3xl")}
       >
         {children(closeRef)}
       </div>
