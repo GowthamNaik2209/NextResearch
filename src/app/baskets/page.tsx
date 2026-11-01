@@ -4,18 +4,21 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { InfoTip } from "@/components/InfoTip";
 import { BasketIdeas } from "@/components/baskets/BasketIdeas";
+import { BasketsJump } from "@/components/baskets/BasketsJump";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { basketStock, listIndustryBaskets } from "@/lib/baskets/industry";
-import { BasketsPanel, BasketsSummary, ThemeWall, type IndustryRow, type SavedRow } from "@/components/baskets/BasketsTable";
+import { BasketsPanel, BasketsSummary, IndustryBaskets, type IndustryRow, type SavedRow } from "@/components/baskets/BasketsTable";
 import { industrySeriesKey } from "@/components/baskets/series";
 import { toSaved } from "@/lib/baskets/store";
 import { industryFigures } from "@/lib/baskets/industry-figures";
+import { readBasketReturns } from "@/lib/baskets/basket-returns";
 import { ensureFinancials } from "@/lib/financials/load";
 import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk-data";
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { basketCases } from "@/lib/baskets/projection-data";
 import { shareMeta } from "@/lib/site";
+import type { BasketFigures } from "@/lib/baskets/stats";
 
 export const metadata = {
   title: "Stock baskets: build your own from any mix of Indian industries",
@@ -68,6 +71,7 @@ export default async function BasketsPage() {
     };
   });
   const mineCount = user && !mineFailed ? mine.length : null;
+  const createHref = user ? "/baskets/new" : "/login?next=/baskets/new";
   const industryRows: IndustryRow[] = listIndustryBaskets().map((b) => ({ kind: "industry", slug: b.slug, name: b.name, category: b.category, count: b.stocks.length, proj: b.stocks.length ? basketCases(b.stocks, "equal")["1"] : null }));
 
   return (
@@ -75,20 +79,26 @@ export default async function BasketsPage() {
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 px-5 pt-6 pb-14 sm:py-14 lg:max-w-page">
         {statsLoading && <ProjectionStatsPending />}
-        <div className="min-w-0">
-          <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Baskets</h1>
-          <p className="mt-1.5 max-w-3xl text-xs leading-relaxed text-ink-soft sm:text-sm">
-            A basket is a group of stocks you follow as one. Start from an industry basket or a rule-based list, or create your own from any
-            mix of industries and your watchlist. Each one is backtested against the Nifty 50, with indices and industries a tap away
-            to compare. For tracking and research only: nothing here places trades.
-          </p>
+        {/* The section switch and Create basket sit in the free space right of the intro on wide screens and drop below it otherwise. */}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
+          <div className="min-w-0 lg:flex-1">
+            <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Baskets</h1>
+            <p className="mt-1.5 max-w-3xl text-xs leading-relaxed text-ink-soft sm:text-sm">
+              A basket is a group of stocks you follow as one. Start from an industry basket or a rule-based list, or create your own from any
+              mix of industries and your watchlist. Each one is backtested against the Nifty 50, with indices and industries a tap away
+              to compare. For tracking and research only: nothing here places trades.
+            </p>
+          </div>
+          <div className="lg:mt-1 lg:flex-none">
+            <BasketsJump createHref={createHref} />
+          </div>
         </div>
 
         {/* Order: ready-made ideas first, then your own (create + saved), then the industry and policy baskets. */}
-        <section aria-labelledby="ideas-h" id="ideas" className="flex scroll-mt-20 flex-col gap-2">
+        <section aria-labelledby="ideas-h" id="ideas" className="flex scroll-mt-24 flex-col gap-2">
           <div>
             <div className="flex items-center gap-2">
-              <h2 id="ideas-h" className="font-display text-lg font-bold text-ink sm:text-xl">
+              <h2 id="ideas-h" tabIndex={-1} className="outline-none font-display text-lg font-bold text-ink sm:text-xl">
                 Rule-based baskets
               </h2>
               <InfoTip label="About rule-based baskets">
@@ -109,15 +119,16 @@ export default async function BasketsPage() {
           </Suspense>
         </div>
 
-        <section aria-labelledby="mine-h" className="mt-2 flex flex-col gap-2">
+        <section aria-labelledby="mine-h" id="mine" className="mt-2 flex scroll-mt-24 flex-col gap-2">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="min-w-0">
-              <h2 id="mine-h" className="font-display text-lg font-bold text-ink sm:text-xl">
+              <h2 id="mine-h" tabIndex={-1} className="outline-none font-display text-lg font-bold text-ink sm:text-xl">
                 Your baskets
               </h2>
               <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Pick industries and stocks, choose a weighting, and save it to follow.</p>
             </div>
-            <Link href={user ? "/baskets/new" : "/login?next=/baskets/new"} className="inline-flex min-h-10 flex-none items-center rounded-md bg-accent px-4 text-sm font-semibold text-bg hover:opacity-90">
+            {/* The primary Create basket is in the switch at the top; this copy is the quieter one. */}
+            <Link href={createHref} className="inline-flex min-h-11 flex-none items-center rounded-md border border-accent px-4 text-sm font-semibold text-accent hover:bg-accent hover:text-bg sm:min-h-10 pointer-coarse:min-h-11">
               Create basket
             </Link>
           </div>
@@ -137,30 +148,23 @@ export default async function BasketsPage() {
           </BasketsPanel>
         </section>
 
-        <section aria-labelledby="industry-h" className="mt-4 flex flex-col gap-2">
+        <section aria-labelledby="industry-h" id="industry" className="mt-4 flex scroll-mt-24 flex-col gap-2">
           <div>
             <div className="flex items-center gap-2">
-              <h2 id="industry-h" className="font-display text-lg font-bold text-ink sm:text-xl">
+              <h2 id="industry-h" tabIndex={-1} className="outline-none font-display text-lg font-bold text-ink sm:text-xl">
                 Industry &amp; policy baskets
               </h2>
               <InfoTip label="What the columns mean">
-                <b>1Y</b>: return over the past year, bought a year ago and not rebalanced. <b>Drawdown</b>: the deepest fall from a high in that year (a column from tablet width up).{" "}
+                <b>Period</b>: the menu above the heatmap picks the span (1D to 3Y) for the heatmap and the return, drawdown and vs Nifty columns; 1Y by default. <b>Return</b>: bought at the start of the period and not rebalanced. <b>Drawdown</b>: the deepest fall from a high in that period (a column from tablet width up).{" "}
                 <b>vs Nifty</b>: the basket&rsquo;s return minus the Nifty 50&rsquo;s, in percentage points.{" "}
                 <b>Bear · Base · Bull</b>: the basket&rsquo;s projected return over the next year in each case (a model projection, not a forecast; columns from tablet width, and in the Sort menu on phones).{" "}
                 Tap a column heading to sort (again to reverse), or use the Sort menu on a phone.
               </InfoTip>
             </div>
-            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock on each industry or policy map, at equal weight. The heatmap shows the past year at a glance; tap a tile to jump to its row.</p>
+            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock on each industry or policy map, at equal weight. The heatmap shows the period you pick at a glance; tap a tile to jump to its row.</p>
           </div>
           {/* The figures are worked out on the server and stream in; until then the rows show loading. */}
-          <Suspense
-            fallback={
-              <>
-                <ThemeWall rows={industryRows} />
-                <BasketsPanel title="All industries & policies" rows={industryRows} initialSort="ret" deferred />
-              </>
-            }
-          >
+          <Suspense fallback={<IndustryBaskets rows={industryRows} deferred />}>
             <IndustryTable rows={industryRows} />
           </Suspense>
         </section>
@@ -171,14 +175,15 @@ export default async function BasketsPage() {
 }
 
 async function IndustryTable({ rows }: { rows: IndustryRow[] }) {
-  const { figs, benchRet } = await figures();
-  const seed = { figs: Object.fromEntries(Object.entries(figs).map(([slug, f]) => [industrySeriesKey(slug), f])), benchRet };
-  return (
-    <>
-      <ThemeWall rows={rows} seed={seed} />
-      <BasketsPanel title="All industries & policies" rows={rows} initialSort="ret" seed={seed} />
-    </>
-  );
+  // 1Y from the page's own backtests (as before); the period menu's other spans from the stored table.
+  const [{ figs, benchRet }, stored] = await Promise.all([figures(), readBasketReturns(prisma)]);
+  const bySeriesKey = (bySlug: Record<string, BasketFigures>) => Object.fromEntries(Object.entries(bySlug).map(([slug, f]) => [industrySeriesKey(slug), f]));
+  const seed = {
+    figs: bySeriesKey(figs),
+    benchRet,
+    byPeriod: Object.fromEntries(Object.entries(stored).map(([p, bySlug]) => [p, bySeriesKey(bySlug)])),
+  };
+  return <IndustryBaskets rows={rows} seed={seed} />;
 }
 
 async function Summary({ mineCount }: { mineCount: number | null }) {

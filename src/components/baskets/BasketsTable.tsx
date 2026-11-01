@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { ScrollX } from "@/components/ScrollX";
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
-import { basketFigures, seriesStats, type BasketFigures } from "@/lib/baskets/stats";
+import { seriesStats, type BasketFigures } from "@/lib/baskets/stats";
 import { NA, signedPct } from "@/lib/format";
 import { signedPts } from "@/lib/baskets/fmt";
+import { PERIODS, PERIOD_SRC, PERIOD_WORDS, periodFigures, type Period } from "@/lib/baskets/periods";
 import { Panel } from "./Panel";
 import { industrySeriesKey, loadSeries, savedBasketQuery } from "./series";
 import { heldStrategy, strategyQuery } from "@/lib/baskets/strategy";
@@ -32,7 +34,12 @@ type Fig = BasketFigures;
 /** "empty": a saved basket with no stocks left, which has nothing to backtest (no request is made). */
 type Entry = "loading" | "error" | "empty" | Fig;
 /** Figures the server already has: by series key, and the Nifty 50's own 1Y return. */
-export type TableSeed = { figs: Record<string, Fig>; benchRet: number | null };
+export type TableSeed = {
+  figs: Record<string, Fig>;
+  benchRet: number | null;
+  /** The other periods' figures from the stored table (BasketReturn), by series key: shown at once, no backtest in the browser. */
+  byPeriod?: Partial<Record<Period, Record<string, Fig>>>;
+};
 
 const RANGE = "1Y" as const;
 const BENCH = "b:nifty50";
@@ -42,12 +49,17 @@ const keyOf = (r: BasketRow) => (r.kind === "saved" ? `x:${savedBasketQuery(r.id
 const hrefOf = (r: BasketRow) => (r.kind === "saved" ? `/baskets/${r.id}` : `/baskets/industry/${r.slug}`);
 const countOf = (r: BasketRow) => (r.kind === "saved" ? r.tickers.length : r.count);
 
+/** The store's key for a row's figures over a period (1Y keeps the plain key, which the summary strip reads). */
+const figKey = (key: string, period: Period) => (period === "1Y" ? key : `${key}|${period}`);
+/** The server's figures for a period, by series key: 1Y from the page's backtests, the rest from the stored table. */
+const seedFor = (seed: TableSeed | undefined, period: Period) => (period === "1Y" ? seed?.figs : seed?.byPeriod?.[period]);
+
 // ---- the shared store: figures by series key, the queue, and who is listening ----
 
 const figs = new Map<string, Entry>();
 /** Every basket a table on the page lists (with its name), for the summary strip. */
 const listed = new Map<string, string>();
-const queue: string[] = [];
+const queue: { key: string; period: Period }[] = [];
 let inflight = 0;
 let bench: "loading" | "error" | { ret: number } = "loading";
 let benchStarted = false;
@@ -83,11 +95,13 @@ function startBench() {
 
 function pump() {
   while (inflight < MAX_INFLIGHT && queue.length) {
-    const key = queue.shift()!;
+    const { key: series, period } = queue.shift()!;
+    const key = figKey(series, period);
+    const range = PERIOD_SRC[period].range;
     inflight++;
-    Promise.all([loadSeries(key, RANGE), loadSeries(BENCH, RANGE)])
+    Promise.all([loadSeries(series, range), loadSeries(BENCH, range)])
       .then(([l, b]) => {
-        const fig = l.status === "ok" ? basketFigures(l.data.points, b.status === "ok" ? b.data.points : null) : null;
+        const fig = l.status === "ok" ? periodFigures(l.data.points, b.status === "ok" ? b.data.points : null, period) : null;
         if (fig) figs.set(key, fig);
         // A failed load keeps the server's figure, if there is one.
         else if (typeof figs.get(key) !== "object") figs.set(key, "error");
@@ -116,15 +130,25 @@ function seedStore(seed: TableSeed) {
     if (!e || e === "error" || e === "loading") figs.set(k, f);
   }
   if (seed.benchRet != null && typeof bench !== "object") bench = { ret: seed.benchRet };
+  // The other periods come from the stored table, which the daily cron fills from the same price
+  // store the backtest API reads: shown as they are, never measured again in the browser.
+  for (const [p, byKey] of Object.entries(seed.byPeriod ?? {}) as [Period, Record<string, Fig>][]) {
+    if (p === "1Y") continue;
+    for (const [k, f] of Object.entries(byKey)) {
+      figs.set(figKey(k, p), f);
+      measured.add(figKey(k, p));
+    }
+  }
 }
 
-function request(keys: string[]) {
+function request(keys: string[], period: Period = "1Y") {
   startBench();
-  for (const k of keys) {
+  for (const key of keys) {
+    const k = figKey(key, period);
     if (measured.has(k)) continue;
     measured.add(k);
     if (!figs.has(k)) figs.set(k, "loading");
-    queue.push(k);
+    queue.push({ key, period });
   }
   pump();
 }
@@ -171,6 +195,8 @@ const DIR_WORDS: Partial<Record<Sort, Record<SortState["dir"], string>>> = {
   name: { asc: "A to Z", desc: "Z to A" },
   dd: { desc: "smallest fall first", asc: "deepest fall first" },
 };
+/** A column's name, the return column's under the period it shows. */
+const colName = (by: Sort, period: Period) => (by === "ret" ? `${period} return` : COL_NAMES[by]);
 const dirWords = (s: SortState) => DIR_WORDS[s.by]?.[s.dir] ?? (s.dir === "desc" ? "high to low" : "low to high");
 const COL_NAMES: Record<Sort, string> = { name: "Basket", count: "Number of stocks", ret: "1Y return", dd: "Drawdown", vs: "vs Nifty 50", bear: "Next 1Y Bear case", base: "Next 1Y Base case", bull: "Next 1Y Bull case" };
 /** The phone's sort menu: each column both ways, the first-tap direction first. */
@@ -179,12 +205,14 @@ const PHONE_SORTS: SortState[] = (["ret", "vs", "dd", "base", "bear", "bull", "c
   return [{ by, dir: d }, { by, dir: d === "desc" ? "asc" : "desc" }];
 });
 
-// Columns: name grows; the stock count and max drawdown give way on phones (the count moves into
-// the sub-line, and the sort menu still sorts by both), so a row fits 360px without sideways scroll.
-// The projected cases show from md; below it the sort menu still sorts by them and the sorted case
-// joins the sub-line.
+// Columns: name grows. Below md every column still shows: the table scrolls sideways in its own box
+// (min width below) with the name column held on the left, so names stay readable on a phone.
 const GRID =
-  "grid grid-cols-[minmax(0,1fr)_4rem_4.25rem] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_4.5rem] md:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_4.5rem_4.25rem_4.25rem_4.25rem]";
+  "grid grid-cols-[minmax(9.5rem,1fr)_3rem_4.25rem_4.75rem_5.25rem_4.25rem_4.25rem_4.25rem] items-center gap-x-2 md:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_5.25rem_4.25rem_4.25rem_4.25rem]";
+/** Wide enough for GRID's fixed columns, gaps and padding below md. */
+const TABLE_MIN = "min-w-[44.5rem] md:min-w-0";
+/** The name cell, held at the left edge while the figures scroll (its background hides them as they pass under). */
+const STICKY_NAME = "sticky left-0 z-[1] -ml-3 bg-panel pl-3 shadow-[1px_0_0_var(--color-line)] md:static md:ml-0 md:bg-transparent md:pl-0 md:shadow-none";
 
 export function BasketsTable({
   rows,
@@ -193,6 +221,7 @@ export function BasketsTable({
   label,
   seed,
   deferred = false,
+  period = "1Y",
 }: {
   rows: BasketRow[];
   sort: SortState | null;
@@ -201,6 +230,8 @@ export function BasketsTable({
   seed?: TableSeed;
   /** The server is still working the figures out: show the rows loading, fetch nothing yet. */
   deferred?: boolean;
+  /** The period the return, drawdown and lead are measured over (the server seeds 1Y only). */
+  period?: Period;
 }) {
   const keys = useMemo(() => rows.map(keyOf), [rows]);
   // Saved baskets edited down to no stocks: shown as such, never backtested or counted.
@@ -209,11 +240,12 @@ export function BasketsTable({
   const v = useSyncExternalStore(subscribe, getVersion, getVersion);
   // Before the effect below puts the server's figures in the store, read them from the props.
   const hydrated = useHydrated();
+  const seeded = seedFor(seed, period);
   const entryOf = (key: string): Entry | undefined => {
     if (empties.has(key)) return "empty";
-    if (!hydrated) return seed?.figs[key];
-    const e = figs.get(key);
-    return e && e !== "loading" ? e : (seed?.figs[key] ?? e);
+    if (!hydrated) return seeded?.[key];
+    const e = figs.get(figKey(key, period));
+    return e && e !== "loading" ? e : (seeded?.[key] ?? e);
   };
 
   useEffect(() => {
@@ -221,12 +253,16 @@ export function BasketsTable({
     rows.forEach((r, i) => !empties.has(keys[i]) && listed.set(keys[i], r.name));
     if (seed) seedStore(seed);
     emit();
-    if (!deferred) request(live);
+    // 1Y always (the summary strip counts it), and the period picked when it is another.
+    if (!deferred) {
+      request(live);
+      if (period !== "1Y") request(live, period);
+    }
     return () => {
       live.forEach((k) => listed.delete(k));
       emit();
     };
-  }, [rows, keys, empties, seed, deferred]);
+  }, [rows, keys, empties, seed, deferred, period]);
 
   const sorted = useMemo(() => {
     const items = rows.map((r, i) => ({ r, key: keys[i] }));
@@ -249,13 +285,13 @@ export function BasketsTable({
       return sign * (va - vb) || a.r.name.localeCompare(b.r.name);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- v: re-sort as figures arrive (entryOf reads the store and seed)
-  }, [rows, keys, empties, sort, v, seed, hydrated]);
+  }, [rows, keys, empties, sort, v, seed, hydrated, period]);
 
   const head = (id: Sort, text: string, place: string) => {
     const on = sort?.by === id ? sort : null;
     // What a tap does: sorts by this column, or reverses it when it is already the sort.
     const next: SortState = on ? { by: id, dir: on.dir === "desc" ? "asc" : "desc" } : { by: id, dir: firstDir(id) };
-    const name = COL_NAMES[id];
+    const name = colName(id, period);
     return (
       <div role="columnheader" aria-sort={on ? (on.dir === "asc" ? "ascending" : "descending") : "none"} className={place}>
         <button
@@ -263,7 +299,7 @@ export function BasketsTable({
           onClick={() => onSort(next)}
           aria-label={on ? `${name}, ${dirWords(on)}. Tap for ${dirWords(next)}` : `Sort by ${name}, ${dirWords(next)}`}
           title={on ? `${dirWords(on)} · tap again for ${dirWords(next)}` : dirWords(next)}
-          className={"flex min-h-8 w-full items-center gap-0.5 uppercase tracking-wider hover:text-ink pointer-coarse:min-h-9 " + (id === "name" ? "justify-start" : "justify-end") + (on ? " text-ink" : "")}
+          className={"flex min-h-8 w-full items-center gap-0.5 uppercase tracking-wider hover:text-ink pointer-coarse:min-h-11 md:pointer-coarse:min-h-9 " + (id === "name" ? "justify-start" : "justify-end") + (on ? " text-ink" : "")}
         >
           {text}
           {on && <span aria-hidden>{on.dir === "asc" ? "▲" : "▼"}</span>}
@@ -274,49 +310,51 @@ export function BasketsTable({
 
   return (
     <div className="text-xs">
-      {/* What the sort is, in words (an arrow alone doesn't say which way a fall sorts). Phones sort
-          from a menu, which also reaches the stock count and Max DD columns they don't show. */}
+      {/* What the sort is, in words (an arrow alone doesn't say which way a fall sorts). Phones also
+          get a sort menu, quicker than scrolling sideways to a heading. */}
       <div className="flex min-h-9 items-center gap-2 border-b border-line px-3 py-1 text-[11px] text-ink-soft">
         <p aria-live="polite" className="hidden sm:block">
           {sort ? (
             <>
-              Sorted by <b className="font-semibold text-ink">{COL_NAMES[sort.by]}</b>, {dirWords(sort)}. Tap a heading to change.
+              Sorted by <b className="font-semibold text-ink">{colName(sort.by, period)}</b>, {dirWords(sort)}. Tap a heading to change.
             </>
           ) : (
             "Tap a column heading to sort."
           )}
         </p>
         <label className="flex w-full min-w-0 items-center gap-2 sm:hidden">
-          <span className="flex-none">Sort</span>
+          {/* Unsorted, the menu itself reads "Sort"; once sorted, the word moves beside it. */}
+          <span className={sort ? "flex-none" : "sr-only"}>Sort</span>
           <select
             value={sort ? `${sort.by}:${sort.dir}` : ""}
             onChange={(e) => {
               const [by, dir] = e.target.value.split(":") as [Sort, SortState["dir"]];
               if (by) onSort({ by, dir });
             }}
-            className="min-h-9 min-w-0 flex-1 rounded border border-line bg-bg px-1.5 text-xs text-ink"
+            className="min-h-10 min-w-0 flex-1 rounded border border-line bg-bg px-1.5 text-base text-ink sm:min-h-9 sm:text-xs"
           >
-            {!sort && <option value="">Original order</option>}
+            {!sort && <option value="">Sort</option>}
             {PHONE_SORTS.map((o) => (
               <option key={`${o.by}:${o.dir}`} value={`${o.by}:${o.dir}`}>
-                {COL_NAMES[o.by]}: {dirWords(o)}
+                {colName(o.by, period)}: {dirWords(o)}
               </option>
             ))}
           </select>
         </label>
       </div>
-      <div role="table" aria-label={label}>
+      <ScrollX>
+      <div role="table" aria-label={label} className={TABLE_MIN}>
         <div role="rowgroup">
           {/* The column headers are the sort controls: tap one to sort by it (numbers high to low, Basket A to Z), again to reverse. */}
           <div role="row" className={GRID + " border-b border-line px-3 text-[10px] font-semibold uppercase tracking-wider text-ink-soft"}>
-            {head("name", "Basket", "min-w-0")}
-            {head("count", "Stocks", "hidden sm:block")}
-            {head("ret", "1Y", "")}
-            {head("dd", "Drawdown", "hidden sm:block")}
+            {head("name", "Basket", "min-w-0 self-stretch flex items-center " + STICKY_NAME)}
+            {head("count", "Stocks", "")}
+            {head("ret", period, "")}
+            {head("dd", "Drawdown", "")}
             {head("vs", "vs Nifty", "")}
-            {head("bear", "Bear", "hidden md:block")}
-            {head("base", "Base", "hidden md:block")}
-            {head("bull", "Bull", "hidden md:block")}
+            {head("bear", "Bear", "")}
+            {head("base", "Base", "")}
+            {head("bull", "Bull", "")}
           </div>
         </div>
         <ul role="rowgroup">
@@ -327,22 +365,12 @@ export function BasketsTable({
               r.kind === "saved"
                 ? { text: r.isPublic ? "Shared" : "Private", on: r.isPublic }
                 : { text: r.category === "policy" ? "Policy" : r.category === "index" ? "Index" : "Sector", on: r.category !== "sector" };
-            const stocksWord = `${n} ${n === 1 ? "stock" : "stocks"}`;
-            // Sorted by Max DD on a phone, where that column is hidden: the figure joins the sub-line.
-            const sortedCase = sort && (sort.by === "bear" || sort.by === "base" || sort.by === "bull") ? sort.by : null;
-            const ddNote = (
-              <>
-                {sort?.by === "dd" && (
-                  <span className="block whitespace-nowrap sm:hidden">
-                    Max DD <Num entry={e} pick={(f) => f.maxDd} unit="%" />
-                  </span>
-                )}
-              </>
-            );
             return (
-              // The whole row opens the basket: the name's link stretches over it (::after).
-              <li role="row" key={key} id={r.kind === "industry" ? rowId(r.slug) : undefined} className={GRID + " relative min-h-10 scroll-mt-24 border-b border-line px-3 py-1.5 transition last:border-b-0 hover:bg-panel-2 has-[a:focus-visible]:bg-panel-2"}>
-                <span role="rowheader" className="flex min-w-0 flex-col">
+              // The whole row opens the basket: a copy of the name's link covers it (out of the tab order;
+              // the name's own link, in the held cell, is the one focus and screen readers reach).
+              <li role="row" key={key} id={r.kind === "industry" ? rowId(r.slug) : undefined} className={GRID + " group relative min-h-10 scroll-mt-24 border-b border-line px-3 py-1.5 transition last:border-b-0 hover:bg-panel-2 has-[a:focus-visible]:bg-panel-2"}>
+                <Link href={hrefOf(r)} aria-hidden tabIndex={-1} className="absolute inset-0" />
+                <span role="rowheader" className={"-my-1.5 flex min-w-0 flex-col self-stretch justify-center py-1.5 group-hover:bg-panel-2 group-has-[a:focus-visible]:bg-panel-2 " + STICKY_NAME}>
                   <Link
                     href={hrefOf(r)}
                     title={r.name}
@@ -353,57 +381,38 @@ export function BasketsTable({
                   <span className="flex min-w-0 items-start gap-1.5 text-[11px] leading-4 text-ink-soft">
                     <span className={"flex-none rounded border px-1 text-[9px] font-semibold uppercase leading-4 tracking-wide " + (badge.on ? "border-accent text-accent" : "border-line text-ink-soft")}>{badge.text}</span>
                     {r.kind === "saved" ? (
-                      // Wraps to a second line rather than cutting off; the stock count shows only on phones (a column from sm).
+                      // Wraps to a second line rather than cutting off (the stock count is a column).
                       <span className="min-w-0">
                         <span className="line-clamp-2 break-words">
-                          <span className="sm:hidden">{n ? stocksWord : "No stocks"} · </span>
-                          {n === 0 && <span className="hidden sm:inline">No stocks · </span>}
+                          {n === 0 && "No stocks · "}
                           {r.weighting === "mcap" ? "M-cap weight" : r.weighting === "custom" ? "Custom weights" : "Equal weight"}
                           {r.names.length > 0 && ` · ${r.names.slice(0, 3).join(", ")}${r.names.length > 3 ? ` +${r.names.length - 3}` : ""}`}
                         </span>
-                        {ddNote}
                       </span>
                     ) : (
-                      // Every industry basket is equal weight (the section says so), so a phone shows just the count.
-                      <span className="min-w-0">
-                        <span className="sm:hidden">{stocksWord}</span>
-                        {ddNote}
-                        <span className="hidden sm:inline">Equal weight</span>
-                      </span>
+                      // Every industry basket is equal weight (the section says so).
+                      <span className="min-w-0">Equal weight</span>
                     )}
                   </span>
-                  {/* Sorted by a projected case below md, where those columns are hidden: the three show under the name. */}
-                  {sortedCase && (
-                    <span className="text-[11px] leading-4 text-ink-soft md:hidden">
-                      {CASES.map((c, i) => (
-                        <span key={c}>
-                          {i > 0 && " · "}
-                          <span className={"whitespace-nowrap " + (c === sortedCase ? "font-semibold text-ink" : "")}>
-                            {c === "bear" ? "Bear" : c === "base" ? "Base" : "Bull"} <CaseNum v={caseOf(r, c)} />
-                          </span>
-                        </span>
-                      ))}
-                    </span>
-                  )}
                 </span>
-                <span role="cell" className="hidden text-right font-mono tabular-nums text-ink-soft sm:block">
+                <span role="cell" className="text-right font-mono tabular-nums text-ink-soft">
                   <span className="sr-only">Stocks </span>
                   {n}
                 </span>
                 <span role="cell" className="text-right font-mono tabular-nums">
-                  <span className="sr-only">1 year </span>
+                  <span className="sr-only">{period} return </span>
                   <Num entry={e} pick={(f) => f.ret} unit="%" />
                 </span>
-                <span role="cell" className="hidden text-right font-mono tabular-nums sm:block">
+                <span role="cell" className="text-right font-mono tabular-nums">
                   <span className="sr-only">Max drawdown </span>
                   <Num entry={e} pick={(f) => f.maxDd} unit="%" />
                 </span>
-                <span role="cell" title={e && typeof e === "object" && e.vs == null ? "The Nifty 50's prices couldn't load, so the lead can't be worked out" : undefined} className="text-right font-mono tabular-nums">
+                <span role="cell" title={e && typeof e === "object" && e.vs == null ? "The Nifty 50's prices couldn't load, so the lead can't be worked out" : undefined} className="whitespace-nowrap text-right font-mono tabular-nums">
                   <span className="sr-only">Versus Nifty 50 </span>
                   <Num entry={e} pick={(f) => f.vs} unit=" pts" />
                 </span>
                 {CASES.map((c) => (
-                  <span key={c} role="cell" className="hidden text-right font-mono tabular-nums md:block">
+                  <span key={c} role="cell" className="text-right font-mono tabular-nums">
                     <span className="sr-only">Next 1 year {c} case </span>
                     <CaseNum v={caseOf(r, c)} />
                   </span>
@@ -413,8 +422,9 @@ export function BasketsTable({
           })}
         </ul>
       </div>
+      </ScrollX>
       <p className="border-t border-line px-3 py-1.5 text-[10px] text-ink-soft">
-        1Y: past year, bought a year ago and not rebalanced, at each basket&rsquo;s saved weighting (industry baskets at equal weight). Price only, no dividends or costs.{" "}
+        {period}: {PERIOD_WORDS[period]}, bought at its start and not rebalanced, at each basket&rsquo;s saved weighting (industry baskets at equal weight); drawdown and vs Nifty over the same span. Price only, no dividends or costs.{" "}
         <b className="font-semibold">Bear · Base · Bull</b>: projected return over the next year at the same weighting (stocks it can&rsquo;t project left out, their share spread over the rest);{" "}
         <Link href="/baskets/projections" className="underline hover:text-ink">
           how projections work
@@ -437,6 +447,7 @@ export function BasketsPanel({
   tools,
   seed,
   deferred,
+  period,
   children,
 }: {
   title: string;
@@ -447,13 +458,15 @@ export function BasketsPanel({
   seed?: TableSeed;
   /** The server is still working them out (the page's loading state). */
   deferred?: boolean;
+  /** The period the figures are measured over (1Y unless the industry section's menu picks another). */
+  period?: Period;
   children?: ReactNode;
 }) {
   const [sort, setSort] = useState<SortState | null>(initialSort && { by: initialSort, dir: firstDir(initialSort) });
   const has = rows.length > 0;
   return (
     <Panel label={title} tools={tools}>
-      {has ? <BasketsTable rows={rows} sort={sort} onSort={setSort} label={title} seed={seed} deferred={deferred} /> : <div className="px-3 py-3 text-xs leading-relaxed text-ink-soft">{children}</div>}
+      {has ? <BasketsTable rows={rows} sort={sort} onSort={setSort} label={title} seed={seed} deferred={deferred} period={period} /> : <div className="px-3 py-3 text-xs leading-relaxed text-ink-soft">{children}</div>}
     </Panel>
   );
 }
@@ -464,6 +477,8 @@ const rowId = (slug: string) => `basket-row-${slug}`;
 /** A tile's name: the part before any bracket, slash or "&" ("Data Center / AI Infrastructure" is "Data Center"). */
 const shortName = (name: string) => name.split(/ \(| \/ | & | \+ /)[0];
 const FLASH = ["bg-accent/15", "ring-2", "ring-inset", "ring-accent"];
+// The held name cell has a solid background of its own (the figures pass under it), so it takes the tint too.
+const FLASH_HELD = ["bg-[color-mix(in_srgb,var(--color-accent)_15%,var(--color-panel))]"];
 
 /** Scrolls the industry table to a basket's row and lights it up for a moment. */
 function jumpToRow(slug: string) {
@@ -472,22 +487,30 @@ function jumpToRow(slug: string) {
   if (!el) return;
   const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   el.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "center" });
+  const held = el.querySelector<HTMLElement>('[role="rowheader"]');
   el.classList.add(...FLASH);
-  window.setTimeout(() => el.classList.remove(...FLASH), 1800);
+  held?.classList.add(...FLASH_HELD);
+  window.setTimeout(() => {
+    el.classList.remove(...FLASH);
+    held?.classList.remove(...FLASH_HELD);
+  }, 1800);
 }
 
 /**
- * Every industry and policy basket as a tile, best 1Y return first, green to red. It reads the
- * same figures as the table under it (the server's seed, then the browser's own backtests), so a
- * tile and its row always agree; tapping a tile scrolls to that row.
+ * Every industry and policy basket as a tile, best return over the period first, green to red. It
+ * reads the same figures as the table under it (the server's seed, then the browser's own
+ * backtests), so a tile and its row always agree; tapping a tile scrolls to that row. The period
+ * menu above it sets the period for both.
  */
-export function ThemeWall({ rows, seed }: { rows: IndustryRow[]; seed?: TableSeed }) {
+export function ThemeWall({ rows, seed, period = "1Y", onPeriod }: { rows: IndustryRow[]; seed?: TableSeed; period?: Period; onPeriod?: (p: Period) => void }) {
   const v = useSyncExternalStore(subscribe, getVersion, getVersion);
   const hydrated = useHydrated();
+  const seeded = seedFor(seed, period);
   const cells = useMemo(() => {
     const retOf = (slug: string) => {
       const key = industrySeriesKey(slug);
-      const e = hydrated ? (typeof figs.get(key) === "object" ? figs.get(key) : seed?.figs[key]) : seed?.figs[key];
+      const own = figs.get(figKey(key, period));
+      const e = hydrated ? (typeof own === "object" ? own : seeded?.[key]) : seeded?.[key];
       return e && typeof e === "object" && Number.isFinite(e.ret) ? e.ret : null;
     };
     return rows
@@ -499,24 +522,59 @@ export function ThemeWall({ rows, seed }: { rows: IndustryRow[]; seed?: TableSee
           label: shortName(r.name),
           value: ret,
           sub: r.category === "policy" ? "Policy" : r.category === "index" ? "Index" : undefined,
-          title: `${r.name}${ret != null ? `: ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}% over the past year` : ""} · tap to see its row`,
+          title: `${r.name}${ret != null ? `: ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}% over ${PERIOD_WORDS[period]}` : ""} · tap to see its row`,
           onClick: () => jumpToRow(r.slug),
         };
       })
       .sort((a, b) => (a.value == null ? 1 : b.value == null ? -1 : b.value - a.value));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- v: re-read the store as figures arrive
-  }, [rows, seed, hydrated, v]);
+  }, [rows, seeded, hydrated, v, period]);
   const scale = heatScale(cells.map((c) => c.value));
   return (
     <div className="flex flex-col gap-2 rounded-md border border-line bg-panel p-2 sm:p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-[11px] text-ink-soft sm:text-xs">
+          Return over <b className="font-semibold text-ink">{PERIOD_WORDS[period]}</b>, best first
+        </p>
+        {/* Sets the heatmap and the table below together; the table keeps its sort, now by this period's figures. */}
+        <label className="flex items-center gap-2 text-[11px] text-ink-soft sm:text-xs">
+          <span>Period</span>
+          <select
+            value={period}
+            disabled={!onPeriod}
+            onChange={(e) => onPeriod?.(e.target.value as Period)}
+            className="min-h-10 rounded border border-line bg-bg px-2 font-mono text-base text-ink disabled:opacity-60 sm:min-h-9 sm:text-xs"
+          >
+            {PERIODS.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       <HeatGrid
         cells={cells}
         scale={scale}
-        label="Industry and policy baskets by 1Y return"
+        label={`Industry and policy baskets by ${period} return`}
         className="grid grid-cols-3 auto-rows-[3.25rem] gap-1 min-[480px]:grid-cols-4 sm:auto-rows-[3.5rem] md:grid-cols-6 lg:grid-cols-8"
       />
-      <HeatLegend scale={scale} note="1Y return at equal weight, best first · tap a tile for its row below" />
+      <HeatLegend scale={scale} note={`${period} return at equal weight, best first · tap a tile for its row below`} />
     </div>
+  );
+}
+
+/**
+ * The industry & policy section: the heatmap and the table under one period menu (1D to 3Y), so
+ * the tiles and the table's return, drawdown and vs Nifty columns read the same span.
+ */
+export function IndustryBaskets({ rows, seed, deferred }: { rows: IndustryRow[]; seed?: TableSeed; deferred?: boolean }) {
+  const [period, setPeriod] = useState<Period>("1Y");
+  return (
+    <>
+      <ThemeWall rows={rows} seed={seed} period={period} onPeriod={deferred ? undefined : setPeriod} />
+      <BasketsPanel title="All industries & policies" rows={rows} initialSort="ret" seed={seed} deferred={deferred} period={period} />
+    </>
   );
 }
 
