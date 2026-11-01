@@ -367,6 +367,22 @@
  .compare-box{ max-height:90vh }
  .compare-table{ font-size:11px }
  .compare-table td, .compare-table th{ padding:7px 8px }
+ /* Phones: the table keeps readable columns and scrolls sideways in its box, the company column
+    held on the left with a hairline where the rest passes under it. */
+ .compare-table{ min-width:640px }
+ .compare-table th:first-child, .compare-table td:first-child{
+ position:sticky; left:0; z-index:1; background:var(--panel); min-width:8.5rem; max-width:8.5rem;
+ }
+ /* The edge line: a collapsed table doesn't paint a cell's box-shadow. */
+ .compare-table th:first-child::after, .compare-table td:first-child::after{
+ content:""; position:absolute; top:0; bottom:0; right:0; width:1px; background:var(--line);
+ }
+ .compare-table th:first-child{ z-index:2 }
+ /* The box's side padding moves into the end cells, so the held column meets the box's edge and
+    nothing shows to its left as the rest scrolls under it. */
+ .compare-table-wrap{ padding:0 0 18px }
+ .compare-table th:first-child, .compare-table td:first-child{ padding-left:18px; min-width:calc(8.5rem + 10px); max-width:calc(8.5rem + 10px) }
+ .compare-table th:last-child, .compare-table td:last-child{ padding-right:18px }
  }
 
  /* Small laptops: a narrower panel leaves the stage room for the model. */

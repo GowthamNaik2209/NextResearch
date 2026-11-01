@@ -1,4 +1,5 @@
 import type { SectorSupplier } from "@/lib/sector-content";
+import { ScrollX } from "@/components/ScrollX";
 import type { StockApi } from "./types";
 import { fmtNum, fmtSigned, fmtYield, mergeStats, REIT_NOTE } from "./merge";
 import { croreShort, NA, pct, sep } from "@/lib/format";
@@ -216,30 +217,33 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
       )}
 
       {fund?.annual && annualSeries.length > 0 && (
-        <div className="max-[640px]:hidden"><Section title="Annual performance (₹ Cr)">
-          <div className="overflow-x-auto rounded-2xl border border-line bg-panel">
+        <Section title="Annual performance (₹ Cr)">
+          {/* Where the years don't fit, they scroll sideways in the box (opening on the latest) while the row names stay put. */}
+          <div className="overflow-hidden rounded-2xl border border-line bg-panel">
+            <ScrollX startAtEnd heldWidth="left-[8.5rem]">
             <table className="w-full min-w-[480px] text-xs">
               <thead>
                 <tr className="bg-panel-2 text-ink-soft">
-                  <th className="px-3 py-2.5 text-left font-semibold" />
+                  <th className="sticky left-0 z-[1] w-[8.5rem] min-w-[8.5rem] bg-panel-2 px-3 py-2.5 text-left font-semibold after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-line" />
                   {fund.annual.years.map((y) => (
-                    <th key={y} className="px-3 py-2.5 text-right font-mono font-semibold">{y}</th>
+                    <th key={y} className="whitespace-nowrap px-3 py-2.5 text-right font-mono font-semibold">{y}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {annualSeries.map((r) => (
                   <tr key={r.label}>
-                    <td className="px-3 py-2.5 text-ink">{r.label.replace(/ in Rs\.?$/i, " (₹)")}</td>
+                    <td className="sticky left-0 z-[1] bg-panel px-3 py-2.5 text-ink after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-line">{r.label.replace(/ in Rs\.?$/i, " (₹)")}</td>
                     {r.values.map((v, i) => (
-                      <td key={i} className={"px-3 py-2.5 text-right font-mono " + (v != null && v < 0 ? "text-danger" : "text-ink")}>{fmtNum(v, r.label === "OPM %" || r.label.startsWith("EPS") ? 1 : 0)}</td>
+                      <td key={i} className={"whitespace-nowrap px-3 py-2.5 text-right font-mono " + (v != null && v < 0 ? "text-danger" : "text-ink")}>{fmtNum(v, r.label === "OPM %" || r.label.startsWith("EPS") ? 1 : 0)}</td>
                     ))}
                   </tr>
                 ))}
               </tbody>
             </table>
+            </ScrollX>
           </div>
-        </Section></div>
+        </Section>
       )}
 
       <p className="border-t border-dashed border-line pt-2 text-[10.5px] text-ink-soft">
