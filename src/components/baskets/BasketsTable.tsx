@@ -320,7 +320,8 @@ export function BasketsTable({
           )}
         </p>
         <label className="flex w-full min-w-0 items-center gap-2 sm:hidden">
-          <span className="flex-none">Sort</span>
+          {/* Unsorted, the menu itself reads "Sort"; once sorted, the word moves beside it. */}
+          <span className={sort ? "flex-none" : "sr-only"}>Sort</span>
           <select
             value={sort ? `${sort.by}:${sort.dir}` : ""}
             onChange={(e) => {
@@ -329,7 +330,7 @@ export function BasketsTable({
             }}
             className="min-h-10 min-w-0 flex-1 rounded border border-line bg-bg px-1.5 text-base text-ink sm:min-h-9 sm:text-xs"
           >
-            {!sort && <option value="">Original order</option>}
+            {!sort && <option value="">Sort</option>}
             {PHONE_SORTS.map((o) => (
               <option key={`${o.by}:${o.dir}`} value={`${o.by}:${o.dir}`}>
                 {colName(o.by, period)}: {dirWords(o)}

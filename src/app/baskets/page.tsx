@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { InfoTip } from "@/components/InfoTip";
 import { BasketIdeas } from "@/components/baskets/BasketIdeas";
+import { BasketsJump } from "@/components/baskets/BasketsJump";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { basketStock, listIndustryBaskets } from "@/lib/baskets/industry";
@@ -70,6 +71,7 @@ export default async function BasketsPage() {
     };
   });
   const mineCount = user && !mineFailed ? mine.length : null;
+  const createHref = user ? "/baskets/new" : "/login?next=/baskets/new";
   const industryRows: IndustryRow[] = listIndustryBaskets().map((b) => ({ kind: "industry", slug: b.slug, name: b.name, category: b.category, count: b.stocks.length, proj: b.stocks.length ? basketCases(b.stocks, "equal")["1"] : null }));
 
   return (
@@ -77,13 +79,19 @@ export default async function BasketsPage() {
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 px-5 pt-6 pb-14 sm:py-14 lg:max-w-page">
         {statsLoading && <ProjectionStatsPending />}
-        <div className="min-w-0">
-          <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Baskets</h1>
-          <p className="mt-1.5 max-w-3xl text-xs leading-relaxed text-ink-soft sm:text-sm">
-            A basket is a group of stocks you follow as one. Start from an industry basket or a rule-based list, or create your own from any
-            mix of industries and your watchlist. Each one is backtested against the Nifty 50, with indices and industries a tap away
-            to compare. For tracking and research only: nothing here places trades.
-          </p>
+        {/* The section switch and Create basket sit in the free space right of the intro on wide screens and drop below it otherwise. */}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
+          <div className="min-w-0 lg:flex-1">
+            <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Baskets</h1>
+            <p className="mt-1.5 max-w-3xl text-xs leading-relaxed text-ink-soft sm:text-sm">
+              A basket is a group of stocks you follow as one. Start from an industry basket or a rule-based list, or create your own from any
+              mix of industries and your watchlist. Each one is backtested against the Nifty 50, with indices and industries a tap away
+              to compare. For tracking and research only: nothing here places trades.
+            </p>
+          </div>
+          <div className="lg:mt-1 lg:flex-none">
+            <BasketsJump createHref={createHref} />
+          </div>
         </div>
 
         {/* Order: ready-made ideas first, then your own (create + saved), then the industry and policy baskets. */}
@@ -111,7 +119,7 @@ export default async function BasketsPage() {
           </Suspense>
         </div>
 
-        <section aria-labelledby="mine-h" className="mt-2 flex flex-col gap-2">
+        <section aria-labelledby="mine-h" id="mine" className="mt-2 flex scroll-mt-20 flex-col gap-2">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="min-w-0">
               <h2 id="mine-h" className="font-display text-lg font-bold text-ink sm:text-xl">
@@ -119,7 +127,7 @@ export default async function BasketsPage() {
               </h2>
               <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Pick industries and stocks, choose a weighting, and save it to follow.</p>
             </div>
-            <Link href={user ? "/baskets/new" : "/login?next=/baskets/new"} className="inline-flex min-h-10 flex-none items-center rounded-md bg-accent px-4 text-sm font-semibold text-bg hover:opacity-90">
+            <Link href={createHref} className="inline-flex min-h-10 flex-none items-center rounded-md bg-accent px-4 text-sm font-semibold text-bg hover:opacity-90">
               Create basket
             </Link>
           </div>
@@ -139,7 +147,7 @@ export default async function BasketsPage() {
           </BasketsPanel>
         </section>
 
-        <section aria-labelledby="industry-h" className="mt-4 flex flex-col gap-2">
+        <section aria-labelledby="industry-h" id="industry" className="mt-4 flex scroll-mt-20 flex-col gap-2">
           <div>
             <div className="flex items-center gap-2">
               <h2 id="industry-h" className="font-display text-lg font-bold text-ink sm:text-xl">
