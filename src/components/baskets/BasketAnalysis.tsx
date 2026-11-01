@@ -109,10 +109,15 @@ export function BasketAnalysis({
             "Add stocks to see how the basket fell and recovered, month by month."
           ) : (
             <span>
-              Couldn&rsquo;t load the backtest analysis right now.{" "}
-              <button type="button" onClick={() => retry(basketKey)} className="font-semibold text-accent underline">
-                Retry
-              </button>
+              Couldn&rsquo;t load the backtest analysis right now.
+              {!single && (
+                <>
+                  {" "}
+                  <button type="button" onClick={() => retry(basketKey)} className="font-semibold text-accent underline">
+                    Retry
+                  </button>
+                </>
+              )}
             </span>
           )}
         </div>

@@ -13,6 +13,8 @@ import { basisLabel, pastPeriod } from "./labels";
 // is rebalanced, the trading that took. A flat, dense panel of mono figures (the page's Export
 // Excel writes out exactly these numbers with the holdings).
 const BENCH = { key: "b:nifty50", name: "Nifty 50" };
+// A single stock's view reads its lines from the price store first (series.ts), the Nifty 50 too.
+const STORED_BENCH = "B:nifty50";
 
 const monthName = (m: string) => fmtMonth(`${m}-01T00:00:00Z`);
 const day = (t: string) => fmtDay(t, { short: true });
@@ -53,9 +55,10 @@ export function BasketStats({
   single?: boolean;
 }) {
   const it = single ? "stock" : "basket";
-  const { get, retry } = useSeries(empty ? [] : [basketKey, BENCH.key], range, { reload });
+  const benchKey = single ? STORED_BENCH : BENCH.key;
+  const { get, retry } = useSeries(empty ? [] : [basketKey, benchKey], range, { reload });
   const b = get(basketKey);
-  const n = get(BENCH.key);
+  const n = get(benchKey);
   const basket = b?.status === "ok" ? b.data : null;
   const bench = n?.status === "ok" ? n.data.points : null;
   const s = useMemo(() => (basket ? seriesStats(basket.points) : null), [basket]);
@@ -213,10 +216,15 @@ export function BasketStats({
               "Add stocks to see the statistics."
             ) : failed ? (
               <span>
-                Couldn&rsquo;t load the statistics right now.{" "}
-                <button type="button" onClick={() => retry(basketKey)} className="font-semibold text-accent underline">
-                  Retry
-                </button>
+                Couldn&rsquo;t load the statistics right now.
+                {!single && (
+                  <>
+                    {" "}
+                    <button type="button" onClick={() => retry(basketKey)} className="font-semibold text-accent underline">
+                      Retry
+                    </button>
+                  </>
+                )}
               </span>
             ) : (
               "Not enough price history in this range to measure. Try a longer period."

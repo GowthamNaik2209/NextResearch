@@ -17,6 +17,7 @@ import { cssVar, useSiteTheme, type SiteTheme } from "@/lib/theme";
 import { axisPct, fmtDay, fmtMonth, NA, signedPct } from "@/lib/format";
 import { slackDaysFor } from "@/lib/baskets/backtest";
 import { useSeries } from "./use-series";
+import { isBenchKey } from "./series";
 import { LINES_FULL, MAX_CHART_STOCKS, type ChartSelection } from "@/lib/baskets/selection";
 
 export { MAX_CHART_STOCKS, type ChartSelection };
@@ -193,7 +194,7 @@ export function BasketChart({
       if (benches.includes(b.id)) out.push({ key: `b:${b.id}`, name: b.name, note: b.via ? "via ETF" : undefined, color: "var(--ink)", token: "--ink", width: 2, dash: i === 0 ? "solid" : "long" });
     });
     market.forEach((b) => {
-      if (benches.includes(b.id)) out.push({ key: `b:${b.id}`, name: b.name, color: "var(--ink-soft)", token: "--ink-soft", width: 2, dash: b.id === "sensex" ? "dot" : "dash" });
+      if (benches.includes(b.id)) out.push({ key: `${single ? "B" : "b"}:${b.id}`, name: b.name, color: "var(--ink-soft)", token: "--ink-soft", width: 2, dash: b.id === "sensex" ? "dot" : "dash" });
     });
     for (const st of stocks) {
       const slot = picks[st.ticker];
@@ -229,7 +230,7 @@ export function BasketChart({
         else why.set(l.key, "no stock in it has 3 years of results and trading");
         continue;
       }
-      why.set(l.key, projection.why[l.key] ?? (l.key.startsWith("b:") ? "not projected: we don’t forecast indices" : "not projected"));
+      why.set(l.key, projection.why[l.key] ?? (isBenchKey(l.key) ? "not projected: we don’t forecast indices" : "not projected"));
     }
     return { values, why };
   }, [projection, lines, industries]);
@@ -268,7 +269,7 @@ export function BasketChart({
     });
     // An index that begins mid-chart would start at 0% beside lines already well up or down, so it
     // is left off and its row says why (as on the Analysis charts). Stocks and baskets are drawn.
-    const isShort = (s: (typeof all)[number]) => !!s.late && s.line.key.startsWith("b:");
+    const isShort = (s: (typeof all)[number]) => !!s.late && isBenchKey(s.line.key);
     const list = all.filter((s) => !isShort(s));
     const drawnStart = list.reduce<string | null>((m, s) => (!m || (s.values[0].time as string) < m ? (s.values[0].time as string) : m), null);
     const drawnEnd = list.reduce<string | null>((m, s) => {
@@ -622,7 +623,8 @@ export function BasketChart({
                 </span>
                 {/* A fixed minimum width: the figure follows the crosshair, and a wider one must not re-wrap the name beside it. */}
                 <span className="min-w-[7ch] shrink-0 text-right font-mono text-sm font-semibold tabular-nums text-ink">
-                  {failed ? (
+                  {/* A single stock's view has one Retry for all its panels (StockBacktest). */}
+                  {failed && !single ? (
                     <button type="button" onClick={() => retry(line.key)} className="text-xs font-semibold text-accent underline">
                       Retry
                     </button>
