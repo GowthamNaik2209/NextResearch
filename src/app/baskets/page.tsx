@@ -7,15 +7,17 @@ import { BasketIdeas } from "@/components/baskets/BasketIdeas";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { basketStock, listIndustryBaskets } from "@/lib/baskets/industry";
-import { BasketsPanel, BasketsSummary, ThemeWall, type IndustryRow, type SavedRow } from "@/components/baskets/BasketsTable";
+import { BasketsPanel, BasketsSummary, IndustryBaskets, type IndustryRow, type SavedRow } from "@/components/baskets/BasketsTable";
 import { industrySeriesKey } from "@/components/baskets/series";
 import { toSaved } from "@/lib/baskets/store";
 import { industryFigures } from "@/lib/baskets/industry-figures";
+import { readBasketReturns } from "@/lib/baskets/basket-returns";
 import { ensureFinancials } from "@/lib/financials/load";
 import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk-data";
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { basketCases } from "@/lib/baskets/projection-data";
 import { shareMeta } from "@/lib/site";
+import type { BasketFigures } from "@/lib/baskets/stats";
 
 export const metadata = {
   title: "Stock baskets: build your own from any mix of Indian industries",
@@ -144,23 +146,16 @@ export default async function BasketsPage() {
                 Industry &amp; policy baskets
               </h2>
               <InfoTip label="What the columns mean">
-                <b>1Y</b>: return over the past year, bought a year ago and not rebalanced. <b>Drawdown</b>: the deepest fall from a high in that year (a column from tablet width up).{" "}
+                <b>Period</b>: the menu above the heatmap picks the span (1D to 3Y) for the heatmap and the return, drawdown and vs Nifty columns; 1Y by default. <b>Return</b>: bought at the start of the period and not rebalanced. <b>Drawdown</b>: the deepest fall from a high in that period (a column from tablet width up).{" "}
                 <b>vs Nifty</b>: the basket&rsquo;s return minus the Nifty 50&rsquo;s, in percentage points.{" "}
                 <b>Bear · Base · Bull</b>: the basket&rsquo;s projected return over the next year in each case (a model projection, not a forecast; columns from tablet width, and in the Sort menu on phones).{" "}
                 Tap a column heading to sort (again to reverse), or use the Sort menu on a phone.
               </InfoTip>
             </div>
-            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock on each industry or policy map, at equal weight. The heatmap shows the past year at a glance; tap a tile to jump to its row.</p>
+            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock on each industry or policy map, at equal weight. The heatmap shows the period you pick at a glance; tap a tile to jump to its row.</p>
           </div>
           {/* The figures are worked out on the server and stream in; until then the rows show loading. */}
-          <Suspense
-            fallback={
-              <>
-                <ThemeWall rows={industryRows} />
-                <BasketsPanel title="All industries & policies" rows={industryRows} initialSort="ret" deferred />
-              </>
-            }
-          >
+          <Suspense fallback={<IndustryBaskets rows={industryRows} deferred />}>
             <IndustryTable rows={industryRows} />
           </Suspense>
         </section>
@@ -171,14 +166,15 @@ export default async function BasketsPage() {
 }
 
 async function IndustryTable({ rows }: { rows: IndustryRow[] }) {
-  const { figs, benchRet } = await figures();
-  const seed = { figs: Object.fromEntries(Object.entries(figs).map(([slug, f]) => [industrySeriesKey(slug), f])), benchRet };
-  return (
-    <>
-      <ThemeWall rows={rows} seed={seed} />
-      <BasketsPanel title="All industries & policies" rows={rows} initialSort="ret" seed={seed} />
-    </>
-  );
+  // 1Y from the page's own backtests (as before); the period menu's other spans from the stored table.
+  const [{ figs, benchRet }, stored] = await Promise.all([figures(), readBasketReturns(prisma)]);
+  const bySeriesKey = (bySlug: Record<string, BasketFigures>) => Object.fromEntries(Object.entries(bySlug).map(([slug, f]) => [industrySeriesKey(slug), f]));
+  const seed = {
+    figs: bySeriesKey(figs),
+    benchRet,
+    byPeriod: Object.fromEntries(Object.entries(stored).map(([p, bySlug]) => [p, bySeriesKey(bySlug)])),
+  };
+  return <IndustryBaskets rows={rows} seed={seed} />;
 }
 
 async function Summary({ mineCount }: { mineCount: number | null }) {
