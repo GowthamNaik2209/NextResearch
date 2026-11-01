@@ -3,6 +3,7 @@
   "crons": [
     { "path": "/api/financials/refresh", "schedule": "30 13 * * 1-5" },
     { "path": "/api/prices/refresh", "schedule": "0 14 * * 1-5" },
+    { "path": "/api/baskets/returns/refresh", "schedule": "30 14 * * 1-5" },
     { "path": "/api/flows/refresh", "schedule": "0 15 * * 1-5" }
   ]
 }
