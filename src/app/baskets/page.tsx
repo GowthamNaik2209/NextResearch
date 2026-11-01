@@ -95,10 +95,10 @@ export default async function BasketsPage() {
         </div>
 
         {/* Order: ready-made ideas first, then your own (create + saved), then the industry and policy baskets. */}
-        <section aria-labelledby="ideas-h" id="ideas" className="flex scroll-mt-20 flex-col gap-2">
+        <section aria-labelledby="ideas-h" id="ideas" className="flex scroll-mt-24 flex-col gap-2">
           <div>
             <div className="flex items-center gap-2">
-              <h2 id="ideas-h" className="font-display text-lg font-bold text-ink sm:text-xl">
+              <h2 id="ideas-h" tabIndex={-1} className="outline-none font-display text-lg font-bold text-ink sm:text-xl">
                 Rule-based baskets
               </h2>
               <InfoTip label="About rule-based baskets">
@@ -119,15 +119,16 @@ export default async function BasketsPage() {
           </Suspense>
         </div>
 
-        <section aria-labelledby="mine-h" id="mine" className="mt-2 flex scroll-mt-20 flex-col gap-2">
+        <section aria-labelledby="mine-h" id="mine" className="mt-2 flex scroll-mt-24 flex-col gap-2">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="min-w-0">
-              <h2 id="mine-h" className="font-display text-lg font-bold text-ink sm:text-xl">
+              <h2 id="mine-h" tabIndex={-1} className="outline-none font-display text-lg font-bold text-ink sm:text-xl">
                 Your baskets
               </h2>
               <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Pick industries and stocks, choose a weighting, and save it to follow.</p>
             </div>
-            <Link href={createHref} className="inline-flex min-h-10 flex-none items-center rounded-md bg-accent px-4 text-sm font-semibold text-bg hover:opacity-90">
+            {/* The primary Create basket is in the switch at the top; this copy is the quieter one. */}
+            <Link href={createHref} className="inline-flex min-h-11 flex-none items-center rounded-md border border-accent px-4 text-sm font-semibold text-accent hover:bg-accent hover:text-bg sm:min-h-10 pointer-coarse:min-h-11">
               Create basket
             </Link>
           </div>
@@ -147,10 +148,10 @@ export default async function BasketsPage() {
           </BasketsPanel>
         </section>
 
-        <section aria-labelledby="industry-h" id="industry" className="mt-4 flex scroll-mt-20 flex-col gap-2">
+        <section aria-labelledby="industry-h" id="industry" className="mt-4 flex scroll-mt-24 flex-col gap-2">
           <div>
             <div className="flex items-center gap-2">
-              <h2 id="industry-h" className="font-display text-lg font-bold text-ink sm:text-xl">
+              <h2 id="industry-h" tabIndex={-1} className="outline-none font-display text-lg font-bold text-ink sm:text-xl">
                 Industry &amp; policy baskets
               </h2>
               <InfoTip label="What the columns mean">

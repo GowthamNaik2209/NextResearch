@@ -13,7 +13,7 @@ type SectionId = (typeof SECTIONS)[number]["id"];
 
 // A switch beside the Baskets intro: each segment scrolls to its section (clearing the sticky header
 // through the sections' scroll-mt) and the one in view stays marked. Create basket sits apart as the
-// page's one primary action.
+// page's primary action (Your baskets keeps a quieter copy).
 export function BasketsJump({ createHref }: { createHref: string }) {
   const [current, setCurrent] = useState<SectionId>("ideas");
   // A tapped section stays marked until the reader scrolls by hand: near the bottom of the page a
@@ -26,8 +26,8 @@ export function BasketsJump({ createHref }: { createHref: string }) {
       frame = 0;
       if (picked.current) return setCurrent(picked.current);
       // The last section whose top has passed a line just under the sticky header (the sections stop
-      // 80px down after a jump); at the very bottom, the last section (a short one may never reach it).
-      const line = 140;
+      // 96px down after a jump); at the very bottom, the last section (a short one may never reach it).
+      const line = 150;
       const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
       let on: SectionId = SECTIONS[0].id;
       for (const s of SECTIONS) {
@@ -42,7 +42,7 @@ export function BasketsJump({ createHref }: { createHref: string }) {
     const byHand = () => {
       picked.current = null;
     };
-    const hand = ["wheel", "touchstart", "keydown"] as const;
+    const hand = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
@@ -62,6 +62,9 @@ export function BasketsJump({ createHref }: { createHref: string }) {
     setCurrent(id);
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    // Focus follows to the section's heading, so the next Tab carries on from there instead of
+    // jumping back up to the switch.
+    document.getElementById(`${id}-h`)?.focus({ preventScroll: true });
     history.replaceState(null, "", `#${id}`);
   };
 
@@ -76,11 +79,12 @@ export function BasketsJump({ createHref }: { createHref: string }) {
               href={`#${s.id}`}
               aria-current={on ? "location" : undefined}
               onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                 e.preventDefault();
                 go(s.id);
               }}
               className={
-                "flex min-h-11 min-w-0 items-center justify-center px-2 text-center text-xs leading-tight font-semibold sm:min-h-10 sm:px-3 sm:text-sm pointer-coarse:min-h-11 " +
+                "flex min-h-11 min-w-0 items-center justify-center px-2 text-center text-xs leading-tight font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent sm:min-h-10 sm:px-3 sm:text-sm pointer-coarse:min-h-11 " +
                 (i ? "border-l border-line " : "") +
                 (on ? "bg-ink text-bg" : "text-ink-soft hover:bg-panel hover:text-ink")
               }
@@ -93,7 +97,7 @@ export function BasketsJump({ createHref }: { createHref: string }) {
       </nav>
       <Link
         href={createHref}
-        className="inline-flex min-h-11 flex-none items-center justify-center gap-1.5 rounded-md bg-accent px-4 text-sm font-semibold text-bg shadow-sm hover:opacity-90 sm:min-h-10 pointer-coarse:min-h-11"
+        className="inline-flex min-h-11 flex-none items-center justify-center gap-1.5 rounded-md bg-accent px-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent text-sm font-semibold text-bg shadow-sm hover:opacity-90 sm:min-h-10 pointer-coarse:min-h-11"
       >
         <span aria-hidden className="text-base leading-none">+</span>
         Create basket
