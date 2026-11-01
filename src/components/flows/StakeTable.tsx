@@ -11,7 +11,8 @@ type Key = "move" | "holding" | "change";
 const FIRST = 10;
 // On a phone the company column keeps a readable width and stays put while the figures scroll
 // sideways in the table's own box; from sm the table fits and the column takes the spare room.
-const HELD = "sticky left-0 z-[1] w-[9.5rem] min-w-[9.5rem] max-w-[9.5rem] bg-panel shadow-[1px_0_0_var(--color-line)] sm:static sm:w-auto sm:min-w-0 sm:bg-transparent sm:shadow-none";
+// (The edge line is an ::after: a collapsed table doesn't paint a cell's box-shadow.)
+const HELD = "sticky left-0 z-[1] w-[9.5rem] min-w-[9.5rem] max-w-[9.5rem] bg-panel after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-line sm:static sm:w-auto sm:min-w-0 sm:bg-transparent sm:after:hidden";
 
 /**
  * Stake changes over the period: FII or DII, every company in view, biggest moves first. Tapping the

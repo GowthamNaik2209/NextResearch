@@ -218,13 +218,13 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
 
       {fund?.annual && annualSeries.length > 0 && (
         <Section title="Annual performance (₹ Cr)">
-          {/* On a phone the years scroll sideways in the box (opening on the latest) while the row names stay put. */}
+          {/* Where the years don't fit, they scroll sideways in the box (opening on the latest) while the row names stay put. */}
           <div className="overflow-hidden rounded-2xl border border-line bg-panel">
-            <ScrollX startAtEnd heldWidth="left-[8.5rem] sm:left-0">
+            <ScrollX startAtEnd heldWidth="left-[8.5rem]">
             <table className="w-full min-w-[480px] text-xs">
               <thead>
                 <tr className="bg-panel-2 text-ink-soft">
-                  <th className="sticky left-0 z-[1] w-[8.5rem] min-w-[8.5rem] bg-panel-2 px-3 py-2.5 text-left font-semibold shadow-[1px_0_0_var(--color-line)] sm:static sm:w-auto sm:min-w-0 sm:shadow-none" />
+                  <th className="sticky left-0 z-[1] w-[8.5rem] min-w-[8.5rem] bg-panel-2 px-3 py-2.5 text-left font-semibold after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-line" />
                   {fund.annual.years.map((y) => (
                     <th key={y} className="whitespace-nowrap px-3 py-2.5 text-right font-mono font-semibold">{y}</th>
                   ))}
@@ -233,7 +233,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
               <tbody className="divide-y divide-line">
                 {annualSeries.map((r) => (
                   <tr key={r.label}>
-                    <td className="sticky left-0 z-[1] bg-panel px-3 py-2.5 text-ink shadow-[1px_0_0_var(--color-line)] sm:static sm:shadow-none">{r.label.replace(/ in Rs\.?$/i, " (₹)")}</td>
+                    <td className="sticky left-0 z-[1] bg-panel px-3 py-2.5 text-ink after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-line">{r.label.replace(/ in Rs\.?$/i, " (₹)")}</td>
                     {r.values.map((v, i) => (
                       <td key={i} className={"whitespace-nowrap px-3 py-2.5 text-right font-mono " + (v != null && v < 0 ? "text-danger" : "text-ink")}>{fmtNum(v, r.label === "OPM %" || r.label.startsWith("EPS") ? 1 : 0)}</td>
                     ))}

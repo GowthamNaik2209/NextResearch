@@ -372,7 +372,10 @@
  .compare-table{ min-width:640px }
  .compare-table th:first-child, .compare-table td:first-child{
  position:sticky; left:0; z-index:1; background:var(--panel); min-width:8.5rem; max-width:8.5rem;
- box-shadow:1px 0 0 var(--line);
+ }
+ /* The edge line: a collapsed table doesn't paint a cell's box-shadow. */
+ .compare-table th:first-child::after, .compare-table td:first-child::after{
+ content:""; position:absolute; top:0; bottom:0; right:0; width:1px; background:var(--line);
  }
  .compare-table th:first-child{ z-index:2 }
  /* The box's side padding moves into the end cells, so the held column meets the box's edge and

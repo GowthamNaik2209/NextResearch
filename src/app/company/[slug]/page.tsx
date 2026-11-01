@@ -219,7 +219,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                   <table className="w-full text-sm">
                     <thead className="bg-panel-2 text-[10px] uppercase tracking-widest text-ink-soft">
                       <tr>
-                        <th className="sticky left-0 z-[1] w-[6.75rem] min-w-[6.75rem] bg-panel-2 px-3 py-2 text-left shadow-[1px_0_0_var(--color-line)] sm:static sm:w-auto sm:min-w-0 sm:px-4 sm:shadow-none">₹ Cr</th>
+                        <th className="sticky left-0 z-[1] w-[6.75rem] min-w-[6.75rem] bg-panel-2 px-3 py-2 text-left after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-line sm:static sm:after:hidden sm:w-auto sm:min-w-0 sm:px-4">₹ Cr</th>
                         {FY_LABELS.map((y) => (
                           <th key={y} className="whitespace-nowrap px-3 py-2 text-right sm:px-4">
                             {y}
@@ -233,7 +233,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                         { label: "Net profit", vals: np },
                       ].map((row) => (
                         <tr key={row.label} className="border-t border-line">
-                          <td className="sticky left-0 z-[1] whitespace-nowrap bg-bg px-3 py-2 font-sans text-ink-soft shadow-[1px_0_0_var(--color-line)] sm:static sm:px-4 sm:shadow-none">{row.label}</td>
+                          <td className="sticky left-0 z-[1] whitespace-nowrap bg-bg px-3 py-2 font-sans text-ink-soft after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-line sm:static sm:after:hidden sm:px-4">{row.label}</td>
                           {FY_LABELS.map((y, i) => (
                             <td key={y} className="whitespace-nowrap px-3 py-2 text-right text-ink sm:px-4">
                               {crCell(row.vals[i])}

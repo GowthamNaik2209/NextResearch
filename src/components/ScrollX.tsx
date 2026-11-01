@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 /**
  * A box that scrolls sideways on its own (never the page), for tables with more columns than a phone
@@ -27,7 +27,8 @@ export function ScrollX({
   const [more, setMore] = useState(false);
   const [before, setBefore] = useState(false);
 
-  useEffect(() => {
+  // Before paint, so a table that opens on its latest columns doesn't first flash the earliest.
+  useLayoutEffect(() => {
     const el = box.current;
     if (!el) return;
     const check = () => {

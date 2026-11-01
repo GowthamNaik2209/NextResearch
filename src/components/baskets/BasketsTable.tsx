@@ -299,7 +299,7 @@ export function BasketsTable({
           onClick={() => onSort(next)}
           aria-label={on ? `${name}, ${dirWords(on)}. Tap for ${dirWords(next)}` : `Sort by ${name}, ${dirWords(next)}`}
           title={on ? `${dirWords(on)} · tap again for ${dirWords(next)}` : dirWords(next)}
-          className={"flex min-h-8 w-full items-center gap-0.5 uppercase tracking-wider hover:text-ink pointer-coarse:min-h-9 " + (id === "name" ? "justify-start" : "justify-end") + (on ? " text-ink" : "")}
+          className={"flex min-h-8 w-full items-center gap-0.5 uppercase tracking-wider hover:text-ink pointer-coarse:min-h-11 md:pointer-coarse:min-h-9 " + (id === "name" ? "justify-start" : "justify-end") + (on ? " text-ink" : "")}
         >
           {text}
           {on && <span aria-hidden>{on.dir === "asc" ? "▲" : "▼"}</span>}
@@ -310,8 +310,8 @@ export function BasketsTable({
 
   return (
     <div className="text-xs">
-      {/* What the sort is, in words (an arrow alone doesn't say which way a fall sorts). Phones sort
-          from a menu, which also reaches the stock count and Max DD columns they don't show. */}
+      {/* What the sort is, in words (an arrow alone doesn't say which way a fall sorts). Phones also
+          get a sort menu, quicker than scrolling sideways to a heading. */}
       <div className="flex min-h-9 items-center gap-2 border-b border-line px-3 py-1 text-[11px] text-ink-soft">
         <p aria-live="polite" className="hidden sm:block">
           {sort ? (
@@ -477,6 +477,8 @@ const rowId = (slug: string) => `basket-row-${slug}`;
 /** A tile's name: the part before any bracket, slash or "&" ("Data Center / AI Infrastructure" is "Data Center"). */
 const shortName = (name: string) => name.split(/ \(| \/ | & | \+ /)[0];
 const FLASH = ["bg-accent/15", "ring-2", "ring-inset", "ring-accent"];
+// The held name cell has a solid background of its own (the figures pass under it), so it takes the tint too.
+const FLASH_HELD = ["bg-[color-mix(in_srgb,var(--color-accent)_15%,var(--color-panel))]"];
 
 /** Scrolls the industry table to a basket's row and lights it up for a moment. */
 function jumpToRow(slug: string) {
@@ -485,8 +487,13 @@ function jumpToRow(slug: string) {
   if (!el) return;
   const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   el.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "center" });
+  const held = el.querySelector<HTMLElement>('[role="rowheader"]');
   el.classList.add(...FLASH);
-  window.setTimeout(() => el.classList.remove(...FLASH), 1800);
+  held?.classList.add(...FLASH_HELD);
+  window.setTimeout(() => {
+    el.classList.remove(...FLASH);
+    held?.classList.remove(...FLASH_HELD);
+  }, 1800);
 }
 
 /**
