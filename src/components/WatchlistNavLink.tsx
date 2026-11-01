@@ -6,7 +6,8 @@ import { subscribeWatchlist, watchlistSnapshot } from "./sector-explorer/Watchli
 
 // The header's watchlist link: the heart, a count of saved stocks for a signed-in user (from the
 // hearts' shared list, so it moves with every tap on the page), and a short pulse when it grows,
-// so a save points the eye at where the list lives. "Watchlist" is spelled out from xl, where the
+// so a save points the eye at where the list lives. The count is in the accent (yellow in the dark
+// theme, green in the light one): red read as an alert. "Watchlist" is spelled out from xl, where the
 // header has the room. Signed out it is the plain heart, with no request for a list it can't read.
 export function WatchlistNavLink({ signedIn }: { signedIn: boolean }) {
   const snap = useSyncExternalStore(signedIn ? subscribeWatchlist : noop, signedIn ? watchlistSnapshot : none, none);
@@ -31,7 +32,7 @@ export function WatchlistNavLink({ signedIn }: { signedIn: boolean }) {
       </span>
       <span className="hidden text-sm font-medium text-ink xl:inline">Watchlist</span>
       {!!count && (
-        <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 font-mono text-[10px] font-bold leading-none text-bg xl:static xl:h-[18px] xl:min-w-[18px]">
+        <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 font-mono text-[10px] font-bold leading-none text-bg xl:static xl:h-[18px] xl:min-w-[18px]">
           {count > 99 ? "99+" : count}
         </span>
       )}
