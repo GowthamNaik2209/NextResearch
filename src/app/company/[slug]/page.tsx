@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScrollX } from "@/components/ScrollX";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -28,8 +29,6 @@ const FY_LABELS = FISCAL_YEARS.map((y) => `FY${String(y).slice(-2)}`);
 // Table cells: Indian grouping with the typographic minus for a loss year.
 const crCell = (v: number | null | undefined) => (v != null && v < 0 ? `−${inr(-v)}` : inr(v));
 const listJoin = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
-// Phones show the latest three years so the table never needs a sideways swipe.
-const PHONE_YEARS = 3;
 // An index (the Nifty 50) is membership, not a place in a supply chain: shown in its own section.
 const inIndex = (a: { sectorSlug: string }) => getSector(a.sectorSlug)?.category === "index";
 
@@ -213,13 +212,16 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             {rev.length > 0 && (
               <section>
                 <h2 className="font-display text-xl font-bold text-ink">Revenue and profit</h2>
-                <div className="mt-4 overflow-x-auto rounded-2xl border border-line">
+                {/* Every year on a phone too: the years scroll sideways in the box (opening on the latest)
+                    while the row names stay put. */}
+                <div className="mt-4 overflow-hidden rounded-2xl border border-line">
+                  <ScrollX fade="from-bg" startAtEnd heldWidth="left-[6.75rem] sm:left-0">
                   <table className="w-full text-sm">
                     <thead className="bg-panel-2 text-[10px] uppercase tracking-widest text-ink-soft">
                       <tr>
-                        <th className="px-3 py-2 text-left sm:px-4">₹ Cr</th>
-                        {FY_LABELS.map((y, i) => (
-                          <th key={y} className={"px-3 py-2 text-right sm:px-4 " + (i < FY_LABELS.length - PHONE_YEARS ? "hidden sm:table-cell" : "")}>
+                        <th className="sticky left-0 z-[1] w-[6.75rem] min-w-[6.75rem] bg-panel-2 px-3 py-2 text-left shadow-[1px_0_0_var(--color-line)] sm:static sm:w-auto sm:min-w-0 sm:px-4 sm:shadow-none">₹ Cr</th>
+                        {FY_LABELS.map((y) => (
+                          <th key={y} className="whitespace-nowrap px-3 py-2 text-right sm:px-4">
                             {y}
                           </th>
                         ))}
@@ -231,9 +233,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                         { label: "Net profit", vals: np },
                       ].map((row) => (
                         <tr key={row.label} className="border-t border-line">
-                          <td className="px-3 py-2 font-sans text-ink-soft sm:px-4">{row.label}</td>
+                          <td className="sticky left-0 z-[1] whitespace-nowrap bg-bg px-3 py-2 font-sans text-ink-soft shadow-[1px_0_0_var(--color-line)] sm:static sm:px-4 sm:shadow-none">{row.label}</td>
                           {FY_LABELS.map((y, i) => (
-                            <td key={y} className={"px-3 py-2 text-right text-ink sm:px-4 " + (i < FY_LABELS.length - PHONE_YEARS ? "hidden sm:table-cell" : "")}>
+                            <td key={y} className="whitespace-nowrap px-3 py-2 text-right text-ink sm:px-4">
                               {crCell(row.vals[i])}
                             </td>
                           ))}
@@ -241,11 +243,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                       ))}
                     </tbody>
                   </table>
+                  </ScrollX>
                 </div>
                 {rev[rev.length - 1] != null && (
                   <p className="mt-2 text-xs text-ink-soft">
                     Latest-year revenue {croreShort(rev[rev.length - 1])} ({FY_LABELS[FY_LABELS.length - 1]}, company-wide).
-                    <span className="sm:hidden"> Wider screens show FY22 onwards.</span>
                   </p>
                 )}
               </section>

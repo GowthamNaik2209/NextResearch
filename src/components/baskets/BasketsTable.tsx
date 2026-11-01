@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ScrollX } from "@/components/ScrollX";
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { seriesStats, type BasketFigures } from "@/lib/baskets/stats";
 import { NA, signedPct } from "@/lib/format";
@@ -204,12 +205,14 @@ const PHONE_SORTS: SortState[] = (["ret", "vs", "dd", "base", "bear", "bull", "c
   return [{ by, dir: d }, { by, dir: d === "desc" ? "asc" : "desc" }];
 });
 
-// Columns: name grows; the stock count and max drawdown give way on phones (the count moves into
-// the sub-line, and the sort menu still sorts by both), so a row fits 360px without sideways scroll.
-// The projected cases show from md; below it the sort menu still sorts by them and the sorted case
-// joins the sub-line.
+// Columns: name grows. Below md every column still shows: the table scrolls sideways in its own box
+// (min width below) with the name column held on the left, so names stay readable on a phone.
 const GRID =
-  "grid grid-cols-[minmax(0,1fr)_4rem_5rem] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_5.25rem] md:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_5.25rem_4.25rem_4.25rem_4.25rem]";
+  "grid grid-cols-[minmax(9.5rem,1fr)_3rem_4.25rem_4.75rem_5.25rem_4.25rem_4.25rem_4.25rem] items-center gap-x-2 md:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_5.25rem_4.25rem_4.25rem_4.25rem]";
+/** Wide enough for GRID's fixed columns, gaps and padding below md. */
+const TABLE_MIN = "min-w-[44.5rem] md:min-w-0";
+/** The name cell, held at the left edge while the figures scroll (its background hides them as they pass under). */
+const STICKY_NAME = "sticky left-0 z-[1] -ml-3 bg-panel pl-3 shadow-[1px_0_0_var(--color-line)] md:static md:ml-0 md:bg-transparent md:pl-0 md:shadow-none";
 
 export function BasketsTable({
   rows,
@@ -339,18 +342,19 @@ export function BasketsTable({
           </select>
         </label>
       </div>
-      <div role="table" aria-label={label}>
+      <ScrollX>
+      <div role="table" aria-label={label} className={TABLE_MIN}>
         <div role="rowgroup">
           {/* The column headers are the sort controls: tap one to sort by it (numbers high to low, Basket A to Z), again to reverse. */}
           <div role="row" className={GRID + " border-b border-line px-3 text-[10px] font-semibold uppercase tracking-wider text-ink-soft"}>
-            {head("name", "Basket", "min-w-0")}
-            {head("count", "Stocks", "hidden sm:block")}
+            {head("name", "Basket", "min-w-0 self-stretch flex items-center " + STICKY_NAME)}
+            {head("count", "Stocks", "")}
             {head("ret", period, "")}
-            {head("dd", "Drawdown", "hidden sm:block")}
+            {head("dd", "Drawdown", "")}
             {head("vs", "vs Nifty", "")}
-            {head("bear", "Bear", "hidden md:block")}
-            {head("base", "Base", "hidden md:block")}
-            {head("bull", "Bull", "hidden md:block")}
+            {head("bear", "Bear", "")}
+            {head("base", "Base", "")}
+            {head("bull", "Bull", "")}
           </div>
         </div>
         <ul role="rowgroup">
@@ -361,22 +365,12 @@ export function BasketsTable({
               r.kind === "saved"
                 ? { text: r.isPublic ? "Shared" : "Private", on: r.isPublic }
                 : { text: r.category === "policy" ? "Policy" : r.category === "index" ? "Index" : "Sector", on: r.category !== "sector" };
-            const stocksWord = `${n} ${n === 1 ? "stock" : "stocks"}`;
-            // Sorted by Max DD on a phone, where that column is hidden: the figure joins the sub-line.
-            const sortedCase = sort && (sort.by === "bear" || sort.by === "base" || sort.by === "bull") ? sort.by : null;
-            const ddNote = (
-              <>
-                {sort?.by === "dd" && (
-                  <span className="block whitespace-nowrap sm:hidden">
-                    Max DD <Num entry={e} pick={(f) => f.maxDd} unit="%" />
-                  </span>
-                )}
-              </>
-            );
             return (
-              // The whole row opens the basket: the name's link stretches over it (::after).
-              <li role="row" key={key} id={r.kind === "industry" ? rowId(r.slug) : undefined} className={GRID + " relative min-h-10 scroll-mt-24 border-b border-line px-3 py-1.5 transition last:border-b-0 hover:bg-panel-2 has-[a:focus-visible]:bg-panel-2"}>
-                <span role="rowheader" className="flex min-w-0 flex-col">
+              // The whole row opens the basket: a copy of the name's link covers it (out of the tab order;
+              // the name's own link, in the held cell, is the one focus and screen readers reach).
+              <li role="row" key={key} id={r.kind === "industry" ? rowId(r.slug) : undefined} className={GRID + " group relative min-h-10 scroll-mt-24 border-b border-line px-3 py-1.5 transition last:border-b-0 hover:bg-panel-2 has-[a:focus-visible]:bg-panel-2"}>
+                <Link href={hrefOf(r)} aria-hidden tabIndex={-1} className="absolute inset-0" />
+                <span role="rowheader" className={"-my-1.5 flex min-w-0 flex-col self-stretch justify-center py-1.5 group-hover:bg-panel-2 group-has-[a:focus-visible]:bg-panel-2 " + STICKY_NAME}>
                   <Link
                     href={hrefOf(r)}
                     title={r.name}
@@ -387,40 +381,21 @@ export function BasketsTable({
                   <span className="flex min-w-0 items-start gap-1.5 text-[11px] leading-4 text-ink-soft">
                     <span className={"flex-none rounded border px-1 text-[9px] font-semibold uppercase leading-4 tracking-wide " + (badge.on ? "border-accent text-accent" : "border-line text-ink-soft")}>{badge.text}</span>
                     {r.kind === "saved" ? (
-                      // Wraps to a second line rather than cutting off; the stock count shows only on phones (a column from sm).
+                      // Wraps to a second line rather than cutting off (the stock count is a column).
                       <span className="min-w-0">
                         <span className="line-clamp-2 break-words">
-                          <span className="sm:hidden">{n ? stocksWord : "No stocks"} · </span>
-                          {n === 0 && <span className="hidden sm:inline">No stocks · </span>}
+                          {n === 0 && "No stocks · "}
                           {r.weighting === "mcap" ? "M-cap weight" : r.weighting === "custom" ? "Custom weights" : "Equal weight"}
                           {r.names.length > 0 && ` · ${r.names.slice(0, 3).join(", ")}${r.names.length > 3 ? ` +${r.names.length - 3}` : ""}`}
                         </span>
-                        {ddNote}
                       </span>
                     ) : (
-                      // Every industry basket is equal weight (the section says so), so a phone shows just the count.
-                      <span className="min-w-0">
-                        <span className="sm:hidden">{stocksWord}</span>
-                        {ddNote}
-                        <span className="hidden sm:inline">Equal weight</span>
-                      </span>
+                      // Every industry basket is equal weight (the section says so).
+                      <span className="min-w-0">Equal weight</span>
                     )}
                   </span>
-                  {/* Sorted by a projected case below md, where those columns are hidden: the three show under the name. */}
-                  {sortedCase && (
-                    <span className="text-[11px] leading-4 text-ink-soft md:hidden">
-                      {CASES.map((c, i) => (
-                        <span key={c}>
-                          {i > 0 && " · "}
-                          <span className={"whitespace-nowrap " + (c === sortedCase ? "font-semibold text-ink" : "")}>
-                            {c === "bear" ? "Bear" : c === "base" ? "Base" : "Bull"} <CaseNum v={caseOf(r, c)} />
-                          </span>
-                        </span>
-                      ))}
-                    </span>
-                  )}
                 </span>
-                <span role="cell" className="hidden text-right font-mono tabular-nums text-ink-soft sm:block">
+                <span role="cell" className="text-right font-mono tabular-nums text-ink-soft">
                   <span className="sr-only">Stocks </span>
                   {n}
                 </span>
@@ -428,7 +403,7 @@ export function BasketsTable({
                   <span className="sr-only">{period} return </span>
                   <Num entry={e} pick={(f) => f.ret} unit="%" />
                 </span>
-                <span role="cell" className="hidden text-right font-mono tabular-nums sm:block">
+                <span role="cell" className="text-right font-mono tabular-nums">
                   <span className="sr-only">Max drawdown </span>
                   <Num entry={e} pick={(f) => f.maxDd} unit="%" />
                 </span>
@@ -437,7 +412,7 @@ export function BasketsTable({
                   <Num entry={e} pick={(f) => f.vs} unit=" pts" />
                 </span>
                 {CASES.map((c) => (
-                  <span key={c} role="cell" className="hidden text-right font-mono tabular-nums md:block">
+                  <span key={c} role="cell" className="text-right font-mono tabular-nums">
                     <span className="sr-only">Next 1 year {c} case </span>
                     <CaseNum v={caseOf(r, c)} />
                   </span>
@@ -447,6 +422,7 @@ export function BasketsTable({
           })}
         </ul>
       </div>
+      </ScrollX>
       <p className="border-t border-line px-3 py-1.5 text-[10px] text-ink-soft">
         {period}: {PERIOD_WORDS[period]}, bought at its start and not rebalanced, at each basket&rsquo;s saved weighting (industry baskets at equal weight); drawdown and vs Nifty over the same span. Price only, no dividends or costs.{" "}
         <b className="font-semibold">Bear · Base · Bull</b>: projected return over the next year at the same weighting (stocks it can&rsquo;t project left out, their share spread over the rest);{" "}

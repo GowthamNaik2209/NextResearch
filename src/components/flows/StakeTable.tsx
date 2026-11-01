@@ -5,9 +5,13 @@ import type { StakeRow } from "@/lib/flows/query";
 import { fmtMonth } from "@/lib/format";
 import { Company, NotYet, SortHead, ShowAll, toneText, arrow, type Sort } from "./parts";
 import { holding, shortMonth, signedPp, streakText } from "./format";
+import { ScrollX } from "@/components/ScrollX";
 
 type Key = "move" | "holding" | "change";
 const FIRST = 10;
+// On a phone the company column keeps a readable width and stays put while the figures scroll
+// sideways in the table's own box; from sm the table fits and the column takes the spare room.
+const HELD = "sticky left-0 z-[1] w-[9.5rem] min-w-[9.5rem] max-w-[9.5rem] bg-panel shadow-[1px_0_0_var(--color-line)] sm:static sm:w-auto sm:min-w-0 sm:bg-transparent sm:shadow-none";
 
 /**
  * Stake changes over the period: FII or DII, every company in view, biggest moves first. Tapping the
@@ -62,11 +66,12 @@ export function StakeTable({ rows, where, compact }: { rows: StakeRow[]; where?:
           <NotYet>No {who.toUpperCase()} holdings are on record{where ? ` for ${where}` : ""}.</NotYet>
         </div>
       ) : (
-        <div className="mt-2 overflow-x-auto">
+        <div className="mt-2">
+          <ScrollX>
           <table className="w-full border-collapse text-[12.5px]">
             <thead>
               <tr className="border-b border-line text-left text-[10px] font-semibold uppercase tracking-wider text-ink-soft">
-                <th className="py-1 pr-2 font-semibold">Company</th>
+                <th className={"py-1 pr-2 font-semibold " + HELD}>Company</th>
                 <SortHead<Key> label="Holding" k="holding" sort={sort} onSort={toggle} />
                 <SortHead<Key> label={base ? `Chg since ${fmtMonth(base)}` : "Change"} k="change" sort={sort} onSort={toggle} last />
               </tr>
@@ -78,7 +83,7 @@ export function StakeTable({ rows, where, compact }: { rows: StakeRow[]; where?:
                 const n = who === "fii" ? r.fiiStreak : r.diiStreak;
                 return (
                   <tr key={r.ticker} className="border-b border-line/50 last:border-0">
-                    <td className="max-w-0 py-2 pr-2">
+                    <td className={"py-2 pr-2 sm:max-w-0 " + HELD}>
                       <Company ticker={r.ticker} name={r.name} sub={compact ? undefined : r.sectorName} />
                     </td>
                     <td className="w-px whitespace-nowrap px-2 py-2 text-right align-top font-mono tabular-nums">{holding(v)}</td>
@@ -97,6 +102,7 @@ export function StakeTable({ rows, where, compact }: { rows: StakeRow[]; where?:
               })}
             </tbody>
           </table>
+          </ScrollX>
           <ShowAll shown={shown.length} total={sorted.length} all={all} onToggle={() => setAll((a) => !a)} noun="companies" />
         </div>
       )}
