@@ -10,6 +10,8 @@ import { cronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/prisma";
 import { ensureFinancials } from "@/lib/financials/load";
 import { runPriceChunk } from "@/lib/prices/refresh";
+import { PRICES_TAG } from "@/lib/prices/store";
+import { revalidateTag } from "next/cache";
 
 export const maxDuration = 300;
 const BUDGET_MS = 240_000;
@@ -20,7 +22,10 @@ export async function GET(request: Request) {
   try {
     // The list of stocks comes from the content, which reads the company table.
     await ensureFinancials();
-    return Response.json(await runPriceChunk(prisma, { budgetMs: BUDGET_MS }));
+    const result = await runPriceChunk(prisma, { budgetMs: BUDGET_MS });
+    // New bars written: readers' shared copy of the store (src/lib/prices/store.ts) is out of date.
+    if ("done" in result) revalidateTag(PRICES_TAG, { expire: 0 });
+    return Response.json(result);
   } catch (e) {
     console.error("prices refresh (cron): chunk failed", e);
     return Response.json({ error: "refresh failed" }, { status: 500 });
