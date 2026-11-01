@@ -248,6 +248,73 @@ select {
     transform: scale(1);
   }
 }
+/* The labelled heart in a single stock's header (WatchlistButton variant="pill"): "Watch" /
+   "Watching", so the watchlist reads as an action where the eye already is. */
+.watch-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 11px 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s, transform 0.12s;
+}
+@media (pointer: coarse) {
+  .watch-pill {
+    min-height: 36px;
+    padding: 0 13px 0 11px;
+    font-size: 13px;
+  }
+}
+.watch-pill:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.watch-pill:active {
+  transform: scale(0.95);
+}
+.watch-pill.active {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+.watch-pill.pending {
+  cursor: progress;
+}
+.watch-pill.active .watch-heart path {
+  fill: currentColor;
+}
+.watch-pill.pop .watch-heart {
+  animation: watch-heart-pop 0.45s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+}
+/* "Added to your watchlist" toast (WatchlistButton) and the header heart's pulse when the count grows. */
+.nr-toast {
+  animation: nr-toast-in 0.22s ease-out;
+}
+@keyframes nr-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+.watch-nav-pulse {
+  animation: watch-heart-pop 0.6s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+}
+@media (prefers-reduced-motion: reduce) {
+  .watch-pill.pop .watch-heart,
+  .nr-toast,
+  .watch-nav-pulse {
+    animation: none;
+  }
+}
 /* Stock pop-up (components/stock/StockModal.tsx): blurred, dimmed backdrop with a
    raised card that tilts in, so it reads as lifting off the page. */
 .nr-pop-backdrop {

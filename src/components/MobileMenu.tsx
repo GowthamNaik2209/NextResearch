@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ACCOUNT_MENU_EVENT } from "./KeyboardShortcuts";
-import { SECTIONS, isSectionActive } from "./NavPill";
+import { SECTIONS, sectionActive, useAnchorInView } from "./NavPill";
 
 // Phone-only navigation: the header's text links are hidden below `md`, so this hamburger
 // opens the same destinations (SECTIONS) as a dropdown. Closes on a pick, outside tap or Escape.
@@ -14,6 +14,7 @@ import { SECTIONS, isSectionActive } from "./NavPill";
 export function MobileMenu({ hideFrom = "md:hidden" }: { hideFrom?: string } = {}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const anchor = useAnchorInView(pathname);
   const ref = useRef<HTMLDivElement>(null);
 
   // ⌥P opens the account menu; close this one so the two dropdowns never overlap.
@@ -56,13 +57,13 @@ export function MobileMenu({ hideFrom = "md:hidden" }: { hideFrom?: string } = {
         // edge at 360px: there it spans the screen with a 12px gutter instead.
         <div role="menu" className="absolute right-0 top-11 z-50 flex w-52 flex-col rounded-xl border border-line bg-panel p-1.5 shadow-xl max-sm:fixed max-sm:inset-x-3 max-sm:top-14 max-sm:w-auto">
           {SECTIONS.map((s) => {
-            const active = isSectionActive(s.match, pathname);
+            const active = sectionActive(s, pathname, anchor);
             return (
               <Link
                 key={s.href}
                 href={s.href}
                 role="menuitem"
-                aria-current={active ? "page" : undefined}
+                aria-current={active ? (s.anchor ? "location" : "page") : undefined}
                 onClick={() => setOpen(false)}
                 className={`flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-ink ${active ? "bg-accent/15 ring-1 ring-accent/40" : "hover:bg-panel-2"}`}
               >

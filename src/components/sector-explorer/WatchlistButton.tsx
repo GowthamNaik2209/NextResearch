@@ -6,7 +6,9 @@ import Link from "next/link";
 import { returnToStockPath } from "@/lib/safe-next";
 import { track } from "@/lib/analytics";
 
-type Props = { ticker: string; name?: string };
+// "icon": the bare heart, for rows and tables. "pill": the heart with a Watch / Watching label, for a
+// single stock's header (the pop-ups, the company page), where it should read as an action.
+type Props = { ticker: string; name?: string; variant?: "icon" | "pill" };
 
 // A page like the sector overview renders a WatchlistButton per company —
 // easily 20-30 at once. Without sharing state they'd each fire their own GET
@@ -141,13 +143,16 @@ export async function restoreToWatchlist(ticker: string): Promise<boolean> {
   return false;
 }
 
-export function WatchlistButton({ ticker, name }: Props) {
+export function WatchlistButton({ ticker, name, variant = "icon" }: Props) {
   const [, setTick] = useState(0);
   // A tap is being saved. The heart already shows the new state (optimistic); this only stops
   // a second tap from racing the first and marks the button busy for assistive tech.
   const [pending, setPending] = useState(false);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [justLiked, setJustLiked] = useState(false);
+  // Bumped on each add, so a second add while the toast is up restarts its timer.
+  const [toast, setToast] = useState(0);
+  const hideToast = useCallback(() => setToast(0), []);
   const liked = tickersCache?.has(ticker) ?? false;
 
   useEffect(() => {
@@ -201,7 +206,10 @@ export function WatchlistButton({ ticker, name }: Props) {
             })
         ).catch(() => null);
         if (res?.ok) {
-          if (!wasLiked) track("add_to_wishlist", { ticker });
+          if (!wasLiked) {
+            track("add_to_wishlist", { ticker });
+            setToast((n) => n + 1);
+          }
           setNeedsAuth(false);
           flipped = null;
         } else if (res?.status === 401) {
@@ -218,25 +226,55 @@ export function WatchlistButton({ ticker, name }: Props) {
     [ticker, pending]
   );
 
+  const pill = variant === "pill";
   return (
     <span className="watch-wrap">
       <button
         type="button"
         // The visible heart stays small on a mouse; on touch screens the button itself is the
         // 40x40 target (globals.css), so its tap area never reaches over the text beside it.
-        className={"watch-btn" + (liked ? " active" : "") + (justLiked ? " pop" : "") + (pending ? " pending" : "")}
+        className={(pill ? "watch-pill" : "watch-btn") + (liked ? " active" : "") + (justLiked ? " pop" : "") + (pending ? " pending" : "")}
         onClick={toggle}
         aria-busy={pending || undefined}
         aria-pressed={liked}
         aria-label={liked ? `Remove ${ticker} from watchlist` : `Add ${ticker} to watchlist`}
         title={liked ? "Remove from watchlist" : "Add to watchlist"}
       >
-        <svg viewBox="0 0 24 24" width="17" height="17" className="watch-heart" aria-hidden>
+        <svg viewBox="0 0 24 24" width={pill ? 14 : 17} height={pill ? 14 : 17} className="watch-heart" aria-hidden>
           <path d="M12 21s-7.5-4.6-10.2-9.3C.1 8.9 1 5.3 4.3 4.1c2.3-.8 4.6.1 5.9 2 .5.7 1.4 1.9 1.8 2.5.4-.6 1.3-1.8 1.8-2.5 1.3-1.9 3.6-2.8 5.9-2 3.3 1.2 4.2 4.8 2.5 7.6C19.5 16.4 12 21 12 21z" />
         </svg>
+        {pill && <span aria-hidden>{liked ? "Watching" : "Watch"}</span>}
       </button>
       {needsAuth && <SavePrompt ticker={ticker} name={name} onClose={() => setNeedsAuth(false)} />}
+      {toast > 0 && <SavedToast key={toast} name={name ?? ticker} onDone={hideToast} />}
     </span>
+  );
+}
+
+// After an add: says where the list lives (the header heart) with a link to it. Not on /watchlist,
+// where the list is the page. Portalled so a pop-up or a list row never clips it.
+function SavedToast({ name, onDone }: { name: string; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 4000);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  if (window.location.pathname === "/watchlist") return null;
+  return createPortal(
+    <div
+      role="status"
+      className="nr-toast fixed inset-x-4 bottom-4 z-[300] mx-auto flex max-w-sm items-center gap-3 rounded-xl border border-line bg-panel px-4 py-3 text-sm text-ink shadow-2xl"
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      <svg viewBox="0 0 24 24" width="16" height="16" className="flex-none text-danger" aria-hidden>
+        <path fill="currentColor" d="M12 21s-7.5-4.6-10.2-9.3C.1 8.9 1 5.3 4.3 4.1c2.3-.8 4.6.1 5.9 2 .5.7 1.4 1.9 1.8 2.5.4-.6 1.3-1.8 1.8-2.5 1.3-1.9 3.6-2.8 5.9-2 3.3 1.2 4.2 4.8 2.5 7.6C19.5 16.4 12 21 12 21z" />
+      </svg>
+      <span className="min-w-0 flex-1 truncate">Added {name} to your watchlist</span>
+      <Link href="/watchlist" className="tap-target flex-none font-semibold text-accent hover:underline">
+        View
+      </Link>
+    </div>,
+    document.body
   );
 }
 

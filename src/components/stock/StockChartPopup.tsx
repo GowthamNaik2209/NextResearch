@@ -7,6 +7,7 @@ import { CloseButton, ModalShell } from "./StockModal";
 import { PriceTag } from "./PriceTag";
 import { freshQuote, mergeStats } from "./merge";
 import { useStockData } from "./useStockData";
+import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
 import type { SectorCategory } from "@/lib/sector-content/core";
 
 // lightweight-charts loads with the pop-up, not with the Analysis page.
@@ -167,12 +168,18 @@ function Picker({
         <div className="min-w-0 flex-1">
           <h2 className="min-w-0 break-words font-display text-base font-bold leading-snug sm:text-xl">{stock?.name ?? ind.name}</h2>
           {stock && (
-            <p className="mt-0.5 truncate text-xs text-ink-soft">
-              <span className="font-mono">
-                {quote?.exchange ?? "NSE"}: {stock.ticker}
+            <div className="mt-1 flex items-center gap-2">
+              {/* The ticker never truncates; only the layer gives way to the Watch pill. */}
+              <p className="flex min-w-0 text-xs text-ink-soft">
+                <span className="flex-none font-mono">
+                  {quote?.exchange ?? "NSE"}: {stock.ticker}
+                </span>
+                <span className="min-w-0 truncate">&nbsp;· {stock.layer}</span>
+              </p>
+              <span className="flex-none">
+                <WatchlistButton key={stock.ticker} ticker={stock.ticker} name={stock.name} variant="pill" />
               </span>
-              <span> · {stock.layer}</span>
-            </p>
+            </div>
           )}
         </div>
         {stock && <PriceTag price={mergeStats(undefined, data).price} quote={quote} />}

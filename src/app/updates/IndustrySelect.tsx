@@ -16,7 +16,7 @@ export function IndustrySelect({ options, active, view, period }: { options: Opt
   const groups = (["Industries", "Policies", "Indices"] as const).map((g) => [g, options.filter((o) => o.group === g)] as const).filter(([, os]) => os.length > 0);
 
   return (
-    <form method="get" action="/updates" className="relative min-w-0 flex-[1_1_9rem] sm:max-w-sm">
+    <form method="get" action="/updates" className="min-w-0 flex-[1_1_9rem] sm:max-w-sm">
       {view === "flows" && <input type="hidden" name="view" value="flows" />}
       {period && period !== DEFAULT_PERIOD && <input type="hidden" name="period" value={period} />}
       <label htmlFor="sector" className="sr-only">
@@ -47,7 +47,6 @@ export function IndustrySelect({ options, active, view, period }: { options: Opt
           </optgroup>
         ))}
       </select>
-      <span aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 h-2 w-2 -translate-y-[70%] rotate-45 border-b-[1.5px] border-r-[1.5px] border-ink-soft" />
       <noscript>
         <button type="submit" className="mt-2 inline-flex min-h-10 items-center rounded-full bg-accent px-4 text-sm font-semibold text-bg">
           Show
