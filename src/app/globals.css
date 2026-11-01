@@ -380,3 +380,12 @@ select {
     -webkit-backdrop-filter: none;
   }
 }
+
+/* Connections search: the row a company result jumped to glows briefly. */
+.nr-row-flash {
+  animation: nr-row-flash 1.8s ease-out;
+}
+@keyframes nr-row-flash {
+  0%, 35% { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
