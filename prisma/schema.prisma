@@ -216,6 +216,22 @@ model PriceRun {
   startedAt  DateTime  @default(now())
 }
 
+// Each industry & policy basket's figures over each period of the Baskets page's menu (1D to 3Y),
+// worked out from the price store after the daily top-up (src/lib/baskets/basket-returns.ts), so the
+// page's heatmap and table switch periods without backtesting in the browser. Rebuilt whole each run.
+model BasketReturn {
+  slug      String
+  period    String
+  ret       Float
+  maxDd     Float
+  vs        Float?
+  // The last trading day the figure runs to.
+  asOf      DateTime @db.Date
+  updatedAt DateTime @updatedAt
+
+  @@id([slug, period])
+}
+
 // Institutional money (the FII / DII view on /updates, src/lib/flows/). Every figure is published by an
 // exchange or depository; none is per-stock daily flow, which nobody publishes.
 
