@@ -23,22 +23,23 @@ const RANGES: { id: ChartRange; label: string; long: string }[] = [
 ];
 
 /**
- * The page's first row of buttons, with the Heatmap button among them and its panel opening
+ * The page's first row of buttons: `lead` (the map), then the Heatmap button, then `children`; its panel opens
  * full width under the row. Phones get one row of short labels that scrolls sideways, without
  * the panel around it; from desktop width the row sits on one line.
  */
-export function IndustryActions({ children, slug, name, stocks, basketHref }: { children: ReactNode; slug: string; name: string; stocks: HeatStock[]; basketHref: string | null }) {
+export function IndustryActions({ lead, children, slug, name, stocks, basketHref }: { lead: ReactNode; children: ReactNode; slug: string; name: string; stocks: HeatStock[]; basketHref: string | null }) {
   const [open, setOpen] = useState(false);
   return (
     <section className="flex flex-col gap-3 sm:rounded-2xl sm:border sm:border-line sm:bg-panel-2 sm:p-4 lg:p-5">
       <div className="scrollbar-none -mx-5 flex gap-1.5 overflow-x-auto px-5 max-sm:*:flex-none sm:mx-0 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:px-0 lg:flex-nowrap">
-        {children}
+        {lead}
         {stocks.length > 0 && (
           <button type="button" aria-expanded={open} aria-controls="industry-heatmap" onClick={() => setOpen((o) => !o)} className={actionClass(false, open)}>
             <span className="sm:hidden">Heatmap</span>
             <span className="hidden sm:inline">{open ? "Hide heatmap" : "Stock heatmap"}</span>
           </button>
         )}
+        {children}
       </div>
       {open && (
         <div id="industry-heatmap">

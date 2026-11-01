@@ -119,7 +119,10 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             <div>
               <h1 className="font-display text-3xl font-bold text-ink">
                 {c.name} <span className="font-mono text-lg font-semibold text-ink-soft">{c.ticker}</span>
-                <WatchlistButton ticker={c.ticker} name={c.name} />
+                {/* A space, not a margin, so the pill lines up with the name when it wraps on a phone. */}{" "}
+                <span className="inline-flex align-middle">
+                  <WatchlistButton ticker={c.ticker} name={c.name} variant="pill" />
+                </span>
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
                 {multiSector ? `${primary.sectorName}: ${primary.role}` : primary.role}

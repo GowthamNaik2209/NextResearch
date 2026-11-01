@@ -17,26 +17,23 @@ export function PeriodSelect({ period, sector }: { period: Period; sector?: stri
       <label htmlFor="period" className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
         Period
       </label>
-      <span className="relative">
-        <select
-          id="period"
-          name="period"
-          defaultValue={period}
-          aria-busy={pending}
-          onChange={(e) => start(() => router.replace(updatesHref({ sector, view: "flows", period: e.target.value as Period }), { scroll: false }))}
-          className={
-            "h-9 cursor-pointer appearance-none rounded-full border border-line bg-panel pl-3.5 pr-8 text-base font-semibold text-ink hover:border-ink-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:text-sm " +
-            (pending ? "opacity-70" : "")
-          }
-        >
-          {PERIODS.map((p) => (
-            <option key={p} value={p}>
-              {p} · {PERIOD_LABEL[p]}
-            </option>
-          ))}
-        </select>
-        <span aria-hidden="true" className="pointer-events-none absolute right-3.5 top-1/2 h-2 w-2 -translate-y-[70%] rotate-45 border-b-[1.5px] border-r-[1.5px] border-ink-soft" />
-      </span>
+      <select
+        id="period"
+        name="period"
+        defaultValue={period}
+        aria-busy={pending}
+        onChange={(e) => start(() => router.replace(updatesHref({ sector, view: "flows", period: e.target.value as Period }), { scroll: false }))}
+        className={
+          "h-9 cursor-pointer appearance-none rounded-full border border-line bg-panel pl-3.5 pr-8 text-base font-semibold text-ink hover:border-ink-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:text-sm " +
+          (pending ? "opacity-70" : "")
+        }
+      >
+        {PERIODS.map((p) => (
+          <option key={p} value={p}>
+            {p} · {PERIOD_LABEL[p]}
+          </option>
+        ))}
+      </select>
       <span role="status" className="text-xs text-ink-soft">
         {pending ? "Updating…" : ""}
       </span>

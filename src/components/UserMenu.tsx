@@ -16,7 +16,7 @@ export function UserMenu({ email, displayName }: Props) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  // The name sits beside the avatar only on the landing page; everywhere else
+  // The name sits beside the avatar only on the landing page, and not on phones; everywhere else
   // the account button is the bare avatar (the name is still in the dropdown).
   const showName = usePathname() === "/";
   const hint = useShortcutHint("P");
@@ -96,36 +96,37 @@ export function UserMenu({ email, displayName }: Props) {
 
   return (
     <div className="relative" ref={rootRef}>
-      {showName ? (
+      {/* The name sits in a chip beside the avatar on the landing page from sm up. Phones and every
+          other page get the bare avatar: a phone header has no room for the name. */}
+      {showName && (
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-1.5 rounded-full border border-line bg-panel-2 py-1 pl-1 pr-2.5 text-[13px] text-ink hover:border-accent sm:gap-2 sm:pr-3 sm:text-sm"
+          className="hidden items-center gap-2 rounded-full border border-line bg-panel-2 py-1 pl-1 pr-3 text-sm text-ink hover:border-accent sm:flex"
           aria-haspopup="true"
           aria-expanded={open}
           aria-label={`Account: ${label}`}
           title={withHint(label, hint)}
         >
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/15 text-accent sm:h-7 sm:w-7">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-accent">
             <UserIcon small />
           </span>
-          {/* Phones show just the first name so the chip fits beside the menu and watchlist icons. */}
-          <span className="max-w-[60px] truncate sm:hidden">{label.split(" ")[0]}</span>
-          <span className="hidden max-w-[120px] truncate sm:inline">{label}</span>
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="tap-target flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-accent hover:border-accent"
-          aria-haspopup="true"
-          aria-expanded={open}
-          aria-label={`Account: ${label}`}
-          title={withHint(label, hint)}
-        >
-          <UserIcon />
+          <span className="max-w-[120px] truncate">{label}</span>
         </button>
       )}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={
+          "tap-target flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-accent hover:border-accent" + (showName ? " sm:hidden" : "")
+        }
+        aria-haspopup="true"
+        aria-expanded={open}
+        aria-label={`Account: ${label}`}
+        title={withHint(label, hint)}
+      >
+        <UserIcon />
+      </button>
 
       {open && (
         <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-line bg-panel p-3 shadow-lg">

@@ -165,27 +165,27 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
             explorer with the right zone/company preselected via ?zone=/&company=. */}
         {/* A heatmap sector (the Nifty 50) has no 3D model: its explorer is the heatmap with the
             what-if and industry panels, so this page has no Stock heatmap button of its own. */}
-        <IndustryActions slug={sector.slug} name={sector.name} stocks={heatStocks} basketHref={sector.muted ? null : `/baskets/industry/${sector.slug}`}>
-          <Link href={`/sector/${sector.slug}/explore`} className={actionClass(true)}>
-            <span className="sm:hidden">{isHeatmap ? "Explore" : "3D map"}</span>
-            <span className="hidden sm:inline">{isHeatmap ? "Explore the heatmap" : "Explore the map"} &rarr;</span>
-          </Link>
-          {GUIDED_TOUR_ENABLED && (
-            <Link href={`/sector/${sector.slug}/explore?tour=1`} className={actionClass(false)}>
-              <span className="sm:hidden">Tour</span>
-              <span className="hidden sm:inline">Start guided tour</span>
-            </Link>
-          )}
-          {deck && (
-            <OpenReportButton slug={deck.slug} className={actionClass(false)}>
-              <span className="sm:hidden">Report</span>
-              <span className="hidden sm:inline">Read curated report</span>
-            </OpenReportButton>
-          )}
-          <a href="#companies" className={actionClass(false)}>
-            <span className="sm:hidden">Companies</span>
-            <span className="hidden sm:inline">Find companies</span>
-          </a>
+        <IndustryActions
+          slug={sector.slug}
+          name={sector.name}
+          stocks={heatStocks}
+          basketHref={sector.muted ? null : `/baskets/industry/${sector.slug}`}
+          lead={
+            <>
+              <Link href={`/sector/${sector.slug}/explore`} className={actionClass(true)}>
+                <span className="sm:hidden">{isHeatmap ? "Explore" : "3D map"}</span>
+                <span className="hidden sm:inline">{isHeatmap ? "Explore the heatmap" : "Explore the map"} &rarr;</span>
+              </Link>
+              {GUIDED_TOUR_ENABLED && (
+                <Link href={`/sector/${sector.slug}/explore?tour=1`} className={actionClass(false)}>
+                  <span className="sm:hidden">Tour</span>
+                  <span className="hidden sm:inline">Start guided tour</span>
+                </Link>
+              )}
+            </>
+          }
+        >
+          {/* After the map and the Stock heatmap: basket, bottlenecks, report, companies. */}
           {!sector.muted && (
             <Link href={`/baskets/industry/${sector.slug}`} className={actionClass(false)}>
               <span className="sm:hidden">Basket</span>
@@ -198,6 +198,16 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
               <span className="hidden sm:inline">Explore bottlenecks</span>
             </a>
           )}
+          {deck && (
+            <OpenReportButton slug={deck.slug} className={actionClass(false)}>
+              <span className="sm:hidden">Report</span>
+              <span className="hidden sm:inline">Read curated report</span>
+            </OpenReportButton>
+          )}
+          <a href="#companies" className={actionClass(false)}>
+            <span className="sm:hidden">Companies</span>
+            <span className="hidden sm:inline">Find companies</span>
+          </a>
         </IndustryActions>
 
         {(!!sector.thesisSummary?.length || !!sector.whyNow?.length) && (

@@ -5,6 +5,7 @@ import { MobileMenu } from "./MobileMenu";
 import { ThemeToggle } from "./ThemeToggle";
 import { ShortcutLink } from "./KeyboardShortcuts";
 import { NavPill } from "./NavPill";
+import { WatchlistNavLink } from "./WatchlistNavLink";
 
 export async function SiteHeader() {
   const user = await getCurrentUser();
@@ -31,15 +32,7 @@ export async function SiteHeader() {
           <span className="hidden sm:contents md:hidden lg:contents">
             <ThemeToggle variant="icon" />
           </span>
-          <ShortcutLink
-            href="/watchlist"
-            shortcut="W"
-            label="Watchlist"
-            className="tap-target flex h-8 w-8 items-center sm:h-9 sm:w-9 justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
-            aria-label="Watchlist"
-          >
-            <HeartIcon />
-          </ShortcutLink>
+          <WatchlistNavLink signedIn={!!user} />
           {/* Signed-out only, so it never shares the row with the landing-page name chip. All widths
               see the same "Sign up" label everywhere (it fits beside the logo and icons at 375px). */}
           {!user && (
@@ -51,13 +44,5 @@ export async function SiteHeader() {
         </div>
       </div>
     </header>
-  );
-}
-
-function HeartIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 21s-7.5-4.6-10.2-9.3C.1 8.9 1 5.3 4.3 4.1c2.3-.8 4.6.1 5.9 2 .5.7 1.4 1.9 1.8 2.5.4-.6 1.3-1.8 1.8-2.5 1.3-1.9 3.6-2.8 5.9-2 3.3 1.2 4.2 4.8 2.5 7.6C19.5 16.4 12 21 12 21z" />
-    </svg>
   );
 }
