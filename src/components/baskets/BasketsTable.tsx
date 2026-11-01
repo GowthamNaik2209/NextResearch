@@ -209,7 +209,7 @@ const PHONE_SORTS: SortState[] = (["ret", "vs", "dd", "base", "bear", "bull", "c
 // The projected cases show from md; below it the sort menu still sorts by them and the sorted case
 // joins the sub-line.
 const GRID =
-  "grid grid-cols-[minmax(0,1fr)_4rem_4.25rem] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_4.5rem] md:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_4.5rem_4.25rem_4.25rem_4.25rem]";
+  "grid grid-cols-[minmax(0,1fr)_4rem_5rem] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_5.25rem] md:grid-cols-[minmax(0,1fr)_3rem_4.25rem_4.25rem_5.25rem_4.25rem_4.25rem_4.25rem]";
 
 export function BasketsTable({
   rows,
@@ -327,7 +327,7 @@ export function BasketsTable({
               const [by, dir] = e.target.value.split(":") as [Sort, SortState["dir"]];
               if (by) onSort({ by, dir });
             }}
-            className="min-h-9 min-w-0 flex-1 rounded border border-line bg-bg px-1.5 text-xs text-ink"
+            className="min-h-10 min-w-0 flex-1 rounded border border-line bg-bg px-1.5 text-base text-ink sm:min-h-9 sm:text-xs"
           >
             {!sort && <option value="">Original order</option>}
             {PHONE_SORTS.map((o) => (
@@ -431,7 +431,7 @@ export function BasketsTable({
                   <span className="sr-only">Max drawdown </span>
                   <Num entry={e} pick={(f) => f.maxDd} unit="%" />
                 </span>
-                <span role="cell" title={e && typeof e === "object" && e.vs == null ? "The Nifty 50's prices couldn't load, so the lead can't be worked out" : undefined} className="text-right font-mono tabular-nums">
+                <span role="cell" title={e && typeof e === "object" && e.vs == null ? "The Nifty 50's prices couldn't load, so the lead can't be worked out" : undefined} className="whitespace-nowrap text-right font-mono tabular-nums">
                   <span className="sr-only">Versus Nifty 50 </span>
                   <Num entry={e} pick={(f) => f.vs} unit=" pts" />
                 </span>
@@ -559,7 +559,7 @@ export function ThemeWall({ rows, seed, period = "1Y", onPeriod }: { rows: Indus
             value={period}
             disabled={!onPeriod}
             onChange={(e) => onPeriod?.(e.target.value as Period)}
-            className="min-h-9 rounded border border-line bg-bg px-2 font-mono text-xs text-ink disabled:opacity-60"
+            className="min-h-10 rounded border border-line bg-bg px-2 font-mono text-base text-ink disabled:opacity-60 sm:min-h-9 sm:text-xs"
           >
             {PERIODS.map((p) => (
               <option key={p} value={p}>
