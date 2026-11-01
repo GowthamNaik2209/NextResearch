@@ -5,6 +5,10 @@ import { shortHash, type Strategy } from "@/lib/baskets/strategy";
 
 // One client-side loader for every line a basket page draws, keyed like the Analysis charts:
 // "s:TICKER" a stock, "b:id" an index, "x:<query>" a basket backtest (?sector=, ?id= or ?tickers=).
+// "S:TICKER" and "B:id" are the same lines read from the price store first (Yahoo only for what it
+// lacks), as basket backtests are: for past returns, where today's live tick doesn't matter.
+/** An index's line, either way ("b:" or "B:"). */
+export const isBenchKey = (key: string) => /^[bB]:/.test(key);
 // Loaded series survive switching views and ranges; a request still running is shared. A failed
 // load is not kept, so asking again (Retry) fetches it afresh. Components read it through
 // useSeries (use-series.ts).
@@ -31,8 +35,9 @@ const inflight = new Map<string, Promise<Load>>();
 
 const urlFor = (key: string, range: ChartRange) => {
   const id = key.slice(2);
-  if (key.startsWith("s:")) return `/api/stock/${encodeURIComponent(id)}/chart?range=${range}`;
-  if (key.startsWith("b:")) return `/api/benchmark/${encodeURIComponent(id)}/chart?range=${range}`;
+  const stored = key[0] === "S" || key[0] === "B" ? "&store=1" : "";
+  if (/^[sS]:/.test(key)) return `/api/stock/${encodeURIComponent(id)}/chart?range=${range}${stored}`;
+  if (isBenchKey(key)) return `/api/benchmark/${encodeURIComponent(id)}/chart?range=${range}${stored}`;
   return `/api/baskets/backtest?${id}&range=${range}`;
 };
 

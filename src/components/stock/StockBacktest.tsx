@@ -17,12 +17,14 @@ import { ProjectionStats } from "@/components/baskets/ProjectionStats";
 import { ProjectionAnalysis } from "@/components/baskets/ProjectionAnalysis";
 import { MINI_SEG, Panel } from "@/components/baskets/Panel";
 import { useProjection } from "@/components/baskets/use-projection";
+import { retryFailedSeries, useSeries } from "@/components/baskets/use-series";
 import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL } from "@/components/baskets/projection-view";
 
 // The stock pop-up's full-screen Backtest view: one stock run through the basket pages' own
 // backtest and projection panels (single mode), against the Nifty 50 only. The stock is bought on
 // the first day and held, so the basket-only parts (weighting, rebalancing, picks, contributors)
-// don't apply. Its line is the same price series the pop-up's Chart tab draws ("s:TICKER").
+// don't apply. Its prices are read from the price store first ("S:TICKER"), as basket backtests'
+// are; a failed load shows one Retry for the whole view, not one per panel.
 
 const RANGES: { id: ChartRange; long: string }[] = [
   { id: "1M", long: "1 month" },
@@ -32,7 +34,8 @@ const RANGES: { id: ChartRange; long: string }[] = [
   { id: "3Y", long: "3 years" },
   { id: "5Y", long: "5 years" },
 ];
-const NIFTY = { key: "b:nifty50", label: "Nifty 50" };
+// Read from the price store first ("S:" / "B:" keys, series.ts): past returns need no live tick.
+const NIFTY = { key: "B:nifty50", label: "Nifty 50" };
 const MARKET = [BENCHMARKS.nifty50];
 const NO_STOCKS: BasketStock[] = [];
 const DEFAULT_PROJECTION: ProjectionSettings = { h: 1, scenario: "base" };
@@ -121,10 +124,15 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
   const [projSet, setProjSet] = useState<ProjectionSettings>(DEFAULT_PROJECTION);
   const [selection, setSelection] = useState<ChartSelection>({ benches: ["nifty50"], compare: [], picks: {} });
   const projOn = mode === "projection";
-  const key = `s:${ticker}`;
+  const key = `S:${ticker}`;
   const rangeLong = RANGES.find((r) => r.id === range)!.long;
 
   const { rec, failed } = useStockRecord(ticker, projOn, attempt);
+  // The lines every panel draws (Backtest: the stock and the Nifty 50 over the range; Projection: the
+  // stock's past year, for its swings). One failed: one Retry for the whole view, which asks again
+  // for every failed line in every panel at once.
+  const { get } = useSeries(projOn ? [key] : [key, NIFTY.key], projOn ? "1Y" : range);
+  const pricesFailed = (projOn ? [key] : [key, NIFTY.key]).some((k) => get(k)?.status === "error");
   const stocks = useMemo(() => (rec ? [rec.stock] : NO_STOCKS), [rec]);
   const projection = useProjection({
     on: projOn && stocks.length > 0,
@@ -208,6 +216,15 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
         )}
       </div>
 
+      {pricesFailed && (
+        <p role="alert" className="rounded-md border border-line bg-panel px-3 py-1.5 text-[11px] text-ink-soft">
+          Prices couldn&rsquo;t load right now. Check your connection, then{" "}
+          <button type="button" onClick={retryFailedSeries} className="font-semibold text-accent underline pointer-coarse:min-h-9">
+            Retry
+          </button>
+          .
+        </p>
+      )}
       {projOn && rec?.statsLoading && (
         <p className="rounded-md border border-line bg-panel px-3 py-1.5 text-[11px] text-ink-soft">Price statistics are still loading, so beta and volatility are estimates for now. The figures update by themselves.</p>
       )}
@@ -223,7 +240,7 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
       {projOn ? (
         <ProjectionCards view={projection} empty={failed} dense single={{ label: ticker }} />
       ) : (
-        <ReturnCards range={range} basket={{ key, label: `${ticker} · past ${rangeLong}` }} picks={null} benches={[{ ...NIFTY, note: "same days" }]} dense subject={ticker} />
+        <ReturnCards range={range} basket={{ key, label: `${ticker} · past ${rangeLong}` }} picks={null} benches={[{ ...NIFTY, note: "same days" }]} dense subject={ticker} ownRetry={false} />
       )}
 
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -270,7 +287,7 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
         )}
       </div>
 
-      {projOn ? <ProjectionAnalysis view={projection} heading="h3" empty={failed} single /> : <BasketAnalysis range={range} basketKey={key} heading="h3" single={ticker} />}
+      {projOn ? <ProjectionAnalysis view={projection} heading="h3" empty={failed} single /> : <BasketAnalysis range={range} basketKey={key} benchKey={NIFTY.key} heading="h3" single={ticker} />}
 
       <p className="text-[11px] leading-relaxed text-ink-soft">
         {projOn

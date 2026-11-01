@@ -5,6 +5,7 @@ import { fmtMonth, NA, signedPct } from "@/lib/format";
 import { slackDaysFor } from "@/lib/baskets/backtest";
 import { shownPct, signedPts } from "@/lib/baskets/fmt";
 import { useSeries } from "./use-series";
+import { isBenchKey } from "./series";
 
 // The return cards above a basket chart: the basket itself, the stocks picked in the chart
 // (backtested together as their own basket) and the benchmarks, each gap stated against the
@@ -35,6 +36,7 @@ export function ReturnCards({
   benches,
   dense = false,
   subject = "basket",
+  ownRetry = true,
 }: {
   range: ChartRange;
   basket: CardLine;
@@ -48,6 +50,8 @@ export function ReturnCards({
   dense?: boolean;
   /** What the first card is, in an index card's gap ("basket +4.2 pts"): a stock's ticker on its own Backtest view. */
   subject?: string;
+  /** Each card's own Retry; off where the page has one Retry for every panel (a stock's Backtest view). */
+  ownRetry?: boolean;
 }) {
   const { get: at, retry } = useSeries([basket.key, picks?.key, ...benches.map((b) => b.key)], range);
   const ret = (key: string) => {
@@ -91,9 +95,9 @@ export function ReturnCards({
     if (!line.key) return { value: null, loading: false, failed: false, onRetry: () => {}, note: line.note };
     const late = lateFrom(line.key);
     return {
-      value: late ? null : bench && line.key.startsWith("b:") ? benchRet(line.key) : ret(line.key),
+      value: late ? null : bench && isBenchKey(line.key) ? benchRet(line.key) : ret(line.key),
       loading: at(line.key)?.status === "loading" || !at(line.key),
-      failed: at(line.key)?.status === "error",
+      failed: ownRetry && at(line.key)?.status === "error",
       onRetry: () => retry(line.key),
       note: late ? `history only from ${fmtMonth(late)}` : line.note,
     };
