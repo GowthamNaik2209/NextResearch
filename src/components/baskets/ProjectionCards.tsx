@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { NA, signedPct } from "@/lib/format";
 import { shownPct, signedPts } from "@/lib/baskets/fmt";
-import { PROJECTION_DISCLAIMER, SCENARIO_LABEL, SIM_NOTE, type ProjectionView } from "./projection-view";
+import { PROJECTION_DISCLAIMER, SCENARIO_LABEL, SIM_NOTE, simNote, type ProjectionView } from "./projection-view";
 
 // The return cards above a basket chart with Projections on (docs/PROJECTIONS.md): the basket in
 // the chosen case, Your picks, the spread from Bear to Bull and the likely range of the simulated
@@ -26,7 +26,19 @@ export function RangeText({ lo, hi }: { lo: number; hi: number }) {
   );
 }
 
-export function ProjectionCards({ view, empty, dense = false }: { view: ProjectionView | null; empty: boolean; dense?: boolean }) {
+export function ProjectionCards({
+  view,
+  empty,
+  dense = false,
+  single,
+}: {
+  view: ProjectionView | null;
+  empty: boolean;
+  dense?: boolean;
+  /** One stock (the stock pop-up's Backtest view), named by `label`: the stock, its Bear to Bull and
+   * its chance of a loss; no picks, and no likely range (a stock's Bear and Bull are its own range). */
+  single?: { label: string };
+}) {
   const loading = !empty && !view;
   const h = view?.settings.h ?? 1;
   const caseName = view ? `${SCENARIO_LABEL[view.settings.scenario]} case` : "";
@@ -59,6 +71,43 @@ export function ProjectionCards({ view, empty, dense = false }: { view: Projecti
   const base = view?.cases.base;
   const sim = view?.simState === "ok" ? view.sim : null;
   const last = sim ? sim.lo.length - 1 : -1;
+
+  if (single) {
+    const notProjected = empty ? "couldn’t load" : !loading && view && bRet == null ? "not projected" : undefined;
+    return (
+      <section aria-label="Projection summary" className={(dense ? "grid gap-2 " : "grid max-w-3xl gap-2 sm:gap-3 ") + "grid-cols-3"}>
+        <Card
+          label={`${single.label} · ${h}Y`}
+          value={bRet != null ? signedPct(bRet) : null}
+          cls={tone(bRet)}
+          loading={loading}
+          sub={bRet == null ? undefined : h === 2 ? `${caseName} · ${signedPct(bCagr)} a year` : caseName}
+          note={notProjected}
+          strong
+          dense={dense}
+          title={`The stock's projected price change over the ${view?.period ?? "next year"} in the ${caseName || "chosen case"}, bought today and held.${quiet}`}
+        />
+        <Card
+          label="Bear to Bull"
+          value={bear != null && bull != null ? <RangeText lo={bear * 100} hi={bull * 100} /> : null}
+          loading={loading}
+          sub={base != null ? `Base ${signedPct(base * 100)}` : undefined}
+          note={loading || (bear != null && bull != null) ? undefined : empty ? "couldn’t load" : "not projected"}
+          dense={dense}
+          title={`Its 10th- and 90th-percentile outcomes at its own volatility: 8 years in 10 for a stock this volatile end between them.${quiet}`}
+        />
+        <Card
+          label="Chance of loss"
+          value={sim ? `${Math.round(sim.pLoss * 100)}%` : null}
+          loading={loading || (view?.simState === "loading" && view.basket.ret != null)}
+          sub={sim ? "simulated, around Base" : view?.simState === "none" && view.basket.ret != null ? "needs a past year of prices" : undefined}
+          note={loading || sim ? undefined : empty ? "couldn’t load" : view?.basket.ret == null ? "not projected" : undefined}
+          dense={dense}
+          title={`Share of 1,000 simulated paths that end below today's price. ${simNote("stock")}${quiet}`}
+        />
+      </section>
+    );
+  }
 
   return (
     <section aria-label="Projection summary" className={(dense ? "grid gap-2 " : "grid max-w-3xl gap-2 sm:gap-3 ") + "grid-cols-2 sm:grid-cols-4"}>

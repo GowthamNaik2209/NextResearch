@@ -32,6 +32,7 @@ export function BasketStats({
   reload = 0,
   empty = false,
   tools,
+  single = false,
 }: {
   range: ChartRange;
   basketKey: string;
@@ -47,7 +48,11 @@ export function BasketStats({
   empty?: boolean;
   /** Controls on the right of the header (the page's All stocks / Your picks). */
   tools?: ReactNode;
+  /** One stock's own prices (the stock pop-up's Backtest view): said of the stock, and without the
+   * strategy and the rebalancing cells, which a single stock doesn't have. */
+  single?: boolean;
 }) {
+  const it = single ? "stock" : "basket";
   const { get, retry } = useSeries(empty ? [] : [basketKey, BENCH.key], range, { reload });
   const b = get(basketKey);
   const n = get(BENCH.key);
@@ -79,7 +84,7 @@ export function BasketStats({
       label: "Return",
       value: signed(s?.ret),
       cls: tone(s?.ret),
-      help: "Change in the basket's value over the range.",
+      help: `Change in the ${it}'s ${single ? "price" : "value"} over the range.`,
     },
     {
       label: "CAGR",
@@ -100,7 +105,7 @@ export function BasketStats({
       // Non-breaking spaces inside each date and phrase, so a narrow cell breaks only between them.
       sub: !s ? undefined : s.ddPeak && s.ddTrough ? `${nb(day(s.ddPeak))} → ${nb(day(s.ddTrough))}${s.ddRecovered ? "" : ` · ${nb("not regained")}`}` : "no fall",
       cls: s && s.maxDd < 0 ? "text-danger" : "text-ink-soft",
-      help: "Deepest fall from a previous high, peak to trough, and whether the basket has climbed back to that high.",
+      help: `Deepest fall from a previous high, peak to trough, and whether the ${it} has climbed back to that high.`,
     },
     {
       label: "Sortino",
@@ -111,19 +116,19 @@ export function BasketStats({
     {
       label: `Beta · ${BENCH.name}`,
       value: r?.beta != null ? ratio(r.beta) : n?.status === "error" || !s ? NA : "…",
-      help: `How much the basket moves for a 1% move in the ${BENCH.name}. Above 1 swings more than the market.`,
+      help: `How much the ${it} moves for a 1% move in the ${BENCH.name}. Above 1 swings more than the market.`,
     },
     {
       label: "Up capture",
       value: pct(r?.upCapture, 0),
       sub: r && r.upCapture == null ? "needs 1Y or longer" : undefined,
-      help: `How much of the ${BENCH.name}'s rise the basket took, in the calendar months the index went up. Above 100% beats it.`,
+      help: `How much of the ${BENCH.name}'s rise the ${it} took, in the calendar months the index went up. Above 100% beats it.`,
     },
     {
       label: "Down capture",
       value: pct(r?.downCapture, 0),
       sub: r && r.downCapture == null ? "needs 1Y or longer" : undefined,
-      help: `How much of the ${BENCH.name}'s fall the basket took, in the calendar months the index went down. Below 100% loses less.`,
+      help: `How much of the ${BENCH.name}'s fall the ${it} took, in the calendar months the index went down. Below 100% loses less.`,
     },
     {
       label: "Best month",
@@ -144,15 +149,16 @@ export function BasketStats({
       value: signed(r?.benchRet),
       sub: "same dates",
       cls: tone(r?.benchRet),
-      help: `The ${BENCH.name}'s own change over the basket's dates (price index, no dividends).`,
+      help: `The ${BENCH.name}'s own change over the ${it}'s dates (price index, no dividends).`,
     },
     {
       label: "Months up",
       value: s?.months ? `${s.upMonths}/${s.months}` : NA,
       sub: !s ? undefined : s.months ? `${Math.round((s.upMonths / s.months) * 100)}% of months` : "under a month",
-      help: "Calendar months the basket ended higher than the month before, out of the months in the range.",
+      help: `Calendar months the ${it} ended higher than the month before, out of the months in the range.`,
     },
     // Always there (a "—" when not rebalanced), so the grid keeps its shape when rebalancing is switched.
+    ...(single ? [] : [
     {
       label: "Turnover",
       value: held ? NA : pct(basket?.turnover, 0),
@@ -165,6 +171,7 @@ export function BasketStats({
       sub: held ? "when rebalanced" : `${basket?.rebalances?.length ?? 0} rebalance${basket?.rebalances?.length === 1 ? "" : "s"}`,
       help: "Buys and sells across all the rebalances (the first day's purchase not counted). No costs are taken off the return: brokerage, taxes and slippage would lower it.",
     },
+    ]),
   ];
 
   return (
@@ -175,10 +182,12 @@ export function BasketStats({
           {scope ? ` · ${scope}` : ""} · <span className={compact ? "" : "sm:hidden"}>{range}</span>
           {!compact && <span className="whitespace-nowrap max-sm:hidden">{pastPeriod(range)}</span>}
           {/* The side column is narrow: the settings take their own line there rather than breaking mid-title. */}
-          <span title={`${weightingLabel(strategy)}, ${rebalanceLabel(strategy)}`} className={compact ? "block truncate text-[9px] tracking-wide" : ""}>
-            {compact ? "" : " · "}
-            {basisLabel(strategy)}
-          </span>
+          {!single && (
+            <span title={`${weightingLabel(strategy)}, ${rebalanceLabel(strategy)}`} className={compact ? "block truncate text-[9px] tracking-wide" : ""}>
+              {compact ? "" : " · "}
+              {basisLabel(strategy)}
+            </span>
+          )}
         </H>
         <div className="flex flex-none items-center gap-1.5">
         {tools}
@@ -230,7 +239,7 @@ export function BasketStats({
             </li>
           ))}
           <li>Measured on {freq} closes against the {BENCH.name} over the same dates.</li>
-          <li>Past prices only: not a forecast. Export Excel (at the top of the page) holds these figures, the holdings and the basket&rsquo;s value line, not raw prices.</li>
+          <li>{single ? "Past prices only: not a forecast. Bought on the first day and held; dividends not added back." : <>Past prices only: not a forecast. Export Excel (at the top of the page) holds these figures, the holdings and the basket&rsquo;s value line, not raw prices.</>}</li>
         </ul>
       </details>
     </section>

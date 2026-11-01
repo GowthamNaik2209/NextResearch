@@ -25,6 +25,7 @@ export function ProjectionStats({
   empty,
   scope,
   tools,
+  single = false,
 }: {
   view: ProjectionView | null;
   /** Two columns, for the basket page's side column. */
@@ -36,14 +37,18 @@ export function ProjectionStats({
   scope?: string;
   /** Controls on the right of the header (the page's All stocks / Your picks). */
   tools?: ReactNode;
+  /** One stock (the stock pop-up's Backtest view): said of the stock, its Bear and Bull are its
+   * own range (so no separate likely range), and its beta in place of the basket-only cells. */
+  single?: boolean;
 }) {
+  const it = single ? "stock" : "basket";
   const loading = !empty && !view;
   const h = view?.settings.h ?? 1;
   const b = view?.basket ?? null;
   const nothing = !!view && b?.ret == null;
   const sim = view?.simState === "ok" ? view.sim : null;
   const simWait = view?.simState === "loading";
-  const noSimTitle = "Needs the basket's prices over the past year, which couldn't be loaded.";
+  const noSimTitle = `Needs the ${it}'s prices over the past year, which couldn't be loaded.`;
   // A cell that needs the simulated paths (or the past year's volatility): "…" while that loads, "—" without it.
   const simCell = (value: (() => string) | null): { value: string; title?: string } =>
     value ? { value: value() } : simWait ? { value: LOADING } : { value: NA, title: noSimTitle };
@@ -67,8 +72,11 @@ export function ProjectionStats({
   const ddB = simCell(sim ? () => signedPct(sim.maxDdBad) : null);
   const rr = simCell(cagr != null && vol != null && vol > 0 ? () => ratio(cagr / vol) : null);
 
+  const own = single ? view?.stocks[0]?.proj : undefined;
+  const ownOk = own?.ok ? own : null;
+
   const cells: Cell[] = [
-    { label: "Projected return", value: signedPct(ret), sub: view ? `${SCENARIO_LABEL[view.settings.scenario]} case` : undefined, cls: tone(ret), help: `The basket's change in value over the ${view?.period ?? "next year"} in the chosen case, bought today and held.` },
+    { label: "Projected return", value: signedPct(ret), sub: view ? `${SCENARIO_LABEL[view.settings.scenario]} case` : undefined, cls: tone(ret), help: `The ${it}'s change in ${single ? "price" : "value"} over the ${view?.period ?? "next year"} in the chosen case, bought today and held.` },
     {
       label: "Per year",
       value: signedPct(cagr),
@@ -76,21 +84,35 @@ export function ProjectionStats({
       cls: tone(cagr),
       help: "The projected return as compound growth a year. Over a 1-year horizon it is the same figure.",
     },
-    { label: "Bear case", value: signedPct(bear), cls: tone(bear), help: "The weighted average of each stock's Bear case, its 10th-percentile outcome at its own volatility. It assumes every stock at its own low at once, so it is wider than the basket's real range: see Likely range." },
-    { label: "Bull case", value: signedPct(bull), cls: tone(bull), help: "The weighted average of each stock's Bull case, its 90th-percentile outcome at its own volatility. It assumes every stock at its own high at once, so it is wider than the basket's real range: see Likely range." },
-    {
+    single
+      ? { label: "Bear case", value: signedPct(bear), cls: tone(bear), help: "The stock's 10th-percentile outcome at its own volatility: 1 year in 10 for a stock this volatile ends lower." }
+      : { label: "Bear case", value: signedPct(bear), cls: tone(bear), help: "The weighted average of each stock's Bear case, its 10th-percentile outcome at its own volatility. It assumes every stock at its own low at once, so it is wider than the basket's real range: see Likely range." },
+    single
+      ? { label: "Bull case", value: signedPct(bull), cls: tone(bull), help: "The stock's 90th-percentile outcome at its own volatility: 1 year in 10 for a stock this volatile ends higher." }
+      : { label: "Bull case", value: signedPct(bull), cls: tone(bull), help: "The weighted average of each stock's Bull case, its 90th-percentile outcome at its own volatility. It assumes every stock at its own high at once, so it is wider than the basket's real range: see Likely range." },
+    ...(single ? [] : [{
       label: "Likely range",
       ...range,
       sub: view && view.settings.scenario !== "base" ? "8 in 10 paths · around Base" : "8 in 10 paths",
       cls: sim && last >= 0 && tone(sim.lo[last]) === tone(sim.hi[last]) ? tone(sim.lo[last]) : "text-ink",
       help: `Where 8 in 10 of 1,000 simulated paths end. ${SIM_NOTE} This is the basket-level range, since its stocks don't all move together.`,
-    },
+    }]),
     { label: "Chance of loss", ...pLoss, sub: "at the end, simulated", help: "Share of the simulated paths (around the Base case, whichever case is chosen) that end below today's value." },
     { label: "10% fall", ...pFall, sub: "chance, at some point", help: "Share of the simulated paths (around the Base case) that fall 10% or more from a high at some point." },
-    { label: "Volatility", ...volCell, sub: "past year, annualised", help: "How much the basket swung over the past year (its 1-year backtest), scaled to a year. The simulated paths swing by this much." },
+    { label: "Volatility", ...volCell, sub: "past year, annualised", help: `How much the ${it} swung over the past year${single ? "" : " (its 1-year backtest)"}, scaled to a year. The simulated paths swing by this much.` },
     { label: "Max drawdown", ...ddT, sub: "typical path", cls: sim && sim.maxDdTypical < 0 ? "text-danger" : "text-ink-soft", help: "Deepest fall from a high on the typical simulated path (the median of the paths' worst falls), around the Base case." },
     { label: "Bad drawdown", ...ddB, sub: "1 in 10 paths", cls: sim && sim.maxDdBad < 0 ? "text-danger" : "text-ink-soft", help: "Deepest fall from a high that 1 in 10 simulated paths reach or pass." },
     { label: "Return / risk", ...rr, sub: "a year ÷ volatility", help: "Projected return a year divided by the past year's volatility. Higher is better." },
+    ...(single
+      ? [
+          {
+            label: "Beta · Nifty 50",
+            value: ownOk ? ratio(ownOk.beta) : NA,
+            sub: ownOk ? (ownOk.betaSource === "default" ? "no 2Y history: taken as 1" : "2Y weekly, adjusted") : undefined,
+            help: "How much the stock moves for a 1% move in the Nifty 50, from 2 years of weekly returns pulled a third of the way to 1. It sets the market return the Base case starts from.",
+          },
+        ]
+      : [
     {
       label: "Top contributor",
       value: top?.ticker ?? NA,
@@ -103,6 +125,7 @@ export function ProjectionStats({
       sub: b ? (m ? `${m} left out` : "all projected") : undefined,
       help: "Stocks with at least 3 years of results and of trading, and a price in our last data update. A left-out stock's share is spread over the rest in proportion to their weights.",
     },
+        ]),
     { label: "Nifty 50", value: NA, sub: "not projected", help: "We have no forecast for an index, so the Nifty 50 isn't projected." },
   ];
 
@@ -139,7 +162,13 @@ export function ProjectionStats({
         </dl>
         {(empty || nothing) && (
           <div className="absolute inset-0 flex items-center justify-center bg-panel/70 px-4 text-center text-xs text-ink-soft">
-            {empty ? "Add stocks to see the projection." : "No stock in this basket has the 3 years of results and trading a projection needs, so nothing is projected."}
+            {empty
+              ? single
+                ? "The projection couldn’t load right now."
+                : "Add stocks to see the projection."
+              : single
+                ? `Not projected: ${own && !own.ok ? own.reason.replace(/^./, (c) => c.toLowerCase()) : "no figures in our last data update"}. A projection needs 3 years of results and of trading.`
+                : "No stock in this basket has the 3 years of results and trading a projection needs, so nothing is projected."}
           </div>
         )}
       </div>
@@ -157,7 +186,7 @@ export function ProjectionStats({
               <b className="font-semibold text-ink">{c.label}</b>: {c.help}
             </li>
           ))}
-          <li>Bought today at the target weights and held; rebalancing doesn&rsquo;t apply.</li>
+          <li>{single ? "Bought today and held." : <>Bought today at the target weights and held; rebalancing doesn&rsquo;t apply.</>}</li>
           <li>{PROJECTION_DISCLAIMER}</li>
         </ul>
       </details>

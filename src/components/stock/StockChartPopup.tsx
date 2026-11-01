@@ -8,12 +8,19 @@ import { PriceTag } from "./PriceTag";
 import { freshQuote, mergeStats } from "./merge";
 import { useStockData } from "./useStockData";
 import { WatchlistButton } from "@/components/sector-explorer/WatchlistButton";
+import { BackToChartButton, BacktestButton } from "./BacktestButtons";
+import { useFullView } from "./useFullView";
 import type { SectorCategory } from "@/lib/sector-content/core";
 
 // lightweight-charts loads with the pop-up, not with the Analysis page.
 const ChartView = dynamic(() => import("./ChartView").then((m) => m.ChartView), {
   ssr: false,
   loading: () => <ChartLoading />,
+});
+// The full-screen Backtest view loads only when it is opened.
+const StockBacktest = dynamic(() => import("./StockBacktest").then((m) => m.StockBacktest), {
+  ssr: false,
+  loading: () => <p className="p-6 text-sm text-ink-soft">Loading backtest…</p>,
 });
 
 /** One industry or policy in the picker: its layers (in the map's order) and listed stocks, biggest first. */
@@ -79,17 +86,19 @@ export function StockChartPopup({
       live = false;
     };
   }, [industries]);
+  // Backtest & project under the chart opens the picked stock's full-screen view; Back returns here.
+  const fv = useFullView(onClose);
 
   return (
-    <ModalShell label="Stock charts" onClose={onClose}>
+    <ModalShell label={fv.full ? "Stock backtest" : "Stock charts"} onClose={fv.close} full={fv.full}>
       {(closeRef) =>
         industries?.length ? (
-          <Picker industries={sorted(industries, order)} initialSlug={initialSlug} onSlug={onSlug} closeRef={closeRef} onClose={onClose} />
+          <Picker industries={sorted(industries, order)} initialSlug={initialSlug} onSlug={onSlug} closeRef={closeRef} onClose={fv.close} fv={fv} />
         ) : (
           <>
             <div className="flex flex-none items-center gap-3 border-b border-line bg-panel px-4 py-4 sm:px-6">
               <h2 className="min-w-0 flex-1 font-display text-base font-bold sm:text-xl">Stock charts</h2>
-              <CloseButton closeRef={closeRef} onClose={onClose} />
+              <CloseButton closeRef={closeRef} onClose={fv.close} />
             </div>
             <div className="p-4 sm:p-6">
               {failed ? (
@@ -111,12 +120,14 @@ function Picker({
   onSlug,
   closeRef,
   onClose,
+  fv,
 }: {
   industries: ChartPickerIndustry[];
   initialSlug?: string;
   onSlug?: (slug: string) => void;
   closeRef: React.RefObject<HTMLButtonElement | null>;
   onClose: () => void;
+  fv: ReturnType<typeof useFullView>;
 }) {
   const [slug, setSlug] = useState(() => (industries.some((x) => x.slug === initialSlug) ? initialSlug! : industries[0].slug));
   const [layer, setLayer] = useState(ALL);
@@ -126,6 +137,7 @@ function Picker({
   const stock = inLayer.find((s) => s.ticker === ticker) ?? inLayer[0];
   const { data } = useStockData(stock?.ticker ?? "", !!stock);
   const quote = freshQuote(data?.quote);
+  const full = fv.full && !!stock;
 
   useEffect(() => onSlug?.(ind.slug), [ind.slug, onSlug]);
 
@@ -165,16 +177,28 @@ function Picker({
   return (
     <>
       <div className="flex flex-none items-start gap-3 border-b border-line bg-panel px-4 pt-4 pb-3 sm:px-6 sm:pt-5">
+        {full && <BackToChartButton onClick={fv.exit} />}
         <div className="min-w-0 flex-1">
-          <h2 className="min-w-0 break-words font-display text-base font-bold leading-snug sm:text-xl">{stock?.name ?? ind.name}</h2>
+          {/* Full view on a phone: the scrip is the title (Back shares the row), the name under it, cut to fit. */}
+          <h2 className="min-w-0 break-words font-display text-base font-bold leading-snug sm:text-xl">
+            {full && stock ? (
+              <>
+                <span className="sm:hidden">{stock.ticker}</span>
+                <span className="max-sm:hidden">{stock.name}</span>
+              </>
+            ) : (
+              (stock?.name ?? ind.name)
+            )}
+          </h2>
           {stock && (
             <div className="mt-1 flex items-center gap-2">
               {/* The ticker never truncates; only the layer gives way to the Watch pill. */}
               <p className="flex min-w-0 text-xs text-ink-soft">
-                <span className="flex-none font-mono">
+                {full && <span className="min-w-0 truncate sm:hidden">{stock.name}</span>}
+                <span className={"flex-none font-mono" + (full ? " max-sm:hidden" : "")}>
                   {quote?.exchange ?? "NSE"}: {stock.ticker}
                 </span>
-                <span className="min-w-0 truncate">&nbsp;· {stock.layer}</span>
+                <span className={"min-w-0 truncate" + (full ? " max-sm:hidden" : "")}>&nbsp;· {stock.layer}</span>
               </p>
               <span className="flex-none">
                 <WatchlistButton key={stock.ticker} ticker={stock.ticker} name={stock.name} variant="pill" />
@@ -182,14 +206,26 @@ function Picker({
             </div>
           )}
         </div>
-        {stock && <PriceTag price={mergeStats(undefined, data).price} quote={quote} />}
+        {stock && (
+          <div className={full ? "max-sm:hidden" : undefined}>
+            <PriceTag price={mergeStats(undefined, data).price} quote={quote} />
+          </div>
+        )}
         <CloseButton closeRef={closeRef} onClose={onClose} />
       </div>
 
+      {full && stock ? (
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+          <StockBacktest key={stock.ticker} ticker={stock.ticker} name={stock.name} />
+        </div>
+      ) : (
+      <>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
-        {/* Phones: Industry on its own row, Layer and Stock side by side, so the chart starts in view. */}
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[1.4fr_1fr_1fr] sm:gap-3">
-          <label className={label + " col-span-2 sm:col-span-1"}>
+        {/* Phones: Industry with Backtest beside it, Layer and Stock side by side, so the chart starts
+            in view. Wider: one row, Backtest last (the wrapper drops out of the grid there). */}
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[1.4fr_1fr_1fr_auto] sm:gap-3">
+          <div className="col-span-2 flex min-w-0 gap-2.5 sm:contents">
+          <label className={label + " min-w-0 flex-1"}>
             Industry
             <select value={ind.slug} onChange={(e) => pickIndustry(e.target.value)} className={select}>
               {indices.length > 0 && (
@@ -219,6 +255,12 @@ function Picker({
               )}
             </select>
           </label>
+          {stock && (
+            <span className="flex sm:order-last">
+              <BacktestButton variant="bar" onClick={fv.enter} />
+            </span>
+          )}
+          </div>
           <label className={label}>
             {ind.category === "index" ? "Group" : "Layer"}
             <select value={layer} onChange={(e) => pickLayer(e.target.value)} className={select}>
@@ -268,6 +310,8 @@ function Picker({
           Industry basket analysis &rarr;
         </Link>
       </div>
+      </>
+      )}
     </>
   );
 }

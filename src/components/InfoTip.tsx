@@ -41,17 +41,20 @@ export function InfoTip({ label, children, wide = false }: { label: string; chil
       const t = e.target as Node;
       if (!box.current?.contains(t) && !btn.current?.contains(t)) setOpen(false);
     };
+    // Capture phase on window, before a pop-up's own Escape handler (ModalShell): Esc closes just
+    // this note, not the pop-up it sits in (as the watchlist sign-up prompt does).
     const esc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        e.stopPropagation();
         setOpen(false);
         btn.current?.focus();
       }
     };
     document.addEventListener("pointerdown", away);
-    document.addEventListener("keydown", esc);
+    window.addEventListener("keydown", esc, true);
     return () => {
       document.removeEventListener("pointerdown", away);
-      document.removeEventListener("keydown", esc);
+      window.removeEventListener("keydown", esc, true);
     };
   }, [open]);
 

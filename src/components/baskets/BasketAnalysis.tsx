@@ -38,6 +38,7 @@ export function BasketAnalysis({
   empty = false,
   scope,
   scopeTools,
+  single,
 }: {
   range: ChartRange;
   basketKey: string;
@@ -52,7 +53,11 @@ export function BasketAnalysis({
   scope?: string;
   /** The All / Picks switch. */
   scopeTools?: ReactNode;
+  /** One stock's own prices (the stock pop-up's Backtest view): its ticker names the line. */
+  single?: string;
 }) {
+  const it = single ? "stock" : "basket";
+  const name = single ?? (scope ? "Your picks" : "Basket");
   const [view, setView] = useState<View>("dd");
   const { get, retry } = useSeries(empty ? [] : [basketKey, benchKey], range, { reload });
   const b = get(basketKey);
@@ -78,11 +83,11 @@ export function BasketAnalysis({
       infoLabel="About the backtest analysis"
       info={
         <ul className="flex flex-col gap-1">
-          <li><b>Drawdown</b>: how far below its last high the basket was, and its 5 worst falls.</li>
+          <li><b>Drawdown</b>: how far below its last high the {it} was, and its 5 worst falls.</li>
           <li><b>Monthly</b>: each calendar month&rsquo;s return.</li>
           <li><b>Rolling 1Y</b>: the 1-year return through time.</li>
           <li><b>Capture</b>: how it moved in the Nifty&rsquo;s up and down months.</li>
-          {freq && <li>Same basket and settings as the chart, on {freq} closes.</li>}
+          {freq && <li>{single ? "Same prices as the chart" : "Same basket and settings as the chart"}, on {freq} closes.</li>}
         </ul>
       }
       tools={
@@ -118,15 +123,15 @@ export function BasketAnalysis({
           <div aria-busy className="h-[13rem] animate-pulse bg-line/40" />
         )
       ) : view === "dd" ? (
-        <DrawdownView points={points} bench={bench} benchName={benchName} name={scope ? "Your picks" : "Basket"} />
+        <DrawdownView points={points} bench={bench} benchName={benchName} name={name} />
       ) : view === "monthly" ? (
-        <MonthlyView points={points} bench={bench} benchName={benchName} />
+        <MonthlyView points={points} bench={bench} benchName={benchName} name={single ?? "basket"} />
       ) : view === "rolling" ? (
-        <RollingView points={points} bench={bench} benchName={benchName} range={range} name={scope ? "Your picks" : "Basket"} />
+        <RollingView points={points} bench={bench} benchName={benchName} range={range} name={name} />
       ) : (
-        <CaptureView points={points} bench={bench} benchName={benchName} />
+        <CaptureView points={points} bench={bench} benchName={benchName} it={it} />
       )}
-      {ready && bench.length === 0 && <p className="border-t border-line px-3 py-1 text-[10px] text-ink-soft">{benchName} could not be loaded; basket only.</p>}
+      {ready && bench.length === 0 && <p className="border-t border-line px-3 py-1 text-[10px] text-ink-soft">{benchName} could not be loaded; {it} only.</p>}
     </Panel>
   );
 }
@@ -158,7 +163,7 @@ function DrawdownView({ points, bench, benchName, name }: { points: PricePoint[]
         <LineChart dates={dates} series={series} />
       </div>
       <div className="min-w-0">
-        <SubTitle>Worst {episodes.length || ""} drawdowns</SubTitle>
+        <SubTitle>{episodes.length === 1 ? "Worst drawdown" : `Worst ${episodes.length || ""} drawdowns`}</SubTitle>
         {episodes.length === 0 ? (
           <Note>No fall from a high in this range.</Note>
         ) : (
@@ -199,7 +204,7 @@ function DrawdownView({ points, bench, benchName, name }: { points: PricePoint[]
 
 /* ---------------------------------------------------------------- Monthly */
 
-function MonthlyView({ points, bench, benchName }: { points: PricePoint[]; bench: PricePoint[]; benchName: string }) {
+function MonthlyView({ points, bench, benchName, name }: { points: PricePoint[]; bench: PricePoint[]; benchName: string; /** The line's name in a month's readout: "basket", or a stock's ticker. */ name: string }) {
   const rows = useMemo(() => monthlyMatrix(points, bench), [points, bench]);
   // The tapped month's basket and benchmark figures, shown under the grid (a phone can't hover).
   const [picked, setPicked] = useState<string | null>(null);
@@ -238,7 +243,7 @@ function MonthlyView({ points, bench, benchName }: { points: PricePoint[]; bench
                   <td key={i} className="border-l border-line/40 p-0 text-right text-ink" style={{ background: bg(v) }}>
                     {v != null &&
                       (() => {
-                        const label = `${MONTHS[i]} ${r.year}: basket ${signed(v)}${r.bench[i] != null ? ` · ${benchName} ${signed(r.bench[i]!)}` : ""}`;
+                        const label = `${MONTHS[i]} ${r.year}: ${name} ${signed(v)}${r.bench[i] != null ? ` · ${benchName} ${signed(r.bench[i]!)}` : ""}`;
                         return (
                           <button type="button" title={label} aria-label={label} aria-pressed={picked === label} onClick={() => setPicked(label)} className="block w-full px-1 py-1 text-right aria-pressed:outline aria-pressed:outline-1 aria-pressed:-outline-offset-1 aria-pressed:outline-ink pointer-coarse:min-h-9">
                             {fmt(v)}
@@ -290,7 +295,7 @@ function RollingView({ points, bench, benchName, range, name }: { points: PriceP
 
 /* ---------------------------------------------------------------- Capture */
 
-function CaptureView({ points, bench, benchName }: { points: PricePoint[]; bench: PricePoint[]; benchName: string }) {
+function CaptureView({ points, bench, benchName, it }: { points: PricePoint[]; bench: PricePoint[]; benchName: string; /** "basket" or "stock". */ it: string }) {
   const c = useMemo(() => monthlyCapture(points, bench), [points, bench]);
   if (!bench.length) return <Note>{benchName} could not be loaded, so capture can&rsquo;t be worked out.</Note>;
   if (c.months < CAPTURE_MIN_MONTHS) return <Note>Capture needs at least ten calendar months: pick 1Y or longer.</Note>;
@@ -356,7 +361,7 @@ function CaptureView({ points, bench, benchName }: { points: PricePoint[]; bench
       </dl>
       <p className="mt-1 text-[10px] leading-snug text-ink-soft">
         Calendar months, counted as in the stats grid: the part month the range starts in is left out, the month in progress is in. Beating the {benchName} means a better month than
-        it, even when both fell. Up capture above 100% means the basket rose more than the {benchName} in its up months; down capture below 100% means it fell less in its down months, and
+        it, even when both fell. Up capture above 100% means the {it} rose more than the {benchName} in its up months; down capture below 100% means it fell less in its down months, and
         below 0% that it rose in them. The stats grid shows these same two figures.
       </p>
     </div>

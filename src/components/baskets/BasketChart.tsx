@@ -99,6 +99,7 @@ export function BasketChart({
   onPickAll,
   onPickNone,
   projection = null,
+  single = false,
 }: {
   range: ChartRange;
   rangeLong: string;
@@ -126,6 +127,9 @@ export function BasketChart({
   onPickNone: () => void;
   /** Set when Projections is on: the chart runs from today instead of over the past range. */
   projection?: ChartProjection | null;
+  /** One stock's own backtest (the stock pop-up's Backtest view): its line in the basket's place,
+   * against the benchmarks it is given, with no Compare / Stocks menus. */
+  single?: boolean;
 }) {
   const { benches, compare, picks } = selection;
   const setBenches = (f: (b: string[]) => string[]) => onSelection((s) => ({ ...s, benches: f(s.benches) }));
@@ -174,7 +178,7 @@ export function BasketChart({
     };
   }, [menu]);
   const lines: Line[] = useMemo(() => {
-    const out: Line[] = [{ key: basketKey, name: basketName, note: "this basket", color: "var(--accent)", token: "--accent", width: 3, dash: "solid" }];
+    const out: Line[] = [{ key: basketKey, name: basketName, note: single ? "this stock" : "this basket", color: "var(--accent)", token: "--accent", width: 3, dash: "solid" }];
     // Projections: the basket's likely range in its place, and no unrebalanced line (a projection is held).
     if (projection?.band) {
       out.push({ key: HI, name: "Likely range, top", note: "8 in 10 simulated paths are between top and bottom", color: "var(--accent)", token: "--accent", width: 2, dash: "dot" });
@@ -196,7 +200,7 @@ export function BasketChart({
       if (slot != null) out.push({ key: `s:${st.ticker}`, name: st.name, note: st.ticker, ...stockLine(theme, slot), width: 2, stock: st.ticker });
     }
     return out;
-  }, [basketKey, basketName, held, compare, industries, strategy, indices, market, benches, stocks, picks, theme, projection]);
+  }, [basketKey, basketName, single, held, compare, industries, strategy, indices, market, benches, stocks, picks, theme, projection]);
 
   // Projections draw from the page's figures: nothing to load.
   const { get: loadOf, retry } = useSeries(projection ? [] : lines.map((l) => l.key), range);
@@ -242,10 +246,14 @@ export function BasketChart({
       const home = dates.length > 1 && list.length ? { from: 0, to: dates.length - 1 } : null;
       return { start: dates[0] ?? null, end: dates[dates.length - 1] ?? null, list, home, step: "1wk" as const, short: new Map<string, string>() };
     }
-    const ok = lines.flatMap((l) => {
+    const loaded = lines.flatMap((l) => {
       const ld = loadOf(l.key);
       return ld?.status === "ok" && ld.data.points.length > 1 ? [{ line: l, points: ld.data.points }] : [];
     });
+    // A single stock listed during the range: every line starts on its first day, so the Nifty 50
+    // is measured over the same days (as its return card is) rather than from the range's start.
+    const from = single ? loaded.find((s) => s.line.key === basketKey)?.points[0].t : undefined;
+    const ok = from ? loaded.map((s) => ({ ...s, points: s.points.filter((p) => p.t >= from) })).filter((s) => s.points.length > 1) : loaded;
     const start = ok.reduce<string | null>((m, s) => (!m || s.points[0].t < m ? s.points[0].t : m), null);
     const slackDays = slackDaysFor(range);
     // One date grid for every line, so a daily line beside weekly ones can't stretch the axis.
@@ -271,7 +279,7 @@ export function BasketChart({
     const count = new Set(list.flatMap((s) => s.values.map((v) => v.time as string))).size;
     const home = count > 1 ? { from: 0, to: count - 1 } : null;
     return { start: drawnStart, end: drawnEnd, list, home, step, short: new Map(all.filter(isShort).map((s) => [s.line.key, s.late!])) };
-  }, [lines, loadOf, range, projection, projected]);
+  }, [lines, loadOf, range, projection, projected, single, basketKey]);
 
   useEffect(() => {
     const el = boxRef.current;
@@ -382,7 +390,8 @@ export function BasketChart({
   const legendHRef = useRef(legendH);
   useLayoutEffect(() => {
     const ul = legendRef.current;
-    if (!ul) return;
+    // A single stock's box fits its rows (see the list below): no spare row to keep.
+    if (!ul || single) return;
     const fit = () => {
       const items = [...ul.children] as HTMLElement[];
       const content = items.reduce((sum, el) => sum + el.offsetHeight, 0) + 2;
@@ -409,7 +418,7 @@ export function BasketChart({
     const ro = new ResizeObserver(fit);
     for (const el of ul.children) ro.observe(el);
     return () => ro.disconnect();
-  }, [lines]);
+  }, [lines, single]);
   const anyLoading = !projection && lines.some((l) => loadOf(l.key)?.status !== "ok" && loadOf(l.key)?.status !== "error");
   const etfs = indices.filter((b) => b.via && benches.includes(b.id));
   const compareCount = compare.length + [...indices, ...market].filter((b) => benches.includes(b.id)).length;
@@ -423,7 +432,7 @@ export function BasketChart({
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <div ref={menusRef} className="relative flex flex-wrap items-center gap-2">
+      <div ref={menusRef} className={single ? "hidden" : "relative flex flex-wrap items-center gap-2"}>
         <MenuButton label="Compare with" count={compareCount} open={menu === "compare"} onClick={(el) => toggleMenu("compare", el)} />
         <MenuButton label="Stocks" count={picked} open={menu === "stocks"} onClick={(el) => toggleMenu("stocks", el)} />
         {menu && (
@@ -551,7 +560,15 @@ export function BasketChart({
         <div ref={boxRef} className="h-full w-full" />
         {series.list.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-ink-soft">
-            {projection ? "No stock in this basket has the 3 years of results and trading a projection needs, so nothing is projected." : anyLoading ? "Backtesting the basket…" : "Couldn’t load price history right now."}
+            {projection
+              ? single
+                ? "This stock doesn’t have the 3 years of results and trading a projection needs, so it isn’t projected."
+                : "No stock in this basket has the 3 years of results and trading a projection needs, so nothing is projected."
+              : anyLoading
+                ? single
+                  ? "Loading prices…"
+                  : "Backtesting the basket…"
+                : "Couldn’t load price history right now."}
           </div>
         )}
       </div>
@@ -563,7 +580,8 @@ export function BasketChart({
           {anyLoading && series.list.length > 0 && <span className="normal-case tracking-normal">Loading…</span>}
         </div>
         {/* Sized to its rows plus one, only ever growing (see legendH), so switching lines on or off rarely moves what is below. */}
-        <ul ref={legendRef} style={{ height: legendH }} className="divide-y divide-line overflow-y-auto overscroll-contain rounded-xl border border-line bg-bg/60">
+        {/* A single stock's lines are fixed (its own, the Nifty 50, the projection's range): the box fits them exactly. */}
+        <ul ref={legendRef} style={{ height: single ? undefined : legendH }} className="divide-y divide-line overflow-y-auto overscroll-contain rounded-xl border border-line bg-bg/60">
           {rows.map(({ line, value, late, short, load, why }) => {
             const failed = !projection && load?.status === "error";
             const sub = [line.note, why, short && late ? `history from ${fmtMonth(late)}, pick a shorter range` : late ? `data from ${fmtMonth(late)}` : null, failed ? "no price data available" : null]
@@ -622,7 +640,7 @@ export function BasketChart({
       <p className="text-[11px] leading-relaxed text-ink-soft">
         {projection ? (
           <>
-            Weekly steps from the last close, every line from 0% today; each stock grows smoothly to its projected return. The likely range is from 1,000 simulated paths around the Base case, whichever case is chosen, that swing like the basket did over the past year. Indices aren&rsquo;t projected. Model projection from market pricing, past prices and reported financials, not a forecast or a recommendation.
+            Weekly steps from the last close, every line from 0% today; {single ? "the stock grows" : "each stock grows"} smoothly to its projected return. The likely range is from 1,000 simulated paths around the Base case, whichever case is chosen, that swing like the {single ? "stock" : "basket"} did over the past year. Indices aren&rsquo;t projected. Model projection from market pricing, past prices and reported financials, not a forecast or a recommendation.
           </>
         ) : (
           <>

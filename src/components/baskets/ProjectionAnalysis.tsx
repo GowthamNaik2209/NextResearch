@@ -7,7 +7,7 @@ import { fmtDay, NA, pct, signedPct } from "@/lib/format";
 import { GROWTH_FADE, IC, LONG_RUN_GROWTH, MARKET, SCENARIOS, VOL_FLOOR, type Scenario, type StockProjection } from "@/lib/baskets/projection";
 import { stockPath } from "@/lib/baskets/projection-basket";
 import { MINI_SEG, Panel, miniSegBtn } from "./Panel";
-import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, SIM_NOTE, type ProjectionView } from "./projection-view";
+import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, simNote, type ProjectionView } from "./projection-view";
 
 // Projection analysis, in the backtest analysis' place with Projections on (docs/PROJECTIONS.md):
 // how far the simulated paths fall from a high, the chosen case beside the other cases and the
@@ -33,6 +33,7 @@ export function ProjectionAnalysis({
   empty,
   scope,
   scopeTools,
+  single = false,
 }: {
   view: ProjectionView | null;
   heading: "h2" | "h3";
@@ -41,7 +42,10 @@ export function ProjectionAnalysis({
   scope?: string;
   /** The All / Picks switch. */
   scopeTools?: ReactNode;
+  /** One stock (the stock pop-up's Backtest view): said of the stock. */
+  single?: boolean;
 }) {
+  const it = single ? "stock" : "basket";
   const [view, setView] = useState<View>("dd");
   const h = data?.settings.h ?? 1;
   const nothing = !!data && data.basket.ret == null;
@@ -80,35 +84,35 @@ export function ProjectionAnalysis({
       }
     >
       {empty || nothing ? (
-        <div className="flex h-[13rem] items-center justify-center px-4 text-center text-xs text-ink-soft">{empty ? "Add stocks to see the projection analysis." : NOTHING}</div>
+        <div className="flex h-[13rem] items-center justify-center px-4 text-center text-xs text-ink-soft">{empty ? (single ? "The projection couldn’t load right now." : "Add stocks to see the projection analysis.") : single ? "This stock doesn’t have the 3 years of results and trading a projection needs, so it isn’t projected." : NOTHING}</div>
       ) : !data ? (
         <div aria-busy className="h-[13rem] animate-pulse bg-line/40" />
       ) : view === "dd" ? (
-        <DrawdownView view={data} />
+        <DrawdownView view={data} it={it} />
       ) : view === "paths" ? (
-        <PathsView view={data} />
+        <PathsView view={data} it={it} />
       ) : (
-        <AssumptionsView view={data} />
+        <AssumptionsView view={data} single={single} />
       )}
     </Panel>
   );
 }
 
 /** The simulated paths' state when they aren't ready: a pulse while the past year loads, else why not. */
-function SimPending({ view }: { view: ProjectionView }) {
+function SimPending({ view, it }: { view: ProjectionView; it: string }) {
   if (view.simState === "loading") return <div aria-busy className="h-[13rem] animate-pulse bg-line/40" />;
   return (
     <div className="flex h-[13rem] items-center justify-center px-4 text-center text-xs text-ink-soft">
-      The simulated paths need the basket&rsquo;s prices over the past year, which couldn&rsquo;t be loaded. The projection itself still shows.
+      The simulated paths need the {it}&rsquo;s prices over the past year, which couldn&rsquo;t be loaded. The projection itself still shows.
     </div>
   );
 }
 
 /* ---------------------------------------------------------------- Drawdown */
 
-function DrawdownView({ view }: { view: ProjectionView }) {
+function DrawdownView({ view, it }: { view: ProjectionView; it: string }) {
   const sim = view.simState === "ok" ? view.sim : null;
-  if (!sim) return <SimPending view={view} />;
+  if (!sim) return <SimPending view={view} it={it} />;
   const series: Line[] = [
     { name: "Typical path", color: "var(--danger)", area: true, values: sim.ddTypical },
     { name: "Bad path (1 in 10)", color: "var(--danger)", dash: true, values: sim.ddBad },
@@ -117,7 +121,7 @@ function DrawdownView({ view }: { view: ProjectionView }) {
     { label: "Typical max drawdown", value: signed(sim.maxDdTypical), cls: sim.maxDdTypical < 0 ? "text-danger" : "text-ink-soft", title: "The median of the simulated paths' worst falls from a high." },
     { label: "Bad case (1 in 10)", value: signed(sim.maxDdBad), cls: sim.maxDdBad < 0 ? "text-danger" : "text-ink-soft", title: "1 in 10 simulated paths fall this far from a high, or further." },
     { label: "Chance of a 10% fall", value: pct(sim.pFall10 * 100, 0), cls: "text-ink", title: "Share of the simulated paths that fall 10% or more from a high at some point." },
-    { label: "Volatility used", value: view.vol != null ? pct(view.vol * 100) : NA, cls: "text-ink", title: "The basket's swings over the past year, annualised." },
+    { label: "Volatility used", value: view.vol != null ? pct(view.vol * 100) : NA, cls: "text-ink", title: `The ${it}'s swings over the past year, annualised.` },
   ];
   return (
     <div className="grid lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -145,7 +149,7 @@ function DrawdownView({ view }: { view: ProjectionView }) {
             </tbody>
           </table>
         </div>
-        <p className="px-3 py-1.5 text-[10px] leading-snug text-ink-soft">{SIM_NOTE} The chart shows each week&rsquo;s fall below the high so far; the table, the deepest fall over the whole year, so the two can differ.</p>
+        <p className="px-3 py-1.5 text-[10px] leading-snug text-ink-soft">{simNote(it === "stock" ? "stock" : "basket")} The chart shows each week&rsquo;s fall below the high so far; the table, the deepest fall over the whole year, so the two can differ.</p>
       </div>
     </div>
   );
@@ -153,7 +157,7 @@ function DrawdownView({ view }: { view: ProjectionView }) {
 
 /* ---------------------------------------------------------------- Paths */
 
-function PathsView({ view }: { view: ProjectionView }) {
+function PathsView({ view, it }: { view: ProjectionView; it: string }) {
   const series = useMemo(() => {
     const steps = view.dates.length - 1;
     const chosen = view.settings.scenario;
@@ -175,7 +179,7 @@ function PathsView({ view }: { view: ProjectionView }) {
       <LineChart dates={view.dates} series={series} dateLabel={week} />
       {view.simState !== "ok" && (
         <p className="border-t border-line px-3 py-1 text-[10px] text-ink-soft">
-          {view.simState === "loading" ? "The likely range is on its way." : "The likely range needs the basket’s prices over the past year, which couldn’t be loaded."}
+          {view.simState === "loading" ? "The likely range is on its way." : `The likely range needs the ${it}’s prices over the past year, which couldn’t be loaded.`}
         </p>
       )}
     </div>
@@ -192,14 +196,14 @@ const Note = ({ children, title }: { children: ReactNode; title?: string }) => (
   </span>
 );
 
-function AssumptionsView({ view }: { view: ProjectionView }) {
+function AssumptionsView({ view, single }: { view: ProjectionView; single: boolean }) {
   const { h } = view.settings;
   const cols = 7;
   const rf = pct(MARKET.rf * 100, 2);
   const erp = pct(MARKET.erp * 100, 2);
   return (
     <div>
-      <SubTitle>Each stock&rsquo;s assumptions · next {HORIZON_LONG[h]} · bear / base / bull</SubTitle>
+      <SubTitle>{single ? "Assumptions" : <>Each stock&rsquo;s assumptions</>} · next {HORIZON_LONG[h]} · bear / base / bull</SubTitle>
       {/* Wide on a phone: the table scrolls inside its own box, never the page. */}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[46rem] text-[11px]">
@@ -239,7 +243,7 @@ function AssumptionsView({ view }: { view: ProjectionView }) {
         </li>
         <li>
           <b className="font-semibold text-ink">Base</b> = market return + tilt (2 years: the market return compounded, the tilt once). <b className="font-semibold text-ink">Bear / Bull</b>: the 10th and 90th
-          percentile of a year at the stock&rsquo;s own volatility, (1 + Base) × e<sup>−σ²h/2 ∓ 1.28σ√h</sup> − 1; 2 years is √2 wider. Base mostly reflects beta, so it isn&rsquo;t a ranking of the stocks.
+          percentile of a year at the stock&rsquo;s own volatility, (1 + Base) × e<sup>−σ²h/2 ∓ 1.28σ√h</sup> − 1; 2 years is √2 wider. Base mostly reflects beta{single ? ", so it isn’t a signal to buy or sell." : <>, so it isn&rsquo;t a ranking of the stocks.</>}
         </li>
         <li>{PROJECTION_DISCLAIMER} <Link href="/baskets/projections" className="font-semibold text-accent underline">Full method, with a worked example</Link>.</li>
       </ul>

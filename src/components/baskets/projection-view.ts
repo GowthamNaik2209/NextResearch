@@ -13,8 +13,9 @@ export const HORIZON_LONG: Record<Horizon, string> = { 1: "1 year", 2: "2 years"
  * Base case: they describe the basket's risk, while Bear and Bull are already its two extremes, so a
  * simulation around Bear would stack a bad year on a bad year.
  */
-export const SIM_NOTE =
-  "The likely range, drawdowns and chances of a loss or a fall always come from 1,000 simulated weekly paths around the Base case, whichever case is chosen: paths averaging the Base return (the typical one ends a little below it) and swinging like the basket did over the past year. They describe the basket's risk; Bear and Bull are its two extreme cases.";
+export const simNote = (it: "basket" | "stock") =>
+  `The likely range, drawdowns and chances of a loss or a fall always come from 1,000 simulated weekly paths around the Base case, whichever case is chosen: paths averaging the Base return (the typical one ends a little below it) and swinging like the ${it} did over the past year. They describe the ${it}'s risk; Bear and Bull are its two extreme cases.`;
+export const SIM_NOTE = simNote("basket");
 
 export const PROJECTION_DISCLAIMER = "Model projection from market pricing, past prices and reported financials, not a forecast or a recommendation.";
 
