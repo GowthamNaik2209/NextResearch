@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
-// The page's three sections, in page order. Short names on phones and laptops, where the full ones don't fit beside the intro.
+// The page's three sections, in page order, each on one line. Short names on phones and laptops, where the full ones don't fit beside the intro.
 const SECTIONS = [
   { id: "ideas", short: "Rule-based", full: "Rule-based baskets" },
   { id: "mine", short: "Your baskets", full: "Your baskets" },
-  { id: "industry", short: "Industry & policy", full: "Industry & policy baskets" },
+  { id: "industry", short: "Industry/Policy", full: "Industry/Policy baskets" },
 ] as const;
 type SectionId = (typeof SECTIONS)[number]["id"];
 
@@ -70,7 +70,7 @@ export function BasketsJump({ createHref }: { createHref: string }) {
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center lg:w-auto lg:flex-col lg:items-end xl:flex-row xl:items-center">
-      <nav aria-label="Jump to a section" className="grid min-w-0 flex-1 grid-cols-3 overflow-hidden rounded-md border border-line bg-bg sm:flex sm:flex-none">
+      <nav aria-label="Jump to a section" className="flex min-w-0 flex-1 overflow-hidden rounded-md border border-line bg-bg sm:flex-none">
         {SECTIONS.map((s, i) => {
           const on = s.id === current;
           return (
@@ -84,7 +84,7 @@ export function BasketsJump({ createHref }: { createHref: string }) {
                 go(s.id);
               }}
               className={
-                "flex min-h-11 min-w-0 items-center justify-center px-2 text-center text-xs leading-tight font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent sm:min-h-10 sm:px-3 sm:text-sm pointer-coarse:min-h-11 " +
+                "flex min-h-11 flex-auto items-center justify-center whitespace-nowrap px-2 text-center text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent sm:min-h-10 sm:px-3 sm:text-sm pointer-coarse:min-h-11 " +
                 (i ? "border-l border-line " : "") +
                 (on ? "bg-ink text-bg" : "text-ink-soft hover:bg-panel hover:text-ink")
               }
