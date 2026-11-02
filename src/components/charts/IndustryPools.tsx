@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { InfoTip } from "@/components/InfoTip";
 import { StockLink } from "@/components/stock/StockLink";
 import { NA, croreShort, pct } from "@/lib/format";
@@ -71,24 +71,23 @@ function scale(id: PoolMetricId, values: number[]) {
   return { tk, lo, hi, x: (v: number) => ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * 100 };
 }
 
-// A low-exposure company, when ticked in, is hatched so its share reads as an overstatement.
-const HATCH: CSSProperties = { backgroundImage: "repeating-linear-gradient(135deg, rgba(255,255,255,.28) 0 2px, transparent 2px 6px)" };
 // White on the map's mid-tone layer colours: a dark halo keeps it readable on every one of them.
 const SEG_TEXT = "overflow-hidden whitespace-nowrap text-[11px] font-bold text-white [text-shadow:0_0_2px_rgba(0,0,0,.85),0_0_4px_rgba(0,0,0,.6)]";
 
 export function IndustryPools({ pools }: { pools: Pools }) {
   const [metric, setMetric] = useState<PoolMetricId>("rev");
   const [view, setView] = useState<View>("layer");
-  const [withLow, setWithLow] = useState(false);
-  const layers = layerPools(pools, withLow);
+  // Low-exposure companies the viewer added. Not kept: every visit starts from the same default.
+  const [added, setAdded] = useState<ReadonlySet<string>>(() => new Set());
+  const layers = layerPools(pools, added);
   const [picked, setPicked] = useState<string | null>(null);
   // The picked layer, or the one with the most revenue.
   const sel =
     layers.find((l) => l.name === picked && l.all.length)?.name ??
     [...layers].sort((a, b) => (groupValue(b.counted, "rev") ?? -1) - (groupValue(a.counted, "rev") ?? -1))[0]?.name;
   const m = poolMetric(metric);
-  const nLow = pools.companies.filter((c) => c.lowExposure).length;
-  const counted = countedCompanies(pools, withLow);
+  const lowCos = pools.companies.filter((c) => c.lowExposure);
+  const counted = countedCompanies(pools, added);
   const colorOf = new Map(pools.layers.map((l) => [l.name, l.color]));
   const take = poolTakeaway(layers);
 
@@ -134,14 +133,11 @@ export function IndustryPools({ pools }: { pools: Pools }) {
               </button>
             ))}
           </div>
-          {nLow > 0 && (
+          {lowCos.length > 0 && (
             <span className="flex items-center gap-2">
-              <label htmlFor="pools-low" className="flex cursor-pointer items-center gap-2 text-xs text-ink-soft pointer-coarse:min-h-8">
-                <input id="pools-low" type="checkbox" checked={withLow} onChange={(e) => setWithLow(e.target.checked)} className="h-4 w-4 accent-[var(--accent)] pointer-coarse:h-5 pointer-coarse:w-5" />
-                Include low-exposure companies ({nLow})
-              </label>
+              <LowExposurePicker companies={lowCos} added={added} onChange={setAdded} />
               <InfoTip label="About low-exposure companies">
-                The figures are company-wide. Companies whose link to this industry the map rates low, and large groups that earn most of their money elsewhere, are left out unless ticked in.
+                The figures are company-wide. Companies whose link to this industry the map rates low, and large groups that earn most of their money elsewhere, are left out unless you add them.
               </InfoTip>
             </span>
           )}
@@ -180,10 +176,10 @@ export function IndustryPools({ pools }: { pools: Pools }) {
         <CompanyRows companies={counted} colorOf={colorOf} metric={metric} />
       )}
 
-      {sel && <LayerTable layer={layers.find((l) => l.name === sel)!} metric={metric} withLow={withLow} />}
+      {sel && <LayerTable layer={layers.find((l) => l.name === sel)!} metric={metric} />}
 
       <p className="max-w-4xl text-[11px] leading-relaxed text-ink-soft sm:text-xs">
-        Company-wide {pools.year} figures, not segment revenue: each company counts in full in its main layer here. A one-off profit year is left out of profit, margin and P/E (struck through in the table). ROCE is the layer&rsquo;s median.
+        Company-wide {pools.year} figures, not segment revenue: each company counts in full in its main layer here. A one-off profit year is left out of profit, margin and P/E. ROCE is the layer&rsquo;s median.
       </p>
     </div>
   );
@@ -200,11 +196,11 @@ function ShareBars({ layers, view, active, sel, onPick }: { layers: LayerPool[];
   const rows = bars.map(([id, label]) => {
     const segs =
       view === "layer"
-        ? shares(layers, (l) => groupValue(l.counted, id)).map(({ item: l, value, share }) => ({ key: l.name, layer: l.name, color: l.color, label: l.name, value, share, low: false }))
+        ? shares(layers, (l) => groupValue(l.counted, id)).map(({ item: l, value, share }) => ({ key: l.name, layer: l.name, color: l.color, label: l.name, value, share }))
         : shares(
             layers.flatMap((l) => [...l.counted].sort((a, b) => (companyValue(b, id) ?? 0) - (companyValue(a, id) ?? 0)).map((c) => ({ c, l }))),
             ({ c }) => companyValue(c, id),
-          ).map(({ item: { c, l }, value, share }) => ({ key: c.ticker, layer: l.name, color: l.color, label: c.ticker, value, share, low: !!c.lowExposure }));
+          ).map(({ item: { c, l }, value, share }) => ({ key: c.ticker, layer: l.name, color: l.color, label: c.ticker, value, share }));
     if (id === "np") for (const s of segs) if (s.value != null && s.value < 0) losses.push(`${s.label} ${croreShort(s.value)}`);
     // What the shares are of: the bar's own slices (a loss has none, and is named under the bar).
     const total = segs.reduce((t, s) => t + (s.share != null ? s.value! : 0), 0);
@@ -231,7 +227,7 @@ function ShareBars({ layers, view, active, sel, onPick }: { layers: LayerPool[];
                     title={`${s.label}: ${pct(s.share * 100, 1)}`}
                     aria-label={`${s.label}, ${pct(s.share * 100, 1)} of ${r.label.toLowerCase()}`}
                     className={"flex min-w-[3px] items-center justify-center transition-opacity " + SEG_TEXT + (sel === s.layer ? " shadow-[inset_0_0_0_2px_var(--ink)]" : "")}
-                    style={{ flex: `${s.share} 1 0`, backgroundColor: s.color, ...(s.low ? HATCH : {}) }}
+                    style={{ flex: `${s.share} 1 0`, backgroundColor: s.color }}
                   >
                     {/* Labels only where they fit; the narrow ones carry them in their title. */}
                     <span className={view === "company" ? "hidden sm:inline" : ""}>{s.share >= (view === "company" ? 0.1 : 0.07) ? (view === "company" ? `${s.label} ` : "") : ""}</span>
@@ -352,7 +348,7 @@ function LayerRows({ layers, metric, sel, onPick }: { layers: LayerPool[]; metri
             <span data-track className={TRACK}>
               <Grid tk={tk} x={x} />
               {!l.counted.length ? (
-                <span className="absolute left-2 top-1 text-[11px] text-ink-soft">Only low-exposure companies</span>
+                <span className="absolute left-2 top-1 text-[11px] text-ink-soft">Only low-exposure companies: add them above</span>
               ) : m.kind === "pool" ? (
                 [...items]
                   .sort((a, b) => b.v - a.v)
@@ -366,7 +362,7 @@ function LayerRows({ layers, metric, sel, onPick }: { layers: LayerPool[]; metri
                         key={c.ticker}
                         title={`${c.name}: ${croreShort(v)}`}
                         className={"absolute inset-y-[3px] flex items-center rounded-sm pl-1 font-mono shadow-[inset_-1px_0_0_var(--bg)] " + SEG_TEXT + " text-[10px]"}
-                        style={{ left: `${x(from)}%`, width: `${w}%`, backgroundColor: v < 0 ? "var(--danger)" : l.color, ...(c.lowExposure ? HATCH : {}) }}
+                        style={{ left: `${x(from)}%`, width: `${w}%`, backgroundColor: v < 0 ? "var(--danger)" : l.color }}
                       >
                         {fits(w, c.ticker) ? c.ticker : ""}
                       </span>
@@ -444,7 +440,7 @@ function CompanyRows({ companies, colorOf, metric }: { companies: PoolCompany[];
             <span className={TRACK}>
               <Grid tk={tk} x={x} />
               {v != null && (
-                <span className="absolute inset-y-[3px] rounded-sm" style={{ left: `${a}%`, width: `${Math.max(b - a, 0.4)}%`, backgroundColor: v < 0 ? "var(--danger)" : color, ...(c.lowExposure ? HATCH : {}) }} />
+                <span className="absolute inset-y-[3px] rounded-sm" style={{ left: `${a}%`, width: `${Math.max(b - a, 0.4)}%`, backgroundColor: v < 0 ? "var(--danger)" : color }} />
               )}
             </span>
             <span className="text-right text-xs font-semibold whitespace-nowrap text-ink tabular-nums sm:text-[13px]">
@@ -474,8 +470,7 @@ function CompanyRows({ companies, colorOf, metric }: { companies: PoolCompany[];
 }
 
 /** The picked layer's companies with every figure; the chosen metric's column is marked. */
-function LayerTable({ layer, metric, withLow }: { layer: LayerPool; metric: PoolMetricId; withLow: boolean }) {
-  const PROFIT_BASED: PoolMetricId[] = ["np", "margin", "pe"];
+function LayerTable({ layer, metric }: { layer: LayerPool; metric: PoolMetricId }) {
   const cols: { id: PoolMetricId; label: string; cell: (c: PoolCompany) => string }[] = [
     { id: "rev", label: "Revenue", cell: (c) => croreShort(c.rev[1]) },
     { id: "np", label: "Net profit", cell: (c) => croreShort(c.np[1]) },
@@ -486,7 +481,8 @@ function LayerTable({ layer, metric, withLow }: { layer: LayerPool; metric: Pool
     { id: "roce", label: "ROCE", cell: (c) => fmt("roce", c.roce) },
   ];
   const key = (c: PoolCompany) => companyValue(c, metric) ?? -Infinity;
-  const rows = [...layer.counted].sort((a, b) => key(b) - key(a)).concat(layer.all.filter((c) => c.lowExposure && !withLow));
+  // Only the companies that count: the rest are in the low-exposure list, to add from there.
+  const rows = [...layer.counted].sort((a, b) => key(b) - key(a));
   return (
     <div id="pools-companies" tabIndex={-1} className="flex scroll-mt-20 flex-col gap-2 border-t border-line pt-4 outline-none">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
@@ -498,8 +494,9 @@ function LayerTable({ layer, metric, withLow }: { layer: LayerPool; metric: Pool
           {layer.counted.length} counted · {croreShort(groupValue(layer.counted, "rev"))} revenue · {croreShort(groupValue(layer.counted, "np"))} profit
         </p>
       </div>
-      <p className="text-[11px] text-ink-soft lg:hidden">Scroll the table sideways for every column.</p>
-      <div className="-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0">
+      {!rows.length && <p className="text-xs text-ink-soft sm:text-[13px]">Only low-exposure companies here. Add them from the low-exposure list above to see them.</p>}
+      <p className={"text-[11px] text-ink-soft lg:hidden" + (rows.length ? "" : " hidden")}>Scroll the table sideways for every column.</p>
+      <div className={"-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0" + (rows.length ? "" : " hidden")}>
         <table className="w-full min-w-[640px] border-collapse text-xs tabular-nums sm:text-[13px]">
           <thead>
             <tr className="border-b border-line text-[11px] text-ink-soft">
@@ -513,34 +510,20 @@ function LayerTable({ layer, metric, withLow }: { layer: LayerPool; metric: Pool
           </thead>
           <tbody>
             {rows.map((c) => {
-              const out = c.lowExposure && !withLow;
               return (
-                <tr key={c.ticker} className={"border-b border-line " + (out ? "text-ink-soft" : "text-ink")}>
+                <tr key={c.ticker} className="border-b border-line text-ink">
                   <td className="py-1.5 pr-2">
                     <StockLink ticker={c.ticker} className="tap-y hover:text-accent">
                       {c.name}
                     </StockLink>
                     <span className="ml-1.5 font-mono text-[10px] text-ink-soft">{c.ticker}</span>
-                    {c.lowExposure && <Tag title="Earns most of its money outside this industry">{out ? "Not counted" : "Low exposure"}</Tag>}
-                    {c.oneOff && <Tag title={c.oneOff}>One-off year</Tag>}
+                    {c.oneOff && <Tag title={`${c.oneOff}: its profit is left out of the pools`}>One-off year</Tag>}
                   </td>
-                  {cols.map((col) => {
-                    // A one-off year's profit is shown for reference but greyed: it isn't in the pools.
-                    const left = !!c.oneOff && PROFIT_BASED.includes(col.id);
-                    return (
-                      <td
-                        key={col.id}
-                        title={left ? "One-off year: left out of the pools" : undefined}
-                        className={
-                          "px-2 py-1.5 text-right whitespace-nowrap " +
-                          (col.id === metric ? "bg-panel-2 font-semibold" : "") +
-                          (left ? " text-ink-soft line-through decoration-ink-soft/50" : col.id === "np" && (c.np[1] ?? 0) < 0 ? " text-danger" : "")
-                        }
-                      >
-                        {col.cell(c)}
-                      </td>
-                    );
-                  })}
+                  {cols.map((col) => (
+                    <td key={col.id} className={"px-2 py-1.5 text-right whitespace-nowrap " + (col.id === metric ? "bg-panel-2 font-semibold" : "") + (col.id === "np" && (c.np[1] ?? 0) < 0 ? " text-danger" : "")}>
+                      {col.cell(c)}
+                    </td>
+                  ))}
                 </tr>
               );
             })}
@@ -556,5 +539,89 @@ function Tag({ title, children }: { title: string; children: string }) {
     <span title={title} className="ml-1.5 inline-block rounded border border-line px-1 align-[1px] text-[9px] font-semibold uppercase tracking-wide text-amber-ink">
       {children}
     </span>
+  );
+}
+
+/**
+ * "Low-exposure: 2 of 4 added": a checklist of the industry's low-exposure companies, each with its
+ * layer, revenue and why it is left out by default; ticking one counts it in the pools. Closes on a
+ * tap outside or Escape.
+ */
+function LowExposurePicker({ companies, added, onChange }: { companies: PoolCompany[]; added: ReadonlySet<string>; onChange: (s: ReadonlySet<string>) => void }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("pointerdown", away);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
+  const n = companies.filter((c) => added.has(c.ticker)).length;
+  const toggle = (t: string) => {
+    const next = new Set(added);
+    if (next.has(t)) next.delete(t);
+    else next.add(t);
+    onChange(next);
+  };
+  // Biggest first: the ones that move the pools most.
+  const sorted = [...companies].sort((a, b) => (b.rev[1] ?? -1) - (a.rev[1] ?? -1));
+  const small = "min-h-7 rounded border border-accent px-2 text-[11px] font-semibold text-ink hover:bg-accent/10 disabled:border-line disabled:text-ink-soft disabled:hover:bg-transparent pointer-coarse:min-h-9";
+  return (
+    <div ref={box} className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="pools-low-list"
+        onClick={() => setOpen((o) => !o)}
+        className={"flex min-h-8 items-center gap-1.5 rounded-full border border-accent px-3 text-xs font-semibold transition " + (open || n ? "bg-accent/15 text-ink" : "text-ink-soft hover:bg-accent/10 hover:text-ink")}
+      >
+        Low-exposure: {n} of {companies.length} added
+        <span aria-hidden className={"text-[10px] transition-transform " + (open ? "rotate-180" : "")}>
+          &#9662;
+        </span>
+      </button>
+      {open && (
+        <div id="pools-low-list" className="absolute right-0 z-30 mt-1.5 w-[min(24rem,calc(100vw-2rem))] rounded-lg border border-line bg-panel p-2 shadow-lg">
+          <div className="flex items-center justify-between gap-3 border-b border-line px-1.5 pb-2">
+            <span className="text-[11px] text-ink-soft">Tick to count them in the pools</span>
+            <span className="flex gap-1.5">
+              <button type="button" onClick={() => onChange(new Set([...added, ...companies.map((c) => c.ticker)]))} disabled={n === companies.length} className={small}>
+                Add all
+              </button>
+              <button type="button" onClick={() => onChange(new Set([...added].filter((t) => !companies.some((c) => c.ticker === t))))} disabled={n === 0} className={small}>
+                Clear
+              </button>
+            </span>
+          </div>
+          <ul className="max-h-80 overflow-y-auto overscroll-contain pt-1">
+            {sorted.map((c) => (
+              <li key={c.ticker}>
+                <label className="flex cursor-pointer items-start gap-2.5 rounded-md px-1.5 py-2 hover:bg-panel-2">
+                  <input type="checkbox" checked={added.has(c.ticker)} onChange={() => toggle(c.ticker)} className="mt-0.5 h-4 w-4 flex-none accent-[var(--accent)] pointer-coarse:h-5 pointer-coarse:w-5" />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="truncate text-xs font-semibold text-ink sm:text-[13px]">{c.name}</span>
+                      <span className="flex-none text-[11px] text-ink-soft tabular-nums">{croreShort(c.rev[1])}</span>
+                    </span>
+                    <span className="block text-[11px] leading-snug text-ink-soft">
+                      {c.layer} · {c.lowExposure}
+                    </span>
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }

@@ -10,7 +10,7 @@ import type { IndustryPools, PoolCompany } from "./pools";
 
 /**
  * A company counts as low exposure when the content rates its link to this industry as low, or as
- * medium while its company-wide revenue is at least this share of the whole industry's: a group of
+ * medium while its company-wide revenue is at least this share of the industry's (see below): a group of
  * that size earns most of its money outside the industry (Adani Enterprises in solar modules, M&M
  * in EVs), and its full revenue would swamp the layer. (Measured against the companies rated high
  * instead, it flagged nearly every supplier in industries with a small core, such as data centres.)
@@ -61,12 +61,39 @@ export function industryPools(slug: string): IndustryPools | null {
   }
   if (!companies.length) return null;
 
-  const totalRev = companies.reduce((t, c) => t + Math.max(c.rev[1] ?? 0, 0), 0);
   const extra = new Set(LOW_EXPOSURE_EXTRA[slug] ?? []);
+  const revOf = (c: { rev: PoolCompany["rev"] }) => Math.max(c.rev[1] ?? 0, 0);
+  const totalRev = companies.reduce((t, c) => t + revOf(c), 0);
+  // A conglomerate is judged against the whole industry, once: L&T is 61% of defence. A
+  // medium-rated large group is measured again after each round against the companies still
+  // counted, so one giant (Reliance in solar, ₹10L Cr) can't raise the bar so far that the next
+  // (Adani Enterprises, ₹1L Cr) slips under it. Judged that way, a conglomerate rated high
+  // (BEL across five defence industries) would be flagged as soon as L&T left, which is wrong.
+  const conglomerate = new Set(companies.filter((c) => c.industries >= LOW_EXPOSURE_MIN_INDUSTRIES && totalRev > 0 && revOf(c) >= LOW_EXPOSURE_REV_SHARE * totalRev).map((c) => c.ticker));
+  const largeGroup = new Set<string>();
+  for (let grew = true; grew; ) {
+    grew = false;
+    const total = companies.filter((c) => !conglomerate.has(c.ticker) && !largeGroup.has(c.ticker)).reduce((t, c) => t + revOf(c), 0);
+    for (const c of companies) {
+      if (c.strength !== "medium" || conglomerate.has(c.ticker) || largeGroup.has(c.ticker)) continue;
+      if (total > 0 && revOf(c) >= LOW_EXPOSURE_REV_SHARE * total) {
+        largeGroup.add(c.ticker);
+        grew = true;
+      }
+    }
+  }
   const out: PoolCompany[] = companies.map(({ strength, industries, ...c }) => {
-    const big = totalRev > 0 && (c.rev[1] ?? 0) >= LOW_EXPOSURE_REV_SHARE * totalRev;
-    const low = !isIndex && (strength === "low" || (big && (strength === "medium" || industries >= LOW_EXPOSURE_MIN_INDUSTRIES)) || extra.has(c.ticker));
-    return low ? { ...c, lowExposure: true } : c;
+    // The reason the viewer sees beside it in the add list.
+    const why = isIndex
+      ? null
+      : strength === "low"
+        ? "Rated low exposure here"
+        : conglomerate.has(c.ticker)
+          ? `Conglomerate in ${industries} industries`
+          : largeGroup.has(c.ticker) || extra.has(c.ticker)
+            ? "Large group, most revenue elsewhere"
+            : null;
+    return why ? { ...c, lowExposure: why } : c;
   });
 
   const used = new Set(out.map((c) => c.layer));
