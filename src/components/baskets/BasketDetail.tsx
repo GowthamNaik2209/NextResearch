@@ -993,7 +993,7 @@ export function BasketDetail(p: BasketDetailProps) {
     drift: "Back to the target weights once any stock drifts past the band",
   };
   const rebalanceControl = (
-    <div className={MINI_SEG} role="group" aria-label="Rebalancing">
+    <div className={MINI_SEG + (projOn ? " !border-line" : "")} role="group" aria-label="Rebalancing">
       {REBALANCE_RULES.map((r) => (
         <button
           key={r}

@@ -161,7 +161,11 @@ export function IndustryPools({ pools }: { pools: Pools }) {
       {sel && (
         <button
           type="button"
-          onClick={() => document.getElementById("pools-companies")?.scrollIntoView({ block: "start" })}
+          onClick={() => {
+            const t = document.getElementById("pools-companies");
+            t?.scrollIntoView({ block: "start" });
+            t?.focus({ preventScroll: true });
+          }}
           className="flex min-h-9 w-fit max-w-full items-center gap-2 rounded-lg border border-accent px-3 text-left text-xs font-semibold text-ink hover:bg-accent/10 sm:text-[13px]"
         >
           <span aria-hidden className="h-2.5 w-2.5 flex-none rounded-sm" style={{ backgroundColor: colorOf.get(sel) }} />
@@ -484,7 +488,7 @@ function LayerTable({ layer, metric, withLow }: { layer: LayerPool; metric: Pool
   const key = (c: PoolCompany) => companyValue(c, metric) ?? -Infinity;
   const rows = [...layer.counted].sort((a, b) => key(b) - key(a)).concat(layer.all.filter((c) => c.lowExposure && !withLow));
   return (
-    <div id="pools-companies" className="flex scroll-mt-20 flex-col gap-2 border-t border-line pt-4">
+    <div id="pools-companies" tabIndex={-1} className="flex scroll-mt-20 flex-col gap-2 border-t border-line pt-4 outline-none">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
           <span aria-hidden className="h-3 w-3 flex-none rounded-sm" style={{ backgroundColor: layer.color }} />
