@@ -21,7 +21,7 @@ export function ToneChips({ counts, active, sector, period }: { counts: Record<T
         const n = c.tone ? counts[c.tone] : null;
         const cls =
           "tap-y inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-xs font-semibold " +
-          (on ? "border-accent bg-accent text-bg" : "border-accent text-ink-soft hover:bg-accent/10 hover:text-ink");
+          (on ? "border-accent bg-accent text-bg" : "border-btn text-ink-soft hover:bg-accent/10 hover:text-ink");
         const body = (
           <>
             {c.dot && <span aria-hidden="true" className={"h-2 w-2 rounded-full " + c.dot} />}

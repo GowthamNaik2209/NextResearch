@@ -146,7 +146,7 @@ export function ReadingList({
     <>
       <div ref={blockRef} className="flex scroll-mt-20 flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-      <div role="tablist" aria-label="Report type" className="flex gap-1 self-start rounded-full border border-accent bg-panel p-1">
+      <div role="tablist" aria-label="Report type" className="flex gap-1 self-start rounded-full border border-btn bg-panel p-1">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -161,7 +161,7 @@ export function ReadingList({
         ))}
       </div>
       <div className="flex items-center gap-2">
-      <div role="tablist" aria-label="View" className="flex gap-1 rounded-full border border-accent bg-panel p-1">
+      <div role="tablist" aria-label="View" className="flex gap-1 rounded-full border border-btn bg-panel p-1">
         {VIEWS.map((v) => (
           <button
             key={v.id}

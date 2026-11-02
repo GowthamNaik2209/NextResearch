@@ -347,7 +347,7 @@ function AppearanceCard({ a, showRole, peersLabel, linkLabel, index = false }: {
                 <Link
                   key={p.name}
                   href={`/company/${p.slug}`}
-                  className="tap-y rounded-full border border-accent px-2.5 py-0.5 text-xs text-ink hover:bg-accent/10"
+                  className="tap-y rounded-full border border-btn px-2.5 py-0.5 text-xs text-ink hover:bg-accent/10"
                 >
                   {p.name}
                 </Link>

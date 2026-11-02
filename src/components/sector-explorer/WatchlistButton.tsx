@@ -337,7 +337,7 @@ function SavePrompt({ ticker, name, onClose }: { ticker: string; name?: string; 
           <Link
             href={`/login${q}`}
             onClick={() => rememberPendingSave(ticker)}
-            className="rounded-lg border border-accent bg-panel-2 px-3 py-2.5 text-center text-sm font-semibold text-ink hover:bg-accent/10"
+            className="rounded-lg border border-btn bg-panel-2 px-3 py-2.5 text-center text-sm font-semibold text-ink hover:bg-accent/10"
           >
             I already have an account
           </Link>

@@ -40,7 +40,7 @@ export function BackToChartButton({ onClick }: { onClick: () => void }) {
       type="button"
       onClick={onClick}
       aria-label="Back to chart"
-      className="flex h-10 flex-none items-center gap-1 rounded-full border border-accent bg-panel-2 pl-2 pr-3 text-sm font-semibold text-ink hover:bg-accent/10"
+      className="flex h-10 flex-none items-center gap-1 rounded-full border border-btn bg-panel-2 pl-2 pr-3 text-sm font-semibold text-ink hover:bg-accent/10"
     >
       <svg aria-hidden viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M15 18l-6-6 6-6" />

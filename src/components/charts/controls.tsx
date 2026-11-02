@@ -15,7 +15,7 @@ export function MenuButton({ label, count, open, onClick }: { label: ReactNode; 
       onClick={(e) => onClick(e.currentTarget)}
       className={
         "inline-flex min-h-10 min-w-0 max-w-full items-center gap-2 rounded-full border px-4 text-sm font-semibold transition " +
-        (open ? "border-accent bg-accent text-bg" : "border-accent bg-bg text-ink hover:bg-accent/10")
+        (open ? "border-accent bg-accent text-bg" : "border-btn bg-bg text-ink hover:bg-accent/10")
       }
     >
       {label}

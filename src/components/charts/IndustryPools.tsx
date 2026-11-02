@@ -117,14 +117,14 @@ export function IndustryPools({ pools }: { pools: Pools }) {
               type="button"
               aria-pressed={metric === x.id}
               onClick={() => setMetric(x.id)}
-              className={"min-h-8 flex-none rounded-full border px-3 text-xs transition sm:text-[13px] " + (metric === x.id ? "border-accent bg-accent font-semibold text-bg" : "border-accent text-ink-soft hover:bg-accent/10 hover:text-ink")}
+              className={"min-h-8 flex-none rounded-full border px-3 text-xs transition sm:text-[13px] " + (metric === x.id ? "border-accent bg-accent font-semibold text-bg" : "border-btn text-ink-soft hover:bg-accent/10 hover:text-ink")}
             >
               {x.label}
             </button>
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <div role="group" aria-label="Split by" className="flex flex-none gap-0.5 rounded-full border border-accent p-0.5">
+          <div role="group" aria-label="Split by" className="flex flex-none gap-0.5 rounded-full border border-btn p-0.5">
             {(["layer", "company"] as const).map((v) => (
               <button
                 key={v}
@@ -167,7 +167,7 @@ export function IndustryPools({ pools }: { pools: Pools }) {
             t?.scrollIntoView({ block: "start" });
             t?.focus({ preventScroll: true });
           }}
-          className="flex min-h-9 w-fit max-w-full items-center gap-2 rounded-lg border border-accent px-3 text-left text-xs font-semibold text-ink hover:bg-accent/10 sm:text-[13px]"
+          className="flex min-h-9 w-fit max-w-full items-center gap-2 rounded-lg border border-btn px-3 text-left text-xs font-semibold text-ink hover:bg-accent/10 sm:text-[13px]"
         >
           <span aria-hidden className="h-2.5 w-2.5 flex-none rounded-sm" style={{ backgroundColor: colorOf.get(sel) }} />
           <span className="min-w-0">Scroll down for the companies in {sel}</span>
@@ -579,7 +579,7 @@ function LowExposurePicker({ companies, added, onChange }: { companies: PoolComp
   };
   // Biggest first: the ones that move the pools most.
   const sorted = [...companies].sort((a, b) => (b.rev[1] ?? -1) - (a.rev[1] ?? -1));
-  const small = "min-h-8 rounded border border-accent px-2 text-[11px] font-semibold text-ink hover:bg-accent/10 disabled:border-line disabled:text-ink-soft disabled:hover:bg-transparent pointer-coarse:min-h-9";
+  const small = "min-h-8 rounded border border-btn px-2 text-[11px] font-semibold text-ink hover:bg-accent/10 disabled:border-line disabled:text-ink-soft disabled:hover:bg-transparent pointer-coarse:min-h-9";
   return (
     <div ref={box} className="relative">
       <button
@@ -587,7 +587,7 @@ function LowExposurePicker({ companies, added, onChange }: { companies: PoolComp
         aria-expanded={open}
         aria-controls="pools-low-list"
         onClick={() => setOpen((o) => !o)}
-        className={"flex min-h-8 items-center gap-1.5 rounded-full border border-accent px-3 text-xs font-semibold transition " + (open || n ? "bg-accent/15 text-ink" : "text-ink-soft hover:bg-accent/10 hover:text-ink")}
+        className={"flex min-h-8 items-center gap-1.5 rounded-full border border-btn px-3 text-xs font-semibold transition " + (open || n ? "bg-accent/15 text-ink" : "text-ink-soft hover:bg-accent/10 hover:text-ink")}
       >
         Low-exposure: {n} of {companies.length} added
         <span aria-hidden className={"text-[10px] transition-transform " + (open ? "rotate-180" : "")}>

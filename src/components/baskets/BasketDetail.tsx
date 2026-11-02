@@ -962,7 +962,7 @@ export function BasketDetail(p: BasketDetailProps) {
     "min-h-9 border-r border-line px-2 font-mono text-[11px] font-semibold last:border-r-0 sm:min-h-7 sm:px-2.5 pointer-coarse:min-h-9 pointer-coarse:min-w-9 " + (on ? "bg-ink text-bg" : "text-ink-soft hover:text-ink");
   const btn = "inline-flex min-h-9 items-center justify-center rounded border px-3 text-xs font-semibold disabled:opacity-40 sm:min-h-8 pointer-coarse:min-h-9";
   const btnPri = btn + " border-accent bg-accent text-bg hover:opacity-90";
-  const btnSec = btn + " border-accent bg-bg text-ink hover:bg-accent/10";
+  const btnSec = btn + " border-btn bg-bg text-ink hover:bg-accent/10";
   const ctlLabel = "text-[10px] font-semibold uppercase tracking-wider text-ink-soft";
   // Headings under the basket's name: h2 on its own page, h3 where the basket is itself an h2.
   const heading = Title === "h2" ? "h3" : "h2";
@@ -1070,7 +1070,7 @@ export function BasketDetail(p: BasketDetailProps) {
       title={!stocks.length ? "Add stocks to see a projection" : projOn ? "Back to the backtest" : "Project the basket 1 or 2 years ahead from today"}
       className={
         "inline-flex flex-none items-center gap-1.5 rounded border px-2 font-sans text-[11px] font-semibold min-h-9 sm:min-h-7 pointer-coarse:min-h-9 disabled:opacity-40 " +
-        (projOn ? "border-accent bg-accent/15 text-ink" : "border-accent bg-bg text-ink-soft hover:bg-accent/10 hover:text-ink")
+        (projOn ? "border-accent bg-accent/15 text-ink" : "border-btn bg-bg text-ink-soft hover:bg-accent/10 hover:text-ink")
       }
     >
       <span aria-hidden className={"relative inline-block h-3.5 w-6 flex-none rounded-full transition-colors " + (projOn ? "bg-accent" : "bg-line")}>
@@ -1359,7 +1359,7 @@ export function BasketDetail(p: BasketDetailProps) {
     </span>
   );
   const stripBtn =
-    "inline-flex min-h-9 items-center rounded border border-accent bg-bg px-2 text-[11px] font-semibold text-ink hover:bg-accent/10 disabled:cursor-default disabled:border-line disabled:text-ink-soft disabled:hover:bg-transparent sm:min-h-6 pointer-coarse:min-h-9";
+    "inline-flex min-h-9 items-center rounded border border-btn bg-bg px-2 text-[11px] font-semibold text-ink hover:bg-accent/10 disabled:cursor-default disabled:border-line disabled:text-ink-soft disabled:hover:bg-transparent sm:min-h-6 pointer-coarse:min-h-9";
   // The strip over the stock list: chart lines (Select all, Clear all) or, when Custom, the weights'
   // total and its Resets. Always laid out at one height (three rows on phones, two from sm), so
   // switching the weighting or a message coming never moves the list or the panels below.
@@ -2289,7 +2289,7 @@ function RemoveButton({
       title={title}
       className={
         (small ? "h-7 w-7 pointer-coarse:h-9 pointer-coarse:w-9" : "tap-target h-9 w-9") +
-        " flex flex-none items-center justify-center rounded border border-accent text-ink-soft hover:border-danger hover:text-danger disabled:opacity-40 disabled:border-line disabled:hover:text-ink-soft"
+        " flex flex-none items-center justify-center rounded border border-btn text-ink-soft hover:border-danger hover:text-danger disabled:opacity-40 disabled:border-line disabled:hover:text-ink-soft"
       }
     >
       <svg aria-hidden width="10" height="10" viewBox="0 0 12 12">
@@ -2375,7 +2375,7 @@ function MoreMenu({ items }: { items: { label: string; onSelect: () => void; dan
   }, [open]);
   return (
     <div ref={ref} className="relative flex-none">
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label="More basket actions" className="flex h-9 w-9 items-center justify-center rounded-full border border-accent text-ink-soft hover:bg-accent/10 hover:text-ink">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label="More basket actions" className="flex h-9 w-9 items-center justify-center rounded-full border border-btn text-ink-soft hover:bg-accent/10 hover:text-ink">
         <svg aria-hidden width="14" height="4" viewBox="0 0 14 4">
           <circle cx="2" cy="2" r="1.5" fill="currentColor" />
           <circle cx="7" cy="2" r="1.5" fill="currentColor" />

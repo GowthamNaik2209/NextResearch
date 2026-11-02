@@ -85,7 +85,7 @@ export default async function SignupPage({
           <input type="hidden" name="next" value={next} />
           <button
             type="submit"
-            className="w-full rounded-lg border border-accent bg-panel-2 px-3 py-2 text-sm font-semibold text-ink hover:bg-accent/10"
+            className="w-full rounded-lg border border-btn bg-panel-2 px-3 py-2 text-sm font-semibold text-ink hover:bg-accent/10"
           >
             Continue with Google
           </button>

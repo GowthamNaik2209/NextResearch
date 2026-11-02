@@ -29,7 +29,7 @@ export function ExtLink({ href, children }: { href: string; children: React.Reac
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center justify-between gap-2 rounded-lg border border-accent bg-panel-2 px-3 py-2 text-xs text-ink transition-colors hover:bg-accent/10 pointer-coarse:min-h-9"
+      className="flex items-center justify-between gap-2 rounded-lg border border-btn bg-panel-2 px-3 py-2 text-xs text-ink transition-colors hover:bg-accent/10 pointer-coarse:min-h-9"
     >
       <span>{children}</span>
       <span className="font-mono text-accent">&rarr;</span>

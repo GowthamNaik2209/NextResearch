@@ -51,7 +51,7 @@ export function StakeTable({ rows, where, compact }: { rows: StakeRow[]; where?:
             type="button"
             aria-pressed={who === w}
             onClick={() => setWho(w)}
-            className={"tap-y inline-flex h-8 items-center whitespace-nowrap rounded-full border px-3 text-xs font-semibold " + (who === w ? "border-accent bg-accent text-bg" : "border-accent text-ink-soft hover:bg-accent/10 hover:text-ink")}
+            className={"tap-y inline-flex h-8 items-center whitespace-nowrap rounded-full border px-3 text-xs font-semibold " + (who === w ? "border-accent bg-accent text-bg" : "border-btn text-ink-soft hover:bg-accent/10 hover:text-ink")}
           >
             {w.toUpperCase()} holdings
           </button>

@@ -72,7 +72,7 @@ export function WatchlistRow({
             onClick={restore}
             disabled={undo === "saving"}
             aria-label={`Undo: put ${name} back on your watchlist`}
-            className="min-h-9 flex-none rounded-lg border border-accent px-3 text-xs font-semibold text-ink hover:bg-accent/10 disabled:opacity-50"
+            className="min-h-9 flex-none rounded-lg border border-btn px-3 text-xs font-semibold text-ink hover:bg-accent/10 disabled:opacity-50"
           >
             Undo
           </button>
