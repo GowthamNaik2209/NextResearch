@@ -94,7 +94,8 @@ function copyNow(text: string): Promise<boolean> {
 /** sessionStorage key prefix: a new basket's chart comparisons, handed from Create basket to its page. */
 const CHART_HANDOFF = "nr-basket-chart:";
 // Only the market beside the basket; indices and other baskets are a "Compare with" pick on the chart.
-const NIFTY_ONLY = [{ key: "b:nifty50", label: "Nifty 50" }];
+// The stored Nifty 50 (price store first): the series every basket's backtest window is set by.
+const NIFTY_ONLY = [{ key: "B:nifty50", label: "Nifty 50" }];
 const stocksWord = (n: number) => `${n} stock${n === 1 ? "" : "s"}`;
 /** Why a P/E shows "—": the company table has none for it. */
 const NO_PE = "No P/E in our last data update: a loss over the latest twelve months, or none reported";
@@ -457,8 +458,8 @@ export function BasketDetail(p: BasketDetailProps) {
     const why: Record<string, string> = {};
     for (const st of stocks) {
       const r = caseReturn(st.proj, h, scenario);
-      if (r != null) values[`s:${st.ticker}`] = stockPath(r, steps);
-      else why[`s:${st.ticker}`] = `left out: ${(st.proj && !st.proj.ok ? st.proj.reason : "no figures in our last data update").replace(/^./, (c) => c.toLowerCase())}`;
+      if (r != null) values[`S:${st.ticker}`] = stockPath(r, steps);
+      else why[`S:${st.ticker}`] = `left out: ${(st.proj && !st.proj.ok ? st.proj.reason : "no figures in our last data update").replace(/^./, (c) => c.toLowerCase())}`;
     }
     return {
       label: projection.period,
@@ -845,7 +846,7 @@ export function BasketDetail(p: BasketDetailProps) {
     if (!stocks.length || exporting) return;
     setExporting(true);
     try {
-      const [bt, nifty, past] = await Promise.all([loadSeries(basketKey, range), loadSeries("b:nifty50", range), loadSeries(basketKey, "1Y")]);
+      const [bt, nifty, past] = await Promise.all([loadSeries(basketKey, range), loadSeries("B:nifty50", range), loadSeries(basketKey, "1Y")]);
       const data = bt.status === "ok" ? bt.data : null;
       const bench = nifty.status === "ok" ? nifty.data.points : null;
       const shares = schemeShares(stocks, weighting, strategy.weights);

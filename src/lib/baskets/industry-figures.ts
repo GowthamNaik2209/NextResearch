@@ -10,7 +10,8 @@ import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listIndustryBaskets } from "./industry";
 import { backtestBasket, pricesPending } from "./run";
 import { heldStrategy } from "./strategy";
-import { basketFigures, seriesStats, type BasketFigures } from "./stats";
+import { benchPeriodRet, periodFigures } from "./periods";
+import type { BasketFigures } from "./stats";
 import type { PricePoint } from "./backtest";
 
 const RANGE = "1Y" as const;
@@ -27,7 +28,7 @@ const REVALIDATE_SECONDS = 3_600;
 export type IndustryFigures = {
   /** By industry slug. */
   figs: Record<string, BasketFigures>;
-  /** The Nifty 50's own 1Y return (first to last close of its series). */
+  /** The Nifty 50's 1Y return over the period's window (periods.ts benchPeriodRet): every row's lead is measured against it. */
   benchRet: number | null;
 };
 
@@ -51,11 +52,13 @@ const cachedFigure = unstable_cache(
     const [bt, bench] = await Promise.all([backtestBasket(b.stocks.map((s) => s.ticker), RANGE, heldStrategy()), cachedBench().catch(() => null)]);
     // Not kept with a stock's prices still loading (Yahoo slow): that would be a different basket's figure all day.
     if (pricesPending(bt)) throw new Error(`prices still loading for ${slug}`);
-    const fig = bt.points.length ? basketFigures(bt.points, bench) : null;
+    // Over the period's fixed window, against the Nifty's change over it (periods.ts), as every table and card measures it.
+    const fig = bt.points.length ? periodFigures(bt.points, bench, RANGE) : null;
     if (!fig) throw new Error(`no backtest for ${slug}`);
     return fig;
   },
-  ["industry-figures-1y-v2"],
+  // v3: measured over the Nifty 50's window (periods.ts periodFigures).
+  ["industry-figures-1y-v3"],
   { revalidate: REVALIDATE_SECONDS },
 );
 
@@ -64,7 +67,7 @@ export async function industryFigures(): Promise<IndustryFigures> {
   const queue = listIndustryBaskets().filter((b) => b.stocks.length).map((b) => b.slug);
   const work = Promise.all([
     cachedBench()
-      .then((pts) => void (out.benchRet = seriesStats(pts)?.ret ?? null))
+      .then((pts) => void (out.benchRet = benchPeriodRet(pts, RANGE)))
       .catch(() => {}),
     // A few at a time: a cached industry answers at once, one that isn't fetches up to 8 price histories.
     ...Array.from({ length: CONCURRENCY }, async () => {

@@ -1,6 +1,8 @@
 // Pure helpers for the price store (./store.ts reads, ./refresh.ts writes): cutting a range out of
 // the stored daily bars, rolling them up to the weekly/monthly bars the long ranges use (as Yahoo
-// sends them), and telling a top-up apart from changed history. No I/O, so they are unit-tested.
+// sends them), and telling a top-up apart from changed history. Also the rule for a history that
+// starts inside a range (a recent listing), which the Yahoo charts and the stock pop-up's chart
+// share. No I/O, so they are unit-tested (and the client can import them).
 import type { ChartRange, PricePoint } from "@/lib/live/yahoo";
 import { periodStart, type BarInterval, type OhlcBar } from "@/lib/live/ohlc-format";
 
@@ -21,6 +23,43 @@ const RANGES: Partial<Record<ChartRange, { days: number; interval: BarInterval }
 };
 
 export const storedRange = (range: ChartRange) => RANGES[range] ?? null;
+
+// Each range's span, as yahoo.ts PARAMS fetches it. "All" has none: a history shorter than the
+// longest fixed range (5Y) counts as starting inside it.
+const SPAN_DAYS: Record<ChartRange, number> = { "1M": 31, "6M": 183, "1Y": 366, "2Y": 731, "3Y": 1100, "5Y": 1830, MAX: 1830 };
+// How far past a range's start the first bar of a longer history can fall: a weekend plus a
+// holiday or two for daily bars, about a week for weekly ones (dated at the week's start), a month
+// for monthly ones.
+const START_SLACK_DAYS: Record<BarInterval, number> = { "1d": 5, "1wk": 10, "1mo": 35 };
+
+/**
+ * True when a series whose first bar (of `interval`) is dated `firstT` starts inside the range:
+ * the stock listed, or its history was cut (HISTORY_FROM), since the range's start, rather than the
+ * range cutting a longer history.
+ */
+export function startsInside(range: ChartRange, firstT: string, interval: BarInterval, now: number): boolean {
+  return Date.parse(firstT) > now - (SPAN_DAYS[range] - START_SLACK_DAYS[interval]) * DAY;
+}
+
+/**
+ * The bars a range is drawn with. A weekly/monthly bar is dated at its period's start and closes at
+ * its end, so for a history starting inside the range the first one is dated before the listing and
+ * isn't the listing day's close: such a range uses daily bars instead, and starts on the first
+ * trading day's close like the shorter ranges do. `firstT`: the first daily bar.
+ */
+export function rangeInterval(range: ChartRange, interval: BarInterval, firstT: string, now: number): BarInterval {
+  return interval !== "1d" && startsInside(range, firstT, "1d", now) ? "1d" : interval;
+}
+
+/**
+ * What a chart's change is measured from, for its label: the range's start ("Past 1Y"), the first
+ * bar's day ("Since 28 Oct 2026": the history starts inside the range, or "All" on daily bars), or
+ * the first bar's month ("Since Jul 2002": "All" on monthly bars).
+ */
+export function changeBasis(range: ChartRange, firstT: string, interval: BarInterval, now: number): "range" | "day" | "month" {
+  if (range === "MAX") return interval === "1mo" ? "month" : "day";
+  return startsInside(range, firstT, interval, now) ? "day" : "range";
+}
 
 /** A stored row: a day's bar; open/high/low/volume are null for closes-only (Screener) series. */
 export type StoredBar = { t: string; o: number | null; h: number | null; l: number | null; c: number; v: number | null };

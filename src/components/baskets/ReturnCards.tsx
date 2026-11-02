@@ -60,8 +60,11 @@ export function ReturnCards({
     const pts = l.data.points;
     return (pts[pts.length - 1].c / pts[0].c - 1) * 100;
   };
-  // A benchmark over the basket's own first and last days (its last close on or before each), as
-  // the statistics panel measures it, so "Nifty 50" reads the same in both.
+  // A benchmark over the range's fixed window (periods.ts benchWindow): from its own first close,
+  // so "Nifty 50 · 1Y" is one figure on every basket page whichever day each basket's stocks start
+  // on, to its close on or before the basket's last day (a basket backtest ends on the stored Nifty
+  // 50's last close, run.ts onBenchWindow). A line starting well after the index (a stock listed
+  // during the range) is compared over its own days instead, as its card says.
   const benchRet = (key: string) => {
     const l = at(key);
     const b = at(basket.key);
@@ -77,7 +80,8 @@ export function ReturnCards({
       }
       return v;
     };
-    const from = on(bp[0].t) ?? pts[0].c;
+    const lateStart = Date.parse(bp[0].t) - Date.parse(pts[0].t) > slackDaysFor(range) * 86_400_000;
+    const from = (lateStart ? on(bp[0].t) : null) ?? pts[0].c;
     const to = on(bp[bp.length - 1].t);
     return to != null && from > 0 ? (to / from - 1) * 100 : ret(key);
   };
