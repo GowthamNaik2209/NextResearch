@@ -2648,7 +2648,7 @@ function StockPicker({
                           disabled={full || locked}
                           onClick={() => onAdd([s.ticker], source === "industry" ? industry : undefined)}
                           aria-label={`Add ${s.name}`}
-                          className="min-h-9 rounded-full border border-accent px-3 text-xs font-semibold text-accent hover:bg-accent hover:text-bg disabled:border-line disabled:text-ink-soft disabled:hover:bg-transparent"
+                          className="min-h-9 rounded-full border border-btn px-3 text-xs font-semibold text-accent hover:bg-accent hover:text-bg disabled:border-line disabled:text-ink-soft disabled:hover:bg-transparent"
                         >
                           + Add
                         </button>

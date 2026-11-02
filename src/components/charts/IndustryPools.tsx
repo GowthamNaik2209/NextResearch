@@ -587,7 +587,7 @@ function LowExposurePicker({ companies, added, onChange }: { companies: PoolComp
         aria-expanded={open}
         aria-controls="pools-low-list"
         onClick={() => setOpen((o) => !o)}
-        className={"flex min-h-8 items-center gap-1.5 rounded-full border border-btn px-3 text-xs font-semibold transition " + (open || n ? "bg-accent/15 text-ink" : "text-ink-soft hover:bg-accent/10 hover:text-ink")}
+        className={"flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition " + (open || n ? "border-accent bg-accent/15 text-ink" : "border-btn text-ink-soft hover:bg-accent/10 hover:text-ink")}
       >
         Low-exposure: {n} of {companies.length} added
         <span aria-hidden className={"text-[10px] transition-transform " + (open ? "rotate-180" : "")}>

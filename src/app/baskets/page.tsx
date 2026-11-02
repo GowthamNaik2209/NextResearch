@@ -128,7 +128,7 @@ export default async function BasketsPage() {
               <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Pick industries and stocks, choose a weighting, and save it to follow.</p>
             </div>
             {/* The primary Create basket is in the switch at the top; this copy is the quieter one. */}
-            <Link href={createHref} className="inline-flex min-h-11 flex-none items-center rounded-md border border-accent px-4 text-sm font-semibold text-accent hover:bg-accent hover:text-bg sm:min-h-10 pointer-coarse:min-h-11">
+            <Link href={createHref} className="inline-flex min-h-11 flex-none items-center rounded-md border border-btn px-4 text-sm font-semibold text-accent hover:bg-accent hover:text-bg sm:min-h-10 pointer-coarse:min-h-11">
               Create basket
             </Link>
           </div>

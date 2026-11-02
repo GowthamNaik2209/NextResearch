@@ -162,7 +162,7 @@ export function ThemeWindow({ rows }: { rows: Record<ThemeTab, ThemeRow[]> }) {
       <Link
         href="/#themes"
         onClick={exploreMore}
-        className="mt-3 flex items-center justify-center gap-1.5 rounded-lg border border-accent/60 px-4 py-2.5 text-sm font-semibold text-accent transition hover:bg-accent/10"
+        className="mt-3 flex items-center justify-center gap-1.5 rounded-lg border border-btn px-4 py-2.5 text-sm font-semibold text-accent transition hover:bg-accent/10"
       >
         Explore more <span aria-hidden>&rarr;</span>
       </Link>
