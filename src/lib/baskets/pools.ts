@@ -11,7 +11,7 @@
 // Two kinds of company are handled apart:
 //  - Low exposure: the figures are company-wide, not segment revenue, so a group that earns most of
 //    its money elsewhere (Adani Enterprises in solar modules, M&M in EVs) would swamp its layer.
-//    They are left out unless the viewer ticks them in (see ./pools-data.ts for the rule).
+//    They are left out unless the viewer adds them, one by one (see ./pools-data.ts for the rule).
 //  - One-off year (./outliers.ts): left out of anything built on profit (profit, margin, P/E), as
 //    the screens leave them out; their revenue and market cap still count.
 
@@ -27,8 +27,8 @@ export type PoolCompany = {
   roce: number | null;
   /** Why its profit is left out (a one-off year), when it is. */
   oneOff?: string;
-  /** Its figures are mostly from outside this industry: left out unless ticked in. */
-  lowExposure?: boolean;
+  /** Why its figures are mostly from outside this industry, when they are: it is left out unless the viewer adds it. */
+  lowExposure?: string;
 };
 
 export type PoolLayer = { name: string; color: string };
@@ -120,8 +120,11 @@ export function groupValue(cs: PoolCompany[], id: PoolMetricId): number | null {
   return r && r[1] > 0 ? r[0] / r[1] : null;
 }
 
-/** The companies that count, given whether low-exposure ones are ticked in. */
-export const countedCompanies = (p: IndustryPools, withLowExposure: boolean) => p.companies.filter((c) => withLowExposure || !c.lowExposure);
+/** Whether a company counts: every one does, except a low-exposure one the viewer hasn't added. */
+export const counts = (c: PoolCompany, added: ReadonlySet<string>) => !c.lowExposure || added.has(c.ticker);
+
+/** The companies that count, given the low-exposure ones the viewer added. */
+export const countedCompanies = (p: IndustryPools, added: ReadonlySet<string>) => p.companies.filter((c) => counts(c, added));
 
 export type LayerPool = PoolLayer & {
   /** Every company in the layer, counted or not. */
@@ -130,10 +133,10 @@ export type LayerPool = PoolLayer & {
   counted: PoolCompany[];
 };
 
-export function layerPools(p: IndustryPools, withLowExposure: boolean): LayerPool[] {
+export function layerPools(p: IndustryPools, added: ReadonlySet<string>): LayerPool[] {
   return p.layers.map((l) => {
     const all = p.companies.filter((c) => c.layer === l.name);
-    return { ...l, all, counted: all.filter((c) => withLowExposure || !c.lowExposure) };
+    return { ...l, all, counted: all.filter((c) => counts(c, added)) };
   });
 }
 

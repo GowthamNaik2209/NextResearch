@@ -47,7 +47,13 @@ export function IndustryActions({
   pools?: Pools | null;
 }) {
   const [open, setOpen] = useState<"heatmap" | "pools" | null>(null);
-  const toggle = (p: "heatmap" | "pools") => setOpen((o) => (o === p ? null : p));
+  // Once opened, the pools panel stays mounted (hidden when closed) so the companies a viewer added
+  // are still there when it is shown again; a reload starts afresh.
+  const [poolsMounted, setPoolsMounted] = useState(false);
+  const toggle = (p: "heatmap" | "pools") => {
+    if (p === "pools") setPoolsMounted(true);
+    setOpen((o) => (o === p ? null : p));
+  };
   return (
     <section className="flex flex-col gap-3 sm:rounded-2xl sm:border sm:border-line sm:bg-panel-2 sm:p-4 lg:p-5">
       <div className="scrollbar-none -mx-5 flex gap-1.5 overflow-x-auto px-5 max-sm:*:flex-none sm:mx-0 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:px-0 lg:flex-nowrap">
@@ -72,8 +78,8 @@ export function IndustryActions({
           <IndustryHeatmap slug={slug} name={name} stocks={stocks} basketHref={basketHref} />
         </div>
       )}
-      {open === "pools" && pools && (
-        <div id="industry-pools" className="max-sm:hidden">
+      {poolsMounted && pools && (
+        <div id="industry-pools" hidden={open !== "pools"} className="max-sm:hidden">
           <IndustryPools pools={pools} />
         </div>
       )}
