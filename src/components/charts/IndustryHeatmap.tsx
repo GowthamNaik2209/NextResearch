@@ -58,10 +58,11 @@ export function IndustryActions({
             <span className="hidden sm:inline">{open === "heatmap" ? "Hide heatmap" : "Stock heatmap"}</span>
           </button>
         )}
+        {/* Tablet and desktop only for now: the phone row stays at its few buttons, and the
+            panel's chips and table are dense at phone width. */}
         {pools && (
-          <button type="button" aria-expanded={open === "pools"} aria-controls="industry-pools" onClick={() => toggle("pools")} className={actionClass(false, open === "pools")}>
-            <span className="sm:hidden">Pools</span>
-            <span className="hidden sm:inline">{open === "pools" ? "Hide pools" : "Industry pools"}</span>
+          <button type="button" aria-expanded={open === "pools"} aria-controls="industry-pools" onClick={() => toggle("pools")} className={actionClass(false, open === "pools") + " max-sm:hidden"}>
+            {open === "pools" ? "Hide pools" : "Industry pools"}
           </button>
         )}
         {children}
@@ -72,7 +73,7 @@ export function IndustryActions({
         </div>
       )}
       {open === "pools" && pools && (
-        <div id="industry-pools">
+        <div id="industry-pools" className="max-sm:hidden">
           <IndustryPools pools={pools} />
         </div>
       )}

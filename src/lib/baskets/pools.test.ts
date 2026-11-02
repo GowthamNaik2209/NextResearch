@@ -79,3 +79,11 @@ test("the takeaway names the layer that keeps the most profit for its revenue, a
   assert.ok(t.more.profit > t.more.revenue);
   assert.ok(t.less.profit < t.less.revenue);
 });
+
+test("the takeaway leaves a one-off company's revenue out along with its profit", () => {
+  // A big one-off company in EPC: counted in revenue it would make EPC look profit-poor.
+  const withOneOff: IndustryPools = { ...pools, companies: [...pools.companies, co("BIG", "EPC", [90000, 100000], [500, 40000], 50000, { oneOff: "FY26 profit jump looks one-off" })] };
+  const t = poolTakeaway(layerPools(withOneOff, false))!;
+  const epc = [t.more, t.less].find((x) => x.layer === "EPC")!;
+  assert.ok(epc.revenue < 0.5, `EPC revenue share ${epc.revenue} should leave BIG out`);
+});

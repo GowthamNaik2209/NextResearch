@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { InfoTip } from "@/components/InfoTip";
 import { StockLink } from "@/components/stock/StockLink";
 import { NA, croreShort, pct } from "@/lib/format";
@@ -26,6 +26,9 @@ import {
 
 type View = "layer" | "company";
 
+/** A share as a percent; a sliver reads "<1%", not "0%". */
+const sharePct = (s: number, dp = 0) => (s > 0 && s * 100 < 10 ** -dp ? `<${10 ** -dp}%` : pct(s * 100, dp));
+
 // Rates as the panel prints them; pools read in ₹ Cr.
 function fmt(id: PoolMetricId, v: number | null): string {
   if (v == null) return NA;
@@ -35,12 +38,14 @@ function fmt(id: PoolMetricId, v: number | null): string {
   return croreShort(v);
 }
 
-function tickLabel(id: PoolMetricId, t: number): string {
+/** Axis labels: rates as on the bars; ₹ Cr in one unit across the axis (lakh crore once it reaches one). */
+function tickLabel(id: PoolMetricId, t: number, top: number): string {
   if (t === 0) return "0";
   if (id === "margin" || id === "growth") return pct(t * 100, 0);
   if (id === "pe") return `${t}×`;
   if (id === "roce") return pct(t, 0);
-  return Math.abs(t) >= 100_000 ? `${t / 100_000}L` : `${(t / 1000).toLocaleString("en-IN")}k`;
+  const a = Math.abs(t);
+  return `${t < 0 ? "−" : ""}${top >= 100_000 ? `₹${+(a / 100_000).toFixed(2)}L Cr` : `₹${(a / 1000).toLocaleString("en-IN")}k Cr`}`;
 }
 
 /** Round steps across [lo, hi], about `n` of them. */
@@ -49,7 +54,8 @@ function ticks(lo: number, hi: number, n = 4): number[] {
   const mag = 10 ** Math.floor(Math.log10(span / n));
   const step = [1, 2, 2.5, 5, 10].map((k) => k * mag).find((s) => span / s <= n) ?? 10 * mag;
   const out: number[] = [];
-  for (let v = Math.ceil(lo / step) * step; v <= hi + step * 1e-9; v += step) out.push(Number(v.toFixed(10)));
+  // From the step at or below lo to the one at or above hi, so the axis covers every bar.
+  for (let v = Math.floor(lo / step + 1e-9) * step; v < hi + step * (1 - 1e-9); v += step) out.push(Number(v.toFixed(10)));
   return out;
 }
 
@@ -62,12 +68,13 @@ function scale(id: PoolMetricId, values: number[]) {
   const tk = ticks(lo, hi);
   lo = Math.min(lo, tk[0]);
   hi = Math.max(hi, tk[tk.length - 1]);
-  return { tk, hi, x: (v: number) => ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * 100 };
+  return { tk, lo, hi, x: (v: number) => ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * 100 };
 }
 
 // A low-exposure company, when ticked in, is hatched so its share reads as an overstatement.
 const HATCH: CSSProperties = { backgroundImage: "repeating-linear-gradient(135deg, rgba(255,255,255,.28) 0 2px, transparent 2px 6px)" };
-const SEG_TEXT = "overflow-hidden whitespace-nowrap text-[11px] font-semibold text-white [text-shadow:0_1px_1px_rgba(0,0,0,.4)]";
+// White on the map's mid-tone layer colours: a dark halo keeps it readable on every one of them.
+const SEG_TEXT = "overflow-hidden whitespace-nowrap text-[11px] font-bold text-white [text-shadow:0_0_2px_rgba(0,0,0,.85),0_0_4px_rgba(0,0,0,.6)]";
 
 export function IndustryPools({ pools }: { pools: Pools }) {
   const [metric, setMetric] = useState<PoolMetricId>("rev");
@@ -128,13 +135,15 @@ export function IndustryPools({ pools }: { pools: Pools }) {
             ))}
           </div>
           {nLow > 0 && (
-            <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-soft">
-              <input type="checkbox" checked={withLow} onChange={(e) => setWithLow(e.target.checked)} className="h-4 w-4 accent-[var(--accent)]" />
-              Include low-exposure companies ({nLow})
+            <span className="flex items-center gap-2">
+              <label htmlFor="pools-low" className="flex cursor-pointer items-center gap-2 text-xs text-ink-soft pointer-coarse:min-h-8">
+                <input id="pools-low" type="checkbox" checked={withLow} onChange={(e) => setWithLow(e.target.checked)} className="h-4 w-4 accent-[var(--accent)] pointer-coarse:h-5 pointer-coarse:w-5" />
+                Include low-exposure companies ({nLow})
+              </label>
               <InfoTip label="About low-exposure companies">
-                Figures are company-wide. A company rated low here, or a large group rated medium, earns most of its money elsewhere, so it is left out unless ticked in.
+                The figures are company-wide. Companies whose link to this industry the map rates low, and large groups that earn most of their money elsewhere, are left out unless ticked in.
               </InfoTip>
-            </label>
+            </span>
           )}
         </div>
       </div>
@@ -157,7 +166,7 @@ export function IndustryPools({ pools }: { pools: Pools }) {
       {sel && <LayerTable layer={layers.find((l) => l.name === sel)!} metric={metric} withLow={withLow} />}
 
       <p className="max-w-4xl text-[11px] leading-relaxed text-ink-soft sm:text-xs">
-        Company-wide {pools.year} figures, not segment revenue: each company counts in full in its main layer here. A one-off profit year is left out of profit, margin and P/E. ROCE is the layer&rsquo;s median.
+        Company-wide {pools.year} figures, not segment revenue: each company counts in full in its main layer here. A one-off profit year is left out of profit, margin and P/E (struck through in the table). ROCE is the layer&rsquo;s median.
       </p>
     </div>
   );
@@ -180,11 +189,8 @@ function ShareBars({ layers, view, active, sel, onPick }: { layers: LayerPool[];
             ({ c }) => companyValue(c, id),
           ).map(({ item: { c, l }, value, share }) => ({ key: c.ticker, layer: l.name, color: l.color, label: c.ticker, value, share, low: !!c.lowExposure }));
     if (id === "np") for (const s of segs) if (s.value != null && s.value < 0) losses.push(`${s.label} ${croreShort(s.value)}`);
-    // The industry's own total (losses netted off), the same split either way.
-    const total = groupValue(
-      layers.flatMap((l) => l.counted),
-      id,
-    );
+    // What the shares are of: the bar's own slices (a loss has none, and is named under the bar).
+    const total = segs.reduce((t, s) => t + (s.share != null ? s.value! : 0), 0);
     return { id, label, segs, total };
   });
 
@@ -207,7 +213,7 @@ function ShareBars({ layers, view, active, sel, onPick }: { layers: LayerPool[];
                     onClick={() => onPick(s.layer)}
                     title={`${s.label}: ${pct(s.share * 100, 1)}`}
                     aria-label={`${s.label}, ${pct(s.share * 100, 1)} of ${r.label.toLowerCase()}`}
-                    className={"flex min-w-[3px] items-center justify-center transition-opacity " + SEG_TEXT + (sel && sel !== s.layer ? " opacity-30" : "")}
+                    className={"flex min-w-[3px] items-center justify-center transition-opacity " + SEG_TEXT + (sel === s.layer ? " shadow-[inset_0_0_0_2px_var(--ink)]" : "")}
                     style={{ flex: `${s.share} 1 0`, backgroundColor: s.color, ...(s.low ? HATCH : {}) }}
                   >
                     {/* Labels only where they fit; the narrow ones carry them in their title. */}
@@ -221,12 +227,16 @@ function ShareBars({ layers, view, active, sel, onPick }: { layers: LayerPool[];
           </div>
         ))}
       </div>
-      {losses.length > 0 && <p className="text-[11px] text-danger sm:text-xs">Loss-making, not in the profit bar: {losses.join(" · ")}</p>}
+      {losses.length > 0 && (
+        <p className="text-[11px] text-danger sm:text-xs">
+          The profit bar is the profit-makers&rsquo; total; {view === "layer" ? "loss-making layers" : "loss-makers"} are left off it: {losses.join(" · ")}
+        </p>
+      )}
       <div className="flex flex-wrap gap-x-4 gap-y-1.5">
         {layers
           .filter((l) => l.all.length)
           .map((l) => (
-            <button key={l.name} type="button" aria-pressed={sel === l.name} onClick={() => onPick(l.name)} className={"tap-y flex items-center gap-1.5 text-[11px] sm:text-xs " + (sel === l.name ? "font-semibold text-ink" : "text-ink-soft hover:text-ink")}>
+            <button key={l.name} type="button" aria-pressed={sel === l.name} onClick={() => onPick(l.name)} className={"tap-y flex items-center gap-1.5 text-[11px] pointer-coarse:min-h-8 sm:text-xs " + (sel === l.name ? "font-semibold text-ink" : "text-ink-soft hover:text-ink")}>
               <span aria-hidden className="h-2.5 w-2.5 flex-none rounded-sm" style={{ backgroundColor: l.color }} />
               {l.name}
             </button>
@@ -236,7 +246,23 @@ function ShareBars({ layers, view, active, sel, onPick }: { layers: LayerPool[];
   );
 }
 
-const ROW = "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 sm:grid-cols-[minmax(0,13rem)_minmax(0,1fr)_8rem]";
+const ROW = "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 sm:grid-cols-[minmax(0,13rem)_minmax(0,1fr)_8rem] lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)_8rem]";
+/** The width of the rows' bar track, in px, kept current as the panel resizes. */
+function useTrackWidth() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [px, setPx] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => setPx((el.querySelector("[data-track]") as HTMLElement | null)?.clientWidth ?? 0);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return [ref, px] as const;
+}
+
 const TRACK = "relative col-span-2 row-start-2 h-6 rounded bg-bg sm:col-span-1 sm:col-start-2 sm:row-start-1";
 
 function Grid({ tk, x }: { tk: number[]; x: (v: number) => number }) {
@@ -250,13 +276,14 @@ function Grid({ tk, x }: { tk: number[]; x: (v: number) => number }) {
 }
 
 function Axis({ tk, x, id }: { tk: number[]; x: (v: number) => number; id: PoolMetricId }) {
+  const top = Math.max(...tk.map(Math.abs));
   return (
     <div className={ROW + " mt-1"} aria-hidden>
       <span className="hidden sm:block" />
       <span className="relative col-span-2 h-4 font-mono text-[10px] text-ink-soft sm:col-span-1">
         {tk.map((t) => (
           <span key={t} className="absolute -translate-x-1/2 whitespace-nowrap" style={{ left: `${x(t)}%` }}>
-            {tickLabel(id, t)}
+            {tickLabel(id, t, top)}
           </span>
         ))}
       </span>
@@ -278,9 +305,12 @@ function LayerRows({ layers, metric, sel, onPick }: { layers: LayerPool[]; metri
       ? rows.flatMap((r) => [r.items.filter((i) => i.v > 0).reduce((t, i) => t + i.v, 0), r.items.filter((i) => i.v < 0).reduce((t, i) => t + i.v, 0)])
       : rows.flatMap((r) => [r.total ?? 0, ...r.items.map((i) => i.v)]);
   const { tk, x, hi } = scale(metric, extent);
+  const [box, trackPx] = useTrackWidth();
+  // About 6.5px a character of the 10px mono label, plus its padding.
+  const fits = (pctWide: number, label: string) => (pctWide / 100) * trackPx >= label.length * 6.5 + 8;
 
   return (
-    <div className="flex flex-col gap-1">
+    <div ref={box} className="flex flex-col gap-1">
       <h3 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-ink-soft sm:text-[11px]">
         {m.label} by layer{m.kind === "rate" && " · dots are companies"}
       </h3>
@@ -298,9 +328,11 @@ function LayerRows({ layers, metric, sel, onPick }: { layers: LayerPool[]; metri
           >
             <span className={"flex min-w-0 items-center gap-2 text-xs sm:text-[13px] " + (l.counted.length ? "text-ink" : "text-ink-soft")}>
               <span aria-hidden className="h-2.5 w-2.5 flex-none rounded-sm" style={{ backgroundColor: l.color }} />
-              <span className="truncate">{l.name}</span>
+              <span className="line-clamp-2 leading-tight" title={l.name}>
+                {l.name}
+              </span>
             </span>
-            <span className={TRACK}>
+            <span data-track className={TRACK}>
               <Grid tk={tk} x={x} />
               {!l.counted.length ? (
                 <span className="absolute left-2 top-1 text-[11px] text-ink-soft">Only low-exposure companies</span>
@@ -319,7 +351,7 @@ function LayerRows({ layers, metric, sel, onPick }: { layers: LayerPool[]; metri
                         className={"absolute inset-y-[3px] flex items-center rounded-sm pl-1 font-mono shadow-[inset_-1px_0_0_var(--bg)] " + SEG_TEXT + " text-[10px]"}
                         style={{ left: `${x(from)}%`, width: `${w}%`, backgroundColor: v < 0 ? "var(--danger)" : l.color, ...(c.lowExposure ? HATCH : {}) }}
                       >
-                        {w > 9 ? c.ticker : ""}
+                        {fits(w, c.ticker) ? c.ticker : ""}
                       </span>
                     );
                   })
@@ -346,7 +378,7 @@ function LayerRows({ layers, metric, sel, onPick }: { layers: LayerPool[]; metri
                   ? "not counted"
                   : m.kind === "pool"
                     ? share != null
-                      ? `${pct(share * 100, 0)} of pool`
+                      ? `${sharePct(share)} of pool`
                       : total != null && total < 0
                         ? "loss"
                         : ""
@@ -402,12 +434,14 @@ function CompanyRows({ companies, colorOf, metric }: { companies: PoolCompany[];
               {fmt(metric, v)}
               <span className="ml-1.5 text-[11px] font-normal text-ink-soft sm:ml-0 sm:block">
                 {v == null
-                  ? c.oneOff
+                  ? c.oneOff && (metric === "np" || metric === "margin" || metric === "pe")
                     ? "one-off year"
-                    : "loss"
+                    : (metric === "np" || metric === "margin" || metric === "pe") && (c.np[1] ?? 0) < 0
+                      ? "loss"
+                      : "no figure"
                   : m.kind === "pool"
                     ? ss[i].share != null
-                      ? `${pct(ss[i].share! * 100, 1)} of pool`
+                      ? `${sharePct(ss[i].share!, 1)} of pool`
                       : "loss"
                     : v > hi
                       ? "off the scale"
@@ -424,6 +458,7 @@ function CompanyRows({ companies, colorOf, metric }: { companies: PoolCompany[];
 
 /** The picked layer's companies with every figure; the chosen metric's column is marked. */
 function LayerTable({ layer, metric, withLow }: { layer: LayerPool; metric: PoolMetricId; withLow: boolean }) {
+  const PROFIT_BASED: PoolMetricId[] = ["np", "margin", "pe"];
   const cols: { id: PoolMetricId; label: string; cell: (c: PoolCompany) => string }[] = [
     { id: "rev", label: "Revenue", cell: (c) => croreShort(c.rev[1]) },
     { id: "np", label: "Net profit", cell: (c) => croreShort(c.np[1]) },
@@ -446,6 +481,7 @@ function LayerTable({ layer, metric, withLow }: { layer: LayerPool; metric: Pool
           {layer.counted.length} counted · {croreShort(groupValue(layer.counted, "rev"))} revenue · {croreShort(groupValue(layer.counted, "np"))} profit
         </p>
       </div>
+      <p className="text-[11px] text-ink-soft lg:hidden">Scroll the table sideways for every column.</p>
       <div className="-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0">
         <table className="w-full min-w-[640px] border-collapse text-xs tabular-nums sm:text-[13px]">
           <thead>
@@ -471,11 +507,23 @@ function LayerTable({ layer, metric, withLow }: { layer: LayerPool; metric: Pool
                     {c.lowExposure && <Tag title="Earns most of its money outside this industry">{out ? "Not counted" : "Low exposure"}</Tag>}
                     {c.oneOff && <Tag title={c.oneOff}>One-off year</Tag>}
                   </td>
-                  {cols.map((col) => (
-                    <td key={col.id} className={"px-2 py-1.5 text-right whitespace-nowrap " + (col.id === metric ? "bg-panel-2 font-semibold" : "") + ((col.id === "np" && (c.np[1] ?? 0) < 0) ? " text-danger" : "")}>
-                      {col.cell(c)}
-                    </td>
-                  ))}
+                  {cols.map((col) => {
+                    // A one-off year's profit is shown for reference but greyed: it isn't in the pools.
+                    const left = !!c.oneOff && PROFIT_BASED.includes(col.id);
+                    return (
+                      <td
+                        key={col.id}
+                        title={left ? "One-off year: left out of the pools" : undefined}
+                        className={
+                          "px-2 py-1.5 text-right whitespace-nowrap " +
+                          (col.id === metric ? "bg-panel-2 font-semibold" : "") +
+                          (left ? " text-ink-soft line-through decoration-ink-soft/50" : col.id === "np" && (c.np[1] ?? 0) < 0 ? " text-danger" : "")
+                        }
+                      >
+                        {col.cell(c)}
+                      </td>
+                    );
+                  })}
                 </tr>
               );
             })}

@@ -154,10 +154,11 @@ export type PoolTakeaway = { more: { layer: string; profit: number; revenue: num
 
 /**
  * The one-line read: the layer that keeps the most profit for its share of revenue, and the one
- * that keeps the least. Null when fewer than two layers have both.
+ * that keeps the least. Both shares come from the companies whose profit counts, so a one-off
+ * year's revenue isn't set against profit that was left out. Null when fewer than two layers have both.
  */
 export function poolTakeaway(layers: LayerPool[]): PoolTakeaway | null {
-  const rev = shares(layers, (l) => groupValue(l.counted, "rev"));
+  const rev = shares(layers, (l) => groupValue(l.counted.filter(profitOk), "rev"));
   const np = shares(layers, (l) => groupValue(l.counted, "np"));
   const rows = layers
     .map((l, i) => ({ layer: l.name, revenue: rev[i].share, profit: np[i].share ?? 0 }))

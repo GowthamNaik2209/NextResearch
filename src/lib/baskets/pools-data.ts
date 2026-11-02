@@ -16,6 +16,14 @@ import type { IndustryPools, PoolCompany } from "./pools";
  * instead, it flagged nearly every supplier in industries with a small core, such as data centres.)
  */
 export const LOW_EXPOSURE_REV_SHARE = 0.15;
+/**
+ * A company that large is also low exposure, whatever its rating, when the content maps it in at
+ * least this many industries: a conglomerate (L&T is in nine) can be a real defence player and
+ * still earn most of its money elsewhere.
+ */
+export const LOW_EXPOSURE_MIN_INDUSTRIES = 5;
+/** By hand, where the rule can't tell: a steelmaker counted in full in the navy's hull-steel layer. */
+const LOW_EXPOSURE_EXTRA: Record<string, string[]> = { naval: ["SAIL"] };
 
 // linkWeight (sector-content/core.ts): high 3, medium 2, low 1, half a step less for a side link.
 const strengthOf = (weight: number) => (weight >= 2.5 ? "high" : weight >= 1.5 ? "medium" : "low");
@@ -25,7 +33,7 @@ export function industryPools(slug: string): IndustryPools | null {
   const basket = getIndustryBasket(slug);
   if (!sector || sector.muted || sector.stage === "heatmap" || !basket?.stocks.length) return null;
 
-  const companies: (PoolCompany & { strength: string })[] = [];
+  const companies: (PoolCompany & { strength: string; industries: number })[] = [];
   let asOf = "";
   for (const s of basket.stocks) {
     const f = getFinancials(s.ticker);
@@ -45,14 +53,17 @@ export function industryPools(slug: string): IndustryPools | null {
       roce: f.kpi?.[3] ?? null,
       ...(s.oneOff ? { oneOff: s.oneOff } : {}),
       strength: here.length ? strengthOf(weight) : "high",
+      industries: s.industries.length,
     });
   }
   if (!companies.length) return null;
 
   const totalRev = companies.reduce((t, c) => t + Math.max(c.rev[1] ?? 0, 0), 0);
-  const out: PoolCompany[] = companies.map(({ strength, ...c }) => {
+  const extra = new Set(LOW_EXPOSURE_EXTRA[slug] ?? []);
+  const out: PoolCompany[] = companies.map(({ strength, industries, ...c }) => {
     const big = totalRev > 0 && (c.rev[1] ?? 0) >= LOW_EXPOSURE_REV_SHARE * totalRev;
-    return strength === "low" || (strength === "medium" && big) ? { ...c, lowExposure: true } : c;
+    const low = strength === "low" || (big && (strength === "medium" || industries >= LOW_EXPOSURE_MIN_INDUSTRIES)) || extra.has(c.ticker);
+    return low ? { ...c, lowExposure: true } : c;
   });
 
   const used = new Set(out.map((c) => c.layer));
