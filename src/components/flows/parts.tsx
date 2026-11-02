@@ -50,7 +50,7 @@ export function ShowAll({ shown, total, all, onToggle, noun }: { shown: number; 
 
 export function Ticker({ ticker, name }: { ticker: string; name: string }) {
   return (
-    <StockLink ticker={ticker} title={name} className="tap-y inline-block flex-none whitespace-nowrap rounded border border-line px-1.5 font-mono text-[11px] text-amber-ink hover:border-accent">
+    <StockLink ticker={ticker} title={name} className="tap-y inline-block flex-none whitespace-nowrap rounded border border-accent px-1.5 font-mono text-[11px] text-amber-ink hover:bg-accent/10">
       {ticker}
     </StockLink>
   );

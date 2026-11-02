@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { ScrollX } from "@/components/ScrollX";
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
-import { seriesStats, type BasketFigures } from "@/lib/baskets/stats";
+import type { BasketFigures } from "@/lib/baskets/stats";
 import { NA, signedPct } from "@/lib/format";
 import { signedPts } from "@/lib/baskets/fmt";
-import { PERIODS, PERIOD_SRC, PERIOD_WORDS, periodFigures, type Period } from "@/lib/baskets/periods";
+import { PERIODS, PERIOD_SRC, PERIOD_WORDS, benchPeriodRet, periodFigures, type Period } from "@/lib/baskets/periods";
 import { Panel } from "./Panel";
 import { industrySeriesKey, loadSeries, savedBasketQuery } from "./series";
 import { heldStrategy, strategyQuery } from "@/lib/baskets/strategy";
@@ -42,7 +42,8 @@ export type TableSeed = {
 };
 
 const RANGE = "1Y" as const;
-const BENCH = "b:nifty50";
+// The stored Nifty 50 (the price store first), the series the backtests' window and the server's figures use.
+const BENCH = "B:nifty50";
 const MAX_INFLIGHT = 4;
 
 const keyOf = (r: BasketRow) => (r.kind === "saved" ? `x:${savedBasketQuery(r.id, strategyQuery(heldStrategy(r.weighting, r.weights ?? undefined)), r.tickers)}` : industrySeriesKey(r.slug));
@@ -84,10 +85,10 @@ function startBench() {
   if (benchStarted) return;
   benchStarted = true;
   loadSeries(BENCH, RANGE).then((l) => {
-    const st = l.status === "ok" ? seriesStats(l.data.points) : null;
+    const ret = l.status === "ok" ? benchPeriodRet(l.data.points, RANGE) : null;
     // The loader's Nifty (the series the basket pages read) replaces the server's figure; a failed
     // load keeps the server's.
-    if (l.status === "ok" && st) bench = { ret: st.ret };
+    if (ret != null) bench = { ret };
     else if (typeof bench !== "object") bench = "error";
     emit();
   });
@@ -390,8 +391,9 @@ export function BasketsTable({
                         </span>
                       </span>
                     ) : (
-                      // Every industry basket is equal weight (the section says so).
-                      <span className="min-w-0">Equal weight</span>
+                      // Every industry basket is equal weight (the section says so). The Nifty 50's row is its
+                      // stocks at equal weight, not the index (cap weighted), so its return differs from the index's.
+                      <span className="min-w-0">{r.category === "index" ? "Its stocks at equal weight, not the index" : "Equal weight"}</span>
                     )}
                   </span>
                 </span>
@@ -521,8 +523,8 @@ export function ThemeWall({ rows, seed, period = "1Y", onPeriod }: { rows: Indus
           key: r.slug,
           label: shortName(r.name),
           value: ret,
-          sub: r.category === "policy" ? "Policy" : r.category === "index" ? "Index" : undefined,
-          title: `${r.name}${ret != null ? `: ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}% over ${PERIOD_WORDS[period]}` : ""} · tap to see its row`,
+          sub: r.category === "policy" ? "Policy" : r.category === "index" ? "Equal weight" : undefined,
+          title: `${r.name}${r.category === "index" ? " stocks at equal weight" : ""}${ret != null ? `: ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}% over ${PERIOD_WORDS[period]}` : ""} · tap to see its row`,
           onClick: () => jumpToRow(r.slug),
         };
       })

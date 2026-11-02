@@ -4,6 +4,911 @@
   "newsAsOf": "25 Sep 2026",
   "sectors": [
     {
+      "key": "nifty50",
+      "suppliers": {
+        "hdfcbank": {
+          "name": "HDFC Bank",
+          "listed": true,
+          "role": "India's largest private bank, now also carrying the former HDFC Ltd's home-loan book after the 2023 merger",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Largest deposit franchise among private banks and a long record of low bad loans",
+            "Subsidiaries in insurance (HDFC Life), funds (HDFC AMC) and broking add fee income"
+          ],
+          "risks": [
+            "Still working down a high loan-to-deposit ratio left by the merger, which limits loan growth",
+            "Margins pressured as policy rate cuts reprice loans faster than deposits"
+          ],
+          "f": {
+            "ticker": "HDFCBANK"
+          }
+        },
+        "icicibank": {
+          "name": "ICICI Bank",
+          "listed": true,
+          "role": "Second-largest private bank, strong in retail and business banking with a digital-first model",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Consistently high return on assets and among the lowest credit costs in the sector",
+            "Well-capitalised, with insurance, AMC and broking subsidiaries"
+          ],
+          "risks": [
+            "Leadership succession at the top after a long, successful tenure",
+            "Unsecured retail and small-business stress if the cycle turns"
+          ],
+          "f": {
+            "ticker": "ICICIBANK"
+          }
+        },
+        "sbin": {
+          "name": "State Bank of India",
+          "listed": true,
+          "role": "India's largest bank by assets and branches, majority owned by the government",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Unmatched deposit base and reach across rural and urban India",
+            "Valuable subsidiaries (SBI Life, SBI Cards, SBI Funds)"
+          ],
+          "risks": [
+            "Government ownership can push it into policy lending and wage settlements",
+            "Large corporate book exposes it to infrastructure and power stress"
+          ],
+          "f": {
+            "ticker": "SBIN"
+          }
+        },
+        "bajfinance": {
+          "name": "Bajaj Finance",
+          "listed": true,
+          "role": "India's largest consumer lender (NBFC) - consumer durables, personal, small-business, gold and home loans",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Huge customer base and point-of-sale financing network cross-sold through its app",
+            "Strong risk analytics and access to cheap funding"
+          ],
+          "risks": [
+            "Rising credit costs in unsecured personal and small-business loans",
+            "RBI tightening on unsecured lending and NBFC risk weights"
+          ],
+          "f": {
+            "ticker": "BAJFINANCE"
+          }
+        },
+        "kotakbank": {
+          "name": "Kotak Mahindra Bank",
+          "listed": true,
+          "role": "Private bank with a large wealth, broking, asset management and insurance group",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Conservative balance sheet with one of the highest capital ratios",
+            "Diversified earnings from Kotak Securities, AMC and life insurance"
+          ],
+          "risks": [
+            "Lost growth during the 2024 RBI ban on digital onboarding (lifted Feb 2025)",
+            "Slower deposit growth than larger peers"
+          ],
+          "f": {
+            "ticker": "KOTAKBANK"
+          }
+        },
+        "axisbank": {
+          "name": "Axis Bank",
+          "listed": true,
+          "role": "Third-largest private bank, with a big credit-card and corporate book enlarged by Citi's India consumer business",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Citi India integration added affluent customers and a large card base",
+            "Strong corporate and transaction banking"
+          ],
+          "risks": [
+            "Weaker deposit franchise than HDFC Bank and ICICI Bank",
+            "Credit-card and unsecured retail stress"
+          ],
+          "f": {
+            "ticker": "AXISBANK"
+          }
+        },
+        "bajajfinsv": {
+          "name": "Bajaj Finserv",
+          "listed": true,
+          "role": "Holding company owning a majority of Bajaj Finance and the group's life and general insurers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Took full ownership of the insurance businesses by buying out Allianz's stakes",
+            "Exposure to lending, insurance and asset management in one stock"
+          ],
+          "risks": [
+            "Trades at a holding-company discount to the sum of its parts",
+            "Its value moves mostly with Bajaj Finance"
+          ],
+          "f": {
+            "ticker": "BAJAJFINSV"
+          }
+        },
+        "jiofin": {
+          "name": "Jio Financial Services",
+          "listed": true,
+          "role": "Reliance group's financial-services arm, demerged in 2023 - lending, payments, insurance broking and a BlackRock joint venture in asset management and broking",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Reliance's customer reach (Jio, retail) and strong capital base",
+            "JVs with BlackRock (funds, broking) and Allianz (reinsurance)"
+          ],
+          "risks": [
+            "Earnings are still small relative to its valuation",
+            "New, unproven businesses in crowded markets"
+          ],
+          "f": {
+            "ticker": "JIOFIN"
+          }
+        },
+        "sbilife": {
+          "name": "SBI Life Insurance",
+          "listed": true,
+          "role": "One of India's largest private life insurers, selling mainly through SBI's branch network",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Cheapest distribution in the industry via SBI's branches",
+            "Large protection and savings book with steady renewals"
+          ],
+          "risks": [
+            "Heavy reliance on a single bank channel",
+            "Loss of input tax credit after the 2025 GST exemption on individual policies, and surrender-value rules"
+          ],
+          "f": {
+            "ticker": "SBILIFE"
+          }
+        },
+        "hdfclife": {
+          "name": "HDFC Life Insurance",
+          "listed": true,
+          "role": "Leading private life insurer, selling through HDFC Bank and other banks and agents",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Strong product range across savings, protection and annuities",
+            "Bank tie-up with HDFC Bank's large customer base"
+          ],
+          "risks": [
+            "Margin pressure from GST changes and regulatory caps on commissions and surrender charges",
+            "Competition from bank-owned and new insurers"
+          ],
+          "f": {
+            "ticker": "HDFCLIFE"
+          }
+        },
+        "shriramfin": {
+          "name": "Shriram Finance",
+          "listed": true,
+          "role": "Largest lender for used commercial vehicles, also lending to small businesses and on gold",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Deep reach among truck owners and small businesses that banks rarely serve",
+            "Japan's MUFG agreed to take a large minority stake, lowering its funding cost"
+          ],
+          "risks": [
+            "Freight and rural cycles drive borrowers' ability to repay",
+            "Higher funding cost than banks"
+          ],
+          "f": {
+            "ticker": "SHRIRAMFIN"
+          }
+        },
+        "bse": {
+          "name": "BSE",
+          "listed": true,
+          "role": "Asia's oldest stock exchange, now a fast-growing equity derivatives venue after relaunching Sensex options",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Gained a large share of index-options trading against NSE",
+            "High-margin fee business with operating leverage"
+          ],
+          "risks": [
+            "SEBI curbs on retail derivatives trading and expiry days hit volumes",
+            "Earnings concentrated in options trading"
+          ],
+          "f": {
+            "ticker": "BSE"
+          }
+        },
+        "tcs": {
+          "name": "Tata Consultancy Services",
+          "listed": true,
+          "role": "India's largest IT services company and the Tata group's main profit engine",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Scale, client relationships across banking and retail, and best-in-class margins",
+            "Large cash returns through dividends and buybacks"
+          ],
+          "risks": [
+            "Slowest growth in years as clients cut discretionary spend",
+            "Workforce restructuring and AI reshaping its labour-heavy model"
+          ],
+          "f": {
+            "ticker": "TCS"
+          }
+        },
+        "infy": {
+          "name": "Infosys",
+          "listed": true,
+          "role": "Second-largest IT services company, strong in digital, cloud and consulting-led deals",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Strong large-deal wins and cost-takeout work",
+            "Topaz AI platform and deep client relationships in financial services"
+          ],
+          "risks": [
+            "US tariffs and H-1B fee increases raise onshore costs",
+            "Dependence on US financial services and retail clients"
+          ],
+          "f": {
+            "ticker": "INFY"
+          }
+        },
+        "hcltech": {
+          "name": "HCL Technologies",
+          "listed": true,
+          "role": "IT services company with a large infrastructure-management business and its own software products",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Software products (HCLSoftware) add higher-margin, recurring revenue",
+            "Leading in infrastructure and engineering services"
+          ],
+          "risks": [
+            "Software segment growth is uneven",
+            "Client-specific ramp-downs and pricing pressure"
+          ],
+          "f": {
+            "ticker": "HCLTECH"
+          }
+        },
+        "techm": {
+          "name": "Tech Mahindra",
+          "listed": true,
+          "role": "Mahindra group's IT services arm, heavy in telecom clients, in a margin turnaround",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Turnaround plan under CEO Mohit Joshi has lifted margins from lows",
+            "Deep telecom and network expertise"
+          ],
+          "risks": [
+            "Telecom clients' spending is weak globally",
+            "Margins still below larger peers"
+          ],
+          "f": {
+            "ticker": "TECHM"
+          }
+        },
+        "reliance": {
+          "name": "Reliance Industries",
+          "listed": true,
+          "role": "India's largest company - oil-to-chemicals refining, Jio telecom, Reliance Retail and a new-energy giga-factory build-out",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Jio and Retail are market leaders that could be valued separately through listings",
+            "One of the world's most complex refineries"
+          ],
+          "risks": [
+            "Refining and petrochemical margins are cyclical",
+            "Heavy capex in new energy before returns show"
+          ],
+          "f": {
+            "ticker": "RELIANCE"
+          }
+        },
+        "ongc": {
+          "name": "Oil and Natural Gas Corporation",
+          "listed": true,
+          "role": "State-owned producer of most of India's crude oil and gas, also owning HPCL and a stake in IOC",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Dominant domestic producer with large reserves",
+            "Higher prices allowed for gas from new wells"
+          ],
+          "risks": [
+            "Output from ageing fields keeps declining",
+            "Government can impose windfall taxes or subsidy sharing"
+          ],
+          "f": {
+            "ticker": "ONGC"
+          }
+        },
+        "coalindia": {
+          "name": "Coal India",
+          "listed": true,
+          "role": "State-owned miner producing most of India's coal, the fuel behind most of its electricity",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Near-monopoly with low-cost open-cast mines",
+            "High dividend payout"
+          ],
+          "risks": [
+            "Slow coal demand when renewables and hydro run strong",
+            "Long-term energy transition and e-auction price swings"
+          ],
+          "f": {
+            "ticker": "COALINDIA"
+          }
+        },
+        "maruti": {
+          "name": "Maruti Suzuki India",
+          "listed": true,
+          "role": "India's largest carmaker, a Suzuki subsidiary, now also a major car exporter",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Widest dealer and service network in the country",
+            "Small cars benefited most from the Sep 2025 GST cut"
+          ],
+          "risks": [
+            "Lost share in SUVs to Mahindra, Tata and Hyundai",
+            "Late to EVs, launching its first EV only recently"
+          ],
+          "f": {
+            "ticker": "MARUTI"
+          }
+        },
+        "mm": {
+          "name": "Mahindra & Mahindra",
+          "listed": true,
+          "role": "India's leading SUV and tractor maker, with stakes in financial services, IT (Tech Mahindra) and electric SUVs",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Leads in SUVs with strong brands (Scorpio, XUV, Thar)",
+            "Market leader in tractors, a direct play on rural incomes"
+          ],
+          "risks": [
+            "Tractor demand swings with the monsoon",
+            "Heavy EV investment"
+          ],
+          "f": {
+            "ticker": "M&M"
+          }
+        },
+        "bajajauto": {
+          "name": "Bajaj Auto",
+          "listed": true,
+          "role": "Motorcycle and three-wheeler maker with the largest export business among Indian two-wheeler companies, and control of KTM",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Exports to Latin America, Africa and Asia diversify demand",
+            "Growing electric scooter (Chetak) and three-wheeler share"
+          ],
+          "risks": [
+            "KTM's turnaround under Bajaj ownership carries execution risk",
+            "Competition in entry motorcycles and EV scooters"
+          ],
+          "f": {
+            "ticker": "BAJAJ-AUTO"
+          }
+        },
+        "eichermot": {
+          "name": "Eicher Motors",
+          "listed": true,
+          "role": "Owner of Royal Enfield, the dominant mid-size (250-750cc) motorcycle brand, and a truck and bus JV with Volvo",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Near-monopoly in its segment with strong pricing power",
+            "Growing exports and new models"
+          ],
+          "risks": [
+            "Higher GST (40%) on motorcycles above 350cc since Sep 2025 hits its larger models",
+            "Competition from Triumph-Bajaj, Harley-Hero and Honda"
+          ],
+          "f": {
+            "ticker": "EICHERMOT"
+          }
+        },
+        "tmpv": {
+          "name": "Tata Motors PV",
+          "listed": true,
+          "role": "Tata Motors' passenger-vehicle company after the Oct 2025 demerger - Indian cars and EVs plus Jaguar Land Rover",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Leader in Indian electric cars",
+            "JLR's luxury Range Rover and Defender brands earn most of the profit"
+          ],
+          "risks": [
+            "JLR was shut for weeks by a cyberattack in late 2025 and faces US tariffs on UK-built cars",
+            "JLR's shift to EVs needs heavy spending"
+          ],
+          "f": {
+            "ticker": "TMPV"
+          }
+        },
+        "itc": {
+          "name": "ITC",
+          "listed": true,
+          "role": "India's largest cigarette maker, also in packaged foods, paperboard and agri-business",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Cigarette business generates very high cash flow and dividends",
+            "Fast-growing foods portfolio (Aashirvaad, Sunfeast, Bingo)"
+          ],
+          "risks": [
+            "Steep rise in excise on cigarettes from Feb 2026 hurts volumes and pricing",
+            "Paperboard business faces cheap imports"
+          ],
+          "f": {
+            "ticker": "ITC"
+          }
+        },
+        "hindunilvr": {
+          "name": "Hindustan Unilever",
+          "listed": true,
+          "role": "India's largest FMCG company (soaps, detergents, shampoo, tea) and a Unilever subsidiary",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Biggest distribution network and a portfolio of leading brands",
+            "Strong cash generation and high return on capital"
+          ],
+          "risks": [
+            "Slow volume growth and competition from smaller and D2C brands",
+            "Royalty payments to Unilever and portfolio changes such as the ice-cream demerger"
+          ],
+          "f": {
+            "ticker": "HINDUNILVR"
+          }
+        },
+        "nestleind": {
+          "name": "Nestle India",
+          "listed": true,
+          "role": "Maker of Maggi noodles, Nescafe, KitKat and infant nutrition",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Category-leading brands with pricing power",
+            "Very high return on capital"
+          ],
+          "risks": [
+            "Cocoa, coffee and milk cost inflation",
+            "Higher royalty to the Swiss parent"
+          ],
+          "f": {
+            "ticker": "NESTLEIND"
+          }
+        },
+        "tataconsum": {
+          "name": "Tata Consumer Products",
+          "listed": true,
+          "role": "Tata group's food and beverage company - tea, salt, coffee, pulses, Ching's and Capital Foods",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Tata Salt and Tata Tea are national brands with wide reach",
+            "Acquisitions (Capital Foods, Organic India) add faster-growing categories"
+          ],
+          "risks": [
+            "Tea price swings squeeze margins",
+            "Integrating acquisitions while growing new categories"
+          ],
+          "f": {
+            "ticker": "TATACONSUM"
+          }
+        },
+        "bhartiartl": {
+          "name": "Bharti Airtel",
+          "listed": true,
+          "role": "India's second-largest mobile operator by subscribers and the highest earner per user, with large African operations",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Highest ARPU in the industry thanks to premium and postpaid customers",
+            "Airtel Africa and Indus Towers add growth and infrastructure value"
+          ],
+          "risks": [
+            "Tariff hikes depend on competitors following",
+            "Spectrum and network capex needs"
+          ],
+          "f": {
+            "ticker": "BHARTIARTL"
+          }
+        },
+        "lt": {
+          "name": "Larsen & Toubro",
+          "listed": true,
+          "role": "India's largest engineering and construction company, also owning stakes in LTIMindtree and L&T Technology Services",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Record order book across infrastructure, hydrocarbons and defence",
+            "Strong position in Middle East oil and gas projects"
+          ],
+          "risks": [
+            "Thin margins on large fixed-price civil projects",
+            "Dependence on Gulf orders exposes it to regional conflict"
+          ],
+          "f": {
+            "ticker": "LT"
+          }
+        },
+        "sunpharma": {
+          "name": "Sun Pharmaceutical Industries",
+          "listed": true,
+          "role": "India's largest drugmaker, with a growing US specialty business (Ilumya and other branded drugs)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Leader in Indian branded generics",
+            "Specialty drugs in the US earn high margins"
+          ],
+          "risks": [
+            "US tariffs on branded drugs could hit its specialty business",
+            "USFDA issues at some plants"
+          ],
+          "f": {
+            "ticker": "SUNPHARMA"
+          }
+        },
+        "cipla": {
+          "name": "Cipla",
+          "listed": true,
+          "role": "Drugmaker strong in respiratory medicines in India, the US and South Africa",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Leader in inhalers and respiratory drugs",
+            "Strong Indian branded business"
+          ],
+          "risks": [
+            "Sales of its generic cancer drug (lenalidomide) in the US are tapering off",
+            "New CEO from 2026 needs to deliver new US launches"
+          ],
+          "f": {
+            "ticker": "CIPLA"
+          }
+        },
+        "maxhealth": {
+          "name": "Max Healthcare Institute",
+          "listed": true,
+          "role": "One of India's largest hospital chains, focused on north India and expanding beds fast",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "High revenue per bed and strong margins",
+            "Large pipeline of new beds in big cities"
+          ],
+          "risks": [
+            "New beds dilute margins as they ramp up",
+            "Rich valuation"
+          ],
+          "f": {
+            "ticker": "MAXHEALTH"
+          }
+        },
+        "apollohosp": {
+          "name": "Apollo Hospitals Enterprise",
+          "listed": true,
+          "role": "India's largest hospital chain, also running pharmacies, diagnostics and the Apollo 24/7 digital platform",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Trusted brand across hospitals, pharmacies and clinics",
+            "Pharmacy and digital health business being restructured into a separate entity"
+          ],
+          "risks": [
+            "Digital and pharmacy business still losing money",
+            "Heavy capex for new hospitals"
+          ],
+          "f": {
+            "ticker": "APOLLOHOSP"
+          }
+        },
+        "drreddy": {
+          "name": "Dr. Reddy's Laboratories",
+          "listed": true,
+          "role": "Generic drugmaker selling mainly in the US, India, Russia and Europe",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Early mover in semaglutide (GLP-1) generics in markets where the patent expired",
+            "Strong balance sheet with little debt"
+          ],
+          "risks": [
+            "Its key US generic (lenalidomide) is fading",
+            "Price erosion in US generics"
+          ],
+          "f": {
+            "ticker": "DRREDDY"
+          }
+        },
+        "jswsteel": {
+          "name": "JSW Steel",
+          "listed": true,
+          "role": "India's largest steelmaker by capacity, expanding fast",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Rapid capacity growth and modern plants",
+            "Protected by safeguard duty on steel imports"
+          ],
+          "risks": [
+            "High debt from expansion",
+            "Depends on imported coking coal"
+          ],
+          "f": {
+            "ticker": "JSWSTEEL"
+          }
+        },
+        "tatasteel": {
+          "name": "Tata Steel",
+          "listed": true,
+          "role": "Steelmaker with large Indian plants and European operations in the Netherlands and the UK",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Low-cost Indian operations with captive iron ore",
+            "Switching UK steelmaking to cleaner electric-arc furnaces"
+          ],
+          "risks": [
+            "European operations have lost money for years",
+            "Steel price cycles and Chinese exports"
+          ],
+          "f": {
+            "ticker": "TATASTEEL"
+          }
+        },
+        "adanient": {
+          "name": "Adani Enterprises",
+          "listed": true,
+          "role": "Adani group's incubator - airports, roads, data centres, green hydrogen and solar manufacturing, plus coal trading and mining (why NSE classifies it under Metals & Mining)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Owns India's largest private airport network",
+            "Incubates new businesses that can be listed later"
+          ],
+          "risks": [
+            "US charges against group leaders (Nov 2024) and governance questions",
+            "Heavy debt to fund many large projects at once"
+          ],
+          "f": {
+            "ticker": "ADANIENT"
+          }
+        },
+        "hindalco": {
+          "name": "Hindalco Industries",
+          "listed": true,
+          "role": "Aditya Birla group's aluminium and copper major, owner of Novelis (global rolled aluminium)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Integrated from bauxite to aluminium in India",
+            "Novelis supplies beverage cans and car makers worldwide"
+          ],
+          "risks": [
+            "A 2025 fire at Novelis's Oswego plant disrupted supply",
+            "Aluminium price swings"
+          ],
+          "f": {
+            "ticker": "HINDALCO"
+          }
+        },
+        "ntpc": {
+          "name": "NTPC",
+          "listed": true,
+          "role": "India's largest power generator, mainly coal-fired, adding renewables (NTPC Green) and nuclear",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Regulated returns give steady earnings",
+            "Big renewable pipeline and nuclear plans"
+          ],
+          "risks": [
+            "Coal supply and cost",
+            "Slower demand in mild summers"
+          ],
+          "f": {
+            "ticker": "NTPC"
+          }
+        },
+        "powergrid": {
+          "name": "Power Grid Corporation of India",
+          "listed": true,
+          "role": "State-owned operator of most of India's inter-state transmission lines",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Regulated, steady returns and high dividend",
+            "Large pipeline of lines to connect renewables"
+          ],
+          "risks": [
+            "Competitive bidding lowers returns on new lines",
+            "Execution delays from right-of-way issues"
+          ],
+          "f": {
+            "ticker": "POWERGRID"
+          }
+        },
+        "titan": {
+          "name": "Titan Company",
+          "listed": true,
+          "role": "Tata group's jewellery (Tanishq), watches and eyewear company",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Tanishq is India's most trusted jewellery brand",
+            "Gains share from unorganised jewellers"
+          ],
+          "risks": [
+            "High gold prices reduce volumes",
+            "Expansion abroad is costly"
+          ],
+          "f": {
+            "ticker": "TITAN"
+          }
+        },
+        "asianpaint": {
+          "name": "Asian Paints",
+          "listed": true,
+          "role": "India's largest decorative paint company",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Largest dealer network and strong brand",
+            "High return on capital"
+          ],
+          "risks": [
+            "New entrants (Birla Opus, JSW Paints) cut prices and margins",
+            "Raw material cost swings"
+          ],
+          "f": {
+            "ticker": "ASIANPAINT"
+          }
+        },
+        "eternal": {
+          "name": "Eternal (Zomato)",
+          "listed": true,
+          "role": "Parent of Zomato (food delivery), Blinkit (quick commerce), District (going out) and Hyperpure",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Profitable food delivery business with a strong share",
+            "Blinkit leads quick commerce in many cities"
+          ],
+          "risks": [
+            "Quick-commerce competition (Swiggy Instamart, Zepto, Flipkart, Amazon) burns cash",
+            "Gig-worker rules and costs"
+          ],
+          "f": {
+            "ticker": "ETERNAL"
+          }
+        },
+        "trent": {
+          "name": "Trent",
+          "listed": true,
+          "role": "Tata group's fashion retailer - Westside, Zudio and Star",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Zudio's value fashion has driven very fast store growth",
+            "High store returns"
+          ],
+          "risks": [
+            "Same-store growth has slowed",
+            "Premium valuation"
+          ],
+          "f": {
+            "ticker": "TRENT"
+          }
+        },
+        "ultracemco": {
+          "name": "UltraTech Cement",
+          "listed": true,
+          "role": "India's largest cement maker, part of the Aditya Birla group",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Biggest capacity and national reach",
+            "Recent acquisitions (India Cements, Kesoram) add capacity in the south"
+          ],
+          "risks": [
+            "Cement price wars",
+            "Fuel cost spikes"
+          ],
+          "f": {
+            "ticker": "ULTRACEMCO"
+          }
+        },
+        "grasim": {
+          "name": "Grasim Industries",
+          "listed": true,
+          "role": "Aditya Birla group holding company - parent of UltraTech, plus viscose fibre, chemicals, Birla Opus paints and Aditya Birla Capital",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Controls UltraTech and Aditya Birla Capital",
+            "Birla Opus has quickly become a big paint player"
+          ],
+          "risks": [
+            "Heavy spending on paints before profits",
+            "Viscose fibre and chemicals are cyclical"
+          ],
+          "f": {
+            "ticker": "GRASIM"
+          }
+        },
+        "bel": {
+          "name": "Bharat Electronics",
+          "listed": true,
+          "role": "State-owned defence electronics maker - radars, missiles and communication systems",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large order book from the armed forces",
+            "Air-defence and radar demand rising after recent conflicts"
+          ],
+          "risks": [
+            "Timing of large orders",
+            "Rich valuation"
+          ],
+          "f": {
+            "ticker": "BEL"
+          }
+        },
+        "adaniports": {
+          "name": "Adani Ports and SEZ",
+          "listed": true,
+          "role": "India's largest private port operator, also running logistics and ports abroad (Israel, Australia, Sri Lanka)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Largest share of India's port cargo",
+            "Logistics and marine services add growth"
+          ],
+          "risks": [
+            "Group-level governance concerns",
+            "Global trade slowdown"
+          ],
+          "f": {
+            "ticker": "ADANIPORTS"
+          }
+        },
+        "indigo": {
+          "name": "InterGlobe Aviation (IndiGo)",
+          "listed": true,
+          "role": "India's largest airline with most of the domestic market, now expanding into long-haul flights",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Dominant share and lowest costs",
+            "Large aircraft order book"
+          ],
+          "risks": [
+            "Mass cancellations in Dec 2025 under new pilot-rest rules led to regulator action",
+            "Jet fuel prices and a weak rupee"
+          ],
+          "f": {
+            "ticker": "INDIGO"
+          }
+        }
+      }
+    },
+    {
       "key": "ev4w",
       "suppliers": {
         "motherson": {
@@ -155,22 +1060,24 @@
         },
         "rico": {
           "name": "Rico Auto Industries",
-          "listed": false,
-          "role": "Precision machined components and wiring assemblies",
+          "listed": true,
+          "role": "Aluminium die-castings and precision machined components",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Long-standing supplier relationships with Maruti Suzuki and Honda, now diversifying machining lines toward EV components"
           ],
           "risks": [
-            "Unlisted - no audited public financials; figures here are not available",
+            "Customer concentration in a few OEMs (Maruti Suzuki, Honda)",
             "Historically an ICE-focused supplier still diversifying machining lines toward EV components"
           ],
           "notes": [
-            "Privately held, Gurugram-based; long-time Maruti Suzuki and Honda supplier",
-            "Diversifying machining lines toward EV transmission and motor housings",
-            "No public market data - not listed"
-          ]
+            "Gurugram-based; long-time Maruti Suzuki and Honda supplier",
+            "Diversifying machining lines toward EV transmission and motor housings"
+          ],
+          "f": {
+            "ticker": "RICOAUTO"
+          }
         },
         "subros": {
           "name": "Subros",
@@ -247,7 +1154,7 @@
           ],
           "risks": [
             "Still in the early stages of expanding into EV/CV driveline parts from a core forgings business",
-            "FY26 profit fell sharply on one-off items - treat recent figures with caution"
+            "FY26 profit fell sharply on one-off items - treat FY26 figures with caution"
           ],
           "f": {
             "ticker": "RKFORGE"
@@ -281,7 +1188,7 @@
             "Broad AC/DC charger range spanning 3.3kW to 600kW covers both home and high-power public charging use cases"
           ],
           "risks": [
-            "Recently listed with a short trading history and limited financial track record",
+            "Listed Mar 2024 - short financial track record",
             "Currently loss-making, so standard valuation multiples are not meaningful yet"
           ],
           "f": {
@@ -289,7 +1196,7 @@
           }
         },
         "servotech": {
-          "name": "Servotech Power Systems",
+          "name": "Servotech Renewable Power System",
           "listed": true,
           "role": "AC/DC EV chargers and lithium battery packs",
           "dataStatus": "demo",
@@ -334,12 +1241,14 @@
             "Known RapidX fast-charging cell chemistry and a strategic stake from Amara Raja give it a base to expand into four-wheeler applications"
           ],
           "risks": [
+            "Admitted to insolvency (CIRP) by the NCLT Bengaluru bench in Nov 2025 after loan defaults - its future as a supplier is uncertain",
             "Unlisted - no audited public financials; figures here are not available",
             "Primarily focused on 2W/3W and energy storage today - four-wheeler car exposure is still emerging"
           ],
           "notes": [
             "Privately held, Bengaluru-based; Amara Raja holds a strategic stake",
             "Known for RapidX fast-charging cell chemistry, mainly 2W/3W and energy storage today",
+            "In corporate insolvency resolution since Nov 2025 (IBBI), run by a resolution professional",
             "No public market data - not listed"
           ]
         },
@@ -358,7 +1267,7 @@
           "notes": [
             "Privately held, Hyderabad-based; announced a ~₹1,000 Cr plan for domestic magnet capacity (2025)",
             "Targets India's near-total reliance on Chinese rare-earth magnets for EV motors",
-            "No public market data - not listed"
+            "Not listed itself; its sister concern Midwest Ltd is (NSE: MIDWESTLTD, Oct 2025), but that company's revenue is granite and quartz"
           ]
         },
         "tmpv": {
@@ -376,6 +1285,23 @@
           ],
           "f": {
             "ticker": "TMPV"
+          }
+        },
+        "maruti": {
+          "name": "Maruti Suzuki India",
+          "listed": true,
+          "role": "India's largest car maker; its first EV, the e Vitara, has been built at the Suzuki Gujarat plant since Aug 2025, largely for export",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Largest dealer and service network in India and Suzuki's global sales channel give its first EV export volume from the start"
+          ],
+          "risks": [
+            "A late entrant to EVs: the e Vitara is one model in a business that is still almost entirely petrol, CNG and hybrid",
+            "EV figures are not disclosed separately from a much larger ICE business"
+          ],
+          "f": {
+            "ticker": "MARUTI"
           }
         },
         "mm": {
@@ -413,14 +1339,14 @@
         "olectra": {
           "name": "Olectra Greentech",
           "listed": true,
-          "role": "Electric bus manufacturer, legacy BYD technology-sharing origins",
+          "role": "Electric bus maker (MEIL group); its first e-buses were built with BYD technology",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Early-mover electric bus platform built on proven BYD technology-sharing origins"
+            "One of the largest electric-bus suppliers to state transport undertakings, with a large order book"
           ],
           "risks": [
-            "Historical dependence on BYD technology-sharing origins for its electric bus platform"
+            "Earnings depend on lumpy state bus tenders and on transport undertakings paying on time"
           ],
           "f": {
             "ticker": "OLECTRA"
@@ -445,7 +1371,7 @@
         "mindaCorp": {
           "name": "Minda Corporation",
           "listed": true,
-          "role": "Auto electronics and components incl. EV-specific sensors, controllers and switches",
+          "role": "Wiring harnesses plus auto electronics incl. EV-specific sensors, controllers and switches",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -512,7 +1438,7 @@
           "risks": [
             "Wholly owned Indian subsidiary of Micron US - no separate Indian listing or financials",
             "Capacity and investment decisions are made by the US parent, not locally",
-            "Early-phase ATMP ramp carries yield and utilization risk"
+            "Early-phase ATMP ramp carries yield and utilisation risk"
           ],
           "notes": [
             "Wholly owned Indian subsidiary of US-based Micron Technology (NASDAQ: MU)",
@@ -561,19 +1487,19 @@
         "hclfoxconn": {
           "name": "HCL-Foxconn Semiconductor",
           "listed": false,
-          "role": "Proposed OSAT plant (Jewar, Uttar Pradesh) for display driver chips",
+          "role": "Approved (May 2025) OSAT plant (Jewar, Uttar Pradesh) for display driver chips",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Combines HCL's domestic engineering and project-execution experience with Foxconn's global electronics manufacturing scale and supply-chain relationships, a pairing well suited to a first-of-kind display-driver OSAT plant"
           ],
           "risks": [
-            "Proposed/early-stage plant - no production or revenue yet to evaluate",
-            "50:50 JV structure means neither parent fully controls the entity",
+            "Approved (May 2025), early-stage plant - no production or revenue yet to evaluate",
+            "HCL-led JV (HCL 60%, Foxconn 40%) - HCL holds control and carries most of the execution risk on its first chip plant",
             "No separate public financials; the JV is privately held"
           ],
           "notes": [
-            "50:50 joint venture between HCL Group and Foxconn (Hon Hai)",
+            "HCL-led JV (HCL 60%, Foxconn 40%) between HCL Group and Foxconn (Hon Hai)",
             "Targets display-driver and power-management chips for consumer electronics",
             "No public market data - not listed; JV entity is privately held"
           ]
@@ -653,7 +1579,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Decades of specialized water-treatment and ultra-pure water system expertise give it a qualification edge for fab-grade UPW systems that generalist infrastructure players lack"
+            "Decades of specialised water-treatment and ultra-pure water system expertise give it a qualification edge for fab-grade UPW systems that generalist infrastructure players lack"
           ],
           "risks": [
             "Semiconductor ultra-pure water systems are a small, undisclosed slice of a broader water-treatment business",
@@ -1123,10 +2049,10 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "High-reliability battery expertise honed on rail-signalling and defense contracts carries over directly to critical-power UPS applications, and those segments also diversify it well beyond DC-battery demand"
+            "High-reliability battery expertise honed on rail-signalling and defence contracts carries over directly to critical-power UPS applications, and those segments also diversify it well beyond DC-battery demand"
           ],
           "risks": [
-            "Rail-signalling and defense electronics are larger segments than DC batteries/UPS for this company"
+            "Rail-signalling and defence electronics are larger segments than DC batteries/UPS for this company"
           ],
           "f": {
             "ticker": "HBLENGINE"
@@ -1159,7 +2085,7 @@
           ],
           "risks": [
             "Distribution margins are thin; DC servers are one category within a broader IT distribution business",
-            "Recently listed (Feb 2024) - limited trading history"
+            "Listed Feb 2024 - limited trading history"
           ],
           "f": {
             "ticker": "RPTECH"
@@ -1168,11 +2094,11 @@
         "hfcl": {
           "name": "HFCL",
           "listed": true,
-          "role": "Optical fiber and telecom/DC networking equipment (OFC, routers)",
+          "role": "Optical fibre and telecom/DC networking equipment (OFC, routers)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Vertically integrated from fiber to telecom/networking equipment, with a growing defense-electronics and export order book that diversifies it beyond cyclical OFC pricing"
+            "Vertically integrated from fibre to telecom/networking equipment, with a growing defence-electronics and export order book that diversifies it beyond cyclical OFC pricing"
           ],
           "risks": [
             "OFC pricing is cyclical - telecom capex timing drives demand more than DC capex specifically"
@@ -1184,14 +2110,14 @@
         "sterliteTech": {
           "name": "Sterlite Technologies",
           "listed": true,
-          "role": "Optical fiber and OFC data networking - largest OFC maker in India",
+          "role": "Optical fibre and OFC data networking - largest OFC maker in India",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's largest optical fiber maker with global-scale manufacturing and a return to profitability in FY26 as the industry pricing downcycle turned"
+            "India's largest optical fibre maker with global-scale manufacturing and a return to profitability in FY26 as the industry pricing downcycle turned"
           ],
           "risks": [
-            "OFC pricing downcycles have driven net losses in recent years (FY24-25)",
+            "OFC pricing downcycles have driven net losses in FY24-25",
             "Telecom capex timing drives demand more than DC capex specifically"
           ],
           "f": {
@@ -1230,8 +2156,7 @@
             "Diversified across wagon manufacturing, steel castings and rail EPC (via the absorbed Kalindee Rail Nirman business), spreading order-book risk across multiple rail revenue streams rather than wagons alone"
           ],
           "risks": [
-            "Part of a larger industrial group - standalone rail-only economics can be hard to isolate",
-            "Some historical financial data for this company was not reliably available"
+            "Part of a larger industrial group - standalone rail-only economics can be hard to isolate"
           ],
           "f": {
             "ticker": "TEXRAIL"
@@ -1257,9 +2182,12 @@
         "jupiterwagons": {
           "name": "Jupiter Wagons Ltd",
           "listed": true,
-          "role": "Freight wagons, containers and braking systems",
+          "role": "Freight wagons, containers and braking systems - owns Stone India (brake valves, couplers, coach alternators) since its FY24 insolvency takeover",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
+          "aka": [
+            "stone india"
+          ],
           "strengths": [
             "India's fastest-growing wagon maker, with in-house vertical integration into braking systems that gives it component control and margin capture most wagon-only peers lack"
           ],
@@ -1269,23 +2197,6 @@
           ],
           "f": {
             "ticker": "JWL"
-          }
-        },
-        "stoneindia": {
-          "name": "Stone India Ltd",
-          "listed": true,
-          "role": "Legacy railway coupler, brake-valve & signaling-equipment maker (Kolkata)",
-          "dataStatus": "unverified",
-          "sourceDate": "20 Oct 2026",
-          "strengths": [
-            "Long-standing legacy manufacturer with established product lines across couplers, brake valves and signaling equipment, reflecting decades of accumulated RDSO approvals in a hard-to-enter niche"
-          ],
-          "risks": [
-            "Publicly available financial data for this company is stale and needs direct verification before use",
-            "Described as a 'legacy' maker - scale and current relevance versus newer entrants is unclear"
-          ],
-          "f": {
-            "ticker": "STONEINDIA"
           }
         },
         "ramkrishnaforgings": {
@@ -1396,10 +2307,10 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Global rail-mobility technology leader with a dedicated India bogie-manufacturing plant (Aurangabad), giving it access to Siemens' global traction and signaling IP for Indian tenders"
+            "Global rail-mobility technology leader with a dedicated India bogie-manufacturing plant (Aurangabad), giving it access to Siemens' global traction and signalling IP for Indian tenders"
           ],
           "risks": [
-            "Rail Mobility is one of several segments alongside Energy and Digital Industries - segment-level rail economics are blended",
+            "Rail Mobility is one of several segments alongside Smart Infrastructure and Digital Industries - segment-level rail economics are blended",
             "Fiscal year (September-end) differs from Indian Railways' own budget cycle"
           ],
           "f": {
@@ -1480,10 +2391,10 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Diversified train-control product portfolio spanning Kavach, electronic interlocking and digital axle counters gives it exposure across multiple signaling tender categories rather than a single niche"
+            "Diversified train-control product portfolio spanning Kavach, electronic interlocking and digital axle counters gives it exposure across multiple signalling tender categories rather than a single niche"
           ],
           "risks": [
-            "Recently IPO'd and currently loss-making - an early-stage, high-risk name",
+            "Listed Jan 2025 and loss-making - an early-stage, high-risk name",
             "Elevated working-capital days versus more established peers"
           ],
           "f": {
@@ -1493,14 +2404,14 @@
         "hblengineering": {
           "name": "HBL Engineering",
           "listed": true,
-          "role": "Kavach/train-protection electronics, signaling, train lighting & onboard batteries",
+          "role": "Kavach/train-protection electronics, signalling, train lighting & onboard batteries",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Diversified base across Kavach signaling, train lighting/batteries and defense electronics gives it several RDSO-qualified revenue lines off the same manufacturing base, reducing dependence on Kavach timing alone"
+            "Diversified base across Kavach signalling, train lighting/batteries and defence electronics gives it several RDSO-qualified revenue lines off the same manufacturing base, reducing dependence on Kavach timing alone"
           ],
           "risks": [
-            "Business spans Kavach/signaling, train lighting, batteries and defense electronics - no single segment is separately broken out",
+            "Business spans Kavach/signalling, train lighting, batteries and defence electronics - no single segment is separately broken out",
             "Recently repositioned/renamed, reflecting a strategic pivot still underway"
           ],
           "f": {
@@ -1517,27 +2428,27 @@
             "Established RDSO/RCF-approved vendor for passenger-information display systems, a recurring niche tied to every new coach build and station upgrade with a limited qualified competitor set"
           ],
           "risks": [
-            "Small-cap with volatile earnings history",
-            "On BSE's Long-Term ASM surveillance stage as of Dec 2024, a liquidity/volatility flag"
+            "Small-cap with volatile earnings history"
           ],
           "f": {
             "ticker": "MICEL"
           }
         },
-        "escortskubota": {
-          "name": "Escorts Kubota Ltd",
+        "sonablw": {
+          "name": "Sona BLW Precision Forgings",
           "listed": true,
-          "role": "Dedicated Railway Equipment segment: air-brake systems, couplers, suspension",
+          "role": "Air-brake systems, couplers and suspension for rolling stock (ex-Escorts Kubota Railway Equipment Division, bought 2025)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "One of the few manufacturers with a long-standing dedicated Railway Equipment segment for air-brake systems and couplers, backed by the much larger Escorts Kubota balance sheet"
+            "Took over a long-established railway equipment business with approved brake, coupler and suspension products, now backed by Sona's larger engineering base and balance sheet"
           ],
           "risks": [
-            "Railway Equipment is roughly 11% of company-wide revenue - a minority segment within a much larger agri/construction-equipment business"
+            "Rail is a small part of Sona's business, which is mainly EV driveline (motors, gears, e-axles) for global auto makers",
+            "Folding the acquired railway division into a mainly automotive company adds integration risk"
           ],
           "f": {
-            "ticker": "ESCORTS"
+            "ticker": "SONACOMS"
           }
         },
         "rvnl": {
@@ -1564,10 +2475,10 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Miniratna PSU with both domestic and international EPC track record, giving it revenue diversification beyond India's own rail capex cycle"
+            "Navratna PSU with both domestic and international EPC track record, giving it revenue diversification beyond India's own rail capex cycle"
           ],
           "risks": [
-            "Revenue has declined over the last two years in the shown data",
+            "Revenue has declined over the last two years",
             "Government PSU ownership can constrain strategic and pricing flexibility"
           ],
           "f": {
@@ -1609,11 +2520,11 @@
         "salasar": {
           "name": "Salasar Techno Engineering",
           "listed": true,
-          "role": "Galvanized steel structures - OHE electrification masts and railway over-bridges",
+          "role": "Galvanised steel structures - OHE electrification masts and railway over-bridges",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Established galvanized-structure manufacturing base feeding both railway electrification masts and broader transmission-tower demand gives it an order pipeline beyond one-off rail contracts"
+            "Established galvanised-structure manufacturing base feeding both railway electrification masts and broader transmission-tower demand gives it an order pipeline beyond one-off rail contracts"
           ],
           "risks": [
             "Small-cap; rail structures are one product line within a broader towers/EPC business"
@@ -1661,7 +2572,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Owns a nationwide fibre backbone laid along railway right-of-way - a hard-to-replicate physical asset now being monetized into cloud and data-centre services beyond its core telecom mandate"
+            "Owns a nationwide fibre backbone laid along railway right-of-way - a hard-to-replicate physical asset now being monetised into cloud and data-centre services beyond its core telecom mandate"
           ],
           "risks": [
             "Expanding into data-centre/cloud services beyond its core railway telecom mandate carries execution risk"
@@ -1680,7 +2591,7 @@
             "Navratna PSU consultancy with a diversified mandate spanning design consultancy, rolling-stock export/leasing and project management, giving it revenue touchpoints across nearly every stage of a rail project"
           ],
           "risks": [
-            "Revenue has been gently declining over the shown period",
+            "Revenue has been gently declining",
             "Government PSU ownership can constrain strategic and pricing flexibility"
           ],
           "f": {
@@ -1697,7 +2608,7 @@
             "Backed by the Shapoorji Pallonji group's deep complex-infrastructure execution track record (tunnels, bridges), differentiating it on technically demanding metro and rail civil packages"
           ],
           "risks": [
-            "Recently listed (Nov 2024) with limited trading history",
+            "Listed Nov 2024, so trading history is short",
             "Railway and metro work is one segment within a broader, diversified infrastructure EPC portfolio"
           ],
           "f": {
@@ -1714,7 +2625,7 @@
             "Decades of civil-construction execution track record (as ITD Cementation) now backed by the Adani Group's balance sheet and infrastructure ambitions following the 2025 acquisition"
           ],
           "risks": [
-            "Recently renamed and changed ownership (Adani Group acquisition, 2025) - strategic direction under new ownership is still unfolding",
+            "Renamed and changed ownership in 2025 (Adani Group acquisition) - strategic direction under new ownership is still unfolding",
             "Railway and metro work is one segment within a broader civil-construction portfolio"
           ],
           "f": {
@@ -1804,7 +2715,7 @@
             "Ship-repair revenue provides a steadier, recurring counterweight to the lumpy new-build carrier/destroyer order cycle"
           ],
           "risks": [
-            "Order lumpiness - large carrier/destroyer programs are awarded infrequently",
+            "Order lumpiness - large carrier/destroyer programmes are awarded infrequently",
             "Diversified into ship-repair revenue, which carries different margin and cycle dynamics than new-build"
           ],
           "f": {
@@ -1821,7 +2732,7 @@
             "Highest ROCE/ROE among the listed PSU shipyards, with revenue growing roughly 6x over five years on export and ASW-corvette demand"
           ],
           "risks": [
-            "Recent revenue growth is concentrated in export and ASW-craft orders that may not repeat at the same pace",
+            "Five-year revenue growth is concentrated in export and ASW-craft orders that may not repeat at the same pace",
             "Order book still dependent on a small number of government/export contracts"
           ],
           "f": {
@@ -1831,11 +2742,11 @@
         "lt_naval": {
           "name": "Larsen & Toubro",
           "listed": true,
-          "role": "Only significant private-sector warship/submarine builder (Kattupalli shipyard, P-75I pressure hulls)",
+          "role": "Only significant private-sector warship/submarine builder (Kattupalli shipyard; submarine pressure hulls - Arihant-class / Scorpene sections)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Only significant private-sector yard with proven submarine pressure-hull fabrication (P-75I), backed by L&T's balance-sheet scale and engineering depth that smaller private entrants lack"
+            "Only significant private-sector yard with proven submarine pressure-hull fabrication (Arihant-class / Scorpene sections), backed by L&T's balance-sheet scale and engineering depth that smaller private entrants lack"
           ],
           "risks": [
             "Naval shipbuilding is a small, undisclosed slice of a much larger engineering/construction conglomerate",
@@ -1886,11 +2797,11 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Government-owned, near-sole domestic source of submarine-grade titanium alloys and maraging steel - materials with long qualification cycles that give it durable, hard-to-contest positioning on every submarine program"
+            "Government-owned, near-sole domestic source of submarine-grade titanium alloys and maraging steel - materials with long qualification cycles that give it durable, hard-to-contest positioning on every submarine programme"
           ],
           "risks": [
-            "Revenue concentrated in a narrow set of defense/aerospace specialty-alloy programs",
-            "FY26 figures not yet available in the source data at fetch time"
+            "Revenue concentrated in a narrow set of defence/aerospace specialty-alloy programmes",
+            "Majority government ownership limits free float"
           ],
           "f": {
             "ticker": "MIDHANI"
@@ -1920,7 +2831,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Marine/auxiliary genset orders ride on a much larger, diversified and cash-generative industrial and agricultural engine business rather than depending on defense budget timing alone"
+            "Marine/auxiliary genset orders ride on a much larger, diversified and cash-generative industrial and agricultural engine business rather than depending on defence budget timing alone"
           ],
           "risks": [
             "Marine/auxiliary gensets are a small, undisclosed slice of a much larger industrial and agricultural engine business"
@@ -1940,7 +2851,7 @@
           ],
           "risks": [
             "Naval turbine/genset work is a small, undisclosed fraction of a power-equipment-dominated PSU",
-            "Broader BHEL business has shown volatile profitability in recent years"
+            "Broader BHEL business has shown volatile profitability"
           ],
           "f": {
             "ticker": "BHEL"
@@ -1953,10 +2864,10 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Backed by Bharat Forge's heavy-forging scale and balance-sheet depth, giving it the capacity to scale the naval turbine-generator line if follow-on orders materialize"
+            "Backed by Bharat Forge's heavy-forging scale and balance-sheet depth, giving it the capacity to scale the naval turbine-generator line if follow-on orders materialise"
           ],
           "risks": [
-            "Naval turbine-generator work is a very recent, small-scale entry point, not yet a proven recurring revenue stream",
+            "Naval turbine-generator work is a single-contract, small-scale entry point, not yet a proven recurring revenue stream",
             "Automotive forgings dominate the business - naval exposure is immaterial to group results today"
           ],
           "f": {
@@ -1966,11 +2877,11 @@
         "walchandnagar": {
           "name": "Walchandnagar Industries",
           "listed": true,
-          "role": "Specialized gearboxes/systems for shipyards and defense (also nuclear, space, sugar-machinery)",
+          "role": "Specialised gearboxes/systems for shipyards and defence (also nuclear, space, sugar-machinery)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Diversified technical franchise across nuclear, space and defense critical components means naval gearbox orders are not the sole lever for any eventual turnaround"
+            "Diversified technical franchise across nuclear, space and defence critical components means naval gearbox orders are not the sole lever for any eventual turnaround"
           ],
           "risks": [
             "Chronic loss-maker with negative ROE - a financial-distress/turnaround situation distinct from naval demand risk",
@@ -1987,11 +2898,11 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Government-owned prime with effectively uncontested positioning on India's missile and heavyweight torpedo programs (Varunastra, SAMs/ATGMs)"
+            "Government-owned prime with effectively uncontested positioning on India's missile and heavyweight torpedo programmes (Varunastra, SAMs/ATGMs)"
           ],
           "risks": [
             "Revenue has been volatile year to year, tied to lumpy government order execution",
-            "Figures were cross-verified via an alternate source this session and should be re-checked before publishing"
+            "Order book concentrated in a few large missile/torpedo programmes"
           ],
           "f": {
             "ticker": "BDL"
@@ -2004,11 +2915,11 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Dominant commercial (mining) explosives franchise generates the scale and cash flow that funds and de-risks its faster-growing defense diversification into warheads and propellant systems"
+            "Dominant commercial (mining) explosives franchise generates the scale and cash flow that funds and de-risks its faster-growing defence diversification into warheads and propellant systems"
           ],
           "risks": [
-            "Commercial mining explosives still dominate revenue - defense is a smaller, faster-growing segment, not the core business",
-            "Premium valuation priced for continued defense-segment growth"
+            "Commercial mining explosives still dominate revenue - defence is a smaller, faster-growing segment, not the core business",
+            "Premium valuation priced for continued defence-segment growth"
           ],
           "f": {
             "ticker": "SOLARINDS"
@@ -2024,7 +2935,7 @@
             "Established, long-qualified supplier relationships with ISRO and DRDO give it a foothold in high-barrier-to-entry explosives/propellant niches new entrants would need years to qualify into"
           ],
           "risks": [
-            "Small-cap explosives maker with revenue concentrated in a handful of ISRO/DRDO-linked programs"
+            "Small-cap explosives maker with revenue concentrated in a handful of ISRO/DRDO-linked programmes"
           ],
           "f": {
             "ticker": "PREMEXPLN"
@@ -2050,15 +2961,15 @@
         "bel_naval": {
           "name": "Bharat Electronics",
           "listed": true,
-          "role": "Dominant defense electronics PSU - naval radars, sonar (HUMSA/USHUS), EW suites, combat management systems",
+          "role": "Dominant defence electronics PSU - naval radars, sonar (HUMSA/USHUS), EW suites, combat management systems",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Anchor, vertically-integrated PSU supplier of naval radar, sonar and combat-management systems with the sector's best combination of scale and margin expansion, giving it incumbency across nearly every major naval electronics program"
+            "Anchor, vertically-integrated PSU supplier of naval radar, sonar and combat-management systems with the sector's best combination of scale and margin expansion, giving it incumbency across nearly every major naval electronics programme"
           ],
           "risks": [
             "Premium valuation already prices in continued scale and margin expansion",
-            "Naval electronics is one of several defense verticals BEL serves - naval-specific revenue isn't separately broken out"
+            "Naval electronics is one of several defence verticals BEL serves - naval-specific revenue isn't separately broken out"
           ],
           "f": {
             "ticker": "BEL"
@@ -2067,15 +2978,14 @@
         "datapatterns": {
           "name": "Data Patterns (India)",
           "listed": true,
-          "role": "Vertically-integrated defense/aerospace electronics - radars, EW, avionics, naval platform electronics",
+          "role": "Vertically-integrated defence/aerospace electronics - radars, EW, avionics, naval platform electronics",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Vertically-integrated design-to-manufacture model shortens qualification cycles and captures more of the value chain than typical sub-system suppliers across radar, EW and naval platform electronics"
           ],
           "risks": [
-            "Some FY23/FY24 figures were cross-verified via alternate sources this session and should be re-checked",
-            "Naval-specific revenue isn't separately disclosed within a broader defense/aerospace electronics business"
+            "Naval-specific revenue isn't separately disclosed within a broader defence/aerospace electronics business"
           ],
           "f": {
             "ticker": "DATAPATTNS"
@@ -2091,7 +3001,7 @@
             "Established specialist in T/R modules and RF front-ends for radar systems gives it a technical moat in high-barrier RF/microwave manufacturing that commodity electronics suppliers cannot easily enter"
           ],
           "risks": [
-            "RF/radar subsystem revenue spans multiple defense end-markets, not naval-specific disclosure"
+            "RF/radar subsystem revenue spans multiple defence end-markets, not naval-specific disclosure"
           ],
           "f": {
             "ticker": "ASTRAMICRO"
@@ -2104,10 +3014,10 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Diversified footprint across optics, electro-optics, EW and space systems spreads naval-specific order lumpiness across multiple high-growth defense verticals"
+            "Diversified footprint across optics, electro-optics, EW and space systems spreads naval-specific order lumpiness across multiple high-growth defence verticals"
           ],
           "risks": [
-            "Optics/EW/space-systems revenue spans multiple defense end-markets - naval-specific exposure isn't separately disclosed"
+            "Optics/EW/space-systems revenue spans multiple defence end-markets - naval-specific exposure isn't separately disclosed"
           ],
           "f": {
             "ticker": "PARAS"
@@ -2116,14 +3026,14 @@
         "apollomicro": {
           "name": "Apollo Micro Systems",
           "listed": true,
-          "role": "Defense/aerospace embedded-electronics - avionics, torpedo/sonar-related electronics",
+          "role": "Defence/aerospace embedded-electronics - avionics, torpedo/sonar-related electronics",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Established embedded-electronics qualification across aerospace and multiple defense platforms gives it a diversified base of recurring defense-program demand beyond any single naval contract"
+            "Established embedded-electronics qualification across aerospace and multiple defence platforms gives it a diversified base of recurring defence-programme demand beyond any single naval contract"
           ],
           "risks": [
-            "Embedded-electronics revenue spans aerospace and multiple defense platforms, not naval-specific"
+            "Embedded-electronics revenue spans aerospace and multiple defence platforms, not naval-specific"
           ],
           "f": {
             "ticker": "APOLLO"
@@ -2136,7 +3046,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Strong FY21-24 track record as a tier-1/2 harness/integration supplier gives it structural access to BEL's naval electronics order pipeline once execution stabilizes"
+            "Strong FY21-24 track record as a tier-1/2 harness/integration supplier gives it structural access to BEL's naval electronics order pipeline once execution stabilises"
           ],
           "risks": [
             "Revenue nearly halved and turned loss-making in FY26 after a strong FY21-24 track record",
@@ -2149,14 +3059,14 @@
         "mtartech_naval": {
           "name": "MTAR Technologies",
           "listed": true,
-          "role": "Precision-engineered components primarily for space/nuclear/clean-energy, with a secondary defense component",
+          "role": "Precision-engineered components primarily for space/nuclear/clean-energy, with a secondary defence component",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Precision-manufacturing capability and quality certifications built for space and nuclear programs - among the most stringent in Indian industry - transfer directly to exacting defense/naval component requirements"
+            "Precision-manufacturing capability and quality certifications built for space and nuclear programmes - among the most stringent in Indian industry - transfer directly to exacting defence/naval component requirements"
           ],
           "risks": [
-            "Defense/naval work is a secondary, smaller segment behind a larger space/nuclear/clean-energy precision-components business"
+            "Defence/naval work is a secondary, smaller segment behind a larger space/nuclear/clean-energy precision-components business"
           ],
           "f": {
             "ticker": "MTARTECH"
@@ -2188,7 +3098,7 @@
             "Revenue tripling FY24-FY25 signals a major new order inflection, and submarine-grade compressor/HVAC qualification is a higher barrier-to-entry niche than general industrial HVAC"
           ],
           "risks": [
-            "Recent revenue tripling looks order-driven and may not represent a steady-state run rate",
+            "The FY24-FY25 revenue tripling looks order-driven and may not represent a steady-state run rate",
             "Naval/submarine HVAC work is one of several industrial end-markets for the company"
           ],
           "f": {
@@ -2215,7 +3125,7 @@
         "azadengineering": {
           "name": "Azad Engineering",
           "listed": true,
-          "role": "Precision-forged/machined components for aerospace, energy and defense",
+          "role": "Precision-forged/machined components for aerospace, energy and defence",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -2223,7 +3133,7 @@
           ],
           "risks": [
             "Weakest-evidenced naval linkage in this sector - primarily an aerospace-engine and energy-turbine forgings business",
-            "Recent IPO (2024) with limited trading/financial history"
+            "Listed Dec 2023 - limited trading history"
           ],
           "f": {
             "ticker": "AZAD"
@@ -2236,14 +3146,13 @@
           "dataStatus": "unverified",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Only shipyard currently performing submarine MRO/life-extension work alongside new-build, and a leading contender for the Project-75I award, giving it a potentially outsized role in the next submarine-construction cycle"
+            "Only shipyard combining submarine MRO/life-extension work with new-build fleet support ships"
           ],
           "risks": [
             "Unlisted - no audited public financials; figures/claims here are compiled from public reporting only",
-            "Project-75I submarine award is still contested/pending, not yet a confirmed revenue stream"
+            "New-build order book depends on the fleet-support-ship and refit programmes"
           ],
           "notes": [
-            "Under Project-75I contention for new-generation submarine construction",
             "Also performs submarine MRO/life-extension work",
             "No public market data - not listed"
           ]
@@ -2266,28 +3175,28 @@
             "No public market data - not listed"
           ]
         },
-        "knorrbremsenaval": {
+        "godrejboyce_naval": {
           "name": "Godrej & Boyce Mfg. Co.",
           "listed": false,
           "role": "Precision engineering conglomerate - Marine Solutions line (deck machinery, steering gear)",
           "dataStatus": "unverified",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Decades-old precision-engineering conglomerate with an established Marine Solutions franchise and parallel BrahMos airframe assembly work, giving it technical credibility across multiple defense-grade manufacturing disciplines"
+            "Decades-old precision-engineering conglomerate with an established Marine Solutions franchise and parallel BrahMos airframe assembly work, giving it technical credibility across multiple defence-grade manufacturing disciplines"
           ],
           "risks": [
             "Unlisted conglomerate - naval Marine Solutions is a small, undisclosed slice of a much larger precision-engineering business",
             "No public financials available to size the naval-specific contribution"
           ],
           "notes": [
-            "Also makes BrahMos airframe assemblies and precision defense components",
+            "Also makes BrahMos airframe assemblies and precision defence components",
             "No public market data - not listed"
           ]
         },
         "kinecokaman_naval": {
           "name": "Kineco Kaman Composites (India)",
           "listed": false,
-          "role": "Composite structures relevant to naval/defense platforms (JV between Kineco and US-based Kaman Aerospace)",
+          "role": "Composite structures relevant to naval/defence platforms (JV between Kineco and US-based Kaman Aerospace)",
           "dataStatus": "unverified",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -2304,11 +3213,11 @@
         "centum": {
           "name": "Centum Electronics",
           "listed": true,
-          "role": "ESDM - RF/microwave modules, avionics and defense electronics; supplies naval sensor/electronics subsystems",
+          "role": "ESDM - RF/microwave modules, avionics and defence electronics; supplies naval sensor/electronics subsystems",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Established ESDM manufacturing base across RF/microwave modules and avionics gives it qualified access to multiple defense-electronics programs beyond naval sensor subsystems alone"
+            "Established ESDM manufacturing base across RF/microwave modules and avionics gives it qualified access to multiple defence-electronics programmes beyond naval sensor subsystems alone"
           ],
           "risks": [
             "Chronically weak or negative net profit and ROE despite revenue growth",
@@ -2334,7 +3243,7 @@
             "Leverages the same scale forging infrastructure and OEM relationships as its structural-forgings business to also supply aero-engine forgings, spreading fixed costs across a broader aerospace product base"
           ],
           "risks": [
-            "Aerospace-specific revenue not broken out from BharatForge's consolidated results"
+            "Aerospace-specific revenue not broken out from Bharat Forge's consolidated results"
           ],
           "f": {
             "ticker": "BHARATFORG"
@@ -2347,8 +3256,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Qualified and shipping turbine/compressor blades directly to GE, Honeywell and Safran, clearing one of aerospace's highest technical-qualification bars that keeps most domestic players out of hot-section work",
-            "Hot-section turbine/compressor blade work is Azad's core qualified product line with GE, Honeywell and Safran, not a side business, giving genuine technical depth in the highest-margin segment of the value chain"
+            "Qualified and shipping turbine/compressor blades directly to GE, Honeywell and Safran, clearing one of aerospace's highest technical-qualification bars that keeps most domestic players out of hot-section work"
           ],
           "risks": [
             "Revenue concentrated among a small number of global engine-OEM customers (GE, Honeywell, Safran)",
@@ -2361,15 +3269,15 @@
         "ptcindustries": {
           "name": "PTC Industries",
           "listed": true,
-          "role": "Titanium & superalloy investment castings - new 'Mihir' foundry for LCA Tejas and civil/defense programs",
+          "role": "Titanium & superalloy investment castings - new 'Mihir' foundry for LCA Tejas and civil/defence programmes",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "New 'Mihir' foundry gives it rare domestic titanium/superalloy investment-casting capacity tied directly to LCA Tejas and other strategic defense programs, a capability very few Indian manufacturers possess"
+            "New 'Mihir' foundry gives it rare domestic titanium/superalloy investment-casting capacity tied directly to LCA Tejas and other strategic defence programmes, a capability very few Indian manufacturers possess"
           ],
           "risks": [
             "New foundry capacity still ramping - revenue depends on successful scale-up",
-            "Customer base concentrated in a small number of defense/civil programs"
+            "Customer base concentrated in a small number of defence/civil programmes"
           ],
           "f": {
             "ticker": "PTCIL"
@@ -2395,15 +3303,15 @@
         "jaykay": {
           "name": "Jaykay Enterprises",
           "listed": true,
-          "role": "Legacy synthetics company pivoting into defense/aerospace additive manufacturing via 2025-26 acquisitions",
+          "role": "Legacy synthetics company pivoting into defence/aerospace additive manufacturing via 2025-26 acquisitions",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Early-mover pivot into defense/aerospace additive manufacturing via acquisition, targeting a specialized manufacturing niche with limited existing domestic competition"
+            "Early-mover pivot into defence/aerospace additive manufacturing via acquisition, targeting a specialised manufacturing niche with limited existing domestic competition"
           ],
           "risks": [
-            "Aerospace/defense business is a recent pivot from a legacy synthetics company - limited track record",
-            "FY26 profit figure flagged as likely containing a one-off item - verify before relying on it"
+            "Aerospace/defence business is a 2025-26 pivot from a legacy synthetics company - limited track record",
+            "FY26 profit likely includes a one-off item"
           ],
           "f": {
             "ticker": "JAYKAY"
@@ -2416,7 +3324,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Established, qualified supplier of flap-track beams and structural parts on Airbus A320 and Boeing 787 - two of the highest-volume programs in production - giving revenue visibility tied to their build-rate ramps",
+            "Established, qualified supplier of flap-track beams and structural parts on Airbus A320 and Boeing 787 - two of the highest-volume programmes in production - giving revenue visibility tied to their build-rate ramps",
             "Hydraulics expertise alongside its core aerospace structures business gives it credible, qualified capability in actuation-adjacent hydraulic gear pumps"
           ],
           "risks": [
@@ -2448,15 +3356,15 @@
         "aequs": {
           "name": "Aequs",
           "listed": true,
-          "role": "Belagavi-based aerostructures manufacturer - assembles doors and machines parts for Airbus & Boeing",
+          "role": "Belagavi-based aerostructures manufacturer - assembles doors, machines parts and landing-gear components for Airbus, Boeing and Safran",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Order book has crossed $1bn with Airbus and Boeing as anchor customers, reflecting genuine program wins even as profitability is still catching up to scale"
+            "Order book has crossed $1bn with Airbus and Boeing as anchor customers, reflecting genuine programme wins even as profitability is still catching up to scale"
           ],
           "risks": [
             "Currently loss-making despite an order book that crossed $1bn - execution/profitability still unproven",
-            "Recently listed, limited public track record"
+            "Listed Dec 2025 - limited public track record"
           ],
           "f": {
             "ticker": "AEQUS"
@@ -2470,7 +3378,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Combines aerostructure manufacturing with an on-site civil MRO hangar at Hosur capable of servicing Boeing 737/A320s - a rare dual manufacturing-plus-sustainment footprint for a company of its size",
-            "The most direct listed civil-MRO exposure in India, with a hangar already certified to service Boeing 737 and A320 aircraft - the two most common narrow-body types in the domestic fleet"
+            "The most direct listed civil-MRO exposure in India"
           ],
           "risks": [
             "Small-cap with limited scale relative to global aerostructure peers",
@@ -2488,7 +3396,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Indian Offset Partner status gives it a structural channel into defense procurement contracts that carry mandatory domestic-offset obligations"
+            "Indian Offset Partner status gives it a structural channel into defence procurement contracts that carry mandatory domestic-offset obligations"
           ],
           "risks": [
             "Revenue spans Aerospace, Defence and Space - aerospace-specific share not separately disclosed",
@@ -2518,15 +3426,15 @@
         "bel_aero": {
           "name": "Bharat Electronics",
           "listed": true,
-          "role": "Largest defense-electronics PSU - avionics, radar, EW and mission-systems integration across aircraft primes; JVs with Safran and Israel Aerospace Industries",
+          "role": "Largest defence-electronics PSU - avionics, radar, EW and mission-systems integration across aircraft primes; JVs with Safran and Israel Aerospace Industries",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's largest defense-electronics PSU, with JVs alongside Safran and Israel Aerospace Industries giving it access to foreign avionics/radar technology that smaller private players can't match",
-            "Leverages the same avionics/radar manufacturing base that makes it India's largest defense-electronics PSU to also integrate mission systems across multiple aircraft primes"
+            "India's largest defence-electronics PSU, with JVs alongside Safran and Israel Aerospace Industries giving it access to foreign avionics/radar technology that smaller private players can't match",
+            "Also integrates mission systems across multiple aircraft primes"
           ],
           "risks": [
-            "Avionics/radar is one of several defense-electronics product lines - not separately broken out",
+            "Avionics/radar is one of several defence-electronics product lines - not separately broken out",
             "Large PSU with government-linked capital-allocation and governance considerations",
             "Systems integration on other primes' platforms is secondary to its core avionics/radar manufacturing and not separately disclosed"
           ],
@@ -2537,15 +3445,15 @@
         "datapatterns_aero": {
           "name": "Data Patterns (India)",
           "listed": true,
-          "role": "Integrated defense & aerospace electronics; acquired ST Advanced Composites (2026) - aerostructures expansion",
+          "role": "Integrated defence & aerospace electronics; acquired ST Advanced Composites (2026) - aerostructures expansion",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Established, consistently profitable defense-electronics franchise now using the ST Advanced Composites acquisition to diversify into aerostructures manufacturing"
+            "Established, consistently profitable defence-electronics franchise now using the ST Advanced Composites acquisition to diversify into aerostructures manufacturing"
           ],
           "risks": [
-            "2026 acquisition of ST Advanced Composites is a recent, unproven expansion into aerostructures",
-            "Order book concentrated in defense-electronics programs with lumpy award timing"
+            "2026 acquisition of ST Advanced Composites is a still-unproven expansion into aerostructures",
+            "Order book concentrated in defence-electronics programmes with lumpy award timing"
           ],
           "f": {
             "ticker": "DATAPATTNS"
@@ -2558,10 +3466,10 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Established RF/microwave sub-system supplier to India's defense-electronics primes, occupying a specialized technical niche with a limited domestic competitor set"
+            "Established RF/microwave sub-system supplier to India's defence-electronics primes, occupying a specialised technical niche with a limited domestic competitor set"
           ],
           "risks": [
-            "Customer concentration among a small number of defense-electronics primes",
+            "Customer concentration among a small number of defence-electronics primes",
             "RF/microwave component costs exposed to import dependence"
           ],
           "f": {
@@ -2575,11 +3483,11 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Mission-critical qualification across avionics, missile and UAV electronics has driven consistently strong revenue growth, reflecting broadening content wins across multiple defense platforms"
+            "Mission-critical qualification across avionics, missile and UAV electronics has driven consistently strong revenue growth, reflecting broadening content wins across multiple defence platforms"
           ],
           "risks": [
-            "Order lumpiness tied to large discrete defense contracts",
-            "Smaller scale than larger defense-electronics peers"
+            "Order lumpiness tied to large discrete defence contracts",
+            "Smaller scale than larger defence-electronics peers"
           ],
           "f": {
             "ticker": "APOLLO"
@@ -2592,7 +3500,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Market leader in simulation/pilot training systems with a growing anti-drone franchise, positioning it at the center of two structurally growing defense-modernization themes"
+            "Market leader in simulation/pilot training systems with a growing anti-drone franchise, positioning it at the center of two structurally growing defence-modernisation themes"
           ],
           "risks": [
             "Simulation/training systems are adjacent to, not the same as, flight avionics",
@@ -2605,15 +3513,15 @@
         "cyientdlm": {
           "name": "Cyient DLM",
           "listed": true,
-          "role": "Electronics Manufacturing Services (EMS) for Aerospace & Defense integrated manufacturing",
+          "role": "Electronics Manufacturing Services (EMS) for Aerospace & Defence integrated manufacturing",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Dedicated EMS platform for Aerospace & Defense with Cyient Group backing, giving it access to parent-level customer relationships and engineering expertise uncommon among pure contract manufacturers"
+            "Dedicated EMS platform for Aerospace & Defence with Cyient Group backing, giving it access to parent-level customer relationships and engineering expertise uncommon among pure contract manufacturers"
           ],
           "risks": [
             "EMS/contract-manufacturing margins are structurally thinner than IP-driven component makers",
-            "Aerospace & Defense is combined with other EMS end-markets in some disclosures"
+            "Aerospace & Defence is combined with other EMS end-markets in some disclosures"
           ],
           "f": {
             "ticker": "CYIENTDLM"
@@ -2643,15 +3551,15 @@
           "dataStatus": "unverified",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Backed by GMR's Hyderabad Aviation SEZ with a signed JV lease with Safran Aircraft Engines, giving it a credible path into engine-MRO - a capacity segment India largely lacks"
+            "Backed by GMR's Hyderabad Aviation SEZ, which hosts Safran's engine-MRO facility (opened Nov 2025) - an established aerospace cluster around its airframe MRO"
           ],
           "risks": [
             "Unlisted - no separately disclosed financials; parent GMR Airports Infrastructure doesn't break out this facility",
-            "Planned Safran engine-MRO JV is not yet operational/revenue-generating"
+            "GMR is lessor to Safran's engine-MRO shop, not its operator - engine-MRO revenue accrues to Safran"
           ],
           "notes": [
             "Based at Rajiv Gandhi International Airport, Hyderabad - part of the GMR Hyderabad Aviation SEZ / Aerospace & Industrial Park",
-            "GMR's SEZ has a confirmed lease (signed 2023) with Safran Aircraft Engines to build an engine-MRO facility on-site",
+            "GMR's SEZ hosts Safran Aircraft Engines' own LEAP engine-MRO facility (opened Nov 2025), with GMR as lessor",
             "No public market data - GMR Airports Infrastructure Ltd (listed parent) does not break out Aero Technic/MRO financials separately"
           ]
         },
@@ -2662,12 +3570,12 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Sole domestic integrator for India's frontline fighter and helicopter platforms (Tejas, Su-30, ALH Dhruv), giving it an effectively monopoly order pipeline tied to multi-decade defense-modernization programs",
+            "Sole domestic integrator for India's frontline fighter and helicopter platforms (Tejas, Su-30, ALH Dhruv), giving it an effectively monopoly order pipeline tied to multi-decade defence-modernisation programmes",
             "India's largest MRO provider by revenue, with a captive demand base from the military fleets it also manufactures - an integrated manufacture-and-sustain model competitors can't replicate"
           ],
           "risks": [
             "Revenue almost entirely military/government - minimal civil aviation diversification",
-            "Execution risk on large, multi-year platform programs (Tejas, helicopters)",
+            "Execution risk on large, multi-year platform programmes (Tejas, helicopters)",
             "ROH/MRO is roughly a third of HAL's revenue - the larger share is manufacturing/integration, not sustainment"
           ],
           "f": {
@@ -2681,11 +3589,11 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Sole listed Indian missile-systems integrator with a multi-decade order book tied to India's guided-weapons modernization, a near-monopoly position in its core segment"
+            "Sole listed Indian missile-systems integrator with a multi-decade order book tied to India's guided-weapons modernisation, a near-monopoly position in its core segment"
           ],
           "risks": [
             "Missile-systems integration is adjacent to, not the same as, aircraft-component supply",
-            "Order timing tied to lumpy defense procurement cycles"
+            "Order timing tied to lumpy defence procurement cycles"
           ],
           "f": {
             "ticker": "BDL"
@@ -2694,14 +3602,14 @@
         "lt_aero": {
           "name": "Larsen & Toubro",
           "listed": true,
-          "role": "Defense & aerospace is a small segment inside a giant diversified conglomerate",
+          "role": "Defence & aerospace is a small segment inside a giant diversified conglomerate",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Backed by the balance sheet, engineering depth and government-relationship network of India's largest engineering conglomerate, giving its defense/aerospace segment credibility and capital access standalone pure-plays lack"
+            "Backed by the balance sheet, engineering depth and government-relationship network of India's largest engineering conglomerate, giving its defence/aerospace segment credibility and capital access standalone pure-plays lack"
           ],
           "risks": [
-            "Defense & aerospace is a small, undisclosed segment inside a much larger diversified conglomerate",
+            "Defence & aerospace is a small, undisclosed segment inside a much larger diversified conglomerate",
             "Group-wide financials shown are not aerospace-segment specific"
           ],
           "f": {
@@ -2715,7 +3623,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Decades of PSU manufacturing relationships with the Ministry of Defence give it an established, if undisclosed, channel into defense-aerospace equipment programs"
+            "Decades of PSU manufacturing relationships with the Ministry of Defence give it an established, if undisclosed, channel into defence-aerospace equipment programmes"
           ],
           "risks": [
             "Defence & Aerospace is a minor segment versus BEML's core mining-equipment and rail businesses",
@@ -2736,10 +3644,10 @@
           ],
           "risks": [
             "Unlisted - no public financials for the C-295 JV or broader aerospace arm",
-            "Program timelines depend on government procurement and Airbus JV decisions"
+            "Programme timelines depend on government procurement and Airbus JV decisions"
           ],
           "notes": [
-            "Part of the Tata Group's defense/aerospace arm",
+            "Part of the Tata Group's defence/aerospace arm",
             "No public market data - not listed"
           ]
         },
@@ -2781,15 +3689,15 @@
         "parasdefence": {
           "name": "Paras Defence and Space Technologies",
           "listed": true,
-          "role": "Optics, EO/IR sighting systems, space-grade optics and defense electronics",
+          "role": "Optics, EO/IR sighting systems, space-grade optics and defence electronics",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Specialized, high-precision optics and EO/IR technology base spanning defense and space applications gives it a differentiated niche with limited direct domestic competition"
+            "Specialised, high-precision optics and EO/IR technology base spanning defence and space applications gives it a differentiated niche with limited direct domestic competition"
           ],
           "risks": [
-            "Customer concentration among defense/government buyers",
-            "Order timing tied to lumpy defense procurement cycles"
+            "Customer concentration among defence/government buyers",
+            "Order timing tied to lumpy defence procurement cycles"
           ],
           "f": {
             "ticker": "PARAS"
@@ -2798,7 +3706,7 @@
         "axiscades": {
           "name": "AXISCADES Technologies",
           "listed": true,
-          "role": "Aerospace/defense engineering design services, avionics software and systems engineering outsourcing",
+          "role": "Aerospace/defence engineering design services, avionics software and systems engineering outsourcing",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -2815,15 +3723,15 @@
         "rosselltechsys": {
           "name": "Rossell Techsys",
           "listed": true,
-          "role": "Aerospace/defense interconnect and wire harness manufacturing, avionics panel repair/rework/MRO",
+          "role": "Aerospace/defence interconnect and wire harness manufacturing, avionics panel repair/rework/MRO",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Combines wire-harness manufacturing with avionics panel repair/rework/MRO, giving it recurring sustainment revenue alongside one-time manufacturing content on the same customer base"
           ],
           "risks": [
-            "Recently demerged and listed (FY24) - limited standalone trading and financial history",
-            "Customer concentration among a small number of defense OEMs"
+            "Demerged and listed in FY24 - limited standalone trading and financial history",
+            "Customer concentration among a small number of defence OEMs"
           ],
           "f": {
             "ticker": "ROSSTECH"
@@ -2832,7 +3740,7 @@
         "dcxsystems_aero": {
           "name": "DCX Systems",
           "listed": true,
-          "role": "Aerospace/defense cable and wiring harness manufacturing, kitting and systems integration for defense OEMs",
+          "role": "Aerospace/defence cable and wiring harness manufacturing, kitting and systems integration for defence OEMs",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -2840,7 +3748,7 @@
           ],
           "risks": [
             "Swung to a net loss in FY26 with ROCE/ROE near zero or negative",
-            "Revenue concentrated among a small number of defense OEM customers"
+            "Revenue concentrated among a small number of defence OEM customers"
           ],
           "f": {
             "ticker": "DCXINDIA"
@@ -2849,14 +3757,14 @@
         "avantel": {
           "name": "Avantel",
           "listed": true,
-          "role": "Defense/aerospace satellite communication systems, radar systems and network management software",
+          "role": "Defence/aerospace satellite communication systems, radar systems and network management software",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Established satellite-communication and radar-systems franchise serving defense/government customers, a specialized niche where revenue and order book have grown consistently"
+            "Established satellite-communication and radar-systems franchise serving defence/government customers, a specialised niche where revenue and order book have grown consistently"
           ],
           "risks": [
-            "Order book concentrated among defense/government satellite-communication programs",
+            "Order book concentrated among defence/government satellite-communication programmes",
             "Smaller scale limits diversification across customers"
           ],
           "f": {
@@ -2866,15 +3774,15 @@
         "centumelectronics_aero": {
           "name": "Centum Electronics",
           "listed": true,
-          "role": "Aerospace/defense/space electronics subsystems and EMS manufacturing",
+          "role": "Aerospace/defence/space electronics subsystems and EMS manufacturing",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Diversified technology base spanning aerospace, defense and space electronics subsystems gives it multiple qualified customer relationships across end-markets"
+            "Diversified technology base spanning aerospace, defence and space electronics subsystems gives it multiple qualified customer relationships across end-markets"
           ],
           "risks": [
             "Net losses in 3 of the last 5 years - volatile profitability track record",
-            "Revenue spans aerospace, defense and space - segment-specific numbers not disclosed"
+            "Revenue spans aerospace, defence and space - segment-specific numbers not disclosed"
           ],
           "f": {
             "ticker": "CENTUM"
@@ -2883,14 +3791,14 @@
         "digilogicsystems": {
           "name": "Digilogic Systems",
           "listed": true,
-          "role": "Automated Test Equipment (ATE) systems, radar systems integration and support for defense/aerospace (BSE SME)",
+          "role": "Automated Test Equipment (ATE) systems, radar systems integration and support for defence/aerospace (BSE SME)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Specialized Automated Test Equipment and radar-systems-integration capability addresses a necessary, narrow niche in the defense-electronics supply chain with few dedicated domestic competitors"
+            "Specialised Automated Test Equipment and radar-systems-integration capability addresses a necessary, narrow niche in the defence-electronics supply chain with few dedicated domestic competitors"
           ],
           "risks": [
-            "Very small scale (BSE SME listing) relative to larger defense-electronics peers",
+            "Very small scale (BSE SME listing) relative to larger defence-electronics peers",
             "Limited trading history and liquidity typical of SME-platform listings"
           ],
           "f": {
@@ -2900,7 +3808,7 @@
         "techeraengineering": {
           "name": "TechEra Engineering (India)",
           "listed": true,
-          "role": "Precision tooling, jigs/fixtures and automation systems for aerospace and defense manufacturing (NSE SME)",
+          "role": "Precision tooling, jigs/fixtures and automation systems for aerospace and defence manufacturing (NSE SME)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -2917,15 +3825,15 @@
         "apsisaerocom": {
           "name": "Apsis Aerocom",
           "listed": true,
-          "role": "Precision-machined components and assemblies for aerospace, defense and healthcare industries (NSE SME)",
+          "role": "Precision-machined components and assemblies for aerospace, defence and healthcare industries (NSE SME)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Diversified precision-machining base across aerospace, defense and healthcare end-markets reduces reliance on any single industry's order cycle"
+            "Diversified precision-machining base across aerospace, defence and healthcare end-markets reduces reliance on any single industry's order cycle"
           ],
           "risks": [
             "Incorporated 2022, NSE SME listing - only one full year (FY26) of public financials available",
-            "Revenue spans aerospace, defense and healthcare - aerospace-specific share not disclosed"
+            "Revenue spans aerospace, defence and healthcare - aerospace-specific share not disclosed"
           ],
           "f": {
             "ticker": "APSISAERO"
@@ -2934,15 +3842,15 @@
         "ideaforge": {
           "name": "ideaForge Technology",
           "listed": true,
-          "role": "Unmanned Aircraft Systems (UAVs/drones) for defense and civil surveillance, systems integration",
+          "role": "Unmanned Aircraft Systems (UAVs/drones) for defence and civil surveillance, systems integration",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Established market leader in Indian UAV/drone systems for defense and civil surveillance, with a brand and customer base built over a decade-plus"
+            "Established market leader in Indian UAV/drone systems for defence and civil surveillance, with a brand and customer base built over a decade-plus"
           ],
           "risks": [
             "Sharp FY25 revenue/profit decline followed by only partial FY26 recovery - still loss-making",
-            "UAV/drone defense demand can be lumpy and tender-dependent"
+            "UAV/drone defence demand can be lumpy and tender-dependent"
           ],
           "f": {
             "ticker": "IDEAFORGE"
@@ -2951,15 +3859,17 @@
         "sigmaadvanced": {
           "name": "Sigma Advanced Systems",
           "listed": true,
-          "role": "Claims Tier-1 integrated aerospace and defence manufacturing (UK + India)",
+          "role": "Aero-engine rings, casings and structures for Rolls-Royce (UK + India) through Bromford Precision, bought in 2026; renamed from Megasoft",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "UK+India dual footprint under its new aerospace/defence structure could give it export-market access that purely domestic manufacturers lack"
+            "Long-term Rolls-Royce contracts of about £300m (Apr 2026) and £125m (Aug 2026) for engine rings, casings and lock plates, made in both the UK and India as Rolls-Royce's dual source",
+            "Bromford (bought for about £12m, Jul 2026) brings existing Rolls-Royce and Siemens approvals rather than starting qualification from scratch"
           ],
           "risks": [
-            "2026 reverse-merger conversion from a former telecom-software shell - pre-FY26 financial history is not from the aerospace business",
-            "Tier-1 integrated-manufacturing claims are not yet backed by a multi-year organic track record"
+            "2026 reverse-merger conversion from a former telecom-software shell (Megasoft) - pre-FY26 financial history is not from the aerospace business",
+            "Contract values are multi-year frameworks; delivered revenue and margins are not yet visible in the accounts",
+            "Dependence on a single engine customer, Rolls-Royce"
           ],
           "f": {
             "ticker": "SIGMAADV"
@@ -2996,7 +3906,7 @@
             "The ATC India acquisition instantly delivered pan-India scale and a seasoned, already-tenanted tower portfolio rather than requiring a slow organic build-out"
           ],
           "risks": [
-            "Integration risk from the large ATC India acquisition is still working through its first full year of combined operations"
+            "Integrating ATC India (bought Sep 2024) and lifting tenancy on its towers"
           ],
           "f": {
             "ticker": "ALTIUSINVIT"
@@ -3005,11 +3915,11 @@
         "digifibretrust": {
           "name": "Digital Fibre Infrastructure Trust",
           "listed": true,
-          "role": "InvIT holding Reliance Jio's fiber network assets (sibling structure to Altius on the tower side)",
+          "role": "InvIT holding Reliance Jio's fibre network assets (sibling structure to Altius on the tower side)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Holds Reliance Jio's pan-India fiber network as its anchor asset, giving it a long-term contracted revenue stream from India's largest and best-capitalized telco"
+            "Holds Reliance Jio's pan-India fibre network as its anchor asset, giving it a long-term contracted revenue stream from India's largest and best-capitalised telco"
           ],
           "risks": [
             "Illiquid listing with no confirmed market cap in public data",
@@ -3039,14 +3949,14 @@
         "suyogtelematics": {
           "name": "Suyog Telematics",
           "listed": true,
-          "role": "Installs/commissions/services towers and OFC systems for telcos",
+          "role": "Builds, owns and leases telecom towers/poles (IP-1) and installs OFC",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Established installation/commissioning relationships across multiple telcos position it to keep capturing incremental tower and OFC rollout work as densification continues"
+            "Owns its towers and poles, so leasing to several telcos earns recurring rent as densification adds tenants"
           ],
           "risks": [
-            "Project/order-based installation revenue rather than recurring leased-asset income, so earnings can be lumpy"
+            "Small tower base and tenant concentration"
           ],
           "f": {
             "ticker": "SUYOG"
@@ -3055,15 +3965,15 @@
         "sterlitetech": {
           "name": "Sterlite Technologies",
           "listed": true,
-          "role": "Pure-play optical fiber/cable and networking products maker",
+          "role": "Pure-play optical fibre/cable and networking products maker",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Pure-play scale in optical fiber/cable plus a growing networking-products portfolio gives it direct leverage to both telecom fiberization and the emerging AI-datacenter fiber demand cycle"
+            "Pure-play scale in optical fibre/cable plus a growing networking-products portfolio gives it direct leverage to both telecom fibreisation and the emerging AI-datacenter fibre demand cycle"
           ],
           "risks": [
             "OFC pricing has been cyclical, with recent years' losses tied to an industry-wide downcycle",
-            "Stock re-rating may partly reflect AI-datacenter fiber demand speculation rather than telecom fundamentals"
+            "Stock re-rating may partly reflect AI-datacenter fibre demand speculation rather than telecom fundamentals"
           ],
           "f": {
             "ticker": "STLTECH"
@@ -3072,14 +3982,14 @@
         "hfcl_fiber": {
           "name": "HFCL",
           "listed": true,
-          "role": "Optical fiber/cable, telecom equipment (routers, 5G RAN components) and defense electronics",
+          "role": "Optical fibre/cable, telecom equipment (routers, 5G RAN components) and defence electronics",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Diversified presence across fiber/cable, telecom equipment (routers, 5G RAN components) and defense electronics gives it multiple PLI-supported growth levers rather than dependence on a single segment"
+            "Diversified presence across fibre/cable, telecom equipment (routers, 5G RAN components) and defence electronics gives it multiple PLI-supported growth levers rather than dependence on a single segment"
           ],
           "risks": [
-            "Revenue spans fiber/cable, telecom equipment and defense electronics - telecom-fiber-specific economics are blended"
+            "Revenue spans fibre/cable, telecom equipment and defence electronics - telecom-fibre-specific economics are blended"
           ],
           "f": {
             "ticker": "HFCL"
@@ -3088,11 +3998,11 @@
         "vindhyatelelinks": {
           "name": "Vindhya Telelinks",
           "listed": true,
-          "role": "Telecom/railway/solar/specialty cables and IP-1 fiber network investments (MP Birla Group)",
+          "role": "Telecom/railway/solar/specialty cables and IP-1 fibre network investments (MP Birla Group)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Diversification across telecom, railway, solar and specialty cables plus IP-1 fiber network investments cushions it against any single end-market's downcycle"
+            "Diversification across telecom, railway, solar and specialty cables plus IP-1 fibre network investments cushions it against any single end-market's downcycle"
           ],
           "risks": [
             "Cable revenue is diversified across telecom, railway, solar and specialty segments - telecom-specific share is undisclosed"
@@ -3168,11 +4078,11 @@
         "itilimited": {
           "name": "ITI Limited",
           "listed": true,
-          "role": "Govt PSU telecom equipment maker - GPON, telecom/defense electronics",
+          "role": "Govt PSU telecom equipment maker - GPON, telecom/defence electronics",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "As a government PSU with legacy manufacturing infrastructure, it is a direct beneficiary of GPON and indigenous telecom/defense equipment orders reserved for domestic/PSU vendors"
+            "As a government PSU with legacy manufacturing infrastructure, it is a direct beneficiary of GPON and indigenous telecom/defence equipment orders reserved for domestic/PSU vendors"
           ],
           "risks": [
             "Very high debtor days (~486) signal working-capital/collection risk typical of PSU government contracts",
@@ -3189,10 +4099,10 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Niche specialization in in-building coverage (DAS/repeaters) gives it a defensible position as operators densify indoor and enterprise coverage across 2G-5G networks"
+            "Niche specialisation in in-building coverage (DAS/repeaters) gives it a defensible position as operators densify indoor and enterprise coverage across 2G-5G networks"
           ],
           "risks": [
-            "Sharp recent revenue collapse (-52% YoY) into a small loss suggests order-timing volatility"
+            "Sharp revenue collapse (FY26, -52% YoY) into a small loss suggests order-timing volatility"
           ],
           "f": {
             "ticker": "FROG"
@@ -3201,7 +4111,7 @@
         "kronecomm": {
           "name": "ADC India Communications (Krone Communications)",
           "listed": true,
-          "role": "Structured cabling and copper/fiber physical connectivity products for telecom/enterprise networks",
+          "role": "Structured cabling and copper/fibre physical connectivity products for telecom/enterprise networks",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -3218,14 +4128,14 @@
         "astramicro_telecom": {
           "name": "Astra Microwave Products",
           "listed": true,
-          "role": "RF/microwave subsystems for defense and telecom",
+          "role": "RF/microwave subsystems for defence and telecom",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Established RF/microwave design and manufacturing capability built for defense programs transfers directly into 5G massive-MIMO and microwave-backhaul demand"
+            "Established RF/microwave design and manufacturing capability built for defence programs transfers directly into 5G massive-MIMO and microwave-backhaul demand"
           ],
           "risks": [
-            "RF/microwave revenue spans both defense and telecom end-markets - telecom-specific share is undisclosed"
+            "RF/microwave revenue spans both defence and telecom end-markets - telecom-specific share is undisclosed"
           ],
           "f": {
             "ticker": "ASTRAMICRO"
@@ -3234,15 +4144,15 @@
         "centumelectronics_telecom": {
           "name": "Centum Electronics",
           "listed": true,
-          "role": "RF/microelectronics/space-grade electronics for defense and telecom",
+          "role": "RF/microelectronics/space-grade electronics for defence and telecom",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Space-grade electronics and RF/microelectronics manufacturing capability built for defense/space gives it high-reliability technology credentials applicable to premium telecom RF components"
+            "Space-grade electronics and RF/microelectronics manufacturing capability built for defence/space gives it high-reliability technology credentials applicable to premium telecom RF components"
           ],
           "risks": [
             "Loss-making in three of the last five years despite a rich market cap - a valuation-vs-fundamentals disconnect",
-            "Revenue spans defense, telecom and space-grade electronics - telecom-specific share is undisclosed"
+            "Revenue spans defence, telecom and space-grade electronics - telecom-specific share is undisclosed"
           ],
           "f": {
             "ticker": "CENTUM"
@@ -3251,14 +4161,14 @@
         "bel_telecom": {
           "name": "Bharat Electronics",
           "listed": true,
-          "role": "Growing 5G/telecom RF-component business alongside its much larger defense-electronics base",
+          "role": "Growing 5G/telecom RF-component business alongside its much larger defence-electronics base",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "A large, well-capitalized defense-electronics balance sheet and deep PSU order-execution track record let it fund and scale a growing 5G/telecom RF-component business without needing it to be a standalone profit driver yet"
+            "A large, well-capitalised defence-electronics balance sheet and deep PSU order-execution track record let it fund and scale a growing 5G/telecom RF-component business without needing it to be a standalone profit driver yet"
           ],
           "risks": [
-            "Telecom/5G RF work is explicitly a smaller, strategically-notable slice of a much larger defense-electronics revenue base"
+            "Telecom/5G RF work is explicitly a smaller, strategically-notable slice of a much larger defence-electronics revenue base"
           ],
           "f": {
             "ticker": "BEL"
@@ -3274,7 +4184,7 @@
             "Contract-manufacturing scale (now including smartphones) and long handset-distribution relationships give it a ready customer base for telecom-equipment work"
           ],
           "risks": [
-            "Antennas and telecom gear are a small slice next to phone assembly and handset distribution, so telecom 5G spending barely moves the company"
+            "Telecom gear is a small slice next to phone assembly and handset distribution, so telecom 5G spending barely moves the company"
           ],
           "f": {
             "ticker": "OPTIEMUS"
@@ -3303,7 +4213,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Navratna PSU status and a unique pan-India fiber network built along railway right-of-way give it a largely unreplicable infrastructure moat and steady government/B2B telecom revenue"
+            "Navratna PSU status and a unique pan-India fibre network built along railway right-of-way give it a largely unreplicable infrastructure moat and steady government/B2B telecom revenue"
           ],
           "risks": [
             "Revenue leans on government and PSU project awards, which can be lumpy from year to year"
@@ -3338,8 +4248,8 @@
             "Diversification into solar EPC and data-centre power systems alongside its core telecom-infra and tower DC-power/battery business broadens its addressable market beyond the telecom capex cycle alone"
           ],
           "risks": [
-            "Sharp FY23-to-FY24 revenue step-up suggests a large contract or consolidation event worth independent verification",
-            "Diversifying into solar EPC and data-centre power systems alongside its core telecom-infra business"
+            "Telecom capex cycles drive lumpy, milestone-billed revenue",
+            "Solar EPC and DC-power diversification adds execution risk"
           ],
           "f": {
             "ticker": "PACEDIGITK"
@@ -3513,8 +4423,8 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's largest telco by market cap with the strongest balance sheet among private operators gives it the capex firepower to lead 5G densification and fiberization ahead of weaker rivals",
-            "Industry-leading ARPU and premiumization trends give it pricing power that financially weaker operators cannot replicate"
+            "India's largest telco by market cap with the strongest balance sheet among private operators gives it the capex firepower to lead 5G densification and fibreisation ahead of weaker rivals",
+            "Industry-leading ARPU and premiumisation trends give it pricing power that financially weaker operators cannot replicate"
           ],
           "risks": [
             "FY25's large profit jump reflects a one-off/deferred-tax-related gain rather than a fundamental step-change"
@@ -3562,7 +4472,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "An established global enterprise/wholesale connectivity network and data-centre footprint give it a differentiated, less-commoditized revenue base than retail mobile operators facing tariff competition"
+            "An established global enterprise/wholesale connectivity network and data-centre footprint give it a differentiated, less-commoditised revenue base than retail mobile operators facing tariff competition"
           ],
           "risks": [
             "Volatile net profit reflects data-centre business (STT GDC) divestment/accounting effects rather than core connectivity trends",
@@ -3573,32 +4483,36 @@
           }
         },
         "reliance_jio": {
-          "name": "Jio Platforms (Reliance Jio Infocomm)",
-          "listed": false,
-          "role": "India's largest telco by subscribers - wholly-owned unlisted subsidiary of listed Reliance Industries",
-          "dataStatus": "unverified",
+          "name": "Jio Platforms",
+          "listed": true,
+          "role": "India's largest telco by subscribers (Reliance Jio Infocomm) - listed 28 Oct 2026, still majority-owned by Reliance Industries",
+          "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's largest telco by subscribers, backed by Reliance Industries' balance sheet, giving it capex capacity exceeding any other single operator in the chain",
+            "India's largest telco by subscribers, with the capex capacity of Reliance Industries behind it and more spending power than any other single operator in the chain",
             "Developed an indigenous O-RAN-based 5G core/RAN technology stack in-house, reducing reliance on global equipment vendors"
           ],
           "risks": [
-            "Unlisted - RIL's consolidated figures blend O2C, retail and digital services, so Jio's standalone financials aren't disclosed"
+            "Listed 28 Oct 2026, so its track record as a separately listed company is only days old",
+            "Earnings growth leans on further tariff increases, which depend on the whole industry moving together",
+            "Reliance Industries keeps control, so minority holders follow the group's capital-allocation choices"
           ],
           "notes": [
-            "Reliance Industries (listed parent, RELIANCE) FY22-26 consolidated revenue/net profit: ₹6,94,673/67,845 Cr to ₹10,55,780/95,754 Cr - RIL is a diversified conglomerate (O2C, retail, digital services) and does not separately disclose Jio's standalone P&L",
-            "Developed an indigenous O-RAN-based 5G core/RAN technology stack in-house",
+            "Listed on NSE (JPL) and BSE on 28 Oct 2026 at ₹1,358, 21% above the ₹1,119 issue price",
             "BSNL (wholly Govt-owned, unlisted) is the other major operator, using Tejas Networks/ITI/C-DOT indigenous stack for its own 4G/5G rollout"
-          ]
+          ],
+          "f": {
+            "ticker": "JPL"
+          }
         },
         "skipper_telecom": {
           "name": "Skipper",
           "listed": true,
-          "role": "Galvanized lattice steel towers, monopoles and tower structures for telecom and power transmission",
+          "role": "Galvanised lattice steel towers, monopoles and tower structures for telecom and power transmission",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Established galvanizing and lattice-steel tower manufacturing capacity serving both telecom and power-transmission customers gives it scale and demand diversification that pure telecom-tower fabricators lack"
+            "Established galvanising and lattice-steel tower manufacturing capacity serving both telecom and power-transmission customers gives it scale and demand diversification that pure telecom-tower fabricators lack"
           ],
           "risks": [
             "Telecom is one of two end-markets (alongside power transmission) - tower-specific revenue is not separately disclosed"
@@ -3610,11 +4524,11 @@
         "salasar_telecom": {
           "name": "Salasar Techno Engineering",
           "listed": true,
-          "role": "Telecom tower and steel structure fabrication, galvanizing, monopoles for telcos and power T&D",
+          "role": "Telecom tower and steel structure fabrication, galvanising, monopoles for telcos and power T&D",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Integrated steel fabrication and galvanizing capability across telecom tower and power T&D structures lets it flex capacity toward whichever end-market cycle is stronger"
+            "Integrated steel fabrication and galvanising capability across telecom tower and power T&D structures lets it flex capacity toward whichever end-market cycle is stronger"
           ],
           "risks": [
             "Telecom is one of two end-markets (alongside power T&D) - tower-specific revenue is not separately disclosed"
@@ -3630,7 +4544,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Tata Group backing and an established enterprise/fixed-line customer base in the Maharashtra & Goa circle give it a defensible, specialized niche despite exiting the broader retail mobile race"
+            "Tata Group backing and an established enterprise/fixed-line customer base in the Maharashtra & Goa circle give it a defensible, specialised niche despite exiting the broader retail mobile race"
           ],
           "risks": [
             "Exited retail mobile in 2019 - now a niche enterprise/fixed-line operator with a much smaller addressable base",
@@ -3659,11 +4573,11 @@
         "rcom_legacy": {
           "name": "Reliance Communications (RCOM)",
           "listed": false,
-          "role": "Legacy/defunct telecom operator - historical relevance to India's pre-2019 tower/telecom ecosystem",
+          "role": "Legacy telecom operator in insolvency - its shares still trade (NSE: RCOM, below ₹1) but it is shown as a footnote, without figures",
           "dataStatus": "unverified",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Its extensive legacy pan-India fiber and tower assets, built during India's earlier telecom boom, retain residual value that underpins acquirer interest through the IBC resolution process"
+            "Its extensive legacy pan-India fibre and tower assets, built during India's earlier telecom boom, retain residual value that underpins acquirer interest through the IBC resolution process"
           ],
           "risks": [
             "In insolvency resolution and headed toward liquidation - run by a resolution professional, not the board",
@@ -3681,23 +4595,25 @@
       "key": "solarmodules",
       "suppliers": {
         "relNewEnergy": {
-          "name": "Reliance New Energy",
-          "listed": false,
-          "role": "Integrated polysilicon-to-module gigacomplex under development at Jamnagar",
+          "name": "Reliance Industries (Reliance New Energy)",
+          "listed": true,
+          "role": "Integrated polysilicon-to-module gigacomplex under development at Jamnagar, through its wholly owned Reliance New Energy arm",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Reliance Industries' balance sheet and execution track record back one of the few fully-integrated polysilicon-to-module projects announced in India"
           ],
           "risks": [
-            "Unlisted subsidiary - no separately audited public financials; figures here are not available",
+            "Solar is a small, separately undisclosed slice of a conglomerate driven by oil-to-chemicals, retail and digital services",
             "Project is still pre-commissioning at the scale needed to meaningfully close India's polysilicon gap"
           ],
           "notes": [
-            "Subsidiary of Reliance Industries (RIL)",
-            "Announced integrated solar gigacomplex (polysilicon to module) at Jamnagar",
-            "No separate public market data - not listed"
-          ]
+            "Reliance New Energy is a wholly owned subsidiary of listed Reliance Industries; figures shown are RIL's consolidated",
+            "Announced integrated solar gigacomplex (polysilicon to module) at Jamnagar"
+          ],
+          "f": {
+            "ticker": "RELIANCE"
+          }
         },
         "adanient": {
           "name": "Adani Enterprises",
@@ -3726,7 +4642,7 @@
             "India's largest and most established domestic solar glass producer, with first-mover scale in a thin-margin, capital-intensive business"
           ],
           "risks": [
-            "Repeated Chinese solar-glass oversupply/dumping cycles have pressured margins and utilization",
+            "Repeated Chinese solar-glass oversupply/dumping cycles have pressured margins and utilisation",
             "Revenue and profitability are volatile year to year, tied to anti-dumping duty cycles and global glass pricing"
           ],
           "f": {
@@ -3747,7 +4663,7 @@
             "Still reliant on imported EVA resin and backsheet base films as inputs"
           ],
           "notes": [
-            "Privately held, Mumbai-based; backed by the Lavasa/Kalyani-linked RenewSys group",
+            "Privately held, Mumbai-based; part of the ENPEE Group",
             "One of India's few scaled domestic EVA film and backsheet manufacturers",
             "No public market data - not listed"
           ]
@@ -3762,7 +4678,7 @@
             "One of a small number of Indian manufacturers with integrated cell-and-module capacity, capturing more of the value chain than module-only assemblers"
           ],
           "risks": [
-            "Recently listed (Sept 2024) with limited multi-year financial track record",
+            "Listed Sept 2024, so its multi-year financial track record as a listed company is short",
             "Cell and module capacity additions across the industry are running ahead of demand, risking pricing pressure"
           ],
           "f": {
@@ -3776,7 +4692,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Early, established solar cell manufacturing base positioned to benefit as ALMM's cell mandate phases in"
+            "Early, established solar cell manufacturing base positioned to benefit now that ALMM List-II covers cells (Jun 2026)"
           ],
           "risks": [
             "Small-cap with thinner trading liquidity and capital base than the larger integrated players",
@@ -3796,7 +4712,7 @@
             "India's largest solar module manufacturer by capacity, with a growing order book and an expanding export business to the US"
           ],
           "risks": [
-            "Recently listed (Oct 2024) with limited multi-year financial track record",
+            "Listed Oct 2024, so its multi-year financial track record as a listed company is short",
             "Industry-wide module capacity additions are running ahead of demand, risking margin pressure even for the market leader"
           ],
           "f": {
@@ -3805,22 +4721,23 @@
         },
         "vikramSolar": {
           "name": "Vikram Solar",
-          "listed": false,
-          "role": "Solar module manufacturing, expanding capacity ahead of a planned IPO",
+          "listed": true,
+          "role": "Solar module maker (listed Aug 2025), expanding into cells",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Established, long-running module manufacturer with meaningful export relationships ahead of its planned public listing"
+            "Established, long-running module manufacturer with meaningful export relationships"
           ],
           "risks": [
-            "Unlisted as of this writing - no audited public financials; figures here are not available",
-            "Filed for an IPO but timing and pricing remain uncertain"
+            "Industry-wide module capacity additions are running ahead of demand, risking price pressure",
+            "Expansion into cells adds execution risk on a new, more capital-intensive process"
           ],
           "notes": [
-            "Kolkata-based; one of India's longer-established solar module manufacturers",
-            "Filed draft IPO papers; not yet listed as of this writing",
-            "No public market data until listing"
-          ]
+            "Kolkata-based; one of India's longer-established solar module manufacturers"
+          ],
+          "f": {
+            "ticker": "VIKRAMSOLR"
+          }
         },
         "insolation": {
           "name": "Insolation Energy",
@@ -3855,22 +4772,6 @@
             "ticker": "APARINDS"
           }
         },
-        "cgpowerSolar": {
-          "name": "CG Power and Industrial Solutions",
-          "listed": true,
-          "role": "Power electronics and transformers relevant to solar inverter/interconnect equipment",
-          "dataStatus": "demo",
-          "sourceDate": "20 Oct 2026",
-          "strengths": [
-            "Post-turnaround power electronics and transformer manufacturer with the engineering base to expand into solar-specific power-conditioning equipment"
-          ],
-          "risks": [
-            "Solar-specific inverter/power-conditioning revenue is a small, undisclosed slice of a much larger diversified industrial and power-systems business"
-          ],
-          "f": {
-            "ticker": "CGPOWER"
-          }
-        },
         "sterlingWilson": {
           "name": "Sterling and Wilson Renewable Energy",
           "listed": true,
@@ -3878,10 +4779,10 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's largest pure-play solar EPC contractor by track record, now past its earlier financial-stress period with a recovering order book"
+            "India's largest pure-play solar EPC contractor by track record, with a rebuilt order book"
           ],
           "risks": [
-            "History of financial stress and governance concerns a few years ago - balance sheet recovery is still relatively recent",
+            "History of financial stress and governance concerns, and FY26 slipped back to a net loss - the recovery is not yet secure",
             "Project-based EPC revenue is lumpy and execution-risk-heavy"
           ],
           "f": {
@@ -3925,7 +4826,7 @@
         "tataPowerSolar": {
           "name": "Tata Power",
           "listed": true,
-          "role": "Solar EPC, rooftop (Tata Power Solar) and utility-scale generation, alongside its core T&D and conventional generation business",
+          "role": "Solar cells and modules (4.3 GW Tirunelveli plant), EPC, rooftop (Tata Power Solar) and utility-scale generation, alongside its core T&D and conventional generation business",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -3936,6 +4837,223 @@
           ],
           "f": {
             "ticker": "TATAPOWER"
+          }
+        },
+        "emmvee": {
+          "name": "Emmvee Photovoltaic Power",
+          "listed": true,
+          "role": "Integrated TOPCon solar cell and module maker in Bengaluru (listed Nov 2025)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "One of the few Indian makers with large cell capacity of its own (2.94 GW of cells against 7.8 GW of modules at listing), which matters now that ALMM List-II covers cells",
+            "Its Dobbaspet plant is among India's largest TOPCon cell lines, so its new capacity is on the current technology rather than PERC"
+          ],
+          "risks": [
+            "Listed Nov 2025, with a weak debut (the IPO was ~0.97x subscribed) - a short public track record",
+            "Plans to roughly double capacity to 16.3 GW modules and 8.9 GW cells by H1 FY28, adding execution risk while module prices are under pressure"
+          ],
+          "f": {
+            "ticker": "EMMVEE"
+          }
+        },
+        "saatvik": {
+          "name": "Saatvik Green Energy",
+          "listed": true,
+          "role": "Solar module maker (Ambala, Haryana) building an integrated cell and module plant in Odisha (listed Sep 2025)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Fast-growing ALMM-listed module maker, with module capacity rising from 3.8 GW (Mar 2025) to 4.8 GW",
+            "Odisha plant adds 4.8 GW of cells and 4 GW of modules, moving it from module-only assembly toward the better-protected cell layer"
+          ],
+          "risks": [
+            "Module-only today, so it buys cells while domestic cell supply is tight under List-II",
+            "Cell plant is not due until FY27 - until then it competes in the most crowded layer of the chain"
+          ],
+          "f": {
+            "ticker": "SAATVIKGL"
+          }
+        },
+        "karamtara": {
+          "name": "Karamtara Engineering",
+          "listed": true,
+          "role": "India's largest integrated maker of solar mounting structures and tracker components, plus transmission towers and line hardware (listed Sep 2026)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Solar mounting structures and tracker components were ~79% of FY26 revenue - the only scaled, listed pure play on this layer",
+            "Integrated steel fabrication and galvanising lets it supply utility-scale EPCs and tracker brands at volume"
+          ],
+          "risks": [
+            "Listed Sep 2026 - very short public track record",
+            "Revenue depends on utility-scale solar build-outs and steel prices, and plants are concentrated in Maharashtra",
+            "Export customers add trade-policy exposure"
+          ],
+          "f": {
+            "ticker": "KARAMTARA"
+          }
+        },
+        "utlSolar": {
+          "name": "Fujiyama Power Systems (UTL Solar)",
+          "listed": true,
+          "role": "Rooftop solar inverters, panels and batteries sold under the UTL Solar and Fujiyama Solar brands (listed Nov 2025; NSE symbol UTLSOLAR)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "One of the few listed Indian makers selling solar inverters (on-grid, off-grid and hybrid) at scale - over 6.6 lakh inverters sold in the three years to Jun 2025",
+            "Rooftop demand from PM Surya Ghar pulls its inverters, panels and batteries together as one kit"
+          ],
+          "risks": [
+            "Rooftop and retail focus - not a supplier of utility-scale central inverters, where Chinese brands dominate",
+            "Power electronics components are largely imported, and the product mix (inverters vs panels and batteries) shifts year to year"
+          ],
+          "f": {
+            "ticker": "UTLSOLAR"
+          }
+        },
+        "servotechSolar": {
+          "name": "Servotech Renewable Power System",
+          "listed": true,
+          "role": "On-grid and hybrid solar inverters alongside EV chargers and LED lighting",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Small listed maker of rooftop solar inverters that also sells solar EPC and EV chargers, giving it several routes into rooftop demand"
+          ],
+          "risks": [
+            "Small-cap with a mixed product portfolio - inverters are not disclosed separately",
+            "Competes with scaled Chinese inverter brands on price"
+          ],
+          "f": {
+            "ticker": "SERVOTECH"
+          }
+        },
+        "cleanmax": {
+          "name": "Clean Max Enviro Energy Solutions",
+          "listed": true,
+          "role": "India's largest commercial and industrial (C&I) renewable energy developer - builds and owns solar, wind and hybrid plants that sell power to companies (listed Mar 2026)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Largest C&I renewable provider in India (CRISIL, Mar 2025), with ~2.8 GW operational, owned and managed capacity and ~3.2 GW more contracted (Oct 2025)",
+            "Long-term corporate power contracts with data centres and industrial buyers give steadier revenue than one-off EPC work"
+          ],
+          "risks": [
+            "Listed Mar 2026 below its ₹1,053 issue price - a short and so far weak public track record",
+            "Capex-heavy growth funded with debt, and open-access rules for C&I power vary from state to state"
+          ],
+          "f": {
+            "ticker": "CLEANMAX"
+          }
+        },
+        "juniperGreen": {
+          "name": "Juniper Green Energy",
+          "listed": true,
+          "role": "Solar, wind and hybrid independent power producer adding merchant battery storage (listed Aug 2026)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "7.9 GW portfolio, of which ~1.8 GW (AC) was operating at Jun 2026 - a long contracted pipeline",
+            "Hybrid and storage projects match the round-the-clock tenders now replacing plain solar auctions"
+          ],
+          "risks": [
+            "Listed Aug 2026 - short public track record",
+            "Most of the portfolio is still under construction, so growth depends on execution and transmission connectivity",
+            "High leverage typical of IPPs"
+          ],
+          "f": {
+            "ticker": "JNPR"
+          }
+        },
+        "acmeSolar": {
+          "name": "ACME Solar Holdings",
+          "listed": true,
+          "role": "Large renewable IPP focused on solar and firm-and-dispatchable (FDRE) power with battery storage (listed Nov 2024)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Has won several FDRE and storage-linked tenders, which pay higher tariffs than plain solar",
+            "Long-dated PPAs with central agencies underpin revenue visibility"
+          ],
+          "risks": [
+            "High leverage funding a large construction pipeline",
+            "FDRE projects combine solar, wind and batteries, so execution is harder than for a plain solar plant"
+          ],
+          "f": {
+            "ticker": "ACMESOLAR"
+          }
+        },
+        "ntpcGreen": {
+          "name": "NTPC Green Energy",
+          "listed": true,
+          "role": "NTPC's renewable arm - India's largest PSU solar and wind IPP (listed Nov 2024)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Backed by NTPC's balance sheet and offtake relationships, with one of the largest renewable pipelines in India",
+            "Low cost of capital as a PSU subsidiary"
+          ],
+          "risks": [
+            "Valuation rests on a pipeline many times its operating base - execution pace matters most",
+            "PSU ownership limits how fast it can move on pricing and capital allocation"
+          ],
+          "f": {
+            "ticker": "NTPCGREEN"
+          }
+        },
+        "waareeRtl": {
+          "name": "Waaree Renewable Technologies",
+          "listed": true,
+          "role": "Utility-scale and C&I solar EPC arm of the Waaree group",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Group access to Waaree modules and a large EPC order book from utility-scale and C&I clients",
+            "Asset-light EPC model with high returns on capital"
+          ],
+          "risks": [
+            "EPC revenue is lumpy and depends on tender timing",
+            "Related-party module sourcing from Waaree Energies ties its margins to group pricing"
+          ],
+          "f": {
+            "ticker": "WAAREERTL"
+          }
+        },
+        "solarworld": {
+          "name": "Solarworld Energy Solutions",
+          "listed": true,
+          "role": "Solar EPC contractor adding battery storage projects and a TOPCon cell plant (listed Sep 2025)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Order book of ~₹2,500 Cr at Jul 2025, split between solar EPC and BESS projects",
+            "IPO money funds a 1.2 GW TOPCon cell plant (Kartik Solarworld), a step up the chain"
+          ],
+          "risks": [
+            "Very high customer concentration: SJVN Green Energy was ~79% of FY25 revenue",
+            "Cell plant is a new and far more capital-intensive business than EPC"
+          ],
+          "f": {
+            "ticker": "SOLARWORLD"
+          }
+        },
+        "gkEnergy": {
+          "name": "GK Energy",
+          "listed": true,
+          "role": "EPC provider of solar-powered agricultural pumps under the PM-KUSUM scheme, Pune (listed Sep 2025)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Leading pure-play PM-KUSUM solar pump installer in Maharashtra (~15% of the state's installations, Jul 2025)",
+            "Asset-light: buys ALMM panels and pumps from vendors and sells the full system under its own brand"
+          ],
+          "risks": [
+            "Revenue depends almost entirely on PM-KUSUM, which runs to 2026 unless extended",
+            "Concentrated in Maharashtra, with payment cycles tied to state agencies"
+          ],
+          "f": {
+            "ticker": "GKENERGY"
           }
         }
       }
@@ -3963,19 +5081,21 @@
           }
         },
         "siemensEnergy": {
-          "name": "Siemens Ltd",
+          "name": "Siemens Energy India",
           "listed": true,
-          "role": "Power generation, grid and industrial equipment, including thermal and transmission systems",
+          "role": "Steam turbines, generators and grid/transmission equipment for power plants (demerged from Siemens Ltd in 2025)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Deep global engineering base and diversified order book across power, grid and industrial segments gives steadier revenue than a pure thermal-equipment play"
+            "Siemens Energy's technology and service base behind a focused Indian power-equipment business",
+            "Grid and transmission orders sit alongside generation, so it is not a pure thermal play"
           ],
           "risks": [
-            "Thermal/power equipment is one of several large diversified industrial segments - not separately disclosed"
+            "Separately listed only since June 2025 - a short public financial record",
+            "Large orders are lumpy and depend on utility and transmission capex cycles"
           ],
           "f": {
-            "ticker": "SIEMENS"
+            "ticker": "ENRIN"
           }
         },
         "lt": {
@@ -3992,6 +5112,142 @@
           ],
           "f": {
             "ticker": "LT"
+          }
+        },
+        "emmveeEnergy": {
+          "name": "Emmvee Photovoltaic Power",
+          "listed": true,
+          "role": "Integrated TOPCon solar cell and module maker in Bengaluru (listed Nov 2025)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Has its own cell capacity (2.94 GW cells, 7.8 GW modules at listing), so it can supply the domestic-content projects that need Indian cells"
+          ],
+          "risks": [
+            "Capacity is set to roughly double by H1 FY28 while module prices are under pressure",
+            "Short listed history after a weak IPO"
+          ],
+          "f": {
+            "ticker": "EMMVEE"
+          }
+        },
+        "saatvikEnergy": {
+          "name": "Saatvik Green Energy",
+          "listed": true,
+          "role": "Solar module maker adding an integrated cell and module plant in Odisha (listed Sep 2025)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Module capacity rising to 4.8 GW, with 4.8 GW of cells planned in Odisha"
+          ],
+          "risks": [
+            "Module-only until the cell plant arrives in FY27, in the most crowded part of the chain"
+          ],
+          "f": {
+            "ticker": "SAATVIKGL"
+          }
+        },
+        "waareeRtlEnergy": {
+          "name": "Waaree Renewable Technologies",
+          "listed": true,
+          "role": "Utility-scale and C&I solar EPC arm of the Waaree group",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large solar EPC order book with group module supply behind it"
+          ],
+          "risks": [
+            "Lumpy, tender-driven EPC revenue",
+            "Margins tied to related-party module pricing"
+          ],
+          "f": {
+            "ticker": "WAAREERTL"
+          }
+        },
+        "karamtaraEnergy": {
+          "name": "Karamtara Engineering",
+          "listed": true,
+          "role": "Solar mounting structures and tracker components, plus transmission towers and line hardware (listed Sep 2026)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Largest integrated Indian maker of solar mounting structures and tracker parts (~79% of FY26 revenue); its tower business also serves the grid build-out"
+          ],
+          "risks": [
+            "Tied to utility-scale solar volumes and steel prices",
+            "Very short listed history"
+          ],
+          "f": {
+            "ticker": "KARAMTARA"
+          }
+        },
+        "ntpcGreenEnergy": {
+          "name": "NTPC Green Energy",
+          "listed": true,
+          "role": "NTPC's renewable arm - India's largest PSU solar and wind IPP (listed Nov 2024)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "NTPC's balance sheet and offtake relationships behind one of India's largest renewable pipelines, at a PSU cost of capital"
+          ],
+          "risks": [
+            "Valued on a pipeline many times its operating base, so execution pace drives the story",
+            "Mostly solar today; wind is a small share"
+          ],
+          "f": {
+            "ticker": "NTPCGREEN"
+          }
+        },
+        "acmeSolarEnergy": {
+          "name": "ACME Solar Holdings",
+          "listed": true,
+          "role": "Renewable IPP focused on solar and firm-and-dispatchable (FDRE) power with battery storage (listed Nov 2024)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Wins in FDRE and storage-linked tenders, which pay more than plain solar",
+            "Long-dated PPAs with central agencies"
+          ],
+          "risks": [
+            "High leverage behind a large construction pipeline",
+            "FDRE projects mix solar, wind and batteries and are harder to execute"
+          ],
+          "f": {
+            "ticker": "ACMESOLAR"
+          }
+        },
+        "cleanmaxEnergy": {
+          "name": "Clean Max Enviro Energy Solutions",
+          "listed": true,
+          "role": "India's largest commercial and industrial (C&I) renewable developer - solar, wind and hybrid plants that sell power directly to companies (listed Mar 2026)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "~2.8 GW operational, owned and managed capacity plus ~3.2 GW contracted (Oct 2025), sold under long-term corporate PPAs"
+          ],
+          "risks": [
+            "Open-access rules for C&I power differ by state and can change",
+            "Listed below its issue price in Mar 2026; debt-funded growth"
+          ],
+          "f": {
+            "ticker": "CLEANMAX"
+          }
+        },
+        "juniperGreenEnergy": {
+          "name": "Juniper Green Energy",
+          "listed": true,
+          "role": "Solar, wind and hybrid independent power producer adding merchant battery storage (listed Aug 2026)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "7.9 GW portfolio with ~1.8 GW (AC) operating at Jun 2026; hybrid and storage projects suit round-the-clock tenders"
+          ],
+          "risks": [
+            "Most of the portfolio is still to be built, so growth depends on execution and grid connectivity",
+            "Short listed history and IPP-level leverage"
+          ],
+          "f": {
+            "ticker": "JNPR"
           }
         },
         "thermax": {
@@ -4070,7 +5326,7 @@
             "India's largest solar module manufacturer by capacity, with a growing order book and an expanding export business to the US"
           ],
           "risks": [
-            "Recently listed (Oct 2024) with limited multi-year financial track record"
+            "Listed Oct 2024 with limited multi-year financial track record"
           ],
           "f": {
             "ticker": "WAAREEENER"
@@ -4083,10 +5339,10 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's largest pure-play solar EPC contractor by track record, now past its earlier financial-stress period with a recovering order book"
+            "India's largest pure-play solar EPC contractor by track record, with a recovering order book"
           ],
           "risks": [
-            "History of financial stress and governance concerns a few years ago - balance sheet recovery is still relatively recent"
+            "History of financial stress and governance concerns; slipped back to a net loss in FY26"
           ],
           "f": {
             "ticker": "SWSOLAR"
@@ -4277,7 +5533,7 @@
           "risks": [
             "Reported profit lags bookings because revenue is recognised on completion; reported ROE is still single-digit",
             "Aggressive land buying lifts net debt if sales slow",
-            "Stock has fallen over the past year as the housing cycle cooled"
+            "Stock has fallen in the year to Oct 2026 as the housing cycle cooled"
           ],
           "f": {
             "ticker": "GODREJPROP"
@@ -4416,7 +5672,7 @@
           "risks": [
             "Bengaluru is the bulk of sales and rental income",
             "Rental assets add debt during build-out",
-            "Stock has fallen over the past year as housing sentiment weakened"
+            "Stock has fallen in the year to Oct 2026 as housing sentiment weakened"
           ],
           "f": {
             "ticker": "BRIGADE"
@@ -4553,7 +5809,7 @@
           ],
           "risks": [
             "Single-city exposure",
-            "No meaningful listed financial history yet - figures left blank",
+            "No meaningful listed financial history yet",
             "Units have traded in a narrow range since listing"
           ],
           "f": {
@@ -4620,21 +5876,24 @@
         },
         "horizonParks": {
           "name": "Horizon Industrial Parks (Blackstone)",
-          "listed": false,
-          "role": "Blackstone's Indian warehousing and industrial park platform",
+          "listed": true,
+          "role": "Blackstone's Indian warehousing and industrial park platform - listed Aug 2026",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Built on parks bought from Embassy Industrial Parks; Blackstone capital for expansion"
+            "Built on parks bought from Embassy Industrial Parks, with Blackstone capital for expansion",
+            "One of the few listed pure plays on Grade-A warehousing, a segment otherwise held by unlisted platforms"
           ],
           "risks": [
-            "Unlisted - no public financials"
+            "Listed 24 Aug 2026 flat at its ₹60 issue price and has traded below it since - a weak start",
+            "Blackstone keeps control, and leasing depends on 3PL and e-commerce demand cycles"
           ],
           "notes": [
-            "Owned by Blackstone",
-            "A candidate for a future logistics REIT listing",
-            "Not listed - no market data"
-          ]
+            "Listed on NSE (HORIZONIND) and BSE on 24 Aug 2026 after a ₹2,600 Cr all-fresh-issue IPO"
+          ],
+          "f": {
+            "ticker": "HORIZONIND"
+          }
         },
         "welspunOne": {
           "name": "Welspun One",
@@ -4757,7 +6016,7 @@
           "risks": [
             "Profit fell in FY25 on cost overruns; margins remain volatile",
             "Large share of government orders",
-            "Stock has fallen sharply over the past year"
+            "Stock has fallen sharply in the year to Oct 2026"
           ],
           "f": {
             "ticker": "AHLUCONT"
@@ -4795,7 +6054,7 @@
           "risks": [
             "Long receivable cycles with government housing clients",
             "Small balance sheet",
-            "Stock has fallen sharply over the past year"
+            "Stock has fallen sharply in the year to Oct 2026"
           ],
           "f": {
             "ticker": "CAPACITE"
@@ -4814,7 +6073,7 @@
           "risks": [
             "FY26 revenue fell ~6% as state-funded projects slowed",
             "Heavy dependence on state government payments",
-            "Stock has fallen sharply over the past year"
+            "Stock has fallen sharply in the year to Oct 2026"
           ],
           "f": {
             "ticker": "NCC"
@@ -4853,7 +6112,7 @@
           "risks": [
             "Integration of many acquired plants",
             "Group-level governance scrutiny affects sentiment",
-            "Stock has fallen sharply over the past year"
+            "Stock has fallen sharply in the year to Oct 2026"
           ],
           "f": {
             "ticker": "AMBUJACEM"
@@ -5039,7 +6298,7 @@
           "risks": [
             "Profit fell from ₹249 Cr (FY22) to ₹75 Cr (FY26)",
             "Losing ground to larger rivals",
-            "Stock has fallen over the past year"
+            "Stock has fallen in the year to Oct 2026"
           ],
           "f": {
             "ticker": "PRINCEPIPE"
@@ -5075,7 +6334,7 @@
           ],
           "risks": [
             "Lloyd ACs and consumer durables weigh on margins",
-            "Stock has fallen over the past year"
+            "Stock has fallen in the year to Oct 2026"
           ],
           "f": {
             "ticker": "HAVELLS"
@@ -5306,7 +6565,7 @@
           ],
           "risks": [
             "Loss of ₹29 Cr in FY26 as MDF prices fell",
-            "Stock has fallen sharply over the past year"
+            "Stock has fallen sharply in the year to Oct 2026"
           ],
           "f": {
             "ticker": "GREENPANEL"
@@ -5340,7 +6599,7 @@
           ],
           "risks": [
             "Home loans are one part of a broad banking book",
-            "Stock has fallen over the past year"
+            "Stock has fallen in the year to Oct 2026"
           ],
           "f": {
             "ticker": "HDFCBANK"
@@ -5391,7 +6650,7 @@
           ],
           "risks": [
             "Developer and lease-rental loans add risk",
-            "Trades at a premium to other housing lenders, and the stock has fallen over the past year"
+            "Trades at a premium to other housing lenders, and the stock has fallen in the year to Oct 2026"
           ],
           "f": {
             "ticker": "BAJAJHFL"
@@ -5405,7 +6664,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Profit up ~2.7x since FY22 after a turnaround",
-            "Stock has risen strongly over the past year"
+            "Stock has risen strongly in the year to Oct 2026"
           ],
           "risks": [
             "Management change after the CEO's 2025 exit",
@@ -5443,7 +6702,7 @@
           ],
           "risks": [
             "State concentration",
-            "Stock has fallen over the past year"
+            "Stock has fallen in the year to Oct 2026"
           ],
           "f": {
             "ticker": "AAVAS"
@@ -5913,7 +7172,7 @@
           "risks": [
             "New plants carry depreciation before they fill, holding ROCE down",
             "US price erosion in oral solids",
-            "Stock has derated over the past five years"
+            "Stock derated in the five years to Oct 2026"
           ],
           "f": {
             "ticker": "APLLTD"
@@ -6005,7 +7264,7 @@
             "Brand leadership in Indian lab glassware"
           ],
           "risks": [
-            "Very small company, and the stock has fallen over the past year",
+            "Very small company, and the stock has fallen in the year to Oct 2026",
             "Competes with SCHOTT Poonawalla and imports in pharma glass"
           ],
           "f": {
@@ -6055,7 +7314,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Pure-play injectables with a long USFDA-compliant record in Hyderabad",
-            "Recovery under way: FY26 profit ₹1,027 Cr (+47%); stock has recovered strongly from its 52-week low",
+            "Recovery under way: FY26 profit ₹1,027 Cr (+47%); stock recovered strongly from its 52-week low in the year to Oct 2026",
             "Building GLP-1 / peptide fill-finish and biologics CDMO capacity"
           ],
           "risks": [
@@ -6221,7 +7480,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "CDMO-led recovery: FY26 profit ₹890 Cr vs ₹162 Cr in FY24",
-            "Large chemistry capacity in Visakhapatnam; stock more than doubled in a year"
+            "Large chemistry capacity in Visakhapatnam; stock more than doubled in the year to Oct 2026"
           ],
           "risks": [
             "ARV API pricing depends on global tenders",
@@ -6244,7 +7503,7 @@
           ],
           "risks": [
             "Commodity APIs directly exposed to Chinese price competition - revenue flat FY22-FY26",
-            "Thin margins, and the stock has fallen over the past year"
+            "Thin margins, and the stock has fallen in the year to Oct 2026"
           ],
           "f": {
             "ticker": "AARTIDRUGS"
@@ -6333,7 +7592,7 @@
           ],
           "risks": [
             "Pharma is an indirect exposure - ATBS and butylphenols drive most earnings",
-            "Chemical-cycle and Chinese pricing pressure; the stock has fallen sharply over the past year"
+            "Chemical-cycle and Chinese pricing pressure; the stock has fallen sharply in the year to Oct 2026"
           ],
           "f": {
             "ticker": "VINATIORGA"
@@ -6368,7 +7627,7 @@
             "Added US biologics manufacturing (Baltimore site) and Bengaluru capacity"
           ],
           "risks": [
-            "FY26 profit fell 36% and the stock has fallen sharply over the past year on weak biotech demand and large-molecule customer destocking",
+            "FY26 profit fell 36% and the stock has fallen sharply in the year to Oct 2026 on weak biotech demand and large-molecule customer destocking",
             "Biologics capacity ramp-up dilutes returns on capital"
           ],
           "f": {
@@ -6422,7 +7681,7 @@
           ],
           "risks": [
             "USFDA warning letter at its Nacharam formulation site (Feb 2026)",
-            "FY26 profit fell to ₹150 Cr; the stock has fallen sharply over the past year",
+            "FY26 profit fell to ₹150 Cr; the stock has fallen sharply in the year to Oct 2026",
             "Integration of several acquisitions"
           ],
           "f": {
@@ -6724,7 +7983,7 @@
           ],
           "notes": [
             "Subsidiary of Hong Kong-listed FIH Mobile (Foxconn group)",
-            "IPO: ~₹5,004 Cr (half fresh issue, half offer for sale) - dates not yet announced"
+            "IPO: ~₹5,004 Cr (half fresh issue, half offer for sale) - dates not announced as of Oct 2026"
           ]
         },
         "tataElectronics": {
@@ -7682,7 +8941,7 @@
             "Guides ~28% EBITDA margin and 15% revenue growth for FY27"
           ],
           "risks": [
-            "~₹30,000 Cr QRSAM order still awaits Cabinet approval; Q1 FY27 inflow fell ~49%",
+            "~₹30,000 Cr QRSAM order awaited Cabinet approval as of Oct 2026; Q1 FY27 inflow fell ~49%",
             "Q1 FY27 EBITDA margin dipped to ~25% on product mix",
             "Large-cap valuation already prices strong execution"
           ],
@@ -8223,7 +9482,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "Ascent Circuits got a ₹991 Cr multi-layer PCB approval (Oct 2025) for Hosur, with trial production expected in Q2 FY27",
+            "Ascent Circuits got a ₹991 Cr multi-layer PCB approval (Oct 2025) for Hosur, with trial production guided for Q2 FY27 (Jul-Sep 2026)",
             "Ascent-K Circuit (JV with Korea Circuit) got ECMS approval for a ₹3,200 Cr HDI/flex PCB plant near Jewar (Jan 2026); groundbreaking Jun 2026",
             "Cooperation pact with Germany's Schweizer Electronic (Jun 2026) for auto/industrial boards"
           ],
@@ -8317,7 +9576,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "ECMS approval (Jan 2026) for enclosures for mobile and IT hardware",
-            "Kanchipuram enclosure plant expected to start within ~2-3 months of Aug 2026",
+            "Kanchipuram enclosure plant due to start around Oct-Nov 2026 (reported Aug 2026)",
             "Global precision-manufacturing scale and balance sheet"
           ],
           "risks": [
@@ -8585,7 +9844,7 @@
           ],
           "notes": [
             "Wipro Enterprises is privately held; listed Wipro Ltd (IT services) is not the owner",
-            "Plant expected to go live within ~2-3 months of Aug 2026",
+            "Plant was due to go live around Oct-Nov 2026 (reported Aug 2026)",
             "No listed market data"
           ]
         },

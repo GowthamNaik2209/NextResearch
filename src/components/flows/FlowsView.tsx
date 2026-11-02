@@ -41,11 +41,11 @@ async function FlowsContent({ period, sectorSlug, sectorName }: { period: Period
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <WatchlistCard watch={watch} period={period} range={range} />
-        <CashCard cash={data.cash} period={period} range={range} />
-        <FuturesCard futures={data.futures} period={period} />
-        <SectorCard sectors={data.sectors} period={period} />
-        <StakeCard stakes={data.stakes} period={period} sectorName={sectorName} />
-        <DealsCard deals={data.deals} period={period} range={range} sectorName={sectorName} />
+        <CashCard cash={data.cash} period={period} range={range} failed={data.failed.includes("cash")} />
+        <FuturesCard futures={data.futures} period={period} failed={data.failed.includes("futures")} />
+        <SectorCard sectors={data.sectors} period={period} failed={data.failed.includes("sectors")} />
+        <StakeCard stakes={data.stakes} period={period} sectorName={sectorName} failed={data.failed.includes("stakes")} />
+        <DealsCard deals={data.deals} period={period} range={range} sectorName={sectorName} failed={data.failed.includes("deals")} />
       </div>
       <p className="text-[11px] leading-relaxed text-ink-soft">
         Every block shows its source and the dates it covers. There is no daily FII/DII buying figure for single stocks: the exchanges publish it only for the
@@ -53,6 +53,11 @@ async function FlowsContent({ period, sectorSlug, sectorName }: { period: Period
       </p>
     </div>
   );
+}
+
+/** A block whose read failed (a database timeout): said so, rather than "nothing stored yet". */
+function LoadFailed() {
+  return <NotYet>Couldn&rsquo;t load these figures right now. Refresh the page to try again.</NotYet>;
 }
 
 // Grid spans: a block the full width on a tablet and half on a desktop, or half from tablet width up.
@@ -82,7 +87,7 @@ function WatchlistCard({ watch, period, range }: { watch: WatchlistFlows; period
       ) : watch.rows.length === 0 ? (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <NotYet>Your watchlist is empty. Save companies with the heart beside any ticker and their FII and DII moves show up here.</NotYet>
-          <Link href="/watchlist" className="inline-flex h-9 items-center rounded-full border border-line px-4 text-sm font-semibold text-ink hover:border-accent">
+          <Link href="/watchlist" className="inline-flex h-9 items-center rounded-full border border-accent px-4 text-sm font-semibold text-ink hover:bg-accent/10">
             Open watchlist
           </Link>
         </div>
@@ -143,7 +148,7 @@ function Holding({ value, change, base, role }: { value?: number | null; change?
 
 // ---------------------------------------------------------------- market cash
 
-function CashCard({ cash, period, range }: { cash: FlowsData["cash"]; period: Period; range: string }) {
+function CashCard({ cash, period, range, failed }: { cash: FlowsData["cash"]; period: Period; range: string; failed: boolean }) {
   const short = cash && cash.firstStored > cash.from;
   return (
     <FlowCard
@@ -154,7 +159,7 @@ function CashCard({ cash, period, range }: { cash: FlowsData["cash"]; period: Pe
       note="Market-wide"
     >
       {!cash ? (
-        <NotYet>Collected each trading day from NSE after the close; the first figures appear after the next update.</NotYet>
+        failed ? <LoadFailed /> : <NotYet>Collected each trading day from NSE after the close; the first figures appear after the next update.</NotYet>
       ) : (
         <>
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -196,7 +201,7 @@ function SourceNote({ sources }: { sources: NonNullable<FlowsData["cash"]>["sour
   const line = (who: "FII" | "DII") =>
     sources
       .filter((s) => s.who === who)
-      .map((s) => `${SOURCE_NAME[s.source]} ${s.from.getTime() === s.to.getTime() ? fmtDay(s.from) : `${fmtDay(s.from)} – ${fmtDay(s.to)}`}${s.filled ? ` (${s.filled} day${s.filled > 1 ? "s" : ""} it missed from the source before)` : ""}`)
+      .map((s) => `${SOURCE_NAME[s.source]} ${s.from.getTime() === s.to.getTime() ? fmtDay(s.from) : `${fmtDay(s.from)} – ${fmtDay(s.to)}`}${s.filled ? ` (${s.filled} day${s.filled > 1 ? "s" : ""} filled from the earlier source)` : ""}`)
       .join("; ");
   return (
     <p className="mt-2 text-[11px] leading-relaxed text-ink-soft">
@@ -221,7 +226,7 @@ function Kpi({ label, value, series }: { label: string; value: number; series: s
 
 // ---------------------------------------------------------------- FII index futures
 
-function FuturesCard({ futures, period }: { futures: FlowsData["futures"]; period: Period }) {
+function FuturesCard({ futures, period, failed }: { futures: FlowsData["futures"]; period: Period; failed: boolean }) {
   const change = futures?.base ? futures.longPct - futures.base.longPct : null;
   return (
     <FlowCard
@@ -232,7 +237,7 @@ function FuturesCard({ futures, period }: { futures: FlowsData["futures"]; perio
       note="Market-wide"
     >
       {!futures ? (
-        <NotYet>Collected each trading day from NSE&rsquo;s participant-wise open interest file.</NotYet>
+        failed ? <LoadFailed /> : <NotYet>Collected each trading day from NSE&rsquo;s participant-wise open interest file.</NotYet>
       ) : (
         <>
           <dl className="grid grid-cols-2 gap-3">
@@ -267,7 +272,7 @@ function FuturesCard({ futures, period }: { futures: FlowsData["futures"]; perio
 
 const SHOW_EACH_SIDE = 5;
 
-function SectorCard({ sectors, period }: { sectors: FlowsData["sectors"]; period: Period }) {
+function SectorCard({ sectors, period, failed }: { sectors: FlowsData["sectors"]; period: Period; failed: boolean }) {
   // The five highest and five lowest.
   const rows = sectors ? sectors.rows.filter((_, i) => i < SHOW_EACH_SIDE || i >= sectors.rows.length - SHOW_EACH_SIDE) : [];
   const peak = Math.max(1, ...rows.map((r) => Math.abs(r.netCr)));
@@ -290,7 +295,7 @@ function SectorCard({ sectors, period }: { sectors: FlowsData["sectors"]; period
       }
     >
       {!sectors ? (
-        <NotYet>Collected from NSDL each fortnight (after the 15th and the month end).</NotYet>
+        failed ? <LoadFailed /> : <NotYet>Collected from NSDL each fortnight (after the 15th and the month end).</NotYet>
       ) : (
         <>
           <ul className="flex flex-col gap-1.5">
@@ -326,7 +331,7 @@ function SectorCard({ sectors, period }: { sectors: FlowsData["sectors"]; period
 
 // ---------------------------------------------------------------- stake changes
 
-function StakeCard({ stakes, period, sectorName }: { stakes: FlowsData["stakes"]; period: Period; sectorName?: string }) {
+function StakeCard({ stakes, period, sectorName, failed }: { stakes: FlowsData["stakes"]; period: Period; sectorName?: string; failed: boolean }) {
   return (
     <FlowCard
       className={TABLET_FULL}
@@ -335,7 +340,9 @@ function StakeCard({ stakes, period, sectorName }: { stakes: FlowsData["stakes"]
       source={stakes?.quarter ? `Shareholding filings · latest ${fmtMonth(stakes.quarter)} quarter · % of equity` : "Shareholding filings · quarterly · % of equity"}
       note={[sectorName, periodMonths(period) < 3 ? "Latest quarter vs the one before" : null].filter(Boolean).join(" · ") || undefined}
     >
-      {!stakes || stakes.rows.length === 0 ? (
+      {failed ? (
+        <LoadFailed />
+      ) : !stakes || stakes.rows.length === 0 ? (
         <NotYet>
           No shareholding filings are stored yet{sectorName ? ` for ${sectorName}` : ""}. They are read from each company&rsquo;s quarterly filing with the daily company update.
         </NotYet>
@@ -348,7 +355,7 @@ function StakeCard({ stakes, period, sectorName }: { stakes: FlowsData["stakes"]
 
 // ---------------------------------------------------------------- bulk and block deals
 
-function DealsCard({ deals, period, range, sectorName }: { deals: FlowsData["deals"]; period: Period; range: string; sectorName?: string }) {
+function DealsCard({ deals, period, range, sectorName, failed }: { deals: FlowsData["deals"]; period: Period; range: string; sectorName?: string; failed: boolean }) {
   return (
     <FlowCard
       className={TABLET_FULL}
@@ -358,7 +365,7 @@ function DealsCard({ deals, period, range, sectorName }: { deals: FlowsData["dea
       note={sectorName}
     >
       {!deals ? (
-        <NotYet>Collected each trading day from NSE; the first deals appear after the next update.</NotYet>
+        failed ? <LoadFailed /> : <NotYet>Collected each trading day from NSE; the first deals appear after the next update.</NotYet>
       ) : deals.length === 0 ? (
         <NotYet>
           No FII or DII bulk or block deals{sectorName ? ` in ${sectorName}` : ""} in the last {PERIOD_LABEL[period]}.

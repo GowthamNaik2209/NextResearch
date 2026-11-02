@@ -256,7 +256,7 @@ select {
   gap: 6px;
   min-height: 28px;
   padding: 0 11px 0 9px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--accent);
   border-radius: 999px;
   background: var(--panel-2);
   color: var(--ink-soft);

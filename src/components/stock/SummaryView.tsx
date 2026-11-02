@@ -29,7 +29,7 @@ export function ExtLink({ href, children }: { href: string; children: React.Reac
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center justify-between gap-2 rounded-lg border border-line bg-panel-2 px-3 py-2 text-xs text-ink transition-colors hover:border-accent pointer-coarse:min-h-9"
+      className="flex items-center justify-between gap-2 rounded-lg border border-accent bg-panel-2 px-3 py-2 text-xs text-ink transition-colors hover:bg-accent/10 pointer-coarse:min-h-9"
     >
       <span>{children}</span>
       <span className="font-mono text-accent">&rarr;</span>
@@ -203,7 +203,7 @@ export function SummaryView({
               <div key={k} className="rounded-lg border border-line bg-panel-2 px-2 py-2.5 text-center">
                 <div className="text-[9.5px] uppercase tracking-wide text-ink-soft">{k}</div>
                 <div className={"mt-1 font-mono text-base font-bold " + pctTone(v, 1)}>
-                  {fmtSigned(v, 1)}
+                  {fmtSigned(v, v != null && Number.isInteger(v) ? 0 : 1)}
                 </div>
               </div>
             ))}

@@ -51,7 +51,7 @@ export function StakeTable({ rows, where, compact }: { rows: StakeRow[]; where?:
             type="button"
             aria-pressed={who === w}
             onClick={() => setWho(w)}
-            className={"tap-y inline-flex h-8 items-center whitespace-nowrap rounded-full border px-3 text-xs font-semibold " + (who === w ? "border-ink-soft bg-panel-2 text-ink" : "border-line text-ink-soft hover:text-ink")}
+            className={"tap-y inline-flex h-8 items-center whitespace-nowrap rounded-full border px-3 text-xs font-semibold " + (who === w ? "border-accent bg-accent text-bg" : "border-accent text-ink-soft hover:bg-accent/10 hover:text-ink")}
           >
             {w.toUpperCase()} holdings
           </button>
@@ -59,7 +59,7 @@ export function StakeTable({ rows, where, compact }: { rows: StakeRow[]; where?:
       </div>
       <p className="mt-2 text-[11px] text-ink-soft">
         {sorted.length} compan{sorted.length === 1 ? "y" : "ies"}
-        {base ? ` with a filing back to ${fmtMonth(base)}` : ""}
+        {base ? `, compared with their ${fmtMonth(base)} quarter filing` : ""}
         {sort.key === "move" ? " · biggest moves first; tap Holding or the change to sort" : ""}
       </p>
       {sorted.length === 0 ? (

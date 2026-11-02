@@ -71,7 +71,8 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
       ] as const
     )
       .filter(([, v]) => v != null)
-      .map(([period, v]) => ({ period, value: fmtSigned(v, 1) })),
+      // Screener gives these as whole percentages: shown as they are, not as "−33.0%".
+      .map(([period, v]) => ({ period, value: fmtSigned(v, Number.isInteger(v) ? 0 : 1) })),
   };
   const growth = [
     ...(fund?.growth ?? [])

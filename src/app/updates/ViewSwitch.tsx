@@ -11,7 +11,7 @@ const VIEWS: { view: UpdatesView; label: string }[] = [
 // address and the browser's back button returns to the other.
 export function ViewSwitch({ view, sector, period }: { view: UpdatesView; sector?: string; period?: Period }) {
   return (
-    <nav aria-label="Updates view" className="ml-auto inline-flex flex-none rounded-full border border-line bg-panel p-[3px]">
+    <nav aria-label="Updates view" className="ml-auto inline-flex flex-none rounded-full border border-accent bg-panel p-[3px]">
       {VIEWS.map((v) => {
         const on = v.view === view;
         return (

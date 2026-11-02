@@ -92,8 +92,10 @@ export function cleanSource(source: string): string {
 
 // null = the request failed (so the cache only remembers it briefly); [] = it worked but found nothing.
 async function fetchHeadlines(companyName: string): Promise<Headline[] | null> {
-  // Quoted name keeps results on-topic; the keyword OR-group biases toward market news.
-  const q = `"${companyName}" (shares OR stock OR results OR order OR earnings) when:${MAX_AGE_DAYS}d`;
+  // Quoted name keeps results on-topic; the keyword OR-group biases toward market news. A bracketed
+  // part ("Horizon Industrial Parks (Blackstone)") is dropped: no headline quotes it, so the quoted
+  // phrase would find nothing (isAbout drops it too).
+  const q = `"${companyName.replace(/\s*\(.*?\)/g, "").trim()}" (shares OR stock OR results OR order OR earnings) when:${MAX_AGE_DAYS}d`;
   const url = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-IN&gl=IN&ceid=IN:en`;
   // The abort signal covers the request; the race also covers reading the body and Next's data
   // cache (a /updates request once hung for 50+ minutes), so one stuck upstream can't hold a feed.
@@ -133,7 +135,7 @@ const GENERIC = new Set(
     "pharmaceutical pharmaceuticals pharma laboratories labs lifesciences life sciences healthcare health biotech biosciences " +
     "hospitals scientific chemicals drugs active organics worldwide institute biological " +
     "realty trust reit estates developers properties parks business office mills cement cements steel tubes paints ceramics " +
-    "plyboards panels glass pipes fittings financiers housing contracts infraprojects knowledge").split(" ")
+    "plyboards panels glass pipes fittings financiers housing contracts infraprojects knowledge photovoltaic platforms").split(" ")
 );
 // "&" and "and" are dropped so "Transformers and Rectifiers" matches "Transformers & Rectifiers".
 const normalize = (s: string) =>
@@ -176,7 +178,7 @@ const ALIASES: Record<string, string[]> = {
   BHARATFORG: ["bharat forge", "kalyani strategic"],
   CGPOWER: ["cg power", "cg semi"],
   // Nifty 50 names (Oct 2026).
-  RELIANCE: ["reliance", "ril", "reliance jio", "reliance retail"],
+  RELIANCE: ["reliance", "ril", "reliance retail"],
   KOTAKBANK: ["kotak bank", "kotak mahindra bank"],
   HINDUNILVR: ["hul"],
   HCLTECH: ["hcl tech", "hcltech"],
@@ -187,6 +189,11 @@ const ALIASES: Record<string, string[]> = {
   TRENT: ["zudio"],
   ADANIPORTS: ["apsez"],
   MAXHEALTH: ["max healthcare"],
+  // Solar and energy listings (Nov 2026).
+  JPL: ["jio", "reliance jio"],
+  CLEANMAX: ["cleanmax"],
+  UTLSOLAR: ["utl solar"],
+  WAAREERTL: ["waaree rtl"],
 };
 // Headlines that name the company but are about a sibling it no longer owns. Tata Motors
 // demerged in Oct 2025: the commercial-vehicle business kept the "Tata Motors Ltd" name (TMCV),
@@ -217,7 +224,7 @@ const WORD_TICKERS = new Set(["EMBASSY", "ACI"]);
 const OTHER_COMPANIES = [
   "Tech Mahindra", "Mahindra Holidays", "Club Mahindra", "Mahindra Lifespace", "Mahindra Logistics", "Mahindra Finance",
   "Mahindra & Mahindra Financial", "M&M Financial", "M&M Finance", "Mahindra Susten", "Mahindra CIE", "Mahindra EPC",
-  "Tata Motors Commercial", "Tata Motors CV", "Siemens Energy", "Waaree Renewable", "Borosil Ltd", "Kirloskar Ferrous",
+  "Tata Motors Commercial", "Tata Motors CV", "Siemens Energy", "Borosil Ltd", "Kirloskar Ferrous",
   "Kirloskar Industries", "Motherson Sumi Systems", "Indian Railway Catering", "Mahanagar Gas",
   "Sun Pharma Advanced Research", "Torrent Power", "Zydus Wellness", "Apollo Tyres", "Piramal Enterprises", "Piramal Finance",
   "Aarti Industries", "Abbott Laboratories", "Embassy Developments", "Bosch Ltd", "SBI Cards", "SBI Card",
@@ -228,7 +235,7 @@ const OTHER_COMPANIES = [
   "Reliance Capital", "Reliance Communications", "Reliance Home Finance", "Reliance Nippon", "Reliance General Insurance",
   "Jio BlackRock", "ITC Hotels", "HCL Infosystems", "Indigo Paints", "Max Financial", "Max Life", "Max Estates",
   "Shriram Properties", "Shriram Pistons", "Power Grid InvIT", "PowerGrid InvIT", "Tata Investment", "Nestle SA",
-  "Brookfield Asset Management", "NTPC Green Energy", "NTPC Green",
+  "Brookfield Asset Management", "Waaree RTL", "Juniper Networks", "Jio Hotstar",
   "Midwest Energy", "Midwest Advanced Materials", "Bajaj Auto Credit", "Hinduja Leyland Finance", "ACI Worldwide",
   "Jyoti Structures", "Kalyani Steels", "Ola Cabs", "ASM International", "Bharat FIH", "Indian Rare Earths",
   "NMDC Steel", "TVS Supply Chain", "TVS Srichakra", "TVS Holdings",
@@ -303,6 +310,7 @@ const WORD_NAMES: Record<string, string> = {
   BRIGADE: "brigade",
   PRINCEPIPE: "prince",
   CRAFTSMAN: "craftsman",
+  HORIZONIND: "horizon",
 };
 // Words that put a headline in a company's business; and contexts that take it out (sport, courts).
 const BUSINESS_CONTEXT =

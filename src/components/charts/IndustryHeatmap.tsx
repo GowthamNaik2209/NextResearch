@@ -7,6 +7,8 @@ import type { BacktestHolding } from "@/lib/baskets/backtest";
 import { forgetSeries, industrySeriesKey, loadSeries } from "@/components/baskets/series";
 import { HeatGrid, HeatLegend, heatScale, type HeatCell } from "./Heatmap";
 import { actionClass } from "./action-class";
+import { IndustryPools } from "./IndustryPools";
+import type { IndustryPools as Pools } from "@/lib/baskets/pools";
 
 // An industry page's heatmap: every listed stock on its map, grouped by the layer it plays in,
 // coloured by its own price change over the period picked. It reads the industry basket's own
@@ -23,27 +25,56 @@ const RANGES: { id: ChartRange; label: string; long: string }[] = [
 ];
 
 /**
- * The page's first row of buttons: `lead` (the map), then the Heatmap button, then `children`; its panel opens
- * full width under the row. Phones get one row of short labels that scrolls sideways, without
+ * The page's first row of buttons: `lead` (the map), then the Heatmap and Industry pools buttons,
+ * then `children`; the open one's panel (one at a time) opens full width under the row. Phones get one row of short labels that scrolls sideways, without
  * the panel around it; from desktop width the row sits on one line.
  */
-export function IndustryActions({ lead, children, slug, name, stocks, basketHref }: { lead: ReactNode; children: ReactNode; slug: string; name: string; stocks: HeatStock[]; basketHref: string | null }) {
-  const [open, setOpen] = useState(false);
+export function IndustryActions({
+  lead,
+  children,
+  slug,
+  name,
+  stocks,
+  basketHref,
+  pools = null,
+}: {
+  lead: ReactNode;
+  children: ReactNode;
+  slug: string;
+  name: string;
+  stocks: HeatStock[];
+  basketHref: string | null;
+  pools?: Pools | null;
+}) {
+  const [open, setOpen] = useState<"heatmap" | "pools" | null>(null);
+  const toggle = (p: "heatmap" | "pools") => setOpen((o) => (o === p ? null : p));
   return (
     <section className="flex flex-col gap-3 sm:rounded-2xl sm:border sm:border-line sm:bg-panel-2 sm:p-4 lg:p-5">
       <div className="scrollbar-none -mx-5 flex gap-1.5 overflow-x-auto px-5 max-sm:*:flex-none sm:mx-0 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:px-0 lg:flex-nowrap">
         {lead}
         {stocks.length > 0 && (
-          <button type="button" aria-expanded={open} aria-controls="industry-heatmap" onClick={() => setOpen((o) => !o)} className={actionClass(false, open)}>
+          <button type="button" aria-expanded={open === "heatmap"} aria-controls="industry-heatmap" onClick={() => toggle("heatmap")} className={actionClass(false, open === "heatmap")}>
             <span className="sm:hidden">Heatmap</span>
-            <span className="hidden sm:inline">{open ? "Hide heatmap" : "Stock heatmap"}</span>
+            <span className="hidden sm:inline">{open === "heatmap" ? "Hide heatmap" : "Stock heatmap"}</span>
+          </button>
+        )}
+        {/* Tablet and desktop only for now: the phone row stays at its few buttons, and the
+            panel's chips and table are dense at phone width. */}
+        {pools && (
+          <button type="button" aria-expanded={open === "pools"} aria-controls="industry-pools" onClick={() => toggle("pools")} className={actionClass(false, open === "pools") + " max-sm:hidden"}>
+            {open === "pools" ? "Hide pools" : "Industry pools"}
           </button>
         )}
         {children}
       </div>
-      {open && (
+      {open === "heatmap" && (
         <div id="industry-heatmap">
           <IndustryHeatmap slug={slug} name={name} stocks={stocks} basketHref={basketHref} />
+        </div>
+      )}
+      {open === "pools" && pools && (
+        <div id="industry-pools" className="max-sm:hidden">
+          <IndustryPools pools={pools} />
         </div>
       )}
     </section>
@@ -131,7 +162,7 @@ function IndustryHeatmap({ slug, name, stocks, basketHref }: { slug: string; nam
             </>
           )}
         </p>
-        <div role="group" aria-label="Period" className="flex flex-none gap-0.5 rounded-full border border-line p-0.5">
+        <div role="group" aria-label="Period" className="flex flex-none gap-0.5 rounded-full border border-accent p-0.5">
           {RANGES.map((r) => (
             <button
               key={r.id}

@@ -109,7 +109,7 @@ export const solarmodules: SectorReport = {
   },
 
   valueChain: [
-    { stage: "Polysilicon, ingots & wafers", zoneIds: ["polywafer"], margin: "Nascent in India", moat: "high", note: "China holds >90% of global supply; Adani and Waaree are building the first Indian capacity." },
+    { stage: "Polysilicon, ingots & wafers", zoneIds: ["polywafer"], margin: "Nascent in India", moat: "high", note: "China holds >90% of global supply; Adani, Reliance and Waaree have announced the first Indian capacity." },
     { stage: "Glass, EVA & backsheet", zoneIds: ["glass_eva"], margin: "Cyclical, duty-dependent", moat: "medium", note: "Solar glass is protected by anti-dumping duties; few domestic producers." },
     { stage: "Solar cells", zoneIds: ["cells"], margin: "25-30%+ EBITDA", moat: "high", note: "The scarce, policy-protected layer once List-II applies; capex and yield know-how gate entry." },
     { stage: "Module assembly", zoneIds: ["modules"], margin: "10-15% EBITDA", moat: "low", note: "ALMM's first beneficiary, now crowded; margins hinge on cell integration." },
@@ -165,11 +165,11 @@ export const solarmodules: SectorReport = {
     { key: "premierEnergies", tier: "core", why: "Integrated cell and module maker; best placed for the List-II cell mandate." },
     { key: "adanient", tier: "core", why: "Mundra integrated plant spans polysilicon to modules; the most upstream Indian player." },
     { key: "websol", tier: "direct", why: "Pure-play cell maker; cell scarcity under List-II lifts pricing power." },
-    { key: "insolation", tier: "direct", why: "Small-cap module maker riding rooftop and DCR demand." },
+    { key: "emmvee", tier: "direct", why: "Integrated TOPCon cell and module maker (listed Nov 2025); own cells suit the List-II mandate." },
     { key: "borosilRenew", tier: "direct", why: "Main domestic solar-glass producer, protected by anti-dumping duties." },
     { key: "sterlingWilson", tier: "indirect", why: "Pure-play solar EPC; volumes rise with tender awards." },
     { key: "kpiGreen", tier: "indirect", why: "Gujarat EPC and IPP scaling solar and hybrid capacity." },
-    { key: "aparInds", tier: "indirect", why: "Solar cables and conductors scale with installed GW." },
+    { key: "karamtara", tier: "indirect", why: "Largest Indian maker of mounting structures and tracker parts (listed Sep 2026); volumes follow installed GW." },
     { key: "tataPowerSolar", tier: "indirect", why: "Own cell and module plant in Tamil Nadu plus a large rooftop business." },
   ],
 

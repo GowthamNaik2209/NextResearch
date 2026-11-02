@@ -250,6 +250,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                     Latest-year revenue {croreShort(rev[rev.length - 1])} ({FY_LABELS[FY_LABELS.length - 1]}, company-wide).
                   </p>
                 )}
+                {f?.note && <p className="mt-1 text-xs text-ink-soft">Note: {f.note.replace(/\.$/, "")}.</p>}
               </section>
             )}
 
@@ -346,7 +347,7 @@ function AppearanceCard({ a, showRole, peersLabel, linkLabel, index = false }: {
                 <Link
                   key={p.name}
                   href={`/company/${p.slug}`}
-                  className="tap-y rounded-full border border-line px-2.5 py-0.5 text-xs text-ink hover:border-accent hover:text-accent"
+                  className="tap-y rounded-full border border-accent px-2.5 py-0.5 text-xs text-ink hover:bg-accent/10"
                 >
                   {p.name}
                 </Link>

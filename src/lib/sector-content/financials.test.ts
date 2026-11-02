@@ -61,7 +61,7 @@ test("five fiscal years of revenue and profit, aligned", () => {
 
 // scripts/refresh-financials.ts re-reads every company in one run, so industries, policies and IPO
 // peer tables all quote prices and valuations from the same day.
-// A company with no market price at all (DIGIFIBRE, STONEINDIA: Screener has none) has no price date
+// A company with no market price at all (DIGIFIBRE: Screener has none) has no price date
 // to share; the refresh cannot read it, so it keeps its older snapshot.
 test("every company's price and valuation share one snapshot date", () => {
   const dates = new Map<string, string[]>();

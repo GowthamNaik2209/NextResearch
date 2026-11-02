@@ -146,7 +146,7 @@ function DeckLoading({ failed = false, onClose }: { failed?: boolean; onClose?: 
           <>
             <span>Couldn&rsquo;t load this deck. Check your connection and try again.</span>
             {onClose && (
-              <button type="button" onClick={onClose} className="rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-ink-soft hover:border-accent hover:text-ink">
+              <button type="button" onClick={onClose} className="rounded-lg border border-accent px-3 py-1.5 text-xs font-semibold text-ink-soft hover:bg-accent/10 hover:text-ink">
                 Close
               </button>
             )}

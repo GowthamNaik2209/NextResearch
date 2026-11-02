@@ -44,11 +44,11 @@ test("an NSE peer shows the same figures as its industry and policy pages", () =
 const day = (s: string) => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
 
 test("an IPO's stage and chip follow its dates, not the authored text", () => {
-  const jio = (d: string) => getIpo("jio-platforms", day(d))!.status;
-  assert.deepEqual([jio("2026-10-20").stage, jio("2026-10-20").label], ["upcoming", "Opens 21 Oct"]);
-  assert.deepEqual([jio("2026-10-22").stage, jio("2026-10-22").label], ["open", "Open · closes 23 Oct"]);
-  assert.deepEqual([jio("2026-10-25").stage, jio("2026-10-25").label], ["upcoming", "Closed · lists 28 Oct"]);
-  assert.equal(jio("2026-10-29").stage, "listed");
+  const paras = (d: string) => getIpo("paras-healthcare", day(d))!.status;
+  assert.deepEqual([paras("2026-10-20").stage, paras("2026-10-20").label], ["upcoming", "Opens 21 Oct"]);
+  assert.deepEqual([paras("2026-10-22").stage, paras("2026-10-22").label], ["open", "Open · closes 23 Oct"]);
+  assert.deepEqual([paras("2026-10-25").stage, paras("2026-10-25").label], ["upcoming", "Closed · lists 28 Oct"]);
+  assert.equal(paras("2026-10-29").stage, "listed");
   // No dated window to go by: the authored stage stays.
   assert.equal(getIpo("oyo", day("2027-06-01"))!.status.stage, "approved");
 });

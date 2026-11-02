@@ -59,7 +59,7 @@ export default async function WatchlistPage() {
             </p>
           </div>
           {basketable.length > 0 && (
-            <WatchlistBacktest tickers={basketable} className="min-h-10 rounded-lg border border-line px-4 text-sm font-semibold text-ink hover:border-accent" />
+            <WatchlistBacktest tickers={basketable} className="min-h-10 rounded-lg border border-accent px-4 text-sm font-semibold text-ink hover:bg-accent/10" />
           )}
         </div>
 

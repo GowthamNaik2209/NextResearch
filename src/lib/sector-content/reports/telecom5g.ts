@@ -160,6 +160,7 @@ export const telecom5g: SectorReport = {
   },
 
   beneficiaries: [
+    { key: "reliance_jio", tier: "core", why: "Largest operator by subscribers, listed since 28 Oct 2026; gains most from tariff hikes and its in-house 5G stack." },
     { key: "bhartiairtel_op", tier: "core", why: "Highest ARPU among peers; first in line to gain from tariff hikes and premium 5G users." },
     { key: "industowers", tier: "core", why: "Largest tower company; earns rentals on every new 5G site and tenancy." },
     { key: "altiusinvit", tier: "core", why: "Second-largest tower portfolio after buying American Tower's India business." },
@@ -169,10 +170,10 @@ export const telecom5g: SectorReport = {
     { key: "pacedigitek", tier: "direct", why: "Tower EPC plus DC power and battery systems for telecom sites." },
     { key: "bondada", tier: "indirect", why: "Telecom site EPC and O&M contractor; growth follows operator rollouts." },
     { key: "skipper_telecom", tier: "indirect", why: "Tower and monopole fabrication for new and densified sites." },
-    { key: "syrmasgs", tier: "indirect", why: "EMS for telecom and networking modules under the PLI push." },
   ],
 
   companyNews: [
+    { key: "reliance_jio", date: "28 Oct 2026", development: "Jio Platforms listed at ₹1,358, 21% above its ₹1,119 issue price, after a ~15.6x subscribed IPO.", impact: "The largest operator is now directly investable instead of only through Reliance Industries.", tone: "pos" },
     { key: "vodafoneidea", date: "Late 2025", development: "Government moved to restructure AGR dues after a Supreme Court ruling allowed reconsideration.", impact: "Keeps a third operator alive, supporting tower tenancies and vendor receivables.", tone: "pos" },
     { key: "tejasnetworks", date: "FY26", development: "Revenue fell sharply as BSNL 4G equipment deliveries wound down after the Sep 2025 launch.", impact: "Shows how lumpy single-customer orders make domestic equipment earnings volatile.", tone: "neg" },
     { key: "bhartiairtel_op", date: "Mar 2025", development: "Signed a deal with SpaceX to distribute Starlink services and equipment.", impact: "Telcos co-opt satellite broadband for rural reach instead of competing with it.", tone: "neutral" },

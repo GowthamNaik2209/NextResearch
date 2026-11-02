@@ -12,9 +12,9 @@ import { basisLabel, pastPeriod } from "./labels";
 // chosen range and strategy (named in the title), how it moved against the Nifty 50 and, when it
 // is rebalanced, the trading that took. A flat, dense panel of mono figures (the page's Export
 // Excel writes out exactly these numbers with the holdings).
-const BENCH = { key: "b:nifty50", name: "Nifty 50" };
-// A single stock's view reads its lines from the price store first (series.ts), the Nifty 50 too.
-const STORED_BENCH = "B:nifty50";
+// The Nifty 50 from the price store first (series.ts), as every basket page measures it, so a
+// basket's run and its benchmark share the same first and last day.
+const BENCH = { key: "B:nifty50", name: "Nifty 50" };
 
 const monthName = (m: string) => fmtMonth(`${m}-01T00:00:00Z`);
 const day = (t: string) => fmtDay(t, { short: true });
@@ -23,6 +23,8 @@ const signed = signedPct;
 const ratio = (v: number) => signedPct(v, 2).replace("%", "").replace("+", "");
 
 const nb = (t: string) => t.replace(/ /g, "\u00a0");
+// A cell's figure that the range is too short to measure (stats.ts minimums): a dash and this.
+const SHORT = "needs more price history";
 
 export function BasketStats({
   range,
@@ -55,7 +57,7 @@ export function BasketStats({
   single?: boolean;
 }) {
   const it = single ? "stock" : "basket";
-  const benchKey = single ? STORED_BENCH : BENCH.key;
+  const benchKey = BENCH.key;
   const { get, retry } = useSeries(empty ? [] : [basketKey, benchKey], range, { reload });
   const b = get(basketKey);
   const n = get(benchKey);
@@ -70,6 +72,8 @@ export function BasketStats({
   // Years the range covers, for turnover a year (none under a year, where it would mislead).
   const span = basket && basket.points.length > 1 ? (Date.parse(basket.points[basket.points.length - 1].t) - Date.parse(basket.points[0].t)) / (365.25 * 86_400_000) : 0;
   const years = span >= 0.95 ? span : null;
+  // The Nifty 50 still on its way: beta waits ("…"); loaded, or failed, it is a figure or a dash.
+  const benchPending = !!s && !bench && n?.status !== "error";
   const freq = s?.periodsPerYear === 52 ? "weekly" : s?.periodsPerYear === 12 ? "monthly" : "daily";
 
 
@@ -99,7 +103,7 @@ export function BasketStats({
     {
       label: "Volatility",
       value: pct(s?.vol),
-      sub: "annualised",
+      sub: s && s.vol == null ? SHORT : "annualised",
       help: `Standard deviation of ${freq} returns, scaled to a year.`,
     },
     {
@@ -113,12 +117,13 @@ export function BasketStats({
     {
       label: "Sortino",
       value: s?.sortino != null ? ratio(s.sortino) : NA,
-      sub: "target 0%",
+      sub: s && s.sortino == null && s.vol == null ? SHORT : "target 0%",
       help: "Annualised return per unit of downside volatility (only falling bars count). Higher is better; above 1 is good.",
     },
     {
       label: `Beta · ${BENCH.name}`,
-      value: r?.beta != null ? ratio(r.beta) : n?.status === "error" || !s ? NA : "…",
+      value: r?.beta != null ? ratio(r.beta) : benchPending ? "…" : NA,
+      sub: s && bench && r?.beta == null ? SHORT : undefined,
       help: `How much the ${it} moves for a 1% move in the ${BENCH.name}. Above 1 swings more than the market.`,
     },
     {
@@ -136,16 +141,16 @@ export function BasketStats({
     {
       label: "Best month",
       value: signed(s?.bestMonth?.ret),
-      sub: s?.bestMonth ? monthName(s.bestMonth.month) : undefined,
+      sub: s?.bestMonth ? monthName(s.bestMonth.month) : s ? SHORT : undefined,
       cls: tone(s?.bestMonth?.ret),
-      help: "Best calendar month, from one month-end close to the next.",
+      help: "Best calendar month, from one month-end close to the next (the first month from the range's first close).",
     },
     {
       label: "Worst month",
       value: signed(s?.worstMonth?.ret),
-      sub: s?.worstMonth ? monthName(s.worstMonth.month) : undefined,
+      sub: s?.worstMonth ? monthName(s.worstMonth.month) : s ? SHORT : undefined,
       cls: tone(s?.worstMonth?.ret),
-      help: "Worst calendar month, from one month-end close to the next.",
+      help: "Worst calendar month, from one month-end close to the next (the first month from the range's first close).",
     },
     {
       label: BENCH.name,
@@ -157,7 +162,7 @@ export function BasketStats({
     {
       label: "Months up",
       value: s?.months ? `${s.upMonths}/${s.months}` : NA,
-      sub: !s ? undefined : s.months ? `${Math.round((s.upMonths / s.months) * 100)}% of months` : "under a month",
+      sub: !s ? undefined : s.months ? `${Math.round((s.upMonths / s.months) * 100)}% of months` : SHORT,
       help: `Calendar months the ${it} ended higher than the month before, out of the months in the range.`,
     },
     // Always there (a "—" when not rebalanced), so the grid keeps its shape when rebalancing is switched.

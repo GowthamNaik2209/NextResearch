@@ -97,7 +97,7 @@ export function SupplierDetail({ sector, supplierKey, zoneSuppliers, onSelectSup
                   onClick={() => setOpenTab(t.id)}
                   className={
                     "flex-auto whitespace-nowrap rounded-full border px-2 py-1.5 text-xs font-semibold transition-colors pointer-coarse:min-h-10 " +
-                    (current ? "border-accent bg-accent text-bg" : "border-line text-ink-soft hover:border-accent hover:bg-panel-2 hover:text-ink")
+                    (current ? "border-accent bg-accent text-bg" : "border-accent text-ink-soft hover:bg-accent/10 hover:text-ink")
                   }
                 >
                   {t.label}

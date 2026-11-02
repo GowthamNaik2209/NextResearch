@@ -12,7 +12,7 @@ export type SeriesStats = {
   /** Compound annual growth, %; null over a year or less (annualising a few months misleads, and
    * over one year it is the return itself, only re-scaled by a calendar that differs by a few days). */
   cagr: number | null;
-  /** Annualised standard deviation of bar returns, %. */
+  /** Annualised standard deviation of bar returns, %; null under minReturns() bar returns. */
   vol: number | null;
   /** Deepest fall from a running high, % (0 or negative), with when it peaked, bottomed and got back. */
   maxDd: number;
@@ -20,12 +20,15 @@ export type SeriesStats = {
   ddTrough: string | null;
   /** First bar back at the old high, or null when it hasn't recovered yet. */
   ddRecovered: string | null;
-  /** Annualised mean bar return over annualised downside deviation (target 0); null with no down bars. */
+  /** Annualised mean bar return over annualised downside deviation (target 0); null with no down
+   *  bars or under minReturns() bar returns. */
   sortino: number | null;
-  /** Calendar-month returns, % (a month counts from the previous month's last close). */
+  /** Calendar-month returns, % (a month counts from the previous month's last close; the first from
+   *  the series' first close); null under MIN_STAT_MONTHS months or minReturns() bar returns. */
   bestMonth: { month: string; ret: number } | null;
   worstMonth: { month: string; ret: number } | null;
-  /** How many calendar months the series spans (after its first), and how many of them rose. */
+  /** How many calendar months have a return (the first, part, month included when it has two bars),
+   *  and how many of them rose; both 0 when too short for best / worst month. */
   months: number;
   upMonths: number;
   /** Bars per year the series was read at (≈250 daily, ≈52 weekly). */
@@ -33,7 +36,7 @@ export type SeriesStats = {
 };
 
 export type RelativeStats = {
-  /** Slope of the line's bar returns on the benchmark's. */
+  /** Slope of the line's bar returns on the benchmark's; null under minReturns() aligned returns. */
   beta: number | null;
   /** How much of the benchmark's rise (up capture) and fall (down capture) the line took over its up
    *  (down) calendar months, %; null under ten months (analysis.ts monthlyCapture). */
@@ -58,7 +61,22 @@ export function periodsPerYear(points: PricePoint[]): number {
   return 252;
 }
 
-/** Geometric mean of bar returns (fractions): the steady per-bar rate that compounds to the same total. */
+// Minimum history. A figure read off a handful of bars is noise dressed as a statistic (a stock
+// listed four days ago read beta −0.54, volatility 4.6%, its one month both best and worst), so:
+// - volatility, Sortino and beta need three weeks of daily returns (15: a 1M range has 19-22 even
+//   in a holiday month, so it keeps its figures) or a quarter of weekly ones (12; monthly bars too),
+//   the bar frequency read from the dates as everything else here is;
+// - best / worst month and months up need at least two calendar months (one month is both) and
+//   the same bars as volatility (four days across a month end are two "months" of noise).
+// Below that the figure is null and the stats grid says it needs more price history. Return and
+// drawdown are shown at any length. (The projection's own statistics ask far more, a year of
+// weeks, projection-risk.ts; capture asks ten months, analysis.ts.)
+export const MIN_DAILY_RETURNS = 15;
+export const MIN_WEEKLY_RETURNS = 12;
+export const MIN_STAT_MONTHS = 2;
+
+/** Bar returns a dispersion figure (volatility, Sortino, beta) needs at this bar frequency. */
+export const minReturns = (ppy: number) => (ppy >= 252 ? MIN_DAILY_RETURNS : MIN_WEEKLY_RETURNS);
 
 const returns = (points: PricePoint[]) => points.slice(1).map((p, i) => p.c / points[i].c - 1);
 const mean = (xs: number[]) => xs.reduce((n, x) => n + x, 0) / xs.length;
@@ -76,10 +94,11 @@ export function seriesStats(points: PricePoint[]): SeriesStats | null {
 
   const r = returns(points);
   const m = mean(r);
-  const vol = r.length >= 2 ? Math.sqrt(r.reduce((n, x) => n + (x - m) ** 2, 0) / (r.length - 1)) * Math.sqrt(ppy) * 100 : null;
+  const enough = r.length >= minReturns(ppy);
+  const vol = enough ? Math.sqrt(r.reduce((n, x) => n + (x - m) ** 2, 0) / (r.length - 1)) * Math.sqrt(ppy) * 100 : null;
   const downs = r.filter((x) => x < 0);
   const downDev = Math.sqrt(r.reduce((n, x) => n + Math.min(x, 0) ** 2, 0) / r.length) * Math.sqrt(ppy);
-  const sortino = downs.length && downDev > 0 ? (m * ppy) / downDev : null;
+  const sortino = enough && downs.length && downDev > 0 ? (m * ppy) / downDev : null;
 
   // Max drawdown: the deepest fall below the running high, and the bar it was first regained.
   let peak = first;
@@ -102,16 +121,22 @@ export function seriesStats(points: PricePoint[]): SeriesStats | null {
     ddRecovered = back ? back.t : null;
   }
 
-  // Month ends: the last bar of each calendar month; month returns chain from one to the next.
+  // Month ends: the last bar of each calendar month; month returns chain from one to the next. The
+  // first month (a listing month, or the range's start) counts from the series' first bar to its
+  // last bar, unless it has only the one bar; the month in progress counts to the latest bar. The
+  // same months as analysis.ts monthlyReturns.
   const ends: PricePoint[] = [];
   for (const p of points) {
     const prev = ends[ends.length - 1];
     if (prev && prev.t.slice(0, 7) === p.t.slice(0, 7)) ends[ends.length - 1] = p;
     else ends.push(p);
   }
-  const months = ends.slice(1).map((p, i) => ({ month: p.t.slice(0, 7), ret: (p.c / ends[i].c - 1) * 100 }));
-  const bestMonth = months.length ? months.reduce((a, b) => (b.ret > a.ret ? b : a)) : null;
-  const worstMonth = months.length ? months.reduce((a, b) => (b.ret < a.ret ? b : a)) : null;
+  const months = ends.map((p, i) => ({ month: p.t.slice(0, 7), ret: (p.c / (i ? ends[i - 1] : first).c - 1) * 100 }));
+  if (ends[0] === first) months.shift();
+  const monthly = enough && months.length >= MIN_STAT_MONTHS;
+  if (!monthly) months.length = 0;
+  const bestMonth = monthly ? months.reduce((a, b) => (b.ret > a.ret ? b : a)) : null;
+  const worstMonth = monthly ? months.reduce((a, b) => (b.ret < a.ret ? b : a)) : null;
 
   return {
     ret,
@@ -159,6 +184,7 @@ export function relativeStats(points: PricePoint[], bench: PricePoint[]): Relati
     if (j >= 0) aligned.push({ a: p.c, b: bench[j].c });
   }
   if (aligned.length < 3) return null;
+  const ppy = periodsPerYear(points);
   const ra = aligned.slice(1).map((x, i) => x.a / aligned[i].a - 1);
   const rb = aligned.slice(1).map((x, i) => x.b / aligned[i].b - 1);
 
@@ -170,7 +196,7 @@ export function relativeStats(points: PricePoint[], bench: PricePoint[]): Relati
     cov += (ra[i] - ma) * (rb[i] - mb);
     varB += (rb[i] - mb) ** 2;
   }
-  const beta = varB > 0 ? cov / varB : null;
+  const beta = ra.length >= minReturns(ppy) && varB > 0 ? cov / varB : null;
 
   // Capture on calendar months, the usual measure and the same figures as the Capture panel
   // (daily bars read close to 100% for anything that tracks the index). Under ten months: none.

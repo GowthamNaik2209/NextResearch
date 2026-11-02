@@ -6,6 +6,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import {
   companyLinkExposure,
   companyLinkKey,
+  deepLinkZone,
   resolveSupplierKey,
   tickerForSupplier,
   EXPOSURE_TYPE_LABEL,
@@ -84,22 +85,18 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
   const controllerRef = useRef<ExplorerController | null>(null);
 
   // Seeded from a deep link (?zone=&company=, validated as in the mount effect below), so the URL
-  // sync's first run doesn't strip them before the mount effect applies them.
-  const [currentZoneId, setCurrentZoneId] = useState<string | null>(() => {
-    const id = searchParams0.get("zone");
-    return id && sector.zones.some((z) => z.id === id) ? id : null;
-  });
-  const [currentSupplier, setCurrentSupplier] = useState<string | null>(() => {
-    // resolveSupplierKey follows retired keys (merged duplicate records) to today's key.
-    const key = resolveSupplierKey(sector, searchParams0.get("company"));
-    return key && sector.zones.some((z) => z.id === searchParams0.get("zone")) ? key : null;
-  });
+  // sync's first run doesn't strip them before the mount effect applies them. resolveSupplierKey
+  // follows retired keys (merged duplicate records) to today's key; a bare ?company= link opens on
+  // the zone where that company plays its strongest part.
+  const linkedCompany0 = resolveSupplierKey(sector, searchParams0.get("company"));
+  const linkedZone0 = deepLinkZone(sector, searchParams0.get("zone"), linkedCompany0);
+  const [currentZoneId, setCurrentZoneId] = useState<string | null>(linkedZone0);
+  const [currentSupplier, setCurrentSupplier] = useState<string | null>(linkedZone0 ? linkedCompany0 : null);
   const [activeView, setActiveView] = useState<string>(sector.defaultView || sector.views[0]?.id);
   // Open from the start for a deep link (?zone= or ?scenario=), rather than once the mount effect runs.
   const [isPanelOpen, setIsPanelOpen] = useState(() => {
-    const z = searchParams0.get("zone");
     const picked = (searchParams0.get("scenario") ?? "").split(",");
-    return (!!z && sector.zones.some((x) => x.id === z)) || listScenarios(slug).some((x) => picked.includes(x.id));
+    return !!linkedZone0 || listScenarios(slug).some((x) => picked.includes(x.id));
   });
   // Phones/tablets: the open sheet starts at a "peek" height so the picked part stays in
   // view above it; it expands to full height on a tap/drag of the handle, on scrolling
@@ -317,9 +314,8 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
     // values first, then applied unconditionally below, rather than setState calls
     // nested in `if` blocks — same outcome, but it's what the state-in-effect lint
     // rule wants: an early-return shape it can't tell apart from stale state.
-    const linkedZoneId = searchParams.get("zone");
     const linkedCompanyKey = resolveSupplierKey(sector, searchParams.get("company"));
-    const validZone = linkedZoneId && sector.zones.some((z) => z.id === linkedZoneId) ? linkedZoneId : null;
+    const validZone = deepLinkZone(sector, searchParams.get("zone"), linkedCompanyKey);
     const validCompany = validZone ? linkedCompanyKey : null;
     if (validZone) controller.selectZone(validZone);
     setCurrentZoneId(validZone);
@@ -629,7 +625,7 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
             href="/watchlist"
             shortcut="W"
             label="Watchlist"
-            className="tap-target flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
+            className="tap-target flex h-9 w-9 items-center justify-center rounded-full border border-accent bg-panel-2 text-ink-soft hover:bg-accent/10 hover:text-danger"
             aria-label="Watchlist"
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -980,6 +976,14 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
               if (!start || (e.target as HTMLElement).closest(".panel-close-btn")) return;
               const dy = e.clientY - start.y;
               stepSheet(dy < -30 ? "up" : dy > 30 ? "down" : "tap");
+              // The sheet moves under the finger on pointerup, so the click the browser sends after
+              // it can land on a company chip that is now there; swallow that one click.
+              const stop = (ev: MouseEvent) => {
+                ev.stopPropagation();
+                ev.preventDefault();
+              };
+              document.addEventListener("click", stop, { capture: true, once: true });
+              setTimeout(() => document.removeEventListener("click", stop, { capture: true }), 400);
             }}
             onPointerCancel={() => (handleDrag.current = null)}
             onKeyDown={(e) => {

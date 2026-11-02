@@ -95,7 +95,7 @@ export function ThemeWindow({ rows }: { rows: Record<ThemeTab, ThemeRow[]> }) {
 
   return (
     <div className="w-full min-w-0 max-w-xl rounded-2xl border border-line bg-panel p-4 shadow-xl sm:p-5 lg:max-w-none">
-      <div role="tablist" aria-label="Themes" className="mb-4 inline-flex rounded-full border border-line bg-bg/60 p-1">
+      <div role="tablist" aria-label="Themes" className="mb-4 inline-flex rounded-full border border-accent bg-bg/60 p-1">
         {TABS.map((t, i) => (
           <button
             key={t.id}

@@ -8,6 +8,7 @@ import { isFreshQuote, MAX_QUOTE_AGE_DAYS } from "./freshness";
 import { getFundamentals, type Fundamentals } from "./screener-company";
 import { samePeriod, type BarInterval, type OhlcBar } from "./ohlc-format";
 import { adjustDemergers } from "./demergers";
+import { startsInside } from "@/lib/prices/bars";
 
 const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"], validation: { logErrors: false } });
 // Yahoo occasionally returns a shape the library's schema rejects (symbol-specific);
@@ -60,7 +61,8 @@ const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 const DAY = 86_400_000;
 
 // Interval chosen so each range lands at a few hundred points: enough detail,
-// small payload. (MAX uses monthly: decades of daily bars aren't useful here.)
+// small payload. (MAX uses monthly: decades of daily bars aren't useful here.) A history starting
+// inside a weekly/monthly range is fetched daily instead (yahooSeries).
 const PARAMS: Record<ChartRange, { days: number | null; interval: "1d" | "1wk" | "1mo" }> = {
   "1M": { days: 31, interval: "1d" },
   "6M": { days: 183, interval: "1d" },
@@ -110,7 +112,17 @@ const upstreamDown = (e: unknown) => /yahoo timeout|too many requests|\b429\b|\b
 type Fetch = { days: number | null; interval: BarInterval };
 
 async function yahooSeries(ticker: string, range: ChartRange, p: Fetch = PARAMS[range]): Promise<Series | null> {
-  return (await yahooSeriesWalk(ticker, range, p))?.data ?? null;
+  const got = await yahooSeriesWalk(ticker, range, p);
+  if (!got || p.interval === "1d") return got?.data ?? null;
+  // A history starting inside a weekly/monthly range (a recent listing, or HISTORY_FROM's cut):
+  // its first bar would be dated before the listing and close days after it, so the range is
+  // fetched daily and starts on the first trading day's close, as the shorter ranges do. Kept as is
+  // when that fetch fails.
+  const from = HISTORY_FROM[ticker];
+  const first = got.data.points[0].t;
+  const inside = from && from > first ? startsInside(range, from, "1d", Date.now()) : startsInside(range, first, p.interval, Date.now());
+  if (!inside) return got.data;
+  return (await yahooSeriesFor(got.symbol, range, { days: p.days, interval: "1d" }).catch(() => null)) ?? got.data;
 }
 
 async function yahooSeriesWalk(ticker: string, range: ChartRange, p: Fetch = PARAMS[range], onDown?: () => void): Promise<{ symbol: string; data: Series } | null> {

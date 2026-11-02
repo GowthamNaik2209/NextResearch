@@ -189,36 +189,34 @@ test("monthly capture: up/down on benchmark months, months beating it", () => {
 });
 
 test("monthly capture counts the same months as the stats grid's Months up", () => {
-  // Starts mid-January: the part month to 31 Jan is left out, as seriesStats leaves it out.
-  const basket: PricePoint[] = [
-    { t: "2024-01-15", c: 100 },
-    { t: "2024-01-31", c: 150 }, // part month, +50: not counted
-    { t: "2024-02-29", c: 140 }, // down, but fell less than the index: beats it
-    { t: "2024-03-28", c: 147 }, // up
-    { t: "2024-04-10", c: 150 }, // month in progress: counted, like the stats grid
-  ];
-  const bench: PricePoint[] = [
-    { t: "2024-01-15", c: 100 },
-    { t: "2024-01-31", c: 100 },
-    { t: "2024-02-29", c: 90 },
-    { t: "2024-03-28", c: 99 },
-    { t: "2024-04-10", c: 100 },
-  ];
+  // Daily closes from mid-January, held flat between the dates given, so each month ends on the
+  // value listed. The part month from 15 Jan counts from the first close, as seriesStats counts it.
+  const held = (marks: [string, number][]): PricePoint[] => {
+    const out: PricePoint[] = [];
+    for (let d = Date.parse(marks[0][0]), i = 0; d <= Date.parse(marks[marks.length - 1][0]); d += 86_400_000) {
+      const t = new Date(d).toISOString().slice(0, 10);
+      while (i + 1 < marks.length && marks[i + 1][0] <= t) i++;
+      out.push({ t, c: marks[i][1] });
+    }
+    return out;
+  };
+  const basket = held([["2024-01-15", 100], ["2024-01-31", 150], ["2024-02-29", 140], ["2024-03-28", 147], ["2024-04-10", 150]]);
+  const bench = held([["2024-01-15", 100], ["2024-01-31", 100], ["2024-02-29", 90], ["2024-03-28", 99], ["2024-04-10", 100]]);
   const c = monthlyCapture(basket, bench);
   const s = seriesStats(basket)!;
   assert.equal(c.months, s.months);
   assert.equal(c.lineUp, s.upMonths);
-  assert.equal(c.months, 3);
-  assert.equal(c.lineUp, 2);
-  assert.equal(c.beat, 2); // February (-7% vs -10%) and April (+2% vs +1%), not March (+5% vs +10%)
+  assert.equal(c.months, 4);
+  assert.equal(c.lineUp, 3); // January (+50%), March, April
+  assert.equal(c.beat, 3); // January (+50% vs 0%), February (-7% vs -10%), April (+2% vs +1%); not March (+5% vs +10%)
 });
 
 test("monthly capture with only rising benchmark months has no down capture", () => {
   const c = monthlyCapture(daily([100, 101, 102, 103], 20), daily([10, 11, 12, 13], 20)); // 1 Jan to 1 Mar
   assert.equal(c.downCapture, null);
   assert.equal(c.downMonths, 0);
-  assert.equal(c.months, 2);
-  assert.equal(monthlyCapture(daily([100, 101, 102]), daily([10, 11, 12])).months, 0); // one part month only
+  assert.equal(c.months, 3); // January counts from the first close, then February and March
+  assert.equal(monthlyCapture(daily([100, 101, 102]), daily([10, 11, 12])).months, 1); // one part month
   assert.equal(monthlyCapture(daily([100, 101]), []).months, 0);
 });
 

@@ -27,6 +27,7 @@ import { Points } from "@/components/Points";
 import { IndustryActions, type HeatStock } from "@/components/charts/IndustryHeatmap";
 import { actionClass } from "@/components/charts/action-class";
 import { getIndustryBasket } from "@/lib/baskets/industry";
+import { industryPools } from "@/lib/baskets/pools-data";
 import { ensureFinancials } from "@/lib/financials/load";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
@@ -170,6 +171,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
           name={sector.name}
           stocks={heatStocks}
           basketHref={sector.muted ? null : `/baskets/industry/${sector.slug}`}
+          pools={industryPools(sector.slug)}
           lead={
             <>
               <Link href={`/sector/${sector.slug}/explore`} className={actionClass(true)}>
@@ -411,7 +413,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                         <Link
                           key={z.zoneId}
                           href={`/sector/${sector.slug}/explore?zone=${encodeURIComponent(z.zoneId)}&company=${encodeURIComponent(z.companyKey)}`}
-                          className="tap-y flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[10px] text-ink-soft hover:border-accent hover:text-ink"
+                          className="tap-y flex items-center gap-1 rounded-full border border-accent px-2 py-0.5 text-[10px] text-ink-soft hover:bg-accent/10 hover:text-ink"
                           title={z.exposureType ? EXPOSURE_TYPE_LABEL[z.exposureType] : undefined}
                         >
                           <span className="h-1.5 w-1.5 rounded-full" style={{ background: z.zoneColor }} />

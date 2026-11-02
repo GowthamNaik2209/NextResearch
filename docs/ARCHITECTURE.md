@@ -181,8 +181,8 @@ D (weekends and the NSE holidays in `trading-day.ts` skipped; add next year's li
   answering 429/403/503 stops the chunk and holds the lease 15 minutes (back-off).
 - *Publish:* when every company has been tried, the run is marked `PUBLISHED` and the `financials`
   tag is expired, so the whole site moves to D in one step (from a prerender, where Next refuses
-  that, the 15-minute clock picks it up). A company Screener could not read (DIGIFIBRE,
-  STONEINDIA) keeps its previous snapshot and its own date. More than max(5, 5%) misses and the run
+  that, the 15-minute clock picks it up). A company Screener could not read (DIGIFIBRE)
+  keeps its previous snapshot and its own date. More than max(5, 5%) misses and the run
   is marked `FAILED` instead: the site stays on the last published date and the next day retries.
 - *New listings:* each run also includes every IPO deck whose live stage (`liveIpoStatus`) is
   `listed` by D and that names a `ticker` the table doesn't track: it is created/tracked with its
@@ -435,7 +435,7 @@ after checking no watchlist references it (children cascade).
 - `SectorExplorer.tsx` (~1,000 lines) and `engine.ts` mix layout, state and the zone panel - a
   candidate to split (rail / panel / header / camera framing) next.
 - Energy's opening "Platform" layer has no systems of its own, so phones show all its tags there.
-- DIGIFIBRE and STONEINDIA have no live quote source; they always show the stored figures.
+- DIGIFIBRE has no live quote source; it always shows the stored figures.
 - Sector modules type-check by inference, not against `SectorDef` (its `build` signature and the
   deep-dive fields don't fit a `satisfies` check yet); policies and `products.ts` are still
   `@ts-nocheck`. `validate:content` guards the graph.

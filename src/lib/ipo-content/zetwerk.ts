@@ -8,15 +8,14 @@ export const zetwerk: IpoReport = {
   sectorLabel: "Contract manufacturing & industrial supply",
   tagline: "An asset-light manufacturing platform raises ₹5,012 Cr at ~₹25,583 Cr, still loss-making",
   asOf: "Oct 2026",
-  // NSE symbol (Screener lists ZETWERK): the automatic refresh adds it to the company table once it
-  // lists. Add issue.issuePrice once the final price is confirmed, then the "Now listed" panel shows.
+  // NSE symbol (Screener lists ZETWERK); listed 23 Oct 2026.
   ticker: "ZETWERK",
 
   status: {
-    stage: "upcoming",
-    label: "Closed · lists 23 Oct",
+    stage: "listed",
+    label: "Listed 23 Oct",
     detail:
-      "Bidding ran 15-19 Oct after a ₹2,251 Cr anchor book. It closed about 3.1x subscribed (QIB 4.7x, NII 1.5x, retail 0.8x, per Chittorgarh's final-day count), so retail demand fell short while institutions took more than their share. Allotment is due 21 Oct and listing on BSE and NSE 23 Oct (tentative).",
+      "Priced at ₹151 (top of the ₹143-151 band) after a ₹2,251 Cr anchor book and about 3.1x subscription (QIB 4.7x, NII 1.5x, retail 0.8x), the shares listed on 23 Oct 2026 at ₹159.20 on NSE and ₹159 on BSE, about 5.4% above the issue price.",
   },
   timeline: [
     { date: "Mar 2026", event: "Confidential pre-filing of the draft offer document with SEBI", done: true },
@@ -26,7 +25,7 @@ export const zetwerk: IpoReport = {
     { date: "14 Oct 2026", event: "Anchor book: ₹2,251 Cr", done: true },
     { date: "15 Oct 2026", event: "Issue opens", done: true },
     { date: "19 Oct 2026", event: "Issue closes, about 3.1x subscribed; allotment 21 Oct (tentative)", done: true },
-    { date: "23 Oct 2026", event: "Listing on BSE and NSE (tentative)", done: false },
+    { date: "23 Oct 2026", event: "Listed on BSE and NSE at ₹159.20 (NSE)", done: true },
   ],
 
   issue: {
@@ -35,7 +34,8 @@ export const zetwerk: IpoReport = {
     freshCr: 2830,
     ofsCr: 2182,
     ofsShares: "14.45 crore shares",
-    priceBand: "₹143 - 151",
+    priceBand: "₹143 - 151 (priced at ₹151)",
+    issuePrice: 151,
     lotSize: "99 shares (₹14,949 at upper band)",
     faceValue: "₹1",
     valuation: "~₹25,583 Cr post-issue market cap at the upper band (169.43 crore shares)",

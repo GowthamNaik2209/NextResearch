@@ -1,5 +1,7 @@
 import type { IpoReport } from "./types";
 
+// The issue ran 21-23 Oct 2026 and the shares listed on 28 Oct 2026 (NSE: JPL, BSE: 545004).
+
 export const jioPlatforms: IpoReport = {
   slug: "jio-platforms",
   name: "Jio Platforms",
@@ -9,22 +11,23 @@ export const jioPlatforms: IpoReport = {
   sectorSlug: "telecom5g",
   tagline: "India's largest mobile operator lists at ~₹10.3L Cr to cut telecom debt",
   asOf: "Oct 2026",
+  ticker: "JPL",
 
   status: {
-    stage: "upcoming",
-    label: "Opens 21 Oct",
+    stage: "listed",
+    label: "Listed 28 Oct",
     detail:
-      "RHP dated 14 Oct 2026 (posted on SEBI 15 Oct) fixes the band at ₹1,065-1,119; anchor book on 19 Oct, subscription 21-23 Oct, allotment 26 Oct and listing on BSE and NSE expected 28 Oct (Chittorgarh; Outlook Money reports 29 Oct).",
+      "Priced at ₹1,119 (top of the ₹1,065-1,119 band) and subscribed ~15.6x (QIB 67x, NII 14x, retail 2.8x), the shares listed on 28 Oct 2026 at ₹1,358 on NSE and BSE, 21.4% above the issue price (NSE: JPL, BSE: 545004).",
   },
   timeline: [
     { date: "19 Jun 2026", event: "DRHP filed with SEBI", done: true },
     { date: "28 Aug 2026", event: "SEBI observation letter received", done: true },
     { date: "14 Oct 2026", event: "RHP filed with RoC Gujarat; band ₹1,065-1,119", done: true },
-    { date: "19 Oct 2026", event: "Anchor investor bidding", done: false },
-    { date: "21 Oct 2026", event: "Issue opens", done: false },
-    { date: "23 Oct 2026", event: "Issue closes", done: false },
-    { date: "26 Oct 2026", event: "Basis of allotment (tentative)", done: false },
-    { date: "28 Oct 2026", event: "Listing on BSE and NSE (tentative)", done: false },
+    { date: "19 Oct 2026", event: "Anchor investor bidding", done: true },
+    { date: "21 Oct 2026", event: "Issue opens", done: true },
+    { date: "23 Oct 2026", event: "Issue closes, about 15.6x subscribed", done: true },
+    { date: "26 Oct 2026", event: "Basis of allotment", done: true },
+    { date: "28 Oct 2026", event: "Listed on BSE and NSE at ₹1,358", done: true },
   ],
 
   issue: {
@@ -32,7 +35,8 @@ export const jioPlatforms: IpoReport = {
     totalCr: 30213,
     freshCr: 30213,
     ofsCr: 0,
-    priceBand: "₹1,065 - 1,119",
+    priceBand: "₹1,065 - 1,119 (priced at ₹1,119)",
+    issuePrice: 1119,
     lotSize: "12 shares (₹13,428 at upper band)",
     faceValue: "₹10",
     valuation: "~₹10.3L Cr post-issue market cap at the upper band (9,20,90,30,830 shares)",
