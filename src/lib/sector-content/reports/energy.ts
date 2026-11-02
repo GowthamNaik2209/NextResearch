@@ -171,7 +171,7 @@ export const energy: SectorReport = {
     { key: "jswEnergy", tier: "direct", why: "Thermal, hydro, renewables and fast-growing battery storage portfolio." },
     { key: "adaniPower", tier: "direct", why: "Largest private thermal IPP; expanding coal capacity as base-load demand rises." },
     { key: "nhpc", tier: "indirect", why: "Largest hydro PSU with a growing pumped-storage pipeline." },
-    { key: "lt", tier: "indirect", why: "EPC for thermal, hydro and transmission; power is a small share of a large group." },
+    { key: "ntpcGreenEnergy", tier: "indirect", why: "NTPC's listed renewable arm (Nov 2024); one of the largest RE pipelines at a PSU cost of capital." },
   ],
 
   companyNews: [

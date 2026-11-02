@@ -12,7 +12,7 @@ import { cached } from "@/lib/live/cache";
 import { MAX_QUOTE_AGE_DAYS } from "@/lib/live/freshness";
 import { getChartWithFallback, getOhlcChart, getSymbolChart, HISTORY_FROM, type ChartData, type ChartRange, type Exchange, type OhlcData } from "@/lib/live/yahoo";
 import { adjustDemergers } from "@/lib/live/demergers";
-import { rollUp, sinceDays, STORE_DAYS, storedRange, toCandles, toPoints, type StoredBar } from "./bars";
+import { rangeInterval, rollUp, sinceDays, STORE_DAYS, storedRange, toCandles, toPoints, type StoredBar } from "./bars";
 
 const DAY = 86_400_000;
 // The store moves once a day: an instance's in-memory copy may be this old (it asks the shared cache
@@ -115,9 +115,12 @@ async function storedBars(key: string, range: ChartRange, candles: boolean): Pro
   // the weekly roll-up is exact.
   const kept = sinceDays(from ? got.bars.filter((b) => b.t >= from) : got.bars, r.days, Date.now());
   const daily = got.source === "screener" ? kept : adjustDemergers(key, kept, "1d");
+  // A history starting inside a weekly range (a recent listing, or the cut) stays daily, so it
+  // starts on its first day's close as Yahoo's charts do (bars.ts rangeInterval).
+  const interval = daily.length ? rangeInterval(range, r.interval, daily[0].t, Date.now()) : r.interval;
   // A week or month starting before the cut is left out whole, as Yahoo's bars are.
-  const bars = rollUp(daily, r.interval).filter((b) => !from || b.t >= from);
-  return bars.length >= 2 ? { ...got, bars, interval: r.interval, lastDay: daily[daily.length - 1]?.t ?? null } : null;
+  const bars = rollUp(daily, interval).filter((b) => !from || b.t >= from);
+  return bars.length >= 2 ? { ...got, bars, interval, lastDay: daily[daily.length - 1]?.t ?? null } : null;
 }
 
 // Yahoo's weekly/monthly closes end with an extra point dated the latest day (after the period's

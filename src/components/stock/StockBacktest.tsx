@@ -67,6 +67,8 @@ function fetchRec(ticker: string, fresh = false): Promise<Rec | null> {
   return p;
 }
 // While the server is still loading price statistics, ask again: quick at first, then further apart.
+// After the last one the view stops saying the figures will update (they are the stand-ins, marked
+// as such in the stats panel), so the note can't stay up for good.
 const WAITS_MS = [5_000, 10_000, 20_000, 40_000];
 
 /**
@@ -75,9 +77,12 @@ const WAITS_MS = [5_000, 10_000, 20_000, 40_000];
  */
 function useStockRecord(ticker: string, on: boolean, attempt: number) {
   const [rec, setRec] = useState<{ ticker: string; rec: Rec | null; attempt: number } | null>(null);
+  // The ticker whose polling ran out with the statistics still loading.
+  const [gaveUp, setGaveUp] = useState<string | null>(null);
   const mine = rec?.ticker === ticker && (rec.rec || rec.attempt === attempt) ? rec : null;
   const loaded = !!mine;
-  const waiting = !!mine?.rec?.statsLoading;
+  // Only a projected stock waits on the statistics: one not projected has no beta or volatility to update.
+  const waiting = !!mine?.rec?.statsLoading && !!mine.rec.stock.proj?.ok;
   useEffect(() => {
     if (!on || loaded) return;
     let live = true;
@@ -92,13 +97,15 @@ function useStockRecord(ticker: string, on: boolean, attempt: number) {
     let step = 0;
     let timer: number | undefined;
     const next = () => {
-      if (step >= WAITS_MS.length) return;
       timer = window.setTimeout(() => {
         step += 1;
         void fetchRec(ticker, true).then((r) => {
-          if (!live || !r) return;
-          setRec((x) => ({ ticker, rec: r, attempt: x?.attempt ?? 0 }));
-          if (r.statsLoading) next();
+          if (!live) return;
+          // A failed ask keeps the record it has and tries again at the next wait.
+          if (r) setRec((x) => ({ ticker, rec: r, attempt: x?.attempt ?? 0 }));
+          if (r && !r.statsLoading) return;
+          if (step < WAITS_MS.length) next();
+          else setGaveUp(ticker);
         });
       }, WAITS_MS[step]);
     };
@@ -108,7 +115,7 @@ function useStockRecord(ticker: string, on: boolean, attempt: number) {
       window.clearTimeout(timer);
     };
   }, [ticker, waiting]);
-  return { rec: mine?.rec ?? null, loaded, failed: loaded && !mine?.rec };
+  return { rec: mine?.rec ?? null, loaded, failed: loaded && !mine?.rec, statsPending: waiting && gaveUp !== ticker };
 }
 
 export function StockBacktest({ ticker, name }: { ticker: string; name: string }) {
@@ -127,7 +134,7 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
   const key = `S:${ticker}`;
   const rangeLong = RANGES.find((r) => r.id === range)!.long;
 
-  const { rec, failed } = useStockRecord(ticker, projOn, attempt);
+  const { rec, failed, statsPending } = useStockRecord(ticker, projOn, attempt);
   // The lines every panel draws (Backtest: the stock and the Nifty 50 over the range; Projection: the
   // stock's past year, for its swings). One failed: one Retry for the whole view, which asks again
   // for every failed line in every panel at once.
@@ -225,7 +232,7 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
           .
         </p>
       )}
-      {projOn && rec?.statsLoading && (
+      {projOn && statsPending && (
         <p className="rounded-md border border-line bg-panel px-3 py-1.5 text-[11px] text-ink-soft">Price statistics are still loading, so beta and volatility are estimates for now. The figures update by themselves.</p>
       )}
       {projOn && failed && (

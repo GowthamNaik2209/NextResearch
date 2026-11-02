@@ -312,7 +312,7 @@ export type ChunkOptions = {
 const CHUNK_FETCH: FetchOptions = { attempts: 2, timeoutMs: 10_000, retryDelayMs: 2000 };
 const CHUNK_WORKERS = 2;
 // More misses than this and a run is not published (see runChunk); a couple of companies Screener
-// can't read (e.g. DIGIFIBRE, STONEINDIA) just keep their older snapshot and date.
+// can't read (e.g. DIGIFIBRE) just keep their older snapshot and date.
 export const maxFailures = (total: number) => Math.max(5, Math.ceil(total * 0.05));
 // Screener refused us: no chunk for this long (the lease is held, so every instance waits).
 const BLOCKED_BACKOFF_SECONDS = 15 * 60;

@@ -204,14 +204,14 @@ export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: numbe
       const st = stat(s.ticker);
       return !!st && !s.notIpo && Date.parse(st.first) > now - IPO_WINDOW_DAYS * DAY;
     })
-    .sort((a, b) => Date.parse(stat(b.ticker).first) - Date.parse(stat(a.ticker).first))
-    .slice(0, 15);
+    // Every one of them: the rule says "the past two years", so no cap leaves listings out.
+    .sort((a, b) => Date.parse(stat(b.ticker).first) - Date.parse(stat(a.ticker).first) || a.name.localeCompare(b.name));
   const earliest = ipos.reduce<string | null>((m, s) => (!m || stat(s.ticker).first < m ? stat(s.ticker).first : m), null);
   ideas.push({
     id: "recent-ipos",
     title: "Recent listings",
     blurb: "Companies in our maps that listed in the past two years, each backtested from its listing day.",
-    rule: `Listed in the past two years, newest first; REITs, InvITs and demergers left out. ${ONE_OFF_NOTE} ${SINCE_LISTING_NOTE}`,
+    rule: `Every company in our maps listed in the past two years, newest first; REITs, InvITs and demergers left out. ${ONE_OFF_NOTE} ${SINCE_LISTING_NOTE}`,
     range: earliest ? sinceRange(earliest, now) : "1Y",
     stocks: ipos.map((s) => ({ ticker: s.ticker, stat: `listed ${monthYear(stat(s.ticker).first)}` })),
     ret: mean(ipos.map((s) => stat(s.ticker).sinceFirst)),
@@ -234,8 +234,10 @@ export type IdeaBacktest = { ret: number; holdings: { ticker: string; ret: numbe
  * The cards' figures from the same backtest the idea's page runs (bought at equal weights on the
  * first day of `range` and held; Recent listings: each stock from its listing day), so the card and
  * the page show one number. A top-performers row shows that backtest's own return for the stock,
- * highest first; a Recent listings row adds the stock's return since its listing. With no backtest
- * the figure is left out rather than shown from a different calculation.
+ * highest first. A Recent listings row keeps just its listing month: the stock's return since then
+ * is the page's Return column (and its chart line), read from the browser's own backtest, and a
+ * second copy baked in at render read differently whenever the two were worked out at different
+ * times. With no backtest the figure is left out rather than shown from a different calculation.
  */
 export function withBacktestReturns(ideas: Idea[], backtests: Record<string, IdeaBacktest | null>): Idea[] {
   return ideas.map((idea) => {
@@ -247,9 +249,7 @@ export function withBacktestReturns(ideas: Idea[], backtests: Record<string, Ide
       ? idea.stocks
           .map((s) => (own.has(s.ticker) ? { ...s, stat: pctTxt(own.get(s.ticker)!) } : s))
           .sort((a, b) => (own.get(b.ticker) ?? -Infinity) - (own.get(a.ticker) ?? -Infinity))
-      : idea.joinAtListing
-        ? idea.stocks.map((s) => (own.has(s.ticker) ? { ...s, stat: `${s.stat} · ${pctTxt(own.get(s.ticker)!)}` } : s))
-        : idea.stocks;
+      : idea.stocks;
     return { ...idea, stocks, ret: bt.ret, retLabel: label };
   });
 }

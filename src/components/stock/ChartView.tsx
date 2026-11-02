@@ -14,7 +14,8 @@ import {
 } from "lightweight-charts";
 import type { ChartData, ChartRange, OhlcData, Quote } from "@/lib/live/yahoo";
 import { fmtNum, fmtPrice, fmtSigned, withLiveQuote } from "./merge";
-import { barFor, fmtVolume, withLiveBar, type OhlcBar } from "@/lib/live/ohlc-format";
+import { barFor, fmtVolume, sharedInterval, withLiveBar, type OhlcBar } from "@/lib/live/ohlc-format";
+import { changeBasis } from "@/lib/prices/bars";
 import { ZOOM_OPTIONS, ZoomControls, useChartZoom } from "@/components/charts/ChartZoom";
 import { tickLabel } from "@/components/charts/ticks";
 import { cssVar, useSiteTheme } from "@/lib/theme";
@@ -33,8 +34,9 @@ const RANGES: { id: ChartRange; label: string; long: string }[] = [
 
 type Mode = "line" | "candles";
 // One range's history: the closes for the line, plus candles + volume when Yahoo has them
-// (null on Screener's fallback, which carries closes only).
-type Entry = { line: ChartData; ohlc: OhlcData | null };
+// (null on Screener's fallback, which carries closes only). `at`: when it was fetched, the "now"
+// its range's window is measured back from.
+type Entry = { line: ChartData; ohlc: OhlcData | null; at: number };
 
 // lightweight-charts needs concrete colours (no CSS var()), so the theme tokens are read off
 // <html> (cssVar) and converted for the gradient fill.
@@ -98,8 +100,8 @@ export function ChartView({ ticker, quote, height = PLOT_HEIGHT }: { ticker: str
     let cancelled = false;
     const base = `/api/stock/${encodeURIComponent(ticker)}`;
     getJson<OhlcData>(`${base}/ohlc?range=${range}`)
-      .then((o): Entry => ({ line: { range: o.range, points: o.points, source: "yahoo", exchange: o.exchange }, ohlc: o }))
-      .catch(() => getJson<ChartData>(`${base}/chart?range=${range}`).then((d): Entry => ({ line: d, ohlc: null })))
+      .then((o): Entry => ({ line: { range: o.range, points: o.points, source: "yahoo", exchange: o.exchange }, ohlc: o, at: Date.now() }))
+      .catch(() => getJson<ChartData>(`${base}/chart?range=${range}`).then((d): Entry => ({ line: d, ohlc: null, at: Date.now() })))
       .then((e) => {
         if (cancelled) return;
         cacheRef.current.set(range, e);
@@ -127,6 +129,11 @@ export function ChartView({ ticker, quote, height = PLOT_HEIGHT }: { ticker: str
   // The line's colour follows the whole period; the figure beside the price follows the
   // crosshair, so it always describes the price and date shown above it.
   const up = first && last ? last.c >= first.c : true;
+  // Daily, weekly or monthly: a recent listing's long ranges come daily (from its first trading
+  // day), so this follows the data rather than the range. Screener's closes carry no interval.
+  const interval = ohlc?.interval ?? (data ? sharedInterval([data.points]) : "1d");
+  // A history starting inside the range is measured from its first day, on every such range.
+  const basis = first && entry ? changeBasis(range, first.t, interval, entry.at) : "range";
 
   // Create the chart once; (re)colour + feed data in the effect below.
   useEffect(() => {
@@ -225,10 +232,10 @@ export function ChartView({ ticker, quote, height = PLOT_HEIGHT }: { ticker: str
   // one is too short); say so rather than let the header and the footnote disagree.
   const chartExchange = data?.exchange ?? "NSE";
   const otherExchange = quote && data?.exchange && quote.exchange !== data.exchange;
-  const coarse = range === "3Y" || range === "5Y" ? " (weekly)" : range === "MAX" ? " (monthly)" : "";
+  const coarse = interval === "1wk" ? " (weekly)" : interval === "1mo" ? " (monthly)" : "";
   // A weekly/monthly candle is dated at the start of its period.
-  const shownDate = !shown ? "" : candles && range === "MAX" ? fmtMonth(shown.t) : candles && coarse ? `Week of ${fmtDay(shown.t)}` : fmtDay(shown.t);
-  const volLabel = range === "MAX" ? "Vol (month)" : coarse ? "Vol (week)" : "Vol";
+  const shownDate = !shown ? "" : candles && interval === "1mo" ? fmtMonth(shown.t) : candles && interval === "1wk" ? `Week of ${fmtDay(shown.t)}` : fmtDay(shown.t);
+  const volLabel = interval === "1mo" ? "Vol (month)" : interval === "1wk" ? "Vol (week)" : "Vol";
   // Each figure in the OHLC row is as wide as the period's highest price, and the volume as wide
   // as "125 Cr": on a phone the row wraps, and it must wrap the same way under every bar.
   const ohlcW = `${fmtOhlc(bars.reduce((m, b) => Math.max(m, b.h), 0)).length}ch`;
@@ -312,7 +319,7 @@ export function ChartView({ ticker, quote, height = PLOT_HEIGHT }: { ticker: str
                   company-table return on Summary; "live" plus the window keeps the two apart.
                   One decimal, like every other return in the pop-up. */}
               <div className="text-[11px] font-normal text-ink-soft">
-                {hover && first ? `Since ${fmtDay(first.t)}` : range === "MAX" && first ? `Since ${fmtMonth(first.t)}` : `Past ${range}`},{" "}
+                {first && (basis === "day" || hover) ? `Since ${fmtDay(first.t)}` : first && basis === "month" ? `Since ${fmtMonth(first.t)}` : `Past ${range}`},{" "}
                 <span className="text-pos">live</span>
               </div>
             </div>

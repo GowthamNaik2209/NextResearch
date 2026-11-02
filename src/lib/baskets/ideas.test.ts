@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildIdeas, priceStat, sinceRange, withBacktestReturns, type IdeaStockInfo, type PriceSnapshot } from "./ideas";
 import { runBacktest } from "./backtest";
+import { onBenchWindow } from "./run";
 
 const DAY = 86_400_000;
 const NOW = Date.parse("2026-10-19T12:00:00Z");
@@ -94,14 +95,57 @@ test("sinceRange picks the shortest range reaching back to the earliest listing"
   assert.equal(sinceRange(ago(700), NOW), "2Y");
 });
 
-test("a recent listings card says since listing and shows each stock's return since its listing", () => {
+test("a recent listings card says since listing; each row keeps just its listing month", () => {
   const ideas = buildIdeas([info("NEW")], snap({ NEW: st(undefined, 100) }), NOW);
   const [ipo] = withBacktestReturns(
     ideas.filter((i) => i.id === "recent-ipos"),
     { "recent-ipos": { ret: 12, holdings: [{ ticker: "NEW", ret: 12 }] } },
   );
   assert.equal(ipo.retLabel, "since listing");
-  assert.match(ipo.stocks[0].stat, /^listed .+ · \+12\.0%$/);
+  near(ipo.ret ?? undefined, 12);
+  // No second copy of the stock's return baked in at render: the page's Return column is the one figure.
+  assert.match(ipo.stocks[0].stat, /^listed [A-Z][a-z]{2} \d{4}$/);
+});
+
+test("recent listings lists every company listed in the past two years, with no cap", () => {
+  const n = 40;
+  const all = Array.from({ length: n }, (_, i) => info(`L${i}`));
+  const stats = Object.fromEntries(all.map((s, i) => [s.ticker, st(undefined, 10 + i * 17)])); // 10 to 673 days ago
+  const ipo = buildIdeas([...all, info("OLD")], snap({ ...stats, OLD: st(5, 800) }), NOW).find((i) => i.id === "recent-ipos")!;
+  assert.equal(ipo.stocks.length, n);
+  assert.ok(!ipo.stocks.some((s) => s.ticker === "OLD"));
+  assert.match(ipo.rule, /^Every company in our maps listed in the past two years/);
+  assert.equal(ipo.range, "2Y");
+});
+
+test("a recent listing's return is one figure: its backtest holding, its table row and its chart line", () => {
+  // The stored Nifty 50's days (the window): the store's last close is day 3.
+  const nifty = ["2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29"];
+  // A stored stock, and one the store lacks read live from Yahoo, with today's tick on day 4.
+  const stored = [{ t: "2026-10-27", c: 100 }, { t: "2026-10-28", c: 104 }, { t: "2026-10-29", c: 110 }];
+  const live = [{ t: "2026-10-28", c: 50 }, { t: "2026-10-29", c: 55 }, { t: "2026-10-30", c: 70 }];
+  const series = { A: onBenchWindow(stored, nifty, "1M"), B: onBenchWindow(live, nifty, "1M") };
+  const bt = runBacktest(
+    Object.entries(series).map(([ticker, points]) => ({ ticker, weight: 1, points })),
+    10,
+    { joinLate: true, calendar: nifty },
+  );
+  // The basket ends on the Nifty's last close, not on the live tick.
+  assert.equal(bt.points[bt.points.length - 1].t, "2026-10-29");
+  // The chart's line for a stock: its own series, cut at the basket's last day, last over first.
+  const line = (pts: { t: string; c: number }[]) => {
+    const cut = pts.filter((p) => p.t <= bt.points[bt.points.length - 1].t);
+    return (cut[cut.length - 1].c / cut[0].c - 1) * 100;
+  };
+  const own = new Map(bt.holdings.map((h) => [h.ticker, h.ret]));
+  near(own.get("A"), 10);
+  near(own.get("B"), 10); // 50 -> 55, not 50 -> 70
+  near(own.get("A"), line(stored));
+  near(own.get("B"), line(live));
+  // The card's row text carries no other figure that could disagree.
+  const ideas = buildIdeas([info("A"), info("B")], snap({ A: st(undefined, 40), B: st(undefined, 30) }), NOW);
+  const [ipo] = withBacktestReturns(ideas.filter((i) => i.id === "recent-ipos"), { "recent-ipos": { ret: 10, holdings: bt.holdings } });
+  assert.ok(ipo.stocks.every((s) => !s.stat.includes("%")));
 });
 
 test("the company-figure screens join the ideas, past-year backtested", () => {

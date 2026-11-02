@@ -71,7 +71,7 @@ export type ChartProjection = {
   /** Compared industry baskets' weighting (equal when this basket is custom). */
   compareWeighting: "equal" | "mcap";
   dates: string[];
-  /** % from today per date, by line key: the basket and each projected stock ("s:TICKER"). */
+  /** % from today per date, by line key: the basket and each projected stock ("S:TICKER", its chart line's key). */
   values: Record<string, number[]>;
   /** Why a stock's line isn't projected, by line key ("Left out: 2 years of results (needs 3)"). */
   why: Record<string, string>;
@@ -190,15 +190,17 @@ export function BasketChart({
       const b = industries.find((x) => x.slug === slug);
       if (b) out.push({ key: `x:sector=${slug}&${strategy}`, name: `${b.name} basket`, note: "industry basket", color: SLOTS[theme][6], width: 2, dash: COMPARE_DASH[i % 3] });
     });
+    // Every past line from the price store first ("B:", "S:"), the series the basket's backtest
+    // reads, so a stock's line ends on the figure its row in the table shows.
     indices.forEach((b, i) => {
-      if (benches.includes(b.id)) out.push({ key: `b:${b.id}`, name: b.name, note: b.via ? "via ETF" : undefined, color: "var(--ink)", token: "--ink", width: 2, dash: i === 0 ? "solid" : "long" });
+      if (benches.includes(b.id)) out.push({ key: `B:${b.id}`, name: b.name, note: b.via ? "via ETF" : undefined, color: "var(--ink)", token: "--ink", width: 2, dash: i === 0 ? "solid" : "long" });
     });
     market.forEach((b) => {
-      if (benches.includes(b.id)) out.push({ key: `${single ? "B" : "b"}:${b.id}`, name: b.name, color: "var(--ink-soft)", token: "--ink-soft", width: 2, dash: b.id === "sensex" ? "dot" : "dash" });
+      if (benches.includes(b.id)) out.push({ key: `B:${b.id}`, name: b.name, color: "var(--ink-soft)", token: "--ink-soft", width: 2, dash: b.id === "sensex" ? "dot" : "dash" });
     });
     for (const st of stocks) {
       const slot = picks[st.ticker];
-      if (slot != null) out.push({ key: `s:${st.ticker}`, name: st.name, note: st.ticker, ...stockLine(theme, slot), width: 2, stock: st.ticker });
+      if (slot != null) out.push({ key: `S:${st.ticker}`, name: st.name, note: st.ticker, ...stockLine(theme, slot), width: 2, stock: st.ticker });
     }
     return out;
   }, [basketKey, basketName, single, held, compare, industries, strategy, indices, market, benches, stocks, picks, theme, projection]);
@@ -253,8 +255,12 @@ export function BasketChart({
     });
     // A single stock listed during the range: every line starts on its first day, so the Nifty 50
     // is measured over the same days (as its return card is) rather than from the range's start.
-    const from = single ? loaded.find((s) => s.line.key === basketKey)?.points[0].t : undefined;
-    const ok = from ? loaded.map((s) => ({ ...s, points: s.points.filter((p) => p.t >= from) })).filter((s) => s.points.length > 1) : loaded;
+    const own = loaded.find((s) => s.line.key === basketKey)?.points;
+    const from = single ? own?.[0].t : undefined;
+    // Every line ends on the basket's last day (the stored Nifty 50's last close, run.ts
+    // onBenchWindow): a stock the store lacks, read live, would otherwise run on to today's tick.
+    const to = single ? undefined : own?.[own.length - 1].t;
+    const ok = from || to ? loaded.map((s) => ({ ...s, points: s.points.filter((p) => (!from || p.t >= from) && (!to || p.t <= to)) })).filter((s) => s.points.length > 1) : loaded;
     const start = ok.reduce<string | null>((m, s) => (!m || s.points[0].t < m ? s.points[0].t : m), null);
     const slackDays = slackDaysFor(range);
     // One date grid for every line, so a daily line beside weekly ones can't stretch the axis.
@@ -262,7 +268,11 @@ export function BasketChart({
     const step = sharedInterval(ok.map((s) => s.points));
     const all = ok.map(({ line }, i) => {
       const points = grid[i];
-      const base = points[0].c;
+      // Based on the line's own first close, not its first grid bar's: a stock listed inside a
+      // weekly range comes as daily bars, and folding them onto the weeks would base it on its first
+      // week's close instead of its listing day's (the price its backtest buys at), so its line
+      // would end on a different return than its row in the table.
+      const base = ok[i].points[0].c;
       const values = points.map((p) => ({ time: p.t as Time, value: (p.c / base - 1) * 100 }));
       const late = start && Date.parse(points[0].t) - Date.parse(start) > slackDays * 86_400_000 ? points[0].t : null;
       return { line, values, last: values[values.length - 1].value, late };

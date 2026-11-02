@@ -102,6 +102,27 @@ export function dayMoves(list: { ticker: string; points: PricePoint[] | null }[]
   return { day, dayOf };
 }
 
+/**
+ * A stock's closes on the range's window: the stored Nifty 50's first to last close (periods.ts
+ * benchWindow), so every basket in a range starts and ends on the same days as the index it is
+ * compared with. Without it, a stock read live from Yahoo (not in the store yet) carried today's
+ * tick while the stored ones ended on the last close, mixing two days in one basket and ending
+ * the basket a day after the Nifty 50 it was measured against. Before the window's first day only
+ * the last close before it is kept, dated that day (the day-one price); MAX keeps every close (the index's
+ * full history can start after a stock's).
+ */
+export function onBenchWindow(points: PricePoint[], calendar: string[], range: ChartRange): PricePoint[] {
+  if (calendar.length < 2) return points;
+  const to = calendar[calendar.length - 1];
+  const from = range === "MAX" ? null : calendar[0];
+  const out = points.filter((p) => p.t <= to);
+  if (!from) return out;
+  const i = out.findIndex((p) => p.t >= from);
+  if (i < 0) return out.length ? [{ ...out[out.length - 1], t: from }] : out;
+  // The close before the first day stands for it (a stock with no bar on that day), dated that day.
+  return i > 0 && out[i].t > from ? [{ ...out[i - 1], t: from }, ...out.slice(i)] : out.slice(i);
+}
+
 /** Some stock's prices were still loading when the backtest stopped waiting (not a stock with no history). */
 export const pricesPending = (r: Pick<BasketBacktest, "pending">) => !!r.pending?.length;
 
@@ -114,20 +135,24 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
   // The plain held backtest keeps the cache key it has always had.
   const plain = isPlainHold(strategy);
   const sorted = stocks.map((s) => s.ticker).sort();
-  const key = `basket3:${plain ? strategy.weighting : strategyQuery(strategy)}:${range}:${sorted.join(",")}${opts.joinLate ? ":J2" : ""}`;
+  const key = `basket4:${plain ? strategy.weighting : strategyQuery(strategy)}:${range}:${sorted.join(",")}${opts.joinLate ? ":J2" : ""}`;
   const ttl = range === "3Y" || range === "5Y" || range === "MAX" ? 60 * 60 * 1000 : 5 * 60 * 1000;
   return cached(key, ttl, async () => {
     const deadline = Date.now() + PRICES_BUDGET_MS;
     const pending: string[] = [];
-    const series = await mapLimit(stocks, CONCURRENCY, (s) => byDeadline(basketChart(s.ticker, range).catch(() => null), deadline, () => pending.push(s.ticker)));
+    // The range's trading days: the stored Nifty 50's, the line every basket is compared with.
+    const niftyP = basketSymbolChart(BENCHMARKS.nifty50.symbol, range).catch(() => null);
+    const [raw, nifty] = await Promise.all([
+      mapLimit(stocks, CONCURRENCY, (s) => byDeadline(basketChart(s.ticker, range).catch(() => null), deadline, () => pending.push(s.ticker))),
+      niftyP,
+    ]);
+    const days = nifty?.points.map((p) => p.t) ?? [];
+    // Every stock on the Nifty's window, so the basket ends on its last close (onBenchWindow).
+    const series = raw.map((d) => (d ? { ...d, points: onBenchWindow(d.points, days, range) } : d));
     const slackDays = slackDaysFor(range);
-    // Joining at listing: the range's trading days (the Nifty 50's, the line every basket is
-    // compared with), so the basket starts on the range's first day with the money for stocks not
+    // Joining at listing: the basket starts on the range's first day with the money for stocks not
     // yet listed waiting in cash, and the chart, statistics and drawdown all share that first day.
-    if (opts.joinLate && !opts.calendar) {
-      const nifty = await basketSymbolChart(BENCHMARKS.nifty50.symbol, range).catch(() => null);
-      opts = { ...opts, calendar: nifty?.points.map((p) => p.t) ?? [] };
-    }
+    if (opts.joinLate && !opts.calendar) opts = { ...opts, calendar: days };
     // Equal and market cap weigh the whole list, as they always have (a missing market cap gets
     // the list's median); custom weighs only the stocks actually held, so a stock with no prices
     // can't leave its share unspent.

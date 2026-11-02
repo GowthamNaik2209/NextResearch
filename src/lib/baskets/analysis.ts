@@ -166,12 +166,12 @@ export type MonthlyCapture = {
 
 /**
  * Up/down capture and months beating the benchmark, on calendar-month returns aligned by month.
- * Months are counted as the stats grid counts them: each from the previous month's last close,
- * so the first (partial) month of the range is left out and "of N months" matches "Months up".
+ * Months are counted as the stats grid counts them: the first (partial) month from the range's
+ * first close, each later one from the previous month's last close, so "of N months" matches
+ * "Months up".
  */
 export function monthlyCapture(basket: PricePoint[], bench: PricePoint[]): MonthlyCapture {
-  const startKey = basket.length ? Number(basket[0].t.slice(0, 4)) * 12 + Number(basket[0].t.slice(5, 7)) - 1 : null;
-  const a = monthlyReturns(basket).filter((m) => m.year * 12 + m.month !== startKey);
+  const a = monthlyReturns(basket);
   const bMap = new Map(monthlyReturns(alignTo(basket, bench)).map((m) => [m.year * 12 + m.month, m.ret]));
   const pairs = a.flatMap((m) => {
     const b = bMap.get(m.year * 12 + m.month);

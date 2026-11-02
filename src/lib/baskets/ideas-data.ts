@@ -157,9 +157,9 @@ export const getIdeas = unstable_cache(
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },
-  // v11: Highest ROCE needs a profit and positive book value (roceMeaningful), and Turnarounds'
-  // card line was reworded, so cached v10 lists aren't served.
-  ["basket-ideas-v11"],
+  // v12: Recent listings lists every listing of the past two years (no cap of 15), so cached v11
+  // lists aren't served.
+  ["basket-ideas-v12"],
   { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
 );
 
@@ -194,7 +194,8 @@ const ideaFigure = unstable_cache(
     if (!bt) throw new Error(`no backtest for idea ${id} (${asOf})`);
     return bt;
   },
-  ["basket-ideas-backtest-v2"],
+  // v3: backtests end on the stored Nifty 50's last close (run.ts onBenchWindow).
+  ["basket-ideas-backtest-v3"],
   { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
 );
 const dailyBacktest = (asOf: string, id: string) => ideaFigure(asOf, id).catch(() => null);

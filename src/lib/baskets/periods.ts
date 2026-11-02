@@ -43,15 +43,52 @@ export function cutTo(points: PricePoint[], period: Period): PricePoint[] {
 }
 
 /**
- * A basket's figures over a period, from its source range's series. Too few closes for the lead's
- * usual measure (1D, 1W): the lead is the plain gap between the two returns over the same dates.
+ * "The Nifty 50 over a period": the stored index series (B:nifty50, basketSymbolChart: the price
+ * store first) for the period's source range, cut to the period. Its first and last closes are the
+ * period's fixed window: the same start and end day for every basket, row and header in that
+ * period, whichever days its stocks start on.
+ */
+export function benchWindow(bench: PricePoint[], period: Period): PricePoint[] {
+  return cutTo(bench, period);
+}
+
+/** The Nifty 50's change over the period's window, % (null with under two closes). */
+export function benchPeriodRet(bench: PricePoint[] | null, period: Period): number | null {
+  const w = bench?.length ? benchWindow(bench, period) : [];
+  return w.length >= 2 && w[0].c > 0 ? (w[w.length - 1].c / w[0].c - 1) * 100 : null;
+}
+
+/**
+ * A line moved onto a window's first and last days: closes outside it dropped, a close on the first
+ * day added from its last close on or before it (or, starting later, its first close: the money
+ * waits in cash until then, as a stock joining at its listing does), and its last close carried to
+ * the window's last day. Read against the window, every line runs over the same dates.
+ */
+export function onWindow(points: PricePoint[], window: PricePoint[]): PricePoint[] {
+  if (!points.length || window.length < 2) return points;
+  const from = window[0].t;
+  const to = window[window.length - 1].t;
+  let base: PricePoint | null = null;
+  const inside: PricePoint[] = [];
+  for (const p of points) {
+    if (p.t <= from) base = p;
+    else if (p.t <= to) inside.push(p);
+  }
+  const out = [{ t: from, c: (base ?? inside[0] ?? points[0]).c }, ...inside];
+  if (out[out.length - 1].t < to) out.push({ t: to, c: out[out.length - 1].c });
+  return out;
+}
+
+/**
+ * A basket's figures over a period, from its source range's series, measured over the period's
+ * fixed window (benchWindow): the basket's return and fall over those days, and its lead over the
+ * Nifty 50's change over the same window (benchPeriodRet), the gap between the two figures as
+ * shown. With no benchmark, the basket's own series cut to the period, and no lead.
  */
 export function periodFigures(points: PricePoint[], bench: PricePoint[] | null, period: Period): BasketFigures | null {
-  const pts = cutTo(points, period);
-  const fig = basketFigures(pts, bench);
-  if (!fig || fig.vs != null || !bench?.length || pts.length < 2) return fig;
-  const at = (t: string) => [...bench].reverse().find((p) => p.t <= t)?.c;
-  const b0 = at(pts[0].t);
-  const b1 = at(pts[pts.length - 1].t);
-  return b0 && b1 ? { ...fig, vs: shownPct(fig.ret) - shownPct((b1 / b0 - 1) * 100) } : fig;
+  const win = bench?.length ? benchWindow(bench, period) : [];
+  if (win.length < 2) return basketFigures(cutTo(points, period), null);
+  const fig = basketFigures(onWindow(points, win), null);
+  const b = benchPeriodRet(bench, period);
+  return fig && b != null ? { ...fig, vs: shownPct(fig.ret) - shownPct(b) } : fig;
 }

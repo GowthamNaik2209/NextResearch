@@ -263,6 +263,21 @@ export function strengthPoints(strength: ExposureStrength | undefined): number {
 }
 
 /** How central one link is to the company: high > medium > low, and a side link ranks half a step below a direct one. */
+/**
+ * The zone a deep link (?zone=&company=) opens on: the linked zone when it is valid; with no (or an
+ * unknown) zone but a known company, the zone where that company plays its strongest part, so a
+ * bare ?company= link still opens the company.
+ */
+export function deepLinkZone(sector: Pick<SectorDef, "zones">, zoneId: string | null | undefined, companyKey: string | null): string | null {
+  if (zoneId && sector.zones.some((z) => z.id === zoneId)) return zoneId;
+  if (!companyKey) return null;
+  let best: { id: string; w: number } | null = null;
+  for (const z of sector.zones)
+    for (const link of z.suppliers)
+      if (companyLinkKey(link) === companyKey && (!best || linkWeight(link) > best.w)) best = { id: z.id, w: linkWeight(link) };
+  return best?.id ?? null;
+}
+
 export function linkWeight(link: SectorCompanyLink): number {
   return STRENGTH_POINTS[linkStrength(link)] - (isSideLink(link) ? 0.5 : 0);
 }
