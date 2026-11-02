@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
+import localFont from "next/font/local";
 // The documented `@vercel/analytics/next` entry point fails to resolve under
 // this project's Turbopack dev server ("Module not found", reproducible even
 // with a clean .next cache, though plain Node resolves it fine) - `/react`
@@ -22,10 +23,15 @@ const spaceGrotesk = Space_Grotesk({
   weight: ["500", "600", "700"],
 });
 
-const ibmPlexSans = IBM_Plex_Sans({
+// Self-hosted: in Nov 2026 Google started serving IBM Plex Sans as a variable font with a width
+// axis, and Vercel's build fails on it in next/font/google ("next/font/google queries have exactly
+// one entry"). This is that same file, Google's v23 Latin subset, which covers weights 400-700
+// (SIL Open Font License).
+const ibmPlexSans = localFont({
+  src: "./fonts/ibm-plex-sans-latin.woff2",
   variable: "--font-ibm-plex-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "400 700",
+  display: "swap",
 });
 
 const ibmPlexMono = IBM_Plex_Mono({
