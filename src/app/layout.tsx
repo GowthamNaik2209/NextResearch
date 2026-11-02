@@ -7,6 +7,7 @@ import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 // client-side navigations) is handled by Vercel's injected script patching
 // the History API globally, not by this wrapper, so nothing is lost.
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Suspense } from "react";
 import { ReturnToStock } from "@/components/stock/ReturnToStock";
 import { InlineScript } from "@/components/InlineScript";
@@ -129,6 +130,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <KeyboardShortcuts />
         <AppResume />
         <Analytics />
+        <SpeedInsights />
         {GA_ID && <GoogleAnalytics id={GA_ID} />}
       </body>
     </html>
