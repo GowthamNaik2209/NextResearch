@@ -58,6 +58,17 @@ test("getCompanyNews returns live headlines tagged with the company and sector",
   assert.ok(r.items[0].sectorName);
 });
 
+test("the news query drops a bracketed part of the name, which no headline quotes", async () => {
+  let url = "";
+  globalThis.fetch = (async (u: string) => {
+    url = decodeURIComponent(String(u));
+    return { ok: true, text: async () => rss(item("Horizon Industrial Parks leases 1 msf - Mint", "Mint", new Date().toUTCString())) } as Response;
+  }) as typeof fetch;
+  await getCompanyNews("HORIZONIND");
+  assert.ok(url.includes('"Horizon Industrial Parks" ('), url);
+  assert.ok(!url.includes("Blackstone"), url);
+});
+
 test("news falls back to the curated seed set when the live feed is down", async () => {
   globalThis.fetch = (async () => ({ ok: false, text: async () => "" }) as Response) as typeof fetch;
   const company = await getCompanyNews("MOTHERSON");
@@ -229,6 +240,38 @@ test("isAbout handles Nifty 50 names: banks and their group companies, the excha
   const bajfin = { name: "Bajaj Finance", ticker: "BAJFINANCE" };
   assert.ok(isAbout("Bajaj Finance AUM grows 25%", bajfin));
   assert.ok(!isAbout("Bajaj Housing Finance Q2 profit up 20%", bajfin));
+});
+
+test("isAbout handles the solar and energy listings: look-alike names and parent companies", () => {
+  const juniper = { name: "Juniper Green Energy", ticker: "JNPR" };
+  assert.ok(isAbout("Juniper Green Energy shares rise after 300 MW hybrid order", juniper));
+  assert.ok(!isAbout("Juniper Networks unveils AI-native routers", juniper));
+  const ntpcGreen = { name: "NTPC Green Energy", ticker: "NTPCGREEN" };
+  const ntpc = { name: "NTPC", ticker: "NTPC" };
+  assert.ok(isAbout("NTPC Green Q2 profit jumps 40%", ntpcGreen));
+  assert.ok(!isAbout("NTPC Green Q2 profit jumps 40%", ntpc), "NTPC Green's news is not NTPC's");
+  const waareeRtl = { name: "Waaree Renewable Technologies", ticker: "WAAREERTL" };
+  const waaree = { name: "Waaree Energies", ticker: "WAAREEENER" };
+  assert.ok(isAbout("Waaree Renewable Technologies bags ₹800 crore EPC order", waareeRtl));
+  assert.ok(!isAbout("Waaree Renewable Technologies bags ₹800 crore EPC order", waaree));
+  assert.ok(isAbout("Waaree RTL wins five-year O&M order for 360 MWp solar project", waareeRtl));
+  assert.ok(!isAbout("Waaree RTL wins five-year O&M order for 360 MWp solar project", waaree), "Waaree RTL is not Waaree Energies");
+  const emmvee = { name: "Emmvee Photovoltaic Power", ticker: "EMMVEE" };
+  assert.ok(isAbout("Emmvee shares surge on TOPCon cell expansion", emmvee));
+  assert.ok(!isAbout("India's photovoltaic imports fall 20% in Q2", emmvee), "'photovoltaic' alone is not Emmvee");
+  const cleanmax = { name: "Clean Max Enviro Energy Solutions", ticker: "CLEANMAX" };
+  assert.ok(isAbout("CleanMax signs 150 MW PPA with data centre operator", cleanmax));
+  const utl = { name: "Fujiyama Power Systems (UTL Solar)", ticker: "UTLSOLAR" };
+  assert.ok(isAbout("Fujiyama Power Q2 results: profit doubles", utl));
+  assert.ok(isAbout("UTL Solar launches new hybrid inverter range", utl));
+  const jio = { name: "Jio Platforms", ticker: "JPL" };
+  assert.ok(isAbout("Jio Platforms shares extend gains after listing", jio));
+  assert.ok(isAbout("Jio adds 3 million subscribers in September", jio));
+  assert.ok(!isAbout("Jio Financial Services Q2 profit rises", jio));
+  assert.ok(!isAbout("Streaming platforms see record IPL viewership", jio), "'platforms' alone is not Jio");
+  const horizon = { name: "Horizon Industrial Parks (Blackstone)", ticker: "HORIZONIND" };
+  assert.ok(isAbout("Horizon Industrial Parks leases 1 msf to 3PL firm", horizon));
+  assert.ok(!isAbout("A new horizon for India's warehousing market", horizon));
 });
 
 test("cleanSource shows a bare domain when Google gives a URL as the publisher", () => {
