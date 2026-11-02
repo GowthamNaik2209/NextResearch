@@ -140,6 +140,8 @@ export type SectorSupplier = {
   risks?: string[];
   sourceDate?: string;
   dataStatus?: DataStatus;
+  // Former or absorbed names search should find it by ("stone india" for Jupiter Wagons), lower case.
+  aka?: string[];
 };
 
 // Groups related zones under a named theme (e.g. "Site & Power") for the industry

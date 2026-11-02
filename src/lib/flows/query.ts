@@ -14,11 +14,12 @@ import type { DealKind, DealSide, PartyType } from "./types";
 const TTL_MS = 10 * 60_000;
 const DAY_MS = 86_400_000;
 
-async function safe<T>(label: string, load: () => Promise<T>): Promise<T | null> {
+async function safe<T>(label: string, load: () => Promise<T>, failed?: Set<string>): Promise<T | null> {
   try {
     return await load();
   } catch (e) {
     console.warn(`flows: ${label} unavailable:`, e instanceof Error ? e.message.trim().split("\n").at(-1) : e);
+    failed?.add(label);
     return null;
   }
 }
@@ -430,7 +431,10 @@ export type FlowsData = {
   stakes: { rows: StakeRow[]; quarter: Date | null } | null;
   /** FII and DII bulk and block deals in the companies in view, over the period, newest first. */
   deals: DealRow[] | null;
+  /** The blocks whose read failed this time (a database timeout), told apart from ones with nothing stored yet. */
+  failed: FlowBlock[];
 };
+export type FlowBlock = "cash" | "futures" | "sectors" | "stakes" | "deals";
 
 const ref = (c: CompanyMetrics): CompanyRef => ({ ticker: c.ticker, name: c.name, sectorSlug: c.sectorSlug, sectorName: c.sectorName });
 
@@ -446,12 +450,13 @@ export function companiesInView(sectorSlug?: string): Map<string, CompanyRef> {
  */
 export async function getFlowsData(period: Period, sectorSlug?: string): Promise<FlowsData> {
   const companies = companiesInView(sectorSlug);
+  const failed = new Set<string>();
   const [cashDays, oiDays, sectorRows, all, dealList] = await Promise.all([
-    safe("cash", () => cached("flows:cash:v3", TTL_MS, loadCashDays)),
-    safe("futures", () => cached("flows:oi:v1", TTL_MS, loadOi)),
-    safe("sectors", () => cached("flows:sectors:v2", TTL_MS, loadSectorRows)),
-    safe("stakes", filings),
-    safe("deals", deals),
+    safe("cash", () => cached("flows:cash:v3", TTL_MS, loadCashDays), failed),
+    safe("futures", () => cached("flows:oi:v1", TTL_MS, loadOi), failed),
+    safe("sectors", () => cached("flows:sectors:v2", TTL_MS, loadSectorRows), failed),
+    safe("stakes", filings, failed),
+    safe("deals", deals, failed),
   ]);
   const latest = new Date(Math.max(cashDays?.at(-1)?.day.getTime() ?? 0, oiDays?.at(-1)?.day.getTime() ?? 0) || Date.now());
   const from = periodStart(period, latest);
@@ -470,6 +475,7 @@ export async function getFlowsData(period: Period, sectorSlug?: string): Promise
     sectors: sectorRows ? sectorsView(sectorRows, period, latest) : null,
     stakes,
     deals: dealList ? dealList.filter((d) => companies.has(d.ticker) && d.day >= from).map((d) => ({ ...companies.get(d.ticker)!, ...d })) : null,
+    failed: [...failed] as FlowBlock[],
   };
 }
 

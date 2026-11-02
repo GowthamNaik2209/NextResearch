@@ -250,6 +250,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                     Latest-year revenue {croreShort(rev[rev.length - 1])} ({FY_LABELS[FY_LABELS.length - 1]}, company-wide).
                   </p>
                 )}
+                {f?.note && <p className="mt-1 text-xs text-ink-soft">Note: {f.note.replace(/\.$/, "")}.</p>}
               </section>
             )}
 

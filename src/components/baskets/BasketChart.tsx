@@ -587,7 +587,7 @@ export function BasketChart({
 
       <div>
         <div className="mb-1.5 flex items-baseline justify-between text-[11px] uppercase tracking-wide text-ink-soft">
-          <span>{hover ? `${series.step === "1wk" ? "Week of" : series.step === "1mo" ? "Month of" : "On"} ${fmtDay(hover.t)}` : projection ? `Projected, ${projection.label}` : `Return, past ${rangeLong}`}</span>
+          <span>{hover ? `${series.step === "1wk" ? "Week of" : series.step === "1mo" ? "Month of" : "On"} ${fmtDay(hover.t)}` : projection ? `Projected, ${projection.label}` : `Return, ${rangeLong.startsWith("since ") ? rangeLong : `past ${rangeLong}`}`}</span>
           {anyLoading && series.list.length > 0 && <span className="normal-case tracking-normal">Loading…</span>}
         </div>
         {/* Sized to its rows plus one, only ever growing (see legendH), so switching lines on or off rarely moves what is below. */}

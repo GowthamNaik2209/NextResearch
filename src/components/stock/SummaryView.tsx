@@ -203,7 +203,7 @@ export function SummaryView({
               <div key={k} className="rounded-lg border border-line bg-panel-2 px-2 py-2.5 text-center">
                 <div className="text-[9.5px] uppercase tracking-wide text-ink-soft">{k}</div>
                 <div className={"mt-1 font-mono text-base font-bold " + pctTone(v, 1)}>
-                  {fmtSigned(v, 1)}
+                  {fmtSigned(v, v != null && Number.isInteger(v) ? 0 : 1)}
                 </div>
               </div>
             ))}
