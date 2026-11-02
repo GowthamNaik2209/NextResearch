@@ -62,7 +62,7 @@ export function ThemeCards({
                 onClick={() => onCharts(s.slug)}
                 aria-label={`Stock charts: ${s.name}`}
                 aria-haspopup="dialog"
-                className="relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-accent px-3 text-xs font-semibold text-accent transition hover:bg-accent hover:text-bg"
+                className="relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-btn px-3 text-xs font-semibold text-accent transition hover:bg-accent hover:text-bg"
               >
                 <svg aria-hidden width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M1 10l3.5-4 2.5 2.5L11 3" />

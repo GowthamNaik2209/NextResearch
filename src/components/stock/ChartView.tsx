@@ -244,7 +244,7 @@ export function ChartView({ ticker, quote, height = PLOT_HEIGHT }: { ticker: str
 
   const controls = (
     <>
-          <div className="inline-flex rounded-full border border-accent bg-panel p-0.5" role="group" aria-label="Time range">
+          <div className="inline-flex rounded-full border border-btn bg-panel p-0.5" role="group" aria-label="Time range">
             {RANGES.map((r) => (
               <button
                 key={r.id}
@@ -258,7 +258,7 @@ export function ChartView({ ticker, quote, height = PLOT_HEIGHT }: { ticker: str
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap">
-            <div className="inline-flex rounded-full border border-accent bg-panel p-0.5" role="group" aria-label="Chart type">
+            <div className="inline-flex rounded-full border border-btn bg-panel p-0.5" role="group" aria-label="Chart type">
               {(["line", "candles"] as const).map((m) => {
                 const disabled = m === "candles" && noCandles;
                 const on = m === "candles" ? candles : !candles;

@@ -230,7 +230,7 @@ export function CloseButton({ closeRef, onClose }: { closeRef: React.RefObject<H
       type="button"
       onClick={onClose}
       aria-label="Close"
-      className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-accent bg-panel-2 text-ink-soft hover:bg-accent/10 hover:text-ink"
+      className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-btn bg-panel-2 text-ink-soft hover:bg-accent/10 hover:text-ink"
     >
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
         <path d="M6 6l12 12M18 6L6 18" />

@@ -66,7 +66,7 @@ export function ConfirmDialog({
             autoFocus={danger}
             onClick={onCancel}
             disabled={busy}
-            className="inline-flex min-h-10 items-center rounded border border-accent bg-bg px-4 text-sm font-semibold text-ink hover:bg-accent/10 disabled:opacity-40"
+            className="inline-flex min-h-10 items-center rounded border border-btn bg-bg px-4 text-sm font-semibold text-ink hover:bg-accent/10 disabled:opacity-40"
           >
             Cancel
           </button>

@@ -234,7 +234,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
             onClick={() => setMenuOpen((v) => !v)}
             aria-expanded={menuOpen}
             aria-label="All slides"
-            className="flex h-10 flex-none items-center gap-2 rounded-full border border-accent bg-panel-2 px-3 text-xs font-semibold text-ink-soft hover:bg-accent/10 hover:text-ink"
+            className="flex h-10 flex-none items-center gap-2 rounded-full border border-btn bg-panel-2 px-3 text-xs font-semibold text-ink-soft hover:bg-accent/10 hover:text-ink"
           >
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="3" width="7" height="7" rx="1.5" />
@@ -251,7 +251,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-accent bg-panel-2 text-ink-soft hover:bg-accent/10 hover:text-ink"
+            className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-btn bg-panel-2 text-ink-soft hover:bg-accent/10 hover:text-ink"
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
               <path d="M6 6l12 12M18 6L6 18" />
@@ -339,7 +339,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
               href={extra.href}
               replace
               onClick={leave(extra.href)}
-              className="hidden flex-none items-center gap-1.5 rounded-lg border border-accent px-3 py-2.5 text-xs font-semibold text-ink-soft hover:bg-accent/10 hover:text-ink sm:inline-flex sm:text-sm"
+              className="hidden flex-none items-center gap-1.5 rounded-lg border border-btn px-3 py-2.5 text-xs font-semibold text-ink-soft hover:bg-accent/10 hover:text-ink sm:inline-flex sm:text-sm"
             >
               {extra.label}
             </Link>
@@ -362,7 +362,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
                 type="button"
                 onClick={() => bodyRef.current?.scrollBy({ top: bodyRef.current.clientHeight * 0.7, behavior: "smooth" })}
                 aria-label="Scroll down for more"
-                className="flex h-10 items-center gap-1 rounded-full border border-accent bg-panel-2 px-3 text-xs font-semibold text-ink-soft transition hover:bg-accent/10 hover:text-ink"
+                className="flex h-10 items-center gap-1 rounded-full border border-btn bg-panel-2 px-3 text-xs font-semibold text-ink-soft transition hover:bg-accent/10 hover:text-ink"
               >
                 <span className="hidden lg:inline">More below</span>
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

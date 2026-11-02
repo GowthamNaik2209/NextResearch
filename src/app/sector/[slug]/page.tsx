@@ -413,7 +413,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                         <Link
                           key={z.zoneId}
                           href={`/sector/${sector.slug}/explore?zone=${encodeURIComponent(z.zoneId)}&company=${encodeURIComponent(z.companyKey)}`}
-                          className="tap-y flex items-center gap-1 rounded-full border border-accent px-2 py-0.5 text-[10px] text-ink-soft hover:bg-accent/10 hover:text-ink"
+                          className="tap-y flex items-center gap-1 rounded-full border border-btn px-2 py-0.5 text-[10px] text-ink-soft hover:bg-accent/10 hover:text-ink"
                           title={z.exposureType ? EXPOSURE_TYPE_LABEL[z.exposureType] : undefined}
                         >
                           <span className="h-1.5 w-1.5 rounded-full" style={{ background: z.zoneColor }} />

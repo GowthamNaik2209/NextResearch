@@ -24,7 +24,7 @@ export function IdeasSection({ ideas, asOf }: { ideas: Idea[]; asOf: string }) {
             onClick={() => setId(i.id)}
             className={
               "tap-target rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors " +
-              (i.id === idea.id ? "border-accent bg-accent text-bg" : "border-accent bg-panel text-ink-soft hover:bg-accent/10 hover:text-ink")
+              (i.id === idea.id ? "border-accent bg-accent text-bg" : "border-btn bg-panel text-ink-soft hover:bg-accent/10 hover:text-ink")
             }
           >
             {i.title}

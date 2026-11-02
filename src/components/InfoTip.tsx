@@ -67,7 +67,7 @@ export function InfoTip({ label, children, wide = false }: { label: string; chil
         aria-expanded={open}
         aria-controls={open ? id : undefined}
         onClick={() => setOpen((o) => !o)}
-        className="tap-target inline-flex h-5 w-5 flex-none items-center justify-center rounded-full border border-accent font-serif text-[11px] font-bold italic leading-none text-ink-soft hover:border-accent hover:text-ink aria-expanded:border-accent aria-expanded:text-accent"
+        className="tap-target inline-flex h-5 w-5 flex-none items-center justify-center rounded-full border border-btn font-serif text-[11px] font-bold italic leading-none text-ink-soft hover:border-accent hover:text-ink aria-expanded:border-accent aria-expanded:text-accent"
       >
         i
       </button>

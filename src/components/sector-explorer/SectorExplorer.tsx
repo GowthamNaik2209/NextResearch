@@ -625,7 +625,7 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
             href="/watchlist"
             shortcut="W"
             label="Watchlist"
-            className="tap-target flex h-9 w-9 items-center justify-center rounded-full border border-accent bg-panel-2 text-ink-soft hover:bg-accent/10 hover:text-danger"
+            className="tap-target flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger"
             aria-label="Watchlist"
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
