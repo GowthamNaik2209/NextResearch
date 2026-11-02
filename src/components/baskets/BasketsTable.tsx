@@ -391,8 +391,9 @@ export function BasketsTable({
                         </span>
                       </span>
                     ) : (
-                      // Every industry basket is equal weight (the section says so).
-                      <span className="min-w-0">Equal weight</span>
+                      // Every industry basket is equal weight (the section says so). The Nifty 50's row is its
+                      // stocks at equal weight, not the index (cap weighted), so its return differs from the index's.
+                      <span className="min-w-0">{r.category === "index" ? "Its stocks at equal weight, not the index" : "Equal weight"}</span>
                     )}
                   </span>
                 </span>
@@ -522,8 +523,8 @@ export function ThemeWall({ rows, seed, period = "1Y", onPeriod }: { rows: Indus
           key: r.slug,
           label: shortName(r.name),
           value: ret,
-          sub: r.category === "policy" ? "Policy" : r.category === "index" ? "Index" : undefined,
-          title: `${r.name}${ret != null ? `: ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}% over ${PERIOD_WORDS[period]}` : ""} · tap to see its row`,
+          sub: r.category === "policy" ? "Policy" : r.category === "index" ? "Equal weight" : undefined,
+          title: `${r.name}${r.category === "index" ? " stocks at equal weight" : ""}${ret != null ? `: ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}% over ${PERIOD_WORDS[period]}` : ""} · tap to see its row`,
           onClick: () => jumpToRow(r.slug),
         };
       })

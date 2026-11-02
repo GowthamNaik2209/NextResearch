@@ -632,6 +632,14 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
     : null;
   // The years whose margins were used (one-off left out, revenue positive), in order.
   const marginYears = runYears.filter((fy) => fyLabel(fy) !== ctx.skipped && (input.rev[at(fy)] ?? 0) > 0);
+  // A year's margin outside −50% … +60% is used at the limit (projection.ts); says so beside it, as
+  // the table above shows the raw figure (a profit 4.5 times revenue reads 450%).
+  const capNote = (m: number, fy: number | undefined) => {
+    const r = fy == null ? null : input.rev[at(fy)];
+    const n = fy == null ? null : input.np[at(fy)];
+    const raw = r && n != null ? n / r : null;
+    return raw != null && Math.abs(raw - m) > 1e-9 ? ` (kept within −50% … +60%, from ${pct(raw, 2)})` : "";
+  };
   const marginCapped = f ? Math.abs(f.marginFactor - f.marginThen / f.marginNow) > 1e-12 : false;
   const zRaw = f && ctx.scale.sd > 0 ? (f.score - ctx.scale.median) / ctx.scale.sd : 0;
   const zCapped = Math.abs(zRaw - ctx.z) > 1e-12;
@@ -773,7 +781,7 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
               {Math.abs(g.faded - f.growth) > 1e-12 ? ` → kept within −25% … +40%: ${sPct(f.growth, 2)}` : ""}
               <br />
               <br />
-              margins used: {f.margins.map((m, i) => `${marginYears[i] != null ? fyLabel(marginYears[i]) + " " : ""}${pct(m, 2)}`).join(" · ")}
+              margins used: {f.margins.map((m, i) => `${marginYears[i] != null ? fyLabel(marginYears[i]) + " " : ""}${pct(m, 2)}${capNote(m, marginYears[i])}`).join(" · ")}
               <br />
               own median = {pct(f.ownMargin, 2)} · industry median = {f.indMargin == null ? "none" : pct(f.indMargin, 2)}
               <br />

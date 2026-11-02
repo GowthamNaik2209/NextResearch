@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { changeBasis, rangeInterval, rollUp, startsInside, storedRange, toPoints, type StoredBar } from "./bars";
+import { changeBasis, listingRange, rangeInterval, rollUp, startsInside, storedRange, toPoints, type StoredBar } from "./bars";
 import type { ChartRange } from "@/lib/live/yahoo";
 
 // "Today" for every fixture: Mon 2 Nov 2026. 1M starts 2 Oct, 1Y 1 Nov 2025, 3Y 29 Oct 2023, 5Y 29 Oct 2021.
@@ -84,4 +84,23 @@ test("store: a long history is rolled up weekly as before", () => {
   const interval = rangeInterval("5Y", "1wk", daily[0].t, NOW);
   assert.equal(interval, "1wk");
   assert.deepEqual(rollUp(daily, interval), rollUp(daily, "1wk"));
+});
+
+test("listingRange: a recent listing reads every longer range over the shortest daily one holding it", () => {
+  // Karamtara (17 Sep 2026): 1M cuts it; 6M holds it, so 6M to 5Y all read 6M.
+  assert.equal(listingRange("1M", "2026-09-17", NOW), "1M");
+  for (const r of ["6M", "1Y", "2Y", "3Y", "5Y"] as ChartRange[]) assert.equal(listingRange(r, "2026-09-17", NOW), "6M", r);
+  // JPL (28 Oct 2026): 1M holds it.
+  for (const r of ["1M", "6M", "3Y", "5Y"] as ChartRange[]) assert.equal(listingRange(r, "2026-10-28", NOW), "1M", r);
+  // Listed 3 Mar 2025: 2Y holds it, so 3Y and 5Y read 2Y; 1Y cuts it.
+  assert.equal(listingRange("1Y", "2025-03-03", NOW), "1Y");
+  assert.equal(listingRange("3Y", "2025-03-03", NOW), "2Y");
+  assert.equal(listingRange("5Y", "2025-03-03", NOW), "2Y");
+  // Waaree Energies (28 Oct 2024): just past 2Y's start, so 2Y cuts it and 3Y keeps its own.
+  assert.equal(listingRange("3Y", "2024-10-28", NOW), "3Y");
+  // Listed 2.5 years ago: no daily range holds it, so 3Y and 5Y keep their own.
+  assert.equal(listingRange("3Y", "2024-05-02", NOW), "3Y");
+  assert.equal(listingRange("5Y", "2024-05-02", NOW), "5Y");
+  // A long history keeps every range.
+  for (const r of ALL) assert.equal(listingRange(r, "2002-07-01", NOW), r, r);
 });

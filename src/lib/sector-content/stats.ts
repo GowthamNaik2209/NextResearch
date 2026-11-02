@@ -63,7 +63,7 @@ const contentIndex = memoByFinancials((): SearchEntry[] => {
     sub: s.category === "policy" ? "Policy" : s.category === "index" ? "Index" : "Industry",
     href: `/sector/${s.slug}`,
   }));
-  const companies = new Map<string, { name: string; listed: boolean; ticker: string; sectors: string[]; href: string; zone: string }>();
+  const companies = new Map<string, { name: string; listed: boolean; ticker: string; sectors: string[]; href: string; zone: string; aka: string[] }>();
   for (const s of sectors)
     for (const z of s.zones)
       for (const link of z.suppliers) {
@@ -74,10 +74,12 @@ const contentIndex = memoByFinancials((): SearchEntry[] => {
         const c = companies.get(ticker);
         if (c) {
           if (!c.sectors.includes(s.name)) c.sectors.push(s.name);
+          c.aka.push(...(sup.aka ?? []));
           continue;
         }
         companies.set(ticker, {
           name: sup.name,
+          aka: [...(sup.aka ?? [])],
           listed: sup.listed && !!sup.f?.ticker,
           ticker,
           sectors: [s.name],
@@ -90,7 +92,7 @@ const contentIndex = memoByFinancials((): SearchEntry[] => {
       }
   for (const c of companies.values()) {
     const where = c.sectors.length === 1 ? `${c.zone} · ${c.sectors[0]}` : `${c.sectors.length} themes: ${c.sectors.join(", ")}`;
-    const aliases = [initials(c.name), c.listed ? c.ticker.toLowerCase() : null].filter((a): a is string => !!a);
+    const aliases = [initials(c.name), c.listed ? c.ticker.toLowerCase() : null, ...c.aka].filter((a): a is string => !!a);
     out.push({
       kind: "company",
       label: c.name,

@@ -7,6 +7,8 @@ import { HORIZONS, SCENARIOS, type Scenario } from "@/lib/baskets/projection";
 import type { ProjectionSettings } from "@/lib/baskets/projection-basket";
 import { heldStrategy } from "@/lib/baskets/strategy";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
+import { listingRange, startsInside } from "@/lib/prices/bars";
+import { fmtMonth } from "@/lib/format";
 import { InfoTip } from "@/components/InfoTip";
 import { BasketChart, type ChartProjection, type ChartSelection } from "@/components/baskets/BasketChart";
 import { BasketStats } from "@/components/baskets/BasketStats";
@@ -132,13 +134,23 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
   const [selection, setSelection] = useState<ChartSelection>({ benches: ["nifty50"], compare: [], picks: {} });
   const projOn = mode === "projection";
   const key = `S:${ticker}`;
-  const rangeLong = RANGES.find((r) => r.id === range)!.long;
+  // A stock listed during the range picked is read over the shortest daily range holding all of
+  // its history (bars.ts listingRange): every longer range shows the same days and figures, against
+  // a daily Nifty, and says "since listing" rather than "past 5 years".
+  const probe = useSeries([key], range).get(key);
+  const pts = probe?.status === "ok" ? probe.data.points : null;
+  const listedAt = pts?.length ? pts[0].t : null;
+  const lastAt = pts?.length ? Date.parse(pts[pts.length - 1].t) : 0;
+  const view = !projOn && listedAt ? listingRange(range, listedAt, lastAt) : range;
+  const sinceListing = !projOn && !!listedAt && startsInside(range, listedAt, "1d", lastAt);
+  const rangeLong = sinceListing ? `since listing, ${fmtMonth(listedAt!)}` : RANGES.find((r) => r.id === range)!.long;
+  const rangeTitle = sinceListing ? rangeLong : `past ${rangeLong}`;
 
   const { rec, failed, statsPending } = useStockRecord(ticker, projOn, attempt);
   // The lines every panel draws (Backtest: the stock and the Nifty 50 over the range; Projection: the
   // stock's past year, for its swings). One failed: one Retry for the whole view, which asks again
   // for every failed line in every panel at once.
-  const { get } = useSeries(projOn ? [key] : [key, NIFTY.key], projOn ? "1Y" : range);
+  const { get } = useSeries(projOn ? [key] : [key, NIFTY.key], projOn ? "1Y" : view);
   const pricesFailed = (projOn ? [key] : [key, NIFTY.key]).some((k) => get(k)?.status === "error");
   const stocks = useMemo(() => (rec ? [rec.stock] : NO_STOCKS), [rec]);
   const projection = useProjection({
@@ -247,12 +259,12 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
       {projOn ? (
         <ProjectionCards view={projection} empty={failed} dense single={{ label: ticker }} />
       ) : (
-        <ReturnCards range={range} basket={{ key, label: `${ticker} · past ${rangeLong}` }} picks={null} benches={[{ ...NIFTY, note: "same days" }]} dense subject={ticker} ownRetry={false} />
+        <ReturnCards range={view} basket={{ key, label: `${ticker} · ${rangeTitle}` }} picks={null} benches={[{ ...NIFTY, note: "same days" }]} dense subject={ticker} ownRetry={false} />
       )}
 
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <Panel
-          title={projOn ? `${ticker} · projected, ${projection?.period ?? `next ${HORIZON_LONG[projSet.h]}`}` : `${ticker} vs Nifty 50 · past ${rangeLong}`}
+          title={projOn ? `${ticker} · projected, ${projection?.period ?? `next ${HORIZON_LONG[projSet.h]}`}` : `${ticker} vs Nifty 50 · ${rangeTitle}`}
           className="min-w-0"
           bodyClassName="p-3"
         >
@@ -268,7 +280,7 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
             </div>
           ) : (
           <BasketChart
-            range={range}
+            range={view}
             rangeLong={projOn ? HORIZON_LONG[projSet.h] : rangeLong}
             basketKey={key}
             basketName={name}
@@ -290,11 +302,11 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
         {projOn ? (
           <ProjectionStats view={projection} compact heading="h3" empty={failed} single />
         ) : (
-          <BasketStats range={range} basketKey={key} strategy={HELD} compact heading="h3" single />
+          <BasketStats range={view} basketKey={key} strategy={HELD} compact heading="h3" single />
         )}
       </div>
 
-      {projOn ? <ProjectionAnalysis view={projection} heading="h3" empty={failed} single /> : <BasketAnalysis range={range} basketKey={key} benchKey={NIFTY.key} heading="h3" single={ticker} />}
+      {projOn ? <ProjectionAnalysis view={projection} heading="h3" empty={failed} single /> : <BasketAnalysis range={view} basketKey={key} benchKey={NIFTY.key} heading="h3" single={ticker} />}
 
       <p className="text-[11px] leading-relaxed text-ink-soft">
         {projOn

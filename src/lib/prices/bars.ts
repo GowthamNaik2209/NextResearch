@@ -51,6 +51,19 @@ export function rangeInterval(range: ChartRange, interval: BarInterval, firstT: 
   return interval !== "1d" && startsInside(range, firstT, "1d", now) ? "1d" : interval;
 }
 
+const DAILY_RANGES: ChartRange[] = ["1M", "6M", "1Y", "2Y"];
+
+/**
+ * The range a history starting inside `range` (a recent listing) is read over: the shortest daily
+ * range that still holds all of it, so every longer range shows the same days, on daily bars beside a
+ * daily Nifty (a weekly index against a stock's daily closes misreads beta and the index's change).
+ * A history older than 2Y, or one the range cuts, keeps the range. `now`: the series' latest day.
+ */
+export function listingRange(range: ChartRange, firstT: string, now: number): ChartRange {
+  if (!startsInside(range, firstT, "1d", now)) return range;
+  return DAILY_RANGES.find((r) => SPAN_DAYS[r] <= SPAN_DAYS[range] && startsInside(r, firstT, "1d", now)) ?? range;
+}
+
 /**
  * What a chart's change is measured from, for its label: the range's start ("Past 1Y"), the first
  * bar's day ("Since 28 Oct 2026": the history starts inside the range, or "All" on daily bars), or

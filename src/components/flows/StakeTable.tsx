@@ -59,7 +59,7 @@ export function StakeTable({ rows, where, compact }: { rows: StakeRow[]; where?:
       </div>
       <p className="mt-2 text-[11px] text-ink-soft">
         {sorted.length} compan{sorted.length === 1 ? "y" : "ies"}
-        {base ? ` with a filing back to ${fmtMonth(base)}` : ""}
+        {base ? `, compared with their ${fmtMonth(base)} quarter filing` : ""}
         {sort.key === "move" ? " · biggest moves first; tap Holding or the change to sort" : ""}
       </p>
       {sorted.length === 0 ? (
