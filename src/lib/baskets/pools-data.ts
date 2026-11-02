@@ -31,7 +31,10 @@ const strengthOf = (weight: number) => (weight >= 2.5 ? "high" : weight >= 1.5 ?
 export function industryPools(slug: string): IndustryPools | null {
   const sector = getSector(slug);
   const basket = getIndustryBasket(slug);
-  if (!sector || sector.muted || sector.stage === "heatmap" || !basket?.stocks.length) return null;
+  if (!sector || sector.muted || !basket?.stocks.length) return null;
+  // A market index (the Nifty 50): its layers are the index's industries and every company is in
+  // it in full, so none is low exposure.
+  const isIndex = sector.stage === "heatmap";
 
   const companies: (PoolCompany & { strength: string; industries: number })[] = [];
   let asOf = "";
@@ -62,7 +65,7 @@ export function industryPools(slug: string): IndustryPools | null {
   const extra = new Set(LOW_EXPOSURE_EXTRA[slug] ?? []);
   const out: PoolCompany[] = companies.map(({ strength, industries, ...c }) => {
     const big = totalRev > 0 && (c.rev[1] ?? 0) >= LOW_EXPOSURE_REV_SHARE * totalRev;
-    const low = strength === "low" || (big && (strength === "medium" || industries >= LOW_EXPOSURE_MIN_INDUSTRIES)) || extra.has(c.ticker);
+    const low = !isIndex && (strength === "low" || (big && (strength === "medium" || industries >= LOW_EXPOSURE_MIN_INDUSTRIES)) || extra.has(c.ticker));
     return low ? { ...c, lowExposure: true } : c;
   });
 
