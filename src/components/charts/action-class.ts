@@ -5,6 +5,6 @@
 export function actionClass(primary: boolean, on = false) {
   return (
     "flex min-h-9 min-w-0 items-center justify-center whitespace-nowrap rounded-lg border px-3 text-center text-xs font-semibold transition sm:min-h-10 sm:px-3.5 sm:text-sm lg:flex-none lg:px-3 xl:px-4 " +
-    (primary ? "border-accent bg-accent text-bg hover:opacity-90" : on ? "border-accent text-ink" : "border-line font-normal text-ink-soft hover:border-accent hover:text-ink")
+    (primary ? "border-accent bg-accent text-bg hover:opacity-90" : on ? "border-accent bg-accent/15 font-semibold text-ink" : "border-accent font-normal text-ink-soft hover:bg-accent/10 hover:text-ink")
   );
 }

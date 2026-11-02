@@ -34,7 +34,7 @@ export function Hero({ featured, searchIndex, themeRows }: Props) {
           <BrowseThemesButton className="rounded-lg border border-accent bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90" />
           <Link
             href={`/sector/${featured?.slug ?? "datacenter"}/explore`}
-            className="rounded-lg border border-line px-5 py-2.5 text-sm font-semibold text-ink hover:border-accent"
+            className="rounded-lg border border-accent px-5 py-2.5 text-sm font-semibold text-ink hover:bg-accent/10"
           >
             Try the 3D map &rarr;
           </Link>

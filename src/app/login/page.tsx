@@ -77,7 +77,7 @@ export default async function LoginPage({
           <input type="hidden" name="next" value={next} />
           <button
             type="submit"
-            className="w-full rounded-lg border border-line bg-panel-2 px-3 py-2 text-sm font-semibold text-ink hover:border-accent"
+            className="w-full rounded-lg border border-accent bg-panel-2 px-3 py-2 text-sm font-semibold text-ink hover:bg-accent/10"
           >
             Continue with Google
           </button>

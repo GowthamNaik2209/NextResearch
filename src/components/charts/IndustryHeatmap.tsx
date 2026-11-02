@@ -162,7 +162,7 @@ function IndustryHeatmap({ slug, name, stocks, basketHref }: { slug: string; nam
             </>
           )}
         </p>
-        <div role="group" aria-label="Period" className="flex flex-none gap-0.5 rounded-full border border-line p-0.5">
+        <div role="group" aria-label="Period" className="flex flex-none gap-0.5 rounded-full border border-accent p-0.5">
           {RANGES.map((r) => (
             <button
               key={r.id}

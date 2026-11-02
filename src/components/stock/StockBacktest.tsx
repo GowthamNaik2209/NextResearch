@@ -188,7 +188,7 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
   return (
     <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-3">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <div className="inline-flex flex-none overflow-hidden rounded border border-line bg-bg" role="group" aria-label="View">
+        <div className={MINI_SEG} role="group" aria-label="View">
           <button type="button" aria-pressed={!projOn} onClick={() => setMode("backtest")} className={modeBtn(!projOn)}>
             Backtest
           </button>

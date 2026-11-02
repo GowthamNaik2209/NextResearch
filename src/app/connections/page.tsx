@@ -97,7 +97,7 @@ export default async function ConnectionsPage() {
                 )}
                 <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {c.sectors.map((s) => (
-                    <Link key={s.sectorSlug} href={s.href} className="rounded-lg border border-line bg-panel-2 px-3 py-2 transition-colors hover:border-accent">
+                    <Link key={s.sectorSlug} href={s.href} className="rounded-lg border border-accent bg-panel-2 px-3 py-2 transition-colors hover:bg-accent/10">
                       <div className="text-xs font-semibold text-ink">{s.sectorName}</div>
                       <div className="mt-0.5 text-[11px] leading-snug text-ink-soft">
                         {s.zones

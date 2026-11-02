@@ -508,7 +508,7 @@ export function BasketChart({
                       onClick={onPickAll}
                       disabled={allOn}
                       title={capped ? `Draws the first ${MAX_CHART_STOCKS}: the chart's line limit` : undefined}
-                      className="inline-flex min-h-9 items-center rounded border border-line bg-bg px-2.5 text-xs font-semibold text-ink hover:border-accent disabled:cursor-default disabled:text-ink-soft disabled:hover:border-line sm:min-h-7 pointer-coarse:min-h-9"
+                      className="inline-flex min-h-9 items-center rounded border border-accent bg-bg px-2.5 text-xs font-semibold text-ink hover:bg-accent/10 disabled:cursor-default disabled:border-line disabled:text-ink-soft disabled:hover:bg-transparent sm:min-h-7 pointer-coarse:min-h-9"
                     >
                       Select all
                     </button>
@@ -516,7 +516,7 @@ export function BasketChart({
                       type="button"
                       onClick={onPickNone}
                       disabled={picked === 0}
-                      className="inline-flex min-h-9 items-center rounded border border-line bg-bg px-2.5 text-xs font-semibold text-ink hover:border-accent disabled:cursor-default disabled:text-ink-soft disabled:hover:border-line sm:min-h-7 pointer-coarse:min-h-9"
+                      className="inline-flex min-h-9 items-center rounded border border-accent bg-bg px-2.5 text-xs font-semibold text-ink hover:bg-accent/10 disabled:cursor-default disabled:border-line disabled:text-ink-soft disabled:hover:bg-transparent sm:min-h-7 pointer-coarse:min-h-9"
                     >
                       Clear all
                     </button>

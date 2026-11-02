@@ -25,7 +25,7 @@ export function WatchlistNavLink({ signedIn }: { signedIn: boolean }) {
       shortcut="W"
       label="Watchlist"
       aria-label={count ? `Watchlist, ${count} saved` : "Watchlist"}
-      className="tap-target relative flex h-8 min-w-8 items-center justify-center gap-1.5 rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-danger sm:h-9 sm:min-w-9 xl:px-3"
+      className="tap-target relative flex h-8 min-w-8 items-center justify-center gap-1.5 rounded-full border border-accent bg-panel-2 text-ink-soft hover:bg-accent/10 hover:text-danger sm:h-9 sm:min-w-9 xl:px-3"
     >
       <span className={"flex" + (pulse ? " watch-nav-pulse text-danger" : "")} onAnimationEnd={() => setPulse(false)}>
         <HeartIcon filled={!!count} />

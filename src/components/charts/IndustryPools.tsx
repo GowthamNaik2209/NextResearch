@@ -114,14 +114,14 @@ export function IndustryPools({ pools }: { pools: Pools }) {
               type="button"
               aria-pressed={metric === x.id}
               onClick={() => setMetric(x.id)}
-              className={"min-h-8 flex-none rounded-full border px-3 text-xs transition sm:text-[13px] " + (metric === x.id ? "border-accent bg-panel-2 font-semibold text-ink" : "border-line text-ink-soft hover:text-ink")}
+              className={"min-h-8 flex-none rounded-full border px-3 text-xs transition sm:text-[13px] " + (metric === x.id ? "border-accent bg-accent font-semibold text-bg" : "border-accent text-ink-soft hover:bg-accent/10 hover:text-ink")}
             >
               {x.label}
             </button>
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <div role="group" aria-label="Split by" className="flex flex-none gap-0.5 rounded-full border border-line p-0.5">
+          <div role="group" aria-label="Split by" className="flex flex-none gap-0.5 rounded-full border border-accent p-0.5">
             {(["layer", "company"] as const).map((v) => (
               <button
                 key={v}
@@ -155,6 +155,19 @@ export function IndustryPools({ pools }: { pools: Pools }) {
           Most profit for its revenue: <b className="font-semibold">{take.more.layer}</b>, {pct(take.more.profit * 100, 0)} of the profit on {pct(take.more.revenue * 100, 0)} of the revenue. Least:{" "}
           <b className="font-semibold">{take.less.layer}</b>, {pct(take.less.profit * 100, 0)} on {pct(take.less.revenue * 100, 0)}.
         </p>
+      )}
+
+      {/* The picked layer's companies sit under the chart, out of sight: say so, and take you there. */}
+      {sel && (
+        <button
+          type="button"
+          onClick={() => document.getElementById("pools-companies")?.scrollIntoView({ block: "start" })}
+          className="flex min-h-9 w-fit max-w-full items-center gap-2 rounded-lg border border-accent px-3 text-left text-xs font-semibold text-ink hover:bg-accent/10 sm:text-[13px]"
+        >
+          <span aria-hidden className="h-2.5 w-2.5 flex-none rounded-sm" style={{ backgroundColor: colorOf.get(sel) }} />
+          <span className="min-w-0">Scroll down for the companies in {sel}</span>
+          <span aria-hidden className="text-accent">&darr;</span>
+        </button>
       )}
 
       {view === "layer" ? (
@@ -471,7 +484,7 @@ function LayerTable({ layer, metric, withLow }: { layer: LayerPool; metric: Pool
   const key = (c: PoolCompany) => companyValue(c, metric) ?? -Infinity;
   const rows = [...layer.counted].sort((a, b) => key(b) - key(a)).concat(layer.all.filter((c) => c.lowExposure && !withLow));
   return (
-    <div className="flex flex-col gap-2 border-t border-line pt-4">
+    <div id="pools-companies" className="flex scroll-mt-20 flex-col gap-2 border-t border-line pt-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
           <span aria-hidden className="h-3 w-3 flex-none rounded-sm" style={{ backgroundColor: layer.color }} />

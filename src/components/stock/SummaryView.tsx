@@ -29,7 +29,7 @@ export function ExtLink({ href, children }: { href: string; children: React.Reac
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center justify-between gap-2 rounded-lg border border-line bg-panel-2 px-3 py-2 text-xs text-ink transition-colors hover:border-accent pointer-coarse:min-h-9"
+      className="flex items-center justify-between gap-2 rounded-lg border border-accent bg-panel-2 px-3 py-2 text-xs text-ink transition-colors hover:bg-accent/10 pointer-coarse:min-h-9"
     >
       <span>{children}</span>
       <span className="font-mono text-accent">&rarr;</span>
@@ -131,7 +131,7 @@ export function SummaryView({
           <ul className="mt-2 flex flex-col gap-1.5">
             {chains.map((fs) => (
               <li key={fs.sectorSlug}>
-                <Link href={fs.href} className="block rounded-lg border border-line bg-panel-2 px-3 py-2 transition-colors hover:border-accent">
+                <Link href={fs.href} className="block rounded-lg border border-accent bg-panel-2 px-3 py-2 transition-colors hover:bg-accent/10">
                   <div className="text-[12.5px] font-semibold text-ink">{fs.sectorName}</div>
                   <div className="mt-0.5 text-[11px] leading-snug text-ink-soft">
                     {fs.zones
@@ -156,7 +156,7 @@ export function SummaryView({
           <ul className="mt-2 flex flex-col gap-1.5">
             {indices.map((fs) => (
               <li key={fs.sectorSlug}>
-                <Link href={fs.href} className="block rounded-lg border border-line bg-panel-2 px-3 py-2 transition-colors hover:border-accent">
+                <Link href={fs.href} className="block rounded-lg border border-accent bg-panel-2 px-3 py-2 transition-colors hover:bg-accent/10">
                   <div className="text-[12.5px] font-semibold text-ink">{fs.sectorName}</div>
                   <div className="mt-0.5 text-[11px] leading-snug text-ink-soft">{fs.zones.map((z) => z.label).join(" · ")}</div>
                 </Link>

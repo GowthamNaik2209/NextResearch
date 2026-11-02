@@ -116,7 +116,7 @@ export function BasketBreakdown({
           ))}
         </div>
         {active === "weights" && onWeightView && (
-          <div role="group" aria-label="Show weights as" className="flex flex-none gap-0.5 rounded-full border border-line p-0.5">
+          <div role="group" aria-label="Show weights as" className="flex flex-none gap-0.5 rounded-full border border-accent p-0.5">
             {(["bars", "heatmap"] as const).map((v) => (
               <button key={v} type="button" aria-pressed={weightView === v} onClick={() => onWeightView(v)} className={seg(weightView === v).replace("min-h-8 pointer-coarse:min-h-9", "min-h-7 pointer-coarse:min-h-8")}>
                 {v === "bars" ? "Bars" : "Heatmap"}

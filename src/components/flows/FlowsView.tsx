@@ -82,7 +82,7 @@ function WatchlistCard({ watch, period, range }: { watch: WatchlistFlows; period
       ) : watch.rows.length === 0 ? (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <NotYet>Your watchlist is empty. Save companies with the heart beside any ticker and their FII and DII moves show up here.</NotYet>
-          <Link href="/watchlist" className="inline-flex h-9 items-center rounded-full border border-line px-4 text-sm font-semibold text-ink hover:border-accent">
+          <Link href="/watchlist" className="inline-flex h-9 items-center rounded-full border border-accent px-4 text-sm font-semibold text-ink hover:bg-accent/10">
             Open watchlist
           </Link>
         </div>
