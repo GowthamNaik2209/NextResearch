@@ -71,6 +71,8 @@ function scale(id: PoolMetricId, values: number[]) {
   return { tk, lo, hi, x: (v: number) => ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * 100 };
 }
 
+const NONE: ReadonlySet<string> = new Set();
+
 // White on the map's mid-tone layer colours: a dark halo keeps it readable on every one of them.
 const SEG_TEXT = "overflow-hidden whitespace-nowrap text-[11px] font-bold text-white [text-shadow:0_0_2px_rgba(0,0,0,.85),0_0_4px_rgba(0,0,0,.6)]";
 
@@ -81,10 +83,12 @@ export function IndustryPools({ pools }: { pools: Pools }) {
   const [added, setAdded] = useState<ReadonlySet<string>>(() => new Set());
   const layers = layerPools(pools, added);
   const [picked, setPicked] = useState<string | null>(null);
-  // The picked layer, or the one with the most revenue.
+  // The picked layer, or the one with the most revenue before anything is added (so adding a
+  // company doesn't move the table to another layer).
   const sel =
     layers.find((l) => l.name === picked && l.all.length)?.name ??
-    [...layers].sort((a, b) => (groupValue(b.counted, "rev") ?? -1) - (groupValue(a.counted, "rev") ?? -1))[0]?.name;
+    [...layerPools(pools, NONE)].sort((a, b) => (groupValue(b.counted, "rev") ?? -1) - (groupValue(a.counted, "rev") ?? -1))[0]?.name;
+  const selCounted = !!layers.find((l) => l.name === sel)?.counted.length;
   const m = poolMetric(metric);
   const lowCos = pools.companies.filter((c) => c.lowExposure);
   const counted = countedCompanies(pools, added);
@@ -150,11 +154,12 @@ export function IndustryPools({ pools }: { pools: Pools }) {
         <p className="max-w-3xl text-sm text-ink">
           Most profit for its revenue: <b className="font-semibold">{take.more.layer}</b>, {pct(take.more.profit * 100, 0)} of the profit on {pct(take.more.revenue * 100, 0)} of the revenue. Least:{" "}
           <b className="font-semibold">{take.less.layer}</b>, {pct(take.less.profit * 100, 0)} on {pct(take.less.revenue * 100, 0)}.
+          {counted.some((c) => c.oneOff) && <span className="text-ink-soft"> Companies with a one-off year are left out of this comparison.</span>}
         </p>
       )}
 
       {/* The picked layer's companies sit under the chart, out of sight: say so, and take you there. */}
-      {sel && (
+      {sel && selCounted && (
         <button
           type="button"
           onClick={() => {
@@ -517,7 +522,7 @@ function LayerTable({ layer, metric }: { layer: LayerPool; metric: PoolMetricId 
                       {c.name}
                     </StockLink>
                     <span className="ml-1.5 font-mono text-[10px] text-ink-soft">{c.ticker}</span>
-                    {c.oneOff && <Tag title={`${c.oneOff}: its profit is left out of the pools`}>One-off year</Tag>}
+                    {c.oneOff && <Tag title={`${c.oneOff}: its profit, margin and P/E are left out of the pool totals`}>One-off year · profit not in totals</Tag>}
                   </td>
                   {cols.map((col) => (
                     <td key={col.id} className={"px-2 py-1.5 text-right whitespace-nowrap " + (col.id === metric ? "bg-panel-2 font-semibold" : "") + (col.id === "np" && (c.np[1] ?? 0) < 0 ? " text-danger" : "")}>
@@ -574,7 +579,7 @@ function LowExposurePicker({ companies, added, onChange }: { companies: PoolComp
   };
   // Biggest first: the ones that move the pools most.
   const sorted = [...companies].sort((a, b) => (b.rev[1] ?? -1) - (a.rev[1] ?? -1));
-  const small = "min-h-7 rounded border border-accent px-2 text-[11px] font-semibold text-ink hover:bg-accent/10 disabled:border-line disabled:text-ink-soft disabled:hover:bg-transparent pointer-coarse:min-h-9";
+  const small = "min-h-8 rounded border border-accent px-2 text-[11px] font-semibold text-ink hover:bg-accent/10 disabled:border-line disabled:text-ink-soft disabled:hover:bg-transparent pointer-coarse:min-h-9";
   return (
     <div ref={box} className="relative">
       <button
@@ -609,7 +614,7 @@ function LowExposurePicker({ companies, added, onChange }: { companies: PoolComp
                   <input type="checkbox" checked={added.has(c.ticker)} onChange={() => toggle(c.ticker)} className="mt-0.5 h-4 w-4 flex-none accent-[var(--accent)] pointer-coarse:h-5 pointer-coarse:w-5" />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
-                      <span className="truncate text-xs font-semibold text-ink sm:text-[13px]">{c.name}</span>
+                      <span title={c.name} className="truncate text-xs font-semibold text-ink sm:text-[13px]">{c.name}</span>
                       <span className="flex-none text-[11px] text-ink-soft tabular-nums">{croreShort(c.rev[1])}</span>
                     </span>
                     <span className="block text-[11px] leading-snug text-ink-soft">

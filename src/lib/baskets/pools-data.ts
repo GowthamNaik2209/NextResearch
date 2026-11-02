@@ -87,11 +87,11 @@ export function industryPools(slug: string): IndustryPools | null {
     const why = isIndex
       ? null
       : strength === "low"
-        ? "Rated low exposure here"
+        ? "Small part of its business"
         : conglomerate.has(c.ticker)
-          ? `Conglomerate in ${industries} industries`
+          ? `Conglomerate across ${industries} industries`
           : largeGroup.has(c.ticker) || extra.has(c.ticker)
-            ? "Large group, most revenue elsewhere"
+            ? "Most revenue from other businesses"
             : null;
     return why ? { ...c, lowExposure: why } : c;
   });
