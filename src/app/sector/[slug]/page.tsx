@@ -27,6 +27,7 @@ import { Points } from "@/components/Points";
 import { IndustryActions, type HeatStock } from "@/components/charts/IndustryHeatmap";
 import { actionClass } from "@/components/charts/action-class";
 import { getIndustryBasket } from "@/lib/baskets/industry";
+import { industryPools } from "@/lib/baskets/pools-data";
 import { ensureFinancials } from "@/lib/financials/load";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
@@ -170,6 +171,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
           name={sector.name}
           stocks={heatStocks}
           basketHref={sector.muted ? null : `/baskets/industry/${sector.slug}`}
+          pools={industryPools(sector.slug)}
           lead={
             <>
               <Link href={`/sector/${sector.slug}/explore`} className={actionClass(true)}>
