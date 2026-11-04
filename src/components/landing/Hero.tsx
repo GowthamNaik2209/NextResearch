@@ -24,7 +24,7 @@ export function Hero({ featured, searchIndex, themeRows }: Props) {
           <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Supply-chain research for Indian equities
         </span>
         <h1 className="mt-3 font-display text-4xl font-bold leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-6xl">
-          Find the companies behind India&rsquo;s next big theme.
+          All your thematic research on India, in one place.
         </h1>
         <p className="mt-3 max-w-xl text-base leading-relaxed text-ink-soft">
           Industries mapped in 3D, policies by beneficiary, and every big IPO&rsquo;s prospectus in ten slides — with each listed

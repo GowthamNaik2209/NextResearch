@@ -21,7 +21,7 @@ function subscribe(onChange: () => void) {
   return () => mo.disconnect();
 }
 
-/** The current theme, following the toggle live. The server render assumes light. */
+/** The current theme, following the toggle live. The server render assumes dark, the default. */
 export function useSiteTheme(): SiteTheme {
-  return useSyncExternalStore(subscribe, readTheme, () => "light");
+  return useSyncExternalStore(subscribe, readTheme, () => "dark");
 }

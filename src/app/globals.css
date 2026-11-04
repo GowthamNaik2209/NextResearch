@@ -27,7 +27,7 @@
   color-scheme: dark;
 }
 
-/* Light theme (the default) — a warm "research paper" surface with a deep
+/* Light theme (opt-in; dark is the default) — a warm "research paper" surface with a deep
    green accent, deliberately away from the usual cold-blue fintech look.
    Toggled via a `data-theme` attribute on <html> (see ThemeToggle.tsx and the
    inline script in layout.tsx). The 3D explorer mirrors these values in

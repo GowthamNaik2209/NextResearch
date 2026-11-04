@@ -58,8 +58,8 @@ export function ThemeToggle({ variant = "switch" }: { variant?: "switch" | "icon
         title={actionLabel}
         className="tap-target flex h-8 w-8 flex-none items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink sm:h-9 sm:w-9"
       >
-        {/* Before hydration the theme is unknown (null): show the moon, the light default's action. */}
-        {theme === "dark" ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-3.5 w-3.5" />}
+        {/* Before hydration the theme is unknown (null): show the sun, the dark default's action. */}
+        {theme === "light" ? <MoonIcon className="h-3.5 w-3.5" /> : <SunIcon className="h-4 w-4" />}
       </button>
     );
 
