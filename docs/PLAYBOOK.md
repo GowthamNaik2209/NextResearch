@@ -87,7 +87,19 @@ the contract up front so they can run at the same time:
    and `refresh-financials.ts --add=` for new tickers.
    Afterwards compare DB tickers with content tickers; orphaned rows from ticker renames can be
    deleted once no watchlist uses them.
-6. Run the QA routine (section 3).
+6. **Coverage check.** `npm test` runs `src/lib/sector-content/coverage.test.ts`: every listed
+   company of every live sector must be on every derived surface (pop-up allowlist, `/companies` and
+   its page, search, the industry basket and pools, rule-based screens, the picker, projections,
+   price-store keys, footprint and `/connections`, the `/updates` feed and FII/DII view, the news
+   matcher, the Analysis chart picker), and every live sector needs its card, search entry, basket,
+   deck, scenarios, reading list and a `SECTOR_INDEX` entry or a named `NO_BENCHMARK` reason. A
+   legitimate exclusion is a named rule in that file with its reason, never a skip. Then
+   `npx tsx scripts/check-coverage.ts` (read-only) for the database side: a tracked `Company` row
+   with figures, a recent `PriceSeries` (years held), `Shareholding` rows, and stored basket figures
+   per sector; it prints the backfill command for each gap (`refresh-prices.ts --only=...`,
+   `backfill-shareholding.ts --only=...`, `refresh-basket-returns.ts`) - run those only with the
+   go-ahead, they write to the shared database. A module is not done until both are clean.
+7. Run the QA routine (section 3).
 
 ### 1.4 Policies (since Oct 2026)
 
@@ -101,6 +113,8 @@ a new ticker's figures go into the company table with `refresh-financials.ts --a
 
 Every surface else is the same as an industry: news matcher entries and tests, `SECTOR_INDEX`,
 marketing copy, extract + seed.
+Before calling it done, the same coverage check as 1.3 step 6: `npm test` (coverage.test.ts) and
+`npx tsx scripts/check-coverage.ts`.
 
 ### 1.5 One set of figures per company, one date
 

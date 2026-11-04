@@ -57,16 +57,6 @@ export function developmentsTitle(deck: Deck) {
   return `${head}: ${listJoin(parts)}`;
 }
 
-export function overviewTitle(deck: Deck) {
-  const o = deck.report.overview;
-  const g = growthLine(o.chart.points);
-  if (!g) return o.chart.title;
-  // Very high CAGRs come from launch-year bases and read better as a multiple.
-  const growth = g.cagr > 100 ? `~${Math.round(g.multiple)}x` : `~${Math.round(g.cagr)}% a year`;
-  const proj = g.end && Math.abs(g.end.value / g.b.value - 1) >= 0.15 ? `, with ${g.end.label} projected at ~${(g.end.value / g.b.value).toFixed(1)}x the ${g.b.label} level` : "";
-  return `${o.chart.title}: ${growth} from ${g.a.label} to ${g.b.label}${proj}`;
-}
-
 export function valueChainTitle(deck: Deck) {
   const chain = deck.report.valueChain;
   const high = chain.filter((s) => s.moat === "high").map((s) => lcFirst(s.stage));

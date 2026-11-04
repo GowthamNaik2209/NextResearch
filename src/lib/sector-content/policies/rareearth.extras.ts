@@ -1,4 +1,4 @@
-// Rare-Earth Magnets (REPM): what-if scenarios and the curated reading list.
+// Critical Minerals & Rare Earths (NCMM + REPM): what-if scenarios and the curated reading list.
 // Wired into ../scenarios.ts (SCENARIOS.rareearth) and ../docs.ts (SECTOR_DOCS.rareearth).
 import type { Scenario } from "../scenarios";
 import type { ResearchLink } from "../docs";
@@ -9,7 +9,7 @@ export const RAREEARTH_SCENARIOS: Scenario[] = [
     title: "China's curbs come back",
     blurb: "China paused its Oct 2025 export controls for one year only, to 10 Nov 2026",
     story:
-      "China paused its tougher October 2025 rare-earth and magnet controls for a year, to 10 November 2026; the April 2025 licensing regime is still in force. If the pause lapses, Indian magnet buyers face licence delays again before any Indian plant can produce (scheme plants need about two years from award). Motor and e-scooter makers are hit first, as in mid-2025. The upside goes to anyone who can make magnets or oxide outside China, which strengthens the case for the scheme and for faster awards.",
+      "China paused its tougher October 2025 rare-earth, magnet and battery-material controls for a year, to 10 November 2026; the April 2025 licensing regime is still in force. If the pause lapses, Indian magnet buyers face licence delays again before any Indian plant can produce (scheme plants need about two years from award), and battery-material supply chains get tighter too. Motor and e-scooter makers are hit first, as in mid-2025. The upside goes to anyone who can make magnets, oxide or battery salts outside China - recyclers included - which strengthens the case for faster awards and for the Critical Mineral Mission's overseas push.",
     effect: "headwind",
     impacts: [
       { zone: "ev_2w", severity: 3, why: "E-scooter output fell by about half at Bajaj in July 2025 the last time" },
@@ -18,6 +18,8 @@ export const RAREEARTH_SCENARIOS: Scenario[] = [
       { zone: "wind", severity: 1, why: "India's geared DFIG turbines use little magnet, so the hit is small" },
       { zone: "magnet_making", severity: 2, effect: "tailwind", why: "Buyers pay up for non-China supply; pressure to award the scheme quickly" },
       { zone: "recycling", severity: 1, effect: "tailwind", why: "Scrap magnets become more valuable feedstock" },
+      { zone: "battery_recycling", severity: 1, effect: "tailwind", why: "Recovered lithium, cobalt and nickel gain value as non-China supply" },
+      { zone: "lithium", severity: 1, effect: "tailwind", why: "More urgency behind KABIL and Coal India's overseas deals" },
     ],
   },
   {
@@ -36,39 +38,41 @@ export const RAREEARTH_SCENARIOS: Scenario[] = [
     ],
   },
   {
-    id: "ferrite-shift",
-    title: "Motors move to ferrite",
-    blurb: "Two-wheeler makers switch to rare-earth-free motors faster than expected",
+    id: "copper-squeeze",
+    title: "Copper stays scarce",
+    blurb: "Record copper prices and a global concentrate shortage persist",
     story:
-      "Ola has certified a ferrite motor, TVS is reported (unconfirmed) to be working on one, and Sona Comstar has rare-earth-free motors validated for three-wheelers. If ferrite and magnet-free designs spread quickly in two- and three-wheelers, domestic demand for NdFeB magnets grows more slowly than the government's 'double by 2030' estimate. Vehicle makers win on supply security; new Indian magnet plants face thinner demand and more pressure on price.",
-    effect: "headwind",
+      "Copper hit a record in September 2026 (LME three-month US$14,533 a tonne) as mine supply lagged electrification demand. If that persists, the miner wins and the custom smelters lose: Hindustan Copper earns more on every tonne it digs, while Hindalco's Dahej and Adani's Mundra plants pay up for scarce concentrate and earn thin processing fees. Recyclers who recover copper from e-waste gain, and the Mission's overseas copper hunt (Coal India in Chile) becomes more urgent.",
+    effect: "tailwind",
     impacts: [
-      { zone: "magnet_making", severity: 2, why: "Smaller domestic market for the scheme's magnets" },
-      { zone: "recycling", severity: 1, why: "Less future scrap from two-wheeler motors" },
-      { zone: "ev_2w", severity: 2, effect: "tailwind", why: "Less exposure to China curbs and cheaper motors" },
-      { zone: "ev_motors", severity: 1, effect: "tailwind", why: "Motor makers with ferrite designs win share in small vehicles" },
+      { zone: "copper", severity: 2, why: "Higher prices help the miner; low processing fees hurt custom smelters" },
+      { zone: "battery_recycling", severity: 1, why: "Recovered copper from e-waste is worth more" },
+      { zone: "lithium", severity: 1, why: "Overseas deals widen from lithium to copper assets" },
+      { zone: "ev_motors", severity: 1, effect: "headwind", why: "Copper windings get costlier for motor makers" },
     ],
   },
   {
     id: "hardrock-breakthrough",
-    title: "Hard-rock rare earths scale up",
-    blurb: "Ambadungar and other inland deposits move from pilot to production",
+    title: "Mission supply starts to land",
+    blurb: "Auctioned blocks, Ambadungar and overseas lithium move from paper to production",
     story:
-      "GMDC's Ambadungar deposit (BARC technology, Jan 2026) and the GMDC-NMDC partnership prove the process at scale, and corridor states push new separation plants. India gets oxide from sources beyond IREL's beach-sand monazite, which eases the scheme's biggest constraint. Listed miners finally have rare-earth revenue to show, and magnet makers outside IREL's three oxide slots can source locally.",
+      "GMDC's Ambadungar deposit (BARC technology, Jan 2026) proves its process at scale, the first auctioned critical-mineral blocks (56 by June 2026) clear exploration and permits, and KABIL's Argentine lithium blocks find a resource worth developing. India gets oxide and battery minerals from sources beyond IREL's beach-sand monazite and Chinese refiners, which eases the magnet scheme's biggest constraint. Listed miners - GMDC, Coal India, Hindustan Zinc, Vedanta - finally have critical-mineral revenue to show.",
     effect: "tailwind",
     impacts: [
       { zone: "hardrock", severity: 3, why: "Pilot-to-commercial step turns an option into a business" },
       { zone: "separation", severity: 2, why: "New feed needs new separation capacity" },
       { zone: "magnet_making", severity: 2, why: "Oxide for winners beyond IREL's allocation" },
+      { zone: "auctions", severity: 2, why: "Block wins start turning into mines and royalties" },
+      { zone: "lithium", severity: 2, why: "Overseas brine blocks move towards production" },
       { zone: "beach_sand", severity: 1, effect: "headwind", why: "IREL loses its near-monopoly over feedstock" },
     ],
   },
 ];
 
-// Each URL loaded on 20 Oct 2026.
+// Each URL loaded on 3 Nov 2026.
 export const RAREEARTH_DOCS: ResearchLink[] = [
+  { title: "Cabinet approves National Critical Mineral Mission", source: "PIB / PM India, 29 Jan 2025", url: "https://www.pmindia.gov.in/en/news_updates/cabinet-approves-national-critical-mineral-mission-to-build-a-resilient-value-chain-for-critical-mineral-resources-vital-to-green-technologies-with-an-outlay-of-rs-34300-crore-over-seven-years" },
   { title: "Cabinet approves Rs 7,280 crore scheme for sintered rare-earth permanent magnets", source: "PIB, 26 Nov 2025", url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2194687" },
-  { title: "Scheme notification (S.O. 5800(E)), RFP and addenda", source: "Ministry of Heavy Industries", url: "https://heavyindustries.gov.in/en/scheme-notification" },
   { title: "MHI receives 20 bids for integrated sintered NdFeB magnet plants", source: "PIB, 13 Aug 2026", url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2299078" },
-  { title: "India's REE strategy: turning resources into capacity", source: "Observer Research Foundation", url: "https://www.orfonline.org/research/india-s-ree-strategy-turning-resources-into-capacity" },
+  { title: "Cabinet approves ₹1,500 crore incentive scheme to promote critical mineral recycling", source: "PIB, 3 Sep 2025", url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2163454" },
 ];

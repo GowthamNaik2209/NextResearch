@@ -92,3 +92,17 @@ export function periodFigures(points: PricePoint[], bench: PricePoint[] | null, 
   const b = benchPeriodRet(bench, period);
   return fig && b != null ? { ...fig, vs: shownPct(fig.ret) - shownPct(b) } : fig;
 }
+
+/**
+ * A chart line cut to the dates of the line it is drawn beside (the basket's or stock's own):
+ * nothing after that line's last day and, with `fromStart` (a single stock listed during the
+ * range), nothing before its first. So an index's line covers the same days its return card and
+ * the stats grid measure it over (stats.ts relativeStats: the index read on the line's dates),
+ * even when the index has a close the line doesn't have yet.
+ */
+export function onLineDays(points: PricePoint[], own: PricePoint[] | undefined, fromStart: boolean): PricePoint[] {
+  if (!own?.length) return points;
+  const from = fromStart ? own[0].t : null;
+  const to = own[own.length - 1].t;
+  return points.filter((p) => (!from || p.t >= from) && p.t <= to);
+}

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { IpoDeck, IpoPeer } from "@/lib/ipo-content";
+import { useSegmentTip } from "@/components/charts/SegmentTip";
 import type { Tone } from "@/lib/ipo-content/types";
 import type { OpenableStock } from "@/components/research/Presentation";
 import { BarChart, Chip, MixChart, Panel, SlideHead, TONE_LABEL, TONE_TEXT, ToneBadge, ToneIcon, ToneValueCell } from "@/components/research/slides";
@@ -188,12 +189,14 @@ function IssueSplit({ deck }: { deck: IpoDeck }) {
   ].filter((p) => (p.value ?? 0) > 0 || p.text);
   const known = parts.reduce((a, p) => a + (p.value ?? 0), 0);
   const allKnown = parts.every((p) => p.value != null);
+  const { tipFor, tipNode } = useSegmentTip();
   return (
     <figure>
+      {tipNode}
       {allKnown && known > 0 ? (
         <div className="flex h-4 w-full gap-[2px] overflow-hidden rounded-full" role="img" aria-label={parts.map((p) => `${p.label} ${fmtCr(p.value)}`).join(", ")}>
           {parts.map((p) => (
-            <span key={p.label} style={{ width: `${((p.value ?? 0) / known) * 100}%`, background: p.color }} />
+            <span key={p.label} {...tipFor(`${p.label}: ${fmtCr(p.value)}`)} style={{ width: `${((p.value ?? 0) / known) * 100}%`, background: p.color }} />
           ))}
         </div>
       ) : (

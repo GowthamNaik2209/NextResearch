@@ -279,6 +279,18 @@ select {
     font-size: 13px;
   }
 }
+/* Phones: the heart alone. "Watching" is wider than "Watch", so the label pushed into the title beside
+   it when tapped; the filled heart already says it is on the watchlist (aria-label names the action). */
+@media (max-width: 639px) {
+  .watch-pill {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+  .watch-pill-label {
+    display: none;
+  }
+}
 .watch-pill:hover {
   color: var(--danger);
   border-color: var(--danger);

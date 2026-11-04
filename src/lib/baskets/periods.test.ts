@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { benchPeriodRet, onWindow, periodFigures } from "./periods";
+import { benchPeriodRet, onLineDays, onWindow, periodFigures } from "./periods";
+import { relativeStats } from "./stats";
 import { runBacktest } from "./backtest";
 import { onBenchWindow } from "./run";
 import { shownPct } from "./fmt";
@@ -70,4 +71,37 @@ test("onBenchWindow dates a stock's close before the first day to that day and d
   ]);
   // MAX keeps the stock's earlier history (the index's can start later).
   assert.equal(onBenchWindow(pts, DAYS, "MAX")[0].t, "2025-10-31");
+});
+
+test("a stock listed weeks ago: the chart's Nifty 50 line ends on the same return as the stats grid's", () => {
+  // NSE-like: listed 24 Sep, last stored close 30 Oct; the Nifty 50 has a close the stock doesn't
+  // yet (2 Nov, +1.7%). The chart drew the index on to 2 Nov (+1.6%) beside a stats grid reading
+  // it on the stock's dates (0.0%).
+  const nifty = [
+    { t: "2026-09-22", c: 23329 },
+    { t: "2026-09-24", c: 23063.1 },
+    { t: "2026-10-15", c: 22800 },
+    { t: "2026-10-30", c: 23053.1 },
+    { t: "2026-11-02", c: 23440.8 },
+  ];
+  const stock = [
+    { t: "2026-09-24", c: 1818 },
+    { t: "2026-10-15", c: 1760 },
+    { t: "2026-10-30", c: 1782.1 },
+  ];
+  const line = onLineDays(nifty, stock, true);
+  assert.deepEqual(
+    line.map((p) => p.t),
+    ["2026-09-24", "2026-10-15", "2026-10-30"],
+  );
+  const chartRet = (line[line.length - 1].c / line[0].c - 1) * 100;
+  near(chartRet, relativeStats(stock, nifty)!.benchRet);
+  assert.ok(Math.abs(shownPct(chartRet)) < 0.05, "shows 0.0%");
+  // A basket keeps the index from the range's start, and still ends on the basket's last day.
+  assert.deepEqual(
+    onLineDays(nifty, stock, false).map((p) => p.t),
+    ["2026-09-22", "2026-09-24", "2026-10-15", "2026-10-30"],
+  );
+  // A line ending after the index (a live tick) leaves the index whole.
+  assert.equal(onLineDays(nifty, [...stock, { t: "2026-11-03", c: 1800 }], false).length, nifty.length);
 });

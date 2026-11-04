@@ -47,7 +47,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               Analysis
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-              Every industry and policy we cover: a deep dive into its supply chain and listed companies, a ten-slide report for
+              Every covered industry and policy: a deep dive into its supply chain and listed companies, a ten-slide report for
               investors, and a price chart for each of its listed stocks.
             </p>
           </div>

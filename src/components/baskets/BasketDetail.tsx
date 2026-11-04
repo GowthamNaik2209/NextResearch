@@ -1991,7 +1991,7 @@ export function BasketDetail(p: BasketDetailProps) {
                             <span aria-hidden className="w-9 flex-none" />
                             <div className="min-w-0 flex-1">
                               <div className="font-mono text-[13px] font-semibold text-ink-soft">{t}</div>
-                              <div className="text-[11px] text-ink-soft">No longer listed in our maps, so it is left out of the backtest.</div>
+                              <div className="text-[11px] text-ink-soft">No longer among covered companies, so it is left out of the backtest.</div>
                             </div>
                             {canEdit && (showRemove ? removeButton({ ticker: t, name: t }, false) : <span aria-hidden className="w-9 flex-none" />)}
                           </li>
@@ -2129,7 +2129,7 @@ export function BasketDetail(p: BasketDetailProps) {
                                 <td className="pl-2" />
                                 <td className="px-2 py-1.5">
                                   <span className="block font-mono font-semibold">{t}</span>
-                                  <span className="block text-[10px]">No longer listed in our maps</span>
+                                  <span className="block text-[10px]">No longer covered</span>
                                 </td>
                                 <td colSpan={(sinceShown ? 7 : 6) + (p.pickedOn ? 1 : 0) + (projOn ? 2 : 0)} className="px-2 py-1.5 text-right text-[11px]">
                                   Left out of the backtest

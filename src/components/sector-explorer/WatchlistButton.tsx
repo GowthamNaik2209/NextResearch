@@ -243,7 +243,7 @@ export function WatchlistButton({ ticker, name, variant = "icon" }: Props) {
         <svg viewBox="0 0 24 24" width={pill ? 14 : 17} height={pill ? 14 : 17} className="watch-heart" aria-hidden>
           <path d="M12 21s-7.5-4.6-10.2-9.3C.1 8.9 1 5.3 4.3 4.1c2.3-.8 4.6.1 5.9 2 .5.7 1.4 1.9 1.8 2.5.4-.6 1.3-1.8 1.8-2.5 1.3-1.9 3.6-2.8 5.9-2 3.3 1.2 4.2 4.8 2.5 7.6C19.5 16.4 12 21 12 21z" />
         </svg>
-        {pill && <span aria-hidden>{liked ? "Watching" : "Watch"}</span>}
+        {pill && <span aria-hidden className="watch-pill-label">{liked ? "Watching" : "Watch"}</span>}
       </button>
       {needsAuth && <SavePrompt ticker={ticker} name={name} onClose={() => setNeedsAuth(false)} />}
       {toast > 0 && <SavedToast key={toast} name={name ?? ticker} onDone={hideToast} />}

@@ -10,11 +10,10 @@ export type ThemeRow = {
   icon: string;
   name: string;
   sub: string;
-  /** Chip on the right: "3D map", an IPO's status, or "Coming soon". */
+  /** Chip on the right: "Industry", "Policy" or an IPO's status. */
   chip: string;
-  chipTone: "accent" | "live" | "soon";
-  /** Absent for coming-soon rows. */
-  href?: string;
+  chipTone: "accent" | "live";
+  href: string;
   /** IPO rows open that deck here, on the landing page (href is the fallback without JS). Only
    *  set for an IPO that has a deck (buildHeroThemeRows). */
   ipoSlug?: string;
@@ -29,7 +28,6 @@ const TABS: { id: ThemeTab; label: string }[] = [
 const CHIP = {
   accent: "bg-accent/10 text-accent",
   live: "border border-pos/40 text-pos",
-  soon: "border border-dashed border-line text-ink-soft",
 } as const;
 
 const scrollToThemes = () => document.getElementById("themes")?.scrollIntoView({ behavior: "smooth" });
@@ -135,24 +133,20 @@ export function ThemeWindow({ rows }: { rows: Record<ThemeTab, ThemeRow[]> }) {
             const cls = "flex items-center gap-3 rounded-lg border border-line px-3 py-2.5";
             return (
               <li key={r.key} className={i >= 2 ? "hidden sm:block" : undefined}>
-                {r.href ? (
-                  <Link
-                    href={r.href}
-                    onClick={(e) => {
-                      if (!r.ipoSlug) return;
-                      e.preventDefault();
-                      setAdopt(false);
-                      setOpenIpo(r.ipoSlug);
-                    }}
-                    {...(r.ipoSlug ? intentProps(() => prefetchIpo(r.ipoSlug!)) : {})}
-                    aria-haspopup={r.ipoSlug ? "dialog" : undefined}
-                    className={cls + " bg-panel-2 transition hover:border-accent"}
-                  >
-                    {body}
-                  </Link>
-                ) : (
-                  <div className={cls + " border-dashed"}>{body}</div>
-                )}
+                <Link
+                  href={r.href}
+                  onClick={(e) => {
+                    if (!r.ipoSlug) return;
+                    e.preventDefault();
+                    setAdopt(false);
+                    setOpenIpo(r.ipoSlug);
+                  }}
+                  {...(r.ipoSlug ? intentProps(() => prefetchIpo(r.ipoSlug!)) : {})}
+                  aria-haspopup={r.ipoSlug ? "dialog" : undefined}
+                  className={cls + " bg-panel-2 transition hover:border-accent"}
+                >
+                  {body}
+                </Link>
               </li>
             );
           })}

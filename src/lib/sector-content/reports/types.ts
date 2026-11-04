@@ -41,10 +41,21 @@ export type SectorReport = {
 
   // --- Slide 3: industry overview ---
   overview: {
+    /**
+     * Optional authored action title for the slide. Without it the title is derived from the
+     * chart: a growth rate for a time series, a plain "largest of" line for a category chart.
+     */
+    headline?: string;
     /** 2-3 short paragraphs. */
     narrative: string[];
-    /** Market-size (or volume) series, 5-8 points; mark forecasts with projected. */
-    chart: { title: string; unit: string; source: string; points: SeriesPoint[] };
+    /**
+     * Market-size (or volume) series, 4-8 points; mark forecasts with projected. `kind` says
+     * whether the labels are periods ("series": FY21, 2025, Sep 26) or unrelated categories
+     * ("categories": schemes, segments, stages). Category charts never get a growth-rate
+     * headline and draw as horizontal bars so long labels stay readable. Left out, the kind is
+     * inferred from the labels.
+     */
+    chart: { title: string; unit: string; source: string; points: SeriesPoint[]; kind?: "series" | "categories" };
     /** 4-6 rows, like an analyst's "industry snapshot" table. */
     snapshot: { label: string; value: string; tone?: Tone }[];
   };
@@ -78,3 +89,22 @@ export type SectorReport = {
   /** 3-6 external reports to read further (real, stable URLs). */
   reading: { title: string; source: string; url: string; year?: string }[];
 };
+
+// A chart label that names a period: "FY21", "FY26BE", "FY29T", "2030P", "Sep 26", "Oct 2025".
+const PERIOD_LABEL = /^(?:(?:FY|CY)?\d{2}(?:\d{2})?[A-Z]{0,2}|[A-Z][a-z]{2} \d{2}(?:\d{2})?)$/;
+const periodYear = (label: string) => {
+  const m = label.match(/(\d{4}|\d{2})/);
+  if (!m) return null;
+  const n = parseInt(m[1], 10);
+  return n < 100 ? 2000 + n : n;
+};
+
+/** True when every label is a period and the periods run forward (never back). */
+export function looksLikeTimeSeries(points: SeriesPoint[]) {
+  if (!points.every((p) => PERIOD_LABEL.test(p.label))) return false;
+  const ys = points.map((p) => periodYear(p.label)!);
+  return ys.every((y, i) => i === 0 || y >= ys[i - 1]) && ys[ys.length - 1] > ys[0];
+}
+
+/** The chart's kind: authored, or inferred from its labels. */
+export const chartKind = (chart: SectorReport["overview"]["chart"]) => chart.kind ?? (looksLikeTimeSeries(chart.points) ? "series" : "categories");

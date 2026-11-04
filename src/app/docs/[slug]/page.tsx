@@ -76,7 +76,7 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
               <p className="mt-1 text-sm text-ink-soft">{deck.report.stance.line}</p>
             </div>
             <OpenReportButton slug={deck.slug} className="flex-none whitespace-nowrap rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90">
-              Read curated report &rarr;
+              Read curated report
             </OpenReportButton>
           </section>
         )}

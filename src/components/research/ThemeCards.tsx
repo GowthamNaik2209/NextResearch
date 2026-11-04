@@ -20,7 +20,6 @@ export type SectorCard = {
   medianRoce: number | null;
   combinedRevenueCr: number | null;
 };
-export type ComingSoonSector = { icon: string; name: string; tagline: string; category?: SectorCategory };
 
 export type ThemeTab = "sector" | "policy" | "ipo";
 /** Fired by the hero's theme window to open the Analysis block's Deep dive on a tab ("all" from "Browse deep dives"). */
@@ -32,18 +31,14 @@ const REVENUE_NOTE =
 
 export function ThemeCards({
   sectors,
-  comingSoon,
   filter,
   onCharts,
 }: {
   sectors: SectorCard[];
-  comingSoon: ComingSoonSector[];
   filter: "all" | "sector" | "policy";
   onCharts: (slug: string) => void;
 }) {
-  const inTab = sectors.filter((s) => filter === "all" || (s.category ?? "sector") === filter);
-  const live = inTab.filter((s) => !s.muted);
-  const soon = [...inTab.filter((s) => s.muted), ...comingSoon.filter((s) => filter === "all" || (s.category ?? "sector") === filter)];
+  const live = sectors.filter((s) => !s.muted && (filter === "all" || (s.category ?? "sector") === filter));
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
@@ -106,16 +101,7 @@ export function ThemeCards({
           </div>
         </div>
       ))}
-      {soon.map((s) => (
-        // Muted by the dashed border, the soft title and the label, not by fading: faded text fails 4.5:1.
-        <div key={s.name} className="flex flex-col gap-3 rounded-2xl border border-dashed border-line p-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-panel-2 font-mono text-xs font-bold text-ink-soft">{s.icon}</div>
-          <h3 className="font-display text-lg font-semibold text-ink-soft">{s.name}</h3>
-          <p className="text-sm leading-relaxed text-ink-soft">{s.tagline}</p>
-          <span className="mt-auto text-[10px] font-bold uppercase tracking-wide text-accent">Coming soon</span>
-        </div>
-      ))}
-      {live.length === 0 && soon.length === 0 && <p className="text-sm text-ink-soft">Nothing here yet. Check back soon.</p>}
+      {live.length === 0 && <p className="text-sm text-ink-soft">Nothing here yet. Check back soon.</p>}
     </div>
   );
 }

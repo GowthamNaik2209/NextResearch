@@ -15,6 +15,7 @@ export function ScrollX({
   fade = "from-panel",
   startAtEnd = false,
   heldWidth = "left-0",
+  hint,
 }: {
   children: ReactNode;
   className?: string;
@@ -22,6 +23,8 @@ export function ScrollX({
   startAtEnd?: boolean;
   /** Where the left fade starts: a `left-*` class the width of a sticky first column. */
   heldWidth?: string;
+  /** A line shown under the box only while columns sit off to the right ("Scroll sideways for more"). */
+  hint?: ReactNode;
 }) {
   const box = useRef<HTMLDivElement>(null);
   const [more, setMore] = useState(false);
@@ -47,13 +50,20 @@ export function ScrollX({
     };
   }, [startAtEnd]);
 
-  return (
+  const scroller = (
     <div className="relative min-w-0">
       <div ref={box} className={"overflow-x-auto overflow-y-hidden overscroll-x-contain " + className}>
         {children}
       </div>
       {startAtEnd && <div aria-hidden className={"pointer-events-none absolute inset-y-0 z-[2] w-8 bg-gradient-to-r to-transparent transition-opacity " + heldWidth + " " + fade + (before ? " opacity-100" : " opacity-0")} />}
       <div aria-hidden className={"pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l to-transparent transition-opacity " + fade + (more ? " opacity-100" : " opacity-0")} />
+    </div>
+  );
+  if (!hint) return scroller;
+  return (
+    <div className="min-w-0">
+      {scroller}
+      {more && <div className="border-t border-line px-4 py-1.5 text-right text-[10.5px] text-ink-soft">{hint}</div>}
     </div>
   );
 }

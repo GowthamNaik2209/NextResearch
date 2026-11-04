@@ -2,18 +2,21 @@
 
 import type { ReactNode } from "react";
 import { croreShort } from "@/lib/format";
+import { ScrollX } from "@/components/ScrollX";
+import { useSegmentTip } from "@/components/charts/SegmentTip";
 import type { Deck, DeckCompany, Tone } from "@/lib/sector-content/reports";
-import type { PestleKey, SeriesPoint } from "@/lib/sector-content/reports/types";
+import { chartKind, type PestleKey, type SeriesPoint } from "@/lib/sector-content/reports/types";
 import {
   beneficiariesTitle,
   companyNewsTitle,
   developmentsTitle,
   driversTitle,
+  growthLine,
   outlookTitle,
-  overviewTitle,
   pestleTitle,
   scorecardTitle,
   valueChainTitle,
+  yearOf,
 } from "./headlines";
 
 // The ten slides of a research deck, in order. Each slide leads with an "action
@@ -211,14 +214,17 @@ function SummarySlide({ deck }: SlideProps) {
 
 function DevelopmentsSlide({ deck }: SlideProps) {
   const devs = deck.report.developments;
+  // "Aug 2026" fits the narrow column; a day-first "23 Sep 2026" or a range "Jul-Aug 2025" gets
+  // a wider one for the whole deck (so every card lines up) instead of wrapping onto two lines.
+  const longest = Math.max(...devs.map((d) => d.date.length));
   return (
     <>
       <SlideHead n={2} eyebrow="Latest developments" title={developmentsTitle(deck)} />
       <ol className="relative grid gap-3 md:grid-cols-2">
         {devs.map((d) => (
           <li key={d.title} className="flex gap-3 rounded-xl border border-line bg-panel p-4">
-            <div className="flex w-16 flex-none flex-col items-start">
-              <span className="font-mono text-[11px] font-semibold leading-tight text-accent">{d.date}</span>
+            <div className={"flex flex-none flex-col items-start " + (longest > 11 ? "w-[5.25rem]" : longest > 8 ? "w-[4.75rem]" : "w-16")}>
+              <span className={"font-mono text-[11px] font-semibold leading-tight text-accent " + (d.date.length <= 12 ? "whitespace-nowrap" : "")}>{d.date}</span>
               <span className="mt-2 h-full w-px bg-line" aria-hidden />
             </div>
             <div className="min-w-0">
@@ -239,45 +245,142 @@ function DevelopmentsSlide({ deck }: SlideProps) {
 
 // ---------- 3. Industry overview ----------
 
+// Missing periods inside an annual series ("FY20, FY24" skips FY21-23) as a visible break, so
+// the bars never imply a straight run. Only for series that are otherwise annual (median step of
+// one year) and only between actual points: projections are already marked as projected.
+type BarCol = { kind: "bar"; p: SeriesPoint } | { kind: "gap"; label: string };
+function barColumns(points: SeriesPoint[]): BarCol[] {
+  const ys = points.map((p) => yearOf(p.label));
+  const steps = ys.slice(1).map((y, i) => (y != null && ys[i] != null ? y - ys[i]! : null)).filter((x): x is number => x != null).sort((a, b) => a - b);
+  const annual = steps.length > 0 && steps[Math.floor(steps.length / 2)] === 1;
+  const out: BarCol[] = [];
+  points.forEach((p, i) => {
+    const prev = points[i - 1];
+    const ya = ys[i - 1];
+    const yb = ys[i];
+    if (annual && prev && !prev.projected && !p.projected && ya != null && yb != null && yb - ya > 1) {
+      const prefix = prev.label.match(/^[A-Za-z]*/)![0];
+      const fmt = (y: number) => prefix + (/\d{4}/.test(prev.label) ? String(y) : String(y % 100).padStart(2, "0"));
+      out.push({ kind: "gap", label: yb - ya === 2 ? fmt(ya + 1) : `${fmt(ya + 1)}-${String((yb - 1) % 100).padStart(2, "0")}` });
+    }
+    out.push({ kind: "bar", p });
+  });
+  return out;
+}
+
+function GapMark() {
+  // Two slanted strokes on the axis: the usual "broken axis" sign.
+  return (
+    <svg viewBox="0 0 12 16" width="12" height="16" aria-hidden className="text-ink-soft">
+      <path d="M2 12 L6 4 M6 12 L10 4" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function BarChart({ points, unit }: { points: SeriesPoint[]; unit: string }) {
   const max = Math.max(...points.map((p) => p.value), 1);
   const hasProj = points.some((p) => p.projected);
   // One decimal for every small value in the chart if any needs it ("4.4 / 7.0 / 7.7", not "4.4 / 7 / 7.7").
   const dec = points.some((p) => p.value < 100 && p.value % 1 !== 0);
+  const cols = barColumns(points);
+  const gaps = cols.filter((c): c is Extract<BarCol, { kind: "gap" }> => c.kind === "gap").map((c) => c.label);
   return (
-    <figure>
-      <div className="flex h-44 items-end gap-1.5 sm:h-52 sm:gap-2.5" role="img" aria-label={points.map((p) => `${p.label}: ${p.value} ${unit}`).join(", ")}>
-        {points.map((p) => (
-          <div key={p.label} className="group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end">
-            <span className="mb-1 font-mono text-[10px] font-semibold tabular-nums text-ink sm:text-[11px]">{inr(p.value, p.value < 1000 && dec ? 1 : 0)}</span>
-            <div
-              className={
-                "w-full max-w-[56px] rounded-t-[4px] transition-opacity group-hover:opacity-80 " +
-                (p.projected ? "border border-dashed border-accent bg-[repeating-linear-gradient(135deg,transparent_0_4px,color-mix(in_srgb,var(--accent)_35%,transparent)_4px_6px)]" : "bg-accent")
-              }
-              style={{ height: `${Math.max(2, (p.value / max) * 100)}%` }}
-            />
-            <span className="pointer-events-none absolute -top-7 z-10 hidden whitespace-nowrap rounded-md border border-line bg-bg px-2 py-1 text-[10.5px] text-ink shadow-lg group-hover:block">
-              {p.label}: {inr(p.value, 1)} {unit}
-              {p.projected ? " (projected)" : ""}
+    <figure className="min-w-0">
+      <div className="flex h-44 items-end gap-1.5 sm:h-52 sm:gap-2.5" role="img" aria-label={points.map((p) => `${p.label}: ${p.value} ${unit}`).join(", ") + (gaps.length ? `; no data shown for ${gaps.join(", ")}` : "")}>
+        {cols.map((c) =>
+          c.kind === "gap" ? (
+            <div key={"gap-" + c.label} className="flex h-full w-3 flex-none items-end justify-center pb-0.5" title={`${c.label}: no data shown`}>
+              <GapMark />
+            </div>
+          ) : (
+            <div key={c.p.label} className="group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end">
+              <span className="mb-1 font-mono text-[10px] font-semibold tabular-nums text-ink sm:text-[11px]">{inr(c.p.value, c.p.value < 1000 && dec ? 1 : 0)}</span>
+              <div
+                className={
+                  "w-full max-w-[56px] rounded-t-[4px] transition-opacity group-hover:opacity-80 " +
+                  (c.p.projected ? "border border-dashed border-accent bg-[repeating-linear-gradient(135deg,transparent_0_4px,color-mix(in_srgb,var(--accent)_35%,transparent)_4px_6px)]" : "bg-accent")
+                }
+                style={{ height: `${Math.max(2, (c.p.value / max) * 100)}%` }}
+              />
+              <span className="pointer-events-none absolute -top-7 z-10 hidden whitespace-nowrap rounded-md border border-line bg-bg px-2 py-1 text-[10.5px] text-ink shadow-lg group-hover:block">
+                {c.p.label}: {inr(c.p.value, 1)} {unit}
+                {c.p.projected ? " (projected)" : ""}
+              </span>
+            </div>
+          ),
+        )}
+      </div>
+      <div className="mt-1.5 flex items-start gap-1.5 border-t border-line pt-1.5 sm:gap-2.5">
+        {cols.map((c) =>
+          c.kind === "gap" ? (
+            <span key={"gap-" + c.label} className="w-3 flex-none" aria-hidden />
+          ) : (
+            // Labels wrap (never truncate) so a long period like "Sep 26" or "FY26BE" stays whole.
+            <span key={c.p.label} title={c.p.label} className={"min-w-0 flex-1 break-words text-center font-mono text-[9.5px] leading-tight sm:text-[10.5px] " + (c.p.projected ? "text-ink-soft" : "text-ink")}>
+              {c.p.label}
             </span>
-          </div>
-        ))}
+          ),
+        )}
       </div>
-      <div className="mt-1.5 flex gap-1.5 border-t border-line pt-1.5 sm:gap-2.5">
+      {(hasProj || gaps.length > 0) && (
+        <figcaption className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] text-ink-soft">
+          {hasProj && (
+            <>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-sm bg-accent" /> Actual
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-sm border border-dashed border-accent" /> Projected (P)
+              </span>
+            </>
+          )}
+          {gaps.length > 0 && (
+            <span className="inline-flex items-center gap-1">
+              <GapMark /> No sourced data for {listJoinPlain(gaps)}
+            </span>
+          )}
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
+const listJoinPlain = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
+
+// A category comparison (schemes, segments, stages) as horizontal bars: each label gets a full
+// line, so long names never truncate or push the chart wider than a phone.
+export function CategoryBars({ points, unit }: { points: SeriesPoint[]; unit: string }) {
+  const max = Math.max(...points.map((p) => p.value), 1);
+  const hasProj = points.some((p) => p.projected);
+  const dec = points.some((p) => p.value < 100 && p.value % 1 !== 0);
+  return (
+    <figure className="min-w-0">
+      <ul className="space-y-3" aria-label={points.map((p) => `${p.label}: ${p.value} ${unit}`).join(", ")}>
         {points.map((p) => (
-          <span key={p.label} className={"min-w-0 flex-1 truncate text-center font-mono text-[9.5px] sm:text-[10.5px] " + (p.projected ? "text-ink-soft" : "text-ink")}>
-            {p.label}
-          </span>
+          <li key={p.label} className="group">
+            <div className="flex items-baseline justify-between gap-3 text-[12px]">
+              <span className={"min-w-0 break-words leading-snug " + (p.projected ? "text-ink-soft" : "text-ink")}>{p.label}</span>
+              <span className="flex-none font-mono font-semibold tabular-nums text-ink">{inr(p.value, p.value < 1000 && dec ? 1 : 0)}</span>
+            </div>
+            <div className="mt-1 h-2.5 w-full rounded-full bg-panel-2">
+              <div
+                className={
+                  "h-full rounded-full transition-opacity group-hover:opacity-80 " +
+                  (p.projected ? "border border-dashed border-accent bg-[repeating-linear-gradient(135deg,transparent_0_4px,color-mix(in_srgb,var(--accent)_35%,transparent)_4px_6px)]" : "bg-accent")
+                }
+                style={{ width: `${(p.value / max) * 100}%`, minWidth: 3 }}
+              />
+            </div>
+          </li>
         ))}
-      </div>
+      </ul>
       {hasProj && (
-        <figcaption className="mt-2 flex items-center gap-4 text-[10.5px] text-ink-soft">
+        <figcaption className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] text-ink-soft">
           <span className="inline-flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-sm bg-accent" /> Actual
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm border border-dashed border-accent" /> Projected (P)
+            <span className="h-2.5 w-2.5 rounded-sm border border-dashed border-accent" /> Target / projected
           </span>
         </figcaption>
       )}
@@ -285,30 +388,51 @@ export function BarChart({ points, unit }: { points: SeriesPoint[]; unit: string
   );
 }
 
+// Slide 3's action title. A growth rate only makes sense across periods, so a category chart
+// gets the authored headline or a plain "largest" line; a time series gets its growth, with
+// the sign written out ("down ~4% a year", never "~-4%").
+export function overviewHeadline(deck: Deck) {
+  const o = deck.report.overview;
+  if (o.headline) return o.headline;
+  const c = o.chart;
+  if (chartKind(c) === "categories") {
+    const top = [...c.points].sort((a, b) => b.value - a.value)[0];
+    return top ? `${c.title}: ${top.label} is the largest of ${c.points.length}` : c.title;
+  }
+  const g = growthLine(c.points);
+  if (!g) return c.title;
+  const r = Math.round(g.cagr);
+  // Very high CAGRs come from launch-year bases and read better as a multiple.
+  const growth = g.cagr > 100 ? `~${Math.round(g.multiple)}x` : r === 0 ? "broadly flat" : r > 0 ? `~${r}% a year` : `down ~${-r}% a year`;
+  const proj = g.end && Math.abs(g.end.value / g.b.value - 1) >= 0.15 ? `, with ${g.end.label} projected at ~${(g.end.value / g.b.value).toFixed(1)}x the ${g.b.label} level` : "";
+  return `${c.title}: ${growth} from ${g.a.label} to ${g.b.label}${proj}`;
+}
+
 function OverviewSlide({ deck }: SlideProps) {
   const o = deck.report.overview;
-  const title = overviewTitle(deck);
+  const title = overviewHeadline(deck);
+  const categories = chartKind(o.chart) === "categories";
   return (
     <>
       <SlideHead n={3} eyebrow="Industry overview" title={title} />
-      <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
-        <Panel className="p-4 sm:p-5">
+      {/* minmax(0,…) tracks: an auto track grows to its widest unbreakable content, which let a
+          chart with long labels push the slide 300px past a phone screen. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+        <Panel className="min-w-0 p-4 sm:p-5">
           <div className="flex items-baseline justify-between gap-3">
-            <h4 className="font-display text-sm font-semibold text-ink">{o.chart.title}</h4>
+            <h4 className="min-w-0 font-display text-sm font-semibold text-ink">{o.chart.title}</h4>
             <span className="flex-none text-[10.5px] text-ink-soft">{o.chart.unit}</span>
           </div>
-          <div className="mt-4">
-            <BarChart points={o.chart.points} unit={o.chart.unit} />
-          </div>
+          <div className="mt-4">{categories ? <CategoryBars points={o.chart.points} unit={o.chart.unit} /> : <BarChart points={o.chart.points} unit={o.chart.unit} />}</div>
         </Panel>
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <Panel className="overflow-hidden">
             <div className="border-b border-line bg-panel-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-ink">Industry snapshot</div>
             <table className="w-full text-[12.5px]">
               <tbody>
                 {o.snapshot.map((row) => (
                   <tr key={row.label} className="border-b border-line last:border-0">
-                    <td className="px-4 py-2 text-ink-soft">{row.label}</td>
+                    <td className="break-words px-4 py-2 text-ink-soft">{row.label}</td>
                     <ToneValueCell tone={row.tone} value={row.value} />
                   </tr>
                 ))}
@@ -393,11 +517,13 @@ export function MixChart({ mix }: { mix: { slices: { label: string; value: numbe
   const sorted = [...mix.slices];
   // One hue, stepped by share: parts of a single whole, already ranked by the author.
   const shade = (i: number) => `color-mix(in srgb, var(--accent) ${100 - i * 20}%, var(--panel-2))`;
+  const { tipFor, tipNode } = useSegmentTip();
   return (
     <figure>
-      <div className="flex h-3 w-full gap-[2px] overflow-hidden rounded-full" aria-hidden>
+      {tipNode}
+      <div className="flex h-3 w-full gap-[2px] overflow-hidden rounded-full">
         {sorted.map((s, i) => (
-          <span key={s.label} style={{ width: `${(s.value / total) * 100}%`, background: shade(i) }} title={`${s.label}: ${s.value}%`} />
+          <span key={s.label} {...tipFor(`${s.label}: ${s.value}%`)} style={{ width: `${(s.value / total) * 100}%`, background: shade(i) }} />
         ))}
       </div>
       <ul className="mt-4 space-y-2.5">
@@ -616,7 +742,9 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
           </li>
         ))}
       </ul>
-      <Panel className="hidden overflow-x-auto md:block">
+      {/* Tablet: the table scrolls sideways inside the panel, the right edge fading while columns sit off it. */}
+      <Panel className="hidden overflow-hidden md:block">
+        <ScrollX hint={<>Scroll sideways for net margin, P/E and ROCE &rarr;</>}>
         <table className="w-full min-w-[720px] whitespace-nowrap text-[12px]">
           <thead>
             <tr className="border-b border-line bg-panel-2 text-left text-[9.5px] uppercase tracking-wider text-ink-soft">
@@ -662,6 +790,7 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
             ))}
           </tbody>
         </table>
+        </ScrollX>
       </Panel>
       <p className="mt-3 text-[10.5px] text-ink-soft">
         Sorted by revenue growth; rows marked &ldquo;small base&rdquo; started under ₹100 Cr, which inflates percentage growth. Growth windows differ where a company lacks five reported years; under three years of history no CAGR is shown. Net margin is for the latest fiscal year, while P/E is on trailing-twelve-month profit{rows.some(ttmMismatch) ? " (* marks a company whose TTM profit is positive although its latest fiscal year was a loss)" : ""}. Net margin can include one-offs (e.g. demerger gains). Revenue and net profit are company-wide (not only this segment), from the seed financials behind each stock pop-up; tap a name for live figures.

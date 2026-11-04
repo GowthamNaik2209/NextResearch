@@ -26,7 +26,7 @@ export default async function DocsPage({ searchParams }: { searchParams: Promise
         <div>
           <h1 className="font-display text-3xl font-bold text-ink">Analysis</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            Every industry and policy we cover, two ways. Deep dive maps its supply chain: the layers, who supplies them and
+            Every covered industry and policy, two ways. Deep dive maps its supply chain: the layers, who supplies them and
             which companies are listed. Reports are ten-slide summaries for investors: latest developments, value chain, PESTLE,
             the listed beneficiaries and their financials, and the research behind it. Each industry&rsquo;s Charts button shows the
             price chart of any of its listed stocks, picked by layer; Baskets backtests them together against the Nifty 50. The IPOs tab summarises the

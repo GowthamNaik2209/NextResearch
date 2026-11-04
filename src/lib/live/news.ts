@@ -135,7 +135,15 @@ const GENERIC = new Set(
     "pharmaceutical pharmaceuticals pharma laboratories labs lifesciences life sciences healthcare health biotech biosciences " +
     "hospitals scientific chemicals drugs active organics worldwide institute biological " +
     "realty trust reit estates developers properties parks business office mills cement cements steel tubes paints ceramics " +
-    "plyboards panels glass pipes fittings financiers housing contracts infraprojects knowledge photovoltaic platforms").split(" ")
+    "plyboards panels glass pipes fittings financiers housing contracts infraprojects knowledge photovoltaic platforms " +
+    // Hospitals, capital markets, transmission, consumer internet, battery and hydrogen names (Nov 2026):
+    // "US Medicare", "children's hospital", "capital expenditure", "Indian Express", "aluminium prices".
+    "enterprise hospital medical medicare children trauma dental diagnostic diagnostics centre center allied insurance " +
+    "assurance general new assist fintech quality management asset assets financial corporate advisory wealth capital " +
+    "commodity central depository depositories securities computer ratings lighting universal infrastructures electrical " +
+    "electricals aluminium aluminum metal metals copper investment investments online commerce ecommerce ventures planners " +
+    "express mobile travel exports export chemical speciality specialty packaging petroleum phosphates fertilizers " +
+    "fertilisers valley transition transitions mineral minerals mining development").split(" ")
 );
 // "&" and "and" are dropped so "Transformers and Rectifiers" matches "Transformers & Rectifiers".
 const normalize = (s: string) =>
@@ -149,7 +157,12 @@ const normalize = (s: string) =>
 // say which one ("Mahindra Holidays" is not M&M, "Kirloskar Brothers" is not Kirloskar Oil Engines).
 const GROUP = new Set(
   ("mahindra tata adani bajaj birla kirloskar motherson minda bharti jsw reliance godrej jindal vedanta sterlite apollo kalpataru " +
-    "texmaco waaree borosil cyient hinduja piramal torrent aarti finolex bosch embassy brookfield supreme").split(" ")
+    "texmaco waaree borosil cyient hinduja piramal torrent aarti finolex bosch embassy brookfield supreme " +
+    "aditya prudential canara nippon motilal hitachi siemens powergrid manipal " +
+    // Not families, but names that alone say nothing about one company: people ("Narayana Murthy",
+    // "Anil Agarwal"), places and rivers ("Atlanta Fed", "Krishna", "Narmada", "Fifth Avenue"), words
+    // ("diamond prices", "Mangal" = Mars).
+    "narayana krishna agarwal rajesh advait atlanta diamond mangal narmada avenue").split(" ")
 );
 // Short names headlines use, including a group name that alone conventionally means one company
 // here ("Mahindra" = M&M).
@@ -173,7 +186,7 @@ const ALIASES: Record<string, string[]> = {
   PHOENIXLTD: ["phoenix mills"],
   SBIN: ["sbi"],
   AAVAS: ["aavas"],
-  GMDCLTD: ["gmdc"],
+  GMDCLTD: ["gmdc", "gujarat mineral development"],
   MINDACORP: ["minda corp", "spark minda"],
   BHARATFORG: ["bharat forge", "kalyani strategic"],
   CGPOWER: ["cg power", "cg semi"],
@@ -194,7 +207,91 @@ const ALIASES: Record<string, string[]> = {
   CLEANMAX: ["cleanmax"],
   UTLSOLAR: ["utl solar"],
   WAAREERTL: ["waaree rtl"],
+  LT: ["l t", "larsen"],
+  // Hospitals and health insurers (Nov 2026).
+  APOLLOHOSP: ["apollo hospitals", "apollo healthco", "apollo 24 7"],
+  MANIPALHOS: ["manipal hospitals", "manipal health"],
+  NH: ["narayana health", "narayana hrudayalaya"],
+  KIMS: ["kims hospitals"],
+  ASTERDM: ["aster dm", "care hospitals"],
+  JLHL: ["jupiter hospital", "jupiter life line"],
+  PARKHOSPS: ["park hospital"],
+  RAINBOW: ["rainbow children", "rainbow hospitals"],
+  AGARWALEYE: ["dr agarwals", "dr agarwal s"],
+  HCG: ["healthcare global"],
+  LALPATHLAB: ["lal pathlabs", "dr lal path labs"],
+  NIACL: ["new india assurance"],
+  ICICIGI: ["icici lombard"],
+  POLICYBZR: ["policybazaar", "paisabazaar"],
+  // Capital markets.
+  SBIFUNDS: ["sbi mutual fund", "sbi mf", "sbi amc", "sbi funds"],
+  ICICIAMC: ["icici prudential amc", "icici pru amc", "icici prudential mutual fund", "icici prudential mf", "icici pru mf"],
+  HDFCAMC: ["hdfc amc", "hdfc mutual fund", "hdfc mf"],
+  "NAM-INDIA": ["nippon india mutual fund", "nippon india mf", "nippon life india", "nippon india amc", "nippon amc"],
+  ABSLAMC: ["absl amc", "aditya birla sun life amc", "aditya birla sun life mutual fund", "absl mf"],
+  UTIAMC: ["uti amc", "uti mutual fund", "uti mf"],
+  CRAMC: ["canara robeco"],
+  GROWW: ["billionbrains"],
+  "360ONE": ["iifl wealth"],
+  IIFLCAPS: ["iifl securities"],
+  CARERATING: ["careedge", "care edge"],
+  KFINTECH: ["kfin"],
+  NSE: ["national stock exchange"],
+  CDSL: ["central depository"],
+  // Transmission.
+  ADANIENSOL: ["aesl", "adani transmission"],
+  NATIONALUM: ["nalco", "national aluminium"],
+  TECHNOE: ["techno electric"],
+  QPOWER: ["quality power"],
+  PGINVIT: ["powergrid invit", "power grid invit"],
+  INDIGRID: ["india grid trust"],
+  RECLTD: ["rec ltd", "rec limited", "rural electrification"],
+  POWERINDIA: ["hitachi energy"],
+  "GVT&D": ["ge vernova t d", "ge t d india"],
+  // Consumer internet.
+  SWIGGY: ["instamart"],
+  DMART: ["d mart"],
+  NYKAA: ["nykaa"],
+  FIRSTCRY: ["firstcry", "first cry"],
+  IXIGO: ["ixigo", "abhibus"],
+  EASEMYTRIP: ["ease my trip"],
+  IRCTC: ["indian railway catering"],
+  NAUKRI: ["naukri"],
+  CARTRADE: ["carwale", "bikewale"],
+  PWL: ["physics wallah"],
+  PAYTM: ["one 97"],
+  // Batteries, hydrogen, critical minerals.
+  EXIDEIND: ["exide"],
+  HEGAM: ["tacc"],
+  KABRAEXTRU: ["battrixx"],
+  HYUNDAI: ["hmil"],
+  IOC: ["indian oil", "indianoil", "iocl"],
+  HINDPETRO: ["hpcl"],
+  ADVAIT: ["advait infratech"],
+  INOXINDIA: ["inoxcva"],
+  ADANIENT: ["adani new industries", "kutch copper"],
+  NTPCGREEN: ["ngel"],
+  HINDZINC: ["hzl"],
+  VEDL: ["vedanta ltd", "vedanta limited"],
 };
+// A broker's research desk or a rating agency quoted on someone else ("Motilal Oswal sees 25% upside
+// in Dixon", "ICRA expects steel demand to grow", "... GDP seen at 6.5%: CRISIL"): the name opens the
+// headline before a research verb, follows an attribution, or closes it after a colon.
+const quoted = (names: string, verbs: string) =>
+  new RegExp(
+    `\\b(?:${names})(?:['’]s?)?\\s+(?:[\\w&.-]+\\s+){0,3}?(?:${verbs})\\b|\\b(?:says|according to|as per|per|brokerage|analysts? at|report by|survey by|data from)\\s+(?:(?:domestic )?brokerage\\s+)?(?:${names})\\b|[:|]\\s*(?:${names})\\s*$`,
+    "i"
+  );
+const BROKER_VERBS =
+  "sees|says|expects|estimates|projects|forecasts|recommends?|suggests|upgrades?|downgrades?|initiates?|maintains?|reiterates?|" +
+  "retains?|top picks?|picks|likes|prefers|bullish|bearish|overweight|underweight|neutral|buy (?:on|rating|call|for)|" +
+  "sell (?:on|rating|call)|target|research|analysts?|strategists?|report|note|view|flags|warns";
+const RATING_VERBS =
+  "sees|says|expects|estimates|projects|forecasts|pegs|upgrades?|downgrades?|reaffirms?|affirms?|assigns?|rates|revises?|" +
+  "places|retains?|withdraws?|maintains?|cuts|raises|report|survey|study|research|analysis|outlook|index|data|analysts?|" +
+  "ratings? (?:on|for|of|action|upgrade|downgrade)";
+// The parent abroad, not its Indian listing: a headline that names it with nothing Indian about it.
+const abroad = (parent: string, indian: string) => new RegExp(`^(?!.*(?:\\b(?:${indian})\\b|₹)).*\\b(?:${parent})\\b`, "i");
 // Headlines that name the company but are about a sibling it no longer owns. Tata Motors
 // demerged in Oct 2025: the commercial-vehicle business kept the "Tata Motors Ltd" name (TMCV),
 // so "Tata Motors" + CV/truck wording is TMCV's news, not TMPV's.
@@ -211,14 +308,56 @@ const NOT_ABOUT: Record<string, RegExp> = {
   IDEA: /\bvodafone (group|plc|uk|spain|germany|egypt|turkey)\b|\bxavier niel\b/i,
   BPL: /\bbpl (cards?|card ?holders?|families|households|category|list|beneficiar)|below (the )?poverty/i,
   // The exchange's indices and listings, not the company's own news.
-  BSE: /\b(bse )?sensex\b|\bbse[- ](listed|smallcap|midcap|500|100|200|sme)\b|\bon (the )?bse\b|\bnse (and|&) bse\b|\bbse (and|&) nse\b/i,
+  BSE: /\b(bse )?sensex\b|\bbse[- ](listed|smallcap|midcap|500|100|200|sme)\b|\bon (the )?bse\b|\b(nse|bse)\s*(,|\/|and|&)\s*(nse|bse)\b|\bbse:\s*\d/i,
+  // Same for the NSE, named in every market wrap ("Sensex, Nifty close higher on NSE", "NSE: TCS").
+  NSE: /\bnifty\b|\bsensex\b|\bon (the )?nse\b|\bnse[- ](listed|data|indices|sme|emerge|platform)\b|\b(nse|bse)\s*(,|\/|and|&)\s*(nse|bse)\b|\bnse:\s*[a-z0-9]|\(nse\b|\bnse (advances?|declines?|advance-decline|turnover|circular|surveillance|data)\b|\bas per nse\b/i,
+  // Commodity prices traded on the exchange, not the exchange.
+  MCX: /\bmcx (gold|silver|crude|copper|zinc|aluminium|natural gas|nickel|lead|cotton|mentha|metals?|bullion|futures?|prices?|rates?)\b|\bon (the )?mcx\b|\bmcx[- ](traded|listed)\b/i,
+  CAMS: /\b(dash|speed|web|traffic|body|security|cctv|spy|hidden|surveillance|nanny|trail)[- ]?cams?\b/i,
+  // Research desks and rating agencies quoted on other companies (see quoted()).
+  MOTILALOFS: quoted("motilal oswal|mofsl|mosl", BROKER_VERBS),
+  NUVAMA: quoted("nuvama", BROKER_VERBS),
+  JMFINANCIL: quoted("jm financial", BROKER_VERBS),
+  IIFLCAPS: quoted("iifl(?: capital| securities)?", BROKER_VERBS),
+  ANGELONE: quoted("angel one", BROKER_VERBS),
+  // Also the separately listed broker Anand Rathi Share and Stock Brokers: only "Anand Rathi Wealth" is ours.
+  ANANDRATHI: new RegExp(`${quoted("anand rathi", BROKER_VERBS).source}|\\banand rathi\\b(?!\\s+wealth)`, "i"),
+  CRISIL: quoted("crisil", RATING_VERBS),
+  ICRA: quoted("icra", RATING_VERBS),
+  CARERATING: quoted("care ratings|careedge|care edge", RATING_VERBS),
+  // "Aditya Birla" alone is the group (Hindalco, Grasim, Aditya Birla Capital), not the AMC.
+  ABSLAMC: /\baditya birla\b(?!\s+sun\s+life)/i,
+  // GE Vernova Inc (NYSE) and Hitachi Energy abroad, not their Indian listings.
+  "GVT&D": abroad("(?:ge )?vernova", "t ?& ?d|t and d|india|indian|crore|rs"),
+  POWERINDIA: abroad("hitachi energy", "india|indian|crore|rs|shares?|stocks?|q[1-4]|nse|bse|powergrid|power grid|ntpc|adani|tata"),
+  // Hyundai Motor Company in Seoul and its Korean affiliates, not Hyundai Motor India.
+  HYUNDAI: abroad("korea|korean|seoul|kia|hyundai motor (?:company|co|group)", "india|indian|hmil|crore|rs|creta|venue|chennai"),
+  // The US food-safety company Neogen Corp.
+  NEOGEN: /\bneogen (corp|corporation|food)\b|\bneog\b|\bfood[- ]safety\b/i,
+  // The International Olympic Committee.
+  IOC: /\bolympics?\b|\bioc (president|member|members|session|executive|chief|ban|bans|athletes?)\b/i,
+  SAIL: /\b(set|sets|setting|to|will|ships?|vessels?|yachts?) sail\b/i,
+  // Renewable energy certificates traded on the exchanges ("REC trade volumes"), not REC Ltd.
+  RECLTD: /\brecs\b|\brenewable energy certificates?\b|\brec (trad\w*|market|segment|volumes?|prices?)\b/i,
+  // The pregnancy hormone hCG.
+  HCG: /\bhcg (levels?|hormone|injections?|tests?|diet|drops)\b|\bpregnan/i,
+  // Pilgrimages and political marches ("Amarnath Yatra", "Bharat Jodo Yatra"), not Yatra Online.
+  YATRA: /\b(char dham|amarnath|kailash|kanwar|kavad|rath|padyatra|jodo|nyay|parivartan|jan|vijay|shobha|ganga) yatra\b|\byatra (route|pilgrims?|devotees|registration)\b|\bpilgrim/i,
+  COROMANDEL: /\bcoromandel (express|coast|train)\b/i,
+  PARADEEP: /\bparadeep (port|refinery)\b|\biffco paradeep\b/i,
+  // L&T's hydrogen arm, not Olectra Greentech.
+  OLECTRA: /\bl ?& ?t energy greentech\b/i,
+  // A doctor named Agarwal, not Dr Agarwal's Health Care.
+  AGARWALEYE: /\bdr\.? agarwal\b(?!['’]s)/i,
   // Unilever plc and the global group, not its Indian listing.
   HINDUNILVR: /\bunilever (plc|ceo|global|group)\b/i,
   // The word and the moon of Saturn, not the jeweller; the lost submersible.
   TITAN: /\btitan (submersible|sub|moon)\b|\boceangate\b/i,
 };
 // Tickers that are ordinary words ("US Embassy ..."), so they don't identify the company on their own.
-const WORD_TICKERS = new Set(["EMBASSY", "ACI"]);
+// OIL and ROUTE are words; MEIL is also Megha Engineering's initials; "ARE&M" reads as "are m"
+// ("These are M&M's..."); ADVAIT is a first name.
+const WORD_TICKERS = new Set(["EMBASSY", "ACI", "OIL", "ROUTE", "MEIL", "ARE&M", "ADVAIT"]);
 // Separately listed companies, outside our coverage, whose names contain one of ours. A match
 // that sits inside one of these (or inside another covered company's name) doesn't count.
 const OTHER_COMPANIES = [
@@ -228,8 +367,8 @@ const OTHER_COMPANIES = [
   "Kirloskar Industries", "Motherson Sumi Systems", "Indian Railway Catering", "Mahanagar Gas",
   "Sun Pharma Advanced Research", "Torrent Power", "Zydus Wellness", "Apollo Tyres", "Piramal Enterprises", "Piramal Finance",
   "Aarti Industries", "Abbott Laboratories", "Embassy Developments", "Bosch Ltd", "SBI Cards", "SBI Card",
-  "SBI Funds", "SBI Mutual Fund", "SBI General", "HDFC AMC", "HDFC Asset Management", "HDFC Securities", "HDFC Ergo",
-  "ICICI Prudential", "ICICI Lombard", "ICICI Securities", "ICICI Pru", "Axis Mutual Fund", "Axis Securities", "Axis Finance",
+  "SBI General", "HDFC Securities", "HDFC Ergo",
+  "ICICI Prudential Life", "ICICI Pru Life", "ICICI Securities", "Axis Mutual Fund", "Axis Securities", "Axis Finance",
   "Axis Max Life", "Kotak Mahindra AMC", "Kotak Securities", "Kotak Mutual Fund", "Bajaj Housing Finance", "Bajaj Allianz",
   "Bajaj Electricals", "Bajaj Consumer", "Bajaj Hindusthan", "Reliance Power", "Reliance Infrastructure", "Reliance Infra",
   "Reliance Capital", "Reliance Communications", "Reliance Home Finance", "Reliance Nippon", "Reliance General Insurance",
@@ -239,6 +378,15 @@ const OTHER_COMPANIES = [
   "Midwest Energy", "Midwest Advanced Materials", "Bajaj Auto Credit", "Hinduja Leyland Finance", "ACI Worldwide",
   "Jyoti Structures", "Kalyani Steels", "Ola Cabs", "ASM International", "Bharat FIH", "Indian Rare Earths",
   "NMDC Steel", "TVS Supply Chain", "TVS Srichakra", "TVS Holdings",
+  // Nov 2026 sectors. (SBI Funds, HDFC AMC, ICICI Prudential AMC and ICICI Lombard are covered now, so
+  // their names and aliases come in through rivals().)
+  "L&T Finance", "L&T Technology Services", "L&T Tech", "L&T Realty",
+  "Dr Agarwal's Eye Hospital", "Nippon Life Insurance", "Canara Bank", "Canara HSBC", "Aditya Birla Capital",
+  "Aditya Birla Sun Life Insurance", "Aditya Birla Fashion", "Anand Rathi Share", "PTC India Financial",
+  "REC Power Development", "Vedanta Resources", "Vedanta Oil", "Vedanta Power", "Vedanta Iron", "Yatra Online Inc",
+  "Hyundai Motor Company", "Hyundai Motor Co", "Hyundai Motor Group", "Hyundai Mobis", "Hyundai Rotem", "Hyundai Heavy",
+  "Hyundai Steel", "Hyundai Glovis", "Hyundai Engineering", "Hyundai Capital", "Neogen Corporation", "Neogen Corp",
+  "Exide Life", "Indian Oil Adani", "IndianOil Adani", "Bharat Petroleum Resources", "HPCL Mittal", "Coromandel Engineering",
 ].map(normalize);
 
 const nameWords = (name: string) => normalize(name.replace(/\(.*?\)/g, "")).split(" ").filter(Boolean);
@@ -250,12 +398,22 @@ function openingOf(words: string[]): string {
   return words.slice(0, n).join(" ");
 }
 
+// Every listed company in the content, muted sectors too (a look-alike name is one whether or not its
+// sector is live yet), under each name it goes by: full name, opening words and aliases.
 let rivalCache: { ticker: string; name: string; phrases: string[] }[] | null = null;
 const rivals = () =>
-  (rivalCache ??= listCompanyMetrics().map((c) => {
-    const words = nameWords(c.name);
-    return { ticker: c.ticker, name: words.join(" "), phrases: [words.join(" "), openingOf(words)] };
-  }));
+  (rivalCache ??= (() => {
+    const out = new Map<string, { ticker: string; name: string; phrases: string[] }>();
+    for (const s of listSectors())
+      for (const sup of Object.values(s.suppliers)) {
+        if (!sup.listed) continue;
+        const ticker = tickerForSupplier(sup);
+        const words = nameWords(sup.name);
+        const name = words.join(" ");
+        if (!out.has(`${ticker}|${name}`)) out.set(`${ticker}|${name}`, { ticker, name, phrases: [name, openingOf(words), ...(ALIASES[ticker] ?? [])] });
+      }
+    return [...out.values()];
+  })());
 
 /** Every [start, end) span in `h` where the phrase occurs as whole words. */
 function spans(h: string, phrase: string): [number, number][] {
@@ -283,8 +441,10 @@ export function isAbout(headline: string, company: { name: string; ticker: strin
   const keys = [openingOf(words), ticker, ...distinctive, ...(ALIASES[company.ticker] ?? [])].filter((k) => k.length >= 3 && k !== word);
   const otherNames = [...rivals().filter((r) => r.ticker !== company.ticker && r.name !== own).flatMap((r) => r.phrases), ...OTHER_COMPANIES];
   const covering = otherNames.filter((p) => !` ${own} `.includes(` ${p} `)).flatMap((p) => spans(h, p));
-  if (keys.some((k) => spans(h, k).some(([s, e]) => !covering.some(([cs, ce]) => cs <= s && ce >= e && ce - cs > e - s)))) return true;
-  return word ? aboutWordName(headline, word) : false;
+  const uncovered = (k: string) => spans(h, k).some(([s, e]) => !covering.some(([cs, ce]) => cs <= s && ce >= e && ce - cs > e - s));
+  if (keys.some(uncovered)) return true;
+  // The word must also stand outside other names ("Jupiter Wagons" is not "Jupiter Life Line").
+  return word ? uncovered(word) && aboutWordName(headline, word) : false;
 }
 
 // Companies whose name is an everyday word, so most headlines with it are about something else:
@@ -311,6 +471,14 @@ const WORD_NAMES: Record<string, string> = {
   PRINCEPIPE: "prince",
   CRAFTSMAN: "craftsman",
   HORIZONIND: "horizon",
+  // Nov 2026: "a rainbow", "global health" (WHO), "prudent policy", pilgrim "yatras", "ion exchange" resins.
+  RAINBOW: "rainbow",
+  METROPOLIS: "metropolis",
+  JLHL: "jupiter",
+  MEDANTA: "global health",
+  PRUDENT: "prudent",
+  YATRA: "yatra",
+  IONEXCHANG: "ion exchange",
 };
 // Words that put a headline in a company's business; and contexts that take it out (sport, courts).
 const BUSINESS_CONTEXT =
@@ -326,7 +494,7 @@ const OFF_TOPIC =
  * 5%"); no for "England skipper shares ..." or "Skipper Shubman Gill reaches New Zealand".
  */
 function aboutWordName(headline: string, word: string): boolean {
-  const cap = word[0].toUpperCase() + word.slice(1);
+  const cap = word.replace(/\b[a-z]/g, (c) => c.toUpperCase());
   const upper = word.toUpperCase();
   if (new RegExp(`\\b(?:${cap}|${upper}) (?:Ltd|LTD|Limited|LIMITED|Industries|INDUSTRIES)\\b|\\b${upper}\\.(?:NS|BO)\\b|\\bNSE:\\s*${upper}\\b`).test(headline)) return true;
   return new RegExp(`\\b(?:${cap}|${upper})\\b`).test(headline) && BUSINESS_CONTEXT.test(headline) && !OFF_TOPIC.test(headline);

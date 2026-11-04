@@ -12,7 +12,7 @@ export function IdeasSection({ ideas, asOf }: { ideas: Idea[]; asOf: string }) {
     <div>
       <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">Stock screens</h2>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink-soft">
-        Rule-based screens across every company we profile. Each shows its rule, so you can see exactly why a name is on the list.
+        Rule-based screens across all covered companies. Each shows its rule, so you can see exactly why a name is on the list.
       </p>
       <div className="mt-6 flex flex-wrap gap-x-2 gap-y-3" role="tablist" aria-label="Idea screens">
         {ideas.map((i) => (

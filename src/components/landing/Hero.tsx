@@ -36,7 +36,7 @@ export function Hero({ featured, searchIndex, themeRows }: Props) {
             href={`/sector/${featured?.slug ?? "datacenter"}/explore`}
             className="rounded-lg border border-btn px-5 py-2.5 text-sm font-semibold text-ink hover:bg-accent/10"
           >
-            Try the 3D map &rarr;
+            Try the 3D map
           </Link>
         </div>
       </div>

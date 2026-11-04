@@ -12,7 +12,8 @@ const FIRST = 10;
 // On a phone the company column keeps a readable width and stays put while the figures scroll
 // sideways in the table's own box; from sm the table fits and the column takes the spare room.
 // (The edge line is an ::after: a collapsed table doesn't paint a cell's box-shadow.)
-const HELD = "sticky left-0 z-[1] w-[9.5rem] min-w-[9.5rem] max-w-[9.5rem] bg-panel after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-line sm:static sm:w-auto sm:min-w-0 sm:bg-transparent sm:after:hidden";
+// 8rem leaves a 375px phone room for both figure columns, so the change (the key one) isn't cut off.
+const HELD = "sticky left-0 z-[1] w-[8rem] min-w-[8rem] max-w-[8rem] bg-panel after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-line sm:static sm:w-auto sm:min-w-0 sm:bg-transparent sm:after:hidden";
 
 /**
  * Stake changes over the period: FII or DII, every company in view, biggest moves first. Tapping the
@@ -74,7 +75,14 @@ export function StakeTable({ rows, where, compact }: { rows: StakeRow[]; where?:
               <tr className="border-b border-line text-left text-[10px] font-semibold uppercase tracking-wider text-ink-soft">
                 <th className={"py-1 pr-2 font-semibold " + HELD}>Company</th>
                 <SortHead<Key> label="Holding" k="holding" sort={sort} onSort={toggle} />
-                <SortHead<Key> label={base ? `Chg since ${fmtMonth(base)}` : "Change"} k="change" sort={sort} onSort={toggle} last />
+                {/* A phone shows the short heading (the line above names the filing it compares with). */}
+                <SortHead<Key>
+                  label={base ? (<><span className="sm:hidden">Change</span><span className="max-sm:hidden">Chg since {fmtMonth(base)}</span></>) : "Change"}
+                  k="change"
+                  sort={sort}
+                  onSort={toggle}
+                  last
+                />
               </tr>
             </thead>
             <tbody>

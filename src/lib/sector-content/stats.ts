@@ -1,12 +1,11 @@
 // Landing-page numbers derived straight from the authored sector content, so
 // the hero stats and search index can never drift from what the product
 // actually contains (no hand-typed counts).
-import { listComingSoonSectors, listSectors, tickerForSupplier } from "./index";
+import { listSectors, tickerForSupplier } from "./index";
 import { sectorNumbers } from "./insights";
 import { companySlug, sectorCompanyCounts } from "./companies";
 import { listIpos } from "../ipo-content";
 import { memoByFinancials } from "@/lib/financials/store";
-import { croreShort } from "@/lib/format";
 
 // The builders below walk every sector on each call, so each is cached until new company figures
 // are installed (memoByFinancials). Results are shared: never mutate them.
@@ -105,7 +104,7 @@ const contentIndex = memoByFinancials((): SearchEntry[] => {
 });
 
 // The hero's theme window: three rows per tab. Industries lead with the featured one, then the
-// most recently added; policies the live ones, newest first, then those coming soon; IPOs the next
+// most recently added; policies the newest first; IPOs the next
 // issues by date (recent listings are left for the IPOs page).
 export function buildHeroThemeRows(featuredSlug?: string) {
   type Row = import("@/components/landing/ThemeWindow").ThemeRow;
@@ -124,18 +123,14 @@ export function buildHeroThemeRows(featuredSlug?: string) {
   const industries = live.filter((s) => (s.category ?? "sector") === "sector");
   const featured = industries.find((s) => s.slug === featuredSlug);
   const sector = [...(featured ? [featured] : []), ...industries.filter((s) => s !== featured).reverse()].slice(0, 3).map(themeRow);
-  const soonPolicies = listComingSoonSectors().filter((s) => s.category === "policy");
-  const policy = [
-    ...live.filter((s) => s.category === "policy").reverse().map(themeRow),
-    ...soonPolicies.map((s): Row => ({ key: s.name, icon: s.icon, name: s.name, sub: "Policy", chip: "Coming soon", chipTone: "soon" })),
-  ].slice(0, 3);
+  const policy = live.filter((s) => s.category === "policy").reverse().slice(0, 3).map(themeRow);
   const ipo = listIpos()
     .filter((r) => r.status.stage !== "listed")
     .slice(0, 3)
+    // Every row's sub-line is its sector: only issues with a fixed size have one, so mixing the
+    // two read as two different kinds of line.
     .map((r): Row => {
-      const i = r.issue;
-      const size = i.totalCr != null ? croreShort(i.totalCr) : r.sectorLabel;
-      return { key: r.slug, icon: r.icon, name: r.name, sub: size, chip: r.status.label, chipTone: r.status.stage === "open" || r.status.stage === "upcoming" ? "live" : "accent", href: `/ipos?ipo=${r.slug}`, ipoSlug: r.slug };
+      return { key: r.slug, icon: r.icon, name: r.name, sub: r.sectorLabel, chip: r.status.label, chipTone: r.status.stage === "open" || r.status.stage === "upcoming" ? "live" : "accent", href: `/ipos?ipo=${r.slug}`, ipoSlug: r.slug };
     });
   return { sector, policy, ipo };
 }

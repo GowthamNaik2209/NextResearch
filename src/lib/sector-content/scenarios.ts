@@ -11,6 +11,12 @@ import { SEMICON2_SCENARIOS } from "./policies/semicon2.extras";
 import { RAREEARTH_SCENARIOS } from "./policies/rareearth.extras";
 import { DEFENCEPROC_SCENARIOS } from "./policies/defenceproc.extras";
 import { ECMS_SCENARIOS } from "./policies/ecms.extras";
+import { PLIACC_SCENARIOS } from "./policies/pliacc.extras";
+import { GREENH2_SCENARIOS } from "./policies/greenh2.extras";
+import { HOSPITALS_SCENARIOS } from "./sectors/hospitals.extras";
+import { CAPMARKETS_SCENARIOS } from "./sectors/capmarkets.extras";
+import { TRANSMISSION_SCENARIOS } from "./sectors/transmission.extras";
+import { CONSUMERINTERNET_SCENARIOS } from "./sectors/consumerinternet.extras";
 import { NIFTY50_SCENARIOS, NIFTY50_SCENARIO_SECTIONS } from "./indices/nifty50.extras";
 
 export type Severity = 1 | 2 | 3; // 3 = directly hit / directly helped
@@ -608,10 +614,16 @@ export const SCENARIOS: Record<string, Scenario[]> = {
       ],
     },
   ],
+  hospitals: HOSPITALS_SCENARIOS,
+  capmarkets: CAPMARKETS_SCENARIOS,
+  transmission: TRANSMISSION_SCENARIOS,
+  consumerinternet: CONSUMERINTERNET_SCENARIOS,
   semicon2: SEMICON2_SCENARIOS,
   rareearth: RAREEARTH_SCENARIOS,
   defenceproc: DEFENCEPROC_SCENARIOS,
   ecms: ECMS_SCENARIOS,
+  pliacc: PLIACC_SCENARIOS,
+  greenh2: GREENH2_SCENARIOS,
   nifty50: NIFTY50_SCENARIOS,
 };
 

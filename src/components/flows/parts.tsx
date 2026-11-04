@@ -17,7 +17,7 @@ export function SortHead<K extends string>({
   left = false,
   className = "",
 }: {
-  label: string;
+  label: ReactNode;
   k: K;
   sort: Sort<K>;
   onSort: (k: K) => void;

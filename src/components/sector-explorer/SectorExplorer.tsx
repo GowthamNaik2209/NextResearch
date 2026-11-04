@@ -1184,7 +1184,7 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
                       deepStage !== null ? controllerRef.current?.exitDeepDive() : controllerRef.current?.enterDeepDive()
                     }
                   >
-                    {deepStage !== null ? "Back to product" : "Open deep dive →"}
+                    {deepStage !== null ? "Back to product" : "Open deep dive"}
                   </button>
                 )}
                 {zoneSupplierKeys.length > 1 && (

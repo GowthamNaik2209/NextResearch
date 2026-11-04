@@ -88,6 +88,24 @@ export type IdeaStockInfo = KpiStock & {
   scarce: { listed: number; strength: number; layer: string; industry: string } | null;
 };
 
+/**
+ * How many industry and policy maps a company is in, as /connections counts them: a policy map
+ * (PLI, ALMM) isn't another industry it sells into, and the Nifty 50 (an index) is neither.
+ */
+export function themeFootprint(
+  slugs: readonly string[],
+  categoryOf: (slug: string) => "sector" | "policy" | "index" | undefined,
+): { industries: number; policies: number } {
+  let industries = 0;
+  let policies = 0;
+  for (const slug of slugs) {
+    const c = categoryOf(slug) ?? "sector";
+    if (c === "policy") policies++;
+    else if (c === "sector") industries++;
+  }
+  return { industries, policies };
+}
+
 const TOP_N = 10;
 const LIST_N = 12;
 const QUALITY_MIN_MCAP_CR = 1000;
@@ -145,8 +163,8 @@ export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: numbe
     ideas.push({
       id: `top-${p.id.toLowerCase()}`,
       title: `Biggest gainers · ${p.id}`,
-      blurb: `The ${TOP_N} listed stocks in our maps that rose most over the past ${p.long}.`,
-      rule: `The ${TOP_N} biggest gainers over the past ${p.long} across our maps, re-ranked daily. ${ONE_OFF_NOTE} Past returns, not a recommendation.`,
+      blurb: `The ${TOP_N} covered stocks that rose most over the past ${p.long}.`,
+      rule: `The ${TOP_N} biggest gainers over the past ${p.long} across covered companies, re-ranked daily. ${ONE_OFF_NOTE} Past returns, not a recommendation.`,
       range: p.id,
       stocks: ranked.map((s) => ({ ticker: s.ticker, stat: pctTxt(stat(s.ticker).ret[p.id]!) })),
       ret: mean(ranked.map((s) => stat(s.ticker).ret[p.id]!)),
@@ -161,8 +179,8 @@ export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: numbe
   ideas.push({
     id: "quality",
     title: "Highest ROCE",
-    blurb: "The highest return on capital employed across every industry we map.",
-    rule: `Highest ROCE in our maps, among profitable companies (a P/E and a profit in the latest year) with positive book value, worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more: ROCE on a loss or negative equity isn't meaningful. ${ONE_OFF_NOTE}`,
+    blurb: "The highest return on capital employed across every mapped industry.",
+    rule: `Highest ROCE among covered companies, among profitable companies (a P/E and a profit in the latest year) with positive book value, worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more: ROCE on a loss or negative equity isn't meaningful. ${ONE_OFF_NOTE}`,
     range: "1Y",
     stocks: quality.map((s) => ({ ticker: s.ticker, stat: `ROCE ${s.roce!.toFixed(0)}%` })),
     ret: ret1y(quality.map((s) => s.ticker)),
@@ -191,8 +209,8 @@ export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: numbe
   ideas.push({
     id: "cross-industry",
     title: "In 3+ industries",
-    blurb: "Companies that turn up in three or more of our industry maps (policy maps not counted).",
-    rule: `Companies in three or more of our industry maps, widest reach first. ${ONE_OFF_NOTE}`,
+    blurb: "Companies that turn up in three or more industry maps (policy maps not counted).",
+    rule: `Companies in three or more industry maps, widest reach first. ${ONE_OFF_NOTE}`,
     range: "1Y",
     stocks: cross.map((s) => ({ ticker: s.ticker, stat: s.policies ? `${s.industries} industries + ${s.policies} ${s.policies === 1 ? "policy" : "policies"}` : `${s.industries} industries` })),
     ret: ret1y(cross.map((s) => s.ticker)),
@@ -210,8 +228,8 @@ export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: numbe
   ideas.push({
     id: "recent-ipos",
     title: "Recent listings",
-    blurb: "Companies in our maps that listed in the past two years, each backtested from its listing day.",
-    rule: `Every company in our maps listed in the past two years, newest first; REITs, InvITs and demergers left out. ${ONE_OFF_NOTE} ${SINCE_LISTING_NOTE}`,
+    blurb: "Covered companies that listed in the past two years, each backtested from its listing day.",
+    rule: `Every covered company listed in the past two years, newest first; REITs, InvITs and demergers left out. ${ONE_OFF_NOTE} ${SINCE_LISTING_NOTE}`,
     range: earliest ? sinceRange(earliest, now) : "1Y",
     stocks: ipos.map((s) => ({ ticker: s.ticker, stat: `listed ${monthYear(stat(s.ticker).first)}` })),
     ret: mean(ipos.map((s) => stat(s.ticker).sinceFirst)),

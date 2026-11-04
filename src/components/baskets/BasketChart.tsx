@@ -16,6 +16,7 @@ import { tickLabel } from "@/components/charts/ticks";
 import { cssVar, useSiteTheme, type SiteTheme } from "@/lib/theme";
 import { axisPct, fmtDay, fmtMonth, NA, signedPct } from "@/lib/format";
 import { slackDaysFor } from "@/lib/baskets/backtest";
+import { onLineDays } from "@/lib/baskets/periods";
 import { useSeries } from "./use-series";
 import { isBenchKey } from "./series";
 import { LINES_FULL, MAX_CHART_STOCKS, type ChartSelection } from "@/lib/baskets/selection";
@@ -256,11 +257,11 @@ export function BasketChart({
     // A single stock listed during the range: every line starts on its first day, so the Nifty 50
     // is measured over the same days (as its return card is) rather than from the range's start.
     const own = loaded.find((s) => s.line.key === basketKey)?.points;
-    const from = single ? own?.[0].t : undefined;
-    // Every line ends on the basket's last day (the stored Nifty 50's last close, run.ts
-    // onBenchWindow): a stock the store lacks, read live, would otherwise run on to today's tick.
-    const to = single ? undefined : own?.[own.length - 1].t;
-    const ok = from || to ? loaded.map((s) => ({ ...s, points: s.points.filter((p) => (!from || p.t >= from) && (!to || p.t <= to)) })).filter((s) => s.points.length > 1) : loaded;
+    // Every line ends on the basket's (or stock's) last day (a basket: the stored Nifty 50's last
+    // close, run.ts onBenchWindow): a stock the store lacks, read live, would otherwise run on to
+    // today's tick, and an index with a close the stock doesn't have yet would end on a different
+    // return than its card and the stats grid (periods.ts onLineDays).
+    const ok = own ? loaded.map((s) => ({ ...s, points: onLineDays(s.points, own, single) })).filter((s) => s.points.length > 1) : loaded;
     const start = ok.reduce<string | null>((m, s) => (!m || s.points[0].t < m ? s.points[0].t : m), null);
     const slackDays = slackDaysFor(range);
     // One date grid for every line, so a daily line beside weekly ones can't stretch the axis.

@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { InfoTip } from "@/components/InfoTip";
+import { useSegmentTip } from "@/components/charts/SegmentTip";
 import { StockLink } from "@/components/stock/StockLink";
 import { NA, croreShort, pct } from "@/lib/format";
 import {
   POOL_METRICS,
   companyValue,
   countedCompanies,
+  distinctLayerColors,
   groupValue,
   layerPools,
+  layerShares,
   poolMetric,
   poolTakeaway,
   shares,
@@ -17,6 +20,8 @@ import {
   type LayerPool,
   type PoolCompany,
   type PoolMetricId,
+  type PoolTakeaway,
+  type TakeawayRow,
 } from "@/lib/baskets/pools";
 
 // The industry page's "Industry pools" panel: how the industry's revenue, profit and market value
@@ -76,7 +81,9 @@ const NONE: ReadonlySet<string> = new Set();
 // White on the map's mid-tone layer colours: a dark halo keeps it readable on every one of them.
 const SEG_TEXT = "overflow-hidden whitespace-nowrap text-[11px] font-bold text-white [text-shadow:0_0_2px_rgba(0,0,0,.85),0_0_4px_rgba(0,0,0,.6)]";
 
-export function IndustryPools({ pools }: { pools: Pools }) {
+export function IndustryPools({ pools: raw }: { pools: Pools }) {
+  // Layers the map gives one domain colour get a shade each, used by the bars, legend and rows alike.
+  const pools = useMemo(() => ({ ...raw, layers: distinctLayerColors(raw.layers) }), [raw]);
   const [metric, setMetric] = useState<PoolMetricId>("rev");
   const [view, setView] = useState<View>("layer");
   // Low-exposure companies the viewer added. Not kept: every visit starts from the same default.
@@ -119,7 +126,7 @@ export function IndustryPools({ pools }: { pools: Pools }) {
               onClick={() => setMetric(x.id)}
               className={"min-h-8 flex-none rounded-full border px-3 text-xs transition sm:text-[13px] " + (metric === x.id ? "border-accent bg-accent font-semibold text-bg" : "border-btn text-ink-soft hover:bg-accent/10 hover:text-ink")}
             >
-              {x.label}
+              {metricLabel(x, pools.year)}
             </button>
           ))}
         </div>
@@ -150,13 +157,7 @@ export function IndustryPools({ pools }: { pools: Pools }) {
 
       <ShareBars layers={layers} view={view} active={m.kind === "pool" ? metric : null} sel={sel} onPick={setPicked} />
 
-      {take && (
-        <p className="max-w-3xl text-sm text-ink">
-          Most profit for its revenue: <b className="font-semibold">{take.more.layer}</b>, {pct(take.more.profit * 100, 0)} of the profit on {pct(take.more.revenue * 100, 0)} of the revenue. Least:{" "}
-          <b className="font-semibold">{take.less.layer}</b>, {pct(take.less.profit * 100, 0)} on {pct(take.less.revenue * 100, 0)}.
-          {counted.some((c) => c.oneOff) && <span className="text-ink-soft"> Companies with a one-off year are left out of this comparison.</span>}
-        </p>
-      )}
+      {take && <Takeaway take={take} />}
 
       {/* The picked layer's companies sit under the chart, out of sight: say so, and take you there. */}
       {sel && selCounted && (
@@ -176,23 +177,47 @@ export function IndustryPools({ pools }: { pools: Pools }) {
       )}
 
       {view === "layer" ? (
-        <LayerRows layers={layers} metric={metric} sel={sel} onPick={setPicked} />
+        <LayerRows layers={layers} metric={metric} year={pools.year} sel={sel} onPick={setPicked} />
       ) : (
-        <CompanyRows companies={counted} colorOf={colorOf} metric={metric} />
+        <CompanyRows companies={counted} colorOf={colorOf} metric={metric} year={pools.year} />
       )}
 
-      {sel && <LayerTable layer={layers.find((l) => l.name === sel)!} metric={metric} />}
+      {sel && <LayerTable layer={layers.find((l) => l.name === sel)!} metric={metric} year={pools.year} />}
 
       <p className="max-w-4xl text-[11px] leading-relaxed text-ink-soft sm:text-xs">
-        Company-wide {pools.year} figures, not segment revenue: each company counts in full in its main layer here. A one-off profit year is left out of profit, margin and P/E. ROCE is the layer&rsquo;s median.
+        Company-wide {pools.year} figures, not segment revenue: each company counts in full in its main layer here. A one-off profit year is left out of profit, margin and P/E. P/E ({pools.year}) is today&rsquo;s market cap over {pools.year} net profit, so it differs from the trailing-twelve-month P/E in stock pop-ups and decks. ROCE is the layer&rsquo;s median.
       </p>
     </div>
   );
 }
 
+/** The read under the bars, in the bars' own shares; where a one-off year makes the bases differ, it says so. */
+function Takeaway({ take }: { take: PoolTakeaway }) {
+  // Small shares to a decimal, so a small layer's "1.2% on 0.4%" doesn't read "1% on <1%".
+  const sh = (s: number) => sharePct(s, s < 0.1 ? 1 : 0);
+  const profitOn = (r: TakeawayRow, long: boolean) => (r.profit != null ? `${sh(r.profit)}${long ? " of the profit" : ""}` : `a loss of ${croreShort(Math.abs(r.profitCr))}`);
+  const list = (xs: string[]) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
+  const notes = [take.more, take.less].filter((r) => r.oneOff.length);
+  const sk = take.skipped;
+  const skCos = sk.flatMap((x) => x.companies);
+  return (
+    <p className="max-w-3xl text-sm text-ink">
+      Most profit for its revenue: <b className="font-semibold">{take.more.layer}</b>, {profitOn(take.more, true)} on {sh(take.more.revenue)} of the revenue. Least:{" "}
+      <b className="font-semibold">{take.less.layer}</b>, {profitOn(take.less, false)} on {sh(take.less.revenue)}.
+      {(notes.length > 0 || sk.length > 0) && (
+        <span className="text-ink-soft">
+          {notes.map((r) => ` ${list(r.oneOff)} ${r.oneOff.length > 1 ? "have" : "has"} a one-off year, counted in ${r.layer}’s revenue share but not its profit share.`).join("")}
+          {sk.length > 0 && ` Not ranked, as a one-off year (${list(skCos)}) is a large part of ${sk.length > 1 ? "their" : "its"} revenue but left out of profit: ${list(sk.map((x) => x.layer))}.`}
+        </span>
+      )}
+    </p>
+  );
+}
+
 /** Revenue, profit and market cap as three 100% bars, split by layer or by company. */
 function ShareBars({ layers, view, active, sel, onPick }: { layers: LayerPool[]; view: View; active: PoolMetricId | null; sel?: string; onPick: (l: string) => void }) {
-  const bars: [PoolMetricId, string][] = [
+  const { tipFor, tipNode } = useSegmentTip();
+  const bars: ["rev" | "np" | "mcap", string][] = [
     ["rev", "Revenue"],
     ["np", "Net profit"],
     ["mcap", "Market cap"],
@@ -201,11 +226,11 @@ function ShareBars({ layers, view, active, sel, onPick }: { layers: LayerPool[];
   const rows = bars.map(([id, label]) => {
     const segs =
       view === "layer"
-        ? shares(layers, (l) => groupValue(l.counted, id)).map(({ item: l, value, share }) => ({ key: l.name, layer: l.name, color: l.color, label: l.name, value, share }))
+        ? layerShares(layers, id).map(({ item: l, value, share }) => ({ key: l.name, layer: l.name, color: l.color, label: l.name, name: l.name, value, share }))
         : shares(
             layers.flatMap((l) => [...l.counted].sort((a, b) => (companyValue(b, id) ?? 0) - (companyValue(a, id) ?? 0)).map((c) => ({ c, l }))),
             ({ c }) => companyValue(c, id),
-          ).map(({ item: { c, l }, value, share }) => ({ key: c.ticker, layer: l.name, color: l.color, label: c.ticker, value, share }));
+          ).map(({ item: { c, l }, value, share }) => ({ key: c.ticker, layer: l.name, color: l.color, label: c.ticker, name: `${c.name} (${l.name})`, value, share }));
     if (id === "np") for (const s of segs) if (s.value != null && s.value < 0) losses.push(`${s.label} ${croreShort(s.value)}`);
     // What the shares are of: the bar's own slices (a loss has none, and is named under the bar).
     const total = segs.reduce((t, s) => t + (s.share != null ? s.value! : 0), 0);
@@ -229,13 +254,11 @@ function ShareBars({ layers, view, active, sel, onPick }: { layers: LayerPool[];
                     key={s.key}
                     type="button"
                     onClick={() => onPick(s.layer)}
-                    title={`${s.label}: ${pct(s.share * 100, 1)}`}
-                    aria-label={`${s.label}, ${pct(s.share * 100, 1)} of ${r.label.toLowerCase()}`}
+                    {...tipFor(`${s.name}: ${pct(s.share * 100, 1)} of ${r.label.toLowerCase()}`)}
                     className={"flex min-w-[3px] items-center justify-center transition-opacity " + SEG_TEXT + (sel === s.layer ? " shadow-[inset_0_0_0_2px_var(--ink)]" : "")}
                     style={{ flex: `${s.share} 1 0`, backgroundColor: s.color }}
                   >
-                    {/* Labels only where they fit; the narrow ones carry them in their title. */}
-                    <span className={view === "company" ? "hidden sm:inline" : ""}>{s.share >= (view === "company" ? 0.1 : 0.07) ? (view === "company" ? `${s.label} ` : "") : ""}</span>
+                    {/* Only the share fits in a slice; its name shows on hover or tap. */}
                     <span className="hidden sm:inline">{s.share >= 0.06 ? pct(s.share * 100, 0) : ""}</span>
                     <span className="sm:hidden">{s.share >= 0.13 ? pct(s.share * 100, 0) : ""}</span>
                   </button>
@@ -245,6 +268,7 @@ function ShareBars({ layers, view, active, sel, onPick }: { layers: LayerPool[];
           </div>
         ))}
       </div>
+      {tipNode}
       {losses.length > 0 && (
         <p className="text-[11px] text-danger sm:text-xs">
           The profit bar is the profit-makers&rsquo; total; {view === "layer" ? "loss-making layers" : "loss-makers"} are left off it: {losses.join(" · ")}
@@ -310,7 +334,7 @@ function Axis({ tk, x, id }: { tk: number[]; x: (v: number) => number; id: PoolM
 }
 
 /** The metric by layer, in the map's order: a pool split into its companies, a rate as a bar with each company as a dot. */
-function LayerRows({ layers, metric, sel, onPick }: { layers: LayerPool[]; metric: PoolMetricId; sel?: string; onPick: (l: string) => void }) {
+function LayerRows({ layers, metric, year, sel, onPick }: { layers: LayerPool[]; metric: PoolMetricId; year: string; sel?: string; onPick: (l: string) => void }) {
   const m = poolMetric(metric);
   const shown = layers.filter((l) => l.all.length);
   const rows = shown.map((l) => {
@@ -324,13 +348,15 @@ function LayerRows({ layers, metric, sel, onPick }: { layers: LayerPool[]; metri
       : rows.flatMap((r) => [r.total ?? 0, ...r.items.map((i) => i.v)]);
   const { tk, x, hi } = scale(metric, extent);
   const [box, trackPx] = useTrackWidth();
-  // About 6.5px a character of the 10px mono label, plus its padding.
+  const { tipFor, tipNode } = useSegmentTip();
+  // A slice wide enough for its share (about 6.5px a character of the 10px mono label, plus padding).
   const fits = (pctWide: number, label: string) => (pctWide / 100) * trackPx >= label.length * 6.5 + 8;
 
   return (
     <div ref={box} className="flex flex-col gap-1">
+      {tipNode}
       <h3 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-ink-soft sm:text-[11px]">
-        {m.label} by layer{m.kind === "rate" && " · dots are companies"}
+        {metricLabel(m, year)} by layer{m.kind === "rate" && " · dots are companies"}
       </h3>
       {rows.map(({ l, items, total }, i) => {
         const share = totalShares[i].share;
@@ -365,11 +391,11 @@ function LayerRows({ layers, metric, sel, onPick }: { layers: LayerPool[]; metri
                     return (
                       <span
                         key={c.ticker}
-                        title={`${c.name}: ${croreShort(v)}`}
+                        {...tipFor(`${c.name}: ${croreShort(v)}`)}
                         className={"absolute inset-y-[3px] flex items-center rounded-sm pl-1 font-mono shadow-[inset_-1px_0_0_var(--bg)] " + SEG_TEXT + " text-[10px]"}
                         style={{ left: `${x(from)}%`, width: `${w}%`, backgroundColor: v < 0 ? "var(--danger)" : l.color }}
                       >
-                        {fits(w, c.ticker) ? c.ticker : ""}
+                        {v > 0 && total && total > 0 && fits(w, sharePct(v / total)) ? sharePct(v / total) : ""}
                       </span>
                     );
                   })
@@ -381,7 +407,7 @@ function LayerRows({ layers, metric, sel, onPick }: { layers: LayerPool[]; metri
                   {items.map(({ c, v }) => (
                     <span
                       key={c.ticker}
-                      title={`${c.name}: ${fmt(metric, v)}${v > hi ? " (off the scale)" : ""}`}
+                      {...tipFor(`${c.name}: ${fmt(metric, v)}${v > hi ? " (off the scale)" : ""}`)}
                       className="absolute top-1/2 -ml-[5px] -mt-[5px] h-2.5 w-2.5 rounded-full border-2 border-panel bg-ink"
                       style={{ left: `${x(v)}%` }}
                     />
@@ -414,7 +440,7 @@ function LayerRows({ layers, metric, sel, onPick }: { layers: LayerPool[]; metri
 }
 
 /** Every counted company ranked on the metric, each bar in its layer's colour. */
-function CompanyRows({ companies, colorOf, metric }: { companies: PoolCompany[]; colorOf: Map<string, string>; metric: PoolMetricId }) {
+function CompanyRows({ companies, colorOf, metric, year }: { companies: PoolCompany[]; colorOf: Map<string, string>; metric: PoolMetricId; year: string }) {
   const m = poolMetric(metric);
   const ranked = companies
     .map((c) => ({ c, v: companyValue(c, metric) }))
@@ -427,7 +453,7 @@ function CompanyRows({ companies, colorOf, metric }: { companies: PoolCompany[];
   return (
     <div className="flex flex-col gap-0.5">
       <h3 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-ink-soft sm:text-[11px]">
-        {m.label} by company · {ranked.length}
+        {metricLabel(m, year)} by company · {ranked.length}
       </h3>
       {ranked.map(({ c, v }, i) => {
         const color = colorOf.get(c.layer) ?? "#64748B";
@@ -474,15 +500,21 @@ function CompanyRows({ companies, colorOf, metric }: { companies: PoolCompany[];
   );
 }
 
+/** A metric's name as shown: P/E carries its year ("P/E (FY26)"), as it is market cap over that
+ * year's profit, not the trailing P/E the stock pop-ups and decks show. */
+function metricLabel(m: { id: PoolMetricId; label: string }, year: string): string {
+  return m.id === "pe" ? `${m.label} (${year})` : m.label;
+}
+
 /** The picked layer's companies with every figure; the chosen metric's column is marked. */
-function LayerTable({ layer, metric }: { layer: LayerPool; metric: PoolMetricId }) {
+function LayerTable({ layer, metric, year }: { layer: LayerPool; metric: PoolMetricId; year: string }) {
   const cols: { id: PoolMetricId; label: string; cell: (c: PoolCompany) => string }[] = [
     { id: "rev", label: "Revenue", cell: (c) => croreShort(c.rev[1]) },
     { id: "np", label: "Net profit", cell: (c) => croreShort(c.np[1]) },
     { id: "margin", label: "Margin", cell: (c) => (c.np[1] != null && c.rev[1] ? pct((c.np[1] / c.rev[1]) * 100) : NA) },
     { id: "growth", label: "Rev growth", cell: (c) => fmt("growth", companyValue(c, "growth")) },
     { id: "mcap", label: "Mkt cap", cell: (c) => croreShort(c.mcapCr) },
-    { id: "pe", label: "P/E", cell: (c) => (c.np[1] != null && c.np[1] > 0 && c.mcapCr != null ? `${(c.mcapCr / c.np[1]).toFixed(1)}×` : c.np[1] != null && c.np[1] <= 0 ? "loss" : NA) },
+    { id: "pe", label: `P/E (${year})`, cell: (c) => (c.np[1] != null && c.np[1] > 0 && c.mcapCr != null ? `${(c.mcapCr / c.np[1]).toFixed(1)}×` : c.np[1] != null && c.np[1] <= 0 ? "loss" : NA) },
     { id: "roce", label: "ROCE", cell: (c) => fmt("roce", c.roce) },
   ];
   const key = (c: PoolCompany) => companyValue(c, metric) ?? -Infinity;

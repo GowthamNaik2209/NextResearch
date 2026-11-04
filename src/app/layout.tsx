@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
+import { IBM_Plex_Mono } from "next/font/google";
 import localFont from "next/font/local";
 // The documented `@vercel/analytics/next` entry point fails to resolve under
 // this project's Turbopack dev server ("Module not found", reproducible even
@@ -17,10 +17,14 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { CONTACT_EMAIL, GA_ID, INSTAGRAM_URL, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL, SITE_VERIFICATION, jsonLd, shareMeta } from "@/lib/site";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
+// Self-hosted, like IBM Plex Sans below: Google now serves Space Grotesk as one variable file for
+// every weight, and next/font/google fails on it the same way. Google's v22 Latin subset, which
+// covers weights 300-700 (SIL Open Font License).
+const spaceGrotesk = localFont({
+  src: "./fonts/space-grotesk-latin.woff2",
   variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: "300 700",
+  display: "swap",
 });
 
 // Self-hosted: in Nov 2026 Google started serving IBM Plex Sans as a variable font with a width
@@ -60,6 +64,9 @@ export const metadata: Metadata = {
     "railway stocks",
     "defence shipbuilding stocks",
     "ALMM solar stocks",
+    "power transmission stocks India",
+    "hospital stocks India",
+    "capital market stocks India",
     "NSE BSE company research",
   ],
   alternates: { canonical: "/" },

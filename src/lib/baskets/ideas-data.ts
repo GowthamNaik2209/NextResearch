@@ -13,7 +13,7 @@ import { ensureFinancials } from "@/lib/financials/load";
 import { backtestBasket, byDeadline, pricesPending } from "./run";
 import { heldStrategy } from "./strategy";
 import { detectOutlier } from "./outliers";
-import { buildIdeas, priceStat, withBacktestReturns, type Idea, type IdeaBacktest, type IdeaStockInfo, type PriceSnapshot, type PriceStat } from "./ideas";
+import { buildIdeas, priceStat, themeFootprint, withBacktestReturns, type Idea, type IdeaBacktest, type IdeaStockInfo, type PriceSnapshot, type PriceStat } from "./ideas";
 
 const CONCURRENCY = 10;
 // Below this share of stocks with prices the day's run is treated as an upstream outage: it
@@ -61,11 +61,13 @@ export function ideaStockInfo(): IdeaStockInfo[] {
       }
     }
   }
-  const policySlugs = new Set(listSectors().filter((x) => x.category === "policy" || x.category === "index").map((x) => x.slug));
+  const categoryOf = new Map(listSectors().map((x) => [x.slug, x.category]));
   return listBasketUniverse().map((st) => {
     const f = findSupplierByTicker(st.ticker)?.f;
     // The company table's snapshot (kpi is [pe, bookValue, divYield, roce, roe, faceValue]).
     const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+    // Industries and policies as /connections counts them: the Nifty 50 is neither.
+    const footprint = themeFootprint(st.industries.map((i) => i.slug), (slug) => categoryOf.get(slug));
     return {
       ticker: st.ticker,
       name: st.name,
@@ -77,9 +79,8 @@ export function ideaStockInfo(): IdeaStockInfo[] {
       np: f?.np ?? undefined,
       outlier: !!detectOutlier(f),
       trust: /\b(REIT|InvIT)\b|Trust\b/i.test(st.name),
-      // Industries only: a policy map (PLI, ALMM) or the Nifty 50 isn't another industry the company sells into.
-      industries: st.industries.filter((i) => !policySlugs.has(i.slug)).length,
-      policies: st.industries.filter((i) => policySlugs.has(i.slug)).length,
+      industries: footprint.industries,
+      policies: footprint.policies,
       notIpo: /\b(REIT|InvIT)\b|Trust\b/i.test(st.name) || st.ticker in HISTORY_FROM,
       scarce: scarce.get(st.ticker) ?? null,
     };

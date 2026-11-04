@@ -176,7 +176,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
             <>
               <Link href={`/sector/${sector.slug}/explore`} className={actionClass(true)}>
                 <span className="sm:hidden">{isHeatmap ? "Explore" : "3D map"}</span>
-                <span className="hidden sm:inline">{isHeatmap ? "Explore the heatmap" : "Explore the map"} &rarr;</span>
+                <span className="hidden sm:inline">{isHeatmap ? "Explore the heatmap" : "Explore the map"}</span>
               </Link>
               {GUIDED_TOUR_ENABLED && (
                 <Link href={`/sector/${sector.slug}/explore?tour=1`} className={actionClass(false)}>
@@ -300,8 +300,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                     <OpenStockCard key={key} ticker={tickerForSupplier(company)} supplier={company} className="rounded-xl border border-line bg-panel p-4 transition hover:border-accent">
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="text-sm font-semibold text-ink">
-                          {company.name}
-                          {ticker && <WatchlistButton ticker={ticker} name={company.name} />}
+                          <NameWithHeart name={company.name} ticker={ticker} />
                         </h4>
                         <span
                           className={
@@ -390,8 +389,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                 <OpenStockCard key={key} ticker={cardTicker} supplier={company} className="flex flex-col rounded-xl border border-line bg-panel p-4 transition hover:border-accent">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-sm font-semibold text-ink">
-                      {company.name}
-                      {ticker && <WatchlistButton ticker={ticker} name={company.name} />}
+                      <NameWithHeart name={company.name} ticker={ticker} />
                     </h3>
                     <span
                       className={
@@ -476,6 +474,25 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
         />
       </main>
       <SiteFooter />
+    </>
+  );
+}
+
+/**
+ * A card's company name with its watchlist heart. The heart is kept on the line of the name's last
+ * word, so a long name that wraps never leaves it alone on a line of its own (a phone's heart is a
+ * 40px tap target, which used to drop under names that just filled the line).
+ */
+function NameWithHeart({ name, ticker }: { name: string; ticker: string | null }) {
+  if (!ticker) return <>{name}</>;
+  const cut = name.lastIndexOf(" ");
+  return (
+    <>
+      {cut > 0 ? name.slice(0, cut + 1) : ""}
+      <span className="whitespace-nowrap">
+        {name.slice(cut + 1)}
+        <WatchlistButton ticker={ticker} name={name} />
+      </span>
     </>
   );
 }

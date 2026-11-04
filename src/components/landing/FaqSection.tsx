@@ -3,7 +3,7 @@
 const FAQ = [
   {
     q: "Is NextResearch giving buy or sell recommendations?",
-    a: "No. We map industries and the companies in them so you can see where the opportunity and the risks sit. Everything here is for information and research only — it is not investment advice, and you should do your own diligence or consult a registered adviser before investing.",
+    a: "No. NextResearch maps industries and the companies in them so you can see where the opportunity and the risks sit. Everything here is for information and research only — it is not investment advice, and you should do your own diligence or consult a registered adviser before investing.",
   },
   {
     q: "Where does the data come from?",
@@ -26,7 +26,7 @@ export function FaqSection() {
         <div>
           <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">Straight answers</h2>
           <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-            What we cover, where it comes from, and what it is not. Investing involves risk, including loss of capital.
+            What is covered, where it comes from, and what it is not. Investing involves risk, including loss of capital.
           </p>
         </div>
         <div className="divide-y divide-line rounded-2xl border border-line bg-bg">

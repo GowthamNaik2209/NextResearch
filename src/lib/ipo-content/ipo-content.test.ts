@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { before, test } from "node:test";
 import { getIpo, listIpoDecks, listIpos, priceBandTop } from "./index";
 import { validateIpo } from "./validate";
+import { liveIpoStatus } from "./status";
 import { companyFinancials, parseCrore } from "../sector-content";
 import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
 
@@ -43,8 +44,20 @@ test("an NSE peer shows the same figures as its industry and policy pages", () =
 // The authored chip ("Opens 21 Oct") is written once; the stage must follow the dated timeline.
 const day = (s: string) => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
 
+// A deck as authored before it opened (Paras Healthcare's, Oct 2026), so the test doesn't move when a
+// live deck is updated to listed.
+const authored = {
+  status: { stage: "upcoming" as const, label: "Opens 21 Oct", detail: "" },
+  timeline: [
+    { date: "19 Oct 2026", event: "Anchor investor bidding", done: false },
+    { date: "21 Oct 2026", event: "Issue opens", done: false },
+    { date: "23 Oct 2026", event: "Issue closes; allotment 26 Oct (tentative)", done: false },
+    { date: "28 Oct 2026", event: "Listing on BSE and NSE (tentative)", done: false },
+  ],
+};
+
 test("an IPO's stage and chip follow its dates, not the authored text", () => {
-  const paras = (d: string) => getIpo("paras-healthcare", day(d))!.status;
+  const paras = (d: string) => liveIpoStatus(authored, day(d)).status;
   assert.deepEqual([paras("2026-10-20").stage, paras("2026-10-20").label], ["upcoming", "Opens 21 Oct"]);
   assert.deepEqual([paras("2026-10-22").stage, paras("2026-10-22").label], ["open", "Open · closes 23 Oct"]);
   assert.deepEqual([paras("2026-10-25").stage, paras("2026-10-25").label], ["upcoming", "Closed · lists 28 Oct"]);

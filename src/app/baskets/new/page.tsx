@@ -96,7 +96,7 @@ export default async function NewBasketPage({ searchParams }: { searchParams: Pr
   const stocks = all.slice(0, MAX_BASKET_STOCKS);
   const notice = [
     all.length > stocks.length ? `Added ${stocks.length} of ${all.length}: a basket holds up to ${MAX_BASKET_STOCKS} stocks.` : null,
-    unlistedLeft > 0 ? `${unlistedLeft} stock${unlistedLeft === 1 ? "" : "s"} no longer listed in our maps ${unlistedLeft === 1 ? "was" : "were"} left out.` : null,
+    unlistedLeft > 0 ? `${unlistedLeft} stock${unlistedLeft === 1 ? "" : "s"} no longer among covered companies ${unlistedLeft === 1 ? "was" : "were"} left out.` : null,
   ]
     .filter(Boolean)
     .join(" ");

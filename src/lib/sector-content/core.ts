@@ -176,11 +176,8 @@ export type SectorDef = {
   // "heatmap": the explorer's stage is a stock heatmap (HeatmapStage) instead of the three.js model;
   // layers and camera views are not shown and `build` is never called.
   stage?: "model" | "heatmap";
-  // True hides this sector's landing-page card behind the same muted,
-  // non-clickable "Coming soon" treatment as a _comingSoon placeholder, while
-  // keeping its real zones/suppliers/3D build intact and still reachable by
-  // direct URL — for a sector that's functional but not polished enough to
-  // put in front of users yet.
+  // True keeps a sector off every listing (cards, search, baskets, sitemap) while its real
+  // zones/suppliers/3D build stay reachable by direct URL - for a sector still being built.
   muted?: boolean;
   headerTitle: string;
   headerSub: string;
@@ -220,8 +217,6 @@ export type SectorDef = {
   // shots left the model a thin band across the middle third of a phone); `false` opts a sector out.
   portraitFit?: boolean;
 };
-
-export type ComingSoonSector = { icon: string; name: string; tagline: string; category?: SectorCategory };
 
 // A sector plus the registry key it is addressed by in URLs.
 export type SectorWithSlug = SectorDef & { slug: string };

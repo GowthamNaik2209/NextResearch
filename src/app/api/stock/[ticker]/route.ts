@@ -3,6 +3,8 @@ import { findSupplierByTicker } from "@/lib/sector-content";
 import { getFundamentals } from "@/lib/live/screener-company";
 import { getQuote, getYahooFundamentals } from "@/lib/live/yahoo";
 import { getCompanyNews } from "@/lib/live/news";
+import { presentableNews } from "@/lib/news-display";
+import { isListedTicker } from "@/lib/news-listed";
 import { getCompanyFootprint } from "@/lib/sector-content/exposure";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { ensureFinancials } from "@/lib/financials/load";
@@ -34,7 +36,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
   ]);
   const fundamentals = screener ?? (await within(getYahooFundamentals(ticker), null));
   // `ts` lets the browser render "3h ago" against its own clock (this response is CDN-cached).
-  const news = newsResult.items.map(({ headline, source, url, date, ts }) => ({ headline, source, url, date, ts }));
+  // Grey-market and stale IPO run-up stories left out, cut-off headlines marked with an ellipsis.
+  const news = presentableNews(newsResult.items, isListedTicker).map(({ headline, source, url, date, ts }) => ({ headline, source, url, date, ts }));
 
   return NextResponse.json(
     { ticker, quote, fundamentals, news, newsLive: newsResult.live, footprint: getCompanyFootprint(ticker), seedAsOf: findSupplierByTicker(ticker)?.f?.asOf ?? dataAsOf() },

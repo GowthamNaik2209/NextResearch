@@ -32,10 +32,16 @@ export type ChartPickerIndustry = {
   /** `core`: the industry is the company's main one (a picker opens on a core stock, not on a
    * conglomerate that is only a supplier here). */
   stocks: { ticker: string; name: string; layer: string; core: boolean }[];
+  /** The stock the industry opens on (all layers): its biggest integrator / end-maker company
+   * (lib/analysis-props.ts). Absent when none qualifies; the list's own first pick is used then. */
+  lead?: string;
 };
 
 // The stock a list opens on: its biggest core company, else its biggest.
 const firstPick = (list: ChartPickerIndustry["stocks"]) => (list.find((s) => s.core) ?? list[0])?.ticker ?? "";
+// The stock an industry opens on, all layers shown: its lead company when it has one.
+const industryPick = (ind: ChartPickerIndustry | undefined) =>
+  ind?.lead && ind.stocks.some((s) => s.ticker === ind.lead) ? ind.lead : firstPick(ind?.stocks ?? []);
 
 // Plot height in this pop-up: shorter than the stock pop-up's, as the dropdowns sit above it.
 const PLOT_HEIGHT = "h-[34vh] min-h-[200px] sm:h-[min(340px,34vh)]";
@@ -133,7 +139,7 @@ function Picker({
   const [layer, setLayer] = useState(ALL);
   const ind = industries.find((x) => x.slug === slug) ?? industries[0];
   const inLayer = layer === ALL ? ind.stocks : ind.stocks.filter((s) => s.layer === layer);
-  const [ticker, setTicker] = useState(() => firstPick(inLayer));
+  const [ticker, setTicker] = useState(() => industryPick(ind));
   const stock = inLayer.find((s) => s.ticker === ticker) ?? inLayer[0];
   const { data } = useStockData(stock?.ticker ?? "", !!stock);
   const quote = freshQuote(data?.quote);
@@ -146,11 +152,11 @@ function Picker({
     const next = industries.find((x) => x.slug === s);
     setSlug(s);
     setLayer(ALL);
-    setTicker(firstPick(next?.stocks ?? []));
+    setTicker(industryPick(next));
   };
   const pickLayer = (l: string) => {
     setLayer(l);
-    setTicker(firstPick(l === ALL ? ind.stocks : ind.stocks.filter((s) => s.layer === l)));
+    setTicker(l === ALL ? industryPick(ind) : firstPick(ind.stocks.filter((s) => s.layer === l)));
   };
 
   // The full stock pop-up (Summary, News, Fundamentals) opens through ?stock= like any company link,
@@ -178,7 +184,9 @@ function Picker({
     <>
       <div className="flex flex-none items-start gap-3 border-b border-line bg-panel px-4 pt-4 pb-3 sm:px-6 sm:pt-5">
         {full && <BackToChartButton onClick={fv.exit} />}
-        <div className="min-w-0 flex-1">
+        {/* Phones: a grid, so the heart sits beside the name and the ticker line below has the full width
+            (beside the ticker, a wide price left the ticker too little room and the heart covered it). */}
+        <div className="min-w-0 flex-1 max-sm:grid max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:items-start max-sm:gap-x-2">
           {/* Full view on a phone: the scrip is the title (Back shares the row), the name under it, cut to fit. */}
           <h2 className="min-w-0 break-words font-display text-base font-bold leading-snug sm:text-xl">
             {full && stock ? (
@@ -191,16 +199,16 @@ function Picker({
             )}
           </h2>
           {stock && (
-            <div className="mt-1 flex items-center gap-2">
+            <div className="mt-1 flex items-center gap-2 max-sm:contents">
               {/* The ticker never truncates; only the layer gives way to the Watch pill. */}
-              <p className="flex min-w-0 text-xs text-ink-soft">
+              <p className="flex min-w-0 text-xs text-ink-soft max-sm:col-span-2 max-sm:mt-1">
                 {full && <span className="min-w-0 truncate sm:hidden">{stock.name}</span>}
                 <span className={"flex-none font-mono" + (full ? " max-sm:hidden" : "")}>
                   {quote?.exchange ?? "NSE"}: {stock.ticker}
                 </span>
                 <span className={"min-w-0 truncate" + (full ? " max-sm:hidden" : "")}>&nbsp;· {stock.layer}</span>
               </p>
-              <span className="flex-none">
+              <span className="flex-none max-sm:col-start-2 max-sm:row-start-1 max-sm:-mt-1.5">
                 <WatchlistButton key={stock.ticker} ticker={stock.ticker} name={stock.name} variant="pill" />
               </span>
             </div>

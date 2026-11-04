@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { connectionRowId, type ConnectionsSearchEntry } from "@/lib/connections-search";
+import { connectionKindLabel, connectionRowId, type ConnectionsSearchEntry } from "@/lib/connections-search";
 
 // Lower is better: exact name or ticker, then a name or ticker that starts with the term, then a
 // word in the name that does ("power" -> "CG Power"), then anywhere in it, then the sub-line
@@ -21,7 +21,6 @@ function score(e: ConnectionsSearchEntry, term: string): number {
 // Industries first within a tier: there are few of them, and one letter would otherwise
 // fill the list with companies and push them under "Show all".
 const KIND_ORDER = { sector: 0, company: 1 } as const;
-const KIND_LABEL = { company: "Company", sector: "Industry" } as const;
 const FIRST = 8;
 
 export function ConnectionsSearch({ index }: { index: ConnectionsSearchEntry[] }) {
@@ -194,7 +193,7 @@ export function ConnectionsSearch({ index }: { index: ConnectionsSearchEntry[] }
                     <span className="block truncate text-xs text-ink-soft">{r.sub}</span>
                   </span>
                   <span className="flex-none rounded-full border border-line px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
-                    {KIND_LABEL[r.kind]}
+                    {connectionKindLabel(r)}
                   </span>
                 </button>
               </li>

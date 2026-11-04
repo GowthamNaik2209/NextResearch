@@ -3,7 +3,8 @@
 // (Pharma, IT); for the rest it returns a day or two, so those lines are drawn from an ETF
 // that tracks the index (`via`), which follows it to within its small fee drag.
 // Industries with no matching index (semiconductors, data centres, telecom, solar) get
-// none rather than a loose stand-in. Symbols checked against Yahoo, Oct 2026.
+// none rather than a loose stand-in. Capital markets has an index, but its ETF (GROWWCAPM.NS)
+// only reaches a year of history in Dec 2026; add it then. Symbols checked against Yahoo, Nov 2026.
 export type Benchmark = { id: string; name: string; symbol: string; via?: string };
 
 export const BENCHMARKS = {
@@ -16,6 +17,9 @@ export const BENCHMARKS = {
   niftydefence: { id: "niftydefence", name: "Nifty India Defence", symbol: "MODEFENCE.NS", via: "Motilal Oswal Nifty India Defence ETF" },
   niftyrailpsu: { id: "niftyrailpsu", name: "Nifty India Railways PSU", symbol: "GROWWRAIL.NS", via: "Groww Nifty India Railways PSU ETF" },
   niftyenergy: { id: "niftyenergy", name: "Nifty Energy", symbol: "MOENERGY.NS", via: "Motilal Oswal Nifty Energy ETF" },
+  niftyhealthcare: { id: "niftyhealthcare", name: "Nifty Healthcare", symbol: "HEALTHIETF.NS", via: "ICICI Prudential Nifty Healthcare ETF" },
+  niftyinternet: { id: "niftyinternet", name: "Nifty India Internet", symbol: "INTERNET.NS", via: "Mirae Asset Nifty India Internet ETF" },
+  niftymetal: { id: "niftymetal", name: "Nifty Metal", symbol: "^CNXMETAL" },
 } satisfies Record<string, Benchmark>;
 
 export type BenchmarkId = keyof typeof BENCHMARKS;
@@ -32,7 +36,13 @@ const SECTOR_INDEX: Partial<Record<string, BenchmarkId[]>> = {
   energy: ["niftyenergy"],
   realestate: ["niftyrealty"],
   pharma: ["niftypharma"],
+  hospitals: ["niftyhealthcare"],
+  transmission: ["niftyenergy"],
+  consumerinternet: ["niftyinternet"],
   defenceproc: ["niftydefence"],
+  rareearth: ["niftymetal"],
+  pliacc: ["niftyev", "niftyenergy"],
+  greenh2: ["niftyenergy"],
 };
 
 export function sectorBenchmarks(slug: string): Benchmark[] {

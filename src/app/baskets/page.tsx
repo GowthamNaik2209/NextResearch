@@ -23,7 +23,7 @@ import type { BasketFigures } from "@/lib/baskets/stats";
 export const metadata = {
   title: "Stock baskets: build your own from any mix of Indian industries",
   description:
-    "Create a stock basket from any mix of the industries NextResearch maps, from EVs and railways to defence, pharma and real estate, or start from a rule-based basket re-ranked daily: biggest gainers, highest ROCE, scarce suppliers, companies in 3+ industries, recent listings, consistent compounders, growth at a reasonable price, turnarounds and widening margins. Each one is backtested against the Nifty 50 and shareable by link.",
+    "Create a stock basket from any mix of the industries NextResearch maps, from EVs and railways to defence, pharma, hospitals and capital markets, or start from a rule-based basket re-ranked daily: biggest gainers, highest ROCE, scarce suppliers, companies in 3+ industries, recent listings, consistent compounders, growth at a reasonable price, turnarounds and widening margins. Each one is backtested against the Nifty 50 and shareable by link.",
   alternates: { canonical: "/baskets" },
   ...shareMeta({ title: "Stock baskets", line: "Mix any Indian industries, backtested against the Nifty 50.", path: "/baskets" }),
 };
@@ -102,7 +102,7 @@ export default async function BasketsPage() {
                 Rule-based baskets
               </h2>
               <InfoTip label="About rule-based baskets">
-                Each list is picked by a fixed rule (past return, company figures, our maps) and re-ranked daily; tap a card&rsquo;s i for its rule. Returns shown are past performance, not a
+                Each list is picked by a fixed rule (past return, company figures, industry maps) and re-ranked daily; tap a card&rsquo;s i for its rule. Returns shown are past performance, not a
                 recommendation or forecast.
               </InfoTip>
             </div>

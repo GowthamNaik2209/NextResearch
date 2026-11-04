@@ -59,7 +59,10 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
       <>
         <div className={"flex flex-none items-start gap-3 border-b border-line bg-panel px-4 pt-4 sm:px-6 sm:pt-5 " + (full ? "pb-3 sm:pb-4" : "pb-0")}>
           {full && <BackToChartButton onClick={fv.exit} />}
-          <div className="min-w-0 flex-1">
+          {/* Phones: a grid, so the heart sits beside the name and the ticker line below has the full
+              width (beside the ticker, a wide price left the ticker too little room and the heart covered
+              it). Wider: the labelled Watch pill sits on the ticker line, so it doesn't squeeze the name. */}
+          <div className="min-w-0 flex-1 max-sm:grid max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:items-start max-sm:gap-x-2">
             {/* Long names wrap rather than being cut ("Samvardhana Motherson…"): the price and ✕ leave
                 the name ~180px on a phone, so no line clamp. */}
             {/* The full view on a phone also holds Back: the scrip ("GRSE") is the title there, so a long
@@ -74,15 +77,14 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
                 supplier.name
               )}
             </h2>
-            {/* The labelled Watch button sits on the ticker line, so it doesn't squeeze the name. */}
-            <div className="mt-1 flex items-center gap-2">
+            <div className="mt-1 flex items-center gap-2 max-sm:contents">
               {/* The ticker never truncates; only the role gives way to the Watch pill. */}
-              <p className="flex min-w-0 text-xs text-ink-soft">
+              <p className="flex min-w-0 text-xs text-ink-soft max-sm:col-span-2 max-sm:mt-1">
                 {full && <span className="min-w-0 truncate sm:hidden">{supplier.name}</span>}
                 <span className={"flex-none font-mono" + (full ? " max-sm:hidden" : "")}>{supplier.listed ? `${freshQuote(api?.quote)?.exchange ?? "NSE"}: ${ticker}` : "Unlisted"}</span>
                 <span className="hidden min-w-0 truncate sm:inline">&nbsp;· {supplier.role}</span>
               </p>
-              <span className="flex-none">
+              <span className="flex-none max-sm:col-start-2 max-sm:row-start-1 max-sm:-mt-1.5">
                 <WatchlistButton ticker={ticker} name={supplier.name} variant="pill" />
               </span>
             </div>
