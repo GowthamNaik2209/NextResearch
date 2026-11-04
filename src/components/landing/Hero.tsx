@@ -2,18 +2,21 @@ import Link from "next/link";
 import { HeroSearch } from "@/components/HeroSearch";
 import type { SectorWithSlug } from "@/lib/sector-content";
 import type { SearchEntry } from "@/lib/sector-content/stats";
-import { BrowseThemesButton, ThemeWindow, type ThemeRow } from "./ThemeWindow";
+import { ThemeWindow, type ThemeRow } from "./ThemeWindow";
 import type { ThemeTab } from "@/components/research/ThemeCards";
 
 type Props = {
-  /** The industry linked from "Try the 3D map" (and listed first in the theme window). */
+  /** The industry the quick-access buttons open (and listed first in the theme window). */
   featured: Pick<SectorWithSlug, "slug" | "name" | "zones"> | undefined;
   searchIndex: SearchEntry[];
   /** Rows for the theme window on the right (buildHeroThemeRows). */
   themeRows: Record<ThemeTab, ThemeRow[]>;
 };
 
+const QUICK = "items-center justify-center whitespace-nowrap rounded-lg border px-4 py-2.5 text-sm font-semibold";
+
 export function Hero({ featured, searchIndex, themeRows }: Props) {
+  const slug = featured?.slug ?? "datacenter";
   return (
     <div className="mx-auto grid max-w-page grid-cols-1 items-center gap-12 px-5 py-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:py-24">
       <div className="min-w-0">
@@ -30,15 +33,26 @@ export function Hero({ featured, searchIndex, themeRows }: Props) {
         <div className="mt-7">
           <HeroSearch index={searchIndex} />
         </div>
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          <BrowseThemesButton className="rounded-lg border border-accent bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90" />
-          <Link
-            href={`/sector/${featured?.slug ?? "datacenter"}/explore`}
-            className="rounded-lg border border-btn px-5 py-2.5 text-sm font-semibold text-ink hover:bg-accent/10"
-          >
-            Try the 3D map
+        {/* Quick access to each way into the research: one filled (the 3D maps, opened on the map
+            switcher), the rest outlined. On phones the 3D maps button spans the row and the other four sit
+            2x2 below; one row from 640px up. */}
+        <nav aria-label="Quick access" className="mt-5 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center">
+          <Link href={`/sector/${slug}/explore?maps=1`} className={`${QUICK} col-span-2 inline-flex border-accent bg-accent text-bg hover:opacity-90`}>
+            3D maps
           </Link>
-        </div>
+          <Link href={`/sector/${slug}?view=heatmap&pick=1`} className={`${QUICK} inline-flex border-btn text-ink hover:bg-accent/10`}>
+            Stock heatmaps
+          </Link>
+          <Link href={`/sector/${slug}?view=pools&pick=1`} className={`${QUICK} inline-flex border-btn text-ink hover:bg-accent/10`}>
+            Industry pools
+          </Link>
+          <Link href="/docs" className={`${QUICK} inline-flex border-btn text-ink hover:bg-accent/10`}>
+            Deep dives
+          </Link>
+          <Link href="/docs?view=reports" className={`${QUICK} inline-flex border-btn text-ink hover:bg-accent/10`}>
+            Reports
+          </Link>
+        </nav>
       </div>
       <ThemeWindow rows={themeRows} />
     </div>

@@ -24,10 +24,9 @@ import { dataAsOf } from "@/lib/sector-content/insights";
 import { isoDay } from "@/lib/financials/rows";
 import type { Metadata } from "next";
 import { Points } from "@/components/Points";
-import { IndustryActions, type HeatStock } from "@/components/charts/IndustryHeatmap";
+import { IndustryActions } from "@/components/charts/IndustryHeatmap";
 import { actionClass } from "@/components/charts/action-class";
-import { getIndustryBasket } from "@/lib/baskets/industry";
-import { industryPools } from "@/lib/baskets/pools-data";
+import { industryViewData, industryViewOptions } from "@/lib/baskets/industry-views";
 import { ensureFinancials } from "@/lib/financials/load";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
@@ -120,12 +119,9 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
   const faqs = sectorFaq(sector);
   const updated = isoDay(dataAsOf());
   const deck = buildDeck(sector.slug);
-  // The heatmap's stocks: the industry basket's, grouped in the map's layer order. A heatmap sector
-  // (the Nifty 50) has none here: its heatmap, with the what-ifs, is the explorer itself.
-  const zoneOrder = new Map(sector.zones.map((z, i) => [z.label, i]));
-  const heatStocks: HeatStock[] = (sector.muted || isHeatmap ? [] : (getIndustryBasket(sector.slug)?.stocks ?? []))
-    .map((s) => ({ ticker: s.ticker, name: s.name, layer: s.layer, mcapCr: s.mcapCr }))
-    .sort((a, b) => (zoneOrder.get(a.layer) ?? 99) - (zoneOrder.get(b.layer) ?? 99) || (b.mcapCr ?? -1) - (a.mcapCr ?? -1));
+  // The full-screen Stock heatmap and Industry pools (industry-views.ts). A heatmap sector (the
+  // Nifty 50) has no heatmap stocks here: its heatmap, with the what-ifs, is the explorer itself.
+  const views = industryViewData(sector.slug)!;
 
   return (
     <>
@@ -167,11 +163,8 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
         {/* A heatmap sector (the Nifty 50) has no 3D model: its explorer is the heatmap with the
             what-if and industry panels, so this page has no Stock heatmap button of its own. */}
         <IndustryActions
-          slug={sector.slug}
-          name={sector.name}
-          stocks={heatStocks}
-          basketHref={sector.muted ? null : `/baskets/industry/${sector.slug}`}
-          pools={industryPools(sector.slug)}
+          data={views}
+          options={industryViewOptions()}
           lead={
             <>
               <Link href={`/sector/${sector.slug}/explore`} className={actionClass(true)}>

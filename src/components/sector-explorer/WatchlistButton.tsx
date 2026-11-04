@@ -69,6 +69,8 @@ export function subscribeWatchlist(onChange: () => void): () => void {
     listeners.delete(onChange);
   };
 }
+/** From the last load: true signed in, false signed out, null not known yet (or the load failed). */
+export const watchlistSignedIn = (): boolean | null => signedIn;
 export const isWatched = (ticker: string): boolean | null => (tickersCache ? tickersCache.has(ticker) : null);
 /** The whole list as one string ("A,B,C"; "" when empty), null until it loads: a stable snapshot for
  * useSyncExternalStore, so the basket builder's "From your watchlist" list follows the hearts. */

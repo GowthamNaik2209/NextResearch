@@ -58,21 +58,22 @@ async function oneRead<T>(read: () => Promise<T>): Promise<T> {
  * store only moves when the daily top-up writes (which expires PRICES_TAG). An error, or a series
  * too short to chart, is never cached: the next read tries again.
  */
-const sharedLoad = unstable_cache(
-  async (key: string, candles: boolean): Promise<Loaded & { lastDay: string }> => {
-    const s = await oneRead(() => prisma.priceSeries.findUnique({ where: { key }, select: { source: true, exchange: true, lastDay: true } }));
-    if (!s?.lastDay) throw new NoSeries(key);
-    const from = new Date(Date.now() - STORE_DAYS * DAY);
-    const rows = await oneRead(() =>
-      prisma.priceBar.findMany({ where: { key, day: { gte: from } }, orderBy: { day: "asc" }, select: { day: true, close: true, open: candles, high: candles, low: candles, volume: candles } }),
-    );
-    if (rows.length < 2) throw new NoSeries(key);
-    const bars = rows.map((r) => ({ t: r.day.toISOString().slice(0, 10), o: r.open ?? null, h: r.high ?? null, l: r.low ?? null, c: r.close, v: r.volume ?? null }));
-    return { source: s.source, exchange: s.exchange === "BSE" ? "BSE" : "NSE", bars, lastDay: s.lastDay.toISOString() };
-  },
-  ["price-store-v1"],
-  { revalidate: SHARED_REVALIDATE_SECONDS, tags: [PRICES_TAG] },
-);
+async function readSeries(key: string, candles: boolean): Promise<Loaded & { lastDay: string }> {
+  const s = await oneRead(() => prisma.priceSeries.findUnique({ where: { key }, select: { source: true, exchange: true, lastDay: true } }));
+  if (!s?.lastDay) throw new NoSeries(key);
+  const from = new Date(Date.now() - STORE_DAYS * DAY);
+  const rows = await oneRead(() =>
+    prisma.priceBar.findMany({ where: { key, day: { gte: from } }, orderBy: { day: "asc" }, select: { day: true, close: true, open: candles, high: candles, low: candles, volume: candles } }),
+  );
+  if (rows.length < 2) throw new NoSeries(key);
+  const bars = rows.map((r) => ({ t: r.day.toISOString().slice(0, 10), o: r.open ?? null, h: r.high ?? null, l: r.low ?? null, c: r.close, v: r.volume ?? null }));
+  return { source: s.source, exchange: s.exchange === "BSE" ? "BSE" : "NSE", bars, lastDay: s.lastDay.toISOString() };
+}
+const sharedLoad = unstable_cache(readSeries, ["price-store-v1"], { revalidate: SHARED_REVALIDATE_SECONDS, tags: [PRICES_TAG] });
+// Outside a Next server (scripts/*) unstable_cache has no cache to use and throws; read the database
+// directly there, or every script read would fall through to live Yahoo prices (today's session
+// included) and disagree with the site.
+const noNextCache = (e: unknown) => e instanceof Error && e.message.includes("incrementalCache missing");
 
 class NoSeries extends Error {
   constructor(key: string) {
@@ -86,10 +87,12 @@ class NoSeries extends Error {
  */
 function load(key: string, candles: boolean): Promise<Loaded | null> {
   return cached(`store2:${key}:${candles ? "ohlc" : "c"}`, TTL_MS, async () => {
-    const got = await sharedLoad(key, candles).catch((e: unknown) => {
-      if (e instanceof NoSeries) return null;
-      throw e;
-    });
+    const got = await sharedLoad(key, candles)
+      .catch((e: unknown) => (noNextCache(e) ? readSeries(key, candles) : Promise.reject(e)))
+      .catch((e: unknown) => {
+        if (e instanceof NoSeries) return null;
+        throw e;
+      });
     // Stale: the top-up has stopped for this series (or altogether); Yahoo is the better answer.
     if (!got || Date.now() - new Date(got.lastDay).getTime() > MAX_QUOTE_AGE_DAYS * DAY) return null;
     return { source: got.source, exchange: got.exchange, bars: got.bars };

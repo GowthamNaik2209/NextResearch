@@ -15,6 +15,8 @@ import { CompanyFeatures } from "@/components/landing/CompanyFeatures";
 import { FaqSection } from "@/components/landing/FaqSection";
 import { ClosingCta } from "@/components/landing/ClosingCta";
 import { ensureFinancials } from "@/lib/financials/load";
+import { MarketPulse } from "@/components/landing/MarketPulse";
+import { getMarketFigures, getMarketStocks, marketTiles } from "@/lib/landing/market-data";
 
 // Landing page: a thin composition of section components (src/components/landing/). All the
 // numbers on it come from the sector content via src/lib/sector-content/{stats,insights}.ts.
@@ -34,6 +36,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <Hero featured={featured} searchIndex={buildSearchIndex()} themeRows={buildHeroThemeRows(featured?.slug)} />
           <StatsStrip stats={getPlatformStats()} />
         </section>
+
+        {/* The market by industry: the tiles render now, the figures stream in (promises, read in the browser with use()). */}
+        <MarketPulse tiles={marketTiles()} figures={getMarketFigures()} stocks={getMarketStocks()} />
 
         {featured && <FeaturedThesis sector={featured} />}
 

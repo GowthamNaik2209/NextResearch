@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { getSector, listSectorSlugs } from "@/lib/sector-content";
+import { getSector, listSectorSlugs, listSectors } from "@/lib/sector-content";
 import { SectorExplorer } from "@/components/sector-explorer/SectorExplorer";
 import { getCurrentUser } from "@/lib/auth";
 import { NOT_FOUND_METADATA, midSentence, shareMeta } from "@/lib/site";
@@ -44,6 +44,12 @@ export default async function SectorExplorePage({ params }: { params: Promise<{ 
   if (!sector) notFound();
   const figures = await financialsFor(Object.values(sector.suppliers).flatMap((s) => (s.f ? [s.f.ticker] : [])));
 
+  // The header's map switcher: every live map (not muted, not the index heatmap), as a light list -
+  // the explorer bundle never imports the registry itself.
+  const maps = listSectors()
+    .filter((s) => (!s.muted || s.slug === slug) && s.category !== "index" && s.stage !== "heatmap")
+    .map((s) => ({ slug: s.slug, name: s.name, category: s.category === "policy" ? ("policy" as const) : ("industry" as const) }));
+
   const user = await getCurrentUser();
   const displayName = (user?.user_metadata?.display_name as string | undefined) ?? null;
 
@@ -56,7 +62,7 @@ export default async function SectorExplorePage({ params }: { params: Promise<{ 
           linking and the guided tour — Next requires a Suspense boundary around any
           client component that does, even one rendered from a static page like this. */}
       <Suspense fallback={<ExplorerLoading heatmap={sector.stage === "heatmap"} />}>
-        <SectorExplorer slug={slug} figures={figures} userEmail={user?.email ?? null} displayName={displayName} />
+        <SectorExplorer slug={slug} figures={figures} userEmail={user?.email ?? null} displayName={displayName} maps={maps} />
       </Suspense>
     </div>
   );

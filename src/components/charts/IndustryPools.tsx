@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { InfoTip } from "@/components/InfoTip";
+import { ScrollX } from "@/components/ScrollX";
 import { useSegmentTip } from "@/components/charts/SegmentTip";
 import { StockLink } from "@/components/stock/StockLink";
 import { NA, croreShort, pct } from "@/lib/format";
@@ -29,7 +30,8 @@ import {
 // Three 100% bars show where the money sits; under them the chosen metric by layer or by company,
 // then the picked layer's companies with every figure.
 
-type View = "layer" | "company";
+export type PoolsView = "layer" | "company";
+type View = PoolsView;
 
 /** A share as a percent; a sliver reads "<1%", not "0%". */
 const sharePct = (s: number, dp = 0) => (s > 0 && s * 100 < 10 ** -dp ? `<${10 ** -dp}%` : pct(s * 100, dp));
@@ -81,11 +83,31 @@ const NONE: ReadonlySet<string> = new Set();
 // White on the map's mid-tone layer colours: a dark halo keeps it readable on every one of them.
 const SEG_TEXT = "overflow-hidden whitespace-nowrap text-[11px] font-bold text-white [text-shadow:0_0_2px_rgba(0,0,0,.85),0_0_4px_rgba(0,0,0,.6)]";
 
-export function IndustryPools({ pools: raw }: { pools: Pools }) {
+/** Metric and split can be held by the parent (the full-screen view keeps them across industries,
+ * and titles the view in its own header bar, so it passes `titled={false}`). */
+export function IndustryPools({
+  pools: raw,
+  metric: metricIn,
+  onMetric,
+  view: viewIn,
+  onView,
+  titled = true,
+}: {
+  pools: Pools;
+  titled?: boolean;
+  metric?: PoolMetricId;
+  onMetric?: (m: PoolMetricId) => void;
+  view?: View;
+  onView?: (v: View) => void;
+}) {
   // Layers the map gives one domain colour get a shade each, used by the bars, legend and rows alike.
   const pools = useMemo(() => ({ ...raw, layers: distinctLayerColors(raw.layers) }), [raw]);
-  const [metric, setMetric] = useState<PoolMetricId>("rev");
-  const [view, setView] = useState<View>("layer");
+  const [metricOwn, setMetricOwn] = useState<PoolMetricId>("rev");
+  const [viewOwn, setViewOwn] = useState<View>("layer");
+  const metric = metricIn ?? metricOwn;
+  const view = viewIn ?? viewOwn;
+  const setMetric = onMetric ?? setMetricOwn;
+  const setView = onView ?? setViewOwn;
   // Low-exposure companies the viewer added. Not kept: every visit starts from the same default.
   const [added, setAdded] = useState<ReadonlySet<string>>(() => new Set());
   const layers = layerPools(pools, added);
@@ -105,12 +127,14 @@ export function IndustryPools({ pools: raw }: { pools: Pools }) {
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-line bg-panel p-3 sm:gap-5 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-        <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-ink-soft">
-          Industry pools
-          <InfoTip label="About industry pools">
-            How the industry&rsquo;s revenue, profit and value split across its layers and companies, from the covered companies&rsquo; {pools.year} results. Tap a layer to see who earns it.
-          </InfoTip>
-        </h2>
+        {titled && (
+          <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-ink-soft">
+            Industry pools
+            <InfoTip label="About industry pools">
+              How the industry&rsquo;s revenue, profit and value split across its layers and companies, from the covered companies&rsquo; {pools.year} results. Tap a layer to see who earns it.
+            </InfoTip>
+          </h2>
+        )}
         <p className="text-[11px] text-ink-soft tabular-nums sm:text-xs">
           {pools.year} · {counted.length} of {pools.companies.length} covered companies{pools.asOf && ` · as of ${pools.asOf}`}
         </p>
@@ -506,6 +530,9 @@ function metricLabel(m: { id: PoolMetricId; label: string }, year: string): stri
   return m.id === "pe" ? `${m.label} (${year})` : m.label;
 }
 
+// The company column stays put while the figures scroll sideways (a phone shows two or three).
+const STICKY = "sticky left-0 z-[1] min-w-[8.5rem] max-w-[11rem] bg-panel sm:static sm:max-w-none";
+
 /** The picked layer's companies with every figure; the chosen metric's column is marked. */
 function LayerTable({ layer, metric, year }: { layer: LayerPool; metric: PoolMetricId; year: string }) {
   const cols: { id: PoolMetricId; label: string; cell: (c: PoolCompany) => string }[] = [
@@ -532,12 +559,12 @@ function LayerTable({ layer, metric, year }: { layer: LayerPool; metric: PoolMet
         </p>
       </div>
       {!rows.length && <p className="text-xs text-ink-soft sm:text-[13px]">Only low-exposure companies here. Add them from the low-exposure list above to see them.</p>}
-      <p className={"text-[11px] text-ink-soft lg:hidden" + (rows.length ? "" : " hidden")}>Scroll the table sideways for every column.</p>
-      <div className={"-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0" + (rows.length ? "" : " hidden")}>
+      <div className={rows.length ? "" : "hidden"}>
+        <ScrollX hint={<>Scroll sideways for every column &rarr;</>}>
         <table className="w-full min-w-[640px] border-collapse text-xs tabular-nums sm:text-[13px]">
           <thead>
             <tr className="border-b border-line text-[11px] text-ink-soft">
-              <th className="py-1.5 pr-2 text-left font-semibold">Company</th>
+              <th className={STICKY + " py-1.5 pr-2 text-left font-semibold"}>Company</th>
               {cols.map((c) => (
                 <th key={c.id} className={"px-2 py-1.5 text-right font-semibold whitespace-nowrap " + (c.id === metric ? "bg-panel-2 text-ink" : "")}>
                   {c.label}
@@ -549,7 +576,7 @@ function LayerTable({ layer, metric, year }: { layer: LayerPool; metric: PoolMet
             {rows.map((c) => {
               return (
                 <tr key={c.ticker} className="border-b border-line text-ink">
-                  <td className="py-1.5 pr-2">
+                  <td className={STICKY + " py-1.5 pr-2"}>
                     <StockLink ticker={c.ticker} className="tap-y hover:text-accent">
                       {c.name}
                     </StockLink>
@@ -566,6 +593,7 @@ function LayerTable({ layer, metric, year }: { layer: LayerPool; metric: PoolMet
             })}
           </tbody>
         </table>
+        </ScrollX>
       </div>
     </div>
   );
@@ -593,7 +621,11 @@ function LowExposurePicker({ companies, added, onChange }: { companies: PoolComp
       if (!box.current?.contains(e.target as Node)) setOpen(false);
     };
     const esc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        // Closes just this list, not the full-screen view it sits in.
+        e.preventDefault();
+        setOpen(false);
+      }
     };
     document.addEventListener("pointerdown", away);
     document.addEventListener("keydown", esc);
@@ -601,6 +633,18 @@ function LowExposurePicker({ companies, added, onChange }: { companies: PoolComp
       document.removeEventListener("pointerdown", away);
       document.removeEventListener("keydown", esc);
     };
+  }, [open]);
+  // Anchored to the button's right edge, then nudged sideways to stay 16px inside the screen (on a
+  // phone the button sits near the left, where a right-anchored list would run off the edge).
+  const list = useRef<HTMLDivElement>(null);
+  const [shift, setShift] = useState(0);
+  useLayoutEffect(() => {
+    const el = list.current;
+    if (!open || !el) return setShift(0);
+    el.style.transform = "";
+    const r = el.getBoundingClientRect();
+    const vw = document.documentElement.clientWidth;
+    setShift(r.left < 16 ? 16 - r.left : r.right > vw - 16 ? vw - 16 - r.right : 0);
   }, [open]);
   const n = companies.filter((c) => added.has(c.ticker)).length;
   const toggle = (t: string) => {
@@ -627,7 +671,7 @@ function LowExposurePicker({ companies, added, onChange }: { companies: PoolComp
         </span>
       </button>
       {open && (
-        <div id="pools-low-list" className="absolute right-0 z-30 mt-1.5 w-[min(24rem,calc(100vw-2rem))] rounded-lg border border-line bg-panel p-2 shadow-lg">
+        <div ref={list} id="pools-low-list" style={shift ? { transform: `translateX(${shift}px)` } : undefined} className="absolute right-0 z-30 mt-1.5 w-[min(24rem,calc(100vw-2rem))] rounded-lg border border-line bg-panel p-2 shadow-lg">
           <div className="flex items-center justify-between gap-3 border-b border-line px-1.5 pb-2">
             <span className="text-[11px] text-ink-soft">Tick to count them in the pools</span>
             <span className="flex gap-1.5">

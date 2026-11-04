@@ -144,7 +144,7 @@ async function priceSnapshot(): Promise<PriceSnapshot> {
  * The day of the latest close the lists were ranked on (the Nifty 50's last daily bar), not the
  * hour the lists were built: a rebuild after midnight on yesterday's closes still says yesterday.
  */
-async function lastTradingDay(): Promise<string | null> {
+export async function lastTradingDay(): Promise<string | null> {
   const pts = (await basketSymbolChart(BENCHMARKS.nifty50.symbol, "1M").catch(() => null))?.points;
   return pts?.length ? pts[pts.length - 1].t : null;
 }

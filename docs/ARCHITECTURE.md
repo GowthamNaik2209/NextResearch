@@ -344,6 +344,7 @@ after checking no watchlist references it (children cascade).
 | `/api/stock/[ticker]/chart?range=1M\|6M\|1Y\|3Y\|5Y\|MAX` | route | price history |
 | `/api/benchmark/[id]/chart?range=...` | route | index history for the ids in `sector-content/benchmarks.ts` (Nifty 50, Sensex, sector indices; ETF stand-ins where Yahoo has no index history) |
 | `/api/watchlist` | route | GET (returns `signedIn`, always 200) / POST / DELETE; the heart checks GET first so signed-out taps show the prompt without a 401 |
+| `/api/landing/refresh` | route | Vercel Cron (CRON_SECRET), 20:15 IST weekdays: works out the landing page's per-stock figures (top movers, % of stocks up, the watchlist strip; `lib/landing/market-data.ts`) so the day's first visitor gets them at once. `LANDING_AUTO_REFRESH=0` turns it off |
 | `/api/flows/refresh` | route | Vercel Cron (CRON_SECRET): collects the day's FII/DII cash, participant OI, bulk/block deals and new NSDL fortnights |
 
 ## Frontend structure

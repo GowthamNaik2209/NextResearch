@@ -74,6 +74,11 @@ async function loadCashDays(): Promise<CashDay[] | null> {
   return days.length ? days : null;
 }
 
+/** The latest day with both FII and DII cash figures (the landing page's pulse line), or null. Shares the view's cache. */
+export async function latestCashDay(): Promise<CashDay | null> {
+  return (await safe("cash", () => cached("flows:cash:v3", TTL_MS, loadCashDays)))?.at(-1) ?? null;
+}
+
 // Each side's sources as eras that follow one another: a source runs from its first day to the day
 // before the next one starts (SEBI's MF figures until NSDL's DII report begins, and so on). Every day
 // uses one source only; a day the era's source missed used an older one and is counted in `filled`.
