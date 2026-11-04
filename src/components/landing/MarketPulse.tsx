@@ -141,7 +141,7 @@ function PulseFrom({ figures, period }: { figures: Promise<MarketFigures>; perio
 }
 
 function PulseLine({ figures, period }: { figures: MarketFigures | null; period: Period }) {
-  const items = figures ? pulseItems(figures.indices, figures.flows, period) : null;
+  const items = figures ? pulseItems(figures.indices, figures.flows, period, figures.asOf) : null;
   return (
     // Phones: the heading on its own line over a 2x2 grid, each cell a label above its value. From sm up: one line.
     <div className="grid grid-cols-2 gap-x-3 gap-y-2 rounded-md border border-line bg-panel px-3 py-2 text-xs sm:flex sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1.5">

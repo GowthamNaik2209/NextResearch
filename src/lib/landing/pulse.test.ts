@@ -118,6 +118,9 @@ test("FII and DII items follow the period; nothing stored reads as updating", ()
   ]);
   assert.match(pulseItems([], f, "1D")[0].title, /on 3 Nov 2026/);
   assert.equal(pulseItems([], f, "1W")[0].label, "FII net · 1W");
+  // The heading's day matches the flows': no end day. A day ahead (NSE's evening figures not in yet): the flows name their last day.
+  assert.equal(pulseItems([], f, "1W", "2026-11-03")[0].label, "FII net · 1W");
+  assert.deepEqual(pulseItems([], f, "1W", "2026-11-04").map((i) => i.label), ["FII net · 1W to 3 Nov 26", "DII net · 1W to 3 Nov 26"]);
   assert.equal(pulseFlowSums([]), null);
   // Only mutual-fund days stored: no DII total at all, rather than a misleading one.
   const mfOnly = pulseFlowSums(weekdays("2026-10-01", "2026-10-30", () => ({ fiiNetCr: 5, diiNetCr: 9, diiSource: "sebi-mf" })))!;

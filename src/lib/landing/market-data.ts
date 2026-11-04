@@ -88,13 +88,13 @@ export async function getMarketFigures(): Promise<MarketFigures> {
     storedReturns(asOf ?? "none").catch(() => ({})),
     cached(`landing:index:${BENCHMARKS.nifty50.symbol}:${asOf}`, 30 * 60_000, () => indexReturns(BENCHMARKS.nifty50.symbol)).catch(() => ({})),
     cached(`landing:index:${BENCHMARKS.sensex.symbol}:${asOf}`, 30 * 60_000, () => indexReturns(BENCHMARKS.sensex.symbol)).catch(() => ({})),
-    // The sums per period, worked out once per 10 minutes from the /updates view's cached days.
-    cached("landing:flows:v3", 10 * 60_000, async () => {
-      const days = await storedCashDays();
-      return days
-        ? pulseFlowSums(days.map((d) => ({ day: d.day.toISOString().slice(0, 10), fiiNetCr: d.fiiNetCr, diiNetCr: d.diiNetCr, diiSource: d.diiSource })))
-        : null;
-    }).catch(() => null),
+    // The sums per period, from the /updates view's days (its cache, which the flows cron expires): not
+    // cached again here, so the line always reads the same days as the Market cash flows card.
+    storedCashDays()
+      .then((days) =>
+        days ? pulseFlowSums(days.map((d) => ({ day: d.day.toISOString().slice(0, 10), fiiNetCr: d.fiiNetCr, diiNetCr: d.diiNetCr, diiSource: d.diiSource }))) : null,
+      )
+      .catch(() => null),
   ]);
   return {
     asOf,
