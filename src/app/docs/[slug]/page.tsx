@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { BackLink } from "@/components/BackLink";
 import { OpenReportButton } from "@/components/research/OpenReport";
 import { getSector, listSectorSlugs } from "@/lib/sector-content";
 import { getResearchForSector } from "@/lib/sector-content/docs";
@@ -52,9 +52,7 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
       {/* The site-wide 6xl container keeps the left edge in line with the header; the reading column stays narrow. */}
       <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-8 px-5 pt-6 pb-14 sm:py-14 [&>*]:max-w-3xl">
         <div>
-          <Link href="/docs" className="tap-target text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
-            &larr; All reports
-          </Link>
+          <BackLink scope="docs" href="/docs" label="All reports" className="tap-target text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent" />
           <div className="mt-4 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-md border border-line bg-panel-2 font-mono text-sm font-bold text-accent">
               {sector.icon}

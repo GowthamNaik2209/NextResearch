@@ -19,6 +19,7 @@ import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
 import { companySlug, sectorCompanies, sectorCompanyCounts } from "@/lib/sector-content/companies";
 import { NOT_FOUND_METADATA, SITE_URL, jsonLd, midSentence, shareMeta } from "@/lib/site";
 import { FaqSection } from "@/components/FaqSection";
+import { BackLink } from "@/components/BackLink";
 import { faqJsonLd, sectorFaq } from "@/lib/faq";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { isoDay } from "@/lib/financials/rows";
@@ -128,9 +129,8 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-8 px-5 pt-6 pb-14 sm:gap-12 sm:py-14">
         <div>
-          <Link href="/docs" className="tap-target text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
-            &larr; All deep dives
-          </Link>
+          {/* Back to the landing page or the Analysis page when the visitor came from there; else to /docs. */}
+          <BackLink scope="sector" href="/docs" label="All deep dives" className="tap-target text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent" />
           <div className="mt-3 flex flex-wrap items-start justify-between gap-x-4 gap-y-2 sm:mt-4">
             <div className="flex items-start gap-3 sm:gap-4">
               <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md border border-line bg-panel-2 font-mono text-xs font-bold text-accent sm:h-11 sm:w-11 sm:text-sm">

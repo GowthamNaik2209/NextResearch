@@ -75,6 +75,11 @@ export function HeatGrid({ cells, scale, className = HEAT_GRID, label }: { cells
   );
 }
 
+/** One tile, filling its box (a grid cell, or a treemap rectangle: HeatTreemap.tsx). */
+export function HeatTile({ cell, scale }: { cell: HeatCell; scale: number }) {
+  return <Tile cell={cell} scale={scale} />;
+}
+
 function Tile({ cell: c, scale }: { cell: HeatCell; scale: number }) {
   const big = (c.size ?? 1) >= 3;
   const body: ReactNode = (

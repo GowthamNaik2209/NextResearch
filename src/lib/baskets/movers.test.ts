@@ -1,34 +1,69 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { rankMovers, rankMoversByFilter, shareUp, stockPeriodReturns, type MoverInput } from "./movers";
+import { MOVERS_N, MOVERS_SHOWN, rankMovers, rankMoversByFilter, shareUp, stockPeriodReturns, type MoverInput } from "./movers";
 import { PERIODS } from "./periods";
 
 const row = (ticker: string, d1: number | null | undefined, extra: Partial<MoverInput> = {}): MoverInput => ({
   ticker,
   name: extra.name ?? `Co ${ticker}`,
   industry: extra.industry ?? "Railways",
-  outlier: extra.outlier ?? false,
+  ...(extra.oneOff ? { oneOff: extra.oneOff } : {}),
   ret: extra.ret ?? { "1D": d1 },
   ...(extra.sector ? { sector: extra.sector } : {}),
   ...(extra.policy ? { policy: extra.policy } : {}),
 });
 const tickers = (ms: { ticker: string }[] | undefined) => (ms ?? []).map((m) => m.ticker);
 
-test("gainers are the biggest rises first, losers the biggest falls first, five each", () => {
+test("gainers are the biggest rises first, losers the biggest falls first, five each when asked for five", () => {
   const rows = [9, 1, -3, 7, 5, -8, 3, -1, 11, -6, -2, 2].map((v, i) => row(`T${i}`, v));
-  const m = rankMovers(rows)["1D"]!;
+  const m = rankMovers(rows, 5)["1D"]!;
   assert.deepEqual(tickers(m.gainers), ["T8", "T0", "T3", "T4", "T6"]);
   assert.deepEqual(tickers(m.losers), ["T5", "T9", "T2", "T10", "T7"]);
   assert.equal(m.ranked, 12);
 });
 
-test("one-off companies are left out of every list", () => {
-  const rows = [row("SPARC", 40, { outlier: true }), row("A", 5), row("B", -5), row("JSWSTEEL", -30, { outlier: true })];
+test("by default each list holds the top 20 (the landing page shows 5, then all 20 on Show more)", () => {
+  assert.equal(MOVERS_N, 20);
+  assert.equal(MOVERS_SHOWN, 5);
+  // 30 risers and 30 fallers, one of each a one-off.
+  const rows = Array.from({ length: 60 }, (_, i) => row(`T${i}`, i < 30 ? i + 1 : -(i - 29), i === 29 || i === 59 ? { oneOff: "FY26 one-off" } : {}));
   const m = rankMovers(rows)["1D"]!;
-  assert.deepEqual(tickers(m.gainers), ["A"]);
-  assert.deepEqual(tickers(m.losers), ["B"]);
-  // Coverage is counted on the companies that can be ranked, so outliers don't make a period "updating".
-  assert.equal(m.ranked, 2);
+  assert.equal(m.gainers.length, 20);
+  assert.equal(m.losers.length, 20);
+  assert.deepEqual(tickers(m.gainers).slice(0, 3), ["T29", "T28", "T27"]);
+  assert.equal(m.gainers.at(-1)!.ticker, "T10");
+  assert.deepEqual(tickers(m.losers).slice(0, 2), ["T59", "T58"]);
+  assert.equal(m.gainers[0].oneOff, "FY26 one-off");
+  assert.equal(m.losers[0].oneOff, "FY26 one-off");
+  // The first five are the same five a top-5 ranking gives.
+  assert.deepEqual(tickers(m.gainers).slice(0, MOVERS_SHOWN), tickers(rankMovers(rows, 5)["1D"]!.gainers));
+  // Under 20 either way: shorter lists, never padded.
+  assert.equal(rankMovers(rows.slice(0, 25))["1D"]!.losers.length, 0);
+});
+
+test("one-off companies are ranked like any other, carrying the reason for their tag", () => {
+  const why = "FY26 profit includes a one-off gain";
+  const rows = [row("SPARC", 40, { oneOff: why }), row("A", 5), row("B", -5), row("JSWSTEEL", -30, { oneOff: why })];
+  const m = rankMovers(rows)["1D"]!;
+  assert.deepEqual(tickers(m.gainers), ["SPARC", "A"]);
+  assert.deepEqual(tickers(m.losers), ["JSWSTEEL", "B"]);
+  assert.equal(m.ranked, 4);
+  assert.equal(m.gainers[0].oneOff, why);
+  // A plain row has no tag at all (not an empty one).
+  assert.equal("oneOff" in m.gainers[1], false);
+});
+
+test("one-off companies are kept under every filter", () => {
+  const rows = [
+    row("ONEOFF", 12, { oneOff: "FY26 one-off", sector: "Railways", policy: "PLI" }),
+    row("IND", 3, { sector: "Railways" }),
+    row("POL", -2, { policy: "PLI" }),
+  ];
+  const by = rankMoversByFilter(rows, 5, 0);
+  for (const f of ["all", "sector", "policy"] as const) {
+    assert.equal(by[f]["1D"]!.gainers[0].ticker, "ONEOFF");
+    assert.equal(by[f]["1D"]!.gainers[0].oneOff, "FY26 one-off");
+  }
 });
 
 test("a ticker listed twice (a company in several industries) counts once, its first entry", () => {

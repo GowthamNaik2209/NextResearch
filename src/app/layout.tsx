@@ -10,6 +10,7 @@ import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/react";
 import { Suspense } from "react";
 import { ReturnToStock } from "@/components/stock/ReturnToStock";
+import { NavTrail } from "@/components/BackLink";
 import { InlineScript } from "@/components/InlineScript";
 import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { AppResume } from "@/components/AppResume";
@@ -137,6 +138,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             the rest of every page prerenderable. */}
         <Suspense fallback={null}>
           <ReturnToStock />
+        </Suspense>
+        {/* Notes each page visited, for the back-style buttons (BackLink); reads the URL too. */}
+        <Suspense fallback={null}>
+          <NavTrail />
         </Suspense>
         {/* ⌥/Alt + letter top-bar shortcuts, on every page. */}
         <KeyboardShortcuts />

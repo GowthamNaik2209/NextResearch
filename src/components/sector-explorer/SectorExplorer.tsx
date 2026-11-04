@@ -1,7 +1,6 @@
 "use client";
 
 import { use, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   companyLinkExposure,
@@ -28,6 +27,7 @@ import { MapSwitcher, type MapListItem } from "./MapSwitcher";
 import { UserMenu } from "@/components/UserMenu";
 import { MobileMenu } from "@/components/MobileMenu";
 import { ShortcutLink } from "@/components/KeyboardShortcuts";
+import { BackLink } from "@/components/BackLink";
 import "./explorer.css";
 
 const TOUR_STEP_MS = 3400;
@@ -610,9 +610,9 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
           )}
         </div>
         <div className="right">
-          <Link href={`/sector/${sector.slug}`} className="hdr-btn hdr-btn-primary tap-target" aria-label="Back to overview" title="Back to overview">
-            &larr;<span className="lbl"> Overview</span>
-          </Link>
+          {/* Back where the visitor entered the maps from (the landing page, or this map's overview),
+              kept across map switches; a direct link goes to the overview, as before. */}
+          <BackLink scope="explore" href={`/sector/${sector.slug}`} label="Overview" className="hdr-btn hdr-btn-primary tap-target" labelClassName="lbl" />
           {isHeatmap ? (
             <div className="status" title="Tiles coloured by each stock's price change">
               <i /> HEATMAP

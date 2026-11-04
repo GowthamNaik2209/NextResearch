@@ -9,6 +9,7 @@ import type { BacktestHolding } from "@/lib/baskets/backtest";
 import { forgetSeries, industrySeriesKey, loadSeries } from "@/components/baskets/series";
 import { CloseButton } from "@/components/stock/StockModal";
 import { InfoTip } from "@/components/InfoTip";
+import { cameFrom } from "@/lib/return-to";
 import { HEAT_GRID_FULL, HeatGrid, HeatLegend, heatScale, type HeatCell } from "./Heatmap";
 import { actionClass } from "./action-class";
 import { IndustryPools, type PoolsView } from "./IndustryPools";
@@ -120,23 +121,6 @@ function IndustryFullView({ data: own, options }: { data: IndustryViewData; opti
   return createPortal(<FullView view={shown} slug={slug} own={own} pickOnArrival={pickOnArrival} options={options.filter((o) => (shown === "heatmap" ? o.heat : o.pools))} />, document.body);
 }
 
-/** This visit arrived from another page of the site (not this one, not a fresh tab): Back returns there. */
-function cameFromSite() {
-  if (window.history.length < 2) return false;
-  try {
-    const here = window.location.pathname;
-    // A soft navigation (a Link on the landing page) leaves the referrer at the first page loaded,
-    // so the document's own first URL tells: loaded elsewhere on the site, then came here.
-    const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-    const first = nav ? new URL(nav.name) : null;
-    if (first && first.pathname !== here) return true;
-    const r = document.referrer ? new URL(document.referrer) : null;
-    return !!r && r.origin === window.location.origin && r.pathname !== here;
-  } catch {
-    return false;
-  }
-}
-
 const LABEL: Record<ViewId, string> = { heatmap: "Stock heatmap", pools: "Industry pools" };
 
 /**
@@ -167,7 +151,7 @@ function FullView({ view, slug, own, options, pickOnArrival }: { view: ViewId; s
   // Opened from this page's button: step back. Arrived on a link from another page of the site (the
   // landing page's buttons): back there too. Otherwise (a shared link) stay on the overview page.
   const close = () => {
-    if (window.history.state?.nrView || cameFromSite()) window.history.back();
+    if (window.history.state?.nrView || cameFrom()) window.history.back();
     else window.history.replaceState(null, "", viewUrl(null));
   };
   const closeFn = useRef(close);

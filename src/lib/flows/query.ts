@@ -74,9 +74,9 @@ async function loadCashDays(): Promise<CashDay[] | null> {
   return days.length ? days : null;
 }
 
-/** The latest day with both FII and DII cash figures (the landing page's pulse line), or null. Shares the view's cache. */
-export async function latestCashDay(): Promise<CashDay | null> {
-  return (await safe("cash", () => cached("flows:cash:v3", TTL_MS, loadCashDays)))?.at(-1) ?? null;
+/** Every stored day with both FII and DII cash figures, oldest first (the landing page's pulse line), or null. Shares the view's cache. */
+export async function storedCashDays(): Promise<CashDay[] | null> {
+  return safe("cash", () => cached("flows:cash:v3", TTL_MS, loadCashDays));
 }
 
 // Each side's sources as eras that follow one another: a source runs from its first day to the day

@@ -1,15 +1,16 @@
 "use client";
 
-import { Suspense, use, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import { Suspense, use, useId, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
-import { HeatGrid, HeatLegend, heatScale, shortName, type HeatCell } from "@/components/charts/Heatmap";
+import { HeatLegend, heatScale, shortName } from "@/components/charts/Heatmap";
+import { HeatTreemap, type WeightedHeatCell } from "@/components/charts/HeatTreemap";
 import { InfoTip } from "@/components/InfoTip";
 import { LANDING_UP_PANEL_ENABLED } from "@/lib/feature-flags";
 import { StockLink } from "@/components/stock/StockLink";
 import { subscribeWatchlist, watchlistSignedIn, watchlistSnapshot } from "@/components/sector-explorer/WatchlistButton";
 import { PERIODS, PERIOD_WORDS, type Period } from "@/lib/baskets/periods";
-import type { Mover, PeriodMovers } from "@/lib/baskets/movers";
-import { signedPct } from "@/lib/format";
+import { MOVERS_SHOWN, type Mover, type PeriodMovers } from "@/lib/baskets/movers";
+import { croreShort, signedPct } from "@/lib/format";
 import { pulseHeading, pulseItems } from "@/lib/landing/pulse";
 import type { MarketFigures, MarketStocks, MarketTile } from "@/lib/landing/market-data";
 
@@ -37,7 +38,7 @@ export function MarketPulse({ tiles, figures, stocks }: { tiles: MarketTile[]; f
   const [filter, setFilter] = useState<Filter>("all");
   const shown = filter === "all" ? tiles : tiles.filter((t) => t.category === filter);
   return (
-    <section aria-labelledby="market-h" className="mx-auto flex max-w-page flex-col gap-4 px-4 pt-10 pb-4 sm:px-5 sm:pt-14">
+    <section aria-labelledby="market-h" className="mx-auto flex max-w-page flex-col gap-4 px-4 pt-6 pb-4 sm:px-5 sm:pt-8">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -45,8 +46,9 @@ export function MarketPulse({ tiles, figures, stocks }: { tiles: MarketTile[]; f
               The market by industry
             </h2>
             <InfoTip label="About these figures">
-              Every covered industry and policy as an equal-weight basket of its listed stocks, with the biggest movers among covered companies. Closing prices, updated each trading
-              evening. Past returns, not a recommendation.
+              Every covered industry and policy as an equal-weight basket of its listed stocks, with the biggest movers among covered companies. Each tile is sized by the combined
+              market cap of its core listed companies (the ones its Industry pools count: no lenders, enablers or conglomerates mainly in other businesses). Closing prices,
+              updated each trading evening. Past returns, not a recommendation.
             </InfoTip>
           </div>
           <p className="mt-1 text-sm text-ink-soft">Pick a period; tap an industry to explore it, or a stock for its chart.</p>
@@ -105,18 +107,19 @@ function PulseFrom({ figures, period }: { figures: Promise<MarketFigures>; perio
 function PulseLine({ figures, period }: { figures: MarketFigures | null; period: Period }) {
   const items = figures ? pulseItems(figures.indices, figures.flows, period) : null;
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-md border border-line bg-panel px-3 py-2 text-xs">
-      <span className="font-semibold text-ink">{figures ? pulseHeading(figures.asOf) : "Market pulse"}</span>
+    // Phones: the heading on its own line over a 2x2 grid, each cell a label above its value. From sm up: one line.
+    <div className="grid grid-cols-2 gap-x-3 gap-y-2 rounded-md border border-line bg-panel px-3 py-2 text-xs sm:flex sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1.5">
+      <span className="col-span-2 font-semibold text-ink">{figures ? pulseHeading(figures.asOf) : "Market pulse"}</span>
       {items
         ? items.map((i) => (
-            <span key={i.key} title={i.title} className="flex items-baseline gap-1.5 whitespace-nowrap">
-              <span className="text-ink-soft">{i.label}</span>
+            <span key={i.key} title={i.title} className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-1.5 sm:whitespace-nowrap">
+              <span className="truncate text-[11px] text-ink-soft sm:text-xs">{i.label}</span>
               <span className={"font-mono font-semibold tabular-nums " + (i.tone === "pos" ? "text-pos" : i.tone === "neg" ? "text-danger" : "text-ink-soft")}>{i.value === "—" ? "updating" : i.value}</span>
             </span>
           ))
         : ["Nifty 50", "Sensex", "FII net", "DII net"].map((l) => (
-            <span key={l} className="flex items-baseline gap-1.5 whitespace-nowrap">
-              <span className="text-ink-soft">{l}</span>
+            <span key={l} className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-1.5 sm:whitespace-nowrap">
+              <span className="text-[11px] text-ink-soft sm:text-xs">{l}</span>
               <Shimmer />
             </span>
           ))}
@@ -147,7 +150,8 @@ function WatchlistStrip({ stocks, period }: { stocks: Promise<MarketStocks | nul
     );
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between gap-2">
+      {/* Phones: right padding so a floating button at the screen's edge (the Vercel toolbar on previews) never covers the link. */}
+      <div className="flex items-center justify-between gap-2 max-sm:pr-12">
         <h3 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Your watchlist · {period}</h3>
         <Link href="/watchlist" className="text-xs font-semibold text-accent hover:underline">
           Open watchlist
@@ -172,15 +176,16 @@ function WatchChips({ tickers, data, period }: { tickers: string[]; data: Market
     .map((t) => ({ t, name: data?.stocks[t]?.n ?? t, ret: data?.stocks[t]?.r[i] ?? null }))
     .sort((a, b) => (a.ret == null ? 1 : b.ret == null ? -1 : b.ret - a.ret) || a.name.localeCompare(b.name));
   return (
-    <ul aria-label={`Your watchlist over ${PERIOD_WORDS[period]}`} className="flex flex-wrap gap-1.5">
+    // Phones: two equal columns, the name truncated and the return always whole; from sm up a flowing row.
+    <ul aria-label={`Your watchlist over ${PERIOD_WORDS[period]}`} className="grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap">
       {rows.slice(0, WATCH_MAX).map((r) => (
-        <li key={r.t} className="min-w-0 max-w-full">
+        <li key={r.t} className="min-w-0 sm:max-w-full">
           <StockLink
             ticker={r.t}
             title={`${r.name}${r.ret != null ? `: ${signedPct(r.ret)} over ${PERIOD_WORDS[period]}` : ""} · open its chart`}
-            className="flex min-h-9 max-w-full items-center gap-2 rounded-full border border-btn bg-panel px-3 text-xs hover:bg-accent/10 pointer-coarse:min-h-10"
+            className="flex min-h-9 w-full max-w-full items-center justify-between gap-2 rounded-full border border-btn bg-panel px-3 text-xs hover:bg-accent/10 pointer-coarse:min-h-10 sm:w-auto sm:justify-start"
           >
-            <span className="min-w-0 max-w-[11rem] truncate font-semibold text-ink">{r.name}</span>
+            <span className="min-w-0 truncate font-semibold text-ink sm:max-w-[11rem]">{r.name}</span>
             <span className={"flex-none font-mono font-semibold tabular-nums " + toneText(r.ret)}>
               {r.ret != null ? signedPct(r.ret) : data === undefined ? <Shimmer w="w-8" /> : "updating"}
             </span>
@@ -189,7 +194,7 @@ function WatchChips({ tickers, data, period }: { tickers: string[]; data: Market
       ))}
       {rows.length > WATCH_MAX && (
         <li>
-          <Link href="/watchlist" className="flex min-h-9 items-center rounded-full border border-btn px-3 text-xs font-semibold text-accent hover:bg-accent/10 pointer-coarse:min-h-10">
+          <Link href="/watchlist" className="flex min-h-9 items-center justify-center rounded-full border border-btn px-3 text-xs font-semibold text-accent hover:bg-accent/10 pointer-coarse:min-h-10">
             +{rows.length - WATCH_MAX} more
           </Link>
         </li>
@@ -211,16 +216,17 @@ function MarketHeat({ tiles, figures, period }: { tiles: MarketTile[]; figures: 
   const nifty = figures?.indices[0]?.ret[period];
   const cells = useMemo(
     () =>
-      tiles.map((t): HeatCell => {
+      tiles.map((t): WeightedHeatCell => {
         const v = updating ? null : (byslug?.[t.slug] ?? null);
         return {
           key: t.slug,
+          weight: t.weightCr,
           label: shortName(t.name),
           value: v,
           pending: !figures,
           sub: t.category === "policy" ? "Policy" : undefined,
           href: `/sector/${t.slug}`,
-          title: `${t.name}${v != null ? `: ${signedPct(v)} over ${PERIOD_WORDS[period]}` : figures ? `: ${period} figure updating` : ""} · open it`,
+          title: `${t.name}${v != null ? `: ${signedPct(v)} over ${PERIOD_WORDS[period]}` : figures ? `: ${period} figure updating` : ""} · core market cap ${croreShort(t.weightCr)} · open it`,
         };
       }),
     [tiles, byslug, figures, updating, period],
@@ -242,14 +248,9 @@ function MarketHeat({ tiles, figures, period }: { tiles: MarketTile[]; figures: 
           The {period} figures are updating; they appear here after the evening refresh.
         </p>
       )}
-      {/* Seven across from tablet width: 21 modules (14 industries, 7 policies) fill whole rows under every filter. */}
-      <HeatGrid
-        cells={cells}
-        scale={scale}
-        label={`Industries and policies by ${period} return`}
-        className="grid grid-cols-3 auto-rows-[3.5rem] gap-1 min-[480px]:grid-cols-4 md:grid-cols-7"
-      />
-      <HeatLegend scale={scale} note="Each tile: the industry's listed stocks at equal weight · tap to explore" />
+      {/* A market treemap: each tile as big as its core companies' market cap, laid out again for the filter's set. */}
+      <HeatTreemap cells={cells} scale={scale} label={`Industries and policies by ${period} return, sized by market cap`} className="h-[520px] md:h-[420px] lg:h-[460px] 2xl:h-[480px]" />
+      <HeatLegend scale={scale} note="Tile size: market cap of each industry's core listed companies · colour: return over the period · tap to explore" />
     </div>
   );
 }
@@ -267,29 +268,53 @@ const MOVER_POOL: Record<Filter, string> = { all: "covered companies", sector: "
 function MoversAndUp({ tiles, data, period, filter }: { tiles: MarketTile[]; data: MarketStocks | null | undefined; period: Period; filter: Filter }) {
   const m = data?.movers[filter]?.[period];
   const state = data === undefined ? "loading" : !m ? "updating" : "ready";
+  // One control for both lists: the top 5 each, or every row the server ranked (20).
+  const [more, setMore] = useState(false);
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const ids = useId();
+  const n = more ? Infinity : MOVERS_SHOWN;
+  const canMore = state === "ready" && !!m && (m.gainers.length > MOVERS_SHOWN || m.losers.length > MOVERS_SHOWN);
+  const longest = m ? Math.max(m.gainers.length, m.losers.length) : 0;
   return (
     <>
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <h3 className="font-display text-lg font-bold text-ink sm:text-xl">Top movers · {period}</h3>
           <InfoTip label="About top movers">
-            The 5 {MOVER_POOL[filter]} that rose and fell most over {PERIOD_WORDS[period]}, from closing prices
-            {filter === "all" ? "" : filter === "sector" ? ", each with its industry" : ", each with its policy"}. Companies with a one-off year are left out, as in the stock screens.
+            The {more ? longest : MOVERS_SHOWN} {MOVER_POOL[filter]} that rose and fell most over {PERIOD_WORDS[period]}, from closing prices
+            {filter === "all" ? "" : filter === "sector" ? ", each with its industry" : ", each with its policy"}. Every covered company is counted. A one-off tag marks a company whose
+            results have a one-off year (the stock screens leave those out).
           </InfoTip>
         </div>
         <div className="grid gap-3 md:grid-cols-2">
-          <MoverList title="Gainers" list={m?.gainers} state={state} empty={`No ${filter === "all" ? "covered stock" : filter === "sector" ? "industry stock" : "policy stock"} rose over this period.`} />
-          <MoverList title="Losers" list={m?.losers} state={state} empty={`No ${filter === "all" ? "covered stock" : filter === "sector" ? "industry stock" : "policy stock"} fell over this period.`} />
+          <MoverList id={`${ids}-g`} title="Gainers" list={m?.gainers.slice(0, n)} state={state} empty={`No ${filter === "all" ? "covered stock" : filter === "sector" ? "industry stock" : "policy stock"} rose over this period.`} />
+          <MoverList id={`${ids}-l`} title="Losers" list={m?.losers.slice(0, n)} state={state} empty={`No ${filter === "all" ? "covered stock" : filter === "sector" ? "industry stock" : "policy stock"} fell over this period.`} />
         </div>
+        {canMore && (
+          <button
+            ref={moreRef}
+            type="button"
+            aria-expanded={more}
+            aria-controls={`${ids}-g ${ids}-l`}
+            onClick={() => {
+              setMore((v) => !v);
+              // Collapsing pulls the button up past the shortened lists: keep it (and its focus) in view.
+              if (more) requestAnimationFrame(() => moreRef.current?.scrollIntoView({ block: "nearest" }));
+            }}
+            className="min-h-9 self-center rounded-full border border-btn bg-panel px-4 text-xs font-semibold text-accent hover:bg-accent/10 pointer-coarse:min-h-10"
+          >
+            {more ? "Show less" : "Show more"}
+          </button>
+        )}
       </div>
       {LANDING_UP_PANEL_ENABLED && <UpPanel tiles={tiles} data={data} period={period} />}
     </>
   );
 }
 
-function MoverList({ title, list, state, empty }: { title: string; list: PeriodMovers["gainers"] | undefined; state: "loading" | "updating" | "ready"; empty: string }) {
+function MoverList({ id, title, list, state, empty }: { id: string; title: string; list: PeriodMovers["gainers"] | undefined; state: "loading" | "updating" | "ready"; empty: string }) {
   return (
-    <div className="overflow-hidden rounded-md border border-line bg-panel">
+    <div id={id} className="overflow-hidden rounded-md border border-line bg-panel">
       <h4 className="border-b border-line px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-ink-soft">{title}</h4>
       {state === "ready" && list && list.length ? (
         <ol className="divide-y divide-line">
@@ -308,14 +333,24 @@ function MoverList({ title, list, state, empty }: { title: string; list: PeriodM
 
 function MoverRow({ r, n }: { r: Mover; n: number }) {
   return (
-    <StockLink ticker={r.ticker} title={`${r.name} (${r.ticker}) · open its chart`} className="flex min-h-12 items-center gap-3 px-3 py-2 hover:bg-panel-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent">
-      <span className="w-3 flex-none font-mono text-[11px] text-ink-soft">{n}</span>
+    <StockLink ticker={r.ticker} title={`${r.name} (${r.ticker})${r.oneOff ? ` · one-off: ${r.oneOff}` : ""} · open its chart`} className="flex min-h-12 items-center gap-3 px-3 py-2 hover:bg-panel-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent">
+      <span className="w-4 flex-none text-right font-mono text-[11px] text-ink-soft">{n}</span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold text-ink">{r.name}</span>
         <span className="block truncate text-[11px] text-ink-soft">
           <span className="font-mono">{r.ticker}</span> · {r.industry}
         </span>
       </span>
+      {r.oneOff && (
+        <span
+          role="img"
+          title={`One-off: ${r.oneOff}`}
+          aria-label={`One-off: ${r.oneOff}`}
+          className="flex-none rounded-full border border-line px-1.5 py-px text-[10px] font-semibold whitespace-nowrap text-amber-ink"
+        >
+          one-off
+        </span>
+      )}
       <span className={"flex-none font-mono text-sm font-semibold tabular-nums " + toneText(r.ret)}>{signedPct(r.ret)}</span>
     </StockLink>
   );

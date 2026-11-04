@@ -13,11 +13,12 @@ export type MoverInput = {
   /** Its strongest-linked live industry (category "sector") and live policy, by name; absent when it is in none. */
   sector?: string;
   policy?: string;
-  /** A one-off year (./outliers.ts detectOutlier): left out, as the rule-based screens leave it out. */
-  outlier: boolean;
+  /** Why its latest results are marked one-off (./outliers.ts detectOutlier), absent when they aren't. Still
+   * ranked (no covered company is left out of the movers); the row carries a "one-off" tag. */
+  oneOff?: string;
   ret: Partial<Record<Period, number | null>>;
 };
-export type Mover = { ticker: string; name: string; industry: string; ret: number };
+export type Mover = { ticker: string; name: string; industry: string; ret: number; oneOff?: string };
 /** A period's lists; `ranked` is how many companies had a figure for it. */
 export type PeriodMovers = { gainers: Mover[]; losers: Mover[]; ranked: number };
 /** Per period its lists, or null while too few companies have a figure for it (shown as "updating"). */
@@ -27,7 +28,9 @@ export type MoversByPeriod = Record<Period, PeriodMovers | null>;
 export type MoverFilter = "all" | "sector" | "policy";
 export const MOVER_FILTERS: MoverFilter[] = ["all", "sector", "policy"];
 
-export const MOVERS_N = 5;
+/** Ranked per list on the server; the landing page shows the first MOVERS_SHOWN and "Show more" the rest. */
+export const MOVERS_N = 20;
+export const MOVERS_SHOWN = 5;
 // Below this share of companies with a figure, a period's lists would rank whoever loaded, not the
 // market: the period shows "updating" instead.
 export const MIN_MOVER_COVERAGE = 0.6;
@@ -38,19 +41,21 @@ const byName = (a: Mover, b: Mover) => a.name.localeCompare(b.name) || a.ticker.
 
 /**
  * The top `n` gainers (rose, biggest first) and losers (fell, biggest fall first) for every period.
- * One-off companies are left out; a ticker listed twice counts once (its first entry); a company
+ * Every company is ranked, one-off ones too (tagged); a ticker listed twice counts once (its first entry); a company
  * with no figure for a period sits that period out; a flat 0% is neither a gainer nor a loser.
  */
 export function rankMovers(rows: MoverInput[], n = MOVERS_N, minCoverage = MIN_MOVER_COVERAGE): MoversByPeriod {
   const seen = new Set<string>();
   const pool = rows.filter((r) => {
-    if (r.outlier || seen.has(r.ticker)) return false;
+    if (seen.has(r.ticker)) return false;
     seen.add(r.ticker);
     return true;
   });
   const out = {} as MoversByPeriod;
   for (const p of PERIODS) {
-    const all = pool.flatMap((r) => (finite(r.ret[p]) ? [{ ticker: r.ticker, name: r.name, industry: r.industry, ret: r.ret[p]! }] : []));
+    const all = pool.flatMap((r): Mover[] =>
+      finite(r.ret[p]) ? [{ ticker: r.ticker, name: r.name, industry: r.industry, ret: r.ret[p]!, ...(r.oneOff ? { oneOff: r.oneOff } : {}) }] : [],
+    );
     if (!pool.length || all.length < pool.length * minCoverage) {
       out[p] = null;
       continue;
