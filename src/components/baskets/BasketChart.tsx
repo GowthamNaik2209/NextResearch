@@ -42,6 +42,8 @@ export function stockLine(theme: SiteTheme, slot: number): { color: string; dash
   return { color: SLOTS[theme][slot % 6], dash: STOCK_DASH[Math.floor(slot / 6) % STOCK_DASH.length] };
 }
 const MAX_COMPARE = 3;
+// Phones (below Tailwind's sm): the narrower price axis, set up with the chart.
+const PHONE_QUERY = "(max-width: 639px)";
 /** A line drawn faint behind the one picked out: its hex colour at a quarter strength. */
 const fade = (c: string) => {
   const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(c.trim());
@@ -309,6 +311,17 @@ export function BasketChart({
       ...ZOOM_OPTIONS,
     });
     chartRef.current = chart;
+    // Phones: a narrower price axis. The axis is as wide as its widest label, and the crosshair's
+    // price label ("+100.4%") is wider than the ticks ("+100%"); the readout under the chart already
+    // gives the day's figures, so that label goes, and the text is a size smaller.
+    const phone = window.matchMedia(PHONE_QUERY);
+    const fit = () =>
+      chart.applyOptions({
+        layout: { fontSize: phone.matches ? 10 : 11 },
+        crosshair: { horzLine: { labelVisible: !phone.matches } },
+      });
+    fit();
+    phone.addEventListener("change", fit);
     zeroRef.current = chart.addSeries(LineSeries, { lineWidth: 1, lineStyle: LineStyle.Solid, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
     chart.subscribeCrosshairMove((p) => {
       if (!p.time) return setHover(null);
@@ -320,6 +333,7 @@ export function BasketChart({
       setHover({ t: String(p.time), values });
     });
     return () => {
+      phone.removeEventListener("change", fit);
       chart.remove();
       chartRef.current = null;
       zeroRef.current = null;
@@ -568,7 +582,8 @@ export function BasketChart({
         )}
       </div>
 
-      <div className="relative h-[300px] sm:h-[400px]">
+      {/* Phones: the price axis runs into the card's right padding (its labels keep their own inset). */}
+      <div className="relative h-[300px] max-sm:-mr-2.5 sm:h-[400px]">
         <div ref={boxRef} className="h-full w-full" />
         {series.list.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-ink-soft">

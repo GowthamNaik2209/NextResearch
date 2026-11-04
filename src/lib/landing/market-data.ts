@@ -15,7 +15,6 @@ import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { basketChart, basketSymbolChart } from "@/lib/prices/store";
 import { readBasketReturns } from "@/lib/baskets/basket-returns";
 import { listBasketUniverse, listIndustryBaskets } from "@/lib/baskets/industry";
-import { industryPools } from "@/lib/baskets/pools-data";
 import { lastTradingDay } from "@/lib/baskets/ideas-data";
 import { detectOutlier } from "@/lib/baskets/outliers";
 import { PERIODS, PERIOD_SRC, benchPeriodRet, type Period } from "@/lib/baskets/periods";
@@ -28,35 +27,19 @@ const RANGES: ChartRange[] = [...new Set(PERIODS.map((p) => PERIOD_SRC[p].range)
 
 // ---------------------------------------------------------------- tiles
 
-export type MarketTile = {
-  slug: string;
-  name: string;
-  category: "sector" | "policy";
-  count: number;
-  /** The tile's size: the combined market cap (₹ Cr) of the companies the Industry pools count here. */
-  weightCr: number;
-};
+export type MarketTile = { slug: string; name: string; category: "sector" | "policy"; count: number };
 
 /**
- * The combined market cap of a module's core listed companies: the ones its Industry pools count
- * (baskets/pools-data.ts), so the enablers, low-exposure links and side-exposed conglomerates are
- * left out, and each company is counted once. Sized by every listed company instead, a few lenders
- * made Real Estate and Reliance / Adani made PLI-ACC and Green Hydrogen the biggest tiles, which
- * read as a claim about the industries that isn't true. Needs ensureFinancials() first.
- */
-export function coreMcapCr(slug: string): number {
-  return (industryPools(slug)?.companies ?? []).reduce((t, c) => t + (!c.lowExposure && c.mcapCr != null && Number.isFinite(c.mcapCr) ? c.mcapCr : 0), 0);
-}
-
-/**
- * Every live industry and policy with listed stocks (the index left out), each with its tile size
- * (coreMcapCr). The map lays them out biggest first, so the layout doesn't change with the period.
+ * Every live industry and policy with listed stocks (the index left out): industries, then
+ * policies, each A to Z, so the map keeps its layout whatever the period. Tiles are one size:
+ * sized by combined market cap, the conglomerates (Reliance, the big lenders) made a few policies
+ * and Real Estate the biggest tiles, which read as a claim about the industries that isn't true.
  */
 export function marketTiles(): MarketTile[] {
   return listIndustryBaskets()
     .filter((b) => (b.category === "sector" || b.category === "policy") && b.stocks.length)
-    .map((b) => ({ slug: b.slug, name: b.name, category: b.category as "sector" | "policy", count: b.stocks.length, weightCr: Math.round(coreMcapCr(b.slug)) }))
-    .sort((a, b) => b.weightCr - a.weightCr || a.name.localeCompare(b.name));
+    .map((b) => ({ slug: b.slug, name: b.name, category: b.category as "sector" | "policy", count: b.stocks.length }))
+    .sort((a, b) => (a.category === b.category ? a.name.localeCompare(b.name) : a.category === "sector" ? -1 : 1));
 }
 
 // ---------------------------------------------------------------- period figures

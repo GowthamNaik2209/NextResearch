@@ -2,15 +2,14 @@
 
 import { Suspense, use, useId, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
-import { HeatLegend, heatScale, shortName } from "@/components/charts/Heatmap";
-import { HeatTreemap, type WeightedHeatCell } from "@/components/charts/HeatTreemap";
+import { HeatGrid, HeatLegend, heatScale, shortName, type HeatCell } from "@/components/charts/Heatmap";
 import { InfoTip } from "@/components/InfoTip";
 import { LANDING_UP_PANEL_ENABLED } from "@/lib/feature-flags";
 import { StockLink } from "@/components/stock/StockLink";
 import { subscribeWatchlist, watchlistSignedIn, watchlistSnapshot } from "@/components/sector-explorer/WatchlistButton";
 import { PERIODS, PERIOD_WORDS, type Period } from "@/lib/baskets/periods";
 import { MOVERS_SHOWN, type Mover, type PeriodMovers } from "@/lib/baskets/movers";
-import { croreShort, signedPct } from "@/lib/format";
+import { signedPct } from "@/lib/format";
 import { pulseHeading, pulseItems } from "@/lib/landing/pulse";
 import type { MarketFigures, MarketStocks, MarketTile } from "@/lib/landing/market-data";
 
@@ -46,15 +45,16 @@ export function MarketPulse({ tiles, figures, stocks }: { tiles: MarketTile[]; f
               The market by industry
             </h2>
             <InfoTip label="About these figures">
-              Every covered industry and policy as an equal-weight basket of its listed stocks, with the biggest movers among covered companies. Each tile is sized by the combined
-              market cap of its core listed companies (the ones its Industry pools count: no lenders, enablers or conglomerates mainly in other businesses). Closing prices,
-              updated each trading evening. Past returns, not a recommendation.
+              Every covered industry and policy as an equal-weight basket of its listed stocks, with the biggest movers among covered companies. Closing prices, updated each trading
+              evening. Past returns, not a recommendation.
             </InfoTip>
           </div>
           <p className="mt-1 text-sm text-ink-soft">Pick a period; tap an industry to explore it, or a stock for its chart.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Segment label="Period" options={PERIODS.map((p) => ({ id: p, label: p }))} value={period} onChange={setPeriod} mono />
+        {/* Phones: the period is a dropdown, so it and the filter fit on one row. */}
+        <div className="flex flex-nowrap items-center gap-2 sm:flex-wrap">
+          <PeriodSelect value={period} onChange={setPeriod} className="sm:hidden" />
+          <Segment label="Period" options={PERIODS.map((p) => ({ id: p, label: p }))} value={period} onChange={setPeriod} mono className="max-sm:hidden" />
           <Segment label="Show" options={FILTERS} value={filter} onChange={setFilter} />
         </div>
       </div>
@@ -76,9 +76,23 @@ export function MarketPulse({ tiles, figures, stocks }: { tiles: MarketTile[]; f
   );
 }
 
-function Segment<T extends string>({ label, options, value, onChange, mono }: { label: string; options: { id: T; label: string }[]; value: T; onChange: (v: T) => void; mono?: boolean }) {
+function Segment<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+  mono,
+  className = "",
+}: {
+  label: string;
+  options: { id: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+  mono?: boolean;
+  className?: string;
+}) {
   return (
-    <div role="group" aria-label={label} className="flex flex-none gap-0.5 rounded-full border border-btn bg-panel p-0.5">
+    <div role="group" aria-label={label} className={"flex flex-none gap-0.5 rounded-full border border-btn bg-panel p-0.5 " + className}>
       {options.map((o) => (
         <button
           key={o.id}
@@ -93,6 +107,28 @@ function Segment<T extends string>({ label, options, value, onChange, mono }: { 
         </button>
       ))}
     </div>
+  );
+}
+
+function PeriodSelect({ value, onChange, className = "" }: { value: Period; onChange: (v: Period) => void; className?: string }) {
+  return (
+    <label className={"relative flex-none " + className}>
+      <span className="sr-only">Period</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as Period)}
+        className="min-h-9 appearance-none rounded-full border border-btn bg-accent py-0 pr-7 pl-3 font-mono text-xs font-semibold text-bg pointer-coarse:min-h-10"
+      >
+        {PERIODS.map((p) => (
+          <option key={p} value={p}>
+            {p}
+          </option>
+        ))}
+      </select>
+      <svg aria-hidden viewBox="0 0 12 12" className="pointer-events-none absolute top-1/2 right-2.5 size-3 -translate-y-1/2 text-bg">
+        <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </label>
   );
 }
 
@@ -216,17 +252,16 @@ function MarketHeat({ tiles, figures, period }: { tiles: MarketTile[]; figures: 
   const nifty = figures?.indices[0]?.ret[period];
   const cells = useMemo(
     () =>
-      tiles.map((t): WeightedHeatCell => {
+      tiles.map((t): HeatCell => {
         const v = updating ? null : (byslug?.[t.slug] ?? null);
         return {
           key: t.slug,
-          weight: t.weightCr,
           label: shortName(t.name),
           value: v,
           pending: !figures,
           sub: t.category === "policy" ? "Policy" : undefined,
           href: `/sector/${t.slug}`,
-          title: `${t.name}${v != null ? `: ${signedPct(v)} over ${PERIOD_WORDS[period]}` : figures ? `: ${period} figure updating` : ""} · core market cap ${croreShort(t.weightCr)} · open it`,
+          title: `${t.name}${v != null ? `: ${signedPct(v)} over ${PERIOD_WORDS[period]}` : figures ? `: ${period} figure updating` : ""} · open it`,
         };
       }),
     [tiles, byslug, figures, updating, period],
@@ -248,9 +283,13 @@ function MarketHeat({ tiles, figures, period }: { tiles: MarketTile[]; figures: 
           The {period} figures are updating; they appear here after the evening refresh.
         </p>
       )}
-      {/* A market treemap: each tile as big as its core companies' market cap, laid out again for the filter's set. */}
-      <HeatTreemap cells={cells} scale={scale} label={`Industries and policies by ${period} return, sized by market cap`} className="h-[520px] md:h-[420px] lg:h-[460px] 2xl:h-[480px]" />
-      <HeatLegend scale={scale} note="Tile size: market cap of each industry's core listed companies · colour: return over the period · tap to explore" />
+      <HeatGrid
+        cells={cells}
+        scale={scale}
+        label={`Industries and policies by ${period} return`}
+        className="grid grid-cols-3 auto-rows-[3.5rem] gap-1 min-[480px]:grid-cols-4 md:grid-cols-7"
+      />
+      <HeatLegend scale={scale} note="Each tile: the industry's listed stocks at equal weight · tap to explore" />
     </div>
   );
 }
