@@ -4,6 +4,7 @@
 //
 // A block that can't be read (its table is empty, or not created yet) comes back null and the page
 // says so in place; one failing never hides the others.
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { cached } from "@/lib/live/cache";
 import { CORE_CENTRALITY, listCompanyMetrics, sectorCompanyMetrics, type CompanyMetrics } from "@/lib/sector-content/insights";
@@ -74,9 +75,37 @@ async function loadCashDays(): Promise<CashDay[] | null> {
   return days.length ? days : null;
 }
 
+// The daily cash figures change once a day, when the flows cron writes the evening's figures (it then
+// expires FLOWS_TAG), so every instance reads the day's final figures as soon as they're stored. The
+// shared copy is read from the database at most hourly otherwise (a hand-run backfill shows within the
+// hour) and kept in memory a minute; Dates travel as "YYYY-MM-DD" through the shared cache.
+export const FLOWS_TAG = "flows-cash";
+const CASH_MEMORY_MS = 60_000;
+type SharedCashDay = Omit<CashDay, "day"> & { day: string };
+const sharedCashDays = unstable_cache(
+  async (): Promise<SharedCashDay[]> => {
+    const days = await loadCashDays();
+    // Nothing stored (or not yet) is thrown, so it isn't kept.
+    if (!days) throw new Error("flows: no cash days stored");
+    return days.map((d) => ({ ...d, day: d.day.toISOString().slice(0, 10) }));
+  },
+  ["flows-cash-v1"],
+  { revalidate: 60 * 60, tags: [FLOWS_TAG] },
+);
+// Outside a Next server (scripts/*) unstable_cache has no cache to use and throws: read the database there.
+const noNextCache = (e: unknown) => e instanceof Error && e.message.includes("incrementalCache missing");
+
+const readCashDays = (): Promise<CashDay[] | null> =>
+  cached("flows:cash:v4", CASH_MEMORY_MS, () =>
+    sharedCashDays().then(
+      (days) => days.map((d) => ({ ...d, day: new Date(`${d.day}T00:00:00Z`) })),
+      (e: unknown) => (noNextCache(e) ? loadCashDays() : Promise.reject(e)),
+    ),
+  );
+
 /** Every stored day with both FII and DII cash figures, oldest first (the landing page's pulse line), or null. Shares the view's cache. */
 export async function storedCashDays(): Promise<CashDay[] | null> {
-  return safe("cash", () => cached("flows:cash:v3", TTL_MS, loadCashDays));
+  return safe("cash", readCashDays);
 }
 
 // Each side's sources as eras that follow one another: a source runs from its first day to the day
@@ -457,7 +486,7 @@ export async function getFlowsData(period: Period, sectorSlug?: string): Promise
   const companies = companiesInView(sectorSlug);
   const failed = new Set<string>();
   const [cashDays, oiDays, sectorRows, all, dealList] = await Promise.all([
-    safe("cash", () => cached("flows:cash:v3", TTL_MS, loadCashDays), failed),
+    safe("cash", readCashDays, failed),
     safe("futures", () => cached("flows:oi:v1", TTL_MS, loadOi), failed),
     safe("sectors", () => cached("flows:sectors:v2", TTL_MS, loadSectorRows), failed),
     safe("stakes", filings, failed),

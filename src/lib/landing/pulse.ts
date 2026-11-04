@@ -78,8 +78,12 @@ export function pulseHeading(asOf: string | null): string {
 
 const span = (f: FlowSum) => (f.from === f.to ? `on ${fmtDay(f.from)}` : `${fmtDay(f.from)} – ${fmtDay(f.to)}, ${f.sessions} sessions`);
 
-/** The line's items for a period: each index's return, then FII and DII net summed over the same period. */
-export function pulseItems(indices: PulseIndex[], flows: PulseFlows | null, period: Period): PulseItem[] {
+/**
+ * The line's items for a period: each index's return, then FII and DII net summed over the same period.
+ * `asOf` is the heading's day (the indices' latest close): when the flows' latest day isn't it (NSE's
+ * evening figures for the day not in yet), the flows say which day they run to.
+ */
+export function pulseItems(indices: PulseIndex[], flows: PulseFlows | null, period: Period, asOf?: string | null): PulseItem[] {
   const out: PulseItem[] = indices.map((ix) => {
     const v = ix.ret[period];
     const value = signedPct(v);
@@ -87,12 +91,13 @@ export function pulseItems(indices: PulseIndex[], flows: PulseFlows | null, peri
   });
   if (flows) {
     const f = flows.byPeriod[period];
+    const behind = asOf && flows.day !== asOf ? ` to ${fmtDay(flows.day, { short: true })}` : "";
     for (const [who, sum, long] of [
       ["FII", f?.fii ?? null, "Foreign institutions"],
       ["DII", f?.dii ?? null, "Domestic institutions"],
     ] as const) {
       const value = signedCrShort(sum?.netCr);
-      const label = sum?.since ? `${who} net · since ${fmtDay(sum.since)}` : `${who} net · ${period}`;
+      const label = sum?.since ? `${who} net · since ${fmtDay(sum.since)}${behind}` : `${who} net · ${period}${behind}`;
       const why = !sum?.since
         ? ""
         : who === "DII"

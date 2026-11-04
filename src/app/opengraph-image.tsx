@@ -14,8 +14,8 @@ export default async function Image() {
   await ensureFinancials();
   const s = getPlatformStats();
   return renderOgCard({
-    kicker: "India · Equity research",
-    title: "See where every listed company sits in the supply chain",
+    kicker: "India · Thematic research",
+    title: "All your thematic research on India, in one place",
     stats: [
       { label: "Themes", value: String(s.sectors) },
       { label: "Listed companies", value: String(s.listed) },

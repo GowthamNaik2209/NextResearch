@@ -14,13 +14,13 @@ function resolveSiteUrl(): string {
 
 export const SITE_URL = resolveSiteUrl();
 export const SITE_NAME = "NextResearch";
-export const SITE_TAGLINE = "Supply-chain research for India's public markets";
+export const SITE_TAGLINE = "All your thematic research on India, in one place";
 export const INSTAGRAM_URL = "https://www.instagram.com/nextresearch.app/";
 export const CONTACT_EMAIL = "queries@nextresearchapp.com";
 // No list of themes here: a hand-typed list drifted from the content (this is read at import time,
 // before the content can be). Pages that name the themes use themeNames() below.
 export const SITE_DESCRIPTION =
-  "Map India's listed companies by where they sit in an industry's or a policy's supply chain, layer by layer, then deep-dive into any company's financials, peers and risks.";
+  "Thematic research on India in one place: industries and policies mapped by supply chain, stock heatmaps, IPO deep dives and backtested baskets, with each listed company's financials, peers and risks.";
 
 /**
  * The live industries and policies as a phrase for descriptions and share cards, from the content
@@ -35,19 +35,17 @@ export function themeNames(max = Infinity): string {
   return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : names.join("");
 }
 
-// Brand tokens for places CSS variables can't reach (OG images via satori). Keep in sync
-// with globals.css's light theme.
+// Brand tokens for places CSS variables can't reach (OG images via satori). Share cards use the
+// dark theme, the site's default; keep in sync with globals.css's :root.
 export const BRAND = {
-  bg: "#f8f4ea",
-  panel: "#efe9d9",
-  panel2: "#e5dec9",
-  ink: "#14201a",
-  inkSoft: "#536157",
-  line: "#d4cab0",
-  accent: "#0f5c4a",
-  amber: "#a8650a",
-  darkBg: "#0c1110",
-  darkAccent: "#f0b53f",
+  bg: "#0c1110",
+  panel: "#121a17",
+  panel2: "#18231f",
+  ink: "#eef2ea",
+  inkSoft: "#93a399",
+  line: "#25342d",
+  accent: "#f0b53f",
+  amber: "#e08a3c",
 } as const;
 
 // Search Console / Bing ownership tags and the GA4 measurement ID, all optional (unset renders nothing).
