@@ -7,7 +7,7 @@
 // stock lists when a card's Charts button is first pressed (/docs/baskets). A deep link (?report=,
 // ?ipo=, ?view=charts) gets its one deck or the stock lists in the page, so it opens without a round trip.
 import { listIndustryBaskets } from "@/lib/baskets/industry";
-import { listComingSoonSectors, listSectors } from "@/lib/sector-content";
+import { listSectors, companyLinkKey, companyLinkExposure, isSideLink, linkStrength, type SectorCompanyLink } from "@/lib/sector-content";
 import { buildSectorCards } from "@/lib/sector-content/stats";
 import { buildDeck, type Deck } from "@/lib/sector-content/reports";
 import { listIpoDecks, type IpoDeck } from "@/lib/ipo-content";
@@ -60,13 +60,45 @@ export function ipoCards(): IpoCard[] {
   }));
 }
 
+type Sector = ReturnType<typeof listSectors>[number];
+const DIRECT_TYPES = new Set(["owner", "operator", "direct_supplier", undefined]);
+
+/**
+ * The stock the chart picker opens a policy on: the biggest listed company in its integrator
+ * layer (the end makers / owners) at high or medium strength, else the biggest there at all, else
+ * the biggest direct, high-exposure company anywhere in it. Independent of the order of the
+ * layers (which follows the 3D map), so a peripheral name (Hyundai for the battery PLI) never leads.
+ */
+function leadTicker(s: Sector, mcap: Map<string, number>): string | undefined {
+  const links = (pred: (zoneId: string, link: SectorCompanyLink) => boolean) =>
+    s.zones.flatMap((z) => z.suppliers.filter((l) => pred(z.id, l)).map((l) => s.suppliers[companyLinkKey(l)]?.f?.ticker)).filter((t): t is string => !!t && mcap.has(t));
+  const biggest = (ts: string[]) => [...ts].sort((a, b) => mcap.get(b)! - mcap.get(a)!)[0];
+  const inLead = (z: string) => z === s.integratorZoneId;
+  return (
+    biggest(links((z, l) => inLead(z) && linkStrength(l) !== "low" && !isSideLink(l))) ??
+    biggest(links((z) => inLead(z))) ??
+    biggest(links((_, l) => linkStrength(l) === "high" && DIRECT_TYPES.has(companyLinkExposure(l).exposureType)))
+  );
+}
+
 const chartIndustries = memoByFinancials((): ChartPickerIndustry[] => {
-  const zones = new Map(listSectors().map((s) => [s.slug, s.zones.map((z) => z.label)]));
+  const sectors = new Map(listSectors().map((s) => [s.slug, s]));
   return listIndustryBaskets().map(({ slug, name, category, stocks }) => {
+    const sector = sectors.get(slug);
     // Layers in the industry's own order (its map's systems), keeping only those with a listed stock.
     const used = new Set(stocks.map((s) => s.layer));
-    const layers = [...new Set([...(zones.get(slug) ?? []), ...used])].filter((l) => used.has(l));
-    return { slug, name, category, layers, stocks: stocks.map(({ ticker, name, layer, industries }) => ({ ticker, name, layer, core: industries[0]?.slug === slug })) };
+    const layers = [...new Set([...(sector?.zones.map((z) => z.label) ?? []), ...used])].filter((l) => used.has(l));
+    // Policies only: an industry's biggest core company already leads (Apollo, Power Grid); a policy's
+    // "core" pick was whichever big name happens to call it home (Hyundai for the battery PLI).
+    const lead = sector && category === "policy" ? leadTicker(sector, new Map(stocks.map((s) => [s.ticker, s.mcapCr ?? -1]))) : undefined;
+    return {
+      slug,
+      name,
+      category,
+      layers,
+      ...(lead ? { lead } : {}),
+      stocks: stocks.map(({ ticker, name, layer, industries }) => ({ ticker, name, layer, core: industries[0]?.slug === slug })),
+    };
   });
 });
 /** Every industry's layers and listed stocks for the chart pop-up (served by /docs/baskets when not in the page). */
@@ -84,7 +116,6 @@ export function analysisProps({ report, ipo, view }: { report?: string; ipo?: st
     ipos: ipoCards(),
     initialIpoDeck: ipo ? (getIpoDeck(ipo) ?? undefined) : undefined,
     sectorCards: buildSectorCards(),
-    comingSoon: listComingSoonSectors(),
     chartIndustries: view === "charts" ? chartIndustries() : undefined,
   };
 }

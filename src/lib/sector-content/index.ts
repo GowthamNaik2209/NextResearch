@@ -3,17 +3,15 @@
 // through ./sectors/load.ts instead of this file, which pulls in all of them.
 import { PRODUCTS as PRODUCTS_RAW } from "./products";
 import { financialsVersion, getFinancials, listFinancials } from "@/lib/financials/store";
-import { isSideLink, linkWeight, companyLinkKey, type ComingSoonSector, type SectorDef, type SectorSupplier, type SectorWithSlug, type SupplierFinancials } from "./core";
+import { isSideLink, linkWeight, companyLinkKey, type SectorDef, type SectorSupplier, type SectorWithSlug, type SupplierFinancials } from "./core";
 
 export * from "./core";
 
 // The sector modules are untyped authored content (see products.ts's header), so cast the whole
 // registry once here rather than per call site.
-const PRODUCTS = PRODUCTS_RAW as unknown as Record<string, SectorDef> & {
-  _comingSoon: ComingSoonSector[];
-};
+const PRODUCTS = PRODUCTS_RAW as unknown as Record<string, SectorDef>;
 
-const SECTOR_KEYS = Object.keys(PRODUCTS).filter((k) => k !== "_comingSoon");
+const SECTOR_KEYS = Object.keys(PRODUCTS);
 
 // Suppliers' figures are filled from the database (src/lib/financials/), so inside the Next server
 // reading sectors before they are installed would quietly render blanks: fail loudly instead.
@@ -37,10 +35,6 @@ export function getSector(slug: string): SectorWithSlug | null {
   assertFiguresLoaded();
   const sector = PRODUCTS[slug];
   return sector ? { slug, ...sector } : null;
-}
-
-export function listComingSoonSectors(): ComingSoonSector[] {
-  return PRODUCTS._comingSoon;
 }
 
 type Home = { slug: string; key: string; weight: number };

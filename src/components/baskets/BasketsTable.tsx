@@ -11,7 +11,7 @@ import { Panel } from "./Panel";
 import { industrySeriesKey, loadSeries, savedBasketQuery } from "./series";
 import { heldStrategy, strategyQuery } from "@/lib/baskets/strategy";
 import { PROJECTION_DISCLAIMER } from "./projection-view";
-import { HeatGrid, HeatLegend, heatScale, type HeatCell } from "@/components/charts/Heatmap";
+import { HeatGrid, HeatLegend, heatScale, shortName, type HeatCell } from "@/components/charts/Heatmap";
 import type { SectorCategory } from "@/lib/sector-content/core";
 
 // The Baskets page's dense tables: one row per basket with its 1Y return, deepest fall and lead
@@ -476,8 +476,6 @@ export function BasketsPanel({
 // ---- the theme wall ----
 
 const rowId = (slug: string) => `basket-row-${slug}`;
-/** A tile's name: the part before any bracket, slash or "&" ("Data Center / AI Infrastructure" is "Data Center"). */
-const shortName = (name: string) => name.split(/ \(| \/ | & | \+ /)[0];
 const FLASH = ["bg-accent/15", "ring-2", "ring-inset", "ring-accent"];
 // The held name cell has a solid background of its own (the figures pass under it), so it takes the tint too.
 const FLASH_HELD = ["bg-[color-mix(in_srgb,var(--color-accent)_15%,var(--color-panel))]"];

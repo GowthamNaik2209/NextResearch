@@ -20,6 +20,12 @@ import { semicon2 } from "./semicon2";
 import { rareearth } from "./rareearth";
 import { defenceproc } from "./defenceproc";
 import { ecms } from "./ecms";
+import { hospitals } from "./hospitals";
+import { capmarkets } from "./capmarkets";
+import { transmission } from "./transmission";
+import { consumerinternet } from "./consumerinternet";
+import { pliacc } from "./pliacc";
+import { greenh2 } from "./greenh2";
 import type { SectorCategory } from "@/lib/sector-content/core";
 
 export type { SectorReport, Tone } from "./types";
@@ -36,10 +42,16 @@ const REPORTS: Record<string, SectorReport> = {
   energy,
   realestate,
   pharma,
+  hospitals,
+  capmarkets,
+  transmission,
+  consumerinternet,
   semicon2,
   rareearth,
   defenceproc,
   ecms,
+  pliacc,
+  greenh2,
 };
 
 export function getReport(slug: string): SectorReport | null {

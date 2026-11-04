@@ -15,7 +15,8 @@ const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 // Qtr Profit Var, Sales Qtr, Qtr Sales Var, ROCE). Used for the industry median
 // footer and for the company's own row (so both sides of the comparison come
 // from the same table/definitions).
-export type PeerMetrics = { pe: number | null; marketCapCr: number | null; divYield: number | null; qtrProfitVarPct: number | null; qtrSalesVarPct: number | null; roce: number | null };
+// `npQtrCr` (the latest quarter's net profit) tells a growth rate off a loss apart from a real one.
+export type PeerMetrics = { pe: number | null; marketCapCr: number | null; divYield: number | null; npQtrCr?: number | null; qtrProfitVarPct: number | null; qtrSalesVarPct: number | null; roce: number | null };
 
 export type Series = { label: string; values: (number | null)[] };
 export type Fundamentals = {
@@ -173,6 +174,7 @@ const peerMetrics = (c: string[]): PeerMetrics => ({
   pe: num(c[3] ?? ""),
   marketCapCr: num(c[4] ?? ""),
   divYield: num(c[5] ?? ""),
+  npQtrCr: num(c[6] ?? ""),
   qtrProfitVarPct: num(c[7] ?? ""),
   qtrSalesVarPct: num(c[9] ?? ""),
   roce: num(c[10] ?? ""),
@@ -197,7 +199,7 @@ export function parsePeers(peers: string, companyId: string | null): Fundamental
 
 export async function getFundamentals(slug: string): Promise<Fundamentals | null> {
   // Key carries a shape version so a deploy never serves objects cached by older code.
-  return cached(`fund:v2:${slug}`, 6 * 60 * 60 * 1000, async () => {
+  return cached(`fund:v3:${slug}`, 6 * 60 * 60 * 1000, async () => {
     try {
       // Consolidated first (matches the rest of the app); standalone when the consolidated
       // page is missing or an empty template (see isUsablePage).

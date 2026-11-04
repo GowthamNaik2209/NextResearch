@@ -21,10 +21,16 @@ export const SECTOR_LOADERS: Record<string, () => Promise<SectorModule>> = {
   energy: () => import("./energy"),
   realestate: () => import("./realestate"),
   pharma: () => import("./pharma"),
+  hospitals: () => import("./hospitals"),
+  capmarkets: () => import("./capmarkets"),
+  transmission: () => import("./transmission"),
+  consumerinternet: () => import("./consumerinternet"),
   semicon2: () => import("./semicon2"),
   rareearth: () => import("./rareearth"),
   defenceproc: () => import("./defenceproc"),
   ecms: () => import("./ecms"),
+  pliacc: () => import("./pliacc"),
+  greenh2: () => import("./greenh2"),
 };
 
 // One promise per slug, so React's use() sees the same promise on every render (a new one each

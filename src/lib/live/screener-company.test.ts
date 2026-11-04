@@ -87,6 +87,9 @@ test("parsePeers treats a 0 industry median (P/E, dividend yield, ROCE) as unava
   assert.equal(ind?.median.divYield, null);
   assert.equal(ind?.median.pe, 33.53);
   assert.equal(parsePeers(peers, null)?.median.divYield, 0.39);
+  // NP Qtr sits between Div Yld and Qtr Profit Var: the pop-up reads it to tell growth off a loss.
+  assert.equal(parsePeers(peers, null)?.median.npQtrCr, 32.05);
+  assert.equal(parsePeers(peers, null)?.median.qtrProfitVarPct, 29.34);
 });
 
 test("parseShareholdingHistory keeps every quarter, plus earlier years' March filings, at their quarter ends", () => {

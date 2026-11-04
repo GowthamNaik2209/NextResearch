@@ -11,7 +11,7 @@ export function UpdatesSection() {
         <div className="min-w-0">
           <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">What&rsquo;s new</h2>
           <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-            Results, deals and announcements for the companies in our maps — each linked to its source.
+            Results, deals and announcements for covered companies — each linked to its source.
           </p>
           <Link href="/updates" className="tap-target mt-5 inline-block text-sm font-semibold text-accent hover:underline">
             See all updates &rarr;

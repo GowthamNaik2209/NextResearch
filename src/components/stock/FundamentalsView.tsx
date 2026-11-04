@@ -1,10 +1,12 @@
 import type { SectorSupplier } from "@/lib/sector-content";
 import { ScrollX } from "@/components/ScrollX";
+import { useSegmentTip } from "@/components/charts/SegmentTip";
 import type { StockApi } from "./types";
 import { fmtNum, fmtSigned, fmtYield, mergeStats, REIT_NOTE } from "./merge";
 import { croreShort, NA, pct, sep } from "@/lib/format";
 
-type Row = { label: string; company: number | null; industry: number | null; unit: string; better: "low" | "high" | null; digits?: number };
+// `text` replaces the company's number where a rate would mislead (profit growth off a loss).
+type Row = { label: string; company: number | null; industry: number | null; unit: string; better: "low" | "high" | null; digits?: number; text?: string };
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <section>
@@ -14,7 +16,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 );
 
 function verdict(r: Row): "better" | "worse" | null {
-  if (!r.better || r.company == null || r.industry == null || r.company === r.industry) return null;
+  if (!r.better || r.text || r.company == null || r.industry == null || r.company === r.industry) return null;
   return (r.better === "low" ? r.company < r.industry : r.company > r.industry) ? "better" : "worse";
 }
 
@@ -28,6 +30,7 @@ const fmtFetched = (iso: string) =>
   !Number.isFinite(Date.parse(iso)) ? "recently" : sep(new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })) + " IST";
 
 export function FundamentalsView({ supplier, api, loading }: { supplier: SectorSupplier; api: StockApi | null; loading: boolean }) {
+  const { tipFor, tipNode } = useSegmentTip();
   const fund = api?.fundamentals ?? null;
   const f = supplier.f;
   const s = mergeStats(f, api);
@@ -39,6 +42,12 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
   const pb = s.snapshotPrice != null && s.bookValue ? s.snapshotPrice / s.bookValue : null;
   const asOf = s.asOf ? `as of ${s.asOf}` : "snapshot";
 
+  // A growth rate is only a growth rate between two profits: Screener still prints one when the
+  // latest quarter is a loss (Swiggy "15.6%" on two losses) or the year-ago one was (a rate below
+  // −100% with a profit now), so those read "loss" / "—" with the footnote, as P/E reads "loss".
+  const npQtr = self?.npQtrCr ?? null;
+  const qtrVar = self?.qtrProfitVarPct ?? null;
+  const qtrProfitText = qtrVar == null || npQtr == null ? undefined : npQtr < 0 ? "loss" : qtrVar <= -100 ? "—" : undefined;
   const rows: Row[] = [
     { label: "P/E (TTM)", company: s.pe, industry: med?.pe ?? null, unit: "x", better: "low", digits: 1 },
     { label: "P/B", company: pb, industry: null, unit: "x", better: "low", digits: 2 },
@@ -47,7 +56,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
     { label: "Dividend yield", company: s.divYield, industry: med?.divYield ?? null, unit: "%", better: "high", digits: 2 },
     // Not in the company table: these two come from Screener live (the footnote says so).
     { label: "Qtr sales growth (YoY)*", company: self?.qtrSalesVarPct ?? null, industry: med?.qtrSalesVarPct ?? null, unit: "%", better: "high", digits: 1 },
-    { label: "Qtr profit growth (YoY)*", company: self?.qtrProfitVarPct ?? null, industry: med?.qtrProfitVarPct ?? null, unit: "%", better: "high", digits: 1 },
+    { label: "Qtr profit growth (YoY)*", company: self?.qtrProfitVarPct ?? null, industry: med?.qtrProfitVarPct ?? null, unit: "%", better: "high", digits: 1, text: qtrProfitText },
     { label: "Market cap", company: s.marketCapCr, industry: med?.marketCapCr ?? null, unit: "", better: null, digits: 0 },
   ];
   // REITs: P/E, ROE and dividend yield are equity-company ratios that misread a trust (see
@@ -137,7 +146,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
                     <td className="px-3 py-3 text-ink">{r.label}</td>
                     <td className="px-3 py-3 text-right font-mono">
                       <span className={v === "better" ? "text-pos" : v === "worse" ? "text-danger" : "text-ink"}>
-                        {fmtRow(r.company, r)}
+                        {r.text ?? fmtRow(r.company, r)}
                       </span>
                       {v && <span className={"ml-1.5 text-[10px] " + (v === "better" ? "text-pos" : "text-danger")}>{v === "better" ? "▲" : "▼"}</span>}
                     </td>
@@ -161,7 +170,13 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
         ) : (
           fund && <p className="mt-2 text-[11px] text-ink-soft">Industry medians aren&rsquo;t available for this company right now.</p>
         )}
-        {hasLiveRows && <p className="mt-1 text-[11px] text-ink-soft">* Latest quarter, live from Screener.in (not in the company snapshot).</p>}
+        {hasLiveRows && (
+          <p className="mt-1 text-[11px] text-ink-soft">
+            * Latest quarter, live from Screener.in (not in the company snapshot).
+            {qtrProfitText === "loss" && " Profit growth reads “loss”: the latest quarter was a loss, so a growth rate would mislead."}
+            {qtrProfitText === "—" && " Profit growth is not shown: the year-ago quarter was a loss, so a growth rate would mislead."}
+          </p>
+        )}
       </Section>
       )}
 
@@ -197,9 +212,10 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
       {fund?.shareholding && fund.shareholding.rows.length > 0 && (
         <Section title={`Shareholding pattern — ${fund.shareholding.period}`}>
           <div className="rounded-2xl border border-line bg-panel p-4">
+            {tipNode}
             <div className="flex h-3 overflow-hidden rounded-full bg-panel-2">
               {fund.shareholding.rows.map((r, i) => (
-                <div key={r.label} className={SH_COLORS[i % SH_COLORS.length]} style={{ width: `${Math.max(0, r.value ?? 0)}%` }} title={`${r.label} ${r.value}%`} />
+                <div key={r.label} {...tipFor(`${r.label}: ${r.value}%`)} className={SH_COLORS[i % SH_COLORS.length]} style={{ width: `${Math.max(0, r.value ?? 0)}%` }} />
               ))}
             </div>
             <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-1.5 sm:grid-cols-3">

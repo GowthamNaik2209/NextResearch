@@ -28,6 +28,7 @@ const SHORT = "needs more price history";
 
 export function BasketStats({
   range,
+  period,
   basketKey,
   strategy,
   compact = false,
@@ -39,6 +40,9 @@ export function BasketStats({
   single = false,
 }: {
   range: ChartRange;
+  /** The span the figures cover when it isn't the range's (a stock listed during it: "since
+   * listing, 24 Sep 2026"), named in the title in place of the range. */
+  period?: string;
   basketKey: string;
   strategy: Strategy;
   /** Two columns, for the basket page's side column. */
@@ -79,7 +83,8 @@ export function BasketStats({
 
 
   const held = strategy.rebalance === "never";
-  const tone = (v: number | null | undefined) => (v == null ? "text-ink-soft" : v >= 0 ? "text-pos" : "text-danger");
+  // By the value as shown (one decimal): a -0.04% that reads "0.0%" isn't painted as a loss.
+  const tone = (v: number | null | undefined) => (v == null || Math.abs(v) < 0.05 ? "text-ink-soft" : v > 0 ? "text-pos" : "text-danger");
   const cells: {
     label: string;
     value: string;
@@ -187,8 +192,12 @@ export function BasketStats({
       <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-1.5">
         <H className="min-w-0 flex-1 text-balance text-[10px] font-semibold uppercase tracking-wider text-ink-soft sm:text-[11px]">
           <span className="whitespace-nowrap">Backtest statistics</span>
-          {scope ? ` · ${scope}` : ""} · <span className={compact ? "" : "sm:hidden"}>{range}</span>
-          {!compact && <span className="whitespace-nowrap max-sm:hidden">{pastPeriod(range)}</span>}
+          {scope ? ` · ${scope}` : ""} · {period ?? (
+            <>
+              <span className={compact ? "" : "sm:hidden"}>{range}</span>
+              {!compact && <span className="whitespace-nowrap max-sm:hidden">{pastPeriod(range)}</span>}
+            </>
+          )}
           {/* The side column is narrow: the settings take their own line there rather than breaking mid-title. */}
           {!single && (
             <span title={`${weightingLabel(strategy)}, ${rebalanceLabel(strategy)}`} className={compact ? "block truncate text-[9px] tracking-wide" : ""}>

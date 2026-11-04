@@ -9,7 +9,7 @@ import { IpoGrid } from "@/components/ipo/IpoGrid";
 import { InfoTip } from "@/components/InfoTip";
 import { LazyResearchDeck, dropDeepLinkParam, intentProps, prefetchReport, useForwardReopen } from "./LazyDecks";
 import type { ChartPickerIndustry } from "@/components/stock/StockChartPopup";
-import { THEME_TAB_EVENT, ThemeCards, type ComingSoonSector, type SectorCard, type ThemeTab } from "./ThemeCards";
+import { THEME_TAB_EVENT, ThemeCards, type SectorCard, type ThemeTab } from "./ThemeCards";
 
 // The Charts pop-up (one stock's price chart) loads when a card's Charts button is pressed.
 const StockChartPopup = dynamic(() => import("@/components/stock/StockChartPopup").then((m) => m.StockChartPopup), { ssr: false });
@@ -39,7 +39,6 @@ export function ReadingList({
   ipos,
   initialIpoDeck,
   sectorCards,
-  comingSoon,
   chartIndustries,
   initial,
   initialIpo,
@@ -54,7 +53,6 @@ export function ReadingList({
   /** The IPO deck a ?ipo= link opens, built with the page. */
   initialIpoDeck?: IpoDeck;
   sectorCards: SectorCard[];
-  comingSoon: ComingSoonSector[];
   /** Every industry's layers and stocks for the Charts pop-up: in the page on a ?view=charts link, else fetched on first use. */
   chartIndustries?: ChartPickerIndustry[];
   initial?: string;
@@ -182,7 +180,7 @@ export function ReadingList({
       </div>
       </div>
       </div>
-      {view === "deep" && tab !== "ipo" && <ThemeCards sectors={sectorCards} comingSoon={comingSoon} filter={tab} onCharts={setChartSlug} />}
+      {view === "deep" && tab !== "ipo" && <ThemeCards sectors={sectorCards} filter={tab} onCharts={setChartSlug} />}
       {view === "reports" && tab !== "ipo" && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {shown.map((d) => (

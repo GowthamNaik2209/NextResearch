@@ -1,5 +1,6 @@
-// Rare-Earth Magnets (REPM): a miniature "mine to motor" site on a display plinth - the whole
-// sintered NdFeB magnet chain the Rs 7,280 crore scheme is trying to build in India.
+// Critical Minerals & Rare Earths: a miniature "mine to motor" site on a display plinth - the whole
+// sintered NdFeB magnet chain the Rs 7,280 crore scheme is trying to build in India, plus the
+// National Critical Mineral Mission's pieces (lithium, copper, battery recycling, block auctions).
 //
 // Plan (+X east, +Z south/front; the overview camera looks in from the south, so the chain reads
 // left -> right on screen):
@@ -12,12 +13,16 @@
 //   · Front-middle: the sintered magnet plant (hydrogen decrepitation + jet mill, field press,
 //     isostatic press, vacuum sintering furnaces, machining, coating, magnetiser) and the
 //     magnet-recycling shed beside it.
+//   · Mission additions: lithium brine ponds (and an overseas-assets map board) between the hill
+//     and the pit, an exploration block with drill rigs and survey stakes on the front-left lawn, a
+//     copper refinery tankhouse with its smelter yard east of the alloy hall, and a battery
+//     recycling shed (shredder, black mass, leach tanks) in front of the magnet-recycling shed.
 //   · East: what the magnets go into - a cutaway EV traction motor, an e-scooter hub motor, a
 //     missile on its launcher, and a direct-drive wind turbine.
 //
-// Layers (outside -> inside, product -> ground): 0 End Uses, 1 Magnet Plant (magnet plant and
-// recycling shed walls section down, roofs lift), 2 Refining & Alloy (separation + alloy halls
-// section down), 3 Mine & Minerals (the sand overburden and the hill's rock shell go glassy to
+// Layers (outside -> inside, product -> ground): 0 End Uses, 1 Magnet & Recycling Plant (magnet
+// plant and both recycling sheds section down, roofs lift), 2 Refining & Smelting (separation,
+// alloy and copper halls section down), 3 Mines & Auctions (the sand overburden and the hill's rock shell go glassy to
 // show the black-sand ore layer and the carbonatite ore body). Buildings peel with a moving
 // world-space clipping plane (as in pharma.ts) so walls never ghost-sort.
 import type * as T from "three";
@@ -59,6 +64,14 @@ const MOTOR: Vec3 = [3.95, 0.3, 1.25];
 const MOTOR_S = 0.42;
 const SCOOT = { x: 3.3, z: 2.72 };
 const SCOOT_S = 1.5;
+// Critical Minerals Mission additions: a battery-recycling shed in front of the magnet-recycling
+// shed, a copper refinery tankhouse (with its smelter yard behind) east of the alloy hall, lithium
+// brine ponds between the hill and the sand pit, and an exploration block on the front lawn.
+const BAT = { x0: 1.15, x1: 2.1, z0: 1.9, z1: 2.42, h: 0.45 };
+const COP = { x0: 1.98, x1: 2.88, z0: -2.4, z1: -1.38, h: 0.62 };
+const LI = { x0: -3.86, x1: -3.02, z0: -1.18, z1: -0.24 };
+const EXP = { x0: -2.2, x1: -0.92, z0: 2.5, z1: 3.32 };
+const RIG1 = { x: -1.85, z: 2.8 };
 /** A point in the jet's own frame (nose +X) -> world, matching its group's pitch-then-yaw. */
 function jetPt([x, y, z]: Vec3): Vec3 {
   const x1 = x * Math.cos(JET.pitch) - y * Math.sin(JET.pitch);
@@ -78,18 +91,27 @@ const fRec = (x: number) => x - 0.85;
 export const RAREEARTH_ANCHORS: Record<string, { pos: Vec3; side: Side }> = {
   // layer 0: end uses
   wind: { pos: [WIND.x, WIND.h + 0.1, WIND.z + 0.3], side: "right" }, // ring generator behind the hub
-  defence: { pos: jetPt([-0.4, 0.0, -0.22]), side: "right" }, // elevon + its actuator, near wing
-  ev_motors: { pos: [MOTOR[0], MOTOR[1] + 0.1, MOTOR[2] + 0.06], side: "right" }, // rotor magnets in the cutaway
-  ev_2w: { pos: [SCOOT.x - 0.2 * SCOOT_S, 0.03 + 0.113 * SCOOT_S, SCOOT.z + 0.06], side: "right" }, // rear hub motor
+  defence: { pos: jetPt([-0.45, 0.02, -0.15]), side: "right" }, // elevon actuator, near wing root
+  ev_motors: { pos: [MOTOR[0], MOTOR[1] + 0.08, MOTOR[2] + 0.13], side: "right" }, // magnets in the cut-open quarter
+  ev_2w: { pos: [SCOOT.x - 0.2 * SCOOT_S, 0.03 + 0.113 * SCOOT_S, SCOOT.z + 0.06], side: "bottom" }, // rear hub motor
   // layer 1: magnet plant
-  magnet_making: { pos: [fMag(0.34), 0.26, 1.08], side: "bottom" }, // sintering furnaces
-  recycling: { pos: [fRec(2.35), 0.18, 0.8], side: "bottom" }, // scrap-magnet bins
+  magnet_making: { pos: [fMag(1.635), 0.26, 1.08], side: "bottom" }, // magnetiser at the end of the line
+  recycling: { pos: [fRec(2.22), 0.2, 1.35], side: "bottom" }, // hydrogen-recycling unit beside the vessel
   // layer 2: refining & alloy
-  separation: { pos: [fSep(-1.22), 0.16, -1.75], side: "left" }, // solvent-extraction mixer-settlers
+  separation: { pos: [fSep(-1.22), 0.16, -1.75], side: "top" }, // solvent-extraction mixer-settlers
   metal_alloy: { pos: [fAly(0.7), 0.32, -2.15], side: "top" }, // electrolysis cells
   // layer 3: mine & minerals
-  beach_sand: { pos: [PIT.x + 0.4, 0.14, PIT.z + 0.2], side: "left" }, // black-sand ore terraces
-  hardrock: { pos: [HILL.x, 0.58, HILL.z], side: "left" }, // carbonatite ore body inside the hill
+  beach_sand: { pos: [PIT.x + 0.3, 0.12, PIT.z + 0.3], side: "left" }, // black-sand ore terraces
+  hardrock: { pos: [HILL.x - 0.145, 0.44, HILL.z + 0.413], side: "left" }, // upper bench on the hill's front face
+  // Critical Minerals Mission zones. Rails then hold (the sector def must list each rail's zones in
+  // this order, which follows the markers on screen in every camera view): right wind, defence,
+  // copper, ev_motors; left hardrock, lithium, beach_sand, auctions; top separation, metal_alloy;
+  // bottom magnet_making, recycling, battery_recycling, ev_2w. Phones place their tags in the
+  // full zone order, so that interleaving is tuned too (no tag leader through another tag).
+  battery_recycling: { pos: [1.47, 0.14, (BAT.z0 + BAT.z1) / 2 - 0.1], side: "bottom" }, // black-mass bulk bag
+  copper: { pos: [2.68, 0.16, -2.0], side: "right" }, // copper cathode sheets in the tankhouse cells (east row)
+  lithium: { pos: [(LI.x0 + LI.x1) / 2, 0.04, LI.z1 - 0.21], side: "left" }, // lithium brine ponds (front row)
+  auctions: { pos: [RIG1.x + 0.08, 0.32, RIG1.z], side: "left" }, // drill rig on the exploration block
 };
 
 export const RAREEARTH_VIEWS = [
@@ -100,7 +122,7 @@ export const RAREEARTH_VIEWS = [
     pos: [2.13, 9.39, 9.86],
     target: [-0.11, 0.25, 0.18],
     narration:
-      "Welcome to the rare-earth magnet chain. Read it left to right: beach sand and hard rock are mined, separated into rare-earth oxides, turned into metal and alloy, pressed and sintered into magnets, and finally built into wind turbines, aircraft, electric cars and e-scooters. India's Rs 7,280 crore scheme pays five companies to build the middle of this chain at home.",
+      "Welcome to India's critical-minerals chain. Read it left to right: rare earths and lithium are mined and new blocks explored, then separated, smelted and refined into oxides, metal, alloy and copper, turned into magnets or recovered from scrap magnets and old batteries, and finally built into wind turbines, aircraft, electric cars and e-scooters. The Rs 7,280 crore magnet scheme and the National Critical Mineral Mission pay to build these steps at home.",
   },
   {
     id: "uses",
@@ -114,19 +136,19 @@ export const RAREEARTH_VIEWS = [
     id: "magnets",
     layer: 1,
     label: "Magnet Line",
-    pos: [-0.2, 3.3, 5.0],
-    target: [-0.55, 0.2, 1.2],
+    pos: [0.2, 3.5, 5.4],
+    target: [-0.25, 0.2, 1.35],
     narration:
-      "The sintered magnet line the scheme pays for. Alloy flakes are crushed with hydrogen and jet-milled to a fine powder, pressed inside a magnetic field to line the grains up, sintered in vacuum furnaces, machined, coated and finally magnetised. Next door, scrap magnets are recycled back into powder.",
+      "The sintered magnet line the scheme pays for. Alloy flakes are crushed with hydrogen and jet-milled to a fine powder, pressed inside a magnetic field to line the grains up, sintered in vacuum furnaces, machined, coated and finally magnetised. Next door, scrap magnets are recycled back into powder, and in front of them spent EV batteries are shredded into black mass and leached for lithium, cobalt and nickel.",
   },
   {
     id: "refining",
     layer: 2,
     label: "Refining",
-    pos: [-0.3, 3.9, 2.4],
-    target: [-0.3, 0.2, -2.05],
+    pos: [0.45, 5.6, 3.5],
+    target: [0.35, 0.2, -2.1],
     narration:
-      "The hardest step. Monazite is cracked with caustic soda, then hundreds of mixer-settler stages pull neodymium and praseodymium apart from their near-identical neighbours. The oxide then goes to molten-salt electrolysis cells to become metal, and is melted with iron and boron into magnet alloy.",
+      "The hardest step. Monazite is cracked with caustic soda, then hundreds of mixer-settler stages pull neodymium and praseodymium apart from their near-identical neighbours; the oxide becomes metal in molten-salt electrolysis cells and is melted with iron and boron into magnet alloy. On the right, a copper smelter feeds a refinery tankhouse where copper cathode sheets grow in blue electrolyte.",
   },
   {
     id: "mine",
@@ -135,14 +157,24 @@ export const RAREEARTH_VIEWS = [
     pos: [-0.5, 4.4, 5.4],
     target: [-3.15, 0.15, 0.3],
     narration:
-      "The source. India's rare earths sit mostly in monazite, a heavy mineral in the black beach sands of Kerala, Tamil Nadu, Odisha and Andhra Pradesh, mined by the state-owned IREL. Behind it, a hard-rock carbonatite deposit of the kind Gujarat's GMDC is developing at Ambadungar.",
+      "The source. India's rare earths sit mostly in monazite, a heavy mineral in the black beach sands of Kerala, Tamil Nadu, Odisha and Andhra Pradesh, mined by the state-owned IREL. Behind it is a hard-rock carbonatite deposit of the kind Gujarat's GMDC is developing at Ambadungar, and between them lithium brine ponds, with a map of the overseas lithium assets India has bought into in Argentina and Australia.",
+  },
+  {
+    id: "explore",
+    layer: 3,
+    label: "Lithium & Auctions",
+    pos: [0.6, 5.2, 7.2],
+    target: [-2.25, 0.15, 1.15],
+    narration:
+      "The Mission's new frontier. On the left, lithium brine ponds concentrate brine from blue to yellow beside a map of India's overseas lithium assets; in front, an exploration block is staked out and drilled. The government now auctions blocks of lithium, graphite, rare earths and other critical minerals; winners such as Vedanta, Coal India, NMDC and Hindustan Zinc drill a grid of holes and log the rock cores before deciding to mine.",
   },
   {
     id: "top",
     label: "Top",
     pos: [0, 13, 1.2],
     target: [0, 0, 0],
-    narration: "From above: the coast and the mines on the left, refining at the back, the magnet plant in the middle and the products that use magnets on the right.",
+    narration:
+      "From above: the coast, the mines, the lithium ponds and an exploration block on the left; rare-earth refining and copper smelting at the back; the magnet plant and the two recycling sheds in the middle; and the products that use magnets on the right.",
   },
 ];
 
@@ -308,6 +340,8 @@ export function buildRareearth(ctx: Ctx, _def?: unknown) {
   const recTex = facade(REC.h, { base: "#d9dfd3", plinth: "#4f5a4c", ribs: true, accent: "#3aa05a", accentAt: 0.84 });
   const sepTex = facade(SEP.h, { base: "#c3c9cf", plinth: "#4c555e", ribs: true, accent: "#9c6b30", accentAt: 0.88, bands: [[0.55, 0.66]], pitch: 64 });
   const alyTex = facade(ALY.h, { base: "#b3bac1", plinth: "#474f58", ribs: true, accent: "#d96c2b", accentAt: 0.88 });
+  const batTex = facade(BAT.h, { base: "#dde3dc", plinth: "#4a5652", ribs: true, accent: "#17a398", accentAt: 0.84 });
+  const copTex = facade(COP.h, { base: "#c9c2b9", plinth: "#4c4640", ribs: true, accent: "#b8692f", accentAt: 0.88, bands: [[0.55, 0.68]], pitch: 48 });
   const roofTex = tex(
     256,
     256,
@@ -444,8 +478,24 @@ export function buildRareearth(ctx: Ctx, _def?: unknown) {
     g.fill();
     // Plant aprons.
     const apron = "#aeb0aa";
-    for (const b of [MAG, REC, SEP, ALY]) rect(b.x0 - 0.1, b.x1 + 0.1, b.z0 - 0.1, b.z1 + 0.1, apron);
+    for (const b of [MAG, REC, SEP, ALY, BAT, COP]) rect(b.x0 - 0.1, b.x1 + 0.1, b.z0 - 0.1, b.z1 + 0.1, apron);
     rect(-2.3, 2.1, -3.4, -2.98, "#a3a59f"); // tank farm strip behind the plants
+    rect(1.88, 2.98, -3.38, -2.5, "#a3a59f"); // copper smelter yard
+    // Salt flat under the lithium brine ponds.
+    rect(LI.x0 - 0.07, LI.x1 + 0.07, LI.z0 - 0.07, LI.z1 + 0.07, "#ebe5d5");
+    // Exploration block: cleared earth with the drill-hole grid marked out.
+    rect(EXP.x0, EXP.x1, EXP.z0, EXP.z1, "#a88f68");
+    for (let i = 0; i < 260; i++) {
+      g.fillStyle = rnd() > 0.5 ? "rgba(80,60,30,0.12)" : "rgba(255,240,210,0.12)";
+      g.fillRect(X(EXP.x0 + rnd() * (EXP.x1 - EXP.x0)), Z(EXP.z0 + rnd() * (EXP.z1 - EXP.z0)), 5, 5);
+    }
+    g.fillStyle = "rgba(250,245,230,0.75)";
+    for (let x = EXP.x0 + 0.16; x < EXP.x1 - 0.1; x += 0.16)
+      for (let z = EXP.z0 + 0.16; z < EXP.z1 - 0.1; z += 0.16) {
+        g.beginPath();
+        g.arc(X(x), Z(z), 3, 0, Math.PI * 2);
+        g.fill();
+      }
     rect(2.42, 4.28, -1.15, 3.42, "#c9c4b6"); // end-use display deck surround
     g.fillStyle = "#b9b4a6"; // turbine pad
     g.beginPath();
@@ -455,7 +505,7 @@ export function buildRareearth(ctx: Ctx, _def?: unknown) {
     g.save();
     g.filter = "blur(10px)";
     g.fillStyle = "rgba(0,0,0,0.3)";
-    for (const b of [MAG, REC, SEP, ALY]) g.fillRect(X(b.x0 - 0.02), Z(b.z0 - 0.02), (b.x1 - b.x0 + 0.04) * sx, (b.z1 - b.z0 + 0.04) * sx);
+    for (const b of [MAG, REC, SEP, ALY, BAT, COP]) g.fillRect(X(b.x0 - 0.02), Z(b.z0 - 0.02), (b.x1 - b.x0 + 0.04) * sx, (b.z1 - b.z0 + 0.04) * sx);
     g.restore();
     // Roads: main east-west service road, haul road from the pit, spur to the turbine.
     const roads: [number, number, number, number, number][] = [
@@ -769,6 +819,25 @@ export function buildRareearth(ctx: Ctx, _def?: unknown) {
     P(RM.unit, rb(0.24, 0.1, 0.18, 0.02, fRec(2.3), REC.h, 0.95));
     P(RM.dark, cyl(0.04, 0.012, fRec(2.3), REC.h + 0.1, 0.95, 12));
   }
+  // ---- Battery recycling shed shell.
+  {
+    const { P, RM } = makePeel("mag", magG, BAT, batTex, "roofMag", { text: "BATTERY RECYCLING", bg: "#17867d", face: "s" });
+    for (const x of [1.4, 1.85]) {
+      P(RM.unit, rb(0.16, 0.08, 0.14, 0.02, x, BAT.h, 2.12));
+      P(RM.dark, cyl(0.035, 0.012, x, BAT.h + 0.08, 2.12, 12));
+    }
+  }
+  // ---- Copper refinery tankhouse shell (peels with the refining halls).
+  {
+    const { P, RM } = makePeel("ref", refG, COP, copTex, "roofRef", { text: "COPPER REFINERY", bg: "#b8692f", face: "s" });
+    const H = COP.h;
+    P(RM.sky, bb(COP.x0 + 0.1, COP.x1 - 0.1, H + 0.002, H + 0.03, -2.25, -2.02));
+    for (let i = 0; i < 3; i++) {
+      const x = COP.x0 + 0.2 + i * 0.25;
+      P(RM.unit, rb(0.13, 0.07, 0.13, 0.02, x, H, -1.72));
+      P(RM.dark, cyl(0.042, 0.015, x, H + 0.07, -1.72, 14));
+    }
+  }
   // ---- Separation plant shell.
   {
     const { P, RM } = makePeel("ref", refG, SEP, sepTex, "roofRef", { text: "RARE EARTH SEPARATION", bg: "#9c6b30", face: "s" });
@@ -809,8 +878,8 @@ export function buildRareearth(ctx: Ctx, _def?: unknown) {
   }
 
   // Interior floors (under the equipment, above the ground).
-  for (const b of [MAG, REC]) magG.add(new THREE.Mesh(uvScale(bb(b.x0 + 0.01, b.x1 - 0.01, 0.004, 0.012, b.z0 + 0.01, b.z1 - 0.01), 1, 1), baseMats.magFloor));
-  for (const b of [SEP, ALY]) refG.add(new THREE.Mesh(bb(b.x0 + 0.01, b.x1 - 0.01, 0.004, 0.012, b.z0 + 0.01, b.z1 - 0.01), baseMats.refFloor));
+  for (const b of [MAG, REC, BAT]) magG.add(new THREE.Mesh(uvScale(bb(b.x0 + 0.01, b.x1 - 0.01, 0.004, 0.012, b.z0 + 0.01, b.z1 - 0.01), 1, 1), baseMats.magFloor));
+  for (const b of [SEP, ALY, COP]) refG.add(new THREE.Mesh(bb(b.x0 + 0.01, b.x1 - 0.01, 0.004, 0.012, b.z0 + 0.01, b.z1 - 0.01), baseMats.refFloor));
 
   // ============================================================ MAGNET LINE (layer 1)
   const MLraw = putter(magG);
@@ -899,6 +968,42 @@ export function buildRareearth(ctx: Ctx, _def?: unknown) {
     ML(e.dark, bx(0.08, 0.05, 0.1, 2.22, FL + 0.14, 1.35));
     for (let i = 0; i < 3; i++) ML(e.powder, cyl(0.04, 0.09, 2.8, FL, 0.75 + i * 0.12, 12));
   }
+  // ---- Battery recycling shed interior, east -> west: spent EV packs by the road-side door, a
+  // shredder, black mass in bulk bags, and hydrometallurgy leach tanks that pull out lithium,
+  // cobalt and nickel.
+  {
+    const e: EqM = mm;
+    const P = MLraw;
+    const zc = (BAT.z0 + BAT.z1) / 2;
+    const blackMass = L.add("magEq", std(0x18191b, 0.05, 0.95));
+    const packGrey = L.add("magEq", std(0x59636d, 0.55, 0.4));
+    for (const z of [zc - 0.11, zc + 0.11]) {
+      P(e.dark, bx(0.16, 0.02, 0.13, 1.99, FL, z));
+      for (let k = 0; k < 3; k++) {
+        P(k % 2 ? packGrey : e.blue, rb(0.15, 0.034, 0.11, 0.008, 1.99, FL + 0.02 + k * 0.036, z));
+        P(e.orange, bx(0.02, 0.012, 0.03, 1.915, FL + 0.03 + k * 0.036, z));
+      }
+    }
+    // Shredder: base, square feed hopper, drive motor.
+    P(e.grey, rb(0.15, 0.12, 0.15, 0.015, 1.78, FL, zc));
+    P(e.yellow, new THREE.CylinderGeometry(0.11, 0.065, 0.1, 4, 1).rotateY(Math.PI / 4).translate(1.78, FL + 0.17, zc));
+    P(e.blue, cylZ(0.035, 0.08, 1.78, FL + 0.08, zc - 0.115, 14));
+    // Belt carrying black mass west to the bulk bags.
+    P(e.dark, bar(THREE, [1.7, FL + 0.05, zc], [1.53, FL + 0.13, zc], 0.022, 8));
+    P(blackMass, bx(0.06, 0.012, 0.03, 1.6, FL + 0.1, zc));
+    for (const z of [zc - 0.1, zc + 0.1]) {
+      P(e.bag, rb(0.09, 0.1, 0.09, 0.015, 1.47, FL, z));
+      P(blackMass, cone(0.04, 0.03, 1.47, FL + 0.1, z, 12));
+    }
+    P(blackMass, cone(0.07, 0.05, 1.47, FL, zc, 16));
+    // Leach tanks with a pipe header.
+    for (const z of [zc - 0.12, zc + 0.12]) {
+      P(e.ss, vessel(0.055, 0.12, 1.26, FL, z));
+      P(e.steel, bb(1.2, 1.32, FL, FL + 0.02, z - 0.06, z + 0.06));
+    }
+    P(e.grey, tube(THREE, [[1.26, FL + 0.2, zc - 0.12], [1.3, FL + 0.24, zc], [1.26, FL + 0.2, zc + 0.12]], 0.008, 6, false, 12));
+    P(e.teal, bx(0.07, 0.06, 0.06, 1.3, FL, zc));
+  }
 
   // ============================================================ REFINING (layer 2)
   const RLraw = putter(refG);
@@ -979,6 +1084,61 @@ export function buildRareearth(ctx: Ctx, _def?: unknown) {
     for (let i = 0; i < 6; i++) RL(e.ss, bx(0.06, 0.025, 0.03, 0.45 + (i % 3) * 0.07, FL + 0.02 + Math.floor(i / 3) * 0.025, -1.6));
     RL(e.dark, bx(0.24, 0.02, 0.1, 0.52, FL, -1.6));
   }
+  // ---- Copper refinery tankhouse interior: three rows of electrorefining cells with copper
+  // cathode sheets hanging in blue electrolyte, an overhead crane, and stacks of finished cathode.
+  {
+    const e: EqM = rm;
+    const P = RLraw;
+    const cellMat = L.add("refEq", std(0x46594f, 0.2, 0.65));
+    const brine = L.add("refEq", std(0x2c9fc0, 0.2, 0.08, { emissive: 0x0c3d55, emissiveIntensity: 0.4 }));
+    const cathode = L.add("refEq", std(0xd8844a, 0.9, 0.25));
+    for (const x of [2.18, 2.43, 2.68]) {
+      for (const z of [-2.28, -2.14, -2.0, -1.86, -1.72]) {
+        P(cellMat, bx(0.2, 0.08, 0.12, x, FL, z));
+        P(brine, bx(0.18, 0.004, 0.1, x, FL + 0.072, z));
+        for (const dz of [-0.034, 0, 0.034]) {
+          P(e.copper, bx(0.15, 0.1, 0.006, x, FL + 0.035, z + dz));
+          P(e.copper, bx(0.2, 0.008, 0.008, x, FL + 0.135, z + dz));
+        }
+      }
+      P(e.copper, bb(x + 0.105, x + 0.12, FL + 0.07, FL + 0.085, -2.36, -1.64)); // busbar
+    }
+    // Overhead crane on rails along the walls.
+    P(e.steel, bb(COP.x0 + 0.02, COP.x0 + 0.05, 0.44, 0.47, -2.36, -1.42));
+    P(e.steel, bb(COP.x1 - 0.05, COP.x1 - 0.02, 0.44, 0.47, -2.36, -1.42));
+    P(e.yellow, bb(COP.x0 + 0.02, COP.x1 - 0.02, 0.47, 0.51, -2.27, -2.21));
+    P(e.dark, bx(0.06, 0.04, 0.07, 2.43, 0.43, -2.24));
+    P(e.grey, bar(THREE, [2.43, 0.43, -2.24], [2.43, 0.3, -2.24], 0.004, 6));
+    // Finished cathode stacks on pallets by the south door.
+    for (const x of [2.15, 2.4, 2.65]) {
+      P(e.dark, bx(0.16, 0.02, 0.14, x, FL, -1.5));
+      P(cathode, bx(0.14, 0.06, 0.12, x, FL + 0.02, -1.5));
+      P(e.steel, bx(0.145, 0.004, 0.01, x, FL + 0.08, -1.5));
+    }
+  }
+  // ---- Copper smelter yard behind the tankhouse: flash-smelting furnace (reaction shaft, settler,
+  // uptake, waste-heat boiler), two converters with glowing mouths, and the acid-plant stack.
+  {
+    const e: EqM = rm;
+    const P = RLraw;
+    const z = -2.85;
+    P(e.dark, rb(0.46, 0.13, 0.2, 0.02, 2.3, 0, z));
+    P(e.grey, cyl(0.075, 0.3, 2.13, 0.13, z, 18));
+    P(e.dark, cone(0.04, 0.06, 2.13, 0.43, z, 12));
+    P(e.grey, cyl(0.05, 0.3, 2.47, 0.13, z, 14));
+    P(e.white, rb(0.16, 0.44, 0.18, 0.02, 2.67, 0, z));
+    P(e.orange, bx(0.165, 0.03, 0.185, 2.67, 0.32, z));
+    P(e.hot, bx(0.06, 0.03, 0.005, 2.3, 0.04, z + 0.101));
+    for (const x of [2.15, 2.45]) {
+      P(e.steel, bx(0.04, 0.06, 0.12, x - 0.09, 0, -3.2));
+      P(e.steel, bx(0.04, 0.06, 0.12, x + 0.09, 0, -3.2));
+      P(e.dark, cylX(0.075, 0.26, x, 0.12, -3.2, 18));
+      P(e.hot, cyl(0.03, 0.006, x, 0.193, -3.2, 12));
+    }
+    P(e.grey, tube(THREE, [[2.67, 0.44, z], [2.72, 0.5, -3.0], [2.78, 0.5, -3.18]], 0.035, 10, false, 16));
+    P(cm.stack, cyl(0.065, 1.3, 2.78, 0, -3.18, 16, 0.05));
+    for (const y of [1.08, 1.2]) P(cm.stackBand, cyl(0.055, 0.05, 2.78, y, -3.18, 16));
+  }
 
   // ============================================================ YARD (tank farm, pipe rack)
   {
@@ -990,8 +1150,8 @@ export function buildRareearth(ctx: Ctx, _def?: unknown) {
     }
     C(cm.stack, cyl(0.05, 1.05, -0.25, 0, -3.15, 14, 0.04));
     for (const y of [0.85, 0.95]) C(cm.stackBand, cyl(0.046, 0.04, -0.25, y, -3.15, 14));
-    C(cm.argon, tankGeo(0.09, 0.42, 1.98, 0, -2.75, 0.4));
-    C(cm.argon, tankGeo(0.07, 0.32, 1.98, 0, -2.45, 0.4));
+    C(cm.argon, tankGeo(0.09, 0.42, 1.22, 0, -3.2, 0.4));
+    C(cm.argon, tankGeo(0.07, 0.32, 1.47, 0, -3.2, 0.4));
     // Pipe rack from the separation plant to the alloy hall and on to the magnet plant.
     for (let x = -2.15; x <= 1.8; x += 0.395) {
       C(cm.rackSteel, bx(0.02, 0.3, 0.02, x, 0, -1.02));
@@ -1020,9 +1180,10 @@ export function buildRareearth(ctx: Ctx, _def?: unknown) {
     const treeG = new THREE.IcosahedronGeometry(0.11, 1);
     const trunkG = new THREE.CylinderGeometry(0.012, 0.016, 0.1, 6);
     const tp: Vec3[] = [];
-    for (let x = -2.1; x <= 2.0; x += 0.37) tp.push([x, 0, 2.62 + ((x * 7) % 0.12)]);
-    for (let x = -1.9; x <= 1.9; x += 0.42) tp.push([x, 0, 3.1 + ((x * 5) % 0.1)]);
-    for (const p of [[-0.3, -0.42], [0.6, -0.42], [1.55, 2.15], [1.95, -0.3], [-2.15, -0.3]] as Vec2[]) tp.push([p[0], 0, p[1]]);
+    // (none on the exploration block at the front left)
+    for (let x = -2.1; x <= 2.0; x += 0.37) if (x > EXP.x1 + 0.1) tp.push([x, 0, 2.62 + ((x * 7) % 0.12)]);
+    for (let x = -1.9; x <= 1.9; x += 0.42) if (x > EXP.x1 + 0.1) tp.push([x, 0, 3.1 + ((x * 5) % 0.1)]);
+    for (const p of [[-0.3, -0.42], [0.6, -0.42], [1.95, -0.3], [-2.15, -0.3]] as Vec2[]) tp.push([p[0], 0, p[1]]);
     const rnd = mulberry(21);
     const canopy = new THREE.InstancedMesh(treeG, cm.canopy, tp.length);
     const trunks = new THREE.InstancedMesh(trunkG, cm.trunk, tp.length);
@@ -1124,7 +1285,7 @@ export function buildRareearth(ctx: Ctx, _def?: unknown) {
     }
     // Palm trees on the beach.
     {
-      const palms: Vec2[] = [[-3.8, 3.15], [-3.85, 0.25], [-3.7, -0.7], [-2.62, -0.1]];
+      const palms: Vec2[] = [[-3.8, 3.15], [-3.85, 0.25], [-3.88, -1.3], [-2.62, -0.1]];
       for (const [x, z] of palms) {
         const lean = 0.06;
         N(cm.trunk, tube(THREE, [[x, 0, z], [x + lean * 0.5, 0.2, z], [x + lean, 0.42, z + 0.02]], 0.012, 6, false, 12));
@@ -1185,6 +1346,169 @@ export function buildRareearth(ctx: Ctx, _def?: unknown) {
       const D = place(N, HILL.x - 0.44, 0.42, HILL.z + 0.22, 0.4);
       D(mineMats.orange, rb(0.1, 0.05, 0.08, 0.01, 0, 0.0, 0));
       D(mineMats.steel, bx(0.015, 0.28, 0.015, 0.04, 0.05, 0));
+    }
+
+    // ---- Lithium brine ponds: brine concentrates as it moves from pond to pond, shifting from deep
+    // blue to lithium-rich yellow. Beside them, a map board of overseas lithium assets.
+    {
+      const cols = 3,
+        rows = 2,
+        gap = 0.035,
+        bh = 0.035;
+      const pw = (LI.x1 - LI.x0 - gap * (cols + 1)) / cols;
+      const pd = (LI.z1 - LI.z0 - gap * (rows + 1)) / rows;
+      const berm = L.add("mine", std(0xd8cfbb, 0, 0.9));
+      N(berm, bb(LI.x0, LI.x1, 0, bh, LI.z0, LI.z0 + gap));
+      N(berm, bb(LI.x0, LI.x1, 0, bh, LI.z1 - gap, LI.z1));
+      for (let i = 0; i <= cols; i++) {
+        const x = LI.x0 + i * (pw + gap);
+        N(berm, bb(x, x + gap, 0, bh, LI.z0, LI.z1));
+      }
+      N(berm, bb(LI.x0, LI.x1, 0, bh, LI.z0 + gap + pd, LI.z0 + 2 * gap + pd));
+      const waterMat = L.add("mine", std(0xffffff, 0.15, 0.08, { envMapIntensity: 1.2 }));
+      const pondG = new THREE.PlaneGeometry(pw, pd).rotateX(-Math.PI / 2);
+      const pondI = new THREE.InstancedMesh(pondG, waterMat, cols * rows);
+      const shades = [0x2a6f9e, 0x2f97a6, 0x4fb39c, 0x93c98a, 0xcfd27a, 0xe9cd5c];
+      const o = new THREE.Object3D();
+      const col = new THREE.Color();
+      for (let k = 0; k < cols * rows; k++) {
+        // Snake order: back row west -> east, then front row east -> west.
+        const r = Math.floor(k / cols);
+        const c = r === 0 ? k % cols : cols - 1 - (k % cols);
+        o.position.set(LI.x0 + gap + c * (pw + gap) + pw / 2, bh - 0.006, LI.z0 + gap + r * (pd + gap) + pd / 2);
+        o.updateMatrix();
+        pondI.setMatrixAt(k, o.matrix);
+        pondI.setColorAt(k, col.setHex(shades[k]));
+      }
+      mineG.add(pondI);
+      // Harvested lithium salt pile and a brine pump on the berm.
+      N(mineMats.zircon, cone(0.07, 0.06, LI.x1 - 0.03, 0, LI.z1 + 0.1, 16));
+      N(mineMats.white, rb(0.07, 0.06, 0.06, 0.01, LI.x0 + 0.06, bh, LI.z0 + 0.02));
+      N(mineMats.spiral, bx(0.074, 0.012, 0.064, LI.x0 + 0.06, bh + 0.06, LI.z0 + 0.02));
+
+      // Map board: domestic finds and the overseas lithium assets India has bought into.
+      const mapTex = canvasTexture(THREE, 512, 300, (g, w, h) => {
+        g.fillStyle = "#18405f";
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = "#0f2c43";
+        g.fillRect(0, 0, w, 54);
+        g.fillStyle = "#ffffff";
+        g.font = "bold 34px Arial, Helvetica, sans-serif";
+        g.textAlign = "center";
+        g.textBaseline = "middle";
+        g.fillText("OVERSEAS LITHIUM", w / 2, 29);
+        const top = 62;
+        const P = (lon: number, lat: number): Vec2 => [((lon + 170) / 345) * w, top + ((78 - lat) / 136) * (h - top - 4)];
+        const land: [number, number][][] = [
+          [[-168, 66], [-140, 70], [-95, 72], [-80, 62], [-60, 52], [-75, 40], [-81, 25], [-97, 18], [-105, 22], [-117, 32], [-125, 48], [-140, 60], [-165, 60]],
+          [[-80, 10], [-60, 10], [-35, -6], [-40, -22], [-58, -38], [-68, -55], [-75, -45], [-70, -18], [-81, -5]],
+          [[-10, 36], [-9, 44], [0, 50], [10, 58], [25, 70], [60, 70], [100, 77], [140, 72], [170, 66], [160, 58], [140, 48], [130, 42], [122, 30], [110, 20], [105, 10], [100, 13], [98, 8], [92, 22], [80, 15], [77, 8], [72, 20], [60, 25], [50, 30], [45, 13], [35, 30], [28, 36], [20, 40], [10, 44], [0, 38]],
+          [[-17, 15], [-10, 30], [10, 37], [32, 31], [43, 12], [51, 11], [40, -15], [32, -28], [20, -35], [12, -18], [9, 4], [-8, 5]],
+          [[114, -22], [130, -12], [142, -11], [153, -26], [146, -39], [130, -32], [115, -34]],
+        ];
+        g.fillStyle = "#7fae6a";
+        for (const poly of land) {
+          g.beginPath();
+          poly.forEach(([lon, lat], i) => (i ? g.lineTo(...P(lon, lat)) : g.moveTo(...P(lon, lat))));
+          g.closePath();
+          g.fill();
+        }
+        const india = P(78, 22);
+        g.strokeStyle = "#f2c94c";
+        g.lineWidth = 3;
+        g.setLineDash([8, 6]);
+        for (const [lon, lat] of [[-66, -25], [-69, -23], [121, -31]]) {
+          const [x, y] = P(lon, lat);
+          g.beginPath();
+          g.moveTo(x, y);
+          g.quadraticCurveTo((x + india[0]) / 2, Math.min(y, india[1]) - 40, india[0], india[1]);
+          g.stroke();
+        }
+        g.setLineDash([]);
+        for (const [lon, lat] of [[-66, -25], [-69, -23], [121, -31]]) {
+          const [x, y] = P(lon, lat);
+          g.fillStyle = "#f2c94c";
+          g.beginPath();
+          g.arc(x, y, 9, 0, Math.PI * 2);
+          g.fill();
+        }
+        g.fillStyle = "#ff6b4a";
+        g.beginPath();
+        g.arc(india[0], india[1], 10, 0, Math.PI * 2);
+        g.fill();
+      });
+      const boardMat = L.add("mine", std(0xffffff, 0.05, 0.6, { map: mapTex, emissive: 0xffffff, emissiveMap: mapTex, emissiveIntensity: 0.25 }));
+      const B = place(N, -2.77, 0, -0.86, 0.43);
+      const bw = 0.42,
+        bht = (bw * 300) / 512;
+      B(mineMats.dark, bb(-bw / 2 - 0.012, bw / 2 + 0.012, 0.11, 0.122 + bht, -0.014, -0.002));
+      B(boardMat, new THREE.PlaneGeometry(bw, bht).translate(0, 0.116 + bht / 2, 0));
+      for (const dx of [-bw / 2 + 0.04, bw / 2 - 0.04]) B(mineMats.steel, bx(0.014, 0.12, 0.014, dx, 0, -0.01));
+    }
+
+    // ---- Exploration block (critical-mineral auctions): boundary stakes and tape, a drill-hole
+    // grid of pegs, two drill rigs, core trays and a site cabin.
+    {
+      const { x0, x1, z0, z1 } = EXP;
+      const tape = L.add("mine", std(0xd8402f, 0.1, 0.6));
+      const stakes: Vec2[] = [];
+      const nx = Math.round((x1 - x0) / 0.16),
+        nz = Math.round((z1 - z0) / 0.16);
+      for (let i = 0; i < nx; i++) stakes.push([x0 + (i * (x1 - x0)) / nx, z0], [x1 - (i * (x1 - x0)) / nx, z1]);
+      for (let i = 0; i < nz; i++) stakes.push([x1, z0 + (i * (z1 - z0)) / nz], [x0, z1 - (i * (z1 - z0)) / nz]);
+      const postI = new THREE.InstancedMesh(new THREE.BoxGeometry(0.012, 0.11, 0.012), mineMats.white, stakes.length);
+      const flagI = new THREE.InstancedMesh(new THREE.BoxGeometry(0.03, 0.02, 0.004), mineMats.orange, stakes.length);
+      const o = new THREE.Object3D();
+      stakes.forEach(([x, z], i) => {
+        o.position.set(x, 0.055, z);
+        o.updateMatrix();
+        postI.setMatrixAt(i, o.matrix);
+        o.position.set(x + 0.016, 0.1, z);
+        o.updateMatrix();
+        flagI.setMatrixAt(i, o.matrix);
+      });
+      mineG.add(postI, flagI);
+      for (const [a, b] of [[[x0, z0], [x1, z0]], [[x1, z0], [x1, z1]], [[x1, z1], [x0, z1]], [[x0, z1], [x0, z0]]] as [Vec2, Vec2][])
+        N(tape, bar(THREE, [a[0], 0.075, a[1]], [b[0], 0.075, b[1]], 0.004, 4));
+      // Drill-hole pegs on the grid (skipping the rigs, cabin and trays).
+      const keep = (x: number, z: number) =>
+        Math.hypot(x - RIG1.x, z - RIG1.z) > 0.17 && Math.hypot(x + 1.3, z - 3.08) > 0.17 && !(x > -1.3 && z < 2.78) && !(x < -1.4 && x > -1.75 && z > 3.0);
+      const pegs: Vec2[] = [];
+      for (let x = x0 + 0.16; x < x1 - 0.1; x += 0.16) for (let z = z0 + 0.16; z < z1 - 0.1; z += 0.16) if (keep(x, z)) pegs.push([x, z]);
+      const pegI = new THREE.InstancedMesh(new THREE.BoxGeometry(0.01, 0.05, 0.01), tape, pegs.length);
+      pegs.forEach(([x, z], i) => {
+        o.position.set(x, 0.025, z);
+        o.updateMatrix();
+        pegI.setMatrixAt(i, o.matrix);
+      });
+      mineG.add(pegI);
+      // Drill rigs: tracked carrier, cab, tall mast with crown block, raising strut and rod rack.
+      const rig = (x: number, z: number, ry: number) => {
+        const Q = place(N, x, 0, z, ry);
+        for (const s of [-1, 1]) Q(mineMats.dark, rb(0.2, 0.035, 0.035, 0.012, 0, 0, s * 0.045));
+        Q(mineMats.yellow, rb(0.18, 0.05, 0.12, 0.01, -0.01, 0.033, 0));
+        Q(mineMats.white, rb(0.06, 0.06, 0.07, 0.01, -0.065, 0.083, 0));
+        Q(mineMats.dark, bx(0.004, 0.03, 0.05, -0.034, 0.1, 0));
+        Q(mineMats.orange, bx(0.028, 0.5, 0.028, 0.08, 0.06, 0));
+        Q(mineMats.steel, bx(0.05, 0.035, 0.045, 0.08, 0.56, 0));
+        Q(mineMats.steel, bar(THREE, [-0.02, 0.085, 0], [0.075, 0.36, 0], 0.008, 6));
+        Q(mineMats.steel, cyl(0.008, 0.06, 0.08, 0.0, 0, 8));
+        for (let k = 0; k < 4; k++) Q(mineMats.steel, cylX(0.007, 0.2, 0.0, 0.012 + (k % 2) * 0.012, 0.11 + k * 0.008, 8));
+        Q(mineMats.spiral, bx(0.06, 0.04, 0.05, -0.12, 0, -0.03)); // mud tank
+      };
+      rig(RIG1.x, RIG1.z, 0);
+      rig(-1.3, 3.08, 0.9);
+      // Site cabin and core trays.
+      N(mineMats.white, rb(0.24, 0.1, 0.11, 0.01, -1.08, 0, 2.62));
+      N(mineMats.spiral, bx(0.04, 0.07, 0.004, -1.04, 0, 2.677));
+      const coreMat = L.add("mine", std(0xb58a6b, 0.05, 0.8));
+      for (let r = 0; r < 2; r++)
+        for (let c = 0; c < 3; c++) {
+          const tx = -1.67 + c * 0.085,
+            tz = 3.1 + r * 0.06;
+          N(mineMats.dark, bx(0.075, 0.012, 0.05, tx, 0, tz));
+          for (const dz of [-0.014, 0, 0.014]) N(coreMat, cylX(0.006, 0.066, tx, 0.016, tz + dz, 6));
+        }
     }
   }
 

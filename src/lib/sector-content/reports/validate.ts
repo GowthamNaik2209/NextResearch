@@ -3,7 +3,7 @@
 // the deck pulls their financials), and each slide's list stays inside the size
 // the slide layout was designed for. Used by `npm run validate:content`.
 import type { SectorDef } from "../index";
-import type { SectorReport } from "./types";
+import { looksLikeTimeSeries, type SectorReport } from "./types";
 
 export function validateReport(report: SectorReport, sector: SectorDef): string[] {
   const out: string[] = [];
@@ -48,5 +48,18 @@ export function validateReport(report: SectorReport, sector: SectorDef): string[
   }
   for (const n of report.companyNews) checkKey("companyNews", n.key);
   for (const r of report.reading) if (!/^https:\/\//.test(r.url)) p(`reading link "${r.title}" is not https`);
+
+  // Slide 3 derives a growth-rate headline from a time series; category charts must say so.
+  const chart = report.overview.chart;
+  const timeSeries = looksLikeTimeSeries(chart.points);
+  if (chart.kind === "series" && !timeSeries) p(`overview.chart.kind is "series" but its labels are not periods running forward`);
+  if (!chart.kind && !timeSeries) p(`overview.chart labels are not periods; set kind: "categories" (and ideally overview.headline)`);
+  // Sign-and-approximation pairs read as typos ("+~15%", "~-68%"): write "~15%" or "+15%".
+  const walk = (v: unknown, at: string) => {
+    if (typeof v === "string") {
+      if (/[+-]~|~[+-]\d/.test(v)) p(`${at}: "${v.slice(0, 60)}" pairs a sign with "~"`);
+    } else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) walk(x, `${at}.${k}`);
+  };
+  walk(report, "report");
   return out;
 }

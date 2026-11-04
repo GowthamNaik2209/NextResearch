@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { StockLink } from "@/components/stock/StockLink";
 
 // One heatmap for every place that shows one: the Baskets page's theme wall (a tile per industry),
@@ -27,6 +27,9 @@ export type HeatCell = {
   href?: string;
   onClick?: () => void;
 };
+
+/** A module tile's name: the part before any bracket, slash or "&" ("Data Center / AI Infrastructure" is "Data Center"). */
+export const shortName = (name: string) => name.split(/ \(| \/ | & | \+ /)[0];
 
 /** The move that takes most of the colour range: most of the grid's moves, at least 5%. */
 export function heatScale(values: (number | null)[]): number {
@@ -57,6 +60,8 @@ const SPAN = { 1: "", 2: "col-span-2", 3: "col-span-3 sm:col-span-2 sm:row-span-
 
 /** The default grid: four across on a phone, six on a tablet, eight from desktop. */
 export const HEAT_GRID = "grid grid-flow-row-dense grid-cols-4 auto-rows-[3.25rem] gap-1 sm:grid-cols-6 sm:auto-rows-[3.5rem] lg:grid-cols-8";
+/** A full-screen heatmap's grid: the phone's four across, then more and taller tiles as the screen grows. */
+export const HEAT_GRID_FULL = "grid grid-flow-row-dense grid-cols-4 auto-rows-[3.25rem] gap-1 sm:grid-cols-6 sm:auto-rows-[3.75rem] sm:gap-1.5 lg:grid-cols-10 lg:auto-rows-[4.25rem] 2xl:grid-cols-12";
 
 export function HeatGrid({ cells, scale, className = HEAT_GRID, label }: { cells: HeatCell[]; scale: number; className?: string; label: string }) {
   return (
@@ -74,7 +79,15 @@ function Tile({ cell: c, scale }: { cell: HeatCell; scale: number }) {
   const big = (c.size ?? 1) >= 3;
   const body: ReactNode = (
     <>
-      <span className={"line-clamp-2 flex-none break-words font-semibold leading-[1.2] text-ink " + (big ? "text-xs sm:text-sm" : "text-[10px] sm:text-[11px]")}>{c.label}</span>
+      {/* Breaks only between words: each word is unbreakable, and one too long for the tile ends in an ellipsis (the full name is in the title). */}
+      <span className={"line-clamp-2 flex-none font-semibold leading-[1.2] text-ink " + (big ? "text-xs sm:text-sm" : "text-[10px] sm:text-[11px]")}>
+        {c.label.split(" ").map((w, i) => (
+          <Fragment key={i}>
+            {i > 0 && " "}
+            <span className="inline-block max-w-full truncate align-top">{w}</span>
+          </Fragment>
+        ))}
+      </span>
       <span className="mt-auto flex items-baseline justify-between gap-0.5 leading-none">
         <span className={"flex-none font-mono font-bold tabular-nums tracking-tight text-ink " + (big ? "text-sm sm:text-base" : "text-[11px] sm:text-xs")}>
           {c.value != null ? heatFmt(c.value) : (c.pending ?? true) ? <span aria-label="Loading" className="inline-block h-2.5 w-8 animate-pulse rounded bg-line/80 align-middle" /> : <span className="font-normal text-ink-soft">—</span>}

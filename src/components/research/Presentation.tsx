@@ -318,7 +318,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
               className="inline-flex min-w-0 items-center gap-2 rounded-lg bg-accent px-3 py-2.5 text-xs font-semibold text-bg hover:opacity-90 sm:px-4 sm:text-sm"
             >
               <span className="truncate sm:hidden">{cta.short}</span>
-              <span className="hidden truncate sm:inline">{cta.label}</span>
+              <span className="hidden leading-snug sm:line-clamp-2">{cta.label}</span>
               <span aria-hidden>&#8599;</span>
               <span className="sr-only">(opens in a new tab)</span>
             </a>
@@ -330,7 +330,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
               className="inline-flex min-w-0 items-center gap-2 rounded-lg bg-accent px-3 py-2.5 text-xs font-semibold text-bg hover:opacity-90 sm:px-4 sm:text-sm"
             >
               <span className="truncate sm:hidden">{cta.short}</span>
-              <span className="hidden truncate sm:inline">{cta.label}</span>
+              <span className="hidden leading-snug sm:line-clamp-2">{cta.label}</span>
               <span aria-hidden>&rarr;</span>
             </Link>
           )}

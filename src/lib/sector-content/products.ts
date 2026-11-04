@@ -25,10 +25,16 @@ import solarmodules from "./sectors/solarmodules";
 import energy from "./sectors/energy";
 import realestate from "./sectors/realestate";
 import pharma from "./sectors/pharma";
+import hospitals from "./sectors/hospitals";
+import capmarkets from "./sectors/capmarkets";
+import transmission from "./sectors/transmission";
+import consumerinternet from "./sectors/consumerinternet";
 import semicon2 from "./sectors/semicon2";
 import rareearth from "./sectors/rareearth";
 import defenceproc from "./sectors/defenceproc";
 import ecms from "./sectors/ecms";
+import pliacc from "./sectors/pliacc";
+import greenh2 from "./sectors/greenh2";
 import { ASOF, SRC } from "./sectors/shared";
 
  // ======================================================================
@@ -163,14 +169,7 @@ import { ASOF, SRC } from "./sectors/shared";
  // and works for any product that follows this contract. A new sector also needs
  // its loader line in ./sectors/load.ts (validate:content checks the two match).
  // ======================================================================
- var PRODUCTS = { nifty50, ev4w, semiconductors, datacenter, railways, naval, aerospace, telecom5g, solarmodules, energy, realestate, pharma, semicon2, rareearth, defenceproc, ecms };
+ var PRODUCTS = { nifty50, ev4w, semiconductors, datacenter, railways, naval, aerospace, telecom5g, solarmodules, energy, realestate, pharma, hospitals, capmarkets, transmission, consumerinternet, semicon2, rareearth, defenceproc, ecms, pliacc, greenh2 };
 
- PRODUCTS._comingSoon = [
- {icon:"PH", name:"Smartphone", tagline:"Display, SoC, camera module & battery supply chain"},
- {icon:"LT", name:"Laptop", tagline:"Panel, battery, chipset & chassis supply chain"},
- {icon:"BA", name:"Battery storage (PLI-ACC)", tagline:"Cell gigafactories benefiting from the Advanced Chemistry Cell PLI scheme", category:"policy"},
- {icon:"H2", name:"Green Hydrogen Mission", tagline:"Electrolyser makers and green ammonia/steel offtakers benefiting from the National Green Hydrogen Mission", category:"policy"},
- {icon:"CM", name:"Critical Minerals Mission", tagline:"Lithium, cobalt and rare-earth processors benefiting from the National Critical Mineral Mission", category:"policy"}
- ];
 
 export { PRODUCTS, NEWS, ASOF, SRC, NEWS_ASOF };

@@ -11,7 +11,7 @@ import { MINI_SEG, miniSegBtn, PANEL } from "./Panel";
 // day reads every stock's prices). "Biggest gainers" is one card with a switch for its period.
 // Each figure is the idea's own backtest, formatted as its page's return card formats it.
 type CardIdea = Omit<Idea, "stocks"> & { stocks: { ticker: string; name: string; stat: string }[] };
-type State = { status: "loading" } | { status: "error" } | { status: "ok"; asOf: string; ideas: CardIdea[] };
+type State = { status: "loading"; slow?: boolean } | { status: "error" } | { status: "ok"; asOf: string; ideas: CardIdea[] };
 
 // The cards the page shows on a normal day: Biggest gainers, Highest ROCE, Scarce suppliers, In 3+
 // industries, Recent listings and the four screens on company figures (lib/baskets/kpi-screens.ts).
@@ -23,6 +23,15 @@ const CARD_H = "min-h-[12rem]";
 // The footnote under the cards: two lines on a phone, one from sm up.
 const FOOT = "min-h-[3em] text-[10px] text-ink-soft sm:min-h-0 sm:text-[11px]";
 const TOP_CARD_H = "min-h-[14.625rem]";
+// Waits before the second and third tries of a failed load.
+const RETRY_WAITS_MS = [1500, 4000];
+// A 503 means the day's lists are still being built: a cold rebuild reads every stock's prices and
+// can take 2-3 minutes, so a 503 is retried with growing waits (the last one repeating) until this
+// long after the first request, with a "still ranking" line, before the Try again state.
+const BUILDING_WAITS_MS = [1500, 3000, 5000, 8000, 12000, 15000];
+const BUILDING_DEADLINE_MS = 3 * 60_000;
+// A load still unanswered after this is given up on (the route's own limit is 60s).
+const REQUEST_TIMEOUT_MS = 65_000;
 
 
 export function BasketIdeas() {
@@ -32,12 +41,48 @@ export function BasketIdeas() {
 
   useEffect(() => {
     let live = true;
-    fetch("/api/baskets/ideas")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d: { asOf: string; ideas: CardIdea[] }) => live && setState({ status: "ok", asOf: d.asOf, ideas: d.ideas }))
-      .catch(() => live && setState({ status: "error" }));
+    let ctl: AbortController | null = null;
+    (async () => {
+      // A busy server can answer 503 or stall. Another failure is tried again after a short wait,
+      // then a longer one; a 503 (still building) keeps being tried for up to BUILDING_DEADLINE_MS.
+      // Then the error shows (with its Try again button) instead of outlines forever.
+      const start = Date.now();
+      let failures = 0;
+      let building = 0;
+      for (;;) {
+        if (!live) return;
+        const req = (ctl = new AbortController());
+        const timer = setTimeout(() => req.abort(), REQUEST_TIMEOUT_MS);
+        let status = 0;
+        try {
+          const r = await fetch("/api/baskets/ideas", { signal: req.signal });
+          if (r.ok) {
+            const d: { asOf: string; ideas: CardIdea[] } = await r.json();
+            if (live) setState({ status: "ok", asOf: d.asOf, ideas: d.ideas });
+            return;
+          }
+          status = r.status;
+        } catch {
+          // Timed out or the network failed (or the page left, which `live` catches).
+        } finally {
+          clearTimeout(timer);
+        }
+        if (!live) return;
+        let wait: number;
+        if (status === 503 && Date.now() - start < BUILDING_DEADLINE_MS) {
+          wait = BUILDING_WAITS_MS[Math.min(building++, BUILDING_WAITS_MS.length - 1)];
+          // After the first quick retry the wait is a real one: say so under the outlines.
+          if (building > 1) setState({ status: "loading", slow: true });
+        } else if (status !== 503 && failures < RETRY_WAITS_MS.length) {
+          wait = RETRY_WAITS_MS[failures++];
+        } else break;
+        await new Promise((r) => setTimeout(r, wait));
+      }
+      if (live) setState({ status: "error" });
+    })();
     return () => {
       live = false;
+      ctl?.abort();
     };
   }, [attempt]);
 
@@ -65,26 +110,26 @@ export function BasketIdeas() {
         </div>
         {/* In the footnote's place and at its height, so the cards and footnote that replace them don't move anything below. */}
         <p role="status" className={FOOT}>
-          Ranking today&rsquo;s lists from the latest closes…
+          {state.slow ? "Still ranking today’s lists… this can take a minute or two." : <>Ranking today&rsquo;s lists from the latest closes…</>}
         </p>
       </div>
     );
   }
   if (state.status === "error") {
     return (
-      <p className={PANEL + " px-3 py-3 text-xs text-ink-soft"}>
-        Rule-based baskets couldn&rsquo;t load right now.{" "}
+      <div role="alert" className={PANEL + " flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-3 text-xs text-ink-soft"}>
+        <span>Rule-based baskets couldn&rsquo;t load right now.</span>
         <button
           type="button"
           onClick={() => {
             setState({ status: "loading" });
             setAttempt((a) => a + 1);
           }}
-          className="font-semibold text-accent underline"
+          className="tap-y inline-flex h-7 items-center rounded-full border border-btn px-3 text-xs font-semibold text-accent hover:bg-accent/10"
         >
-          Retry
+          Try again
         </button>
-      </p>
+      </div>
     );
   }
 

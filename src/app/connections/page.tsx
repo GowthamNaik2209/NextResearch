@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { EXPOSURE_STRENGTH_LABEL, EXPOSURE_TYPE_LABEL } from "@/lib/sector-content";
 import { footprintScore, listConnectedCompanies } from "@/lib/sector-content/exposure";
 import { OpenStockCard } from "@/components/stock/OpenStockCard";
-import { findSupplierByTicker } from "@/lib/sector-content";
+import { findSupplierByTicker, listSectors } from "@/lib/sector-content";
 import { ensureFinancials } from "@/lib/financials/load";
 import { shareMeta } from "@/lib/site";
 import { ConnectionsSearch } from "@/components/ConnectionsSearch";
@@ -33,6 +33,7 @@ export default async function ConnectionsPage() {
       if (e) e.n++;
       else sectorCount.set(s.sectorSlug, { name: s.sectorName, n: 1 });
     }
+  const categoryOf = new Map(listSectors().map((s) => [s.slug, s.category]));
   const searchIndex: ConnectionsSearchEntry[] = [
     ...companies.map((c) => ({
       kind: "company" as const,
@@ -46,6 +47,7 @@ export default async function ConnectionsPage() {
       key: `s:${slug}`,
       label: s.name,
       href: `/sector/${slug}`,
+      category: categoryOf.get(slug) ?? "sector",
       sub: `${s.n} connected ${s.n === 1 ? "company" : "companies"}`,
     })),
   ];
@@ -59,7 +61,7 @@ export default async function ConnectionsPage() {
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight text-ink">Connected companies</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            Some listed companies sit in more than one supply chain we map. A shock in one industry can reach their numbers
+            Some listed companies sit in more than one mapped supply chain. A shock in one industry can reach their numbers
             through another, so they are worth reading across themes, not inside one. Ranked by number of chains, then by
             how strongly they are exposed in each layer.
           </p>

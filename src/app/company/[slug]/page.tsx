@@ -175,7 +175,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                 <p className="text-sm font-semibold text-ink">Live price, chart and full financials</p>
                 <p className="mt-1 text-xs text-ink-soft">Opens the company card with the live price, chart, news and statements.</p>
               </div>
-              <span className="flex-none rounded-lg bg-accent px-4 py-2 text-center text-sm font-semibold text-bg">Open &rarr;</span>
+              <span className="flex-none rounded-lg bg-accent px-4 py-2 text-center text-sm font-semibold text-bg">Open</span>
             </OpenStockCard>
           </aside>
 

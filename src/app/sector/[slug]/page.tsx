@@ -19,15 +19,15 @@ import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
 import { companySlug, sectorCompanies, sectorCompanyCounts } from "@/lib/sector-content/companies";
 import { NOT_FOUND_METADATA, SITE_URL, jsonLd, midSentence, shareMeta } from "@/lib/site";
 import { FaqSection } from "@/components/FaqSection";
+import { BackLink } from "@/components/BackLink";
 import { faqJsonLd, sectorFaq } from "@/lib/faq";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { isoDay } from "@/lib/financials/rows";
 import type { Metadata } from "next";
 import { Points } from "@/components/Points";
-import { IndustryActions, type HeatStock } from "@/components/charts/IndustryHeatmap";
+import { IndustryActions } from "@/components/charts/IndustryHeatmap";
 import { actionClass } from "@/components/charts/action-class";
-import { getIndustryBasket } from "@/lib/baskets/industry";
-import { industryPools } from "@/lib/baskets/pools-data";
+import { industryViewData, industryViewOptions } from "@/lib/baskets/industry-views";
 import { ensureFinancials } from "@/lib/financials/load";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
@@ -120,21 +120,17 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
   const faqs = sectorFaq(sector);
   const updated = isoDay(dataAsOf());
   const deck = buildDeck(sector.slug);
-  // The heatmap's stocks: the industry basket's, grouped in the map's layer order. A heatmap sector
-  // (the Nifty 50) has none here: its heatmap, with the what-ifs, is the explorer itself.
-  const zoneOrder = new Map(sector.zones.map((z, i) => [z.label, i]));
-  const heatStocks: HeatStock[] = (sector.muted || isHeatmap ? [] : (getIndustryBasket(sector.slug)?.stocks ?? []))
-    .map((s) => ({ ticker: s.ticker, name: s.name, layer: s.layer, mcapCr: s.mcapCr }))
-    .sort((a, b) => (zoneOrder.get(a.layer) ?? 99) - (zoneOrder.get(b.layer) ?? 99) || (b.mcapCr ?? -1) - (a.mcapCr ?? -1));
+  // The full-screen Stock heatmap and Industry pools (industry-views.ts). A heatmap sector (the
+  // Nifty 50) has no heatmap stocks here: its heatmap, with the what-ifs, is the explorer itself.
+  const views = industryViewData(sector.slug)!;
 
   return (
     <>
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-8 px-5 pt-6 pb-14 sm:gap-12 sm:py-14">
         <div>
-          <Link href="/docs" className="tap-target text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent">
-            &larr; All deep dives
-          </Link>
+          {/* Back to the landing page or the Analysis page when the visitor came from there; else to /docs. */}
+          <BackLink scope="sector" href="/docs" label="All deep dives" className="tap-target text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-accent" />
           <div className="mt-3 flex flex-wrap items-start justify-between gap-x-4 gap-y-2 sm:mt-4">
             <div className="flex items-start gap-3 sm:gap-4">
               <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md border border-line bg-panel-2 font-mono text-xs font-bold text-accent sm:h-11 sm:w-11 sm:text-sm">
@@ -167,16 +163,13 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
         {/* A heatmap sector (the Nifty 50) has no 3D model: its explorer is the heatmap with the
             what-if and industry panels, so this page has no Stock heatmap button of its own. */}
         <IndustryActions
-          slug={sector.slug}
-          name={sector.name}
-          stocks={heatStocks}
-          basketHref={sector.muted ? null : `/baskets/industry/${sector.slug}`}
-          pools={industryPools(sector.slug)}
+          data={views}
+          options={industryViewOptions()}
           lead={
             <>
               <Link href={`/sector/${sector.slug}/explore`} className={actionClass(true)}>
                 <span className="sm:hidden">{isHeatmap ? "Explore" : "3D map"}</span>
-                <span className="hidden sm:inline">{isHeatmap ? "Explore the heatmap" : "Explore the map"} &rarr;</span>
+                <span className="hidden sm:inline">{isHeatmap ? "Explore the heatmap" : "Explore the map"}</span>
               </Link>
               {GUIDED_TOUR_ENABLED && (
                 <Link href={`/sector/${sector.slug}/explore?tour=1`} className={actionClass(false)}>
@@ -300,8 +293,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                     <OpenStockCard key={key} ticker={tickerForSupplier(company)} supplier={company} className="rounded-xl border border-line bg-panel p-4 transition hover:border-accent">
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="text-sm font-semibold text-ink">
-                          {company.name}
-                          {ticker && <WatchlistButton ticker={ticker} name={company.name} />}
+                          <NameWithHeart name={company.name} ticker={ticker} />
                         </h4>
                         <span
                           className={
@@ -390,8 +382,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                 <OpenStockCard key={key} ticker={cardTicker} supplier={company} className="flex flex-col rounded-xl border border-line bg-panel p-4 transition hover:border-accent">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-sm font-semibold text-ink">
-                      {company.name}
-                      {ticker && <WatchlistButton ticker={ticker} name={company.name} />}
+                      <NameWithHeart name={company.name} ticker={ticker} />
                     </h3>
                     <span
                       className={
@@ -476,6 +467,25 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
         />
       </main>
       <SiteFooter />
+    </>
+  );
+}
+
+/**
+ * A card's company name with its watchlist heart. The heart is kept on the line of the name's last
+ * word, so a long name that wraps never leaves it alone on a line of its own (a phone's heart is a
+ * 40px tap target, which used to drop under names that just filled the line).
+ */
+function NameWithHeart({ name, ticker }: { name: string; ticker: string | null }) {
+  if (!ticker) return <>{name}</>;
+  const cut = name.lastIndexOf(" ");
+  return (
+    <>
+      {cut > 0 ? name.slice(0, cut + 1) : ""}
+      <span className="whitespace-nowrap">
+        {name.slice(cut + 1)}
+        <WatchlistButton ticker={ticker} name={name} />
+      </span>
     </>
   );
 }

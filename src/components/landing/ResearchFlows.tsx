@@ -148,7 +148,7 @@ export function ResearchFlows() {
           <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3 border-t border-line pt-4">
             <p className="max-w-md text-sm text-ink">{flow.outcome}</p>
             <Link href={flow.cta.href} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-bg hover:opacity-90">
-              {flow.cta.label} &rarr;
+              {flow.cta.label}
             </Link>
           </div>
         </div>

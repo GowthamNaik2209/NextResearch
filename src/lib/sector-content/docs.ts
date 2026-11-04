@@ -2,6 +2,12 @@ import { SEMICON2_DOCS } from "./policies/semicon2.extras";
 import { RAREEARTH_DOCS } from "./policies/rareearth.extras";
 import { DEFENCEPROC_DOCS } from "./policies/defenceproc.extras";
 import { ECMS_DOCS } from "./policies/ecms.extras";
+import { PLIACC_DOCS } from "./policies/pliacc.extras";
+import { GREENH2_DOCS } from "./policies/greenh2.extras";
+import { HOSPITALS_DOCS } from "./sectors/hospitals.extras";
+import { CAPMARKETS_DOCS } from "./sectors/capmarkets.extras";
+import { TRANSMISSION_DOCS } from "./sectors/transmission.extras";
+import { CONSUMERINTERNET_DOCS } from "./sectors/consumerinternet.extras";
 import { NIFTY50_DOCS } from "./indices/nifty50.extras";
 
 // Curated external reading list per sector — first-class industry/research
@@ -67,10 +73,16 @@ export const SECTOR_DOCS: Record<string, ResearchLink[]> = {
     { title: "Export data and publications", source: "Pharmexcil", url: "https://pharmexcil.com/" },
     { title: "Reports and publications", source: "IQVIA Institute for Human Data Science", url: "https://www.iqvia.com/insights/the-iqvia-institute/reports-and-publications" },
   ],
+  hospitals: HOSPITALS_DOCS,
+  capmarkets: CAPMARKETS_DOCS,
+  transmission: TRANSMISSION_DOCS,
+  consumerinternet: CONSUMERINTERNET_DOCS,
   semicon2: SEMICON2_DOCS,
   rareearth: RAREEARTH_DOCS,
   defenceproc: DEFENCEPROC_DOCS,
   ecms: ECMS_DOCS,
+  pliacc: PLIACC_DOCS,
+  greenh2: GREENH2_DOCS,
   nifty50: NIFTY50_DOCS,
 };
 

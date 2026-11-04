@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildIdeas, priceStat, sinceRange, withBacktestReturns, type IdeaStockInfo, type PriceSnapshot } from "./ideas";
+import { buildIdeas, priceStat, sinceRange, themeFootprint, withBacktestReturns, type IdeaStockInfo, type PriceSnapshot } from "./ideas";
 import { runBacktest } from "./backtest";
 import { onBenchWindow } from "./run";
 
@@ -114,7 +114,7 @@ test("recent listings lists every company listed in the past two years, with no 
   const ipo = buildIdeas([...all, info("OLD")], snap({ ...stats, OLD: st(5, 800) }), NOW).find((i) => i.id === "recent-ipos")!;
   assert.equal(ipo.stocks.length, n);
   assert.ok(!ipo.stocks.some((s) => s.ticker === "OLD"));
-  assert.match(ipo.rule, /^Every company in our maps listed in the past two years/);
+  assert.match(ipo.rule, /^Every covered company listed in the past two years/);
   assert.equal(ipo.range, "2Y");
 });
 
@@ -212,4 +212,12 @@ test("companies with a one-off year are in no rule-based basket, and each rule s
     assert.ok(idea.rule.includes("One-off years left out."), idea.id);
   }
   assert.deepEqual(ideas.find((i) => i.id === "top-1y")!.stocks.map((s) => s.ticker), ["PLAIN"]);
+});
+
+test("themeFootprint counts industries and policies as /connections does, leaving out the index", () => {
+  const cat = { a: "sector", b: "sector", c: "policy", nifty50: "index" } as const;
+  const f = themeFootprint(["a", "b", "c", "nifty50", "unknown"], (s) => cat[s as keyof typeof cat]);
+  // An unknown slug is an industry (category is optional and defaults to one); the index is neither.
+  assert.deepEqual(f, { industries: 3, policies: 1 });
+  assert.deepEqual(themeFootprint(["nifty50"], (s) => cat[s as keyof typeof cat]), { industries: 0, policies: 0 });
 });

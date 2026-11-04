@@ -30,6 +30,7 @@ const tone = (v: number | null | undefined) => (v == null ? "text-ink-soft" : v 
 
 export function BasketAnalysis({
   range,
+  period,
   basketKey,
   benchKey = "b:nifty50",
   benchName = "Nifty 50",
@@ -41,6 +42,9 @@ export function BasketAnalysis({
   single,
 }: {
   range: ChartRange;
+  /** The span it covers when it isn't the range's (a stock listed during it: "since listing,
+   * 24 Sep 2026"), named in the title in place of the range. */
+  period?: string;
   basketKey: string;
   benchKey?: string;
   benchName?: string;
@@ -75,11 +79,16 @@ export function BasketAnalysis({
       heading={heading}
       title={
         <>
-          Backtest analysis{scope ? ` · ${scope}` : ""} · <span className="sm:hidden">{range}</span>
-          <span className="max-sm:hidden">{pastPeriod(range)}</span>
+          Backtest analysis{scope ? ` · ${scope}` : ""} ·{" "}
+          {period ?? (
+            <>
+              <span className="sm:hidden">{range}</span>
+              <span className="max-sm:hidden">{pastPeriod(range)}</span>
+            </>
+          )}
         </>
       }
-      label={`Backtest analysis${scope ? `, ${scope}` : ""}, ${pastPeriod(range)}`}
+      label={`Backtest analysis${scope ? `, ${scope}` : ""}, ${period ?? pastPeriod(range)}`}
       infoLabel="About the backtest analysis"
       info={
         <ul className="flex flex-col gap-1">

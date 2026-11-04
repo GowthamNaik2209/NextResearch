@@ -89,8 +89,9 @@ export function isChartRange(v: string | null): v is ChartRange {
 // on to `.BO`; the chart footnote then names the other exchange.
 // (Checked against every listed ticker in the content, Oct 2026 - see the audit in the PR notes.)
 // Content tickers that aren't the company's exchange symbol: ADC India (formerly Krone
-// Communications) is BSE-only as ADCINDIA; Screener still resolves the content ticker.
-const YAHOO_ALIAS: Record<string, string> = { KRONECOMM: "ADCINDIA.BO" };
+// Communications) is BSE-only as ADCINDIA; Screener still resolves the content ticker. NSE itself
+// is listed only on BSE (Sep 2026), and Yahoo has no NSE.NS to fall through from.
+const YAHOO_ALIAS: Record<string, string> = { KRONECOMM: "ADCINDIA.BO", NSE: "NSE.BO" };
 const withAlias = (ticker: string, list: string[]) => (YAHOO_ALIAS[ticker] ? [YAHOO_ALIAS[ticker], ...list] : list);
 const quoteSymbols = (ticker: string) => withAlias(ticker, [`${ticker}.NS`, `${ticker}-RR.NS`, `${ticker}-SM.NS`, `${ticker}.BO`]);
 const chartSymbols = quoteSymbols;

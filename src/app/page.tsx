@@ -15,6 +15,8 @@ import { CompanyFeatures } from "@/components/landing/CompanyFeatures";
 import { FaqSection } from "@/components/landing/FaqSection";
 import { ClosingCta } from "@/components/landing/ClosingCta";
 import { ensureFinancials } from "@/lib/financials/load";
+import { MarketPulse } from "@/components/landing/MarketPulse";
+import { getMarketFigures, getMarketStocks, marketTiles } from "@/lib/landing/market-data";
 
 // Landing page: a thin composition of section components (src/components/landing/). All the
 // numbers on it come from the sector content via src/lib/sector-content/{stats,insights}.ts.
@@ -35,6 +37,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <StatsStrip stats={getPlatformStats()} />
         </section>
 
+        {/* The market by industry: the tiles render now, the figures stream in (promises, read in the browser with use()). */}
+        <MarketPulse tiles={marketTiles()} figures={getMarketFigures()} stocks={getMarketStocks()} />
+
         {featured && <FeaturedThesis sector={featured} />}
 
         {/* The Analysis block, the same one as /docs (Deep dive, Reports, the Charts pop-up). It keeps the old
@@ -47,7 +52,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               Analysis
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-              Every industry and policy we cover: a deep dive into its supply chain and listed companies, a ten-slide report for
+              Every covered industry and policy: a deep dive into its supply chain and listed companies, a ten-slide report for
               investors, and a price chart for each of its listed stocks.
             </p>
           </div>

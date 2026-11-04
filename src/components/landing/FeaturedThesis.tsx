@@ -11,7 +11,7 @@ export function FeaturedThesis({ sector }: { sector: Pick<SectorWithSlug, "slug"
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-ink">{sector.name}</h2>
           <p className="mt-3 text-sm leading-relaxed text-ink-soft">{sector.tagline}</p>
           <Link href={`/sector/${sector.slug}`} className="mt-6 inline-block rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:opacity-90">
-            Read the thesis &rarr;
+            Read the thesis
           </Link>
         </div>
         <div className="space-y-5">

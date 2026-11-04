@@ -8,7 +8,7 @@ import type { ProjectionSettings } from "@/lib/baskets/projection-basket";
 import { heldStrategy } from "@/lib/baskets/strategy";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listingRange, startsInside } from "@/lib/prices/bars";
-import { fmtMonth } from "@/lib/format";
+import { fmtDay } from "@/lib/format";
 import { InfoTip } from "@/components/InfoTip";
 import { BasketChart, type ChartProjection, type ChartSelection } from "@/components/baskets/BasketChart";
 import { BasketStats } from "@/components/baskets/BasketStats";
@@ -143,7 +143,7 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
   const lastAt = pts?.length ? Date.parse(pts[pts.length - 1].t) : 0;
   const view = !projOn && listedAt ? listingRange(range, listedAt, lastAt) : range;
   const sinceListing = !projOn && !!listedAt && startsInside(range, listedAt, "1d", lastAt);
-  const rangeLong = sinceListing ? `since listing, ${fmtMonth(listedAt!)}` : RANGES.find((r) => r.id === range)!.long;
+  const rangeLong = sinceListing ? `since listing, ${fmtDay(listedAt!)}` : RANGES.find((r) => r.id === range)!.long;
   const rangeTitle = sinceListing ? rangeLong : `past ${rangeLong}`;
 
   const { rec, failed, statsPending } = useStockRecord(ticker, projOn, attempt);
@@ -302,11 +302,11 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
         {projOn ? (
           <ProjectionStats view={projection} compact heading="h3" empty={failed} single />
         ) : (
-          <BasketStats range={view} basketKey={key} strategy={HELD} compact heading="h3" single />
+          <BasketStats range={view} period={sinceListing ? rangeLong : undefined} basketKey={key} strategy={HELD} compact heading="h3" single />
         )}
       </div>
 
-      {projOn ? <ProjectionAnalysis view={projection} heading="h3" empty={failed} single /> : <BasketAnalysis range={view} basketKey={key} benchKey={NIFTY.key} heading="h3" single={ticker} />}
+      {projOn ? <ProjectionAnalysis view={projection} heading="h3" empty={failed} single /> : <BasketAnalysis range={view} period={sinceListing ? rangeLong : undefined} basketKey={key} benchKey={NIFTY.key} heading="h3" single={ticker} />}
 
       <p className="text-[11px] leading-relaxed text-ink-soft">
         {projOn

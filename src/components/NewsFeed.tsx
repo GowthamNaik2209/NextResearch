@@ -3,6 +3,8 @@ import { NewsList } from "@/components/NewsList";
 import { getLatestNews, getNewsForTickers } from "@/lib/live/news";
 import { classifyTone, type Tone } from "@/lib/news-tone";
 import { getStakeMoves } from "@/lib/flows/query";
+import { presentableNews } from "@/lib/news-display";
+import { isListedTicker } from "@/lib/news-listed";
 
 type Props = {
   /** Limit the feed to one sector. */
@@ -33,8 +35,13 @@ export function NewsFeed(props: Props) {
   );
 }
 
+const SPARE = 6;
+
 async function NewsFeedContent({ sectorSlug, tickers, limit, showSector = true, stakeTags = false, twoColumns = false, tone, header }: Props) {
-  const { items: all, live } = tickers ? await getNewsForTickers(tickers, limit) : await getLatestNews({ sectorSlug, limit });
+  // A few spare headlines, so dropping grey-market and stale IPO stories still fills the list.
+  const fetched = tickers ? await getNewsForTickers(tickers, limit + SPARE) : await getLatestNews({ sectorSlug, limit: limit + SPARE });
+  const live = fetched.live;
+  const all = presentableNews(fetched.items, isListedTicker).slice(0, limit);
   const tones = all.map((n) => classifyTone(n.headline).tone);
   const counts: Record<Tone, number> = { pos: 0, neg: 0, neu: 0 };
   for (const t of tones) counts[t]++;
