@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { BRAND, SITE_NAME } from "@/lib/site";
 
 // One branded share-card layout for every opengraph-image route (root, sector, company,
-// report) - the warm "research paper" light theme from globals.css. satori only supports
+// report) - the dark theme from globals.css, the site's default. satori only supports
 // flexbox, so every element with more than one child sets display:flex explicitly.
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_CONTENT_TYPE = "image/png";

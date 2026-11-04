@@ -56,6 +56,9 @@ export const metadata: Metadata = {
   // Added to an iPhone home screen: opens full-screen, named "NextResearch" under the icon.
   appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "default" },
   keywords: [
+    "thematic research India",
+    "thematic investing India",
+    "theme stocks India",
     "Indian stock market research",
     "supply chain stocks India",
     "sector analysis India",
@@ -71,7 +74,7 @@ export const metadata: Metadata = {
     "NSE BSE company research",
   ],
   alternates: { canonical: "/" },
-  ...shareMeta({ title: SITE_NAME, line: "See where every listed Indian company sits in the supply chain.", path: "/", image: null }),
+  ...shareMeta({ title: SITE_NAME, line: "All your thematic research on India, in one place.", path: "/", image: null }),
   robots: { index: true, follow: true, googleBot: { "max-image-preview": "large", "max-snippet": -1 } },
   verification: {
     google: SITE_VERIFICATION.google,
@@ -79,10 +82,10 @@ export const metadata: Metadata = {
   },
 };
 
-// The browser bar / status bar colour: the light page background. ThemeToggle's setTheme (and
-// the init script below) switch it to the dark one when dark mode is on.
+// The browser bar / status bar colour: the dark page background (dark is the default). ThemeToggle's
+// setTheme (and the init script below) switch it to the light one when light mode is chosen.
 export const viewport: Viewport = {
-  themeColor: "#f8f4ea",
+  themeColor: "#0c1110",
 };
 
 const SITE_JSON_LD = {
@@ -95,6 +98,7 @@ const SITE_JSON_LD = {
       url: SITE_URL,
       description: SITE_DESCRIPTION,
       logo: `${SITE_URL}/icons/icon-512.png`,
+      slogan: SITE_TAGLINE,
       email: CONTACT_EMAIL,
       sameAs: [INSTAGRAM_URL],
     },
@@ -103,6 +107,7 @@ const SITE_JSON_LD = {
       "@id": `${SITE_URL}/#website`,
       name: SITE_NAME,
       url: SITE_URL,
+      description: SITE_DESCRIPTION,
       publisher: { "@id": `${SITE_URL}/#org` },
       inLanguage: "en-IN",
     },
@@ -110,19 +115,19 @@ const SITE_JSON_LD = {
 };
 
 // Applied synchronously during HTML parsing, before first paint, so a saved
-// "dark" choice never flashes the server-rendered light default (see Next's
+// "light" choice never flashes the server-rendered dark default (see Next's
 // "preventing flash before hydration" guide — useEffect runs too late). The
 // `<html>` below renders a literal data-theme="dark" default; suppressHydrationWarning
 // tells React to accept whatever this script leaves in the DOM instead of
-// treating the light->dark rewrite as a mismatch. Keep the storage key and
+// treating the dark->light rewrite as a mismatch. Keep the storage key and
 // values in sync with ThemeToggle.tsx.
-const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem("nr-theme");if(t==="dark"){document.documentElement.setAttribute("data-theme","dark");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content","#0c1110")}}catch(e){}`;
+const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem("nr-theme");if(t==="light"){document.documentElement.setAttribute("data-theme","light");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content","#f8f4ea")}}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      data-theme="light"
+      data-theme="dark"
       suppressHydrationWarning
       className={`${spaceGrotesk.variable} ${ibmPlexSans.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
