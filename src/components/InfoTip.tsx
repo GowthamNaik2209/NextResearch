@@ -17,8 +17,11 @@ export function InfoTip({ label, children, wide = false }: { label: string; chil
     if (!open || !btn.current) return;
     const place = () => {
       const r = btn.current!.getBoundingClientRect();
-      const width = Math.min(wide ? 420 : 280, window.innerWidth - 32);
-      const left = Math.max(16, Math.min(r.left + r.width / 2 - width / 2, window.innerWidth - 16 - width));
+      // Inside a stock pop-up (which clips what overflows it) the note stays within the card; elsewhere within the screen.
+      const card = btn.current!.closest(".nr-pop-card")?.getBoundingClientRect();
+      const [minX, maxX] = card ? [Math.max(0, card.left) + 12, Math.min(window.innerWidth, card.right) - 12] : [16, window.innerWidth - 16];
+      const width = Math.min(wide ? 420 : 280, maxX - minX);
+      const left = Math.max(minX, Math.min(r.left + r.width / 2 - width / 2, maxX - width));
       // Never past the bottom of the screen: a long note scrolls inside itself.
       setPos({ top: r.bottom + 6, left, width, maxHeight: Math.max(160, window.innerHeight - r.bottom - 22) });
     };

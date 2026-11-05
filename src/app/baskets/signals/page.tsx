@@ -9,7 +9,7 @@ import { isReit } from "@/components/stock/merge";
 import { BAND_LABEL, MIN_MONTHS, MIN_PEERS, bandOf, versus } from "@/lib/valuation/pe-context";
 import { peWorking, type PeWorking } from "@/lib/valuation/pe-data";
 import { PeContextView } from "@/components/stock/PeContextView";
-import { NA, fmtDay, signedPct } from "@/lib/format";
+import { NA, fmtDay, inr, signedPct } from "@/lib/format";
 import { shareMeta } from "@/lib/site";
 import { ExampleStockSelect } from "../projections/ExampleStockSelect";
 import { B, Bullets, Formula, H2, H3, Note, P, Row, Table, Td, Th } from "../method-ui";
@@ -30,7 +30,9 @@ export const metadata = {
 const PATH = "/baskets/signals";
 const DEFAULT = "BEL";
 const x1 = (v: number) => `${v.toFixed(1)}x`;
-const cr = (v: number | null | undefined) => (v == null || !Number.isFinite(v) ? NA : Math.round(v).toLocaleString("en-IN"));
+const cr = (v: number | null | undefined) => (v == null || !Number.isFinite(v) ? NA : `${v < 0 ? "−" : ""}${Math.abs(Math.round(v)).toLocaleString("en-IN")}`);
+/** A 1Y return as the pop-up writes it: whole numbers without a decimal. */
+const ret1y = (v: number) => signedPct(v, Number.isInteger(v) ? 0 : 1);
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monthYear = (iso: string) => `${MONTHS[Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}`;
 
@@ -114,10 +116,10 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
             history&rdquo;.
           </P>
           <Formula>
-            percentile = (companies with a lower return + ½ × (others with the same return)) ÷ (companies ranked − 1) × 100, rounded
+            percentile = (companies with a lower return + ½ × (others with the same return)) ÷ (companies ranked − 1) × 100, rounded and kept within 1–99
           </Formula>
           <P>
-            The highest return is the 100th percentile and the lowest the 0th. It is worked out once per data update over the whole table, so the
+            The highest returns read 99th and the lowest 1st. It is worked out once per data update over the whole table, so the
             pop-up, the company page, every basket table and the Excel download show the same figure on the same date.
           </P>
         </section>
@@ -160,7 +162,7 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
           <Note>
             46 snapshots for 3 months ahead, 37 for 12 months; t-statistics corrected for overlapping windows (Newey-West). The stocks are
             today&rsquo;s covered companies scored back to 2022, so companies that failed and left the market are missing, which flatters
-            momentum. Full write-up: docs/FACTOR-BACKTEST.md in the project.
+            momentum.
           </Note>
         </section>
 
@@ -171,7 +173,7 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
             latest fiscal year&rsquo;s net profit public on that day. Results for the year to 31 March count from 1 June.
           </P>
           <Formula>
-            shares ≈ market cap today ÷ close today · market cap then = shares × close then · P/E then = market cap then ÷ net profit of the latest
+            shares ≈ market cap today ÷ price today · market cap then = shares × close then · P/E then = market cap then ÷ net profit of the latest
             reported year
           </Formula>
           <Bullets>
@@ -252,12 +254,12 @@ function TrendExample({ name, trend }: { name: string; trend: ReturnType<typeof 
     <div className="flex flex-col gap-2">
       <H3>Trend</H3>
       <P>
-        <B>{name}</B>&rsquo;s 1-year price return is <B>{signedPct(trend.ret)}</B>. Of the {trend.n} companies ranked, {trend.below} had a lower return
+        The 1-year price return of <B>{name}</B> is <B>{ret1y(trend.ret)}</B>. Of the {trend.n} companies ranked, {trend.below} had a lower return
         {others > 0 ? ` and ${others} other${others > 1 ? "s" : ""} the same` : ""}.
       </P>
       <Formula>
         ({trend.below} + ½ × {others}) ÷ ({trend.n} − 1) × 100 = {(((trend.below + others / 2) / (trend.n - 1)) * 100).toFixed(1)} → {ordinal(trend.pct)}{" "}
-        percentile
+        percentile{trend.pct === 1 || trend.pct === 99 ? " (kept within 1–99)" : ""}
       </Formula>
       <P>
         Trend: <B>{trendLabel(trend.pct)}</B>.
@@ -267,7 +269,8 @@ function TrendExample({ name, trend }: { name: string; trend: ReturnType<typeof 
 }
 
 function PeExample({ name, w }: { name: string; w: PeWorking }) {
-  const shares = w.mcapCr && w.lastClose ? w.mcapCr / w.lastClose : null;
+  const priceNow = w.price ?? w.lastClose;
+  const shares = w.mcapCr && priceNow ? w.mcapCr / priceNow : null;
   const withPe = w.samples.filter((s) => s.pe != null).length;
   const h = w.history;
   return (
@@ -276,16 +279,16 @@ function PeExample({ name, w }: { name: string; w: PeWorking }) {
       {w.pe == null && (
         <P>
           <B>{name}</B> has no positive P/E in our last data update (a loss over the latest twelve months, or none reported), so the pop-up shows
-          no P/E in context. The working below still shows its past P/Es.
+          no P/E in context.{withPe > 0 ? " The working below still shows its past P/Es." : ""}
         </P>
       )}
       <P>
-        Today: P/E <B>{w.pe != null ? x1(w.pe) : NA}</B>, market cap <B>₹{cr(w.mcapCr)} Cr</B>, last close <B>₹{w.lastClose?.toFixed(2) ?? NA}</B>
-        {w.lastDay ? ` (${fmtDay(w.lastDay)})` : ""}.
+        Today, from our last data update: P/E <B>{w.pe != null ? x1(w.pe) : NA}</B> (trailing twelve months), market cap <B>₹{cr(w.mcapCr)} Cr</B>, price{" "}
+        <B>₹{priceNow != null ? inr(priceNow, 2) : NA}</B>.
       </P>
       {shares != null && (
         <Formula>
-          shares ≈ ₹{cr(w.mcapCr)} Cr ÷ ₹{w.lastClose!.toFixed(2)} = {shares.toFixed(2)} crore
+          shares ≈ ₹{cr(w.mcapCr)} Cr ÷ ₹{inr(priceNow!, 2)} = {shares.toFixed(2)} crore
         </Formula>
       )}
       {w.samples.length === 0 ? (
@@ -293,7 +296,7 @@ function PeExample({ name, w }: { name: string; w: PeWorking }) {
       ) : (
         <>
           <P>
-            The last weekly close of each month since {monthYear(w.samples[0].t)} (the price store keeps weekly closes beyond two years): {w.samples.length} months, {withPe} with a P/E.
+            The last weekly close of each month since {monthYear(w.samples[0].t)}: {w.samples.length} month{w.samples.length === 1 ? "" : "s"}, {withPe} with a P/E.
           </P>
           <div className="max-h-[28rem] overflow-y-auto rounded border border-line">
             <Table
@@ -312,7 +315,7 @@ function PeExample({ name, w }: { name: string; w: PeWorking }) {
               {w.samples.map((s, i) => (
                 <Row key={s.t} last={i === w.samples.length - 1}>
                   <Td left>{fmtDay(s.t)}</Td>
-                  <Td>{s.close.toFixed(2)}</Td>
+                  <Td>{inr(s.close, 2)}</Td>
                   <Td>{cr(s.mcapCr)}</Td>
                   <Td>FY{String(s.fy).slice(2)}</Td>
                   <Td>{cr(s.profitCr)}</Td>
@@ -321,6 +324,12 @@ function PeExample({ name, w }: { name: string; w: PeWorking }) {
               ))}
             </Table>
           </div>
+          {w.pe != null && w.samples.at(-1)?.pe != null && (
+            <Note>
+              The last row is today&rsquo;s price on the latest reported year&rsquo;s profit ({x1(w.samples.at(-1)!.pe!)}); the P/E above ({x1(w.pe)})
+              is on the trailing twelve months, which is what the pop-up compares. The two differ when profit has moved since the year ended.
+            </Note>
+          )}
         </>
       )}
       {h ? (

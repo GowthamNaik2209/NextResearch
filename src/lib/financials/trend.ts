@@ -1,5 +1,5 @@
-// Trend: each company's past-year price return as a percentile among every covered company (100 =
-// the highest return, 0 = the lowest). The only simple signal that ranked covered stocks in the
+// Trend: each company's past-year price return as a percentile among every covered company (99th =
+// the highest returns, 1st = the lowest). The only simple signal that ranked covered stocks in the
 // walk-forward test (docs/FACTOR-BACKTEST.md); it describes the past year, not a forecast, and it is
 // kept apart from the projection's Base. Computed from the company table's own 1Y return (cagr[0]),
 // so the pop-up, company page and baskets all show the same percentile on the same date. Pure: no
@@ -9,7 +9,7 @@ import type { SupplierFinancials } from "@/lib/sector-content";
 /** A company with under a year of trading has no 1Y return, so no percentile. */
 export const TREND_NONE = "Not enough history";
 export const TREND_NOTE =
-  "Where the past year's price return ranks among covered stocks: 90th percentile means it beat 90% of them. Since Oct 2022 stocks at the 80th percentile and up beat those below the 20th by about 7 pts per 3 months on average, and trailed them in 8 of 46 months. Past trend, not a forecast.";
+  "Where the past year's price return ranks among covered stocks: 90th percentile means it beat about 90% of them. In our test (monthly checks since Oct 2022), stocks at the 80th percentile and up went on to beat those below the 20th by about 7 points over the next 3 months on average, and fell behind in 8 of 46 checks. Past trend, not a forecast.";
 
 /** 1 -> "1st", 22 -> "22nd", 13 -> "13th". */
 export function ordinal(n: number): string {
@@ -23,7 +23,8 @@ export const trendLabel = (t: number | null | undefined): string => (t != null &
 /** How one return ranks among `returns` (every covered company's 1Y return): the working behind a percentile. */
 export type TrendRank = { ret: number; n: number; below: number; equal: number; pct: number };
 
-/** The share of the other ranked companies with a lower return (equal returns count half), 0-100, rounded. */
+/** The share of the other ranked companies with a lower return (equal returns count half), rounded and kept
+ * within 1-99 (the usual percentile scale: "0th" and "100th" read as errors). */
 export function rankIn(sorted: number[], r: number): TrendRank {
   const n = sorted.length;
   // Lower and equal counts by binary search on the sorted returns.
@@ -37,7 +38,7 @@ export function rankIn(sorted: number[], r: number): TrendRank {
   };
   const below = first((x) => x >= r);
   const equal = first((x) => x > r) - below;
-  return { ret: r, n, below, equal, pct: n > 1 ? Math.round(((below + (equal - 1) / 2) / (n - 1)) * 100) : 50 };
+  return { ret: r, n, below, equal, pct: n > 1 ? Math.min(99, Math.max(1, Math.round(((below + (equal - 1) / 2) / (n - 1)) * 100))) : 50 };
 }
 
 const oneYear = (f: SupplierFinancials) => {

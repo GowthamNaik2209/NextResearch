@@ -6,11 +6,11 @@ import type { SupplierFinancials } from "@/lib/sector-content";
 const row = (ticker: string, r: number | null): SupplierFinancials => ({ ticker, cagr: r == null ? null : [r, null, null] });
 const table = (rows: SupplierFinancials[]) => Object.fromEntries(rows.map((r) => [r.ticker, r]));
 
-test("percentile: the share of the others with a lower return, highest 100, lowest 0", () => {
+test("percentile: the share of the others with a lower return, kept within 1-99", () => {
   const t = withTrend(table(Array.from({ length: 11 }, (_, i) => row(`S${i}`, i * 10))));
   assert.deepEqual(
     Array.from({ length: 11 }, (_, i) => t[`S${i}`].trend),
-    [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+    [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99],
   );
   assert.equal(trendLabel(t.S9.trend), "90th percentile");
 });
@@ -19,8 +19,8 @@ test("no 1Y return (under a year listed) gets no percentile and is left out of t
   const t = withTrend(table([row("A", 50), row("B", null), row("C", -10), { ticker: "D" }]));
   assert.equal(t.B.trend, null);
   assert.equal(t.D.trend, null);
-  assert.equal(t.A.trend, 100);
-  assert.equal(t.C.trend, 0);
+  assert.equal(t.A.trend, 99);
+  assert.equal(t.C.trend, 1);
   assert.equal(trendLabel(t.B.trend), "Not enough history");
 });
 

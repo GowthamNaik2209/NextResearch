@@ -192,11 +192,13 @@ export function SummaryView({
         </div>
       )}
 
-      {(s.cagr1y != null || s.cagr3y != null || s.cagr5y != null) && (
+      {/* Always shown, so a recent listing still reads its Trend ("Not enough history"); the tiles only with a return. */}
+      {(
         <div className={phoneHide.trim()}>
           <Label>
             Stock price return <span className="font-normal normal-case tracking-normal">· {asOf}</span>
           </Label>
+          {(s.cagr1y != null || s.cagr3y != null || s.cagr5y != null) && (
           <div className="mt-2 grid grid-cols-3 gap-2">
             {(
               [
@@ -214,6 +216,7 @@ export function SummaryView({
               </div>
             ))}
           </div>
+          )}
           <div className="mt-2 flex items-center gap-1.5 text-xs">
             <span className="text-ink-soft">Trend</span>
             <span className={"font-semibold " + (s.trend == null ? "text-ink-soft" : "text-ink")}>{trendLabel(s.trend)}</span>

@@ -1229,6 +1229,8 @@ export function BasketDetail(p: BasketDetailProps) {
       if (lo) return `Left out: ${lo.reason}`;
       return (projection.shares.get(t) ?? 0) <= 0 ? "Set to 0%" : null;
     }
+    // Prices still loading when the backtest answered: asked again shortly (use-series.ts).
+    if (tData?.pending?.includes(t)) return "Prices still loading…";
     const ex = tData?.excluded?.find((e) => e.ticker === t);
     if (!ex) return null;
     if (ex.reason === "zero") return "Set to 0%";

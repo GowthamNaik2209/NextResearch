@@ -16,7 +16,7 @@ import { dataAsOf } from "@/lib/sector-content/insights";
 import { ensureFinancials } from "@/lib/financials/load";
 import { FISCAL_YEARS } from "@/lib/financials/rows";
 import { croreShort, inr, pct } from "@/lib/format";
-import { fmtPrice, fmtYield, mergeStats } from "@/components/stock/merge";
+import { fmtPrice, fmtYield, mergeStats, REIT_NOTE } from "@/components/stock/merge";
 import { InfoTip } from "@/components/InfoTip";
 import { TREND_NOTE, trendLabel } from "@/lib/financials/trend";
 import { peContext } from "@/lib/valuation/pe-data";
@@ -94,13 +94,14 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const stats = [
     { label: "Market cap", value: s0.marketCapCr != null ? croreShort(s0.marketCapCr) : undefined },
     { label: "Price", value: s0.snapshotPrice != null ? fmtPrice(s0.snapshotPrice) : undefined },
-    { label: "P/E", value: s0.pe != null ? `${s0.pe.toFixed(1)}x` : undefined },
+    // REITs: P/E, ROE and dividend yield aren't meaningful for a trust; "n/m" as in the pop-up (REIT_NOTE).
+    { label: "P/E", value: s0.reit ? "n/m" : s0.pe != null ? `${s0.pe.toFixed(1)}x` : undefined },
     { label: "ROCE", value: s0.roce != null ? pct(s0.roce) : undefined },
-    { label: "ROE", value: s0.roe != null ? pct(s0.roe) : undefined },
-    { label: "Dividend yield", value: s0.divYield != null ? fmtYield(s0.divYield) : undefined },
+    { label: "ROE", value: s0.reit ? "n/m" : s0.roe != null ? pct(s0.roe) : undefined },
+    { label: "Dividend yield", value: s0.reit ? "n/m" : s0.divYield != null ? fmtYield(s0.divYield) : undefined },
   ].filter((s): s is { label: string; value: string } => !!s.value);
 
-  const faqs = companyFaq(c, primary, { asOf, stats }, inIndex);
+  const faqs = companyFaq(c, primary, { asOf, stats: stats.filter((s) => s.value !== "n/m") }, inIndex);
   const rev = f?.rev ?? [];
   const np = f?.np ?? [];
 
@@ -176,6 +177,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                   </div>
                 </div>
                 {/* These are the seed snapshot, not live - say so, since the live card one click below will differ. */}
+                {s0.reit && <p className="mt-2 text-[11px] leading-snug text-ink-soft">n/m = not meaningful for a REIT. {REIT_NOTE}</p>}
                 <p className="mt-2 text-xs text-ink-soft">
                   Company snapshot as of {asOf}: the same figures in the live card, baskets and watchlist. The live card updates only the price
                   and chart.

@@ -4,7 +4,7 @@
 //
 // Past P/E at each month-end = market cap then ÷ the latest reported fiscal year's net profit public
 // on that day (FY y, ending 31 Mar y, counts from 1 June y). Market cap then = today's × close then ÷
-// today's close (share-count changes ignored). A month with a loss in that year has no P/E. Today's
+// today's price (share-count changes ignored). A month with a loss in that year has no P/E. Today's
 // P/E is the company table's (trailing twelve months), so the basis differs slightly; the note says so.
 import { FISCAL_YEARS } from "@/lib/financials/rows";
 
@@ -53,10 +53,12 @@ export type PeSample = { t: string; close: number; mcapCr: number; fy: number; p
  * and its FY22..FY26 net profits (₹ Cr, FISCAL_YEARS order). `pe` is null for a month whose year then
  * reported a loss or isn't in the table.
  */
-export function peSamples(points: { t: string; c: number }[], mcapNowCr: number | null, np: (number | null)[] | null | undefined): PeSample[] {
+export function peSamples(points: { t: string; c: number }[], mcapNowCr: number | null, np: (number | null)[] | null | undefined, priceNow?: number | null): PeSample[] {
   const last = points[points.length - 1];
-  if (!last || !mcapNowCr || !(last.c > 0) || !np?.length) return [];
-  const shares = mcapNowCr / last.c;
+  // The share count from the company table's own price when given (the price its market cap is at), else the last close.
+  const at = priceNow && priceNow > 0 ? priceNow : last?.c;
+  if (!last || !mcapNowCr || !(at && at > 0) || !np?.length) return [];
+  const shares = mcapNowCr / at;
   const out: PeSample[] = [];
   for (let i = 0; i < points.length; i++) {
     const p = points[i];
@@ -83,8 +85,8 @@ export function historyOf(samples: PeSample[]): PeHistory | null {
 }
 
 /** peSamples then historyOf. */
-export function peHistory(points: { t: string; c: number }[], mcapNowCr: number | null, np: (number | null)[] | null | undefined): PeHistory | null {
-  return historyOf(peSamples(points, mcapNowCr, np));
+export function peHistory(points: { t: string; c: number }[], mcapNowCr: number | null, np: (number | null)[] | null | undefined, priceNow?: number | null): PeHistory | null {
+  return historyOf(peSamples(points, mcapNowCr, np, priceNow));
 }
 
 export type PeBand = "low" | "usual" | "high";

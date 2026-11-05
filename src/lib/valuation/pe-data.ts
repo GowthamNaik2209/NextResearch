@@ -13,14 +13,20 @@ import { MIN_PEERS, historyOf, medianOf, peHistory, peSamples, type PeContext, t
 
 const DAY_SECONDS = 86_400;
 
+/** The company table's price label ("Rs 395") as a number. */
+const tablePrice = (s: string | null | undefined) => {
+  const n = parseFloat((s ?? "").replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) && n > 0 ? n : null;
+};
+
 // Keyed by ticker and the inputs that set the share count and profits, so a new FY or a corrected
 // market cap gives a new entry rather than a day-old one.
 const cachedHistory = unstable_cache(
-  async (ticker: string, mcapCr: number, np: (number | null)[]): Promise<PeHistory | null> => {
+  async (ticker: string, mcapCr: number, np: (number | null)[], price: number | null): Promise<PeHistory | null> => {
     const pts = (await basketChart(ticker, "5Y"))?.points;
-    return pts?.length ? peHistory(pts, mcapCr, np) : null;
+    return pts?.length ? peHistory(pts, mcapCr, np, price) : null;
   },
-  ["pe-history-5y-v1"],
+  ["pe-history-5y-v2"],
   { revalidate: DAY_SECONDS },
 );
 
@@ -44,6 +50,8 @@ export function industryPe(ticker: string): PeIndustry | null {
 export type PeWorking = {
   pe: number | null;
   mcapCr: number | null;
+  /** The company table's price, which its market cap is at (the share count is worked from it). */
+  price: number | null;
   lastClose: number | null;
   lastDay: string | null;
   samples: PeSample[];
@@ -59,11 +67,13 @@ export async function peWorking(ticker: string): Promise<PeWorking | null> {
   if (!f || !stock) return null;
   const mcap = parseCrore(f.mcap);
   const pts = (await basketChart(ticker, "5Y").catch(() => null))?.points ?? [];
-  const samples = peSamples(pts, mcap, f.np);
+  const price = tablePrice(f.price);
+  const samples = peSamples(pts, mcap, f.np, price);
   const home = homePeers(ticker);
   return {
     pe: stock.pe,
     mcapCr: mcap,
+    price,
     lastClose: pts.at(-1)?.c ?? null,
     lastDay: pts.at(-1)?.t ?? null,
     samples,
@@ -80,6 +90,6 @@ export async function peContext(ticker: string): Promise<PeContext | null> {
   const stock = basketStock(ticker);
   if (!f || !stock || isReit(ticker)) return null;
   const mcap = parseCrore(f.mcap);
-  const history = mcap && f.np?.length ? await cachedHistory(ticker, mcap, f.np).catch(() => null) : null;
+  const history = mcap && f.np?.length ? await cachedHistory(ticker, mcap, f.np, tablePrice(f.price)).catch(() => null) : null;
   return { pe: stock.pe, history, industry: industryPe(ticker) };
 }
