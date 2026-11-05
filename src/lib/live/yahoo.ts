@@ -491,3 +491,28 @@ export async function getYahooFundamentals(ticker: string): Promise<Fundamentals
     }
   });
 }
+
+type CalendarRes = { calendarEvents?: { earnings?: { earningsDate?: (Date | string)[]; isEarningsDateEstimate?: boolean }; exDividendDate?: Date | string } };
+/** A company's next dates from Yahoo, as IST days "YYYY-MM-DD": results (only when confirmed, not Yahoo's estimate) and ex-dividend. */
+export type CompanyCalendar = { results: string | null; exDividend: string | null };
+
+const istDayOrNull = (d: Date | string | undefined): string | null => {
+  const t = d == null ? NaN : new Date(d).getTime();
+  return Number.isFinite(t) ? istDay(new Date(t)) : null;
+};
+
+/** The morning brief's watchlist dates (src/lib/brief/events.ts). Null when Yahoo has nothing for the stock. */
+export async function getCompanyCalendar(ticker: string): Promise<CompanyCalendar | null> {
+  return cached(`ycal:${ticker}`, 6 * 60 * 60 * 1000, async () => {
+    try {
+      const live = await getQuote(ticker);
+      const symbol = live?.symbol ?? `${ticker}.NS`;
+      const res = (await withTimeout(yf.quoteSummary(symbol, { modules: ["calendarEvents"] }, LENIENT) as Promise<CalendarRes>)).calendarEvents;
+      if (!res) return null;
+      const earnings = res.earnings;
+      return { results: earnings?.isEarningsDateEstimate ? null : istDayOrNull(earnings?.earningsDate?.[0]), exDividend: istDayOrNull(res.exDividendDate) };
+    } catch {
+      return null;
+    }
+  });
+}

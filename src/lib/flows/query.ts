@@ -448,6 +448,11 @@ const clientName = (s: string) => s.replace(/\s+\.$/, "").replace(/(?<!\b(?:LTD|
 
 const deals = () => cached("flows:deals:v4", TTL_MS, loadDeals);
 
+/** Every stored FII / DII bulk and block deal in covered companies, newest first (the morning brief's watchlist deals), or null. */
+export async function storedDeals(): Promise<DealView[] | null> {
+  return safe("deals", deals);
+}
+
 // ---------------------------------------------------------------- the FII / DII view
 
 export type CompanyRef = { ticker: string; name: string; sectorSlug: string; sectorName: string };

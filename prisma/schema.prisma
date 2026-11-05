@@ -112,6 +112,39 @@ model Profile {
   createdAt DateTime    @default(now())
   watchlist Watchlist[]
   baskets   Basket[]
+  emailPref EmailPref?
+}
+
+// A user's email choices. The 8 am morning brief goes to every signed-up user until they turn it
+// off (the unsubscribe link or the watchlist page's switch); the send makes a row for anyone without
+// one. `token` is the unsubscribe link's secret, so unsubscribing needs no sign-in.
+model EmailPref {
+  userId       String   @id
+  user         Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  morningBrief Boolean  @default(false)
+  token        String   @unique @default(cuid())
+  updatedAt    DateTime @updatedAt
+}
+
+// The morning brief's market part for one trading day's close (src/lib/brief/market.ts), built once
+// at 7:30 am IST and read by the 8 am send, which adds each user's watchlist. `sentAt` marks the day
+// done, so one close gets one brief however often the send runs.
+model MorningBrief {
+  day     DateTime  @id @db.Date
+  data    Json
+  builtAt DateTime  @default(now())
+  sentAt  DateTime?
+}
+
+// One row per user per brief, written before the email goes out: a send that is retried or runs
+// twice never mails anyone twice.
+model BriefSend {
+  userId String
+  day    DateTime @db.Date
+  sentAt DateTime @default(now())
+  ok     Boolean  @default(false)
+
+  @@id([userId, day])
 }
 
 model Watchlist {
