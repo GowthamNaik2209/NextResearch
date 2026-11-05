@@ -45,7 +45,7 @@ test("a stock listed mid-period and one with no data are left out and reported",
   assert.deepEqual(r.holdings.map((h) => h.ticker), ["A"]);
   assert.deepEqual(r.excluded, [
     { ticker: "GONE", reason: "no-data" },
-    { ticker: "NEW", reason: "late", from: "2025-09-01" },
+    { ticker: "NEW", reason: "late", from: "2025-09-01", ret: 200 }, // its own move since listing, 10 -> 30
   ]);
   near(r.points[r.points.length - 1].c, 110);
 });
@@ -79,7 +79,7 @@ const late = () => [
 test("without joining, a stock listed mid-period is left out as late", () => {
   const r = runBacktest(late(), 10);
   assert.deepEqual(r.holdings.map((h) => h.ticker), ["OLD"]);
-  assert.deepEqual(r.excluded, [{ ticker: "NEW", reason: "late", from: "2026-02-01" }]);
+  assert.deepEqual(r.excluded, [{ ticker: "NEW", reason: "late", from: "2026-02-01", ret: 100 }]);
 });
 
 test("joinLate: a late stock's share waits in cash from day one and buys it on its first bar", () => {

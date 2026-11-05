@@ -6,6 +6,7 @@ export const zetwerk: IpoReport = {
   legalName: "Zetwerk Manufacturing Businesses Limited",
   icon: "ZET",
   sectorLabel: "Contract manufacturing & industrial supply",
+  sectorSlug: "solarmodules",
   tagline: "An asset-light manufacturing platform raises ₹5,012 Cr at ~₹25,583 Cr, still loss-making",
   asOf: "Oct 2026",
   // NSE symbol (Screener lists ZETWERK); listed 23 Oct 2026.

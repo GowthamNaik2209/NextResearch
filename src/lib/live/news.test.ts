@@ -269,6 +269,17 @@ test("isAbout handles the solar and energy listings: look-alike names and parent
   assert.ok(isAbout("Jio adds 3 million subscribers in September", jio));
   assert.ok(!isAbout("Jio Financial Services Q2 profit rises", jio));
   assert.ok(!isAbout("Streaming platforms see record IPL viewership", jio), "'platforms' alone is not Jio");
+  const zetwerk = { name: "Zetwerk Manufacturing Businesses", ticker: "ZETWERK" };
+  assert.ok(isAbout("Zetwerk shares slip below listing price", zetwerk));
+  assert.ok(isAbout("Zetwerk wins ₹900 crore solar structures order", zetwerk));
+  assert.ok(!isAbout("Manufacturing businesses lead India's PMI rebound", zetwerk), "'manufacturing businesses' alone is not Zetwerk");
+  const parasHc = { name: "Paras Healthcare", ticker: "PARASHLTH" };
+  const parasDef = { name: "Paras Defence and Space Technologies", ticker: "PARAS" };
+  assert.ok(isAbout("Paras Healthcare shares rise 6% after listing", parasHc));
+  assert.ok(isAbout("Paras Hospitals opens 300-bed hospital in Kanpur", parasHc));
+  assert.ok(!isAbout("Paras Healthcare shares rise 6% after listing", parasDef), "Paras Healthcare is not Paras Defence");
+  assert.ok(isAbout("Paras Defence bags ₹120 crore drone order", parasDef));
+  assert.ok(!isAbout("Paras Defence bags ₹120 crore drone order", parasHc), "Paras Defence is not Paras Healthcare");
   const horizon = { name: "Horizon Industrial Parks (Blackstone)", ticker: "HORIZONIND" };
   assert.ok(isAbout("Horizon Industrial Parks leases 1 msf to 3PL firm", horizon));
   assert.ok(!isAbout("A new horizon for India's warehousing market", horizon));

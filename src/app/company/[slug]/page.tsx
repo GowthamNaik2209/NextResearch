@@ -17,6 +17,11 @@ import { ensureFinancials } from "@/lib/financials/load";
 import { FISCAL_YEARS } from "@/lib/financials/rows";
 import { croreShort, inr, pct } from "@/lib/format";
 import { fmtPrice, fmtYield, mergeStats } from "@/components/stock/merge";
+import { InfoTip } from "@/components/InfoTip";
+import { TREND_NOTE, trendLabel } from "@/lib/financials/trend";
+import { peContext } from "@/lib/valuation/pe-data";
+import { PeContextView } from "@/components/stock/PeContextView";
+import { MethodLink } from "@/components/stock/MethodLink";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
 export const revalidate = 900;
@@ -77,6 +82,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const f = supplier.f;
   // The same snapshot figures, through the same reader, as the stock pop-up (mergeStats).
   const s0 = mergeStats(f, null);
+  const pe = await peContext(c.ticker);
   const sectorNames = [...new Set(appearances.map((a) => a.sectorName))];
   const allThemes = [...new Set(c.appearances.map((a) => a.sectorName))];
   const multiSector = sectorNames.length > 1;
@@ -157,12 +163,24 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                       <p className="mt-1 whitespace-nowrap font-mono text-base font-semibold text-ink sm:text-lg">{s.value}</p>
                     </div>
                   ))}
+                  {/* The same percentile as the pop-up and baskets; kept out of `stats`, which also feeds the FAQ. */}
+                  <div className="rounded-xl border border-line bg-panel p-4">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">Trend</p>
+                      <InfoTip label="About Trend">
+                        {TREND_NOTE}
+                        <MethodLink ticker={c.ticker} />
+                      </InfoTip>
+                    </div>
+                    <p className={"mt-1 text-base font-semibold sm:text-lg " + (s0.trend == null ? "text-ink-soft" : "text-ink")}>{trendLabel(s0.trend)}</p>
+                  </div>
                 </div>
                 {/* These are the seed snapshot, not live - say so, since the live card one click below will differ. */}
                 <p className="mt-2 text-xs text-ink-soft">
                   Company snapshot as of {asOf}: the same figures in the live card, baskets and watchlist. The live card updates only the price
                   and chart.
                 </p>
+                {pe && <PeContextView ctx={pe} ticker={c.ticker} className="mt-5 rounded-xl border border-line bg-panel p-4" />}
               </section>
             )}
 

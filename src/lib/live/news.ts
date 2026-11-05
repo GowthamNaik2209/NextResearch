@@ -126,7 +126,7 @@ function withDeadline<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
 const GENERIC = new Set(
   ("industries industrial solutions technologies technology engineering systems international infrastructure limited energy power electric " +
     "electronics services enterprises corporation company holdings global india indian private research equipment components products " +
-    "manufacturing auto bharat national micro precision advanced of " +
+    "manufacturing businesses auto bharat national micro precision advanced of " +
     "forgings mobility automation fasteners motors passenger vehicles wiring exchange semiconductor fluorine fluorochemicals engines " +
     "transformers cables bearings peripherals wagons microsystems future finance railway projects techno equipments container " +
     "shipbuilders shipyard engineers authority welding dynamics premier explosives patterns microwave defence brothers aerospace aviation " +
@@ -158,7 +158,7 @@ const normalize = (s: string) =>
 const GROUP = new Set(
   ("mahindra tata adani bajaj birla kirloskar motherson minda bharti jsw reliance godrej jindal vedanta sterlite apollo kalpataru " +
     "texmaco waaree borosil cyient hinduja piramal torrent aarti finolex bosch embassy brookfield supreme " +
-    "aditya prudential canara nippon motilal hitachi siemens powergrid manipal " +
+    "aditya prudential canara nippon motilal hitachi siemens powergrid manipal paras " +
     // Not families, but names that alone say nothing about one company: people ("Narayana Murthy",
     // "Anil Agarwal"), places and rivers ("Atlanta Fed", "Krishna", "Narmada", "Fifth Avenue"), words
     // ("diamond prices", "Mangal" = Mars).
@@ -207,10 +207,13 @@ const ALIASES: Record<string, string[]> = {
   CLEANMAX: ["cleanmax"],
   UTLSOLAR: ["utl solar"],
   WAAREERTL: ["waaree rtl"],
+  ZETWERK: ["zetwerk"],
   LT: ["l t", "larsen"],
   // Hospitals and health insurers (Nov 2026).
   APOLLOHOSP: ["apollo hospitals", "apollo healthco", "apollo 24 7"],
   MANIPALHOS: ["manipal hospitals", "manipal health"],
+  PARASHLTH: ["paras healthcare", "paras hospitals", "paras health"],
+  PARAS: ["paras defence"],
   NH: ["narayana health", "narayana hrudayalaya"],
   KIMS: ["kims hospitals"],
   ASTERDM: ["aster dm", "care hospitals"],

@@ -5,6 +5,10 @@ import { fmtNum, fmtSigned, fmtYield, freshQuote, mergeStats, pctTone, REIT_NOTE
 import { croreShort, inr, NA, pct } from "@/lib/format";
 import { NewsTime } from "./NewsTime";
 import { quoteTiming } from "@/lib/live/freshness";
+import { InfoTip } from "@/components/InfoTip";
+import { TREND_NOTE, trendLabel } from "@/lib/financials/trend";
+import { PeContextLoader } from "./PeContextLoader";
+import { MethodLink } from "./MethodLink";
 
 const Label = ({ children }: { children: React.ReactNode }) => (
   <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-soft">{children}</div>
@@ -121,6 +125,8 @@ export function SummaryView({
         {s.reit && <p className="mt-2 text-[11px] leading-snug text-ink-soft">n/m = not meaningful for a REIT. {REIT_NOTE}</p>}
       </div>
 
+      {!s.reit && s.pe != null && <PeContextLoader key={ticker} ticker={ticker} className={phoneHide.trim()} />}
+
       {/* A company in one chain shows it here too when it is also in an index (the block below);
           otherwise one chain is already the pop-up's own description. */}
       {(chains.length > 1 || (chains.length === 1 && indices.length > 0)) && (
@@ -207,6 +213,14 @@ export function SummaryView({
                 </div>
               </div>
             ))}
+          </div>
+          <div className="mt-2 flex items-center gap-1.5 text-xs">
+            <span className="text-ink-soft">Trend</span>
+            <span className={"font-semibold " + (s.trend == null ? "text-ink-soft" : "text-ink")}>{trendLabel(s.trend)}</span>
+            <InfoTip label="About Trend">
+              {TREND_NOTE}
+              <MethodLink ticker={ticker} />
+            </InfoTip>
           </div>
         </div>
       )}

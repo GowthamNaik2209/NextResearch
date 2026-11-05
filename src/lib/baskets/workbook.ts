@@ -2,6 +2,7 @@
 // statistics, each stock's weights, returns and contribution, the basket's value line with the
 // Nifty 50 rebased beside it, and the projections with every stock's assumptions), never raw vendor
 // prices. Pure, so it is unit-tested; the page gathers the inputs and saves the file.
+import { trendLabel } from "../financials/trend";
 import type { BacktestExcluded, BacktestHolding, PricePoint } from "./backtest";
 import type { BasketStock } from "./industry";
 import type { Rebalance } from "./rebalance";
@@ -110,6 +111,7 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
       "End %",
       "Return %",
       "Pts added",
+      "Trend (past-year return percentile among covered stocks)",
       "P/E",
       "Mcap Rs Cr",
       "Projected?",
@@ -145,6 +147,7 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
         pct(b?.endWeight),
         r2(b?.ret),
         r2(b?.contribution),
+        s.trend == null ? null : trendLabel(s.trend),
         r2(s.pe),
         r2(s.mcapCr),
         p?.ok ? "Yes" : "No",
@@ -204,7 +207,8 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
       bold.push(rows.length);
       rows.push(["Not in the backtest", "Name", "Reason"]);
       for (const e of x.backtest.excluded) {
-        const why = e.reason === "late" ? `listed during the period${e.from ? ` (from ${e.from.slice(0, 10)})` : ""}` : e.reason === "zero" ? "set to 0%" : "no price data";
+        const since = e.ret != null ? `, ${e.ret >= 0 ? "+" : ""}${e.ret.toFixed(1)}% since listing` : "";
+        const why = e.reason === "late" ? `listed during the period${e.from ? ` (from ${e.from.slice(0, 10)}${since})` : ""}` : e.reason === "zero" ? "set to 0%" : "no price data";
         rows.push([e.ticker, byTicker.get(e.ticker)?.name ?? null, why]);
       }
     }
@@ -304,6 +308,11 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
     const lines: Cell[][] = [
       ["Backtest"],
       [`Bought on the first day of the period at the weighting's target weights and ${x.strategy.rebalance === "never" ? "held without rebalancing" : rebalanceLabel(x.strategy)}. Price change only: no dividends, costs or taxes. Stocks listed during the period are left out of it.`],
+      ["Stocks listed during the period are left out of the backtest; the Backtest stats sheet lists each with its own move since listing."],
+      [],
+      ["Trend"],
+      ["Where the stock's past-year price return ranks among covered stocks, as a percentile: (companies with a lower return + half of those with the same) ÷ (companies ranked − 1) × 100. Under a year listed: none. It describes the past year and is not part of the projection."],
+      [`Full method with a worked example: ${x.url.replace(/\/baskets\/.*$/, "")}/baskets/signals`],
       [],
       ["Projection"],
       [`Only stocks with at least ${MIN_YEARS} consecutive fiscal years of revenue and net profit, ${MIN_YEARS} years of trading, and a price and market cap are projected; a left-out stock's share is spread over the rest in proportion.`],

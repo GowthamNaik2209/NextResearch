@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ensureFinancials } from "@/lib/financials/load";
@@ -29,6 +28,7 @@ import {
 import { getSector } from "@/lib/sector-content";
 import { NA, fmtDay, signedPct } from "@/lib/format";
 import { ExampleStockSelect } from "./ExampleStockSelect";
+import { B, Bullets, Formula, H2, H3, Note, P, Row, Table, Td, Th } from "../method-ui";
 import { shareMeta } from "@/lib/site";
 
 // How the basket pages' Projections are worked out (docs/PROJECTIONS.md, section 4), in full, with a
@@ -56,50 +56,6 @@ const n3 = (v: number) => `${v < 0 ? "−" : ""}${Math.abs(v).toFixed(3)}`;
 const cr = (v: number | null | undefined) => (v == null || !Number.isFinite(v) ? NA : Math.round(v).toLocaleString("en-IN"));
 const RANGE_TO_VOL = Math.sqrt(8 / Math.PI);
 
-function H2({ id, children }: { id: string; children: ReactNode }) {
-  return (
-    <h2 id={id} className="scroll-mt-20 font-display text-lg font-bold text-ink sm:text-xl">
-      {children}
-    </h2>
-  );
-}
-const H3 = ({ children }: { children: ReactNode }) => <h3 className="font-semibold text-ink">{children}</h3>;
-const P = ({ children }: { children: ReactNode }) => <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">{children}</p>;
-const B = ({ children }: { children: ReactNode }) => <b className="text-ink">{children}</b>;
-const Note = ({ children }: { children: ReactNode }) => <p className="max-w-3xl text-[11px] leading-relaxed text-ink-soft">{children}</p>;
-const Formula = ({ children }: { children: ReactNode }) => (
-  <p className="max-w-3xl overflow-x-auto rounded border border-line bg-panel-2/60 px-3 py-2 font-mono text-[12px] leading-relaxed text-ink">{children}</p>
-);
-const Bullets = ({ children }: { children: ReactNode }) => <ul className="flex max-w-3xl list-disc flex-col gap-1 pl-5 text-sm leading-relaxed text-ink-soft">{children}</ul>;
-const Th = ({ children, left }: { children: ReactNode; left?: boolean }) => (
-  <th scope="col" className={"whitespace-nowrap px-2 py-1.5 font-semibold " + (left ? "text-left" : "text-right")}>
-    {children}
-  </th>
-);
-const Td = ({ children, left, tone, wrap }: { children: ReactNode; left?: boolean; tone?: number; wrap?: boolean }) => (
-  <td
-    className={
-      (wrap ? "" : "whitespace-nowrap ") +
-      "px-2 py-1.5 font-mono " +
-      (left ? "text-left font-sans" : "text-right") +
-      (tone == null ? "" : tone >= 0 ? " text-pos" : " text-danger")
-    }
-  >
-    {children}
-  </td>
-);
-/** A table that scrolls sideways inside its own box on a phone, never the page. */
-const Table = ({ min, head, children }: { min: string; head: ReactNode; children: ReactNode }) => (
-  <div className="max-w-full overflow-x-auto">
-    <table className={`w-full ${min} border-collapse text-xs`}>
-      <thead className="border-b border-line text-[10px] uppercase tracking-wider text-ink-soft">
-        <tr>{head}</tr>
-      </thead>
-      <tbody className="text-ink">{children}</tbody>
-    </table>
-  </div>
-);
-const Row = ({ children, last }: { children: ReactNode; last?: boolean }) => <tr className={last ? "" : "border-b border-line/60"}>{children}</tr>;
 
 const SECTIONS = [
   ["what", "What a projection is"],

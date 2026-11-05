@@ -121,6 +121,7 @@ export type SupplierFinancials = {
   price?: string | null; // "Rs 166"
   note?: string | null;
   cagr?: (number | null)[] | null; // stock price CAGR [1y, 3y, 5y], %
+  trend?: number | null; // percentile of the 1y return among covered companies, 0-100 (financials/trend.ts)
   range?: (number | null)[] | null; // 52-week [low, high]
   tl?: [number | null, string] | null; // Trendlyne [id, slug]
   kpi?: (number | null)[] | null; // [pe, bookValue, divYield, roce, roe, faceValue]

@@ -82,7 +82,20 @@ export function HowItWorks() {
               <ul className="list-disc space-y-1 pl-5">
                 <li>Weights drift with prices, the way a real holding does. Rebalancing (monthly, quarterly, or on drift) is optional and counts trades and turnover.</li>
                 <li>Dividends, taxes and costs are not included.</li>
+                <li>A stock listed during the period is left out of the basket&rsquo;s return; its row shows its own move since listing.</li>
               </ul>
+            </Topic>
+            <Topic title="Trend and P/E in context" line="Where a stock ranks, and how its multiple compares">
+              <Formula>
+                Trend = (lower returns + &frac12; &times; equal) &divide; (ranked &minus; 1) &times; 100 <span className="text-ink-soft">&nbsp;// past-year return, percentile among covered stocks</span>
+              </Formula>
+              <ul className="list-disc space-y-1 pl-5">
+                <li>P/E in context: today&rsquo;s P/E against its own month-end P/Es since 2022 (usual range = middle half) and the median of covered stocks in its home industry.</li>
+                <li>Both are context, not calls. In our test past-year return ranked later returns a little (IC about +0.09 over 3 months); a low P/E alone did not.</li>
+              </ul>
+              <Link href="/baskets/signals" className="self-start font-semibold text-accent hover:underline">
+                Full method, with any stock as a worked example &rarr;
+              </Link>
             </Topic>
             <Topic title="Projections" line="Bear, Base and Bull for 1 and 2 years">
               <Formula>

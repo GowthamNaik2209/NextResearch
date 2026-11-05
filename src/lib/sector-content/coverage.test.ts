@@ -8,7 +8,7 @@
 import { before, test } from "node:test";
 import assert from "node:assert/strict";
 import { companyLinkKey, findSupplierByTicker, listSectors, type SectorSupplier, type SectorWithSlug } from "./index";
-import { companySlug, getCompanyPage, listCompanyPages } from "./companies";
+import { companySlug, getCompanyPage, listCompanyPages, primaryAppearance } from "./companies";
 import { getCompanyFootprint, listConnectedCompanies } from "./exposure";
 import { CORE_CENTRALITY, listCompanyMetrics, sectorCompanyMetrics, type CompanyMetrics } from "./insights";
 import { buildSearchIndex, buildSectorCards, getPlatformStats } from "./stats";
@@ -28,6 +28,9 @@ import { isAbout } from "@/lib/live/news";
 import { analysisChartIndustries, analysisProps } from "@/lib/analysis-props";
 import { midSentence, themeNames } from "@/lib/site";
 import { getFinancials } from "@/lib/financials/store";
+import { industryPe } from "@/lib/valuation/pe-data";
+import { MIN_PEERS } from "@/lib/valuation/pe-context";
+import { isReit } from "@/components/stock/merge";
 import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
 
 before(installFinancialsFromDatabase);
@@ -74,6 +77,30 @@ const RULES = {
     id: "side-exposure",
     reason: `its strongest link here is low strength or an enabler/lender (centrality < ${CORE_CENTRALITY}): sector news feeds and the per-industry stake changes leave it out (insights.ts CORE_CENTRALITY)`,
     applies: (p) => (metricsIn(p)?.centrality ?? 1) < CORE_CENTRALITY,
+  },
+  noOneYear: {
+    id: "under-a-year",
+    reason: "no 1Y price return in the company table (listed under a year ago): Trend says \"Not enough history\" (financials/trend.ts)",
+    applies: (p) => getFinancials(p.ticker)?.cagr?.[0] == null,
+  },
+  noPe: {
+    id: "no-pe",
+    reason: "no positive P/E in the company table (a loss, or none reported): P/E in context isn't shown",
+    applies: (p) => basketStock(p.ticker)?.pe == null,
+  },
+  reit: {
+    id: "reit",
+    reason: "a REIT: P/E isn't meaningful for a trust (merge.ts REIT_NOTE)",
+    applies: (p) => isReit(p.ticker),
+  },
+  thinIndustry: {
+    id: "thin-industry",
+    reason: `its home industry has fewer than ${MIN_PEERS} covered stocks with a P/E, so no industry median`,
+    applies: (p) => {
+      const page = getCompanyPage(companySlug(p.ticker));
+      const home = page ? getIndustryBasket(primaryAppearance(page).sectorSlug) : null;
+      return (home?.stocks.filter((s) => s.pe != null).length ?? 0) < MIN_PEERS;
+    },
   },
   deckCurated: {
     id: "deck-curated",
@@ -213,6 +240,16 @@ test("basket picker and projections", () => {
     return false;
   });
   assert.deepEqual(unknown, [], "projection reasons not in PROJECTION_REASONS");
+});
+
+test("Trend: one percentile in the pop-up, company page and basket table", () => {
+  // The pop-up and company page read supplier.f (mergeStats); the basket table reads basketStock.
+  check("Trend in the stock pop-up / company page (supplier.f.trend)", (p) => p.sup.f?.trend != null, [RULES.noFigures, RULES.noOneYear]);
+  check("Trend in the basket table (basketStock.trend)", (p) => basketStock(p.ticker)?.trend === p.sup.f?.trend && p.sup.f?.trend != null, [RULES.noFigures, RULES.noOneYear]);
+});
+
+test("P/E in context: its home industry's median among covered stocks", () => {
+  check("P/E in context (industryPe)", (p) => !!industryPe(p.ticker), [RULES.noFigures, RULES.noPe, RULES.reit, RULES.thinIndustry]);
 });
 
 test("price store keeps a series for it (backtests, projections' risk)", () => {

@@ -43,6 +43,7 @@ import { basketWorkbook, workbookFileName } from "@/lib/baskets/workbook";
 import { buildXlsx } from "@/lib/xlsx";
 import { loadSeries } from "./series";
 import { track } from "@/lib/analytics";
+import { ordinal, trendLabel } from "@/lib/financials/trend";
 import {
   BAND_CHOICES,
   REBALANCE_RULES,
@@ -97,6 +98,8 @@ const CHART_HANDOFF = "nr-basket-chart:";
 // The stored Nifty 50 (price store first): the series every basket's backtest window is set by.
 const NIFTY_ONLY = [{ key: "B:nifty50", label: "Nifty 50" }];
 const stocksWord = (n: number) => `${n} stock${n === 1 ? "" : "s"}`;
+/** Why a Trend shows "—": no 1Y return in the company table. */
+const TREND_NONE_WHY = "No past-year return in our last data update: listed under a year ago";
 /** Why a P/E shows "—": the company table has none for it. */
 const NO_PE = "No P/E in our last data update: a loss over the latest twelve months, or none reported";
 /** A 0-1 share as a percentage, one decimal. */
@@ -126,7 +129,7 @@ const DEFAULT_PROJECTION: ProjectionSettings = { h: 1, scenario: "base" };
 /** A stock just taken off, held as a placeholder row at its place in the list (see `display`). */
 type Ghost = { ticker: string; name: string; index: number; h: { table?: number; phone?: number } };
 
-type Sort = "contribution" | "return" | "weight" | "pe" | "mcap" | "name" | "bear" | "base" | "bull";
+type Sort = "contribution" | "return" | "weight" | "trend" | "pe" | "mcap" | "name" | "bear" | "base" | "bull";
 /** With Projections on, the table shows each stock's three cases (the chosen one is "return" too). */
 const CASE_SORTS: Sort[] = ["bear", "base", "bull"];
 /** Names sort A to Z and P/E low to high on the first tap; every other column high to low. */
@@ -139,6 +142,7 @@ const SORTS: { id: Sort; label: string; proj?: boolean }[] = [
   { id: "base", label: "Base case", proj: true },
   { id: "bull", label: "Bull case", proj: true },
   { id: "weight", label: "Share now" },
+  { id: "trend", label: "Trend" },
   { id: "pe", label: "P/E" },
   { id: "mcap", label: "Market cap" },
   { id: "name", label: "Name" },
@@ -500,6 +504,7 @@ export function BasketDetail(p: BasketDetailProps) {
   // all (in either place) all follow this one order, so Select all ticks the top rows you see.
   const sortValue = (st: BasketStock): number | null => {
     if (sort === "pe") return st.pe;
+    if (sort === "trend") return st.trend;
     if (sort === "mcap") return st.mcapCr;
     // A case's projected return over the chosen horizon.
     if (CASE_SORTS.includes(sort) && projection) return caseReturn(st.proj, projection.settings.h, sort as Scenario);
@@ -1227,7 +1232,9 @@ export function BasketDetail(p: BasketDetailProps) {
     const ex = tData?.excluded?.find((e) => e.ticker === t);
     if (!ex) return null;
     if (ex.reason === "zero") return "Set to 0%";
-    return ex.reason === "late" && ex.from ? `Listed ${fmtMonth(ex.from)}, not in this period` : "No price data";
+    // Listed mid-period: its own move since listing, kept out of the basket's return (bought on day one).
+    if (ex.reason === "late" && ex.from) return ex.ret != null ? `Listed ${fmtMonth(ex.from)}: ${signedPct(ex.ret)} since listing, not in the basket's return` : `Listed ${fmtMonth(ex.from)}, not in this period`;
+    return "No price data";
   };
   const removeButton = (s: { ticker: string; name: string }, small = false) => (
     <RemoveButton ticker={s.ticker} name={s.name} small={small} disabled={locked} onRemove={remove} />
@@ -1331,7 +1338,7 @@ export function BasketDetail(p: BasketDetailProps) {
     />
   );
   // Every column of the desktop table, for a row that spans them all (a removed stock's placeholder).
-  const tableCols = 8 + (projOn ? 2 : 0) + (p.pickedOn ? 1 : 0) + (sinceShown ? 1 : 0) + (xColumn ? 1 : 0);
+  const tableCols = 9 + (projOn ? 2 : 0) + (p.pickedOn ? 1 : 0) + (sinceShown ? 1 : 0) + (xColumn ? 1 : 0);
   // A removed stock's placeholder: its name and the Undo (which brings back every stock taken off
   // while the offer is open, as the header's does).
   const ghostLine = (g: Ghost) => (
@@ -1815,7 +1822,9 @@ export function BasketDetail(p: BasketDetailProps) {
                 info={
                   <>
                     <b>Target %</b>: its share when bought{rebalanced ? " and after each rebalance" : ""} (your % when Custom). <b>Now %</b>: its share at the end, after price moves.{" "}
-                    <b>Return</b>: its own price change. <b>Pts added</b>: what it added to the basket&rsquo;s return. The box beside a stock
+                    <b>Return</b>: its own price change. <b>Pts added</b>: what it added to the basket&rsquo;s return. <b>Trend</b>: where its past-year
+                    price return ranks among covered stocks, as a percentile (90th = it beat 90% of them; not part of a projection).
+                    A stock listed during the period is left out of the basket&rsquo;s return, and its row shows its own move since listing. The box beside a stock
                     draws its line on the chart (the same as the chart&rsquo;s Stocks menu); <b>Your picks</b> measures just those stocks, and
                     there the × hides a line.{canEdit ? " While editing, the × in All stocks takes a stock out of the basket." : ""}
                     {p.joinAtListing && (
@@ -1823,7 +1832,10 @@ export function BasketDetail(p: BasketDetailProps) {
                         Since listing: each stock&rsquo;s share is set aside on the first day and waits in cash until it lists, so its return runs from
                         listing and, not rebalanced, its pts added are its target share times that return.
                       </span>
-                    )}
+                    )}{" "}
+                    <Link href="/baskets/signals#trend" className="font-semibold text-accent underline">
+                      How Trend is ranked &rarr;
+                    </Link>
                   </>
                 }
                 tools={
@@ -1932,6 +1944,7 @@ export function BasketDetail(p: BasketDetailProps) {
                               )}
                               <div className="font-mono text-[11px] text-ink-soft">
                                 <span title={s.pe == null ? NO_PE : undefined}>P/E {s.pe != null ? `${s.pe.toFixed(1)}x` : NA}</span> · <span className="whitespace-nowrap">{s.mcapCr != null ? croreShort(s.mcapCr) : `mcap ${NA}`}</span>
+                                {s.trend != null && <> · <span className="whitespace-nowrap font-sans">Trend {trendLabel(s.trend)}</span></>}
                               </div>
                               {s.oneOff ? (
                                 // Beside the industry chip (a 24-28px line), so the marker never adds a line to the row.
@@ -2032,6 +2045,7 @@ export function BasketDetail(p: BasketDetailProps) {
                               sortHead("return", "Return")
                             )}
                             {sortHead("contribution", "Pts added")}
+                            {sortHead("trend", "Trend")}
                             {sortHead("pe", "P/E")}
                             {sortHead("mcap", "M-cap")}
                             {sinceShown && (
@@ -2111,6 +2125,7 @@ export function BasketDetail(p: BasketDetailProps) {
                                     {ex ?? (tbt?.status === "error" ? NA : "…")}
                                   </td>
                                 )}
+                                <td title={s.trend == null ? TREND_NONE_WHY : trendLabel(s.trend)} className={"whitespace-nowrap px-2 py-1.5 text-right font-mono " + (s.trend == null ? "text-ink-soft" : "")}>{s.trend == null ? NA : ordinal(s.trend)}</td>
                                 <td title={s.pe == null ? NO_PE : undefined} className="px-2 py-1.5 text-right font-mono">{s.pe != null ? `${s.pe.toFixed(1)}x` : NA}</td>
                                 <td className="whitespace-nowrap px-2 py-1.5 text-right font-mono">{croreShort(s.mcapCr)}</td>
                                 {sinceShown && (
@@ -2131,7 +2146,7 @@ export function BasketDetail(p: BasketDetailProps) {
                                   <span className="block font-mono font-semibold">{t}</span>
                                   <span className="block text-[10px]">No longer covered</span>
                                 </td>
-                                <td colSpan={(sinceShown ? 7 : 6) + (p.pickedOn ? 1 : 0) + (projOn ? 2 : 0)} className="px-2 py-1.5 text-right text-[11px]">
+                                <td colSpan={(sinceShown ? 8 : 7) + (p.pickedOn ? 1 : 0) + (projOn ? 2 : 0)} className="px-2 py-1.5 text-right text-[11px]">
                                   Left out of the backtest
                                 </td>
                                 {xColumn && <td className="w-9 px-1 py-1">{showRemove ? removeButton({ ticker: t, name: t }, true) : <span aria-hidden className="block w-7 pointer-coarse:w-9" />}</td>}
@@ -2146,13 +2161,13 @@ export function BasketDetail(p: BasketDetailProps) {
                       {projOn ? (
                         <>
                           <b className="font-semibold">Bear, Base, Bull</b> each stock&rsquo;s projected return over the next {HORIZON_LONG[projSet.h]} in each case (the {projSet.scenario} case in bold; tap a heading to sort) · <b className="font-semibold">target</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} today (a left-out stock&rsquo;s share spread over the rest),{" "}
-                          <b className="font-semibold">end</b> if held to the end · <b className="font-semibold">pts</b> what it adds to the projected return · P/E and market cap from our last data update
+                          <b className="font-semibold">end</b> if held to the end · <b className="font-semibold">pts</b> what it adds to the projected return · <b className="font-semibold">trend</b> its past-year return as a percentile among covered stocks (not part of the projection) · P/E and market cap from our last data update
                         </>
                       ) : (
                       <>
                       Return over the past {rangeLong} · <b className="font-semibold">target</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} when bought{rebalanced ? " and after each rebalance" : ""},{" "}
                       <b className="font-semibold">now</b> after the price moves ·{" "}
-                      <b className="font-semibold">pts</b> what it added to {tableScope === "picks" ? "your picks’" : "the basket’s"} return · P/E and market cap from our last data update
+                      <b className="font-semibold">pts</b> what it added to {tableScope === "picks" ? "your picks’" : "the basket’s"} return · <b className="font-semibold">trend</b> its past-year return as a percentile among covered stocks · P/E and market cap from our last data update
                       </>
                       )}
                     </p>
@@ -2201,7 +2216,7 @@ export function BasketDetail(p: BasketDetailProps) {
               ? `, then ${rebalanceLabel(strategy)}, trading at that day’s close${strategy.rebalance === "drift" ? " (the day after the drift is seen)" : ""}. Turnover and trades are shown, but no brokerage, taxes or slippage are taken off. Price change only, no dividends.`
               : " and held without rebalancing. Price change only, no dividends, costs or taxes."}{p.joinAtListing
               ? " Each stock is backtested from its first trading day: its share of the money is set aside on the first day and waits in cash (earning nothing) until the stock lists, then buys it at that close. So its return is since listing, the targets total 100%, and, not rebalanced, each stock adds its target share times its return."
-              : " Stocks listed during the period are left out of it."}{" "}
+              : " Stocks listed during the period are left out of it; their rows show their own move since listing."}{" "}
             The basket is today&rsquo;s list of stocks, so companies that fell out of the industry before now are missing. A tracking and research tool, not investment advice.
             {p.mode === "industry" && (
               <>

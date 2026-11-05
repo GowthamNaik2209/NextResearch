@@ -6,6 +6,7 @@ import type { PrismaClient } from "@/generated/prisma/client";
 import type { SupplierFinancials } from "@/lib/sector-content";
 import { FISCAL_YEARS, rowToFinancials, type CompanyFinRow } from "./rows";
 import { publishedCutoff } from "./trading-day";
+import { withTrend } from "./trend";
 
 let warnedNoRunsTable = false;
 
@@ -65,7 +66,8 @@ export async function readCompanyTableAt(prisma: PrismaClient, cutoff: Date | nu
     }),
     latestKpis(prisma, cutoff),
   ]);
-  return Object.fromEntries(
+  // Each company's Trend percentile is ranked over this same table, so it moves with the published date.
+  return withTrend(Object.fromEntries(
     rows.flatMap(({ id, ...r }) => {
       const k = kpis.get(id);
       // Held to a published date, a company whose first snapshot is newer (an IPO a run is adding)
@@ -73,7 +75,7 @@ export async function readCompanyTableAt(prisma: PrismaClient, cutoff: Date | nu
       if (!k && r._count.kpis > 0) return [];
       return [[r.ticker, rowToFinancials({ ...r, kpis: k ? [k] : [] })]];
     }),
-  );
+  ));
 }
 
 /** The table as the site shows it, with the published date it is held to. */

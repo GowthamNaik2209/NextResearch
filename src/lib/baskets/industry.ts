@@ -20,6 +20,8 @@ export type BasketStock = {
   mcapCr: number | null;
   /** Price to earnings from the same extract (null when loss-making or not reported). */
   pe: number | null;
+  /** Percentile of its 1Y return among covered companies, 0-100 (../financials/trend.ts); null under a year listed. */
+  trend: number | null;
   /** The company's strongest role and the layer it plays it in. */
   role: string;
   layer: string;
@@ -76,6 +78,7 @@ export function basketStock(ticker: string): BasketStock | null {
       name: page.name,
       mcapCr: parseCrore(page.supplier.f?.mcap ?? sup.f?.mcap),
       pe: peOf(page.supplier.f?.kpi ?? sup.f?.kpi),
+      trend: page.supplier.f?.trend ?? sup.f?.trend ?? null,
       role: primary.role,
       layer: primary.zoneLabel,
       industries,
