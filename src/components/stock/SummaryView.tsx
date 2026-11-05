@@ -7,6 +7,8 @@ import { NewsTime } from "./NewsTime";
 import { quoteTiming } from "@/lib/live/freshness";
 import { InfoTip } from "@/components/InfoTip";
 import { TREND_NOTE, trendLabel } from "@/lib/financials/trend";
+import { KEY_STATS_NOTE } from "@/lib/financials/key-ratios";
+import { ratioTiles } from "./ratio-tiles";
 import { PeContextLoader } from "./PeContextLoader";
 import { MethodLink } from "./MethodLink";
 
@@ -77,30 +79,25 @@ export function SummaryView({
   const maxRev = Math.max(1, ...rev.map((r) => r.revenue ?? 0));
   const tl = f?.tl;
 
-  // [label, value, optional] - optional chips are hidden on phones to save space. No snapshot
-  // "Price" tile: beside the live price in the header it read as a second, conflicting price. The
-  // 52-week range takes two lines (high over low) so it fits the narrow explorer card at any width.
+  // [label, value, optional] - optional chips are hidden on phones (and in the narrow side panel) to
+  // keep whole rows. No snapshot "Price" tile: beside the live price in the header it read as a
+  // second, conflicting price. No 52-week tile: the range bar below shows it with the price on it.
+  // Face value and book value per share gave way to ratios an investor reads (P/B, growth, margin).
   const chips: [string, React.ReactNode, boolean?][] = [
     ["Mkt Cap", croreShort(s.marketCapCr)],
-    [
-      "52W High / Low",
-      s.high52w != null && s.low52w != null ? (
-        <>
-          <span className="block">₹{inr(s.high52w)}</span>
-          <span className="block font-normal text-ink-soft">₹{inr(s.low52w)}</span>
-        </>
-      ) : (
-        NA
-      ),
-      true,
-    ],
     ["Stock P/E", nm(s.pe != null ? `${s.pe.toFixed(1)}x` : NA)],
-    ["Book Value", s.bookValue != null ? `₹${fmtNum(s.bookValue, 1)}` : NA, true],
-    ["Div Yield", nm(fmtYield(s.divYield))],
+    ["Div Yield", nm(fmtYield(s.divYield)), true],
     ["ROCE", pct(s.roce)],
     ["ROE", nm(pct(s.roe))],
-    ["Face Value", s.faceValue != null ? `₹${fmtNum(s.faceValue, 2)}` : NA, true],
+    ...ratioTiles(f, s.reit).map(({ label, value, tone, sub, title }): [string, React.ReactNode] => [
+      label,
+      <span key={label} title={title}>
+        <span className={"block " + (value === "n/m" ? "text-ink-soft" : tone !== undefined ? pctTone(tone, 1) : "")}>{value}</span>
+        {sub && <span className="block text-[10.5px] font-normal text-ink-soft">{sub}</span>}
+      </span>,
+    ]),
   ];
+  const below52 = s.price != null && s.high52w != null && s.high52w > 0 ? (1 - s.price / s.high52w) * 100 : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -108,13 +105,16 @@ export function SummaryView({
       {showNarrative && supplier.risks && supplier.risks.length > 0 && <BulletList title="Risks" items={supplier.risks} />}
 
       <div>
-        <Label>
-          Key stats <span className="font-normal normal-case tracking-normal">— company snapshot {asOf}</span>
-        </Label>
+        <div className="flex items-center gap-1.5">
+          <Label>
+            Key stats <span className="font-normal normal-case tracking-normal">— company snapshot {asOf}</span>
+          </Label>
+          <InfoTip label="About Key stats">{KEY_STATS_NOTE}</InfoTip>
+        </div>
         {/* The explorer's side panel is ~400px wide at any viewport, so it keeps three columns. */}
         <div className={"mt-2 grid grid-cols-3 gap-1.5" + (compact ? "" : " sm:grid-cols-5")}>
           {chips.map(([k, v, opt]) => (
-            <div key={k} className={"rounded-lg border border-line bg-panel-2 px-2.5 py-2" + (opt ? " max-[640px]:hidden" : "")}>
+            <div key={k} className={"rounded-lg border border-line bg-panel-2 px-2.5 py-2" + (opt ? (compact ? " hidden" : " max-[640px]:hidden") : "")}>
               <div className="text-[9px] uppercase tracking-wide text-ink-soft">{k}</div>
               <div className={"mt-0.5 font-mono text-[13px] font-semibold leading-snug break-words " + (v === "n/m" ? "text-ink-soft" : "text-ink")} title={v === "n/m" ? "Not meaningful for a REIT" : undefined}>
                 {v}
@@ -232,6 +232,12 @@ export function SummaryView({
         <div className={phoneHide.trim()}>
           <Label>
             52-week range {asOf} vs {s.liveQuote ? <span className="text-pos">live</span> : "snapshot"} price
+            {below52 != null && (
+              <span className="font-normal normal-case tracking-normal">
+                {" "}
+                · {below52 < 0.5 ? "at its 52-week high" : `${below52.toFixed(below52 < 10 ? 1 : 0)}% below its high`}
+              </span>
+            )}
           </Label>
           <div className="relative mt-3 h-2 rounded-full bg-gradient-to-r from-danger/50 via-line to-pos/50">
             <div

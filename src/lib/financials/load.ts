@@ -33,7 +33,7 @@ const loadTable = unstable_cache(
     if (!Object.keys(byTicker).length) throw new Error("The company table is empty - run scripts/refresh-financials.ts against this database");
     return { loadedAt: Date.now(), published: published?.toISOString() ?? null, byTicker };
   },
-  ["company-financials-v5"],
+  ["company-financials-v6"],
   { revalidate: FINANCIALS_REVALIDATE_SECONDS, tags: [FINANCIALS_TAG] },
 );
 

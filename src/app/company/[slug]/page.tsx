@@ -15,8 +15,10 @@ import { isoDay } from "@/lib/financials/rows";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { ensureFinancials } from "@/lib/financials/load";
 import { FISCAL_YEARS } from "@/lib/financials/rows";
-import { croreShort, inr, pct } from "@/lib/format";
-import { fmtPrice, fmtYield, mergeStats, REIT_NOTE } from "@/components/stock/merge";
+import { croreShort, inr, NA, pct } from "@/lib/format";
+import { fmtPrice, fmtYield, mergeStats, pctTone, REIT_NOTE } from "@/components/stock/merge";
+import { KEY_STATS_NOTE } from "@/lib/financials/key-ratios";
+import { ratioTiles } from "@/components/stock/ratio-tiles";
 import { InfoTip } from "@/components/InfoTip";
 import { TREND_NOTE, trendLabel } from "@/lib/financials/trend";
 import { peContext } from "@/lib/valuation/pe-data";
@@ -99,9 +101,13 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
     { label: "ROCE", value: s0.roce != null ? pct(s0.roce) : undefined },
     { label: "ROE", value: s0.reit ? "n/m" : s0.roe != null ? pct(s0.roe) : undefined },
     { label: "Dividend yield", value: s0.reit ? "n/m" : s0.divYield != null ? fmtYield(s0.divYield) : undefined },
-  ].filter((s): s is { label: string; value: string } => !!s.value);
+  ];
+  // Every tile shows (a missing figure as "—", as in the pop-up) so the grid keeps whole rows; the FAQ gets only real figures.
+  const tiles = stats.map((s) => ({ label: s.label, value: s.value ?? NA }));
+  // The ratios worked out from the same table, as in the pop-up; kept out of `stats`, which feeds the FAQ.
+  const ratios = ratioTiles(f, s0.reit);
 
-  const faqs = companyFaq(c, primary, { asOf, stats: stats.filter((s) => s.value !== "n/m") }, inIndex);
+  const faqs = companyFaq(c, primary, { asOf, stats: stats.filter((s): s is { label: string; value: string } => !!s.value && s.value !== "n/m") }, inIndex);
   const rev = f?.rev ?? [];
   const np = f?.np ?? [];
 
@@ -155,13 +161,25 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             column that stays in view. Phones keep one column, numbers first. */}
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem]">
           <aside className="flex flex-col gap-10 lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1 lg:gap-4 lg:self-start">
-            {stats.length > 0 && (
+            {tiles.length > 0 && (
               <section>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
-                  {stats.map((s) => (
+                  {tiles.map((s) => (
                     <div key={s.label} className="rounded-xl border border-line bg-panel p-4">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">{s.label}</p>
                       <p className="mt-1 whitespace-nowrap font-mono text-base font-semibold text-ink sm:text-lg">{s.value}</p>
+                    </div>
+                  ))}
+                  {ratios.map((s) => (
+                    <div key={s.label} className="rounded-xl border border-line bg-panel p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">{s.label}</p>
+                      <p
+                        title={s.title}
+                        className={"mt-1 whitespace-nowrap font-mono text-base font-semibold sm:text-lg " + (s.value === "n/m" ? "text-ink-soft" : s.tone !== undefined ? pctTone(s.tone, 1) : "text-ink")}
+                      >
+                        {s.value}
+                      </p>
+                      {s.sub && <p className="text-[11px] text-ink-soft">{s.sub}</p>}
                     </div>
                   ))}
                   {/* The same percentile as the pop-up and baskets; kept out of `stats`, which also feeds the FAQ. */}
@@ -179,6 +197,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                 {/* These are the seed snapshot, not live - say so, since the live card one click below will differ. */}
                 {s0.reit && <p className="mt-2 text-[11px] leading-snug text-ink-soft">n/m = not meaningful for a REIT. {REIT_NOTE}</p>}
                 <p className="mt-2 text-xs text-ink-soft">
+                  <span className="mr-1 inline-flex align-middle">
+                    <InfoTip label="About these figures">{KEY_STATS_NOTE}</InfoTip>
+                  </span>
                   Company snapshot as of {asOf}: the same figures in the live card, baskets and watchlist. The live card updates only the price
                   and chart.
                 </p>
