@@ -7,7 +7,7 @@ const monthYear = (iso: string) => `${MONTHS[Number(iso.slice(5, 7)) - 1]} ${iso
 const x = (v: number) => `${v.toFixed(1)}x`;
 
 // "P/E in context": today's P/E on a bar of the stock's own past P/Es (the shaded middle half is its
-// usual range, the tick its median) with the home industry's median as a second tick. No hooks, so
+// usual range, the tick its median) with the primary industry's median as a second tick. No hooks, so
 // the company page renders it on the server and the pop-up inside its client tree.
 export function PeContextView({ ctx, ticker, className = "" }: { ctx: PeContext; /** Links the "i" note to this stock's worked example; left out on the method page itself. */ ticker?: string; className?: string }) {
   const { pe, history: h, industry: ind } = ctx;

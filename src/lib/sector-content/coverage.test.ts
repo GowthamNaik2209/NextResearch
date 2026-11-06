@@ -8,7 +8,7 @@
 import { before, test } from "node:test";
 import assert from "node:assert/strict";
 import { companyLinkKey, findSupplierByTicker, listSectors, type SectorSupplier, type SectorWithSlug } from "./index";
-import { companySlug, getCompanyPage, listCompanyPages, primaryAppearance } from "./companies";
+import { companySlug, getCompanyPage, listCompanyPages, primaryIndustry } from "./companies";
 import { getCompanyFootprint, listConnectedCompanies } from "./exposure";
 import { CORE_CENTRALITY, listCompanyMetrics, sectorCompanyMetrics, type CompanyMetrics } from "./insights";
 import { buildSearchIndex, buildSectorCards, getPlatformStats } from "./stats";
@@ -95,10 +95,10 @@ const RULES = {
   },
   thinIndustry: {
     id: "thin-industry",
-    reason: `its home industry has fewer than ${MIN_PEERS} covered stocks with a P/E, so no industry median`,
+    reason: `its primary industry has fewer than ${MIN_PEERS} covered stocks with a P/E, so no industry median`,
     applies: (p) => {
       const page = getCompanyPage(companySlug(p.ticker));
-      const home = page ? getIndustryBasket(primaryAppearance(page).sectorSlug) : null;
+      const home = page ? getIndustryBasket(primaryIndustry(page).sectorSlug) : null;
       return (home?.stocks.filter((s) => s.pe != null).length ?? 0) < MIN_PEERS;
     },
   },

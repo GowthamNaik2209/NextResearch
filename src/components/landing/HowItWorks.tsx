@@ -90,7 +90,7 @@ export function HowItWorks() {
                 Trend = (lower returns + &frac12; &times; equal) &divide; (ranked &minus; 1) &times; 100 <span className="text-ink-soft">&nbsp;// past-year return, percentile among covered stocks</span>
               </Formula>
               <ul className="list-disc space-y-1 pl-5">
-                <li>P/E in context: today&rsquo;s P/E against its own month-end P/Es since 2022 (usual range = middle half) and the median of covered stocks in its home industry.</li>
+                <li>P/E in context: today&rsquo;s P/E against its own month-end P/Es since 2022 (usual range = middle half) and the median of covered stocks in its primary industry.</li>
                 <li>Both are context, not calls. In our test past-year return ranked later returns a little (IC about +0.09 over 3 months); a low P/E alone did not.</li>
               </ul>
               <Link href="/baskets/signals" className="self-start font-semibold text-accent hover:underline">

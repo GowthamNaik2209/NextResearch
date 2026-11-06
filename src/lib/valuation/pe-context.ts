@@ -1,5 +1,5 @@
 // P/E in context: today's P/E against the stock's own past P/Es and against the median of covered
-// stocks in its home industry. Context, not a call: the factor test (docs/FACTOR-BACKTEST.md) found
+// stocks in its primary industry. Context, not a call: the factor test (docs/FACTOR-BACKTEST.md) found
 // that a low multiple alone did not rank covered stocks. Pure: no server-only imports.
 //
 // Past P/E at each month-end = market cap then ÷ the latest reported fiscal year's net profit public
@@ -106,4 +106,4 @@ export function versus(pe: number, median: number): string {
 }
 
 export const PE_NOTE =
-  "Today's P/E (trailing twelve months) against the stock's own month-end P/Es since 2022 (each on the latest reported year's profit) and the median of covered stocks in its home industry. The usual range is the middle half of its own past. Context, not a call: a low multiple alone did not predict returns among covered stocks.";
+  "Today's P/E (trailing twelve months) against the stock's own month-end P/Es since 2022 (each on the latest reported year's profit) and the median of covered stocks in its primary industry. The usual range is the middle half of its own past. Context, not a call: a low multiple alone did not predict returns among covered stocks.";

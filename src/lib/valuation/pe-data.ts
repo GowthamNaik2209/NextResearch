@@ -1,11 +1,11 @@
 // Server side of "P/E in context" (./pe-context.ts): the stock's own month-end P/E history from the
-// price store, kept in Next's shared data cache for a day, plus today's P/E and its home industry's
+// price store, kept in Next's shared data cache for a day, plus today's P/E and its primary industry's
 // median from the company table (read fresh, so they move with each published refresh). Callers
 // await ensureFinancials() first.
 import { unstable_cache } from "next/cache";
 import { basketChart } from "@/lib/prices/store";
 import { companyFinancials } from "@/lib/sector-content";
-import { companySlug, getCompanyPage, primaryAppearance } from "@/lib/sector-content/companies";
+import { companySlug, getCompanyPage, primaryIndustry } from "@/lib/sector-content/companies";
 import { basketStock, getIndustryBasket } from "@/lib/baskets/industry";
 import { isReit } from "@/components/stock/merge";
 import { parseCrore } from "@/lib/sector-content/core";
@@ -30,14 +30,14 @@ const cachedHistory = unstable_cache(
   { revalidate: DAY_SECONDS },
 );
 
-/** The covered stocks in the company's home industry (its primary appearance) with their P/Es. */
+/** The covered stocks in the company's primary industry (primaryIndustry) with their P/Es. */
 function homePeers(ticker: string) {
   const page = getCompanyPage(companySlug(ticker));
-  const basket = page ? getIndustryBasket(primaryAppearance(page).sectorSlug) : null;
+  const basket = page ? getIndustryBasket(primaryIndustry(page).sectorSlug) : null;
   return basket ? { basket, peers: basket.stocks.map((s) => ({ ticker: s.ticker, name: s.name, pe: s.pe })) } : null;
 }
 
-/** The home industry's median P/E among covered stocks with one (MIN_PEERS needed). */
+/** The primary industry's median P/E among covered stocks with one (MIN_PEERS needed). */
 export function industryPe(ticker: string): PeIndustry | null {
   const home = homePeers(ticker);
   if (!home) return null;

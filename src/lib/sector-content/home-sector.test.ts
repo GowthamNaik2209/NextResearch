@@ -1,7 +1,7 @@
 import { before, test } from "node:test";
 import assert from "node:assert/strict";
 import { findSupplierByTicker, getSector, isSideLink, linkWeight, listSectors, primaryLink, primarySector } from "./index";
-import { listCompanyPages, primaryAppearance } from "./companies";
+import { listCompanyPages, primaryAppearance, primaryIndustry } from "./companies";
 import { listCompanyMetrics } from "./insights";
 import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
 
@@ -61,5 +61,27 @@ test("the Nifty 50 is a company's home only where no industry or policy maps it 
   for (const sup of Object.values(nifty.suppliers)) {
     const t = sup.f!.ticker;
     assert.equal(primarySector(t) === "nifty50", !direct.has(t), `${t}: home ${primarySector(t)}`);
+  }
+});
+
+// P/E in context compares a stock with its primary industry: an industry it is mapped in directly
+// beats a policy or index home (Tata Power under the ALMM solar policy is compared with energy), a
+// side link never does (SBI stays with the Nifty 50, not real estate as a home-loan lender), and a
+// company with no direct industry keeps its home.
+test("primary industry: a direct industry link over a policy or index home, never a side link", () => {
+  const byTicker = new Map(listCompanyPages().map((p) => [p.ticker, p]));
+  const of = (t: string) => primaryIndustry(byTicker.get(t)!).sectorSlug;
+  assert.equal(of("TATAPOWER"), "energy");
+  assert.equal(of("TMPV"), "ev4w");
+  assert.equal(of("SBIN"), "nifty50");
+  // Ties go to the industry it has more of: Tata Power's four energy layers beat one transmission layer.
+  assert.equal(of("BHARATFORG"), "aerospace");
+  assert.equal(of("LT"), "realestate");
+  assert.equal(of("20MICRONS"), "rareearth");
+  for (const p of byTicker.values()) {
+    const home = primaryAppearance(p);
+    const ind = primaryIndustry(p);
+    if (!getSector(home.sectorSlug)!.category) assert.equal(ind, home, p.ticker);
+    else if (ind !== home) assert.ok(!ind.side && !getSector(ind.sectorSlug)!.category, p.ticker);
   }
 });

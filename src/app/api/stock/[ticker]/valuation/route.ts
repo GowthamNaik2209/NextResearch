@@ -3,7 +3,7 @@ import { ensureFinancials } from "@/lib/financials/load";
 import { peContext } from "@/lib/valuation/pe-data";
 
 // GET /api/stock/VOLTAS/valuation — today's P/E against the stock's own month-end P/Es since 2022
-// and its home industry's median among covered stocks (src/lib/valuation/pe-context.ts), for the
+// and its primary industry's median among covered stocks (src/lib/valuation/pe-context.ts), for the
 // stock pop-up's Summary. The company page computes the same on the server.
 export async function GET(_req: Request, { params }: { params: Promise<{ ticker: string }> }) {
   await ensureFinancials();

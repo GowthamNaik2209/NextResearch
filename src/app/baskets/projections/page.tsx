@@ -67,7 +67,7 @@ const SECTIONS = [
   ["basket", "From stocks to the basket"],
   ["range", "Likely range, drawdown and chance of a loss"],
   ["stats", "The statistics"],
-  ["evidence", "What changed, and the evidence"],
+  ["evidence", "How well it held up"],
   ["limits", "What it doesn't do"],
   ["example", "Worked example"],
 ] as const;
@@ -76,9 +76,9 @@ const SECTIONS = [
 // v2" rows of scripts/validate-projections-v2.ts; design and the other variants in
 // docs/PROJECTIONS-V2-PROTOTYPE.md. Inside = share of actual 1-year outcomes between Bear and Bull.
 const PERIODS = [
-  { period: "24 Oct 2024 → 24 Oct 2025", nifty: "+5.7%", stocks: 241, oldInside: "47%", inside: "91%", baseIc: "+0.01", scoreIc: "+0.09" },
-  { period: "24 Apr 2025 → 24 Apr 2026", nifty: "−1.4%", stocks: 248, oldInside: "48%", inside: "90%", baseIc: "+0.01", scoreIc: "+0.09" },
-  { period: "24 Oct 2025 → 23 Oct 2026", nifty: "−12.4%", stocks: 259, oldInside: "33%", inside: "81%", baseIc: "−0.11", scoreIc: "+0.01" },
+  { period: "24 Oct 2024 → 24 Oct 2025", nifty: "+5.7%", stocks: 241, inside: "91%", baseIc: "+0.01", scoreIc: "+0.09" },
+  { period: "24 Apr 2025 → 24 Apr 2026", nifty: "−1.4%", stocks: 248, inside: "90%", baseIc: "+0.01", scoreIc: "+0.09" },
+  { period: "24 Oct 2025 → 23 Oct 2026", nifty: "−12.4%", stocks: 259, inside: "81%", baseIc: "−0.11", scoreIc: "+0.01" },
 ] as const;
 
 export default async function ProjectionMethodPage({ searchParams }: { searchParams: Promise<{ t?: string }> }) {
@@ -310,8 +310,8 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
             <H3>h. Bear and Bull</H3>
             <P>
               The 10th and 90th percentiles of a lognormal outcome whose average is Base and whose spread is the stock&rsquo;s σ over h years (1 or
-              2). The middle of that range, the median, is (1 + Base) × e^(−σ²h/2) − 1, below Base. The return itself has no cap (the
-              previous model&rsquo;s −60% … +80% a year bound is gone); only the inputs above have limits.
+              2). The middle of that range, the median, is (1 + Base) × e^(−σ²h/2) − 1, below Base. The return itself has no cap; only
+              the inputs above have limits.
             </P>
             <Formula>
               Bear = (1 + Base) × e^(−σ²h/2 − {Z80.toFixed(4)} × σ × √h) − 1
@@ -442,32 +442,11 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
         </section>
 
         <section className="flex flex-col gap-2">
-          <H2 id="evidence">10. What changed, and the evidence</H2>
+          <H2 id="evidence">10. How well it held up</H2>
           <P>
-            The first model moved each stock&rsquo;s P/E part of the way toward its own or its industry&rsquo;s usual level, and set Bear and Bull
-            from fixed scenario shifts in growth, margin and multiple. Tested out of sample, its range was far too narrow and the multiple reversion
-            leaned toward stocks that had just fallen. This model changes four things:
-          </P>
-          <Bullets>
-            <li>
-              <B>Base is anchored on the market</B> (rf + beta × ERP − dividend yield) instead of a P/E reverting to a past or industry level, so the
-              &ldquo;Exit at own or industry P/E&rdquo; option is gone.
-            </li>
-            <li>
-              <B>Fundamentals are a small tilt</B> with today&rsquo;s P/E held, sized at an IC of {IC}.
-            </li>
-            <li>
-              <B>Bear and Bull come from the stock&rsquo;s own 1-year volatility</B>, centred on the lognormal median, instead of scenario shifts.
-              The return itself has no cap.
-            </li>
-            <li>
-              <B>Loss-makers</B> get the market return and their own volatility instead of a price-to-sales reversion.
-            </li>
-          </Bullets>
-          <P>
-            We rebuilt every input as it stood on three start dates and compared each model&rsquo;s 1-year projection with what each stock actually
-            did (price only). &ldquo;Inside&rdquo; is the share of actual outcomes between Bear and Bull; the target is 80%. The rank correlation
-            (Spearman) measures whether a higher Base went with a higher actual return.
+            We rebuilt every input as it stood on three start dates and compared the 1-year projection with what each stock actually did (price
+            only). &ldquo;Inside&rdquo; is the share of actual outcomes between Bear and Bull; the target is 80%. The rank correlation (Spearman)
+            measures whether a higher Base went with a higher actual return.
           </P>
           <Table
             min="min-w-[44rem]"
@@ -476,8 +455,7 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
                 <Th left>Period</Th>
                 <Th>Nifty 50</Th>
                 <Th>Stocks</Th>
-                <Th>Inside, first model</Th>
-                <Th>Inside, this model</Th>
+                <Th>Inside</Th>
                 <Th>Base rank corr.</Th>
                 <Th>Score rank corr.</Th>
               </>
@@ -488,7 +466,6 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
                 <Td left>{r.period}</Td>
                 <Td>{r.nifty}</Td>
                 <Td>{r.stocks}</Td>
-                <Td>{r.oldInside}</Td>
                 <Td>{r.inside}</Td>
                 <Td>{r.baseIc}</Td>
                 <Td>{r.scoreIc}</Td>
@@ -497,8 +474,8 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
           </Table>
           <Bullets>
             <li>
-              <B>The range now fits.</B> Bear–Bull held 91%, 90% and 81% of outcomes (87% pooled) against the first model&rsquo;s 47%, 48% and 33%. It
-              held up in the year the Nifty fell 12%, and is a little wide in calmer years; it was not narrowed to fit these periods.
+              <B>The range fits.</B> Bear–Bull held 91%, 90% and 81% of outcomes (87% pooled). It held up in the year the Nifty fell 12%, and is a
+              little wide in calmer years; it was not narrowed to fit these periods.
             </li>
             <li>
               <B>Base is not a stock-picking signal.</B> Its rank correlation with outcomes was +0.01, +0.01 and −0.11. Across stocks it mostly
@@ -506,7 +483,7 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
               period, never statistically significant, which is why its weight is small.
             </li>
             <li>
-              <B>The level still misses by the market&rsquo;s year.</B> No model of this kind foresees whether the market rises or falls; the median
+              <B>The level misses by the market&rsquo;s year.</B> No model of this kind foresees whether the market rises or falls; the median
               stock&rsquo;s Base was typically well above its actual return over these years.
             </li>
             <li>
