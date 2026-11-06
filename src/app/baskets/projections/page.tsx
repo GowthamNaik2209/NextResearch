@@ -147,8 +147,8 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
           </Formula>
           <Bullets>
             <li>
-              <B>rf</B> is the 10-year G-sec yield ({pct(MARKET.rf, 2)}, {MARKET.rfAsOf}); <B>ERP</B> is India&rsquo;s equity risk premium (
-              {pct(MARKET.erp, 2)}, Damodaran, {MARKET.erpAsOf}).
+              <B>rf</B> is the RBI repo rate ({pct(MARKET.rf, 2)}, since {MARKET.rfAsOf}); <B>ERP</B> is India&rsquo;s equity risk premium (
+              {pct(MARKET.erp, 2)}, Damodaran, {MARKET.erpAsOf}), which holds India&rsquo;s country risk.
             </li>
             <li>
               <B>z</B> scores a year of the business with today&rsquo;s P/E held: revenue growth at its usual rate, faded {pct(GROWTH_FADE, 0)} of the way to{" "}
@@ -388,7 +388,7 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
           }
         >
           <Row>
-            <Td left>rf, 10-year G-sec ({MARKET.rfAsOf})</Td>
+            <Td left>rf, RBI repo rate ({MARKET.rfAsOf})</Td>
             <Td>{pct(ctx.rf, 2)}</Td>
           </Row>
           <Row>

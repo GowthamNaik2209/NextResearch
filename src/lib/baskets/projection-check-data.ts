@@ -198,7 +198,7 @@ const cachedAll = unstable_cache(
     if (got.read < got.of * (1 - MAX_MISSING)) throw new Error(`projection check: prices for only ${got.read} of ${got.of} stocks`);
     return got;
   },
-  ["projection-check-all-v2"],
+  ["projection-check-all-v3"],
   { revalidate: DAY_SECONDS },
 );
 

@@ -227,7 +227,7 @@ function AssumptionsView({ view, single }: { view: ProjectionView; single: boole
       </div>
       <ul className="flex flex-col gap-0.5 border-t border-line px-3 py-1.5 text-[10px] leading-snug text-ink-soft">
         <li>
-          <b className="font-semibold text-ink">Market return</b>: the return the market prices in for the stock&rsquo;s risk: the 10-year G-sec yield ({rf}, {MARKET.rfAsOf}) plus its beta times
+          <b className="font-semibold text-ink">Market return</b>: the return the market prices in for the stock&rsquo;s risk: the RBI repo rate ({rf}, {MARKET.rfAsOf}) plus its beta times
           India&rsquo;s equity risk premium ({erp}, Damodaran, {MARKET.erpAsOf}), less its dividend yield, since this is a price projection.
         </li>
         <li>

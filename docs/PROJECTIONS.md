@@ -85,14 +85,12 @@ median net margin; and two market inputs set by hand in `MARKET`:
 
 | Input | Value | Source |
 |---|---|---|
-| rf, India 10-year G-sec yield | 7.47% (23 Oct 2026) | Trading Economics, India 10Y benchmark close 23 Oct 2026 |
+| rf, RBI policy repo rate | 5.50% (from 7 Oct 2026) | RBI, policy rates (rbi.org.in, checked 6 Nov 2026) |
 | ERP, India's equity risk premium | 7.08% (Jan 2026) | Damodaran, country default spreads and risk premiums (Jan 2026 update): mature market 4.23% + India's country premium 2.85% (Moody's Baa3). His July 2026 India row wasn't retrievable without downloading the spreadsheet; his July mature premium was 4.20%, so the total is very likely within a few tenths |
 
-Update both by hand (a code change) when they move materially: rf after a big move in the G-sec
-yield, ERP after each of Damodaran's January and July updates. Strictly, Damodaran adds his country
-premium to a default-free rate, and the G-sec yield already carries India's default spread (about
-1.9 points), so rf + ERP counts that spread twice; the spec chose the G-sec yield. It moves every
-stock's Base by the same amount, never the order of stocks or the width of the range.
+Update both by hand (a code change): rf after each RBI policy change, ERP after each of Damodaran's January and July updates.
+Damodaran's ERP holds India's country risk (its default spread scaled up), so rf is a rate without
+it: the repo rate, rather than the G-sec yield, which carries the default spread as well.
 
 1. **Beta.** The slope of the stock's weekly returns on the Nifty 50's over the last 2 years
    (52+ weeks needed), pulled a third of the way to 1 (Blume: 0.67 β + 0.33), since measured betas

@@ -111,7 +111,7 @@ export function HowItWorks() {
               </Formula>
               <ul className="list-disc space-y-1 pl-5">
                 <li>
-                  rf {pct(MARKET.rf)} (10-year G-sec, {MARKET.rfAsOf}), ERP {pct(MARKET.erp)} (Damodaran, {MARKET.erpAsOf}), &beta; pulled {Math.round((1 - BLUME_WEIGHT) * 100)}% of the way to 1, &sigma; never below {Math.round(VOL_FLOOR * 100)}%.
+                  rf {pct(MARKET.rf)} (RBI repo rate, {MARKET.rfAsOf}), ERP {pct(MARKET.erp)} (Damodaran, {MARKET.erpAsOf}), &beta; pulled {Math.round((1 - BLUME_WEIGHT) * 100)}% of the way to 1, &sigma; never below {Math.round(VOL_FLOOR * 100)}%.
                 </li>
                 <li>z is the stock&rsquo;s growth-and-margin score against every covered company, capped at &plusmn;{Z_MAX}.</li>
                 <li>Needs {MIN_YEARS} years of results and {MIN_YEARS} years of trading. Loss-makers get the market return only.</li>

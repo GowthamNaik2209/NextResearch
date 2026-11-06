@@ -101,7 +101,7 @@ test("workbook: every sheet, projections with picks and the left-out stock", () 
   assert.equal(sheets[4].rows.find((r) => r[0] === "Next 2 years")![3], 26.25);
   // The method sheet carries the market inputs and their dates.
   const method = sheets[6].rows.map((r) => r[0]).join("\n");
-  assert.match(method, /7\.47% \(23 Oct 2026\)/);
+  assert.match(method, /RBI policy repo rate, 5\.50% \(7 Oct 2026\)/);
   assert.match(method, /7\.08% \(Jan 2026\)/);
   // Your picks: A and C, C left out, so A alone: 20%.
   const picksAt = sheets[4].rows.findIndex((r) => r[0] === "Your 2 picks");

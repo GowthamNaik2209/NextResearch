@@ -17,9 +17,12 @@ export const MIN_YEARS = 3;
 
 /** Market inputs, updated by hand (sources in docs/PROJECTIONS.md). Fractions. */
 export const MARKET = {
-  /** India 10-year G-sec yield. */
-  rf: 0.0747,
-  rfAsOf: "23 Oct 2026",
+  /**
+   * The risk-free rate: the RBI's policy repo rate. It carries no sovereign default spread, which the
+   * ERP's country premium already holds (the G-sec yield carries it too, so it would count twice).
+   */
+  rf: 0.055,
+  rfAsOf: "7 Oct 2026",
   /** Damodaran's total equity risk premium for India (mature market premium plus India's country premium). */
   erp: 0.0708,
   erpAsOf: "Jan 2026",
