@@ -161,7 +161,7 @@ export default async function BasketsPage() {
                 Tap a column heading to sort (again to reverse), or use the Sort menu on a phone.
               </InfoTip>
             </div>
-            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock on each industry or policy map, at equal weight. The heatmap shows the period you pick at a glance; tap a tile to jump to its row.</p>
+            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Every listed stock on each industry or policy map, at equal weight.</p>
           </div>
           {/* The figures are worked out on the server and stream in; until then the rows show loading. */}
           <Suspense fallback={<IndustryBaskets rows={industryRows} deferred />}>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { InfoTip } from "@/components/InfoTip";
 import { ScrollX } from "@/components/ScrollX";
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { BasketFigures } from "@/lib/baskets/stats";
@@ -425,14 +426,18 @@ export function BasketsTable({
         </ul>
       </div>
       </ScrollX>
-      <p className="border-t border-line px-3 py-1.5 text-[10px] text-ink-soft">
-        {period}: {PERIOD_WORDS[period]}, bought at its start and not rebalanced, at each basket&rsquo;s saved weighting (industry baskets at equal weight); drawdown and vs Nifty over the same span. Price only, no dividends or costs.{" "}
-        <b className="font-semibold">Bear · Base · Bull</b>: projected return over the next year at the same weighting (stocks it can&rsquo;t project left out, their share spread over the rest);{" "}
-        <Link href="/baskets/projections" className="underline hover:text-ink">
-          how projections work
-        </Link>
-        . {PROJECTION_DISCLAIMER}
-      </p>
+      {/* One short line under the table; how the figures are worked out sits in its "i". */}
+      <div className="flex items-center gap-1.5 border-t border-line px-3 py-1.5 text-[10px] text-ink-soft">
+        <span>Price only · projections are a model, not a forecast</span>
+        <InfoTip label="How these figures are worked out">
+          {period}: {PERIOD_WORDS[period]}, bought at its start and not rebalanced, at each basket&rsquo;s saved weighting (industry baskets at equal weight); drawdown and vs Nifty over the same span. Price only, no dividends or costs.{" "}
+          <b className="font-semibold">Bear · Base · Bull</b>: projected return over the next year at the same weighting (stocks it can&rsquo;t project left out, their share spread over the rest);{" "}
+          <Link href="/baskets/projections" className="underline hover:text-ink">
+            how projections work
+          </Link>
+          . {PROJECTION_DISCLAIMER}
+        </InfoTip>
+      </div>
     </div>
   );
 }
@@ -559,7 +564,7 @@ export function ThemeWall({ rows, seed, period = "1Y", onPeriod }: { rows: Indus
         label={`Industry and policy baskets by ${period} return`}
         className="grid grid-cols-3 auto-rows-[3.25rem] gap-1 min-[480px]:grid-cols-4 sm:auto-rows-[3.5rem] md:grid-cols-6 lg:grid-cols-8"
       />
-      <HeatLegend scale={scale} note={`${period} return at equal weight, best first · tap a tile for its row below`} />
+      <HeatLegend scale={scale} note="Tap a tile for its row" />
     </div>
   );
 }
