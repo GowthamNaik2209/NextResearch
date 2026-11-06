@@ -11,7 +11,6 @@ import { PERIODS, PERIOD_SRC, PERIOD_WORDS, benchPeriodRet, periodFigures, type 
 import { Panel } from "./Panel";
 import { industrySeriesKey, loadSeries, savedBasketQuery } from "./series";
 import { heldStrategy, strategyQuery } from "@/lib/baskets/strategy";
-import { PROJECTION_DISCLAIMER } from "./projection-view";
 import { HeatGrid, HeatLegend, heatScale, shortName, type HeatCell } from "@/components/charts/Heatmap";
 import type { SectorCategory } from "@/lib/sector-content/core";
 
@@ -430,12 +429,10 @@ export function BasketsTable({
       <div className="flex items-center gap-1.5 border-t border-line px-3 py-1.5 text-[10px] text-ink-soft">
         <span>Price only · projections are a model, not a forecast</span>
         <InfoTip label="How these figures are worked out">
-          {period}: {PERIOD_WORDS[period]}, bought at its start and not rebalanced, at each basket&rsquo;s saved weighting (industry baskets at equal weight); drawdown and vs Nifty over the same span. Price only, no dividends or costs.{" "}
-          <b className="font-semibold">Bear · Base · Bull</b>: projected return over the next year at the same weighting (stocks it can&rsquo;t project left out, their share spread over the rest);{" "}
+          {period} return bought at the start and held, price only. <b className="font-semibold">Bear · Base · Bull</b>: next year&rsquo;s projection, a model, not a forecast.{" "}
           <Link href="/baskets/projections" className="underline hover:text-ink">
-            how projections work
+            How projections work
           </Link>
-          . {PROJECTION_DISCLAIMER}
         </InfoTip>
       </div>
     </div>

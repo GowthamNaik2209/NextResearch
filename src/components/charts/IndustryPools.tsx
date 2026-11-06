@@ -268,7 +268,7 @@ function ShareBars({ layers, view, active, sel, onPick, take }: { layers: LayerP
       <div className="flex items-center gap-2">
         <h3 className="text-[10px] font-bold uppercase tracking-widest text-ink-soft sm:text-[11px]">Where the money sits</h3>
         {read && (
-          <InfoTip label="What the bars show">
+          <InfoTip label="Reading the bars">
             {read.main}
             {read.extra}
           </InfoTip>
@@ -318,7 +318,12 @@ function ShareBars({ layers, view, active, sel, onPick, take }: { layers: LayerP
             </button>
           ))}
       </div>
-      {read && <p className="hidden text-[13px] text-ink sm:block">{read.main}</p>}
+      {read && (
+        <p className="hidden text-[13px] text-ink sm:block">
+          {read.main}
+          {read.extra && <span className="text-ink-soft">{read.extra}</span>}
+        </p>
+      )}
     </div>
   );
 }
