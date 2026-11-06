@@ -26,6 +26,8 @@ import {
   type ProjectionInput,
 } from "@/lib/baskets/projection";
 import { getSector } from "@/lib/sector-content";
+import { allChecks, stockChecks, type AllChecks, type StockCheck } from "@/lib/baskets/projection-check-data";
+import type { Landed } from "@/lib/baskets/projection-check";
 import { NA, fmtDay, signedPct } from "@/lib/format";
 import { ExampleStockSelect } from "./ExampleStockSelect";
 import { B, Bullets, Formula, H2, H3, Note, P, Row, Table, Td, Th } from "../method-ui";
@@ -35,6 +37,8 @@ import { shareMeta } from "@/lib/site";
 // worked example: any stock's own figures run through each step by the same code the baskets use,
 // so the example always matches what a basket shows for it.
 export const dynamic = "force-dynamic";
+// The first visit of a day works out the check over every covered stock after the response (projection-check-data.ts).
+export const maxDuration = 300;
 
 export const metadata = {
   title: "How basket projections are worked out",
@@ -66,14 +70,6 @@ const SECTIONS = [
   ["example", "Worked example"],
 ] as const;
 
-// The out-of-sample check of the model as built (projection.ts, dividend yield subtracted): "Built
-// v2" rows of scripts/validate-projections-v2.ts; design and the other variants in
-// docs/PROJECTIONS-V2-PROTOTYPE.md. Inside = share of actual 1-year outcomes between Bear and Bull.
-const PERIODS = [
-  { period: "24 Oct 2024 → 24 Oct 2025", nifty: "+5.7%", stocks: 241, inside: "91%", baseIc: "+0.01" },
-  { period: "24 Apr 2025 → 24 Apr 2026", nifty: "−1.4%", stocks: 248, inside: "90%", baseIc: "+0.01" },
-  { period: "24 Oct 2025 → 23 Oct 2026", nifty: "−12.4%", stocks: 259, inside: "81%", baseIc: "−0.11" },
-] as const;
 
 export default async function ProjectionMethodPage({ searchParams }: { searchParams: Promise<{ t?: string }> }) {
   await ensureFinancials();
@@ -90,6 +86,7 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
   const scale = projectionScale();
   const ex = input ? explainStock(input, scale) : null;
   const riskAsOf = stock ? (riskStatsFor(stock.ticker)?.asOf ?? null) : null;
+  const [all, checks] = await Promise.all([allChecks(), stock ? stockChecks(stock.ticker) : null]);
 
   return (
     <>
@@ -173,32 +170,14 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
         <section className="flex flex-col gap-2">
           <H2 id="evidence">4. How well it held up</H2>
           <P>
-            Rebuilt as it stood on three start dates and checked a year later. &ldquo;Inside&rdquo; is the share of stocks that ended between Bear
-            and Bull (the aim is 80%); rank correlation is whether a higher Base went with a higher return.
+            The model run on every covered stock as it stood 1 and 2 years ago, against what each did since. About 1 in 10 should end below Bear,
+            8 in 10 inside and 1 in 10 above Bull.
           </P>
-          <Table
-            min="min-w-[36rem]"
-            head={
-              <>
-                <Th left>Period</Th>
-                <Th>Nifty 50</Th>
-                <Th>Stocks</Th>
-                <Th>Inside</Th>
-                <Th>Base rank corr.</Th>
-              </>
-            }
-          >
-            {PERIODS.map((r, i) => (
-              <Row key={r.period} last={i === PERIODS.length - 1}>
-                <Td left>{r.period}</Td>
-                <Td>{r.nifty}</Td>
-                <Td>{r.stocks}</Td>
-                <Td>{r.inside}</Td>
-                <Td>{r.baseIc}</Td>
-              </Row>
-            ))}
-          </Table>
-          <P>The range fits; Base does not pick stocks, since it mostly reflects beta.</P>
+          <AllChecksTable all={all} />
+          <Note>
+            Actual − Base is the median stock&rsquo;s actual return less its Base; rank correlation is whether a higher Base went with a higher return (0 =
+            no link). Each run uses the results and prices of its day, with today&rsquo;s rf, ERP, dividend yields and list of covered stocks.
+          </Note>
         </section>
 
         <section className="flex flex-col gap-2">
@@ -223,10 +202,126 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
           ) : (
             <Example name={stock.name} home={homeName} ctx={ex.ctx} input={input} riskAsOf={riskAsOf} />
           )}
+          {stock && checks && <StockChecks name={stock.name} checks={checks} />}
         </section>
       </main>
       <SiteFooter />
     </>
+  );
+}
+
+const LANDED: Record<Landed, string> = { below: "Below Bear", inside: "Inside", above: "Above Bull" };
+const shareOf = (v: number) => `${Math.round(v * 100)}%`;
+const corr = (v: number | null) => (v == null ? NA : `${v < 0 ? "−" : "+"}${Math.abs(v).toFixed(2)}`);
+
+function AllChecksTable({ all }: { all: AllChecks | null }) {
+  if (!all) return <ProjectionStatsPending>This check is being worked out over every covered stock. It appears here by itself in a minute or two.</ProjectionStatsPending>;
+  return (
+    <Table
+      min="sm:min-w-[40rem]"
+      head={
+        <>
+          <Th left>Projection</Th>
+          <Th hide>Stocks</Th>
+          <Th hide>Nifty 50</Th>
+          <Th>Below Bear</Th>
+          <Th>Inside</Th>
+          <Th>Above Bull</Th>
+          <Th hide>Actual − Base</Th>
+          <Th hide>Rank corr.</Th>
+        </>
+      }
+    >
+      {all.summaries.map((r, i) => {
+        const nifty = all.nifty.find((x) => x.h === r.h && Math.abs(Date.parse(x.from) - Date.parse(r.from)) < 8 * 86_400_000)?.ret;
+        return (
+          <Row key={`${r.from}|${r.h}`} last={i === all.summaries.length - 1}>
+            <Td left>
+              <span className="max-sm:hidden">
+                {r.h} year{r.h === 1 ? "" : "s"} from {fmtDay(r.from)}
+              </span>
+              <span className="sm:hidden">
+                {r.h}Y · {fmtDay(r.from, { short: true })}
+              </span>
+            </Td>
+            <Td hide>{r.n}</Td>
+            <Td hide tone={nifty ?? undefined}>
+              {nifty == null ? NA : sPct(nifty)}
+            </Td>
+            <Td>{shareOf(r.below)}</Td>
+            <Td>{shareOf(r.inside)}</Td>
+            <Td>{shareOf(r.above)}</Td>
+            <Td hide tone={r.baseMiss}>
+              {sPct(r.baseMiss, 0)}
+            </Td>
+            <Td hide>{corr(r.rankCorr)}</Td>
+          </Row>
+        );
+      })}
+    </Table>
+  );
+}
+
+function StockChecks({ name, checks }: { name: string; checks: StockCheck[] }) {
+  const rows = checks.flatMap((c) => c.checks.map((k) => ({ c, k })));
+  const out = checks.filter((c) => !c.ctx);
+  if (!rows.length && out.length)
+    return (
+      <div className="flex flex-col gap-1">
+        <H3>Checked against what happened</H3>
+        <P>
+          {name} wasn&rsquo;t projectable 1 or 2 years ago. {out.map((c) => `${fmtDay(c.from)}: ${c.reason}.`).join(" ")}
+        </P>
+      </div>
+    );
+  return (
+    <div className="flex flex-col gap-1">
+      <H3>Checked against what happened</H3>
+      <P>
+        The same model run on <B>{name}</B> as it stood 1 and 2 years ago, with the results and prices of that day.
+      </P>
+      {checks
+        .filter((c) => c.ctx)
+        .map((c) => (
+          <Note key={c.from}>
+            {fmtDay(c.from)}: {c.fy} results, beta {n2(c.ctx!.beta)}, σ {pct(c.ctx!.vol, 0)}, market return {pct(c.ctx!.market)}, tilt {sPct(c.ctx!.tilt, 1)}
+            {c.ctx!.method === "market" ? " (no fundamentals score)" : ""}.
+          </Note>
+        ))}
+      {rows.length > 0 && (
+        <Table
+          min="min-w-[34rem]"
+          head={
+            <>
+              <Th left>Projection</Th>
+              <Th>Actual</Th>
+              <Th left>Landed</Th>
+              <Th>Bear</Th>
+              <Th>Base</Th>
+              <Th>Bull</Th>
+            </>
+          }
+        >
+          {rows.map(({ k }, i) => (
+            <Row key={`${k.from}|${k.h}`} last={i === rows.length - 1}>
+              <Td left>
+                {k.h} year{k.h === 1 ? "" : "s"} from {fmtDay(k.from)}
+              </Td>
+              <Td tone={k.actual}>{sPct(k.actual)}</Td>
+              <Td left>{LANDED[k.landed]}</Td>
+              <Td tone={k.bear}>{sPct(k.bear)}</Td>
+              <Td tone={k.base}>{sPct(k.base)}</Td>
+              <Td tone={k.bull}>{sPct(k.bull)}</Td>
+            </Row>
+          ))}
+        </Table>
+      )}
+      {out.map((c) => (
+        <Note key={c.from}>
+          {fmtDay(c.from)}: not projected. {c.reason}.
+        </Note>
+      ))}
+    </div>
   );
 }
 

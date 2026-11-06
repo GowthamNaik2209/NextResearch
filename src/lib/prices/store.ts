@@ -103,8 +103,9 @@ function load(key: string, candles: boolean): Promise<Loaded | null> {
 // instead of failing, and logging, every read.
 let absentUntil = 0;
 
-async function storedBars(key: string, range: ChartRange, candles: boolean): Promise<(Loaded & { interval: "1d" | "1wk" | "1mo"; lastDay: string | null }) | null> {
-  const r = storedRange(range);
+async function storedBars(key: string, range: ChartRange, candles: boolean, dailyOnly = false): Promise<(Loaded & { interval: "1d" | "1wk" | "1mo"; lastDay: string | null }) | null> {
+  const r0 = storedRange(range);
+  const r = r0 && dailyOnly ? { ...r0, interval: "1d" as const } : r0;
   if (!r || Date.now() < absentUntil) return null;
   const got = await load(key, candles).catch((e: unknown) => {
     if ((e as { code?: string })?.code === "P2021") absentUntil = Date.now() + 10 * 60_000;
@@ -151,6 +152,12 @@ export async function storedOhlc(key: string, range: ChartRange): Promise<OhlcDa
 }
 
 // ---------------------------------------------------------------- the callers' loaders
+
+/** A stock's or benchmark's daily closes over a range from the store (no weekly roll-up), or null. */
+export async function storedDailyChart(key: string, range: ChartRange): Promise<{ t: string; c: number }[] | null> {
+  const s = await storedBars(key, range, false, true);
+  return s ? withLastDay(toPoints(s.bars), s.lastDay) : null;
+}
 
 /** Baskets: the store first, then Yahoo (and Screener) as before. */
 export async function basketChart(ticker: string, range: ChartRange): Promise<ChartData | null> {
