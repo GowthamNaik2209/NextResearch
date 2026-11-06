@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { InfoTip } from "@/components/InfoTip";
 import { ScrollX } from "@/components/ScrollX";
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { BasketFigures } from "@/lib/baskets/stats";
@@ -10,7 +11,6 @@ import { PERIODS, PERIOD_SRC, PERIOD_WORDS, benchPeriodRet, periodFigures, type 
 import { Panel } from "./Panel";
 import { industrySeriesKey, loadSeries, savedBasketQuery } from "./series";
 import { heldStrategy, strategyQuery } from "@/lib/baskets/strategy";
-import { PROJECTION_DISCLAIMER } from "./projection-view";
 import { HeatGrid, HeatLegend, heatScale, shortName, type HeatCell } from "@/components/charts/Heatmap";
 import type { SectorCategory } from "@/lib/sector-content/core";
 
@@ -52,7 +52,7 @@ const countOf = (r: BasketRow) => (r.kind === "saved" ? r.tickers.length : r.cou
 
 /** The store's key for a row's figures over a period (1Y keeps the plain key, which the summary strip reads). */
 const figKey = (key: string, period: Period) => (period === "1Y" ? key : `${key}|${period}`);
-/** The server's figures for a period, by series key: 1Y from the page's backtests, the rest from the stored table. */
+/** The server's figures for a period, by series key: the stored table's (1Y: the page's backtests where the table has none). */
 const seedFor = (seed: TableSeed | undefined, period: Period) => (period === "1Y" ? seed?.figs : seed?.byPeriod?.[period]);
 
 // ---- the shared store: figures by series key, the queue, and who is listening ----
@@ -120,10 +120,10 @@ function pump() {
 const measured = new Set<string>();
 
 /**
- * Figures the server worked out, into the store, shown at once. Each row is still measured again
- * through the browser's series loader (the same request and cache the basket pages use), and that
- * figure replaces the server's: the price series can differ by the day's latest bar between the
- * page's render and the API's cache, and the row must read exactly as the basket page does.
+ * Figures the server worked out, into the store, shown at once. The stored table's (every period,
+ * 1Y too) are final: the landing page and the morning brief read the same rows, so they are never
+ * measured again here. A row the table doesn't have yet (the page's own 1Y backtest, or none) is
+ * measured through the browser's series loader, the same request the basket pages use.
  */
 function seedStore(seed: TableSeed) {
   for (const [k, f] of Object.entries(seed.figs)) {
@@ -131,10 +131,7 @@ function seedStore(seed: TableSeed) {
     if (!e || e === "error" || e === "loading") figs.set(k, f);
   }
   if (seed.benchRet != null && typeof bench !== "object") bench = { ret: seed.benchRet };
-  // The other periods come from the stored table, which the daily cron fills from the same price
-  // store the backtest API reads: shown as they are, never measured again in the browser.
   for (const [p, byKey] of Object.entries(seed.byPeriod ?? {}) as [Period, Record<string, Fig>][]) {
-    if (p === "1Y") continue;
     for (const [k, f] of Object.entries(byKey)) {
       figs.set(figKey(k, p), f);
       measured.add(figKey(k, p));
@@ -425,14 +422,16 @@ export function BasketsTable({
         </ul>
       </div>
       </ScrollX>
-      <p className="border-t border-line px-3 py-1.5 text-[10px] text-ink-soft">
-        {period}: {PERIOD_WORDS[period]}, bought at its start and not rebalanced, at each basket&rsquo;s saved weighting (industry baskets at equal weight); drawdown and vs Nifty over the same span. Price only, no dividends or costs.{" "}
-        <b className="font-semibold">Bear · Base · Bull</b>: projected return over the next year at the same weighting (stocks it can&rsquo;t project left out, their share spread over the rest);{" "}
-        <Link href="/baskets/projections" className="underline hover:text-ink">
-          how projections work
-        </Link>
-        . {PROJECTION_DISCLAIMER}
-      </p>
+      {/* One short line under the table; how the figures are worked out sits in its "i". */}
+      <div className="flex items-center gap-1.5 border-t border-line px-3 py-1.5 text-[10px] text-ink-soft">
+        <span>Price only · projections are a model, not a forecast</span>
+        <InfoTip label="How these figures are worked out">
+          {period} return bought at the start and held, price only. <b className="font-semibold">Bear · Base · Bull</b>: next year&rsquo;s projection, a model, not a forecast.{" "}
+          <Link href="/baskets/projections" className="underline hover:text-ink">
+            How projections work
+          </Link>
+        </InfoTip>
+      </div>
     </div>
   );
 }
@@ -513,16 +512,18 @@ export function ThemeWall({ rows, seed, period = "1Y", onPeriod }: { rows: Indus
       const e = hydrated ? (typeof own === "object" ? own : seeded?.[key]) : seeded?.[key];
       return e && typeof e === "object" && Number.isFinite(e.ret) ? e.ret : null;
     };
+    // Industries and policies only, as on the landing page: an equal-weight Nifty 50 tile read as the
+    // index's own return (its row stays in the table below).
     return rows
-      .filter((r) => r.count > 0)
+      .filter((r) => r.count > 0 && r.category !== "index")
       .map((r): HeatCell => {
         const ret = retOf(r.slug);
         return {
           key: r.slug,
           label: shortName(r.name),
           value: ret,
-          sub: r.category === "policy" ? "Policy" : r.category === "index" ? "Equal weight" : undefined,
-          title: `${r.name}${r.category === "index" ? " stocks at equal weight" : ""}${ret != null ? `: ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}% over ${PERIOD_WORDS[period]}` : ""} · tap to see its row`,
+          sub: r.category === "policy" ? "Policy" : undefined,
+          title: `${r.name}${ret != null ? `: ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}% over ${PERIOD_WORDS[period]}` : ""} · tap to see its row`,
           onClick: () => jumpToRow(r.slug),
         };
       })
@@ -559,7 +560,7 @@ export function ThemeWall({ rows, seed, period = "1Y", onPeriod }: { rows: Indus
         label={`Industry and policy baskets by ${period} return`}
         className="grid grid-cols-3 auto-rows-[3.25rem] gap-1 min-[480px]:grid-cols-4 sm:auto-rows-[3.5rem] md:grid-cols-6 lg:grid-cols-8"
       />
-      <HeatLegend scale={scale} note={`${period} return at equal weight, best first · tap a tile for its row below`} />
+      <HeatLegend scale={scale} note="Tap a tile for its row" />
     </div>
   );
 }

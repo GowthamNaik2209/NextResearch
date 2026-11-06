@@ -15,8 +15,15 @@ import { isoDay } from "@/lib/financials/rows";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { ensureFinancials } from "@/lib/financials/load";
 import { FISCAL_YEARS } from "@/lib/financials/rows";
-import { croreShort, inr, pct } from "@/lib/format";
-import { fmtPrice, fmtYield, mergeStats } from "@/components/stock/merge";
+import { croreShort, inr, NA, pct } from "@/lib/format";
+import { fmtPrice, fmtYield, mergeStats, pctTone, REIT_NOTE } from "@/components/stock/merge";
+import { KEY_STATS_NOTE } from "@/lib/financials/key-ratios";
+import { ratioTiles } from "@/components/stock/ratio-tiles";
+import { InfoTip } from "@/components/InfoTip";
+import { TREND_NOTE, trendLabel } from "@/lib/financials/trend";
+import { peContext } from "@/lib/valuation/pe-data";
+import { PeContextView } from "@/components/stock/PeContextView";
+import { MethodLink } from "@/components/stock/MethodLink";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
 export const revalidate = 900;
@@ -77,6 +84,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const f = supplier.f;
   // The same snapshot figures, through the same reader, as the stock pop-up (mergeStats).
   const s0 = mergeStats(f, null);
+  const pe = await peContext(c.ticker);
   const sectorNames = [...new Set(appearances.map((a) => a.sectorName))];
   const allThemes = [...new Set(c.appearances.map((a) => a.sectorName))];
   const multiSector = sectorNames.length > 1;
@@ -88,13 +96,18 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const stats = [
     { label: "Market cap", value: s0.marketCapCr != null ? croreShort(s0.marketCapCr) : undefined },
     { label: "Price", value: s0.snapshotPrice != null ? fmtPrice(s0.snapshotPrice) : undefined },
-    { label: "P/E", value: s0.pe != null ? `${s0.pe.toFixed(1)}x` : undefined },
+    // REITs: P/E, ROE and dividend yield aren't meaningful for a trust; "n/m" as in the pop-up (REIT_NOTE).
+    { label: "P/E", value: s0.reit ? "n/m" : s0.pe != null ? `${s0.pe.toFixed(1)}x` : undefined },
     { label: "ROCE", value: s0.roce != null ? pct(s0.roce) : undefined },
-    { label: "ROE", value: s0.roe != null ? pct(s0.roe) : undefined },
-    { label: "Dividend yield", value: s0.divYield != null ? fmtYield(s0.divYield) : undefined },
-  ].filter((s): s is { label: string; value: string } => !!s.value);
+    { label: "ROE", value: s0.reit ? "n/m" : s0.roe != null ? pct(s0.roe) : undefined },
+    { label: "Dividend yield", value: s0.reit ? "n/m" : s0.divYield != null ? fmtYield(s0.divYield) : undefined },
+  ];
+  // Every tile shows (a missing figure as "—", as in the pop-up) so the grid keeps whole rows; the FAQ gets only real figures.
+  const tiles = stats.map((s) => ({ label: s.label, value: s.value ?? NA }));
+  // The ratios worked out from the same table, as in the pop-up; kept out of `stats`, which feeds the FAQ.
+  const ratios = ratioTiles(f, s0.reit);
 
-  const faqs = companyFaq(c, primary, { asOf, stats }, inIndex);
+  const faqs = companyFaq(c, primary, { asOf, stats: stats.filter((s): s is { label: string; value: string } => !!s.value && s.value !== "n/m") }, inIndex);
   const rev = f?.rev ?? [];
   const np = f?.np ?? [];
 
@@ -148,21 +161,48 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             column that stays in view. Phones keep one column, numbers first. */}
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem]">
           <aside className="flex flex-col gap-10 lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1 lg:gap-4 lg:self-start">
-            {stats.length > 0 && (
+            {tiles.length > 0 && (
               <section>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
-                  {stats.map((s) => (
+                  {tiles.map((s) => (
                     <div key={s.label} className="rounded-xl border border-line bg-panel p-4">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">{s.label}</p>
                       <p className="mt-1 whitespace-nowrap font-mono text-base font-semibold text-ink sm:text-lg">{s.value}</p>
                     </div>
                   ))}
+                  {ratios.map((s) => (
+                    <div key={s.label} className="rounded-xl border border-line bg-panel p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">{s.label}</p>
+                      <p
+                        title={s.title}
+                        className={"mt-1 whitespace-nowrap font-mono text-base font-semibold sm:text-lg " + (s.value === "n/m" ? "text-ink-soft" : s.tone !== undefined ? pctTone(s.tone, 1) : "text-ink")}
+                      >
+                        {s.value}
+                      </p>
+                      {s.sub && <p className="text-[11px] text-ink-soft">{s.sub}</p>}
+                    </div>
+                  ))}
+                  {/* The same percentile as the pop-up and baskets; kept out of `stats`, which also feeds the FAQ. */}
+                  <div className="rounded-xl border border-line bg-panel p-4">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">Trend</p>
+                      <InfoTip label="About Trend">
+                        {TREND_NOTE}
+                        <MethodLink ticker={c.ticker} />
+                      </InfoTip>
+                    </div>
+                    <p className={"mt-1 text-base font-semibold sm:text-lg " + (s0.trend == null ? "text-ink-soft" : "text-ink")}>{trendLabel(s0.trend)}</p>
+                  </div>
                 </div>
                 {/* These are the seed snapshot, not live - say so, since the live card one click below will differ. */}
+                {s0.reit && <p className="mt-2 text-[11px] leading-snug text-ink-soft">n/m = not meaningful for a REIT. {REIT_NOTE}</p>}
                 <p className="mt-2 text-xs text-ink-soft">
-                  Company snapshot as of {asOf}: the same figures in the live card, baskets and watchlist. The live card updates only the price
-                  and chart.
+                  <span className="mr-1 inline-flex align-middle">
+                    <InfoTip label="About these figures">{KEY_STATS_NOTE}</InfoTip>
+                  </span>
+                  Snapshot as of {asOf}; the live card updates price and chart only.
                 </p>
+                {pe && <PeContextView ctx={pe} ticker={c.ticker} className="mt-5 rounded-xl border border-line bg-panel p-4" />}
               </section>
             )}
 

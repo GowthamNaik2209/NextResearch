@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 // rendered and the refreshing stops. Quick at first, then further apart: about two minutes in all.
 const WAITS_MS = [4_000, 4_000, 8_000, 8_000, 15_000, 15_000, 30_000, 30_000];
 
-export function ProjectionStatsPending() {
+export function ProjectionStatsPending({ children }: { children?: React.ReactNode } = {}) {
   const router = useRouter();
   useEffect(() => {
     let step = 0;
@@ -41,8 +41,12 @@ export function ProjectionStatsPending() {
   }, [router]);
   return (
     <p role="status" className="text-[11px] leading-snug text-ink-soft">
-      Projections are using estimates while today&rsquo;s price statistics load (a beta of 1 and volatility from the 52-week range). They
-      update by themselves in a moment.
+      {children ?? (
+        <>
+          Projections are using estimates while today&rsquo;s price statistics load (a beta of 1 and volatility from the 52-week range). They
+          update by themselves in a moment.
+        </>
+      )}
     </p>
   );
 }

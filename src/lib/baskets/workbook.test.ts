@@ -40,7 +40,7 @@ const proj = (r: number) => ({
   tilt: 0.0075,
   ret: { "1": [r - 0.1, r, r + 0.1] as [number, number, number], "2": [r, r * 2, r * 3] as [number, number, number] },
 });
-const stock = (ticker: string, p: BasketStock["proj"]): BasketStock => ({ ticker, name: `${ticker} Ltd`, mcapCr: 1000, pe: 20, role: "", layer: "Layer", industries: [{ slug: "ev4w", name: "EV" }], layerIn: {}, proj: p });
+const stock = (ticker: string, p: BasketStock["proj"]): BasketStock => ({ ticker, name: `${ticker} Ltd`, mcapCr: 1000, pe: 20, trend: 1, role: "", layer: "Layer", industries: [{ slug: "ev4w", name: "EV" }], layerIn: {}, proj: p });
 
 test("xlsx: column names, sheet names, a valid zip with every part", () => {
   assert.equal(colName(0), "A");
@@ -83,11 +83,12 @@ test("workbook: every sheet, projections with picks and the left-out stock", () 
   });
   assert.deepEqual(sheets.map((s) => s.name), ["Overview", "Stocks", "Backtest stats", "Backtest series", "Projection", "Projection path", "Method"]);
   const stocksSheet = sheets[1].rows;
-  assert.equal(stocksSheet[3][11], "No");
-  assert.equal(stocksSheet[3][12], "2 years of results (needs 3)");
-  // v2 columns: beta, its source, volatility % and the 2Y Bull at the end.
   const head = stocksSheet[0];
   const col = (name: string) => head.indexOf(name);
+  assert.equal(stocksSheet[3][col("Projected?")], "No");
+  assert.equal(stocksSheet[3][col("Left out because")], "2 years of results (needs 3)");
+  assert.equal(stocksSheet[1][col("Trend (past-year return percentile among covered stocks)")], "1st percentile");
+  // v2 columns: beta, its source, volatility % and the 2Y Bull at the end.
   assert.equal(stocksSheet[1][col("Beta")], 1.1);
   assert.equal(stocksSheet[1][col("Beta source")], "2Y weekly vs Nifty 50");
   assert.equal(stocksSheet[1][col("Volatility %")], 30);
@@ -100,7 +101,7 @@ test("workbook: every sheet, projections with picks and the left-out stock", () 
   assert.equal(sheets[4].rows.find((r) => r[0] === "Next 2 years")![3], 26.25);
   // The method sheet carries the market inputs and their dates.
   const method = sheets[6].rows.map((r) => r[0]).join("\n");
-  assert.match(method, /7\.47% \(23 Oct 2026\)/);
+  assert.match(method, /RBI policy repo rate, 5\.50% \(7 Oct 2026\)/);
   assert.match(method, /7\.08% \(Jan 2026\)/);
   // Your picks: A and C, C left out, so A alone: 20%.
   const picksAt = sheets[4].rows.findIndex((r) => r[0] === "Your 2 picks");

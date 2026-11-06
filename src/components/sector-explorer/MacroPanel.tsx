@@ -231,9 +231,7 @@ export function MacroPanel({
       </div>
 
       <p className="fine">
-        Readings are an illustrative reading of the economy, not a forecast: each industry and named company is rated by how directly it is
-        exposed, summed across the scenarios picked. The ranking is what happened in past episodes, which never repeat exactly. Information
-        only, not investment advice.
+        Illustrative, from past episodes, not a forecast or investment advice.
       </p>
     </>
   );

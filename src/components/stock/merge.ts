@@ -23,6 +23,8 @@ export type Stats = {
   cagr1y: number | null;
   cagr3y: number | null;
   cagr5y: number | null;
+  /** Percentile of the 1Y return among covered companies, 0-100 (financials/trend.ts); null under a year listed. */
+  trend: number | null;
   /** Date of the company-table snapshot every figure but the price comes from ("20 Oct 2026"). */
   asOf: string | null;
   /** The price is a live (fresh) exchange quote. */
@@ -71,6 +73,7 @@ export function mergeStats(f: SupplierFinancials | undefined, api: StockApi | nu
     cagr1y: at(f?.cagr, 0),
     cagr3y: at(f?.cagr, 1),
     cagr5y: at(f?.cagr, 2),
+    trend: f?.trend ?? null,
     asOf: f?.asOf ?? api?.seedAsOf ?? null,
     liveQuote: !!quote,
     reit: isReit(f?.ticker ?? api?.ticker, api),

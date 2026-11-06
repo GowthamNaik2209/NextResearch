@@ -17,6 +17,8 @@ import { croreFromLabel, fmtPrice, freshQuote, pctTone } from "@/components/stoc
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { WatchlistRow } from "./WatchlistRow";
 import { WatchlistBacktest, WatchlistNewsGate } from "./WatchlistLive";
+import { BriefToggle } from "./BriefToggle";
+import { briefEnabled } from "@/lib/brief/prefs";
 
 export const metadata = { title: "Watchlist", robots: { index: false, follow: false } };
 
@@ -44,7 +46,8 @@ export default async function WatchlistPage() {
     select: { id: true, priceAtAdd: true, addedAt: true, company: { select: { ticker: true, name: true } } },
     orderBy: { addedAt: "desc" },
   });
-  const live = await quotes(rows.map((r) => r.company.ticker));
+  // On when it can't be read (a database blip), as it is for everyone who hasn't turned it off.
+  const [live, brief] = await Promise.all([quotes(rows.map((r) => r.company.ticker)), briefEnabled(user.id).catch(() => true)]);
   const basketable = rows.map((r) => r.company.ticker).filter((t) => basketStock(t));
 
   return (
@@ -58,9 +61,12 @@ export default async function WatchlistPage() {
               Companies you&rsquo;ve saved by tapping the heart next to a ticker anywhere in the explorer.
             </p>
           </div>
-          {basketable.length > 0 && (
-            <WatchlistBacktest tickers={basketable} className="min-h-10 rounded-lg border border-btn px-4 text-sm font-semibold text-ink hover:bg-accent/10" />
-          )}
+          <div className="flex flex-wrap items-center gap-3">
+            <BriefToggle initial={brief} />
+            {basketable.length > 0 && (
+              <WatchlistBacktest tickers={basketable} className="min-h-10 rounded-lg border border-btn px-4 text-sm font-semibold text-ink hover:bg-accent/10" />
+            )}
+          </div>
         </div>
 
         {rows.length === 0 ? (

@@ -42,7 +42,7 @@ const cachedBench = unstable_cache(
     if (!pts?.length) throw new Error("no Nifty 50 series");
     return pts;
   },
-  ["industry-figures-bench-1y-v1"],
+  ["industry-figures-bench-1y-v2"],
   { revalidate: REVALIDATE_SECONDS },
 );
 const cachedFigure = unstable_cache(
@@ -57,8 +57,8 @@ const cachedFigure = unstable_cache(
     if (!fig) throw new Error(`no backtest for ${slug}`);
     return fig;
   },
-  // v3: measured over the Nifty 50's window (periods.ts periodFigures).
-  ["industry-figures-1y-v3"],
+  // v4: ranges run back from the last close (store.ts), as the stored period figures do.
+  ["industry-figures-1y-v4"],
   { revalidate: REVALIDATE_SECONDS },
 );
 

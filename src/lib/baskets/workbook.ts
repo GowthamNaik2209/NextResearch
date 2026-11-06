@@ -2,6 +2,7 @@
 // statistics, each stock's weights, returns and contribution, the basket's value line with the
 // Nifty 50 rebased beside it, and the projections with every stock's assumptions), never raw vendor
 // prices. Pure, so it is unit-tested; the page gathers the inputs and saves the file.
+import { trendLabel } from "../financials/trend";
 import type { BacktestExcluded, BacktestHolding, PricePoint } from "./backtest";
 import type { BasketStock } from "./industry";
 import type { Rebalance } from "./rebalance";
@@ -50,7 +51,7 @@ const pct = (v: number | null | undefined) => (v == null ? null : r2(v * 100));
 const CASE = { bear: "Bear", base: "Base", bull: "Bull" } as const;
 const BETA_SOURCE = { prices: "2Y weekly vs Nifty 50", default: "1 (no 2Y history)" } as const;
 const VOL_SOURCE = { prices: "1Y realised", range: "est. from 52-week range", floor: `floor (${Math.round(VOL_FLOOR * 100)}%)` } as const;
-/** A market input (a fraction) as a percentage in text: "7.47%". */
+/** A market input (a fraction) as a percentage in text: "5.50%". */
 const pc = (v: number) => `${(v * 100).toFixed(2)}%`;
 
 function sheet(name: string, rows: Cell[][], bold: number[], widths?: number[], freezeTop = false): Sheet {
@@ -110,6 +111,7 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
       "End %",
       "Return %",
       "Pts added",
+      "Trend (past-year return percentile among covered stocks)",
       "P/E",
       "Mcap Rs Cr",
       "Projected?",
@@ -145,6 +147,7 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
         pct(b?.endWeight),
         r2(b?.ret),
         r2(b?.contribution),
+        s.trend == null ? null : trendLabel(s.trend),
         r2(s.pe),
         r2(s.mcapCr),
         p?.ok ? "Yes" : "No",
@@ -204,7 +207,8 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
       bold.push(rows.length);
       rows.push(["Not in the backtest", "Name", "Reason"]);
       for (const e of x.backtest.excluded) {
-        const why = e.reason === "late" ? `listed during the period${e.from ? ` (from ${e.from.slice(0, 10)})` : ""}` : e.reason === "zero" ? "set to 0%" : "no price data";
+        const since = e.ret != null ? `, ${e.ret >= 0 ? "+" : ""}${e.ret.toFixed(1)}% since listing` : "";
+        const why = e.reason === "late" ? `listed during the period${e.from ? ` (from ${e.from.slice(0, 10)}${since})` : ""}` : e.reason === "zero" ? "set to 0%" : "no price data";
         rows.push([e.ticker, byTicker.get(e.ticker)?.name ?? null, why]);
       }
     }
@@ -304,19 +308,24 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
     const lines: Cell[][] = [
       ["Backtest"],
       [`Bought on the first day of the period at the weighting's target weights and ${x.strategy.rebalance === "never" ? "held without rebalancing" : rebalanceLabel(x.strategy)}. Price change only: no dividends, costs or taxes. Stocks listed during the period are left out of it.`],
+      ["Stocks listed during the period are left out of the backtest; the Backtest stats sheet lists each with its own move since listing."],
+      [],
+      ["Trend"],
+      ["Where the stock's past-year price return ranks among covered stocks, as a percentile: (companies with a lower return + half of those with the same) ÷ (companies ranked − 1) × 100. Under a year listed: none. It describes the past year and is not part of the projection."],
+      [`Full method with a worked example: ${x.url.replace(/\/baskets\/.*$/, "")}/baskets/signals`],
       [],
       ["Projection"],
       [`Only stocks with at least ${MIN_YEARS} consecutive fiscal years of revenue and net profit, ${MIN_YEARS} years of trading, and a price and market cap are projected; a left-out stock's share is spread over the rest in proportion.`],
-      [`Market return = rf + beta × ERP − dividend yield, a year. rf: India 10-year G-sec yield, ${pc(MARKET.rf)} (${MARKET.rfAsOf}). ERP: Damodaran's total equity risk premium for India, ${pc(MARKET.erp)} (${MARKET.erpAsOf}). Dividend yield is taken off because this is a price projection.`],
+      [`Market return = rf + beta × ERP − dividend yield, a year. rf: the RBI policy repo rate, ${pc(MARKET.rf)} (${MARKET.rfAsOf}). ERP: Damodaran's total equity risk premium for India, ${pc(MARKET.erp)} (${MARKET.erpAsOf}). Dividend yield is taken off because this is a price projection.`],
       [`Beta: 2 years of weekly returns against the Nifty 50, Blume-adjusted: ${BLUME_WEIGHT} × measured + ${(1 - BLUME_WEIGHT).toFixed(2)}. Under 2 years of prices: 1.`],
       [`Volatility (σ): the last year's realised volatility, annualised (estimated from the 52-week range, ln(high ÷ low) ÷ √(8/π), while the price history loads), never below ${Math.round(VOL_FLOOR * 100)}%.`],
       [`Fundamentals score = (1 + revenue growth) × (margin a year on ÷ margin now) − 1, with today's P/E held. Growth: the usual rate (lowest of the median year, the CAGR and, if the latest year slowed, their average) faded ${Math.round(GROWTH_FADE * 100)}% toward ${Math.round(LONG_RUN_GROWTH * 100)}%, kept within −25% and +40%. Margin: moves a third of the way from today's toward the average of its own median margin and its home industry's, by at most ${Math.round(MARGIN_SHIFT_A_YEAR * 100)}% of today's; a one-off year is left out.`],
       [`z = (score − median score) ÷ standard deviation, over every covered company, kept within ±${Z_MAX}. Tilt = IC ${IC} × σ × z. Loss-makers (no positive P/E, latest-year profit or usual margin): no tilt, the market return only.`],
-      [`Base: 1 year = market return + tilt; 2 years = (1 + market return) × (1 + market return + tilt) − 1 (the tilt counts once, in the first year).`],
-      [`Bear / Bull = (1 + Base) × e^(−σ² h / 2 ∓ ${Z80.toFixed(2)} σ √h) − 1: the 10th and 90th percentile of a lognormal outcome at the stock's own volatility. Out of sample over three one-year periods (Oct 2024 to Oct 2026), the Bear-to-Bull range held 91%, 90% and 81% of actual one-year outcomes (aim 80%).`],
-      ["Base is not a ranking or stock-picking signal: across stocks it mostly reflects beta (its rank correlation with actual outcomes was +0.01, +0.01 and −0.11 in the same test)."],
+      [`Average: 1 year = market return + tilt; 2 years = (1 + market return) × (1 + market return + tilt) − 1 (the tilt counts once, in the first year).`],
+      [`Base = (1 + average) × e^(−σ² h / 2) − 1, the typical (median) outcome. Bear / Bull = (1 + Base) × e^(∓${Z80.toFixed(2)} σ √h) − 1: the 10th and 90th percentile at the stock's own volatility. Run on every covered stock as it stood 1 and 2 years ago, 85% to 91% of outcomes ended between Bear and Bull (aim 80%).`],
+      ["Base is not a ranking or stock-picking signal: across stocks it mostly reflects beta (its rank correlation with actual outcomes was +0.01, +0.13 and +0.15 in the same test)."],
       ["Basket: bought today at the target weights and held; each case = Σ weight × the stock's same case; points added = weight × return. So the basket's Bear and Bull have every stock at its own 10th or 90th percentile at once, wider than the basket's real range; the likely range below is the basket-level range."],
-      ["Likely range and risk figures: 1,000 simulated weekly paths around the Base case whichever case is chosen (average = the Base return, the typical path a little below it), swinging like the basket's past year; the likely range is the 10th to 90th percentile."],
+      ["Likely range and risk figures: 1,000 simulated weekly paths around the Base case whichever case is chosen (the typical path ends at the Base return), swinging like the basket's past year; the likely range is the 10th to 90th percentile."],
       [`Full method with a worked example: ${x.url.replace(/\/baskets\/.*$/, "")}/baskets/projections`],
       [],
       [x.disclaimer],

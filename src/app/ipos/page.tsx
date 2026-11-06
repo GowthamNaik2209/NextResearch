@@ -27,15 +27,12 @@ export default async function IposPage({ searchParams }: { searchParams: Promise
         <div>
           <h1 className="font-display text-3xl font-bold text-ink">IPOs</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            The biggest issues in the pipeline and the latest large listings, each draft or red herring prospectus read for you: how the issue is split
-            between fresh capital and an offer for sale, what the business does, its restated financials, where the money goes, who is
-            selling, how it prices against listed peers and the risk factors that matter.
+            Big issues in the pipeline and recent listings, each prospectus read for you.
           </p>
         </div>
         <IpoGrid ipos={ipos} initial={ipo} initialDeck={initialDeck} />
         <p className="text-xs text-ink-soft">
-          Compiled from offer documents filed with SEBI and the exchanges, and from dated public reporting. Price bands, issue sizes and
-          dates can change until the final prospectus. Not investment advice.
+          From offer documents and dated reporting; terms can change until the final prospectus. Not investment advice.
         </p>
       </main>
       <SiteFooter />

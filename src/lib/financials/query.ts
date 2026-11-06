@@ -6,6 +6,9 @@ import type { PrismaClient } from "@/generated/prisma/client";
 import type { SupplierFinancials } from "@/lib/sector-content";
 import { FISCAL_YEARS, rowToFinancials, type CompanyFinRow } from "./rows";
 import { publishedCutoff } from "./trading-day";
+import { withTrend } from "./trend";
+import { withNifty } from "./key-ratios";
+import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 
 let warnedNoRunsTable = false;
 
@@ -65,7 +68,8 @@ export async function readCompanyTableAt(prisma: PrismaClient, cutoff: Date | nu
     }),
     latestKpis(prisma, cutoff),
   ]);
-  return Object.fromEntries(
+  // Each company's Trend percentile is ranked over this same table, so it moves with the published date.
+  const table = withTrend(Object.fromEntries(
     rows.flatMap(({ id, ...r }) => {
       const k = kpis.get(id);
       // Held to a published date, a company whose first snapshot is newer (an IPO a run is adding)
@@ -73,7 +77,33 @@ export async function readCompanyTableAt(prisma: PrismaClient, cutoff: Date | nu
       if (!k && r._count.kpis > 0) return [];
       return [[r.ticker, rowToFinancials({ ...r, kpis: k ? [k] : [] })]];
     }),
-  );
+  ));
+  // The Nifty 50's 1Y return to each company's snapshot day (nearly all share one), for "1Y vs Nifty".
+  const asOfDay = new Map(rows.flatMap((r) => {
+    const k = kpis.get(r.id);
+    return k && table[r.ticker] ? [[r.ticker, k.asOf.toISOString().slice(0, 10)] as const] : [];
+  }));
+  return withNifty(table, asOfDay, await niftyCloses(prisma, [...asOfDay.values()]));
+}
+
+/** The stored Nifty 50 closes from a year (and a week) before the earliest day to the latest; none when the store can't say. */
+async function niftyCloses(prisma: PrismaClient, days: string[]): Promise<{ t: string; c: number }[]> {
+  if (!days.length) return [];
+  const sorted = [...days].sort();
+  const from = new Date(Date.parse(sorted[0]) - 372 * 86_400_000);
+  try {
+    const bars = await prisma.priceBar.findMany({
+      where: { key: BENCHMARKS.nifty50.symbol, day: { gte: from, lte: new Date(`${sorted[sorted.length - 1]}T00:00:00Z`) } },
+      orderBy: { day: "asc" },
+      select: { day: true, close: true },
+    });
+    return bars.map((b) => ({ t: b.day.toISOString().slice(0, 10), c: b.close }));
+  } catch (e) {
+    // One optional tile: a failed read (the store's tables not created yet, a pooler timeout) leaves
+    // it blank and never fails the whole table.
+    if ((e as { code?: string }).code !== "P2021") console.warn("company table: Nifty closes not read", e);
+    return [];
+  }
 }
 
 /** The table as the site shows it, with the published date it is held to. */

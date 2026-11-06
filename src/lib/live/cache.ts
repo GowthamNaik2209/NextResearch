@@ -7,7 +7,7 @@ const inflight = new Map<string, { at: number; promise: Promise<unknown> }>();
 // later caller for that key too; after this long a new caller starts a fresh load instead.
 export const INFLIGHT_MAX_MS = 30_000;
 
-/** `brief`: a value it calls true for is held only briefly too, like a failed (null) load. */
+/** `brief`: a value it calls true for (a partial answer: some prices still loading) is held 10 s, so a re-ask soon fills it in. */
 export async function cached<T>(key: string, ttlMs: number, load: () => Promise<T>, brief?: (value: T) => boolean): Promise<T> {
   const hit = store.get(key);
   if (hit && Date.now() - hit.at < ttlMs) return hit.value as T;
@@ -18,7 +18,8 @@ export async function cached<T>(key: string, ttlMs: number, load: () => Promise<
     .then((value) => {
       // A failed (null) load is only remembered for a minute so an upstream
       // rate-limit/blip doesn't pin "no data" for the full TTL.
-      store.set(key, { at: value == null || brief?.(value) ? Date.now() - ttlMs + Math.min(ttlMs, 60_000) : Date.now(), value });
+      const hold = value == null ? 60_000 : brief?.(value) ? 10_000 : null;
+      store.set(key, { at: hold == null ? Date.now() : Date.now() - ttlMs + Math.min(ttlMs, hold), value });
       return value;
     })
     .finally(() => {

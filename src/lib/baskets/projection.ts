@@ -1,5 +1,5 @@
 // One stock's price projection, 1 and 2 years ahead, in a Bear, Base and Bull case (docs/PROJECTIONS.md).
-// Base is the return the market prices in for the stock's risk (CAPM: the 10-year G-sec yield plus
+// Base is the return the market prices in for the stock's risk (CAPM: the RBI repo rate plus
 // its beta times India's equity risk premium, less its dividend yield, since this is a price
 // projection), tilted a little by its fundamentals (Grinold-Kahn: IC x volatility x score). Bear and
 // Bull are the 10th and 90th percentiles of a lognormal year at the stock's own 1-year realised
@@ -17,9 +17,12 @@ export const MIN_YEARS = 3;
 
 /** Market inputs, updated by hand (sources in docs/PROJECTIONS.md). Fractions. */
 export const MARKET = {
-  /** India 10-year G-sec yield. */
-  rf: 0.0747,
-  rfAsOf: "23 Oct 2026",
+  /**
+   * The risk-free rate: the RBI's policy repo rate. It carries no sovereign default spread, which the
+   * ERP's country premium already holds (the G-sec yield carries it too, so it would count twice).
+   */
+  rf: 0.055,
+  rfAsOf: "7 Oct 2026",
   /** Damodaran's total equity risk premium for India (mature market premium plus India's country premium). */
   erp: 0.0708,
   erpAsOf: "Jan 2026",
@@ -132,7 +135,9 @@ export type ProjectionContext = {
   market: number;
   /** IC x vol x z. */
   tilt: number;
-  /** Base, a year: market + tilt (what casesFor gives for h = 1). */
+  /** The average outcome, a year: market + tilt. */
+  mean1: number;
+  /** Base, a year: the typical (median) outcome, (1 + market + tilt) e^(-vol^2 / 2) - 1 (what casesFor gives for h = 1). */
   base1: number;
 };
 
@@ -322,23 +327,25 @@ export function explainStock(x: ProjectionInput, scale: ScoreScale): { ok: false
       erp: MARKET.erp,
       market,
       tilt,
-      base1: market + tilt,
+      mean1: market + tilt,
+      base1: (1 + market + tilt) * Math.exp((-vol * vol) / 2) - 1,
     },
   };
 }
 
 /**
- * The three cases over h years. Base: a year, market return + tilt; two years, that year then a
- * year at the market return, (1 + market) (1 + market + tilt) - 1 (a one-year signal isn't carried
- * into the second year). Bear and Bull: the 10th and 90th
- * percentiles of a lognormal outcome with that mean, (1 + Base) e^(-vol^2 h / 2 -/+ 1.28 vol sqrt h) - 1.
- * (The middle of that range, the median, sits below Base: a volatile stock's typical year is below its average one.)
+ * The three cases over h years, from a lognormal outcome whose average is the market return plus
+ * the tilt (a year: market + tilt; two years: (1 + market) (1 + market + tilt) - 1, a one-year
+ * signal isn't carried into the second year). Base is its typical (median) outcome,
+ * (1 + average) e^(-vol^2 h / 2) - 1: a volatile stock's typical year is below its average one, and
+ * the average is pulled up by a few big winners. Bear and Bull: its 10th and 90th percentiles,
+ * (1 + Base) e^(-/+ 1.28 vol sqrt h) - 1.
  */
 export function casesFor(c: Pick<ProjectionContext, "market" | "tilt" | "vol">, h: Horizon): [number, number, number] {
-  const base = Math.pow(1 + c.market, h - 1) * (1 + c.market + c.tilt) - 1;
-  const mid = (1 + base) * Math.exp((-c.vol * c.vol * h) / 2);
+  const mean = Math.pow(1 + c.market, h - 1) * (1 + c.market + c.tilt) - 1;
+  const mid = (1 + mean) * Math.exp((-c.vol * c.vol * h) / 2);
   const w = Z80 * c.vol * Math.sqrt(h);
-  return [mid * Math.exp(-w) - 1, base, mid * Math.exp(w) - 1];
+  return [mid * Math.exp(-w) - 1, mid - 1, mid * Math.exp(w) - 1];
 }
 
 export function projectStock(x: ProjectionInput, scale: ScoreScale): StockProjection {

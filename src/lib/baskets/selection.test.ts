@@ -5,7 +5,7 @@ import { MAX_BASKET_STOCKS } from "./limits";
 import { DISTINCT_LINES, MAX_CHART_STOCKS, initSelection, planAdd, selectionReducer as reduce, type SelectionState } from "./selection";
 import { weightsTotal } from "./strategy";
 
-const stock = (ticker: string): BasketStock => ({ ticker, name: ticker, mcapCr: 100, pe: 10, role: "", layer: "", industries: [], layerIn: {} });
+const stock = (ticker: string): BasketStock => ({ ticker, name: ticker, mcapCr: 100, pe: 10, trend: null, role: "", layer: "", industries: [], layerIn: {} });
 const tickers = (s: SelectionState) => s.stocks.map((x) => x.ticker);
 const chart = (picks: Record<string, number> = {}) => ({ benches: [], compare: [], picks });
 const start = (list: string[], custom: Record<string, number> | null = null, picks: Record<string, number> = {}) =>

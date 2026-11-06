@@ -668,7 +668,7 @@ export function BasketChart({
       <p className="text-[11px] leading-relaxed text-ink-soft">
         {projection ? (
           <>
-            Weekly steps from the last close, every line from 0% today; {single ? "the stock grows" : "each stock grows"} smoothly to its projected return. The likely range is from 1,000 simulated paths around the Base case, whichever case is chosen, that swing like the {single ? "stock" : "basket"} did over the past year. Indices aren&rsquo;t projected. Model projection from market pricing, past prices and reported financials, not a forecast or a recommendation.
+            Each line runs from 0% today to its projected return; the likely range is from 1,000 simulated paths around Base. Indices aren&rsquo;t projected.
           </>
         ) : (
           <>

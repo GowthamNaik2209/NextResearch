@@ -20,8 +20,9 @@ export type BacktestHolding = {
   joined?: string;
 };
 
-/** Left out: no prices, listed mid-period ("late"), or set to 0% in a custom weighting ("zero"). */
-export type BacktestExcluded = { ticker: string; reason: "no-data" | "late" | "zero"; from?: string };
+/** Left out: no prices, listed mid-period ("late"), or set to 0% in a custom weighting ("zero"). A late
+ * stock carries its own return since its first bar (`ret`, %), shown on its row though the basket leaves it out. */
+export type BacktestExcluded = { ticker: string; reason: "no-data" | "late" | "zero"; from?: string; ret?: number };
 
 export type BacktestResult = {
   /** Basket value, 100 on the first day. */
@@ -76,7 +77,7 @@ export function splitHeld(input: BacktestInput[], slackDays: number, opts: JoinO
   const start = basketStart(withData);
   const held = withData.filter((s) => {
     const out = isLate(s, start, slackDays) && !(opts.joinLate || s.from);
-    if (out) excluded.push({ ticker: s.ticker, reason: "late", from: s.points[0].t });
+    if (out) excluded.push({ ticker: s.ticker, reason: "late", from: s.points[0].t, ret: (s.points[s.points.length - 1].c / s.points[0].c - 1) * 100 });
     return !out;
   });
   return { held, excluded };

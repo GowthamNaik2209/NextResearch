@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ChartRange } from "@/lib/live/yahoo";
-import { loadSeries, type Load } from "./series";
+import { forgetSeries, loadSeries, type Load } from "./series";
+
+// A backtest that answered with some stocks' prices still loading is asked again this often, a few
+// times, keeping the partial answer on screen meanwhile (its rows say those stocks are loading).
+const PENDING_RETRY_MS = 6_000;
+const PENDING_TRIES = 8;
 
 // Every mounted useSeries, so any Retry asks again for every line that failed, in every panel: the
 // panels of a page share each download, and one panel recovering while the next still says "no
@@ -35,7 +40,15 @@ export function useSeries(keys: (string | null | undefined)[], range: ChartRange
       if (loads[id]) continue;
       // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the series as loading, then fetches it
       setLoads((m) => ({ ...m, [id]: { status: "loading" } }));
-      loadSeries(key, range).then((r) => setLoads((m) => ({ ...m, [id]: r })));
+      const settle = (r: Load, tries: number) => {
+        setLoads((m) => ({ ...m, [id]: r.status === "ok" || !m[id] || m[id].status !== "ok" ? r : m[id] }));
+        if (r.status === "ok" && r.data.pending?.length && tries < PENDING_TRIES)
+          setTimeout(() => {
+            forgetSeries(key, range);
+            loadSeries(key, range).then((next) => settle(next, tries + 1));
+          }, PENDING_RETRY_MS);
+      };
+      loadSeries(key, range).then((r) => settle(r, 0));
     }
   }, [sig, range, loads]);
 

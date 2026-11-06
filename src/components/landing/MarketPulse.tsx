@@ -263,7 +263,9 @@ function MarketHeat({ tiles, figures, period }: { tiles: MarketTile[]; figures: 
           href: `/sector/${t.slug}`,
           title: `${t.name}${v != null ? `: ${signedPct(v)} over ${PERIOD_WORDS[period]}` : figures ? `: ${period} figure updating` : ""} · open it`,
         };
-      }),
+      })
+        // Best first, as on the Baskets page (a tile still without a figure keeps its A-Z place at the end).
+        .sort((a, b) => (a.value == null ? (b.value == null ? 0 : 1) : b.value == null ? -1 : b.value - a.value)),
     [tiles, byslug, figures, updating, period],
   );
   const scale = heatScale(cells.map((c) => c.value));
@@ -271,7 +273,7 @@ function MarketHeat({ tiles, figures, period }: { tiles: MarketTile[]; figures: 
     <div className="flex flex-col gap-2 rounded-md border border-line bg-panel p-2 sm:p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-[11px] text-ink-soft sm:text-xs">
-          Industries &amp; policies · return over <b className="font-semibold text-ink">{PERIOD_WORDS[period]}</b>
+          Industries &amp; policies · return over <b className="font-semibold text-ink">{PERIOD_WORDS[period]}</b>, best first
         </h3>
         <span title="The Nifty 50 over the same days, for reference" className="flex items-baseline gap-1.5 rounded-full border border-line px-2.5 py-0.5 text-[11px] sm:text-xs">
           <span className="text-ink-soft">Nifty 50 · {period}</span>

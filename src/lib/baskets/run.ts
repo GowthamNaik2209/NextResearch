@@ -183,6 +183,6 @@ export async function backtestBasket(tickers: string[], range: ChartRange, strat
     });
     const daily = range === "1M" ? dayMoves(stocks.map((s, i) => ({ ticker: s.ticker, points: series[i]?.points ?? null }))) : null;
     return { range, weighting: strategy.weighting, strategy, ...result, last, ...(daily ?? {}), ...(pending.length ? { pending } : {}) };
-    // A stock's prices still loading (Yahoo slow): kept a minute, not the full TTL.
+    // A stock's prices still loading (Yahoo slow): kept 10 s, not the full TTL (the page asks again).
   }, pricesPending);
 }

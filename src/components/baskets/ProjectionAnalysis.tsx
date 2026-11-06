@@ -7,7 +7,7 @@ import { fmtDay, NA, pct, signedPct } from "@/lib/format";
 import { GROWTH_FADE, IC, LONG_RUN_GROWTH, MARKET, SCENARIOS, VOL_FLOOR, type Scenario, type StockProjection } from "@/lib/baskets/projection";
 import { stockPath } from "@/lib/baskets/projection-basket";
 import { MINI_SEG, Panel, miniSegBtn } from "./Panel";
-import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, simNote, type ProjectionView } from "./projection-view";
+import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, type ProjectionView } from "./projection-view";
 
 // Projection analysis, in the backtest analysis' place with Projections on (docs/PROJECTIONS.md):
 // how far the simulated paths fall from a high, the chosen case beside the other cases and the
@@ -149,7 +149,7 @@ function DrawdownView({ view, it }: { view: ProjectionView; it: string }) {
             </tbody>
           </table>
         </div>
-        <p className="px-3 py-1.5 text-[10px] leading-snug text-ink-soft">{simNote(it === "stock" ? "stock" : "basket")} The chart shows each week&rsquo;s fall below the high so far; the table, the deepest fall over the whole year, so the two can differ.</p>
+        <p className="px-3 py-1.5 text-[10px] leading-snug text-ink-soft">From 1,000 simulated paths around Base. The chart shows each week&rsquo;s fall from the high; the table, the deepest over the year.</p>
       </div>
     </div>
   );
@@ -213,7 +213,7 @@ function AssumptionsView({ view, single }: { view: ProjectionView; single: boole
               <Th left title="Fiscal years of results used">Years</Th>
               <Th title="Beta to the Nifty 50 from 2 years of weekly returns, pulled a third of the way to 1">Beta</Th>
               <Th title={`Annual volatility used for Bear and Bull: its last year's, never below ${pct(VOL_FLOOR * 100, 0)}`}>Volatility</Th>
-              <Th title={`G-sec ${rf} + beta x ERP ${erp} - dividend yield, a year`}>Market return a year</Th>
+              <Th title={`Repo rate ${rf} + beta x ERP ${erp} - dividend yield, a year`}>Market return a year</Th>
               <Th title="IC 0.05 x volatility x standardised fundamentals score, added once">Fundamentals tilt</Th>
               <Th title={`Projected return over the next ${HORIZON_LONG[h]}: bear / base / bull; the chosen case in bold`}>Bear / Base / Bull</Th>
             </tr>
@@ -227,7 +227,7 @@ function AssumptionsView({ view, single }: { view: ProjectionView; single: boole
       </div>
       <ul className="flex flex-col gap-0.5 border-t border-line px-3 py-1.5 text-[10px] leading-snug text-ink-soft">
         <li>
-          <b className="font-semibold text-ink">Market return</b>: the return the market prices in for the stock&rsquo;s risk: the 10-year G-sec yield ({rf}, {MARKET.rfAsOf}) plus its beta times
+          <b className="font-semibold text-ink">Market return</b>: the return the market prices in for the stock&rsquo;s risk: the RBI repo rate ({rf}, {MARKET.rfAsOf}) plus its beta times
           India&rsquo;s equity risk premium ({erp}, Damodaran, {MARKET.erpAsOf}), less its dividend yield, since this is a price projection.
         </li>
         <li>
@@ -242,8 +242,8 @@ function AssumptionsView({ view, single }: { view: ProjectionView; single: boole
           it is measured against every covered company. Loss-makers (no positive P/E or margin) get the market return only.
         </li>
         <li>
-          <b className="font-semibold text-ink">Base</b> = market return + tilt (2 years: the market return compounded, the tilt once). <b className="font-semibold text-ink">Bear / Bull</b>: the 10th and 90th
-          percentile of a year at the stock&rsquo;s own volatility, (1 + Base) × e<sup>−σ²h/2 ∓ 1.28σ√h</sup> − 1; 2 years is √2 wider. Base mostly reflects beta{single ? ", so it isn’t a signal to buy or sell." : <>, so it isn&rsquo;t a ranking of the stocks.</>}
+          <b className="font-semibold text-ink">Base</b>: the typical outcome, (1 + market return + tilt) × e<sup>−σ²h/2</sup> − 1 (2 years: the market return compounded, the tilt once).{" "}
+          <b className="font-semibold text-ink">Bear / Bull</b>: the 10th and 90th percentile at the stock&rsquo;s own volatility, (1 + Base) × e<sup>∓1.28σ√h</sup> − 1; 2 years is √2 wider. Base mostly reflects beta{single ? ", so it isn’t a signal to buy or sell." : <>, so it isn&rsquo;t a ranking of the stocks.</>}
         </li>
         <li>{PROJECTION_DISCLAIMER} <Link href="/baskets/projections" className="font-semibold text-accent underline">Full method, with a worked example</Link>.</li>
       </ul>

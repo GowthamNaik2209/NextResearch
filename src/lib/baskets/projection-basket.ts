@@ -119,14 +119,14 @@ export type Simulation = {
 const quantile = (sorted: number[], q: number) => sorted[Math.min(sorted.length - 1, Math.max(0, Math.floor(q * sorted.length)))];
 
 /**
- * Weekly paths whose average ends at the basket's return and which swing like the basket did over
- * the past year (vol, a yearly fraction): log-drift (ln(1+R) - vol^2 h / 2) / n a week, so the median
- * path ends below R, as each stock's Bear-Bull range is centred (./projection.ts casesFor).
+ * Weekly paths whose typical (median) one ends at the basket's return and which swing like the
+ * basket did over the past year (vol, a yearly fraction): log-drift ln(1+R) / n a week, as each
+ * stock's Base is its typical outcome (./projection.ts casesFor).
  */
 export function simulate(ret: number, h: Horizon, vol: number, seed: number, paths = 1000): Simulation {
   const n = 52 * h;
   const sig = vol / Math.sqrt(52);
-  const mu = (Math.log(1 + ret) - (vol * vol * h) / 2) / n;
+  const mu = Math.log(1 + ret) / n;
   const r = rng(seed);
   const values: Float64Array[] = [];
   const dds: Float64Array[] = [];

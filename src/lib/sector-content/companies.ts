@@ -4,6 +4,8 @@
 import {
   companyLinkExposure,
   companyLinkKey,
+  getSector,
+  isSideLink,
   linkWeight,
   listSectors,
   primaryLink,
@@ -32,6 +34,8 @@ export type CompanyAppearance = {
   exposure?: string;
   // How central this layer is to the company (linkWeight in ./index).
   weight: number;
+  // A side link (enabler or indirect supplier: a lender beside the chain), not a part of the chain itself.
+  side: boolean;
   supplier: SectorSupplier; // this sector's record (role, strengths, risks)
   // unlisted: not listed on the NSE (a listed company whose figures aren't loaded yet has no slug but isn't unlisted).
   peers: { name: string; slug: string | null; unlisted: boolean }[];
@@ -82,6 +86,7 @@ function build(): Map<string, CompanyPage> {
           role: sup.role,
           exposure: exposureType ? EXPOSURE_TYPE_LABEL[exposureType] : undefined,
           weight,
+          side: isSideLink(link),
           peers,
           supplier: sup,
         });
@@ -106,6 +111,19 @@ export function primaryAppearance(p: CompanyPage): CompanyAppearance {
       p.appearances.filter((a) => a.sectorSlug === home?.slug),
     );
   return (pool.length ? pool : p.appearances).reduce((best, a) => (a.weight > best.weight ? a : best));
+}
+
+// The industry that best describes the company: its home when that is an industry, else its
+// strongest direct link in one (a policy or the Nifty 50 is home to companies an industry also maps,
+// such as Tata Power under the ALMM solar policy), else the home. A side link (SBI as a home-loan
+// lender to real estate) never beats a policy or index home. Equal links go to the industry the company
+// has more of (the sum of its link weights there), then the earlier industry.
+export function primaryIndustry(p: CompanyPage): CompanyAppearance {
+  const home = primaryAppearance(p);
+  if (!getSector(home.sectorSlug)?.category) return home;
+  const direct = p.appearances.filter((a) => !a.side && !getSector(a.sectorSlug)?.category);
+  const depth = (a: CompanyAppearance) => direct.reduce((n, b) => (b.sectorSlug === a.sectorSlug ? n + b.weight : n), 0);
+  return direct.length ? direct.reduce((best, a) => (a.weight > best.weight || (a.weight === best.weight && depth(a) > depth(best)) ? a : best)) : home;
 }
 
 export function listCompanyPages(): CompanyPage[] {
