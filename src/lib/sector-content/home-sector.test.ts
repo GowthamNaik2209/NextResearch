@@ -4,6 +4,7 @@ import { findSupplierByTicker, getSector, isSideLink, linkWeight, listSectors, p
 import { listCompanyPages, primaryAppearance, primaryIndustry } from "./companies";
 import { listCompanyMetrics } from "./insights";
 import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
+import { industryPe, pePeers } from "@/lib/valuation/pe-data";
 
 before(installFinancialsFromDatabase);
 
@@ -84,4 +85,14 @@ test("primary industry: a direct industry link over a policy or index home, neve
     if (!getSector(home.sectorSlug)!.category) assert.equal(ind, home, p.ticker);
     else if (ind !== home) assert.ok(!ind.side && !getSector(ind.sectorSlug)!.category, p.ticker);
   }
+});
+
+// A company that falls back to the Nifty 50 is compared within its bracket of the index.
+test("P/E peers: a Nifty 50 fallback is compared within its bracket", () => {
+  const sbi = pePeers("SBIN")!;
+  assert.equal(sbi.name, "Financial Services (Nifty 50)");
+  assert.ok(sbi.peers.some((s) => s.ticker === "HDFCBANK"));
+  assert.ok(!sbi.peers.some((s) => s.ticker === "TCS"));
+  assert.equal(industryPe("SBIN")?.name, "Financial Services (Nifty 50)");
+  assert.equal(pePeers("TATAPOWER")!.name, getSector("energy")!.name);
 });

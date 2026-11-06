@@ -6,7 +6,7 @@ import { listFinancials } from "@/lib/financials/store";
 import { ordinal, trendDetail, trendLabel } from "@/lib/financials/trend";
 import { listBasketUniverse } from "@/lib/baskets/industry";
 import { isReit } from "@/components/stock/merge";
-import { BAND_LABEL, MIN_MONTHS, MIN_PEERS, bandOf, versus } from "@/lib/valuation/pe-context";
+import { BAND_LABEL, MIN_INDEX_PEERS, MIN_MONTHS, MIN_PEERS, bandOf, versus } from "@/lib/valuation/pe-context";
 import { peWorking, type PeWorking } from "@/lib/valuation/pe-data";
 import { PeContextView } from "@/components/stock/PeContextView";
 import { NA, fmtDay, inr, signedPct } from "@/lib/format";
@@ -103,7 +103,7 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
           </P>
           <P>
             <B>P/E in context</B> puts today&rsquo;s P/E beside two yardsticks: the stock&rsquo;s own month-end P/Es since 2022, and the median P/E
-            of covered stocks in its primary industry. It says whether the multiple is below, within or above its usual range. It is context, not a
+            of covered stocks in its primary industry (or its bracket of the Nifty 50). It says whether the multiple is below, within or above its usual range. It is context, not a
             call: a low P/E alone did not predict returns among covered stocks (section 3).
           </P>
         </section>
@@ -195,7 +195,8 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
           <P>
             A company that sits in several industries is compared with one only: its primary industry, the one where it is most central to
             the supply chain (on a tie, the one it has more layers in). A company with no direct place in an industry, such as a lender beside the
-            chain, is compared within its policy or the Nifty 50. The median is over the covered stocks there with a positive P/E in our last data update, the stock itself included; at least {MIN_PEERS} are needed. It is our own snapshot, so it can
+            chain, is compared within its policy, or within its bracket of the Nifty 50 (SBI with the index&rsquo;s Financial Services stocks).
+            The median is over the covered stocks there with a positive P/E in our last data update, the stock itself included; at least {MIN_PEERS} are needed ({MIN_INDEX_PEERS} in a Nifty 50 bracket, which holds fewer stocks). It is our own snapshot, so it can
             differ from the live Screener median in the pop-up&rsquo;s Fundamentals tab, which uses Screener&rsquo;s industry and peers.
           </P>
           <P>
@@ -351,7 +352,7 @@ function PeExample({ name, w }: { name: string; w: PeWorking }) {
       {w.peers.length > 0 && (
         <>
           <P>
-            Primary industry: <B>{w.homeName}</B>, {w.peers.filter((p) => p.pe != null).length} of {w.peers.length} covered stocks with a P/E, low
+            {w.bracket ? "Nifty 50 bracket" : "Primary industry"}: <B>{w.homeName}</B>, {w.peers.filter((p) => p.pe != null).length} of {w.peers.length} covered stocks with a P/E, low
             to high:
           </P>
           <div className="max-h-[20rem] overflow-y-auto rounded border border-line">
@@ -380,7 +381,7 @@ function PeExample({ name, w }: { name: string; w: PeWorking }) {
               {w.pe != null ? <>; {x1(w.pe)} is {versus(w.pe, w.industry.median)} it.</> : "."}
             </P>
           ) : (
-            <P>Fewer than {MIN_PEERS} with a P/E, so no industry median.</P>
+            <P>Fewer than {w.minPeers} with a P/E, so no industry median.</P>
           )}
         </>
       )}

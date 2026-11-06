@@ -4,12 +4,12 @@
 // await ensureFinancials() first.
 import { unstable_cache } from "next/cache";
 import { basketChart } from "@/lib/prices/store";
-import { companyFinancials } from "@/lib/sector-content";
+import { companyFinancials, getSector } from "@/lib/sector-content";
 import { companySlug, getCompanyPage, primaryIndustry } from "@/lib/sector-content/companies";
 import { basketStock, getIndustryBasket } from "@/lib/baskets/industry";
 import { isReit } from "@/components/stock/merge";
 import { parseCrore } from "@/lib/sector-content/core";
-import { MIN_PEERS, historyOf, medianOf, peHistory, peSamples, type PeContext, type PeHistory, type PeIndustry, type PeSample } from "./pe-context";
+import { MIN_INDEX_PEERS, MIN_PEERS, historyOf, medianOf, peHistory, peSamples, type PeContext, type PeHistory, type PeIndustry, type PeSample } from "./pe-context";
 
 const DAY_SECONDS = 86_400;
 
@@ -30,20 +30,30 @@ const cachedHistory = unstable_cache(
   { revalidate: DAY_SECONDS },
 );
 
-/** The covered stocks in the company's primary industry (primaryIndustry) with their P/Es. */
-function homePeers(ticker: string) {
+/**
+ * The covered stocks the company's P/E is compared with: those in its primary industry
+ * (primaryIndustry), or, for a company that falls back to the Nifty 50, those in its bracket of the
+ * index (SBI with the Nifty 50's Financial Services stocks), with the fewest needed for a median.
+ */
+export function pePeers(ticker: string) {
   const page = getCompanyPage(companySlug(ticker));
-  const basket = page ? getIndustryBasket(primaryIndustry(page).sectorSlug) : null;
-  return basket ? { basket, peers: basket.stocks.map((s) => ({ ticker: s.ticker, name: s.name, pe: s.pe })) } : null;
+  if (!page) return null;
+  const a = primaryIndustry(page);
+  const basket = getIndustryBasket(a.sectorSlug);
+  if (!basket) return null;
+  const all = basket.stocks.map((s) => ({ ticker: s.ticker, name: s.name, pe: s.pe }));
+  if (getSector(a.sectorSlug)?.category !== "index") return { slug: basket.slug, name: basket.name, bracket: false, peers: all, min: MIN_PEERS };
+  const inBracket = (t: string) => !!getCompanyPage(companySlug(t))?.appearances.some((b) => b.sectorSlug === a.sectorSlug && b.zoneId === a.zoneId);
+  return { slug: basket.slug, name: `${a.zoneLabel} (${basket.name})`, bracket: true, peers: all.filter((s) => inBracket(s.ticker)), min: MIN_INDEX_PEERS };
 }
 
-/** The primary industry's median P/E among covered stocks with one (MIN_PEERS needed). */
+/** The median P/E of those covered stocks that have one (pePeers' minimum needed). */
 export function industryPe(ticker: string): PeIndustry | null {
-  const home = homePeers(ticker);
+  const home = pePeers(ticker);
   if (!home) return null;
   const pes = home.peers.map((s) => s.pe).filter((v): v is number => v != null);
   const median = medianOf(pes);
-  return median != null && pes.length >= MIN_PEERS ? { slug: home.basket.slug, name: home.basket.name, median, n: pes.length } : null;
+  return median != null && pes.length >= home.min ? { slug: home.slug, name: home.name, median, n: pes.length } : null;
 }
 
 /** Everything the method page's worked example shows for one stock: each month-end sample and each peer. */
@@ -58,6 +68,10 @@ export type PeWorking = {
   history: PeHistory | null;
   industry: PeIndustry | null;
   homeName: string | null;
+  /** Fewest peers with a P/E needed for the median. */
+  minPeers: number;
+  /** The peers are a bracket of the Nifty 50, not an industry. */
+  bracket: boolean;
   peers: { ticker: string; name: string; pe: number | null }[];
 };
 
@@ -69,7 +83,7 @@ export async function peWorking(ticker: string): Promise<PeWorking | null> {
   const pts = (await basketChart(ticker, "5Y").catch(() => null))?.points ?? [];
   const price = tablePrice(f.price);
   const samples = peSamples(pts, mcap, f.np, price);
-  const home = homePeers(ticker);
+  const home = pePeers(ticker);
   return {
     pe: stock.pe,
     mcapCr: mcap,
@@ -79,7 +93,9 @@ export async function peWorking(ticker: string): Promise<PeWorking | null> {
     samples,
     history: historyOf(samples),
     industry: industryPe(ticker),
-    homeName: home?.basket.name ?? null,
+    homeName: home?.name ?? null,
+    minPeers: home?.min ?? MIN_PEERS,
+    bracket: home?.bracket ?? false,
     peers: (home?.peers ?? []).slice().sort((a, b) => (a.pe ?? Infinity) - (b.pe ?? Infinity)),
   };
 }

@@ -8,7 +8,7 @@
 import { before, test } from "node:test";
 import assert from "node:assert/strict";
 import { companyLinkKey, findSupplierByTicker, listSectors, type SectorSupplier, type SectorWithSlug } from "./index";
-import { companySlug, getCompanyPage, listCompanyPages, primaryIndustry } from "./companies";
+import { companySlug, getCompanyPage, listCompanyPages } from "./companies";
 import { getCompanyFootprint, listConnectedCompanies } from "./exposure";
 import { CORE_CENTRALITY, listCompanyMetrics, sectorCompanyMetrics, type CompanyMetrics } from "./insights";
 import { buildSearchIndex, buildSectorCards, getPlatformStats } from "./stats";
@@ -28,8 +28,8 @@ import { isAbout } from "@/lib/live/news";
 import { analysisChartIndustries, analysisProps } from "@/lib/analysis-props";
 import { midSentence, themeNames } from "@/lib/site";
 import { getFinancials } from "@/lib/financials/store";
-import { industryPe } from "@/lib/valuation/pe-data";
-import { MIN_PEERS } from "@/lib/valuation/pe-context";
+import { industryPe, pePeers } from "@/lib/valuation/pe-data";
+import { MIN_INDEX_PEERS, MIN_PEERS } from "@/lib/valuation/pe-context";
 import { isReit } from "@/components/stock/merge";
 import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
 
@@ -95,11 +95,10 @@ const RULES = {
   },
   thinIndustry: {
     id: "thin-industry",
-    reason: `its primary industry has fewer than ${MIN_PEERS} covered stocks with a P/E, so no industry median`,
+    reason: `its primary industry has fewer than ${MIN_PEERS} covered stocks with a P/E (its Nifty 50 bracket fewer than ${MIN_INDEX_PEERS}), so no industry median`,
     applies: (p) => {
-      const page = getCompanyPage(companySlug(p.ticker));
-      const home = page ? getIndustryBasket(primaryIndustry(page).sectorSlug) : null;
-      return (home?.stocks.filter((s) => s.pe != null).length ?? 0) < MIN_PEERS;
+      const home = pePeers(p.ticker);
+      return !home || home.peers.filter((s) => s.pe != null).length < home.min;
     },
   },
   deckCurated: {

@@ -33,6 +33,8 @@ export type PeContext = {
 export const MIN_MONTHS = 24;
 /** Fewest covered companies with a P/E before an industry median is shown. */
 export const MIN_PEERS = 5;
+/** Fewest within one Nifty 50 bracket (Financial Services, Information Technology), which hold fewer stocks. */
+export const MIN_INDEX_PEERS = 3;
 
 function quantile(sorted: number[], q: number): number {
   const i = (sorted.length - 1) * q;
