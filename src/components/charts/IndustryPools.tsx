@@ -179,9 +179,7 @@ export function IndustryPools({
         </div>
       </div>
 
-      <ShareBars layers={layers} view={view} active={m.kind === "pool" ? metric : null} sel={sel} onPick={setPicked} />
-
-      {take && <Takeaway take={take} />}
+      <ShareBars layers={layers} view={view} active={m.kind === "pool" ? metric : null} sel={sel} onPick={setPicked} take={take} />
 
       {/* The picked layer's companies sit under the chart, out of sight: say so, and take you there. */}
       {sel && selCounted && (
@@ -195,7 +193,10 @@ export function IndustryPools({
           className="flex min-h-9 w-fit max-w-full items-center gap-2 rounded-lg border border-btn px-3 text-left text-xs font-semibold text-ink hover:bg-accent/10 sm:text-[13px]"
         >
           <span aria-hidden className="h-2.5 w-2.5 flex-none rounded-sm" style={{ backgroundColor: colorOf.get(sel) }} />
-          <span className="min-w-0">Scroll down for the companies in {sel}</span>
+          <span className="min-w-0">
+            <span className="hidden sm:inline">Scroll down for the companies</span>
+            <span className="sm:hidden">Companies</span> in {sel}
+          </span>
           <span aria-hidden className="text-accent">&darr;</span>
         </button>
       )}
@@ -215,8 +216,10 @@ export function IndustryPools({
   );
 }
 
-/** The read under the bars, in the bars' own shares; where a one-off year makes the bases differ, it says so. */
-function Takeaway({ take }: { take: PoolTakeaway }) {
+/** The read of the bars, in the bars' own shares. One line under them from tablet width up; the
+ * full read (with where a one-off year makes the bases differ) sits in the heading's "i", which is
+ * all a phone gets, so no paragraph comes between the charts. */
+function takeawayParts(take: PoolTakeaway) {
   // Small shares to a decimal, so a small layer's "1.2% on 0.4%" doesn't read "1% on <1%".
   const sh = (s: number) => sharePct(s, s < 0.1 ? 1 : 0);
   const profitOn = (r: TakeawayRow, long: boolean) => (r.profit != null ? `${sh(r.profit)}${long ? " of the profit" : ""}` : `a loss of ${croreShort(Math.abs(r.profitCr))}`);
@@ -224,23 +227,22 @@ function Takeaway({ take }: { take: PoolTakeaway }) {
   const notes = [take.more, take.less].filter((r) => r.oneOff.length);
   const sk = take.skipped;
   const skCos = sk.flatMap((x) => x.companies);
-  return (
-    <p className="max-w-3xl text-sm text-ink">
+  const main = (
+    <>
       Most profit for its revenue: <b className="font-semibold">{take.more.layer}</b>, {profitOn(take.more, true)} on {sh(take.more.revenue)} of the revenue. Least:{" "}
       <b className="font-semibold">{take.less.layer}</b>, {profitOn(take.less, false)} on {sh(take.less.revenue)}.
-      {(notes.length > 0 || sk.length > 0) && (
-        <span className="text-ink-soft">
-          {notes.map((r) => ` ${list(r.oneOff)} ${r.oneOff.length > 1 ? "have" : "has"} a one-off year, counted in ${r.layer}’s revenue share but not its profit share.`).join("")}
-          {sk.length > 0 && ` Not ranked, as a one-off year (${list(skCos)}) is a large part of ${sk.length > 1 ? "their" : "its"} revenue but left out of profit: ${list(sk.map((x) => x.layer))}.`}
-        </span>
-      )}
-    </p>
+    </>
   );
+  const extra =
+    notes.map((r) => ` ${list(r.oneOff)} ${r.oneOff.length > 1 ? "have" : "has"} a one-off year, counted in ${r.layer}’s revenue share but not its profit share.`).join("") +
+    (sk.length > 0 ? ` Not ranked, as a one-off year (${list(skCos)}) is a large part of ${sk.length > 1 ? "their" : "its"} revenue but left out of profit: ${list(sk.map((x) => x.layer))}.` : "");
+  return { main, extra };
 }
 
 /** Revenue, profit and market cap as three 100% bars, split by layer or by company. */
-function ShareBars({ layers, view, active, sel, onPick }: { layers: LayerPool[]; view: View; active: PoolMetricId | null; sel?: string; onPick: (l: string) => void }) {
+function ShareBars({ layers, view, active, sel, onPick, take }: { layers: LayerPool[]; view: View; active: PoolMetricId | null; sel?: string; onPick: (l: string) => void; take: PoolTakeaway | null }) {
   const { tipFor, tipNode } = useSegmentTip();
+  const read = take && takeawayParts(take);
   const bars: ["rev" | "np" | "mcap", string][] = [
     ["rev", "Revenue"],
     ["np", "Net profit"],
@@ -263,7 +265,15 @@ function ShareBars({ layers, view, active, sel, onPick }: { layers: LayerPool[];
 
   return (
     <div className="flex flex-col gap-2.5">
-      <h3 className="text-[10px] font-bold uppercase tracking-widest text-ink-soft sm:text-[11px]">Where the money sits</h3>
+      <div className="flex items-center gap-2">
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-ink-soft sm:text-[11px]">Where the money sits</h3>
+        {read && (
+          <InfoTip label="What the bars show">
+            {read.main}
+            {read.extra}
+          </InfoTip>
+        )}
+      </div>
       <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 sm:grid-cols-[6rem_minmax(0,1fr)]">
         {rows.map((r) => (
           <div key={r.id} className="contents">
@@ -308,6 +318,7 @@ function ShareBars({ layers, view, active, sel, onPick }: { layers: LayerPool[];
             </button>
           ))}
       </div>
+      {read && <p className="hidden text-[13px] text-ink sm:block">{read.main}</p>}
     </div>
   );
 }
