@@ -58,15 +58,9 @@ const RANGE_TO_VOL = Math.sqrt(8 / Math.PI);
 
 
 const SECTIONS = [
-  ["what", "What a projection is"],
-  ["which", "Which stocks are projected"],
-  ["market", "The market inputs"],
+  ["what", "In short"],
   ["steps", "Step by step"],
-  ["cases", "Bear, Base and Bull"],
-  ["options", "The options"],
-  ["basket", "From stocks to the basket"],
-  ["range", "Likely range, drawdown and chance of a loss"],
-  ["stats", "The statistics"],
+  ["basket", "The basket and its risk"],
   ["evidence", "How well it held up"],
   ["limits", "What it doesn't do"],
   ["example", "Worked example"],
@@ -76,9 +70,9 @@ const SECTIONS = [
 // v2" rows of scripts/validate-projections-v2.ts; design and the other variants in
 // docs/PROJECTIONS-V2-PROTOTYPE.md. Inside = share of actual 1-year outcomes between Bear and Bull.
 const PERIODS = [
-  { period: "24 Oct 2024 → 24 Oct 2025", nifty: "+5.7%", stocks: 241, inside: "91%", baseIc: "+0.01", scoreIc: "+0.09" },
-  { period: "24 Apr 2025 → 24 Apr 2026", nifty: "−1.4%", stocks: 248, inside: "90%", baseIc: "+0.01", scoreIc: "+0.09" },
-  { period: "24 Oct 2025 → 23 Oct 2026", nifty: "−12.4%", stocks: 259, inside: "81%", baseIc: "−0.11", scoreIc: "+0.01" },
+  { period: "24 Oct 2024 → 24 Oct 2025", nifty: "+5.7%", stocks: 241, inside: "91%", baseIc: "+0.01" },
+  { period: "24 Apr 2025 → 24 Apr 2026", nifty: "−1.4%", stocks: 248, inside: "90%", baseIc: "+0.01" },
+  { period: "24 Oct 2025 → 23 Oct 2026", nifty: "−12.4%", stocks: 259, inside: "81%", baseIc: "−0.11" },
 ] as const;
 
 export default async function ProjectionMethodPage({ searchParams }: { searchParams: Promise<{ t?: string }> }) {
@@ -96,7 +90,6 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
   const scale = projectionScale();
   const ex = input ? explainStock(input, scale) : null;
   const riskAsOf = stock ? (riskStatsFor(stock.ticker)?.asOf ?? null) : null;
-  const tiltMax = IC * 0.35 * Z_MAX;
 
   return (
     <>
@@ -111,9 +104,7 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
         <header className="flex flex-col gap-2">
           <h1 className="text-balance font-display text-2xl font-bold text-ink sm:text-3xl">How basket projections are worked out</h1>
           <P>
-            Every basket page has a <B>Projections</B> switch. With it on, the basket and its stocks are projected 1 or 2 years ahead from today, in a
-            Bear, Base and Bull case. This page sets out the whole method, the evidence behind it, and works it through for any stock using the same
-            code the basket pages use.
+            The <B>Projections</B> switch on a basket page projects the basket and its stocks 1 or 2 years ahead in a Bear, Base and Bull case.
           </P>
           <ol className="mt-1 grid gap-x-6 gap-y-1 text-xs sm:grid-cols-2">
             {SECTIONS.map(([id, label], i) => (
@@ -127,329 +118,66 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
         </header>
 
         <section className="flex flex-col gap-2">
-          <H2 id="what">1. What a projection is</H2>
+          <H2 id="what">1. In short</H2>
+          <Bullets>
+            <li>
+              <B>Base</B>: the return the market prices in for the stock&rsquo;s risk, plus a small tilt from its growth and margin.
+            </li>
+            <li>
+              <B>Bear</B> and <B>Bull</B>: its 1-in-10 low and high years at its own volatility over the past year.
+            </li>
+            <li>
+              <B>Which stocks</B>: those with at least {MIN_YEARS} fiscal years in a row of revenue and profit and 3 years of trading. Any other
+              stock is left out and its share spread over the rest.
+            </li>
+          </Bullets>
+        </section>
+
+        <section className="flex flex-col gap-2">
+          <H2 id="steps">2. Step by step</H2>
+          <Formula>
+            beta = {BLUME_WEIGHT} × measured beta + {n2(1 - BLUME_WEIGHT)} &nbsp;(2 years of weekly returns against the Nifty 50; 1 without them)
+            <br />
+            σ = the past year&rsquo;s volatility, at least {pct(VOL_FLOOR, 0)}
+            <br />
+            market return = rf + beta × ERP − dividend yield
+            <br />
+            tilt = IC × σ × z, IC = {IC}
+            <br />
+            Base = market return + tilt
+            <br />
+            Bear, Bull = (1 + Base) × e^(−σ²h/2 ∓ {Z80.toFixed(2)} × σ × √h) − 1
+          </Formula>
+          <Bullets>
+            <li>
+              <B>rf</B> is the 10-year G-sec yield ({pct(MARKET.rf, 2)}, {MARKET.rfAsOf}); <B>ERP</B> is India&rsquo;s equity risk premium (
+              {pct(MARKET.erp, 2)}, Damodaran, {MARKET.erpAsOf}).
+            </li>
+            <li>
+              <B>z</B> scores a year of the business with today&rsquo;s P/E held: revenue growth at its usual rate, faded {pct(GROWTH_FADE, 0)} of the way to{" "}
+              {pct(LONG_RUN_GROWTH, 0)}, and net margin moving a third of the way toward the average of its own and its industry&rsquo;s. It is
+              standardised against every covered company (median and spread), within ±{Z_MAX}. Loss-makers get no tilt.
+            </li>
+            <li>Over 2 years the market return compounds, the tilt counts once, and the range widens with √2.</li>
+          </Bullets>
+        </section>
+
+        <section className="flex flex-col gap-2">
+          <H2 id="basket">3. The basket and its risk</H2>
           <P>
-            <B>Base</B> is the price return the market prices in for the stock&rsquo;s risk, adjusted slightly for its fundamentals.{" "}
-            <B>Bear</B> and <B>Bull</B> are the range 8 in 10 one-year outcomes fall in for a stock as volatile as this one has been over the past
-            year. Base is an average outcome: the typical (median) outcome sits below it, because a volatile stock&rsquo;s typical year is below its
-            average one.
-          </P>
-          <P>
-            It uses the 10-year government bond yield, India&rsquo;s equity risk premium, two years of the stock&rsquo;s and the Nifty 50&rsquo;s
-            daily prices, and figures shown elsewhere on NextResearch: five fiscal years of revenue and net profit, and today&rsquo;s price, market
-            cap, P/E, dividend yield and 52-week range from our last data update, plus its home industry&rsquo;s median net margin.
-          </P>
-          <P>
-            It is a model projection, not a forecast, a target price, a ranking of stocks or a recommendation. Base differs between stocks mostly
-            because their betas differ, so a higher Base is not a better stock (section 10). The model doesn&rsquo;t know about orders, management
-            guidance, news or the market&rsquo;s mood, and it is a price return: no dividends, costs or taxes.
+            The basket is bought today at your weights and held; each case is the weighted sum of its stocks&rsquo; same case. The likely range,
+            drawdowns and chance of a loss come from 1,000 simulated weekly paths around Base that swing like the basket did over the past year.
           </P>
         </section>
 
         <section className="flex flex-col gap-2">
-          <H2 id="which">2. Which stocks are projected</H2>
+          <H2 id="evidence">4. How well it held up</H2>
           <P>
-            A stock needs at least <B>{MIN_YEARS} fiscal years in a row</B> of both revenue and net profit, ending at its latest reported year, with
-            revenue in that year; at least <B>3 years of trading</B> (a 3-year price change: a recent listing&rsquo;s earlier results are from
-            before it listed); and a price and market cap in our last data update. Anything less and the stock is <B>left out</B>: its share of
-            the basket is spread over the projected stocks in proportion to their own weights, so the weights still total 100%. A short note names
-            the stocks left out and why; their rows in the table say so too. Leaving a stock out changes only the projection, never the backtest.
+            Rebuilt as it stood on three start dates and checked a year later. &ldquo;Inside&rdquo; is the share of stocks that ended between Bear
+            and Bull (the aim is 80%); rank correlation is whether a higher Base went with a higher return.
           </P>
-          <P>
-            A year that looks like a one-off (a single loss between profits, or a profit swing far bigger than the change in sales, as on the
-            rule-based baskets) is left out of the margins when at least two other years remain.
-          </P>
-        </section>
-
-        <section className="flex flex-col gap-2">
-          <H2 id="market">3. The market inputs</H2>
-          <P>Two inputs are the same for every stock and are set by hand when they move materially.</P>
           <Table
             min="min-w-[36rem]"
-            head={
-              <>
-                <Th left>Input</Th>
-                <Th>Value</Th>
-                <Th left>As of</Th>
-                <Th left>Source</Th>
-              </>
-            }
-          >
-            <Row>
-              <Td left wrap>
-                rf: India 10-year G-sec yield
-              </Td>
-              <Td>{pct(MARKET.rf, 2)}</Td>
-              <Td left>{MARKET.rfAsOf}</Td>
-              <Td left wrap>
-                Trading Economics, India 10-year benchmark close
-              </Td>
-            </Row>
-            <Row last>
-              <Td left wrap>
-                ERP: India&rsquo;s equity risk premium
-              </Td>
-              <Td>{pct(MARKET.erp, 2)}</Td>
-              <Td left>{MARKET.erpAsOf}</Td>
-              <Td left wrap>
-                Aswath Damodaran, country default spreads and risk premiums (January 2026 update): mature-market premium 4.23% plus India&rsquo;s
-                country risk premium 2.85% (Moody&rsquo;s Baa3)
-              </Td>
-            </Row>
-          </Table>
-          <P>
-            rf is updated after a big move in the G-sec yield and the ERP after each of Damodaran&rsquo;s January and July updates. Strictly,
-            Damodaran adds his country premium to a default-free rate, and the G-sec yield already carries India&rsquo;s default spread (about 1.9
-            points), so rf + ERP counts that spread twice. It raises every stock&rsquo;s Base by the same amount for a given beta; it never changes
-            the width of the range.
-          </P>
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <H2 id="steps">4. Step by step</H2>
-          <div className="flex flex-col gap-2">
-            <H3>a. Beta</H3>
-            <P>
-              The slope of the stock&rsquo;s weekly returns (last close of each Monday-to-Sunday week) on the Nifty 50&rsquo;s over the last 2 years,
-              by least squares; at least 52 weekly returns are needed. Measured betas overshoot, so it is pulled a third of the way toward 1
-              (Blume&rsquo;s adjustment). With no usable price history the beta is 1.
-            </P>
-            <Formula>
-              beta = {BLUME_WEIGHT} × measured beta + {n2(1 - BLUME_WEIGHT)}
-            </Formula>
-          </div>
-          <div className="flex flex-col gap-2">
-            <H3>b. Volatility σ</H3>
-            <P>
-              Realised over the last year from daily closes (at least 40 daily returns), annualised, and never counted below{" "}
-              {pct(VOL_FLOOR, 0)} a year. In the first visits after the price statistics are refreshed, a stock whose statistics aren&rsquo;t loaded
-              yet has σ estimated from its 52-week range (Parkinson&rsquo;s estimate) and a beta of 1; the Assumptions tab says so.
-            </P>
-            <Formula>
-              σ = max({pct(VOL_FLOOR, 0)}, √(250 × mean of squared daily log returns))
-              <br />
-              while loading: σ = max({pct(VOL_FLOOR, 0)}, ln(52-week high ÷ 52-week low) ÷ √(8/π))
-            </Formula>
-          </div>
-          <div className="flex flex-col gap-2">
-            <H3>c. Market return</H3>
-            <P>
-              The return CAPM says the market prices in for that beta, less the dividend yield, because this is a price projection and CAPM&rsquo;s
-              figure includes dividends. A stock with a beta of 1 and no dividend gets rf + ERP, {pct(MARKET.rf + MARKET.erp)} a year.
-            </P>
-            <Formula>market return = rf + beta × ERP − dividend yield</Formula>
-          </div>
-          <div className="flex flex-col gap-2">
-            <H3>d. Fundamentals score</H3>
-            <P>
-              One year&rsquo;s return on the business with <B>today&rsquo;s P/E held</B>: no move toward a past or industry multiple. Only for a
-              stock with a positive P/E, a profit in its latest year and a positive usual margin.
-            </P>
-            <Bullets>
-              <li>
-                <B>Growth.</B> Each year&rsquo;s revenue growth over the years used. The usual rate is the lowest of the median year, the compound
-                rate over the years (FY22 was a low post-Covid base for many companies, which flatters a rate measured from it), and the average of
-                the median and the latest year (so a recent slowdown counts). Fast growth rarely lasts, so it is faded {pct(GROWTH_FADE, 0)} of the
-                way toward {pct(LONG_RUN_GROWTH, 0)} a year, about India&rsquo;s nominal GDP growth, and kept between −25% and +40%.
-              </li>
-              <li>
-                <B>Margin.</B> Net profit as a share of revenue each year used (each kept between −50% and +60%; a one-off year left out). Its aim
-                is the average of its own median margin and its home industry&rsquo;s median (the latest year&rsquo;s, over every listed company the
-                industry maps); with no positive industry median, its own. Today&rsquo;s margin moves a third of the way toward the aim in a year,
-                and by no more than {pct(MARGIN_SHIFT_A_YEAR, 0)} of itself, so a thin margin can&rsquo;t double in the model.
-              </li>
-            </Bullets>
-            <Formula>
-              usual = lowest of (median year, compound rate, (median + latest year) ÷ 2)
-              <br />
-              growth = usual + {GROWTH_FADE} × ({pct(LONG_RUN_GROWTH, 0)} − usual), within −25% … +40%
-              <br />
-              aim = (own median margin + industry median margin) ÷ 2
-              <br />
-              margin a year on = today + (aim − today) ÷ {MARGIN_YEARS}
-              <br />
-              margin factor = margin a year on ÷ today, within 1 ÷ {1 + MARGIN_SHIFT_A_YEAR} … {1 + MARGIN_SHIFT_A_YEAR}
-              <br />
-              score = (1 + growth) × margin factor − 1
-            </Formula>
-          </div>
-          <div className="flex flex-col gap-2">
-            <H3>e. Standardised score z and the tilt</H3>
-            <P>
-              The score is measured against the scores of every covered listed company that has one ({scale.n} today): z is how many standard
-              deviations it sits above or below their median, kept within ±{Z_MAX}. The tilt follows Grinold and Kahn: a forecast is the
-              signal&rsquo;s skill (its information coefficient, IC) times the stock&rsquo;s volatility times its score. With IC at {IC}, a weak
-              signal barely moves the projection: at σ 35% the tilt is at most about ±{(tiltMax * 100).toFixed(1)} points.
-            </P>
-            <Formula>
-              z = (score − median score) ÷ standard deviation of scores, within ±{Z_MAX}
-              <br />
-              tilt = IC × σ × z, IC = {IC}
-            </Formula>
-          </div>
-          <div className="flex flex-col gap-2">
-            <H3>f. Loss-makers</H3>
-            <P>
-              A stock with a loss in its latest year, no positive P/E or no positive usual margin has no fundamentals score: z and the tilt are 0,
-              and it is projected on the market return and its own volatility alone. Marked &ldquo;market&rdquo; in the Assumptions tab.
-            </P>
-          </div>
-          <div className="flex flex-col gap-2">
-            <H3>g. Base</H3>
-            <P>
-              A year: the market return plus the tilt. Two years: the market return compounded over both years, with the tilt once, since a one-year
-              signal isn&rsquo;t carried into the second year.
-            </P>
-            <Formula>
-              Base, 1 year = market return + tilt
-              <br />
-              Base, 2 years = (1 + market return) × (1 + market return + tilt) − 1
-            </Formula>
-          </div>
-          <div className="flex flex-col gap-2">
-            <H3>h. Bear and Bull</H3>
-            <P>
-              The 10th and 90th percentiles of a lognormal outcome whose average is Base and whose spread is the stock&rsquo;s σ over h years (1 or
-              2). The middle of that range, the median, is (1 + Base) × e^(−σ²h/2) − 1, below Base. The return itself has no cap; only
-              the inputs above have limits.
-            </P>
-            <Formula>
-              Bear = (1 + Base) × e^(−σ²h/2 − {Z80.toFixed(4)} × σ × √h) − 1
-              <br />
-              Bull = (1 + Base) × e^(−σ²h/2 + {Z80.toFixed(4)} × σ × √h) − 1
-            </Formula>
-          </div>
-        </section>
-
-        <section className="flex flex-col gap-2">
-          <H2 id="cases">5. Bear, Base and Bull</H2>
-          <Table
-            min="min-w-[30rem]"
-            head={
-              <>
-                <Th left>Case</Th>
-                <Th left>What it is</Th>
-                <Th left>Formula, h years</Th>
-              </>
-            }
-          >
-            <Row>
-              <Td left>Bear</Td>
-              <Td left wrap>1 in 10 outcomes are below it</Td>
-              <Td left>(1 + Base) e^(−σ²h/2 − 1.28σ√h) − 1</Td>
-            </Row>
-            <Row>
-              <Td left>Base</Td>
-              <Td left wrap>the average outcome: market return plus tilt</Td>
-              <Td left>1 year: market + tilt · 2 years: (1 + market) × (1 + market + tilt) − 1</Td>
-            </Row>
-            <Row last>
-              <Td left>Bull</Td>
-              <Td left wrap>1 in 10 outcomes are above it</Td>
-              <Td left>(1 + Base) e^(−σ²h/2 + 1.28σ√h) − 1</Td>
-            </Row>
-          </Table>
-          <P>
-            All three come from the same Base and σ, so Bear is always below Base and Bull above. A more volatile stock gets a wider range, and over 2
-            years the range widens with the square root of time.
-          </P>
-        </section>
-
-        <section className="flex flex-col gap-2">
-          <H2 id="options">6. The options</H2>
-          <ul className="flex max-w-3xl flex-col gap-1.5 text-sm leading-relaxed text-ink-soft">
-            <li>
-              <B>Next 1Y / 2Y</B>: how far ahead. Over 2 years Base compounds the market return with the tilt once, and the range widens with √2.
-            </li>
-            <li>
-              <B>Case</B>: Bear, Base or Bull, as above. The cards also show the other two cases beside the one picked.
-            </li>
-            <li>
-              <B>Weighting</B>: Equal, M-cap and Custom set each stock&rsquo;s share exactly as in the backtest; the projection follows a change at
-              once. Custom weights that don&rsquo;t total 100% keep the last ones that did.
-            </li>
-            <li>
-              <B>Rebalancing</B> doesn&rsquo;t apply: a projection is bought today and held.
-            </li>
-            <li>
-              <B>Chart lines, Your picks, Compare with</B>: as in the backtest. Each ticked stock is drawn from 0% today to its own return; Your
-              picks is the ticked stocks as their own basket; compared industry baskets are projected the same way (at equal weight when this basket
-              is custom). Indices aren&rsquo;t projected.
-            </li>
-          </ul>
-        </section>
-
-        <section className="flex flex-col gap-2">
-          <H2 id="basket">7. From stocks to the basket</H2>
-          <P>
-            The basket is bought today at its target weights (after spreading any left-out stock&rsquo;s share) and held. Its return in each case is
-            the weighted sum of its stocks&rsquo; returns in that case. Each stock&rsquo;s <B>points added</B> is its weight times its return, so
-            they add up to the basket&rsquo;s return. Its <B>end weight</B> is where its share would be if held.
-          </P>
-          <Formula>
-            basket return = Σ weight × return · points added = weight × return × 100 · end weight = weight × (1 + return) ÷ (1 + basket return)
-          </Formula>
-          <P>
-            So the basket&rsquo;s <B>Bear</B> and <B>Bull</B> assume every stock at its own 10th (or 90th) percentile at once. Stocks don&rsquo;t all
-            have a bad year together, so this is wider than the basket&rsquo;s own range; the <B>likely range</B> below, from the basket&rsquo;s
-            own volatility, is the basket-level range.
-          </P>
-          <P>On the chart, each line grows smoothly from 0% today to its return, one point a week: value at week k of n = (1 + return)^(k ÷ n) − 1.</P>
-        </section>
-
-        <section className="flex flex-col gap-2">
-          <H2 id="range">8. Likely range, drawdown and chance of a loss</H2>
-          <P>
-            A smooth line never falls, so the risk figures come from <B>1,000 simulated weekly paths</B>. Their average outcome is the
-            basket&rsquo;s <B>Base</B> return whichever case is chosen (so the median path ends a little below it, as each stock&rsquo;s range is
-            centred): Bear and Bull are already the basket&rsquo;s two extremes, and a simulation around Bear would stack a bad year on a bad year. Each
-            path swings as much as the basket did over the past year (its volatility, from its 1-year
-            backtest). The same settings always draw the same paths.
-          </P>
-          <Bullets>
-            <li>
-              <B>Likely range</B>: where 8 in 10 paths are each week (10th to 90th percentile); the dotted lines on the chart.
-            </li>
-            <li>
-              <B>Max drawdown</B>: the deepest fall from a high on the typical path (the median of every path&rsquo;s worst fall).
-            </li>
-            <li>
-              <B>Bad drawdown</B>: the fall that 1 in 10 paths reach or pass.
-            </li>
-            <li>
-              <B>Chance of loss</B>: the share of paths that end below today. <B>10% fall</B>: the share that fall 10% or more from a high at some
-              point.
-            </li>
-          </Bullets>
-        </section>
-
-        <section className="flex flex-col gap-2">
-          <H2 id="stats">9. The statistics</H2>
-          <Bullets>
-            <li>
-              <B>Projected return</B> and <B>Per year</B> (compounded, for 2 years); Bear and Bull cases beside it.
-            </li>
-            <li>
-              <B>Volatility</B>: the basket&rsquo;s swings over the past year, a yearly figure; it sets how widely the paths spread.
-            </li>
-            <li>
-              <B>Return / risk</B>: the projected return a year divided by that volatility.
-            </li>
-            <li>
-              <B>Top contributor</B>: the stock adding the most points; <B>Stocks projected</B>: how many, and how many were left out.
-            </li>
-          </Bullets>
-        </section>
-
-        <section className="flex flex-col gap-2">
-          <H2 id="evidence">10. How well it held up</H2>
-          <P>
-            We rebuilt every input as it stood on three start dates and compared the 1-year projection with what each stock actually did (price
-            only). &ldquo;Inside&rdquo; is the share of actual outcomes between Bear and Bull; the target is 80%. The rank correlation (Spearman)
-            measures whether a higher Base went with a higher actual return.
-          </P>
-          <Table
-            min="min-w-[44rem]"
             head={
               <>
                 <Th left>Period</Th>
@@ -457,7 +185,6 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
                 <Th>Stocks</Th>
                 <Th>Inside</Th>
                 <Th>Base rank corr.</Th>
-                <Th>Score rank corr.</Th>
               </>
             }
           >
@@ -468,56 +195,24 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
                 <Td>{r.stocks}</Td>
                 <Td>{r.inside}</Td>
                 <Td>{r.baseIc}</Td>
-                <Td>{r.scoreIc}</Td>
               </Row>
             ))}
           </Table>
-          <Bullets>
-            <li>
-              <B>The range fits.</B> Bear–Bull held 91%, 90% and 81% of outcomes (87% pooled). It held up in the year the Nifty fell 12%, and is a
-              little wide in calmer years; it was not narrowed to fit these periods.
-            </li>
-            <li>
-              <B>Base is not a stock-picking signal.</B> Its rank correlation with outcomes was +0.01, +0.01 and −0.11. Across stocks it mostly
-              reflects beta, so it follows the market&rsquo;s direction. The fundamentals score alone was +0.09, +0.09 and +0.01: positive in every
-              period, never statistically significant, which is why its weight is small.
-            </li>
-            <li>
-              <B>The level misses by the market&rsquo;s year.</B> No model of this kind foresees whether the market rises or falls; the median
-              stock&rsquo;s Base was typically well above its actual return over these years.
-            </li>
-            <li>
-              <B>The evidence is thin.</B> The middle period overlaps the other two by six months, so there are two independent years, both in one
-              stretch for Indian small and mid caps. No parameter was tuned on the results. The 2-year horizon hasn&rsquo;t been tested.
-            </li>
-          </Bullets>
+          <P>The range fits; Base does not pick stocks, since it mostly reflects beta.</P>
         </section>
 
         <section className="flex flex-col gap-2">
-          <H2 id="limits">11. What it doesn&rsquo;t do</H2>
+          <H2 id="limits">5. What it doesn&rsquo;t do</H2>
           <Bullets>
-            <li>It doesn&rsquo;t foresee the market&rsquo;s year: every Base assumes the market earns its usual premium, and it often doesn&rsquo;t.</li>
-            <li>It doesn&rsquo;t rank stocks. A higher Base mostly means a higher beta, which means more risk, not a better stock.</li>
-            <li>
-              The range assumes the past year&rsquo;s volatility carries on and returns are lognormal; real markets have fatter tails and calm years
-              before sharp falls. Over 2 years it assumes years are independent (√2 scaling), which is untested.
-            </li>
-            <li>
-              Beta and volatility come from past prices; a business that has changed (a merger, a new segment) may be priced differently from now
-              on.
-            </li>
-            <li>
-              The fundamentals score reads only five fiscal years and today&rsquo;s figures; orders, guidance and news are outside it. A business at
-              a turning point will be wrong in the model.
-            </li>
-            <li>rf and the ERP are set by hand and dated above; rf + ERP counts India&rsquo;s default spread twice (section 3).</li>
-            <li>Price change only: no dividends, brokerage, taxes or slippage.</li>
+            <li>It doesn&rsquo;t foresee the market&rsquo;s year or rank stocks: a higher Base mostly means a higher beta.</li>
+            <li>It assumes the past year&rsquo;s volatility carries on, and reads only results and prices, not orders, guidance or news.</li>
+            <li>Price change only: no dividends, costs or taxes.</li>
           </Bullets>
           <P>{DISCLAIMER}</P>
         </section>
 
         <section className="flex flex-col gap-3">
-          <H2 id="example">12. Worked example</H2>
+          <H2 id="example">6. Worked example</H2>
           <ExampleStockSelect stocks={universe.map((s) => ({ ticker: s.ticker, name: s.name }))} value={stock?.ticker} />
           {!stock || !ex || !input ? (
             <P>No figures for this stock in our last data update.</P>

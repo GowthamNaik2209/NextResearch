@@ -149,7 +149,7 @@ function DrawdownView({ view, it }: { view: ProjectionView; it: string }) {
             </tbody>
           </table>
         </div>
-        <p className="px-3 py-1.5 text-[10px] leading-snug text-ink-soft">{simNote(it === "stock" ? "stock" : "basket")} The chart shows each week&rsquo;s fall below the high so far; the table, the deepest fall over the whole year, so the two can differ.</p>
+        <p className="px-3 py-1.5 text-[10px] leading-snug text-ink-soft">Drawdowns come from 1,000 simulated paths. {simNote(it === "stock" ? "stock" : "basket")} The chart shows each week&rsquo;s fall below the high so far; the table, the deepest fall over the whole year, so the two can differ.</p>
       </div>
     </div>
   );

@@ -37,11 +37,8 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const monthYear = (iso: string) => `${MONTHS[Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}`;
 
 const SECTIONS = [
-  ["what", "What the two signals are"],
-  ["trend", "Trend: how the percentile is ranked"],
-  ["evidence", "Trend: the evidence"],
-  ["pe", "P/E in context: the stock's own past"],
-  ["industry", "P/E in context: the industry median"],
+  ["trend", "Trend"],
+  ["pe", "P/E in context"],
   ["limits", "What they don't do"],
   ["example", "Worked example"],
 ] as const;
@@ -49,11 +46,11 @@ const SECTIONS = [
 // Walk-forward test over covered stocks, month-end snapshots Oct 2022 – Jul 2026 (docs/FACTOR-BACKTEST.md,
 // scripts/validate-factors.ts). IC = rank correlation of the signal with the stock's return afterwards.
 const EVIDENCE = [
-  { signal: "Past-year return (what Trend ranks)", ic3: "+0.088", t3: "3.0", pos3: "72%", ic12: "+0.123", t12: "1.8" },
-  { signal: "Return 12 months to 1 month ago", ic3: "+0.090", t3: "3.3", pos3: "78%", ic12: "+0.113", t12: "1.7" },
-  { signal: "Earnings yield (1 ÷ P/E)", ic3: "0.000", t3: "0.0", pos3: "43%", ic12: "−0.019", t12: "−1.0" },
-  { signal: "Net margin", ic3: "−0.028", t3: "−1.3", pos3: "33%", ic12: "−0.067", t12: "−2.1" },
-  { signal: "Beta (what orders a projection's Base)", ic3: "−0.002", t3: "−0.1", pos3: "43%", ic12: "−0.006", t12: "−0.1" },
+  { signal: "Past-year return (what Trend ranks)", ic3: "+0.088", ic12: "+0.123" },
+  { signal: "Return 12 months to 1 month ago", ic3: "+0.090", ic12: "+0.113" },
+  { signal: "Earnings yield (1 ÷ P/E)", ic3: "0.000", ic12: "−0.019" },
+  { signal: "Net margin", ic3: "−0.028", ic12: "−0.067" },
+  { signal: "Beta (what orders a projection's Base)", ic3: "−0.002", ic12: "−0.006" },
 ] as const;
 
 export default async function SignalsMethodPage({ searchParams }: { searchParams: Promise<{ t?: string }> }) {
@@ -81,8 +78,7 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
         <header className="flex flex-col gap-2">
           <h1 className="text-balance font-display text-2xl font-bold text-ink sm:text-3xl">How Trend and P/E in context are worked out</h1>
           <P>
-            Every stock pop-up and company page shows a <B>Trend</B> percentile and <B>P/E in context</B>; basket tables show Trend as a column.
-            This page sets out how each is worked out, the evidence behind them, and works both through for any stock using the same code.
+            Two signals on every stock pop-up and company page. Both describe the stock; neither is a forecast or a call.
           </P>
           <ol className="mt-1 grid gap-x-6 gap-y-1 text-xs sm:grid-cols-2">
             {SECTIONS.map(([id, label], i) => (
@@ -96,50 +92,23 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
         </header>
 
         <section className="flex flex-col gap-2">
-          <H2 id="what">1. What the two signals are</H2>
+          <H2 id="trend">1. Trend</H2>
           <P>
-            <B>Trend</B> says where a stock&rsquo;s price return over the past year ranks among covered stocks: the 90th percentile means it beat
-            90% of them. It describes the past year; it is not a forecast and is not part of a basket&rsquo;s projection.
+            Where the stock&rsquo;s 1-year price return ranks among the {ranked} covered stocks that have one: the 90th percentile beat 90% of
+            them. A stock listed under a year ago has none.
           </P>
+          <Formula>percentile = (stocks with a lower return + ½ × ties) ÷ (stocks ranked − 1) × 100, within 1–99</Formula>
           <P>
-            <B>P/E in context</B> puts today&rsquo;s P/E beside two yardsticks: the stock&rsquo;s own month-end P/Es since 2022, and the median P/E
-            of covered stocks in its primary industry (or its bracket of the Nifty 50). It says whether the multiple is below, within or above its usual range. It is context, not a
-            call: a low P/E alone did not predict returns among covered stocks (section 3).
-          </P>
-        </section>
-
-        <section className="flex flex-col gap-2">
-          <H2 id="trend">2. Trend: how the percentile is ranked</H2>
-          <P>
-            Every company in our last data update with a 1-year price return is ranked, {ranked} today. The return is the same &ldquo;1Y price
-            return&rdquo; the stock pop-up shows. A company listed under a year ago has none, so it has no percentile and shows &ldquo;Not enough
-            history&rdquo;.
-          </P>
-          <Formula>
-            percentile = (companies with a lower return + ½ × (others with the same return)) ÷ (companies ranked − 1) × 100, rounded and kept within 1–99
-          </Formula>
-          <P>
-            The highest returns read 99th and the lowest 1st. It is worked out once per data update over the whole table, so the
-            pop-up, the company page, every basket table and the Excel download show the same figure on the same date.
-          </P>
-        </section>
-
-        <section className="flex flex-col gap-2">
-          <H2 id="evidence">3. Trend: the evidence</H2>
-          <P>
-            We tested simple signals on covered stocks at every month-end from Oct 2022: how well each ranked the returns that followed (rank
-            correlation, IC: 0 is no link). Nothing was fitted; each signal was fixed before the test.
+            Tested at every month-end since Oct 2022, past-year return (with or without the latest month) was the only simple signal that ranked the next 3 months&rsquo; returns
+            (rank correlation, 0 = no link):
           </P>
           <Table
-            min="min-w-[36rem]"
+            min="min-w-[24rem]"
             head={
               <>
                 <Th left>Signal</Th>
-                <Th>IC, next 3M</Th>
-                <Th>t</Th>
-                <Th>Months positive</Th>
-                <Th>IC, next 12M</Th>
-                <Th>t</Th>
+                <Th>Next 3 months</Th>
+                <Th>Next 12 months</Th>
               </>
             }
           >
@@ -147,75 +116,40 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
               <Row key={e.signal} last={i === EVIDENCE.length - 1}>
                 <Td left wrap>{e.signal}</Td>
                 <Td>{e.ic3}</Td>
-                <Td>{e.t3}</Td>
-                <Td>{e.pos3}</Td>
                 <Td>{e.ic12}</Td>
-                <Td>{e.t12}</Td>
               </Row>
             ))}
           </Table>
-          <P>
-            Past-year return was the only signal that held up: stocks at the 80th percentile and up beat those below the 20th by about 7 points per
-            3 months on average, and trailed them in 8 of 46 months. Over 12 months it was weaker and reversed for snapshots taken in 2024. Typical
-            published signals have an IC of 0.03–0.08, so this is useful across many stocks and small for any one.
-          </P>
-          <Note>
-            46 snapshots for 3 months ahead, 37 for 12 months; t-statistics corrected for overlapping windows (Newey-West). The stocks are
-            today&rsquo;s covered companies scored back to 2022, so companies that failed and left the market are missing, which flatters
-            momentum.
-          </Note>
+          <Note>Useful across many stocks, small for any one. Today&rsquo;s covered companies scored back to 2022, which flatters it a little.</Note>
         </section>
 
         <section className="flex flex-col gap-2">
-          <H2 id="pe">4. P/E in context: the stock&rsquo;s own past</H2>
-          <P>
-            For the last weekly close of every month since June 2022 (when FY22 results were public), the stock&rsquo;s P/E then is its market cap then divided by the
-            latest fiscal year&rsquo;s net profit public on that day. Results for the year to 31 March count from 1 June.
-          </P>
-          <Formula>
-            shares ≈ market cap today ÷ price today · market cap then = shares × close then · P/E then = market cap then ÷ net profit of the latest
-            reported year
-          </Formula>
+          <H2 id="pe">2. P/E in context</H2>
+          <P>Today&rsquo;s P/E (trailing twelve months) beside two yardsticks.</P>
           <Bullets>
-            <li>A month whose reported year was a loss has no P/E and is left out.</li>
             <li>
-              The <B>usual range</B> is the middle half of its own month-end P/Es (25th to 75th percentile); the tick on the bar is their median. At
-              least {MIN_MONTHS} months with a P/E are needed.
+              <B>Its own past</B>: its P/E at every month-end since June 2022, on the latest reported year&rsquo;s profit. The shaded band is the
+              middle half; below it reads <B>{BAND_LABEL.low}</B>, above it <B>{BAND_LABEL.high}</B>. Needs {MIN_MONTHS} months with a profit.
             </li>
             <li>
-              Today&rsquo;s P/E (trailing twelve months) below the 25th percentile reads <B>{BAND_LABEL.low}</B>, above the 75th{" "}
-              <B>{BAND_LABEL.high}</B>, otherwise <B>{BAND_LABEL.usual}</B>.
+              <B>Its industry</B>: the median P/E of covered stocks in its primary industry, the one where it is most central to the supply chain.
+              A company with no direct place in an industry is compared within its policy or its Nifty 50 bracket (SBI with Financial Services).
+              Needs {MIN_PEERS} stocks with a P/E ({MIN_INDEX_PEERS} in a Nifty 50 bracket). It can differ from Screener&rsquo;s median in the Fundamentals tab.
             </li>
-            <li>A REIT shows none (P/E isn&rsquo;t meaningful for a trust), nor does a stock without a positive P/E today.</li>
           </Bullets>
+          <Formula>P/E then = market cap then ÷ net profit of the latest year reported by then</Formula>
         </section>
 
         <section className="flex flex-col gap-2">
-          <H2 id="industry">5. P/E in context: the industry median</H2>
-          <P>
-            A company that sits in several industries is compared with one only: its primary industry, the one where it is most central to
-            the supply chain (on a tie, the one it has more layers in). A company with no direct place in an industry, such as a lender beside the
-            chain, is compared within its policy, or within its bracket of the Nifty 50 (SBI with the index&rsquo;s Financial Services stocks).
-            The median is over the covered stocks there with a positive P/E in our last data update, the stock itself included; at least {MIN_PEERS} are needed ({MIN_INDEX_PEERS} in a Nifty 50 bracket, which holds fewer stocks). It is our own snapshot, so it can
-            differ from the live Screener median in the pop-up&rsquo;s Fundamentals tab, which uses Screener&rsquo;s industry and peers.
-          </P>
-          <P>
-            Within 5% of a median reads &ldquo;in line with&rdquo;; otherwise the gap is given as a percentage of the median.
-          </P>
-        </section>
-
-        <section className="flex flex-col gap-2">
-          <H2 id="limits">6. What they don&rsquo;t do</H2>
+          <H2 id="limits">3. What they don&rsquo;t do</H2>
           <Bullets>
-            <li>Neither is a recommendation, a target or a forecast. Trend describes the past year; P/E in context describes today&rsquo;s price.</li>
-            <li>Past P/Es ignore share-count changes (new issues, buybacks): the market cap then is today&rsquo;s scaled by the price move.</li>
-            <li>Today&rsquo;s P/E is on trailing twelve months, past P/Es on the reported year, so the bases differ slightly.</li>
-            <li>Fiscal-year figures are the current (restated) ones, not as first published.</li>
+            <li>Neither is a recommendation, a target or a forecast; a low P/E alone did not predict returns among covered stocks.</li>
+            <li>Past P/Es ignore share-count changes, and use today&rsquo;s restated results.</li>
           </Bullets>
         </section>
 
         <section className="flex flex-col gap-3">
-          <H2 id="example">7. Worked example</H2>
+          <H2 id="example">4. Worked example</H2>
           <ExampleStockSelect stocks={universe.map((s) => ({ ticker: s.ticker, name: s.name }))} value={stock?.ticker} path={PATH} />
           {!stock ? (
             <P>No figures for this stock in our last data update.</P>

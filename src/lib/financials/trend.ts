@@ -9,7 +9,7 @@ import type { SupplierFinancials } from "@/lib/sector-content";
 /** A company with under a year of trading has no 1Y return, so no percentile. */
 export const TREND_NONE = "Not enough history";
 export const TREND_NOTE =
-  "Where the past year's price return ranks among covered stocks: 90th percentile means it beat about 90% of them. In our test (monthly checks since Oct 2022), stocks at the 80th percentile and up went on to beat those below the 20th by about 7 points over the next 3 months on average, and fell behind in 8 of 46 checks. Past trend, not a forecast.";
+  "Where the past year's price return ranks among covered stocks: the 90th percentile beat about 90% of them. Past trend, not a forecast.";
 
 /** 1 -> "1st", 22 -> "22nd", 13 -> "13th". */
 export function ordinal(n: number): string {

@@ -36,7 +36,7 @@ import { ProjectionStats } from "./ProjectionStats";
 import { ProjectionAnalysis } from "./ProjectionAnalysis";
 import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, forPicks } from "./projection-view";
 import type { ChartProjection } from "./BasketChart";
-import { caseReturn, GROWTH_FADE, HORIZONS, IC, LONG_RUN_GROWTH, MARGIN_SHIFT_A_YEAR, MARKET, SCENARIOS, VOL_FLOOR, type Horizon, type Scenario } from "@/lib/baskets/projection";
+import { caseReturn, HORIZONS, SCENARIOS, type Horizon, type Scenario } from "@/lib/baskets/projection";
 import { annualVol, basketPath, projectBasket, seedOf, simulate, stockPath, weeklyDates, type ProjectionSettings } from "@/lib/baskets/projection-basket";
 import { relativeStats, seriesStats } from "@/lib/baskets/stats";
 import { basketWorkbook, workbookFileName } from "@/lib/baskets/workbook";
@@ -104,8 +104,6 @@ const TREND_NONE_WHY = "No past-year return in our last data update: listed unde
 const NO_PE = "No P/E in our last data update: a loss over the latest twelve months, or none reported";
 /** A 0-1 share as a percentage, one decimal. */
 const pct1 = (share: number) => `${(share * 100).toFixed(1)}%`;
-/** A market input (a fraction) as a percentage, two decimals: 7.47%. */
-const pctOf = (v: number) => `${(v * 100).toFixed(2)}%`;
 
 const RANGES: { id: ChartRange; long: string }[] = [
   { id: "1M", long: "1 month" },
@@ -1107,76 +1105,12 @@ export function BasketDetail(p: BasketDetailProps) {
               ? "Each stock's 90th-percentile outcome at its own volatility: 1 in 10 years for a stock this volatile end higher"
               : "The return the market prices in for each stock's risk, plus a small tilt from its fundamentals",
         )}
-        <InfoTip label="How projections work" wide>
-          <p className="font-semibold">How a projection is worked out</p>
-          <ol className="mt-1 list-decimal space-y-1 pl-4">
-            <li>
-              <b>Which stocks.</b> Only stocks with at least 3 years in a row of revenue and net profit, at least 3 years of trading, and a price and market cap in our last
-              data update. Any other stock is left out, and its share of the basket is spread over the rest in proportion to their weights.
-            </li>
-            <li>
-              <b>Market return.</b> The return the market prices in for the stock&rsquo;s risk: the 10-year G-sec yield ({pctOf(MARKET.rf)}, {MARKET.rfAsOf}) plus its beta
-              times India&rsquo;s equity risk premium ({pctOf(MARKET.erp)}, Damodaran, {MARKET.erpAsOf}), less its dividend yield, since this is a price projection.
-              Beta is from 2 years of weekly returns against the Nifty 50, pulled a third of the way to 1; a stock without 2 years of prices counts as 1.
-            </li>
-            <li>
-              <b>Fundamentals tilt.</b> A score from its results: one year&rsquo;s return on its revenue growth (its usual rate, faded {Math.round(GROWTH_FADE * 100)}% of the way
-              toward {Math.round(LONG_RUN_GROWTH * 100)}% a year) and its net margin moving a third of the way toward the average of its own usual margin and its
-              industry&rsquo;s (by at most {Math.round(MARGIN_SHIFT_A_YEAR * 100)}% of today&rsquo;s; a one-off year left out), with today&rsquo;s P/E held. The score is
-              measured against every covered company (standardised, within ±3), and the tilt is IC {IC} × volatility × that score: a stock with 30% volatility one
-              standard deviation above the middle gets +1.5 points. Loss-makers (no positive P/E or margin) get the market return only.
-            </li>
-            <li>
-              <b>Base</b> = market return + tilt. Across stocks it mostly reflects beta, so it isn&rsquo;t a ranking or a stock-picking signal: in our out-of-sample test its
-              rank correlation with what stocks then did was close to zero (+0.01, +0.01 and −0.11 over three one-year periods).
-            </li>
-            <li>
-              <b>Bear and Bull.</b> The 10th and 90th percentile of a year at the stock&rsquo;s own volatility over the last year (never below {Math.round(VOL_FLOOR * 100)}%; estimated
-              from the 52-week range while its price history loads): (1 + Base) × e<sup>−σ²h/2 ∓ 1.28σ√h</sup> − 1. Tested out of sample over three one-year periods
-              (Oct 2024 to Oct 2026), the Bear-to-Bull range held 91%, 90% and 81% of what stocks actually did, against an aim of 80%.
-            </li>
-            <li>
-              <b>Basket.</b> Bought today at your weights and held, no rebalancing. Each case is the weighted sum of its stocks&rsquo; same case; points added are each
-              stock&rsquo;s weight × return. So the basket&rsquo;s Bear and Bull assume every stock at its own 10th or 90th percentile at once, which is wider than the
-              basket&rsquo;s real range: its stocks don&rsquo;t all have a bad year together.
-            </li>
-            <li>
-              <b>Likely range and risk.</b> The basket-level range: 1,000 simulated weekly paths around the <b>Base</b> case whichever case is chosen (Bear and Bull are already the extremes), swinging like the basket did over the
-              past year. The likely range holds 8 in 10 paths; drawdowns and the chance of a loss come from the same paths.
-            </li>
-          </ol>
-          <p className="mt-2 font-semibold">The options</p>
-          <ul className="mt-1 space-y-1">
-            <li>
-              <b>Next 1Y / 2Y</b>: how far ahead. Over 2 years the market return is compounded, the tilt is counted once (a one-year signal), and Bear and Bull are about
-              √2 times as far from the middle.
-            </li>
-            <li>
-              <b>Bear</b>: each stock&rsquo;s 10th-percentile outcome: 1 in 10 years for a stock this volatile end lower.
-            </li>
-            <li>
-              <b>Base</b>: the market return for its risk plus its fundamentals tilt. It sits above the middle of the Bear-Bull range, since a volatile stock&rsquo;s
-              typical year is below its average one.
-            </li>
-            <li>
-              <b>Bull</b>: each stock&rsquo;s 90th-percentile outcome: 1 in 10 years end higher.
-            </li>
-            <li>
-              <b>Weighting</b>: Equal, M-cap and Custom work as in the backtest; the projection follows your weights at once.
-              <b> Rebalancing</b> doesn&rsquo;t apply.
-            </li>
-            <li>
-              <b>Indices</b> (Nifty 50, industry indices) aren&rsquo;t projected: we don&rsquo;t forecast them.
-            </li>
-          </ul>
-          <p className="mt-2">
-            Each stock&rsquo;s own figures are in the Assumptions tab under Projection analysis.{" "}
-            <Link href="/baskets/projections" className="font-semibold text-accent underline">
-              Full method, with a worked example for any stock
-            </Link>
-            .
-          </p>
-          <p className="mt-1.5 text-ink-soft">{PROJECTION_DISCLAIMER}</p>
+        <InfoTip label="How projections work">
+          Base is the return the market prices in for each stock&rsquo;s risk, plus a small tilt from its results. Bear and Bull are its 1-in-10 low and high
+          years at its own volatility; the basket is bought today at your weights and held.{" "}
+          <Link href="/baskets/projections" className="font-semibold text-accent underline">
+            Full method
+          </Link>
         </InfoTip>
       </div>
       {leftCount > 0 && (
@@ -2197,18 +2131,14 @@ export function BasketDetail(p: BasketDetailProps) {
 
           {projOn ? (
             <p className="text-[11px] leading-relaxed text-ink-soft">
-              How it is projected: each stock with at least 3 consecutive years of revenue and net profit and 3 years of trading is projected on the
-              return the market prices in for its risk (the 10-year G-sec yield, {pctOf(MARKET.rf)} on {MARKET.rfAsOf}, plus its beta times India&rsquo;s equity risk
-              premium, {pctOf(MARKET.erp)}, {MARKET.erpAsOf}, less its dividend yield), with a small tilt from its growth and margin (loss-makers: the market return
-              only). Bear and Bull are its 10th and 90th percentile outcomes at its own volatility over the last year. The basket is bought today at{" "}
-              {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights" : "weights by market cap"} and held, each case the weighted
-              sum of its stocks&rsquo;, so the basket&rsquo;s Bear and Bull have every stock at its own extreme at once; a stock left out has its share spread over the
-              rest in proportion. The likely range and drawdowns, the basket-level range, come from 1,000 simulated paths that swing like the basket did over the past
-              year. Price change only. {PROJECTION_DISCLAIMER} See the Assumptions tab for each stock&rsquo;s inputs, and{" "}
+              How it is projected: each stock earns the return the market prices in for its risk, plus a small tilt from its results; Bear and Bull are its
+              1-in-10 low and high years. Bought today at{" "}
+              {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights" : "weights by market cap"} and held; the basket&rsquo;s Bear and Bull have every stock at its extreme at once, so they are wider than its likely range.
+              Price change only.{" "}
+              {PROJECTION_DISCLAIMER}{" "}
               <Link href="/baskets/projections" className="tap-y text-accent hover:underline">
-                the full method
+                Full method
               </Link>
-              .
             </p>
           ) : (
           <p className="text-[11px] leading-relaxed text-ink-soft">

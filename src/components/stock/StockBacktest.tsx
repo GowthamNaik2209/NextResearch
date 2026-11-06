@@ -214,8 +214,8 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
             <div className="flex items-center gap-1.5">
               {projSeg("Case", "scenario", SCENARIOS, (c) => SCENARIO_LABEL[c], caseHelp)}
               <InfoTip label="How the projection works">
-                Base is the return the market prices in for the stock&rsquo;s risk (G-sec yield plus beta times India&rsquo;s equity risk premium, less its dividend
-                yield), plus a small tilt from its fundamentals. Bear and Bull are its 10th and 90th percentiles at its own volatility. Bought today and held.
+                Base is the return the market prices in for the stock&rsquo;s risk, plus a small tilt from its results. Bear and Bull are its 1-in-10 low and
+                high years at its own volatility.
               </InfoTip>
             </div>
           </>
