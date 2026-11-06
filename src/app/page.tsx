@@ -52,8 +52,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               Analysis
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-              Every covered industry and policy: a deep dive into its supply chain and listed companies, a ten-slide report for
-              investors, and a price chart for each of its listed stocks.
+              Every covered industry and policy: its supply chain, a ten-slide report and its stocks&rsquo; charts.
             </p>
           </div>
           <ReadingList {...analysisProps({ report, ipo, view })} initial={report} initialIpo={ipo} initialView={analysisView(view)} initialSector={sector} initialCharts={view === "charts"} />

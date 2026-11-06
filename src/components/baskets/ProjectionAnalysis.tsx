@@ -7,7 +7,7 @@ import { fmtDay, NA, pct, signedPct } from "@/lib/format";
 import { GROWTH_FADE, IC, LONG_RUN_GROWTH, MARKET, SCENARIOS, VOL_FLOOR, type Scenario, type StockProjection } from "@/lib/baskets/projection";
 import { stockPath } from "@/lib/baskets/projection-basket";
 import { MINI_SEG, Panel, miniSegBtn } from "./Panel";
-import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, simNote, type ProjectionView } from "./projection-view";
+import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, type ProjectionView } from "./projection-view";
 
 // Projection analysis, in the backtest analysis' place with Projections on (docs/PROJECTIONS.md):
 // how far the simulated paths fall from a high, the chosen case beside the other cases and the
@@ -149,7 +149,7 @@ function DrawdownView({ view, it }: { view: ProjectionView; it: string }) {
             </tbody>
           </table>
         </div>
-        <p className="px-3 py-1.5 text-[10px] leading-snug text-ink-soft">Drawdowns come from 1,000 simulated paths. {simNote(it === "stock" ? "stock" : "basket")} The chart shows each week&rsquo;s fall below the high so far; the table, the deepest fall over the whole year, so the two can differ.</p>
+        <p className="px-3 py-1.5 text-[10px] leading-snug text-ink-soft">From 1,000 simulated paths around Base. The chart shows each week&rsquo;s fall from the high; the table, the deepest over the year.</p>
       </div>
     </div>
   );

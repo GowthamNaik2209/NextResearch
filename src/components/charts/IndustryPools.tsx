@@ -210,7 +210,7 @@ export function IndustryPools({
       {sel && <LayerTable layer={layers.find((l) => l.name === sel)!} metric={metric} year={pools.year} />}
 
       <p className="max-w-4xl text-[11px] leading-relaxed text-ink-soft sm:text-xs">
-        Company-wide {pools.year} figures, not segment revenue: each company counts in full in its main layer here. A one-off profit year is left out of profit, margin and P/E. P/E ({pools.year}) is today&rsquo;s market cap over {pools.year} net profit, so it differs from the trailing-twelve-month P/E in stock pop-ups and decks. ROCE is the layer&rsquo;s median.
+        Company-wide {pools.year} figures, each company in its main layer; one-off years left out of profit. P/E is today&rsquo;s market cap over {pools.year} profit; ROCE is the layer median.
       </p>
     </div>
   );

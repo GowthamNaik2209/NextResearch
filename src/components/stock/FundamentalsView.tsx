@@ -264,13 +264,12 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
       )}
 
       <p className="border-t border-dashed border-line pt-2 text-[10.5px] text-ink-soft">
-        Company ratios and market cap: company table snapshot {asOf}, the same figures as every other page. Industry medians, growth,
-        shareholding and annual figures:{" "}
+        Ratios and market cap: snapshot {asOf}. Medians, growth and shareholding:{" "}
         {fund ? (
           <>
             <span className="text-pos">live</span> from {fund.source === "yahoo" ? "Yahoo Finance" : `Screener.in (${basis}${basis === "standalone" ? " — the company reports no consolidated accounts" : ""})`}, fetched{" "}
             {fmtFetched(fund.fetchedAt)}
-            {fund.source === "yahoo" ? "" : ". Industry = median of the company\u2019s Screener industry group"}.
+            .
           </>
         ) : (
           "unavailable right now."

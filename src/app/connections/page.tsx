@@ -61,9 +61,7 @@ export default async function ConnectionsPage() {
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight text-ink">Connected companies</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            Some listed companies sit in more than one mapped supply chain. A shock in one industry can reach their numbers
-            through another, so they are worth reading across themes, not inside one. Ranked by number of chains, then by
-            how strongly they are exposed in each layer.
+            Covered companies in more than one supply chain, most chains first.
           </p>
         </div>
         <div className="w-full sm:max-w-md lg:mt-1 lg:w-80 lg:flex-none xl:w-96">

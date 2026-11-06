@@ -83,11 +83,6 @@ export default async function BasketsPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
           <div className="min-w-0 lg:flex-1">
             <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Baskets</h1>
-            <p className="mt-1.5 max-w-3xl text-xs leading-relaxed text-ink-soft sm:text-sm">
-              A basket is a group of stocks you follow as one. Start from an industry basket or a rule-based list, or create your own from any
-              mix of industries and your watchlist. Each one is backtested against the Nifty 50, with indices and industries a tap away
-              to compare. For tracking and research only: nothing here places trades.
-            </p>
           </div>
           <div className="lg:mt-1 lg:flex-none">
             <BasketsJump createHref={createHref} />
@@ -175,11 +170,12 @@ export default async function BasketsPage() {
 }
 
 async function IndustryTable({ rows }: { rows: IndustryRow[] }) {
-  // 1Y from the page's own backtests (as before); the period menu's other spans from the stored table.
+  // Every period from the stored table (the figures the landing page and the morning brief read, so
+  // an industry's return is the same everywhere); the page's own backtests only where it has none.
   const [{ figs, benchRet }, stored] = await Promise.all([figures(), readBasketReturns(prisma)]);
   const bySeriesKey = (bySlug: Record<string, BasketFigures>) => Object.fromEntries(Object.entries(bySlug).map(([slug, f]) => [industrySeriesKey(slug), f]));
   const seed = {
-    figs: bySeriesKey(figs),
+    figs: bySeriesKey({ ...figs, ...(stored["1Y"] ?? {}) }),
     benchRet,
     byPeriod: Object.fromEntries(Object.entries(stored).map(([p, bySlug]) => [p, bySeriesKey(bySlug)])),
   };

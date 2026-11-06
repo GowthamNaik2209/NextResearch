@@ -23,7 +23,6 @@ import { ReturnCards, picksKey } from "./ReturnCards";
 import { BasketStats } from "./BasketStats";
 import { BasketAnalysis } from "./BasketAnalysis";
 import { MINI_SEG, PANEL, Panel } from "./Panel";
-import { IndustryChips } from "./IndustryChips";
 import { OneOffMark } from "./OneOffMark";
 import { MoreBelow, useMoreBelow } from "./MoreBelow";
 import { basketCreateError } from "./NewBasketButton";
@@ -411,12 +410,6 @@ export function BasketDetail(p: BasketDetailProps) {
   const layerOf = (s: BasketStock) => {
     const slug = contextOf(s);
     return slug ? s.layerIn[slug] : s.layer;
-  };
-  // Its industries with that one first, so its chip names why it is in the basket.
-  const industriesOf = (s: BasketStock) => {
-    const slug = contextOf(s);
-    const own = slug ? s.industries.find((i) => i.slug === slug) : undefined;
-    return own ? [own, ...s.industries.filter((i) => i !== own)] : s.industries;
   };
   // The stocks switched on in the chart, backtested together as their own basket (same weighting).
   const picked = useMemo(() => stocks.filter((s) => chartSel.picks[s.ticker] != null), [stocks, chartSel.picks]);
@@ -1107,7 +1100,7 @@ export function BasketDetail(p: BasketDetailProps) {
         )}
         <InfoTip label="How projections work">
           Base is the return the market prices in for each stock&rsquo;s risk, plus a small tilt from its results. Bear and Bull are its 1-in-10 low and high
-          years at its own volatility; the basket is bought today at your weights and held.{" "}
+          years; the basket&rsquo;s have every stock at its extreme at once.{" "}
           <Link href="/baskets/projections" className="font-semibold text-accent underline">
             Full method
           </Link>
@@ -1868,9 +1861,15 @@ export function BasketDetail(p: BasketDetailProps) {
                               <StockLink ticker={s.ticker} className="relative block text-[13px] font-semibold leading-snug text-accent [overflow-wrap:anywhere] before:absolute before:inset-x-0 before:-inset-y-2.5 before:content-[''] hover:underline">
                                 {s.name}
                               </StockLink>
-                              {/* Balanced, so a long layer never leaves one word on a line of its own. */}
-                              <div className="text-balance text-[11px] leading-snug text-ink-soft">
-                                <span className="font-mono">{s.ticker}</span> · {layerOf(s)}
+                              {/* The ticker only: its industries and layers are in its pop-up. */}
+                              <div className="text-[11px] leading-snug text-ink-soft">
+                                <span className="font-mono">{s.ticker}</span>
+                                {s.oneOff && (
+                                  <>
+                                    {" · "}
+                                    <OneOffMark name={s.name} reason={s.oneOff} />
+                                  </>
+                                )}
                               </div>
                               {p.pickedOn?.[s.ticker] && (
                                 <div className="font-mono text-[11px] text-ink">
@@ -1882,17 +1881,6 @@ export function BasketDetail(p: BasketDetailProps) {
                                 <span title={s.pe == null ? NO_PE : undefined}>P/E {s.pe != null ? `${s.pe.toFixed(1)}x` : NA}</span> · <span className="whitespace-nowrap">{s.mcapCr != null ? croreShort(s.mcapCr) : `mcap ${NA}`}</span>
                                 {s.trend != null && <> · <span className="whitespace-nowrap font-sans">Trend {trendLabel(s.trend)}</span></>}
                               </div>
-                              {s.oneOff ? (
-                                // Beside the industry chip (a 24-28px line), so the marker never adds a line to the row.
-                                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-                                  <IndustryChips industries={industriesOf(s)} />
-                                  <span className="text-[11px]">
-                                    <OneOffMark name={s.name} reason={s.oneOff} />
-                                  </span>
-                                </div>
-                              ) : (
-                                <IndustryChips industries={industriesOf(s)} className="mt-1" />
-                              )}
                             </div>
                             <div className="flex flex-none flex-col items-end text-right">
                               {editingWeights && <div className="mb-1">{weightBox(s)}</div>}
@@ -2010,27 +1998,20 @@ export function BasketDetail(p: BasketDetailProps) {
                             const h = tHoldings.get(s.ticker);
                             const ex = excludedNote(s.ticker);
                             const since = moveSinceAdded(s.ticker);
-                            const inds = industriesOf(s);
-                            const others = inds.length - 1;
                             return (
                               <tr key={s.ticker} data-basket-row={s.ticker} data-list="table" className="border-b border-line/60 even:bg-panel-2/30 hover:bg-accent/5">
                                 <td className="py-1 pl-2 pr-0">{lineTick(s)}</td>
                                 <td className="w-full max-w-0 px-2 py-1.5">
-                                  {/* Touch screens: the name is padded to 36px and the line below spaced out so the
-                                      industry link's 36px area (tap-y) does not overlap it. */}
-                                  <StockLink ticker={s.ticker} title={s.name} className="block truncate font-semibold text-accent hover:underline pointer-coarse:py-2.5">
+                                  <StockLink ticker={s.ticker} title={s.name} className="block truncate font-semibold text-accent hover:underline">
                                     {s.name}
                                   </StockLink>
-                                  {/* Wraps rather than cuts off: a tablet held upright has no hover to show a title. */}
-                                  <span className="block text-balance text-[10px] leading-snug text-ink-soft pointer-coarse:mt-3">
-                                    <span className="font-mono">{s.ticker}</span> · {s.oneOff && <><OneOffMark name={s.name} reason={s.oneOff} /> · </>}{layerOf(s)}
-                                    {inds[0] && (
+                                  {/* The ticker only: its industries and layers are in its pop-up. */}
+                                  <span className="block text-[10px] leading-snug text-ink-soft">
+                                    <span className="font-mono">{s.ticker}</span>
+                                    {s.oneOff && (
                                       <>
                                         {" · "}
-                                        <Link href={`/sector/${inds[0].slug}`} className="tap-y hover:text-accent hover:underline">
-                                          {inds[0].name}
-                                        </Link>
-                                        {others > 0 && <span className="text-accent"> +{others}</span>}
+                                        <OneOffMark name={s.name} reason={s.oneOff} />
                                       </>
                                     )}
                                   </span>
@@ -2096,14 +2077,12 @@ export function BasketDetail(p: BasketDetailProps) {
                     <p className="border-t border-line/70 px-3 py-1.5 text-[11px] text-ink-soft">
                       {projOn ? (
                         <>
-                          <b className="font-semibold">Bear, Base, Bull</b> each stock&rsquo;s projected return over the next {HORIZON_LONG[projSet.h]} in each case (the {projSet.scenario} case in bold; tap a heading to sort) · <b className="font-semibold">target</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} today (a left-out stock&rsquo;s share spread over the rest),{" "}
-                          <b className="font-semibold">end</b> if held to the end · <b className="font-semibold">pts</b> what it adds to the projected return · <b className="font-semibold">trend</b> its past-year return as a percentile among covered stocks (not part of the projection) · P/E and market cap from our last data update
+                          <b className="font-semibold">target → end</b> share today and if held · <b className="font-semibold">pts</b> what it adds · <b className="font-semibold">trend</b> past-year percentile among covered stocks
                         </>
                       ) : (
                       <>
-                      Return over the past {rangeLong} · <b className="font-semibold">target</b> its share of {tableScope === "picks" ? "your picks" : "the basket"} when bought{rebalanced ? " and after each rebalance" : ""},{" "}
-                      <b className="font-semibold">now</b> after the price moves ·{" "}
-                      <b className="font-semibold">pts</b> what it added to {tableScope === "picks" ? "your picks’" : "the basket’s"} return · <b className="font-semibold">trend</b> its past-year return as a percentile among covered stocks · P/E and market cap from our last data update
+                      Return over the past {rangeLong} · <b className="font-semibold">target → now</b> share when bought and after price moves · <b className="font-semibold">pts</b> what it added ·{" "}
+                      <b className="font-semibold">trend</b> past-year percentile among covered stocks
                       </>
                       )}
                     </p>
@@ -2131,25 +2110,24 @@ export function BasketDetail(p: BasketDetailProps) {
 
           {projOn ? (
             <p className="text-[11px] leading-relaxed text-ink-soft">
-              How it is projected: each stock earns the return the market prices in for its risk, plus a small tilt from its results; Bear and Bull are its
-              1-in-10 low and high years. Bought today at{" "}
-              {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights" : "weights by market cap"} and held; the basket&rsquo;s Bear and Bull have every stock at its extreme at once, so they are wider than its likely range.
-              Price change only.{" "}
-              {PROJECTION_DISCLAIMER}{" "}
+              Projected from today at {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights" : "weights by market cap"} and held, price
+              only. {PROJECTION_DISCLAIMER}{" "}
               <Link href="/baskets/projections" className="tap-y text-accent hover:underline">
                 Full method
               </Link>
             </p>
           ) : (
-          <p className="text-[11px] leading-relaxed text-ink-soft">
-            How it is backtested: bought on the first day of the period at {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights (a stock with no prices for the period has its share spread over the rest, in proportion)" : "weights by market cap"}
-            {weighting === "mcap" ? " (today’s market caps, from our last data update, so slightly flattering to winners)" : ""}
-            {rebalanced
-              ? `, then ${rebalanceLabel(strategy)}, trading at that day’s close${strategy.rebalance === "drift" ? " (the day after the drift is seen)" : ""}. Turnover and trades are shown, but no brokerage, taxes or slippage are taken off. Price change only, no dividends.`
-              : " and held without rebalancing. Price change only, no dividends, costs or taxes."}{p.joinAtListing
-              ? " Each stock is backtested from its first trading day: its share of the money is set aside on the first day and waits in cash (earning nothing) until the stock lists, then buys it at that close. So its return is since listing, the targets total 100%, and, not rebalanced, each stock adds its target share times its return."
-              : " Stocks listed during the period are left out of it; their rows show their own move since listing."}{" "}
-            The basket is today&rsquo;s list of stocks, so companies that fell out of the industry before now are missing. A tracking and research tool, not investment advice.
+          <div className="text-[11px] leading-relaxed text-ink-soft">
+            Bought on the first day at {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights" : "weights by market cap"}
+            {rebalanced ? `, then ${rebalanceLabel(strategy)}` : " and held"}; price only, no costs. Not investment advice.{" "}
+            <span className="inline-flex align-middle">
+              <InfoTip label="How the backtest works">
+                {p.joinAtListing
+                  ? "A stock listed during the period counts from its listing. "
+                  : "Stocks listed during the period are left out. "}
+                Today&rsquo;s list of stocks, so ones that dropped out earlier are missing.
+              </InfoTip>
+            </span>
             {p.mode === "industry" && (
               <>
                 {" "}
@@ -2160,7 +2138,7 @@ export function BasketDetail(p: BasketDetailProps) {
                 .
               </>
             )}
-          </p>
+          </div>
           )}
         </div>
         {/* Side column (from lg, beside the results and kept in view while they scroll): the

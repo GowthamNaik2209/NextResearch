@@ -64,28 +64,21 @@ const indexReturns = async (symbol: string): Promise<Partial<Record<Period, numb
   return out;
 };
 
-// The stored basket returns change once a day (after the price top-up); read at most every half hour
-// per day across instances. An empty read (table stale or missing) is thrown, so it isn't kept.
-const storedReturns = unstable_cache(
-  // `day` is only part of the cache key.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async (day: string): Promise<Partial<Record<Period, Record<string, number>>>> => {
-    const stored = await readBasketReturns(prisma);
-    const out: Partial<Record<Period, Record<string, number>>> = {};
-    for (const [p, bySlug] of Object.entries(stored) as [Period, Record<string, { ret: number }>][])
-      out[p] = Object.fromEntries(Object.entries(bySlug).map(([slug, f]) => [slug, f.ret]));
-    if (!Object.keys(out).length) throw new Error("landing: no fresh stored basket returns");
-    return out;
-  },
-  ["landing-basket-returns-v3"],
-  { revalidate: 30 * 60 },
-);
+// The stored basket returns, read on every visit (one small query), so the tiles always show what
+// the Baskets page shows: a copy cached here would lag its rebuild each evening.
+async function storedReturns(): Promise<Partial<Record<Period, Record<string, number>>>> {
+  const stored = await readBasketReturns(prisma);
+  const out: Partial<Record<Period, Record<string, number>>> = {};
+  for (const [p, bySlug] of Object.entries(stored) as [Period, Record<string, { ret: number }>][])
+    out[p] = Object.fromEntries(Object.entries(bySlug).map(([slug, f]) => [slug, f.ret]));
+  return out;
+}
 
 /** The heatmap's and pulse line's figures. Never rejects: what can't be read is left out. */
 export async function getMarketFigures(): Promise<MarketFigures> {
   const asOf = (await lastTradingDay().catch(() => null))?.slice(0, 10) ?? null;
   const [byPeriod, nifty, sensex, cash] = await Promise.all([
-    storedReturns(asOf ?? "none").catch(() => ({})),
+    storedReturns().catch(() => ({})),
     cached(`landing:index:${BENCHMARKS.nifty50.symbol}:${asOf}`, 30 * 60_000, () => indexReturns(BENCHMARKS.nifty50.symbol)).catch(() => ({})),
     cached(`landing:index:${BENCHMARKS.sensex.symbol}:${asOf}`, 30 * 60_000, () => indexReturns(BENCHMARKS.sensex.symbol)).catch(() => ({})),
     // The sums per period, from the /updates view's days (its cache, which the flows cron expires): not

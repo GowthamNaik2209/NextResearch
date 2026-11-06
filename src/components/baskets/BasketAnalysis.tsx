@@ -374,9 +374,7 @@ function CaptureView({ points, bench, benchName, it }: { points: PricePoint[]; b
         ))}
       </dl>
       <p className="mt-1 text-[10px] leading-snug text-ink-soft">
-        Calendar months, counted as in the stats grid: the part month the range starts in is left out, the month in progress is in. Beating the {benchName} means a better month than
-        it, even when both fell. Up capture above 100% means the {it} rose more than the {benchName} in its up months; down capture below 100% means it fell less in its down months, and
-        below 0% that it rose in them. The stats grid shows these same two figures.
+        Calendar months. Up capture over 100%: the {it} rose more than the {benchName} in its up months; down capture under 100%: it fell less in its down months.
       </p>
     </div>
   );

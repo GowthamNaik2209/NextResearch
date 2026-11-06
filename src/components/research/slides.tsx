@@ -793,7 +793,7 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
         </ScrollX>
       </Panel>
       <p className="mt-3 text-[10.5px] text-ink-soft">
-        Sorted by revenue growth; rows marked &ldquo;small base&rdquo; started under ₹100 Cr, which inflates percentage growth. Growth windows differ where a company lacks five reported years; under three years of history no CAGR is shown. Net margin is for the latest fiscal year, while P/E is on trailing-twelve-month profit{rows.some(ttmMismatch) ? " (* marks a company whose TTM profit is positive although its latest fiscal year was a loss)" : ""}. Net margin can include one-offs (e.g. demerger gains). Revenue and net profit are company-wide (not only this segment), from the seed financials behind each stock pop-up; tap a name for live figures.
+        Sorted by revenue growth; &ldquo;small base&rdquo; = under ₹100 Cr. Company-wide figures; P/E on trailing profit{rows.some(ttmMismatch) ? " (* TTM profit positive after a loss year)" : ""}.
       </p>
       <SlideFoot deck={deck} source="Company filings via Screener.in seed data" />
     </>

@@ -117,11 +117,14 @@ async function storedBars(key: string, range: ChartRange, candles: boolean, dail
   const from = HISTORY_FROM[key];
   // Demergers Yahoo left unadjusted (Screener's closes already are), scaled on the daily bars so
   // the weekly roll-up is exact.
-  const kept = sinceDays(from ? got.bars.filter((b) => b.t >= from) : got.bars, r.days, Date.now());
+  // The range runs back from the series' own last close, not from the clock: a backtest worked out
+  // in the evening (the stored period figures) and one at noon the next day read the same days.
+  const lastT = got.bars[got.bars.length - 1]?.t;
+  const kept = sinceDays(from ? got.bars.filter((b) => b.t >= from) : got.bars, r.days, lastT ? Date.parse(`${lastT}T00:00:00Z`) : Date.now());
   const daily = got.source === "screener" ? kept : adjustDemergers(key, kept, "1d");
   // A history starting inside a weekly range (a recent listing, or the cut) stays daily, so it
   // starts on its first day's close as Yahoo's charts do (bars.ts rangeInterval).
-  const interval = daily.length ? rangeInterval(range, r.interval, daily[0].t, Date.now()) : r.interval;
+  const interval = daily.length ? rangeInterval(range, r.interval, daily[0].t, lastT ? Date.parse(`${lastT}T00:00:00Z`) : Date.now()) : r.interval;
   // A week or month starting before the cut is left out whole, as Yahoo's bars are.
   const bars = rollUp(daily, interval).filter((b) => !from || b.t >= from);
   return bars.length >= 2 ? { ...got, bars, interval, lastDay: daily[daily.length - 1]?.t ?? null } : null;

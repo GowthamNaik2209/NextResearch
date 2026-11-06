@@ -200,8 +200,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                   <span className="mr-1 inline-flex align-middle">
                     <InfoTip label="About these figures">{KEY_STATS_NOTE}</InfoTip>
                   </span>
-                  Company snapshot as of {asOf}: the same figures in the live card, baskets and watchlist. The live card updates only the price
-                  and chart.
+                  Snapshot as of {asOf}; the live card updates price and chart only.
                 </p>
                 {pe && <PeContextView ctx={pe} ticker={c.ticker} className="mt-5 rounded-xl border border-line bg-panel p-4" />}
               </section>
