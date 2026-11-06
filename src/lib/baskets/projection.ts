@@ -1,5 +1,5 @@
 // One stock's price projection, 1 and 2 years ahead, in a Bear, Base and Bull case (docs/PROJECTIONS.md).
-// Base is the return the market prices in for the stock's risk (CAPM: the 10-year G-sec yield plus
+// Base is the return the market prices in for the stock's risk (CAPM: the RBI repo rate plus
 // its beta times India's equity risk premium, less its dividend yield, since this is a price
 // projection), tilted a little by its fundamentals (Grinold-Kahn: IC x volatility x score). Bear and
 // Bull are the 10th and 90th percentiles of a lognormal year at the stock's own 1-year realised

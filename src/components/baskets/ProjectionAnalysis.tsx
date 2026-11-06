@@ -213,7 +213,7 @@ function AssumptionsView({ view, single }: { view: ProjectionView; single: boole
               <Th left title="Fiscal years of results used">Years</Th>
               <Th title="Beta to the Nifty 50 from 2 years of weekly returns, pulled a third of the way to 1">Beta</Th>
               <Th title={`Annual volatility used for Bear and Bull: its last year's, never below ${pct(VOL_FLOOR * 100, 0)}`}>Volatility</Th>
-              <Th title={`G-sec ${rf} + beta x ERP ${erp} - dividend yield, a year`}>Market return a year</Th>
+              <Th title={`Repo rate ${rf} + beta x ERP ${erp} - dividend yield, a year`}>Market return a year</Th>
               <Th title="IC 0.05 x volatility x standardised fundamentals score, added once">Fundamentals tilt</Th>
               <Th title={`Projected return over the next ${HORIZON_LONG[h]}: bear / base / bull; the chosen case in bold`}>Bear / Base / Bull</Th>
             </tr>

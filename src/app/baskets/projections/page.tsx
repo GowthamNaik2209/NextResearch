@@ -43,7 +43,7 @@ export const maxDuration = 300;
 export const metadata = {
   title: "How basket projections are worked out",
   description:
-    "The method behind NextResearch's 1- and 2-year basket projections: a market-implied Base (10-year G-sec yield plus beta times India's equity risk premium, less dividend yield) tilted slightly by fundamentals, a Bear–Bull range from each stock's own volatility, the out-of-sample evidence, and a worked example for any stock.",
+    "The method behind NextResearch's 1- and 2-year basket projections: a market-implied Base (the RBI repo rate plus beta times India's equity risk premium, less dividend yield) tilted slightly by fundamentals, a Bear–Bull range from each stock's own volatility, the out-of-sample evidence, and a worked example for any stock.",
   alternates: { canonical: "/baskets/projections" },
   ...shareMeta({ title: "How basket projections work", line: "Bear, Base and Bull, explained.", path: "/baskets/projections" }),
 };

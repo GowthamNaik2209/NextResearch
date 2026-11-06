@@ -51,7 +51,7 @@ const pct = (v: number | null | undefined) => (v == null ? null : r2(v * 100));
 const CASE = { bear: "Bear", base: "Base", bull: "Bull" } as const;
 const BETA_SOURCE = { prices: "2Y weekly vs Nifty 50", default: "1 (no 2Y history)" } as const;
 const VOL_SOURCE = { prices: "1Y realised", range: "est. from 52-week range", floor: `floor (${Math.round(VOL_FLOOR * 100)}%)` } as const;
-/** A market input (a fraction) as a percentage in text: "7.47%". */
+/** A market input (a fraction) as a percentage in text: "5.50%". */
 const pc = (v: number) => `${(v * 100).toFixed(2)}%`;
 
 function sheet(name: string, rows: Cell[][], bold: number[], widths?: number[], freezeTop = false): Sheet {
