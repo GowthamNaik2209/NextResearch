@@ -242,8 +242,8 @@ function AssumptionsView({ view, single }: { view: ProjectionView; single: boole
           it is measured against every covered company. Loss-makers (no positive P/E or margin) get the market return only.
         </li>
         <li>
-          <b className="font-semibold text-ink">Base</b> = market return + tilt (2 years: the market return compounded, the tilt once). <b className="font-semibold text-ink">Bear / Bull</b>: the 10th and 90th
-          percentile of a year at the stock&rsquo;s own volatility, (1 + Base) × e<sup>−σ²h/2 ∓ 1.28σ√h</sup> − 1; 2 years is √2 wider. Base mostly reflects beta{single ? ", so it isn’t a signal to buy or sell." : <>, so it isn&rsquo;t a ranking of the stocks.</>}
+          <b className="font-semibold text-ink">Base</b>: the typical outcome, (1 + market return + tilt) × e<sup>−σ²h/2</sup> − 1 (2 years: the market return compounded, the tilt once).{" "}
+          <b className="font-semibold text-ink">Bear / Bull</b>: the 10th and 90th percentile at the stock&rsquo;s own volatility, (1 + Base) × e<sup>∓1.28σ√h</sup> − 1; 2 years is √2 wider. Base mostly reflects beta{single ? ", so it isn’t a signal to buy or sell." : <>, so it isn&rsquo;t a ranking of the stocks.</>}
         </li>
         <li>{PROJECTION_DISCLAIMER} <Link href="/baskets/projections" className="font-semibold text-accent underline">Full method, with a worked example</Link>.</li>
       </ul>

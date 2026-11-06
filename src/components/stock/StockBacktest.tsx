@@ -214,8 +214,8 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
             <div className="flex items-center gap-1.5">
               {projSeg("Case", "scenario", SCENARIOS, (c) => SCENARIO_LABEL[c], caseHelp)}
               <InfoTip label="How the projection works">
-                Base is the return the market prices in for the stock&rsquo;s risk, plus a small tilt from its results. Bear and Bull are its 1-in-10 low and
-                high years at its own volatility.
+                Base is the stock&rsquo;s typical outcome around the return the market prices in for its risk, plus a small tilt from its results. Bear and Bull are
+                its 1-in-10 low and high years at its own volatility.
               </InfoTip>
             </div>
           </>

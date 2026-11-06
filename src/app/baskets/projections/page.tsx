@@ -43,7 +43,7 @@ export const maxDuration = 300;
 export const metadata = {
   title: "How basket projections are worked out",
   description:
-    "The method behind NextResearch's 1- and 2-year basket projections: a market-implied Base (the RBI repo rate plus beta times India's equity risk premium, less dividend yield) tilted slightly by fundamentals, a Bear–Bull range from each stock's own volatility, the out-of-sample evidence, and a worked example for any stock.",
+    "The method behind NextResearch's 1- and 2-year basket projections: a Base that is each stock's typical outcome around a market-implied return (the RBI repo rate plus beta times India's equity risk premium, less dividend yield) tilted slightly by fundamentals, a Bear–Bull range from each stock's own volatility, the out-of-sample evidence, and a worked example for any stock.",
   alternates: { canonical: "/baskets/projections" },
   ...shareMeta({ title: "How basket projections work", line: "Bear, Base and Bull, explained.", path: "/baskets/projections" }),
 };
@@ -118,7 +118,7 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
           <H2 id="what">1. In short</H2>
           <Bullets>
             <li>
-              <B>Base</B>: the return the market prices in for the stock&rsquo;s risk, plus a small tilt from its growth and margin.
+              <B>Base</B>: the stock&rsquo;s typical outcome when it earns the return the market prices in for its risk, plus a small tilt from its growth and margin.
             </li>
             <li>
               <B>Bear</B> and <B>Bull</B>: its 1-in-10 low and high years at its own volatility over the past year.
@@ -141,9 +141,11 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
             <br />
             tilt = IC × σ × z, IC = {IC}
             <br />
-            Base = market return + tilt
+            average = market return + tilt
             <br />
-            Bear, Bull = (1 + Base) × e^(−σ²h/2 ∓ {Z80.toFixed(2)} × σ × √h) − 1
+            Base = (1 + average) × e^(−σ²h/2) − 1 &nbsp;(the typical outcome)
+            <br />
+            Bear, Bull = (1 + Base) × e^(∓{Z80.toFixed(2)} × σ × √h) − 1
           </Formula>
           <Bullets>
             <li>
@@ -334,7 +336,8 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
   const volFromPrices = typeof input.risk?.vol === "number" && Number.isFinite(input.risk.vol) && input.risk.vol > 0;
   const [lo, hi] = [input.range?.[0] ?? null, input.range?.[1] ?? null];
   const cases = HORIZONS.map((h) => ({ h, c: casesFor(ctx, h) }));
-  const base2 = cases[1].c[1];
+  // The average outcome over h years (market compounded, tilt once), which Base is the typical outcome of.
+  const avgOf = (h: number) => Math.pow(1 + ctx.market, h - 1) * (1 + ctx.market + ctx.tilt) - 1;
 
   // Why a stock has no fundamentals score (the same tests as projection.ts, in its order).
   const npLast = input.np[at(runYears[runYears.length - 1])];
@@ -541,10 +544,17 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
       )}
 
       <div className="flex flex-col gap-1">
-        <H3>6. Base</H3>
+        <H3>6. Base, the typical outcome</H3>
         <Formula>
-          1 year: {pct(ctx.market, 2)} {plus(ctx.tilt)} = {sPct(ctx.base1, 2)}
-          <br />2 years: {f4(1 + ctx.market)} × ({f4(1 + ctx.market)} {plus(ctx.tilt, 4, true)}) − 1 = {sPct(base2, 2)}
+          average, 1 year = {pct(ctx.market, 2)} {plus(ctx.tilt)} = {sPct(ctx.mean1, 2)}
+          <br />
+          average, 2 years = {f4(1 + ctx.market)} × ({f4(1 + ctx.market)} {plus(ctx.tilt, 4, true)}) − 1 = {sPct(avgOf(2), 2)}
+          {cases.map(({ h, c }) => (
+            <span key={h}>
+              <br />
+              Base, {h} year{h === 1 ? "" : "s"} = {f4(1 + avgOf(h))} × e^(−{pct(ctx.vol, 2)}² × {h} ÷ 2) − 1 = {sPct(c[1], 2)}
+            </span>
+          ))}
         </Formula>
       </div>
 
@@ -552,16 +562,12 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
         <H3>7. Bear and Bull</H3>
         <Formula>
           {cases.map(({ h, c }, i) => {
-            const mid = (1 + c[1]) * Math.exp((-ctx.vol * ctx.vol * h) / 2) - 1;
             const w = Z80 * ctx.vol * Math.sqrt(h);
             return (
               <span key={h}>
                 {i > 0 && <br />}
-                {h} year{h === 1 ? "" : "s"}: median = {f4(1 + c[1])} × e^(−{pct(ctx.vol, 2)}² × {h} ÷ 2) − 1 = {sPct(mid, 2)}; spread ={" "}
-                {Z80.toFixed(4)} × {pct(ctx.vol, 2)} × √{h} = {w.toFixed(4)}
-                <br />
-                {"  "}Bear = {f4(1 + mid)} × e^(−{w.toFixed(4)}) − 1 = {sPct(c[0], 2)} · Bull = {f4(1 + mid)} × e^({w.toFixed(4)}) − 1 ={" "}
-                {sPct(c[2], 2)}
+                {h} year{h === 1 ? "" : "s"}: spread = {Z80.toFixed(4)} × {pct(ctx.vol, 2)} × √{h} = {w.toFixed(4)}; Bear = {f4(1 + c[1])} × e^(−{w.toFixed(4)}) − 1 ={" "}
+                {sPct(c[0], 2)} · Bull = {f4(1 + c[1])} × e^({w.toFixed(4)}) − 1 = {sPct(c[2], 2)}
               </span>
             );
           })}
@@ -578,7 +584,6 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
               <Th>Bear</Th>
               <Th>Base</Th>
               <Th>Bull</Th>
-              <Th>Median</Th>
             </>
           }
         >
@@ -590,7 +595,6 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
               <Td tone={c[0]}>{sPct(c[0])}</Td>
               <Td tone={c[1]}>{sPct(c[1])}</Td>
               <Td tone={c[2]}>{sPct(c[2])}</Td>
-              <Td>{sPct((1 + c[1]) * Math.exp((-ctx.vol * ctx.vol * h) / 2) - 1)}</Td>
             </Row>
           ))}
         </Table>

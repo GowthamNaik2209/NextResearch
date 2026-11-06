@@ -60,7 +60,8 @@ test("Base is the market return (rf + Blume beta x ERP - dividend yield) plus IC
   // 10% growth, margin steady at 10% (own and industry both 10%): score 10%, the middle, so no tilt.
   near(c.fundamentals!.score, 0.1, 1e-9);
   near(c.z, 0, 1e-9);
-  near(c.base1, c.market, 1e-9);
+  near(c.mean1, c.market, 1e-9);
+  near(c.base1, (1 + c.market) * Math.exp((-c.vol * c.vol) / 2) - 1, 1e-9);
   // Faster growth: score above the middle, a small positive tilt.
   const fast = explainStock({ ...base, rev: [1000, 1300, 1690, 2197, 2856.1], np: [100, 130, 169, 219.7, 285.61] }, scale);
   assert.ok(fast.ok);
@@ -89,18 +90,18 @@ test("no measured beta: 1; no price history: volatility from the 52-week range; 
   assert.ok(none.ok && none.ctx.vol === VOL_FLOOR && none.ctx.volSource === "floor");
 });
 
-test("Bear and Bull: 10th and 90th percentiles of a lognormal outcome with mean Base", () => {
+test("Base is the typical outcome of a lognormal with mean market + tilt; Bear and Bull its 10th and 90th percentiles", () => {
   const c = { market: 0.12, tilt: 0.01, vol: 0.3 };
   const [bear, mid, bull] = casesFor(c, 1);
-  near(mid, 0.13);
-  const med = (1 + mid) * Math.exp(-0.045);
+  const med = 1.13 * Math.exp(-0.045);
+  near(mid, med - 1);
   near(bear, med * Math.exp(-Z80 * 0.3) - 1);
   near(bull, med * Math.exp(Z80 * 0.3) - 1);
   // Two years: market compounded, tilt once, width by sqrt(2).
   const [b2, m2, u2] = casesFor(c, 2);
-  near(m2, 1.12 * 1.13 - 1);
+  near(m2, (1.12 * 1.13) * Math.exp(-0.09) - 1);
   near(Math.log((1 + u2) / (1 + b2)), 2 * Z80 * 0.3 * Math.SQRT2);
-  // Lognormal check: with mean (1 + Base), 10% of outcomes fall below Bear.
+  // Bear below Base below Bull.
   const p = projectStock(base, scale);
   assert.ok(p.ok && p.ret["1"][0] < p.ret["1"][1] && p.ret["1"][2] > p.ret["1"][1]);
 });
@@ -112,7 +113,7 @@ test("loss-maker: market return and volatility only, no score", () => {
   assert.equal(p.method, "market");
   assert.equal(p.score, null);
   assert.equal(p.tilt, 0);
-  near(p.ret["1"][1], p.market);
+  near(p.ret["1"][1], (1 + p.market) * Math.exp((-p.vol * p.vol) / 2) - 1);
   assert.equal(fundamentalScore({ ...base, np: [-10, -20, -15, -5, -8], pe: null }), null);
 });
 

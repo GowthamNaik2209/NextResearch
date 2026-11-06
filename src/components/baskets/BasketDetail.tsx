@@ -1096,11 +1096,11 @@ export function BasketDetail(p: BasketDetailProps) {
             ? "Each stock's 10th-percentile outcome at its own volatility: 1 in 10 years for a stock this volatile end lower"
             : c === "bull"
               ? "Each stock's 90th-percentile outcome at its own volatility: 1 in 10 years for a stock this volatile end higher"
-              : "The return the market prices in for each stock's risk, plus a small tilt from its fundamentals",
+              : "Each stock's typical outcome around the return the market prices in for its risk, plus a small tilt from its fundamentals",
         )}
         <InfoTip label="How projections work">
-          Base is the return the market prices in for each stock&rsquo;s risk, plus a small tilt from its results. Bear and Bull are its 1-in-10 low and high
-          years; the basket&rsquo;s have every stock at its extreme at once.{" "}
+          Base is each stock&rsquo;s typical outcome around the return the market prices in for its risk, plus a small tilt from its results. Bear and Bull are its
+          1-in-10 low and high years; the basket&rsquo;s have every stock at its extreme at once.{" "}
           <Link href="/baskets/projections" className="font-semibold text-accent underline">
             Full method
           </Link>

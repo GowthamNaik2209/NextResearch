@@ -8,11 +8,12 @@ import { ResearchFlows } from "./ResearchFlows";
 // can't drift from what a basket shows.
 const pct = (v: number) => `${(v * 100).toFixed(2)}%`;
 
-// Out-of-sample results of the live model (docs/PROJECTIONS-V2-PROTOTYPE.md, three 1-year periods).
+// The model run on every covered stock as it stood 1 and 2 years ago (the projections method page's
+// check, projection-check.ts, as of 6 Nov 2026): 1 year from Nov 2025, 1 year from Nov 2024, 2 years from Nov 2024.
 const RECORD: { big: string; body: string; verdict: string; tone: "good" | "mid" | "bad" }[] = [
-  { big: "78%", body: "of outcomes landed between Bear and Bull. Target: 80%.", verdict: "Range works", tone: "good" },
-  { big: "+0.09 · +0.09 · +0.01", body: "Rank correlation with actual returns, three periods. Not significant.", verdict: "Weak ranking", tone: "mid" },
-  { big: "−18 pts", body: "Typical gap between the actual return and Base. Most of it is the market’s move that year, which the model can’t foresee.", verdict: "Not a forecast", tone: "bad" },
+  { big: "85–91%", body: "of outcomes landed between Bear and Bull. Target: 80%.", verdict: "Range works", tone: "good" },
+  { big: "+0.01 · +0.13 · +0.15", body: "Rank correlation of Base with actual returns, three checks.", verdict: "Weak ranking", tone: "mid" },
+  { big: "−4 to −11 pts", body: "Typical gap between the actual return and Base. Most of it is the market’s move, which the model can’t foresee.", verdict: "Not a forecast", tone: "bad" },
 ];
 // Ink on a toned border: tinted text on a tint fell under 4.5:1 in the light theme.
 const TONE = { good: "border-pos text-ink", mid: "border-line text-ink-soft", bad: "border-danger text-ink" };
@@ -99,15 +100,15 @@ export function HowItWorks() {
             </Topic>
             <Topic title="Projections" line="Bear, Base and Bull for 1 and 2 years">
               <Formula>
-                <span className="text-ink-soft">Base: what the market prices in for the stock&rsquo;s risk, nudged by fundamentals</span>
+                <span className="text-ink-soft">Average: what the market prices in for the stock&rsquo;s risk, nudged by fundamentals</span>
                 <br />
-                Base<sub>1Y</sub> = rf + &beta; &times; ERP &minus; dividend yield + {IC} &times; &sigma; &times; z
+                Avg<sub>1Y</sub> = rf + &beta; &times; ERP &minus; dividend yield + {IC} &times; &sigma; &times; z
                 <br />
-                Base<sub>2Y</sub> = (1 + Base<sub>1Y</sub>) &times; (1 + rf + &beta; &times; ERP &minus; dividend yield) &minus; 1 <span className="text-ink-soft">&nbsp;// year two without the tilt</span>
+                Avg<sub>2Y</sub> = (1 + Avg<sub>1Y</sub>) &times; (1 + rf + &beta; &times; ERP &minus; dividend yield) &minus; 1 <span className="text-ink-soft">&nbsp;// year two without the tilt</span>
                 <br />
-                <span className="text-ink-soft">Bear, Bull: 10th and 90th percentile at the stock&rsquo;s own 1-year volatility</span>
+                <span className="text-ink-soft">Base: the typical outcome; Bear, Bull: 10th and 90th percentile at the stock&rsquo;s own 1-year volatility</span>
                 <br />
-                (1 + Base) &middot; e<sup>&minus;&sigma;&sup2;h/2 &#8723; 1.28 &sigma;&radic;h</sup> &minus; 1 <span className="text-ink-soft">&nbsp;// h = 1 or 2 years</span>
+                Base = (1 + Avg) &middot; e<sup>&minus;&sigma;&sup2;h/2</sup> &minus; 1 &nbsp;&middot;&nbsp; Bear, Bull = (1 + Base) &middot; e<sup>&#8723; 1.28 &sigma;&radic;h</sup> &minus; 1 <span className="text-ink-soft">&nbsp;// h = 1 or 2 years</span>
               </Formula>
               <ul className="list-disc space-y-1 pl-5">
                 <li>

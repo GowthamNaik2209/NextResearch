@@ -73,8 +73,8 @@ When every stock (or every pick) is left out, the projection says so instead of 
 
 ## 4. The per-stock model (`projection.ts`, pure, unit-tested)
 
-**Base is the return the market prices in for the stock's risk, adjusted slightly for its
-fundamentals. Bear and Bull are the range 8 in 10 one-year outcomes fall in for a stock this
+**Base is the stock's typical (median) outcome when it earns the return the market prices in for
+its risk, adjusted slightly for its fundamentals. Bear and Bull are the range 8 in 10 one-year outcomes fall in for a stock this
 volatile.** It is a model projection: not a forecast, a target price or a ranking of stocks.
 
 Inputs: from the company table (the same figures shown everywhere), five fiscal years of revenue
@@ -119,18 +119,21 @@ it: the repo rate, rather than the G-sec yield, which carries the default spread
    deviation over every listed company we cover, within ±3. A weak signal should barely move the
    forecast: with σ ~35% the tilt is at most about ±5 points. Loss-makers (and stocks without a
    usable P/E or margin) have no tilt: "market" method.
-6. **Base** = market return + tilt, a year. Two years: (1 + market) × (1 + market + tilt) − 1 (a one-year
-   signal isn't carried into the second year).
-7. **Bear and Bull** = the 10th and 90th percentiles of a lognormal outcome with mean Base:
-   (1 + Base) × e^(−σ²h/2 ∓ 1.28 σ √h) − 1 for h = 1 or 2 years. Their middle (the median outcome)
-   sits below Base: a volatile stock's typical year is below its average one. The return has no cap
-   (only the inputs have limits: growth, margins, z, the volatility floor).
+6. **Average** = market return + tilt, a year. Two years: (1 + market) × (1 + market + tilt) − 1 (a
+   one-year signal isn't carried into the second year). **Base** = (1 + average) × e^(−σ²h/2) − 1,
+   the typical (median) outcome of a lognormal with that average: a volatile stock's typical year is
+   below its average one, which a few big winners pull up.
+7. **Bear and Bull** = its 10th and 90th percentiles, (1 + Base) × e^(∓1.28 σ √h) − 1 for h = 1 or 2
+   years. The return has no cap (only the inputs have limits: growth, margins, z, the volatility floor).
 
 Rules for which stocks are projected are as in section 3. Out of sample over three 1-year periods
 (Oct 2024 – Oct 2026; [PROJECTIONS-V2-PROTOTYPE.md](./PROJECTIONS-V2-PROTOTYPE.md), "Built v2" rows of
 `scripts/validate-projections-v2.ts`), this model's Bear–Bull held 91%, 90% and 81% of actual
 outcomes (the first model's: 47%, 48%, 33%); Base's rank correlation with outcomes was +0.01, +0.01
-and −0.11: it describes risk and the market's pricing, it does not pick stocks. Today (24 Oct 2026, `scripts/projections-today.ts`): 248 of
+and −0.11: it describes risk and the market's pricing, it does not pick stocks. (Those figures had Base as the
+average outcome. The rolling check on the method page, every covered stock as it stood 1 and 2 years
+before 6 Nov 2026, with Base as the typical outcome: median actual − Base −10.8, −4.1 and −8.7 points
+against −16.8, −12.7 and −25.9 with the average; Bear–Bull hit rates unchanged at 85–91%.) Today (24 Oct 2026, `scripts/projections-today.ts`): 248 of
 280 companies projected; median beta 1.22, volatility 36%, dividend yield 0.4%; median one-year Bear
 −31%, Base +15%, Bull +72% (two years: −39% / +34% / +127%); Base ranges from +5% to +25%, the
 highest being the highest-beta stocks; 29 on the market method (no fundamentals tilt), 9 at the
@@ -155,7 +158,7 @@ total the basket's projected return.
 - **Dates.** One point a week from today's last close for 52 or 104 weeks (`Week of …` on the
   crosshair, like the 3Y and 5Y backtests).
 - **Likely range, drawdown, chance of a loss.** 1,000 simulated weekly paths (seeded, so the same
-  settings always give the same figures) with the **Base** case's return as the average whichever case is chosen (Bear and Bull are already the extremes; simulating around Bear would stack a bad year on a bad year; the median path ends a little below Base) and the basket's own
+  settings always give the same figures) with the median path ending at the **Base** case's return whichever case is chosen (Bear and Bull are already the extremes; simulating around Bear would stack a bad year on a bad year) and the basket's own
   volatility over the past year (its 1Y backtest). The likely range is the 10th to 90th percentile
   path; drawdowns are each path's worst fall from a high (typical = median path, bad = 1 in 10).
   Without a past-year backtest (it failed to load) those cells say so; the projection itself still shows.
