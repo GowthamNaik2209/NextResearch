@@ -1,6 +1,7 @@
 // Database rows <-> the SupplierFinancials shape the app reads (supplier.f). Pure: shared by the
 // server loader (./load.ts) and the scripts that write the table (scripts/refresh-financials.ts).
 import type { SupplierFinancials } from "@/lib/sector-content";
+import { withNoQuoteNote, withoutNoQuoteNote } from "./no-quote";
 
 // The five fiscal years every figure set carries, FY22..FY26 (rev[i] / np[i] is FISCAL_YEARS[i]).
 // A company that reports calendar years keeps CY2021-CY2025 in these columns (its note says so).
@@ -89,7 +90,7 @@ export function rowToFinancials(r: CompanyFinRow): SupplierFinancials {
     np: FISCAL_YEARS.map((y) => num(year(y)?.netProfitCr ?? null)),
     mcap: k?.marketCap ?? null,
     price: price == null ? null : formatPrice(price),
-    note: r.financialsNote,
+    note: withNoQuoteNote(r.ticker, r.financialsNote),
     cagr: k ? tuple([num(k.cagr1y), num(k.cagr3y), num(k.cagr5y)]) : null,
     range: k ? tuple([num(k.low52w), num(k.high52w)]) : null,
     tl: r.screenerSlug ? [r.externalId == null ? null : Number(r.externalId), r.screenerSlug] : null,
@@ -107,7 +108,7 @@ export function financialsToRows(f: SupplierFinancials, asOf: Date) {
     company: {
       screenerSlug: f.tl?.[1] ?? null,
       externalId: f.tl?.[0] != null ? String(f.tl[0]) : null,
-      financialsNote: f.note ?? null,
+      financialsNote: withoutNoQuoteNote(f.ticker, f.note),
       screenOut: !!f.screenOut,
       tracked: true,
     },
