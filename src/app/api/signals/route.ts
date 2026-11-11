@@ -17,8 +17,9 @@ import { isScope, resolveTarget } from "@/lib/signals/targets";
 // every indicator's reading on its last close; a basket with each stock's key readings (the heatmap).
 // Per user and per strategy, so never cached. `ticker` alone still means one stock.
 const NO_STORE = { "Cache-Control": "private, no-store" };
-// The first request on a new server instance may build the covered-stock panel, or read a basket's prices.
-export const maxDuration = 60;
+// A new server instance reads every stock of a basket (up to 75) from the price store, or builds the
+// covered-stock panel: a 28-stock basket took ~37 s cold on staging, so the brief's 300 s, not 60.
+export const maxDuration = 300;
 
 const fail = (status: number, error: string) => NextResponse.json({ error }, { status, headers: NO_STORE });
 
