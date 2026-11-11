@@ -3,6 +3,7 @@
 import { InfoTip } from "@/components/InfoTip";
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
+import { weightingParams } from "@/lib/signals/weighting";
 import Link from "next/link";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
@@ -1548,6 +1549,26 @@ export function BasketDetail(p: BasketDetailProps) {
             <button type="button" onClick={exportWorkbook} disabled={!stocks.length || exporting} title="Download everything on this page as an Excel workbook" className={btnSec}>
               {exporting ? "Exporting…" : "Export Excel"}
             </button>
+            {/* Entry and exit rules backtested on this basket (docs/SIGNALS.md): an industry's, or the
+                owner's own; its Back returns here. Tablets and computers only for now. */}
+            {(p.mode === "industry" || (p.mode === "saved" && p.isOwner)) && (
+              <button
+                type="button"
+                // The basket's weighting goes with it (equal, market cap or the custom %).
+                onClick={() => {
+                  const q = new URLSearchParams({
+                    b: p.mode === "industry" ? `industry:${p.id}` : p.id,
+                    ...weightingParams({ scheme: weighting, weights: strategy.weights }),
+                    from: window.location.pathname + window.location.search,
+                  });
+                  router.push(`/signals?${q}`);
+                }}
+                title="Backtest entry and exit rules from technical indicators on this basket's stocks (signed in)"
+                className={btnSec + " max-sm:hidden"}
+              >
+                Signals
+              </button>
+            )}
             {canEdit && !draft && (
               <MoreMenu
                 items={[

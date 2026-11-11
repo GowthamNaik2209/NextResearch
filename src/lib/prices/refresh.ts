@@ -20,6 +20,7 @@ import { screenerDailyCloses, yahooDailyFor, yahooDailyHistory, type DailyHistor
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listCompanyPages } from "@/lib/sector-content/companies";
 import { latestDueTradingDay } from "@/lib/financials/trading-day";
+import { hasQuote } from "@/lib/financials/no-quote";
 import { historyChanged, splitLike, STORE_DAYS, type StoredBar } from "./bars";
 
 const DAY = 86_400_000;
@@ -47,11 +48,12 @@ const dateOf = (t: string) => new Date(`${t}T00:00:00Z`);
 
 /**
  * What the store keeps: every company with a page (by its ticker) and every benchmark (by its Yahoo
- * symbol). `deep`: the whole history, not five years (the Nifty 50's stocks and the index itself).
+ * symbol), except listings with no traded price (../financials/no-quote.ts). `deep`: the whole
+ * history, not five years (the Nifty 50's stocks and the index itself).
  */
 export function storeKeys(): { key: string; benchmark: boolean; deep: boolean }[] {
   const out = new Map<string, { benchmark: boolean; deep: boolean }>();
-  for (const p of listCompanyPages()) out.set(p.ticker, { benchmark: false, deep: p.appearances.some((a) => a.sectorSlug === DEEP_INDEX) });
+  for (const p of listCompanyPages()) if (hasQuote(p.ticker)) out.set(p.ticker, { benchmark: false, deep: p.appearances.some((a) => a.sectorSlug === DEEP_INDEX) });
   for (const [id, b] of Object.entries(BENCHMARKS)) out.set(b.symbol, { benchmark: true, deep: id === DEEP_INDEX });
   return [...out].map(([key, k]) => ({ key, ...k }));
 }
@@ -71,7 +73,8 @@ const fromYahoo = (h: DailyHistory): Fetched => ({
     });
   })(),
 });
-const fromCloses = (pts: PricePoint[]): Fetched => ({ source: "screener", exchange: "NSE", bars: pts.map((p) => ({ t: p.t, o: null, h: null, l: null, c: p.c, v: null })) });
+// Screener: closes and volumes only (no open, high or low).
+const fromCloses = (pts: (PricePoint & { v: number | null })[]): Fetched => ({ source: "screener", exchange: "NSE", bars: pts.map((p) => ({ t: p.t, o: null, h: null, l: null, c: p.c, v: p.v })) });
 
 /** The last `days` of a series (five years, or a deep one's whole history), choosing its source afresh. */
 async function fetchWhole(key: string, benchmark: boolean, days = STORE_DAYS): Promise<Fetched | null> {

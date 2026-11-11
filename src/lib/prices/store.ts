@@ -162,6 +162,15 @@ export async function storedDailyChart(key: string, range: ChartRange): Promise<
   return s ? withLastDay(toPoints(s.bars), s.lastDay) : null;
 }
 
+/**
+ * A stock's daily bars over a range from the store, with open/high/low/volume where its source has
+ * them (a Screener series has closes and volumes only), or null. The signal backtests read these.
+ */
+export async function storedDailyBars(key: string, range: ChartRange): Promise<{ source: string; bars: StoredBar[] } | null> {
+  const s = await storedBars(key, range, true, true);
+  return s ? { source: s.source, bars: s.bars } : null;
+}
+
 /** Baskets: the store first, then Yahoo (and Screener) as before. */
 export async function basketChart(ticker: string, range: ChartRange): Promise<ChartData | null> {
   return (await storedChart(ticker, range)) ?? getChartWithFallback(ticker, range);

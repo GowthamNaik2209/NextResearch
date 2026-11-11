@@ -113,6 +113,7 @@ model Profile {
   watchlist Watchlist[]
   baskets   Basket[]
   emailPref EmailPref?
+  signals   SignalStrategy[]
 }
 
 // A user's email choices. The 8 am morning brief goes to every signed-up user until they turn it
@@ -352,4 +353,49 @@ model BulkDeal {
 
   @@index([day])
   @@index([symbol, day])
+}
+
+// A user's saved signal rules for one stock or basket (docs/SIGNALS.md): one row per user and
+// target, so opening that stock or basket again picks up the rules where they were left. With
+// `alerts` on, the nightly check (src/lib/signals/alerts.ts) runs the rules on each new close and
+// emails the user when an entry or exit is met. `scope` is "stock" (target: the ticker) or
+// "basket" (target: the user's Basket id, or "industry:<slug>"). `token` is the alert emails'
+// unsubscribe secret, so turning alerts off needs no sign-in.
+model SignalStrategy {
+  id         String        @id @default(cuid())
+  userId     String
+  user       Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scope      String
+  target     String
+  name       String
+  rules      Json
+  alerts     Boolean       @default(false)
+  token      String        @unique @default(cuid())
+  // The last close the nightly check ran these rules on.
+  checkedDay DateTime?     @db.Date
+  events     SignalEvent[]
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@unique([userId, scope, target])
+  @@index([alerts])
+}
+
+// One rule met on one close for one stock of a saved signal: what the alert email reports. Written
+// before the email goes out, and unique per close, so a check that runs twice never mails twice.
+model SignalEvent {
+  id         String         @id @default(cuid())
+  strategyId String
+  strategy   SignalStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  day        DateTime       @db.Date
+  ticker     String
+  // "entry" or "exit"; for an exit, what triggered it (exit rule, trailing stop, ...).
+  kind       String
+  reason     String
+  price      Float
+  emailedAt  DateTime?
+  createdAt  DateTime       @default(now())
+
+  @@unique([strategyId, day, ticker, kind])
+  @@index([emailedAt])
 }

@@ -360,16 +360,38 @@ export async function yahooDailyFor(symbol: string, days: number): Promise<Daily
   return toDaily(symbol, await yahooSeriesFor(symbol, "5Y", daily(days)));
 }
 
-/** Screener's daily closes for the last `days` (stocks Yahoo has no prices for), or null. */
-export async function screenerDailyCloses(ticker: string, days: number): Promise<PricePoint[] | null> {
-  const f = await getFundamentals(ticker).catch(() => null);
-  if (!f?.companyId) return null;
-  const url = `https://www.screener.in/api/company/${f.companyId}/chart/?q=Price&days=${days}&consolidated=true`;
+type ScreenerBar = PricePoint & { v: number | null };
+// Screener answers every trading day only for a window of a year or less; a longer one comes back
+// thinned (a point every few days), so the last year is always asked for on its own.
+const SCREENER_DAILY_DAYS = 365;
+
+async function screenerBars(companyId: string, days: number): Promise<ScreenerBar[] | null> {
+  const url = `https://www.screener.in/api/company/${companyId}/chart/?q=Price-Volume&days=${days}&consolidated=true`;
   const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!res.ok) return null;
   const json = await res.json();
-  const values: [string, string][] | undefined = json?.datasets?.find((d: { metric: string }) => d.metric === "Price")?.values;
-  const points = (values ?? []).map(([t, c]) => ({ t, c: parseFloat(c) })).filter((p) => Number.isFinite(p.c) && p.c > 0);
+  const dataset = (metric: string): [string, string | number][] | undefined => json?.datasets?.find((d: { metric: string }) => d.metric === metric)?.values;
+  const volumes = new Map((dataset("Volume") ?? []).map(([t, v]) => [t, Number(v)]));
+  return (dataset("Price") ?? [])
+    .map(([t, c]) => {
+      const v = volumes.get(t);
+      return { t, c: parseFloat(String(c)), v: v != null && Number.isFinite(v) && v >= 0 ? v : null };
+    })
+    .filter((p) => Number.isFinite(p.c) && p.c > 0);
+}
+
+/**
+ * Screener's closes and volumes for the last `days` (stocks Yahoo has no prices for), or null.
+ * Screener has no open, high or low; a day without a volume figure keeps `v: null`. Every trading
+ * day over the last year; before that, the thinned points Screener gives for a long window.
+ */
+export async function screenerDailyCloses(ticker: string, days: number): Promise<ScreenerBar[] | null> {
+  const f = await getFundamentals(ticker).catch(() => null);
+  if (!f?.companyId) return null;
+  const recent = await screenerBars(f.companyId, Math.min(days, SCREENER_DAILY_DAYS));
+  if (!recent) return null;
+  const older = days > SCREENER_DAILY_DAYS && recent.length ? await screenerBars(f.companyId, days) : null;
+  const points = [...(older ?? []).filter((p) => p.t < recent[0].t), ...recent];
   return points.length > 1 ? points : null;
 }
 

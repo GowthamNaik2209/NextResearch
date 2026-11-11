@@ -31,6 +31,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { findSupplierByTicker, type SupplierFinancials } from "../src/lib/sector-content";
 import { listIpos } from "../src/lib/ipo-content";
+import { hasQuote } from "../src/lib/financials/no-quote";
 import { formatAsOf } from "../src/lib/financials/rows";
 import { readCompanyTable, readPublishedCutoff } from "../src/lib/financials/query";
 import { claimRun, fetchSnapshot, fiscalColumns, isStandalone, listedIposToAdd, newCompanyFigures, publishRun, releaseRun, ScreenerBlocked, withSnapshot, type Run, type Snap } from "../src/lib/financials/refresh";
@@ -87,7 +88,7 @@ async function main() {
   // IPOs listed by today whose deck names a ticker we don't track yet: added in the same run.
   const ipos = listedIposToAdd(new Set(table.keys()), SNAPSHOT_DATE, (m) => console.log(m));
   const newNames = new Map(ipos.map((i) => [i.ticker, i.name]));
-  const todo = [...table.values(), ...ipos.map((i): SupplierFinancials => ({ ticker: i.ticker }))].filter((f) => !ONLY || ONLY.includes(f.ticker));
+  const todo = [...table.values(), ...ipos.map((i): SupplierFinancials => ({ ticker: i.ticker }))].filter((f) => hasQuote(f.ticker) && (!ONLY || ONLY.includes(f.ticker)));
   if (ipos.length) console.log(`newly listed IPOs to add: ${ipos.map((i) => i.ticker).join(", ")}`);
   console.log(`${todo.length} companies, snapshot ${SNAPSHOT}${APPLY ? "" : " (dry run)"}`);
   const run = APPLY ? await claimToday() : null;
