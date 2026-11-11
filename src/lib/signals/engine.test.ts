@@ -4,6 +4,7 @@ import { Metrics, alignTo, dataGaps, type DailyBars } from "./compute";
 import { isCheckDay, runSignals } from "./engine";
 import { readingsNow } from "./readings";
 import { runBasketSignals } from "./basket";
+import { NSE_HOLIDAYS } from "@/lib/financials/trading-day";
 import { decodeStrategy, encodeStrategy, parseStrategy, PRESETS, type Strategy } from "./strategy";
 
 const near = (a: number | null | undefined, b: number, eps = 1e-6) => assert.ok(a != null && Math.abs(a - b) < eps, `${a} != ${b}`);
@@ -77,6 +78,35 @@ test("stop loss, take profit and time stop", () => {
   const time = runSignals(metrics(bars([100, 101, 102, 103, 104, 105, 106])), strat({ entry, stops: { days: 2 } }), 0)!;
   assert.equal(time.trades[0].reason, "days");
   assert.equal(time.trades[0].days, 3);
+});
+
+test("the newest close counts as a weekly or monthly check only when its week or month is over", () => {
+  // Wed 8 Jan 2025 is the newest close: mid-week, so no weekly check; a Friday newest close is one.
+  const midweek = bars(new Array(3).fill(100));
+  assert.equal(isCheckDay(midweek.t, 2, "w"), false);
+  assert.equal(isCheckDay(midweek.t, 2, "d"), true);
+  const friday = bars(new Array(5).fill(100));
+  assert.equal(isCheckDay(friday.t, 4, "w"), true);
+  assert.equal(isCheckDay(friday.t, 4, "m"), false);
+  // Fri 31 Jan 2025: the month's last weekday.
+  const monthEnd = bars(new Array(20).fill(100));
+  assert.equal(monthEnd.t[19], "2025-01-31");
+  assert.equal(isCheckDay(monthEnd.t, 19, "m"), true);
+});
+
+test("a holiday Friday makes the Thursday close the week's check", () => {
+  const fri = [...NSE_HOLIDAYS].find((d) => new Date(`${d}T00:00:00Z`).getUTCDay() === 5);
+  assert.ok(fri, "the calendar has a Friday holiday");
+  const thu = new Date(Date.parse(`${fri}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
+  const wed = new Date(Date.parse(`${fri}T00:00:00Z`) - 2 * 86_400_000).toISOString().slice(0, 10);
+  assert.equal(isCheckDay([wed, thu], 1, "w"), true);
+  assert.equal(isCheckDay([wed], 0, "w"), false);
+});
+
+test("a weekly rule met mid-week is not reported as met on the newest close", () => {
+  const b = bars([100, 100, 110]);
+  const r = runSignals(metrics(b), strat({ check: "w", entry: { all: true, conds: [{ m: "close", op: "above", v: 105 }] } }), 0)!;
+  assert.equal(r.pending, null);
 });
 
 test("weekly checks read the rules only on each week's last close", () => {

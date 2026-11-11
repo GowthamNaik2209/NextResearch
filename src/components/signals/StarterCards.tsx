@@ -32,7 +32,9 @@ export function StarterCards({ active, onPick }: { active: string; onPick: (id: 
             >
               <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">{IDEA[p.id] ?? "Idea"}</span>
               <span className="text-sm font-semibold text-ink">{p.label}</span>
-              <span className="line-clamp-2 text-[11px] leading-snug text-ink-soft">{p.note}</span>
+              <span title={p.note} className="line-clamp-3 text-[11px] leading-snug text-ink-soft">
+                {p.note}
+              </span>
             </button>
           );
         })}

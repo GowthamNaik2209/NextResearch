@@ -35,7 +35,8 @@ async function metOnLastClose(scope: Scope, tickers: string[], s: Strategy): Pro
   }
   const b = await loadBasket(tickers, needPanel);
   if (!b?.stocks.length) return null;
-  const usable = b.stocks.filter(({ mx }) => !strategyMetrics(s).some((id) => mx.unavailable(id)));
+  // As the page does: a stock that can't give an indicator the rules use, or the ATR stop, sits out.
+  const usable = b.stocks.filter(({ mx }) => !strategyMetrics(s).some((id) => mx.unavailable(id)) && !(s.stops.atr && mx.unavailable("atrPct")));
   const days = b.nifty.map((p) => p.t);
   const from = rangeStart(days, s.range);
   const r = runBasketSignals(usable, s, MARKET.rf, days.slice(from), b.nifty.slice(from).map((p) => p.c));
@@ -80,7 +81,8 @@ export async function checkSignals(deadline: number): Promise<CheckReport> {
         });
         out.events += count;
       }
-      await prisma.signalStrategy.update({ where: { id: row.id }, data: { checkedDay: day(got.lastDay) } });
+      // Raw SQL so `updatedAt` (the last save, which "reopen where you left off" goes by) stays as it was.
+      await prisma.$executeRaw`UPDATE "SignalStrategy" SET "checkedDay" = ${day(got.lastDay)} WHERE "id" = ${row.id}`;
       out.checked++;
     } catch (e) {
       console.error(`signals check: ${row.id} failed`, e);
@@ -154,10 +156,4 @@ export async function sendAlerts(): Promise<SendReport> {
   const quiet = [...byUser.values()].filter((ev) => !ev.some((e) => e.strategy.alerts)).flatMap((ev) => ev.map((e) => e.id));
   if (quiet.length) await prisma.signalEvent.updateMany({ where: { id: { in: quiet } }, data: { emailedAt: new Date() } });
   return { users: mails.length, sent, dryRun: false };
-}
-
-/** The newest alert email one user would get now (their own unsent events), for the preview. */
-export async function previewFor(userId: string, site: string) {
-  const events = (await prisma.signalEvent.findMany({ where: { strategy: { userId } }, orderBy: { day: "desc" }, take: 20, select: EVENT_SELECT })) as EventRow[];
-  return events.length ? emailFor(events, site) : null;
 }

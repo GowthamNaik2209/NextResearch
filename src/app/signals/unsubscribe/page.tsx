@@ -15,11 +15,14 @@ export default async function SignalAlertsUnsubscribePage({ searchParams }: { se
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-5 pt-10 pb-14 sm:py-16">
         <h1 className="font-display text-2xl font-bold text-ink">Signal alert emails</h1>
         {done ? (
-          <p className="text-sm leading-relaxed text-ink-soft">Alerts are off for all your saved signals. Your saved rules stay; you can turn alerts back on from Signals on a tablet or computer.</p>
+          <p className="text-sm leading-relaxed text-ink-soft">Alerts are off for all your saved signals. Your saved rules stay; you can turn alerts back on in Signals on a tablet or computer.</p>
+        ) : t && error ? (
+          <p className="text-sm leading-relaxed text-ink-soft">
+            This link no longer matches a saved signal: the signal it came with may have been deleted. You can turn alerts off in Signals on a tablet or computer, from the email switch in My signals.
+          </p>
         ) : t ? (
           <>
             <p className="text-sm leading-relaxed text-ink-soft">Stop alert emails for all your saved signals? The saved rules stay as they are.</p>
-            {error && <p className="text-sm text-danger">That link has expired or was already used. Turn alerts off from Signals instead.</p>}
             <form action={unsubscribe}>
               <input type="hidden" name="t" value={t} />
               <button type="submit" className="min-h-10 rounded-lg border border-btn px-4 text-sm font-semibold text-ink hover:bg-accent/10">
@@ -28,7 +31,7 @@ export default async function SignalAlertsUnsubscribePage({ searchParams }: { se
             </form>
           </>
         ) : (
-          <p className="text-sm leading-relaxed text-ink-soft">Open this page from the link in a signal alert email, or turn alerts off from Signals.</p>
+          <p className="text-sm leading-relaxed text-ink-soft">Open this page from the link in a signal alert email, or turn alerts off in Signals on a tablet or computer.</p>
         )}
       </main>
       <SiteFooter />

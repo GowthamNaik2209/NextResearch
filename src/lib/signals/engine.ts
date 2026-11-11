@@ -2,6 +2,7 @@
 // read on a close and trade at the next close; exit controls are read on every close; costs are
 // taken half on each side. Pure, so its timing and figures are unit-tested.
 import { crossesAbove, crossesBelow, type Series } from "./indicators";
+import { isTradingDay } from "@/lib/financials/trading-day";
 import { METRIC_BY_ID } from "./metrics";
 import type { Metrics } from "./compute";
 import { RANGE_DAYS, strategyMetrics, type Condition, type RuleSet, type Strategy } from "./strategy";
@@ -33,6 +34,16 @@ export type Trade = {
 
 export type Figures = { cagr: number | null; maxDd: number | null; sharpe: number | null; sortino: number | null };
 
+/** One part of the range: its yearly return (when it spans a year or more, else null), plain return, length and trades. */
+export type SplitPart = { cagr: number | null; ret: number | null; years: number; closed: number; winRate: number | null };
+
+export function splitPart(values: number[], days: string[], closed: Trade[], rf: number): SplitPart {
+  const years = days.length > 1 ? (Date.parse(days[days.length - 1]) - Date.parse(days[0])) / (365.25 * DAY) : 0;
+  const f = figures(values, days, rf);
+  const st = tradeStats(closed);
+  return { cagr: years >= 1 ? f.cagr : null, ret: values.length > 1 ? (values[values.length - 1] / values[0] - 1) * 100 : null, years, closed: st.closed, winRate: st.winRate };
+}
+
 export type SignalResult = {
   from: string;
   to: string;
@@ -52,7 +63,7 @@ export type SignalResult = {
     timeIn: number;
   };
   /** The rules' figures on the first part of the range and on the rest. */
-  split: { at: string; first: { cagr: number | null; closed: number; winRate: number | null }; last: { cagr: number | null; closed: number; winRate: number | null } };
+  split: { at: string; first: SplitPart; last: SplitPart };
   /** In a trade at the last close (since when, and how it stands), or out. */
   now: { in: boolean; since: string | null; ret: number | null };
   /** A rule met on the last close: it would trade at the next one. */
@@ -69,9 +80,23 @@ const isNum = (v: number | null | undefined): v is number => v != null && Number
 // Daily volatility under this is rounding error on a flat line, not risk.
 const FLAT = 1e-9;
 
-/** True when day `i` is the last trading day of its week or month (or the last day there is). */
+/**
+ * True when day `i` is the last trading day of its week or month. The newest close has no next day to
+ * look at, so it counts only when NSE's calendar has no trading day left in its week or month
+ * (holidays included): otherwise a weekly rule would read as met on every weekday, and the nightly
+ * alert would email each day.
+ */
 export function isCheckDay(t: string[], i: number, check: Strategy["check"]): boolean {
-  if (check === "d" || i === t.length - 1) return true;
+  if (check === "d") return true;
+  if (i === t.length - 1) {
+    const d = new Date(`${t[i]}T00:00:00Z`);
+    for (let k = 1; k <= 31; k++) {
+      const n = new Date(d.getTime() + k * DAY);
+      if (check === "w" ? n.getUTCDay() === 1 || n.getUTCDay() === 0 : n.getUTCMonth() !== d.getUTCMonth()) return true;
+      if (isTradingDay(n)) return false;
+    }
+    return true;
+  }
   if (check === "m") return t[i].slice(0, 7) !== t[i + 1].slice(0, 7);
   const week = (s: string) => {
     const d = Date.parse(`${s}T00:00:00Z`);
@@ -237,11 +262,7 @@ export function runSignals(mx: Metrics, s: Strategy, rf: number): SignalResult |
   const days = curve.map((p) => p.t);
   const closed = trades.filter((x) => x.exitT);
   const cut = Math.min(curve.length - 1, Math.max(1, Math.floor(curve.length * SPLIT_AT)));
-  const part = (a: number, b: number, ts: Trade[]) => {
-    const f = figures(curve.slice(a, b + 1).map((p) => p.rules), days.slice(a, b + 1), rf);
-    const st = tradeStats(ts);
-    return { cagr: f.cagr, closed: st.closed, winRate: st.winRate };
-  };
+  const part = (a: number, b: number, ts: Trade[]) => splitPart(curve.slice(a, b + 1).map((p) => p.rules), days.slice(a, b + 1), ts, rf);
   const niftyVals = curve.map((p) => p.nifty);
   const niftyOk = niftyVals.every(isNum);
 

@@ -1,16 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { GROUPS, METRICS, METRIC_BY_ID } from "@/lib/signals/metrics";
 import type { Strategy } from "@/lib/signals/strategy";
 import type { Trade } from "@/lib/signals/engine";
 import { describeTrigger } from "@/lib/signals/describe";
 import { SLOTS } from "@/components/charts/palette";
-import { InfoTip } from "@/components/InfoTip";
 import { Panel } from "@/components/baskets/Panel";
 import { fmtDay, NA, signedPct } from "@/lib/format";
 import { useSiteTheme } from "@/lib/theme";
-import { MetricInfo } from "./MetricPicker";
 import { SignalChart, type ChartLine, type ChartMark } from "./SignalChart";
 import { REASON, Tile, fmtValue, num, tone, type StockAnswer } from "./ui";
 import { ResultHeader } from "./ResultHeader";
@@ -18,7 +17,8 @@ import { ResultHeader } from "./ResultHeader";
 // One stock's results: the tiles, the price chart with the rules' lines and trades (a click on a
 // trade explains it), the growth of ₹100 with the early/late split, and the trade list.
 
-type Pick = { trade: Trade; side: "entry" | "exit" };
+/** A trade's entry or exit; `also`: an exit and the re-entry right after it, shown together (their arrows overlap at 5Y). */
+type Pick = { trade: Trade; side: "entry" | "exit"; also?: { trade: Trade; side: "entry" | "exit" } };
 
 function WhyCard({ pick, strategy, onClose }: { pick: Pick; strategy: Strategy; onClose: () => void }) {
   const sig = pick.side === "entry" ? pick.trade.entrySignal : pick.trade.exitSignal;
@@ -80,16 +80,17 @@ export function StockResults({ answer, strategy, busy }: { answer: StockAnswer; 
     return [
       { id: "rules", color: "--accent", width: 2, points: r.curve.map((p) => ({ t: p.t, v: p.rules })) },
       { id: "hold", color: "--ink-soft", width: 1, points: r.curve.map((p) => ({ t: p.t, v: p.hold })) },
-      ...(nifty.length ? [{ id: "nifty", color: "--amber", width: 1 as const, dash: "dash" as const, points: nifty }] : []),
+      ...(nifty.length ? [{ id: "nifty", color: slots[0], width: 1 as const, dash: "dash" as const, points: nifty }] : []),
     ];
-  }, [r]);
+  }, [r, slots]);
   const oscLines = useMemo((): ChartLine[] => (r.osc ? [{ id: r.osc.id, color: "--accent", width: 1, points: r.osc.points }] : []), [r]);
   const oscDef = r.osc ? METRIC_BY_ID.get(r.osc.id) : undefined;
   const oscLevels = useMemo(
     () => (oscDef?.id === "rsi14" || oscDef?.id === "mfi14" ? [30, 70] : oscDef?.kind === "stoch" || oscDef?.id === "stochRsi" ? [20, 80] : oscDef?.kind === "willr" ? [-80, -20] : oscDef?.kind === "cci" ? [-100, 100] : oscDef?.kind === "pct" || oscDef?.kind === "macdh" ? [0] : []),
     [oscDef],
   );
-  // A click on the chart: the trade that entered or left on that day (or the nearest within a week).
+  // A click on the chart: the trade that entered or left on that very day (an arrow), else the nearest
+  // within 3 days; a click anywhere else does nothing.
   const onPick = (t: string) => {
     const at = Date.parse(t);
     let best: { p: Pick; gap: number } | null = null;
@@ -98,11 +99,24 @@ export function StockResults({ answer, strategy, busy }: { answer: StockAnswer; 
         const d = side === "entry" ? tr.entryT : tr.exitT;
         if (!d) continue;
         const gap = Math.abs(Date.parse(d) - at) / 86_400_000;
-        if (gap <= 7 && (!best || gap < best.gap)) best = { p: { trade: tr, side }, gap };
+        if (gap <= 3 && (!best || gap < best.gap)) best = { p: { trade: tr, side }, gap };
       }
     }
-    if (best) setPick(best.p);
+    if (!best) return;
+    // An exit with a re-entry within 3 days (or the other way round) is one click: show both, exit first.
+    const { trade, side } = best.p;
+    const i = r.trades.indexOf(trade);
+    const near = (a: string | null, b: string | null) => !!a && !!b && Math.abs(Date.parse(a) - Date.parse(b)) / 86_400_000 <= 3;
+    const next = r.trades[i + 1], prev = r.trades[i - 1];
+    if (side === "exit" && next && near(trade.exitT, next.entryT)) setPick({ trade, side, also: { trade: next, side: "entry" } });
+    else if (side === "entry" && prev && near(prev.exitT, trade.entryT)) setPick({ trade: prev, side: "exit", also: { trade, side } });
+    else setPick({ trade, side });
   };
+  // 13: the card opens above the chart, which a click in the trade list leaves off-screen.
+  const whyRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (pick) whyRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [pick]);
   const last = r.curve[r.curve.length - 1];
   const rangeLabel = `${fmtDay(r.from)} – ${fmtDay(r.to)}`;
 
@@ -114,13 +128,14 @@ export function StockResults({ answer, strategy, busy }: { answer: StockAnswer; 
         <Tile label="Largest fall" value={`${num(r.rules.maxDd)}%`} sub={`held ${num(r.hold.maxDd)}%`} />
         <Tile label="Trades" value={String(r.stats.closed)} sub={r.stats.avgDays != null ? `avg ${Math.round(r.stats.avgDays)} days held` : undefined} />
         <Tile label="Win rate" value={r.stats.winRate != null ? `${Math.round(r.stats.winRate)}%` : NA} sub={r.stats.payoff != null ? `payoff ${r.stats.payoff.toFixed(1)}×` : undefined} />
-        <Tile label="Avg win / loss" value={`${signedPct(r.stats.avgWin, 1)} / ${signedPct(r.stats.avgLoss, 1)}`} />
+        <Tile label="Avg win / loss" value={`${signedPct(r.stats.avgWin, 1)} / ${signedPct(r.stats.avgLoss, 1)}`} valueClass="whitespace-nowrap !text-sm sm:!text-base" />
         <Tile label="Time invested" value={`${Math.round(r.stats.timeIn)}%`} sub="rest in cash" />
         <Tile label="Sharpe · Sortino" value={`${num(r.rules.sharpe, 2)} · ${num(r.rules.sortino, 2)}`} sub={`held ${num(r.hold.sharpe, 2)} · ${num(r.hold.sortino, 2)}`} />
         <Tile
           label="Best / worst trade"
           value={r.trades.length ? `${signedPct(Math.max(...r.trades.map((t) => t.ret)), 0)} / ${signedPct(Math.min(...r.trades.map((t) => t.ret)), 0)}` : NA}
-          sub="open trade included"
+          sub={r.trades.some((t) => !t.exitT) ? "open trade included" : "closed trades"}
+          valueClass="whitespace-nowrap !text-sm sm:!text-base"
         />
       </div>
 
@@ -138,31 +153,36 @@ export function StockResults({ answer, strategy, busy }: { answer: StockAnswer; 
           <span>click an arrow: why it traded</span>
         </div>
         {pick && (
-          <div className="mt-2">
+          <div ref={whyRef} className="mt-2 scroll-mt-20">
             <WhyCard pick={pick} strategy={strategy} onClose={() => setPick(null)} />
+            {pick.also && (
+              <div className="mt-1.5">
+                <WhyCard pick={pick.also} strategy={strategy} onClose={() => setPick(null)} />
+              </div>
+            )}
           </div>
         )}
         {r.osc && oscDef && (
           <div className="mt-2 border-t border-line pt-1">
             <div className="flex items-center gap-1 px-1 text-[10px] font-semibold uppercase tracking-wider text-ink-soft">
-              {oscDef.label} <MetricInfo id={oscDef.id} />
+              {oscDef.label}
             </div>
             <SignalChart label={`${oscDef.label} over the range`} lines={oscLines} height={110} levels={oscLevels} onPick={onPick} />
           </div>
         )}
       </Panel>
 
-      <Panel title="Growth of ₹100 · rules vs held vs Nifty 50" info="Rules: in the stock while the rules hold it, in cash after an exit, costs taken off each trade. Held: bought on the first day and kept." bodyClassName="p-2">
+      <Panel title="Growth of ₹100 · rules vs held vs Nifty 50" info="Rules: in the stock while the rules hold it, in cash after an exit, costs taken off each trade. Held: bought on the first day and kept. Below: the earlier and later parts of the range; rules that only did well early were often fitted to those years." bodyClassName="p-2">
         <SignalChart label="Growth of 100 rupees" lines={growth} height={200} />
         <div className="mt-1 flex flex-wrap gap-x-3 px-1 font-mono text-[11px] text-ink-soft">
           <span className="text-accent">━ Rules</span>
           <span>━ Held</span>
-          <span className="text-amber">┅ Nifty 50</span>
+          <span style={{ color: slots[0] }}>┅ Nifty 50</span>
         </div>
         <SplitRow split={r.split} />
       </Panel>
 
-      <Panel title={`Trades · ${r.trades.length}`} info="Click a trade to see why it got in and out." bodyClassName="overflow-x-auto">
+      <Panel title={`Trades · ${r.stats.closed} closed${r.trades.length > r.stats.closed ? " + 1 open" : ""}`} info="Click a trade to see why it got in and out." bodyClassName="overflow-x-auto">
         {r.trades.length ? (
           <TradeTable trades={r.trades} onPick={setPick} />
         ) : (
@@ -187,10 +207,9 @@ export function SplitRow({ split }: { split: StockAnswer["result"]["split"] }) {
           <div key={k} className="bg-panel px-2.5 py-1.5">
             <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-ink-soft">
               {label}
-              {k === "last" && <InfoTip label="About the split">A rule that only did well in the earlier part of the range was probably fitted to it. Compare the two.</InfoTip>}
             </div>
             <div className="font-mono text-xs">
-              CAGR <b className={tone(p.cagr)}>{signedPct(p.cagr, 1)}</b> · {p.closed} trade{p.closed === 1 ? "" : "s"}
+              {p.cagr != null ? "CAGR" : `Return over ${Math.max(1, Math.round(p.years * 12))} months`} <b className={tone(p.cagr ?? p.ret)}>{signedPct(p.cagr ?? p.ret, 1)}</b> · {p.closed} trade{p.closed === 1 ? "" : "s"}
               {p.winRate != null ? ` · win ${Math.round(p.winRate)}%` : ""}
             </div>
           </div>
@@ -281,10 +300,10 @@ function ReadingGroup({ group, byId, onAdd, full }: { group: string; byId: Map<s
         const na = !!x?.unavailable;
         return (
           <tr key={def.id} className="border-b border-grid last:border-b-0">
-            <td className="px-2 py-1">
-              <span className="inline-flex items-center gap-1">
-                {def.label} <MetricInfo id={def.id} />
-              </span>
+            <td className="px-2 py-1" title={def.note}>
+              <Link href={`/signals/indicators#${def.id}`} className="decoration-dotted underline-offset-2 hover:underline">
+                {def.label}
+              </Link>
             </td>
             <td className="px-2 py-1 text-right font-mono">{na ? "n/a" : fmtValue(def, x?.value ?? null)}</td>
             <td className="px-2 py-1">

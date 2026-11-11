@@ -54,7 +54,7 @@ export default async function SignalsPage({ searchParams }: { searchParams: Prom
           <p className="max-w-3xl text-sm text-ink-soft">Pick a stock or basket, start from an idea or set your own entry and exit rules, and see how they would have traded over past prices.</p>
         </header>
         <SignalsGate>
-          <SignalLab choices={choices} initial={where} initialStrategy={strategy} initialSaved={saved} />
+          <SignalLab choices={choices} initial={where} initialStrategy={strategy} initialSaved={saved} notFound={asked && !target ? asked.target : null} />
         </SignalsGate>
       </main>
       <SiteFooter />

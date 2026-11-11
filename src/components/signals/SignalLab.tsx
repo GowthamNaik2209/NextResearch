@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CHECKS, COSTS, MAX_ENTRY, MAX_EXIT, PRESETS, RANGES, conditionFor, encodeStrategy, type Strategy } from "@/lib/signals/strategy";
 import { describeStrategy } from "@/lib/signals/describe";
@@ -24,14 +25,16 @@ type Where = { scope: Scope; target: string };
 
 const sameRules = (a: Strategy, b: Strategy) => JSON.stringify(a) === JSON.stringify(b);
 
-export function SignalLab({ choices, initial, initialStrategy, initialSaved }: { choices: TargetChoices; initial: Where; initialStrategy: Strategy; initialSaved: SavedSignal[] }) {
+export function SignalLab({ choices, initial, initialStrategy, initialSaved, notFound }: { choices: TargetChoices; initial: Where; initialStrategy: Strategy; initialSaved: SavedSignal[]; /** The link named a stock or basket that isn't available here. */ notFound?: string | null }) {
   const [where, setWhere] = useState<Where>(initial);
   const [strategy, setStrategy] = useState<Strategy>(initialStrategy);
   const [ran, setRan] = useState<{ key: string; answer: Answer } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preset, setPreset] = useState("");
-  const [note, setNote] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(notFound ? `${notFound} isn't a covered stock or one of your baskets, so this opened instead.` : null);
+  const top = useRef<HTMLDivElement>(null);
+  const rulesRef = useRef<HTMLDivElement>(null);
   const [saved, setSaved] = useState<SavedSignal[]>(initialSaved);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<SavedSignal | null>(null);
@@ -89,6 +92,8 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved }: {
 
   const set = (patch: Partial<Strategy>) => {
     setPreset("");
+    // An edit makes the last note (added, saved, emails on) out of date.
+    setNote(null);
     setStrategy((s) => ({ ...s, ...patch }));
   };
   /** Opens a stock or basket: with its saved rules if it has some, else with the rules on screen. */
@@ -108,11 +113,14 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved }: {
     setNote(null);
     const next = { ...p.strategy, range: strategy.range, cost: strategy.cost };
     setStrategy(next);
-    void run(where, next);
+    // A different check makes the settings effect run it; running here as well would ask twice.
+    if (next.check === strategy.check) void run(where, next);
   };
   const addReading = (id: string) => {
     if (strategy.entry.conds.length >= MAX_ENTRY) return;
     set({ entry: { ...strategy.entry, conds: [...strategy.entry.conds, conditionFor(id)] } });
+    setNote(`Added to the entry rules: run the backtest to see the result.`);
+    rulesRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
   };
 
   const save = async (alerts: boolean) => {
@@ -124,7 +132,9 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved }: {
       if (!res.ok) return setError(body?.error ?? "Couldn't save right now. Try again shortly.");
       const s = body.saved as SavedSignal;
       setSaved((list) => [s, ...list.filter((x) => x.id !== s.id)]);
-      setNote(alerts ? "Saved. You'll get an email when these rules are met on a close." : "Saved. These rules open here next time.");
+      setNote(alerts ? "Saved, and emails are on: you'll get one when these rules are met on a close." : "Saved. These rules open here next time.");
+      // Rules saved before they were run: run them, so the status and results describe what was saved.
+      if (stale) void run(where, strategy);
     } catch {
       setError("Couldn't save right now. Check your connection and try again.");
     } finally {
@@ -137,7 +147,7 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved }: {
     if (!res?.ok) {
       setSaved((list) => list.map((x) => (x.id === s.id ? { ...x, alerts: !on } : x)));
       setError("Couldn't change the email right now. Try again shortly.");
-    }
+    } else setNote(on ? `Emails on for ${s.name}: you'll get one when its rules are met on a close.` : `Emails off for ${s.name}.`);
   };
   const remove = async () => {
     const s = deleting;
@@ -149,7 +159,12 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved }: {
   };
 
   const r = stockAnswer?.result ?? null;
-  const status = stockAnswer
+  const noEntry = !strategy.entry.conds.length;
+  const status = noEntry
+    ? "Add an entry condition to run or save these rules."
+    : stale
+    ? "Your rules changed: run the backtest to see where they stand."
+    : stockAnswer
     ? r!.pending
       ? `${r!.pending === "entry" ? "Entry rules" : "An exit"} met on the ${fmtDay(stockAnswer.lastDay, { short: true })} close: the rules would trade at the next close.`
       : r!.now.in
@@ -160,7 +175,7 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved }: {
       : null;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div ref={top} className="flex scroll-mt-16 flex-col gap-3">
       <StarterCards active={preset} onPick={applyPreset} />
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border border-line bg-panel px-3 py-2">
@@ -245,12 +260,12 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved }: {
           <span className="font-semibold text-ink">{status}</span>
           {note && <span className="text-ink-soft">{note}</span>}
           <span className="ml-auto flex flex-wrap items-center gap-2">
-            <button type="button" disabled={saving || (!dirty && !!here)} onClick={() => void save(here?.alerts ?? false)} className={BTN + " text-ink hover:bg-accent/10 disabled:opacity-50"}>
+            <button type="button" disabled={saving || noEntry || (!dirty && !!here)} onClick={() => void save(here?.alerts ?? false)} className={BTN + " text-ink hover:bg-accent/10 disabled:opacity-50"}>
               {!here ? "Save these rules" : dirty ? "Update saved rules" : "Saved"}
             </button>
             {!here?.alerts ? (
-              <button type="button" disabled={saving} onClick={() => void (here && !dirty ? toggleAlerts(here, true) : save(true))} className={BTN + " border-accent bg-accent text-bg hover:opacity-90 disabled:opacity-60"}>
-                Email me when they trigger
+              <button type="button" disabled={saving || noEntry} onClick={() => void (here && !dirty ? toggleAlerts(here, true) : save(true))} className={BTN + " border-accent bg-accent text-bg hover:opacity-90 disabled:opacity-60"}>
+                {here && !dirty ? "Email me when they trigger" : "Save and email me when they trigger"}
               </button>
             ) : (
               <button type="button" onClick={() => void toggleAlerts(here, false)} className={BTN + " text-ink hover:bg-accent/10"}>
@@ -277,7 +292,14 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved }: {
           {stockAnswer ? (
             <StockResults answer={stockAnswer} strategy={strategy} busy={busy} />
           ) : basketAnswer ? (
-            <BasketResults answer={basketAnswer} busy={busy} onOpenStock={(t) => go({ scope: "stock", target: t }, strategy)} />
+            <BasketResults
+              answer={basketAnswer}
+              busy={busy}
+              onOpenStock={(t) => {
+                go({ scope: "stock", target: t }, strategy);
+                top.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+              }}
+            />
           ) : (
             <div className={"flex min-h-64 items-center justify-center rounded-md border border-line bg-panel text-xs text-ink-soft " + (busy ? "animate-pulse" : "")}>
               {busy ? (where.scope === "basket" ? "Running the rules on every stock in the basket…" : "Running the backtest…") : "No result yet."}
@@ -286,16 +308,33 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved }: {
         </div>
 
         <div className="flex min-w-0 flex-col gap-3">
-          <Panel title="Rules" info="A rule met on a close trades at the next close. Exit controls are checked on every close." bodyClassName="flex flex-col gap-3 p-2.5">
-            <div className="rounded border border-line bg-bg px-2.5 py-2 text-xs leading-relaxed text-ink">
-              <p>{sentence.entry}</p>
-              <p className="mt-0.5">{sentence.exit}</p>
+          <Panel
+            title="Rules"
+            info={
+              <>
+                A rule met on a close trades at the next close; exit controls are checked on every close. The picker shows what each indicator measures.{" "}
+                <Link href="/signals/indicators" className="font-semibold text-accent underline">
+                  Indicators guide
+                </Link>
+              </>
+            }
+            bodyClassName="flex flex-col gap-3 p-2.5"
+          >
+            <div ref={rulesRef} className="scroll-mt-20 rounded border border-line bg-bg px-2.5 py-2 text-xs leading-relaxed text-ink">
+              {strategy.entry.conds.length ? (
+                <>
+                  <p>{sentence.entry}</p>
+                  <p className="mt-0.5">{sentence.exit}</p>
+                </>
+              ) : (
+                <p className="text-amber-ink">Add an entry condition: the rules need at least one to get in.</p>
+              )}
             </div>
             <RuleSetEditor title="Entry when" note="are true" rules={strategy.entry} max={MAX_ENTRY} unavailable={unavailable} onChange={(entry) => set({ entry })} />
             <RuleSetEditor title="Exit when" note="are true" rules={strategy.exit} max={MAX_EXIT} unavailable={unavailable} onChange={(exit) => set({ exit })} />
             <StopsEditor stops={strategy.stops} onChange={(stops) => set({ stops })} atrUnavailable={unavailable.atrPct ?? null} />
             <div className="flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => void run(where, strategy)} disabled={busy} className={BTN + " border-accent bg-accent text-bg hover:opacity-90 disabled:opacity-60"}>
+              <button type="button" onClick={() => void run(where, strategy)} disabled={busy || !strategy.entry.conds.length} className={BTN + " border-accent bg-accent text-bg hover:opacity-90 disabled:opacity-60"}>
                 {busy ? "Running…" : "Run backtest"}
               </button>
               {stale && !busy && <span className="text-[11px] text-amber-ink">Rules changed: run to update the results</span>}
@@ -305,7 +344,14 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved }: {
           <SavedPanel saved={saved} current={here?.id ?? null} onOpen={(s) => go({ scope: s.scope, target: s.target }, s.strategy)} onAlerts={toggleAlerts} onDelete={setDeleting} />
 
           {stockAnswer && (
-            <Panel title={`Readings now · ${stockAnswer.ticker} · ${fmtDay(stockAnswer.lastDay, { short: true })} close`} info="Each indicator on the last close; i explains it, + adds it to the entry rules. Trend percentile here is the one every page shows; a backtest ranks each past day from stored prices, which can differ by a point or two." bodyClassName="overflow-x-auto">
+            <Panel title={`Readings now · ${stockAnswer.ticker} · ${fmtDay(stockAnswer.lastDay, { short: true })} close`} info={
+                <>
+                  Each indicator on the last close; + adds it to the entry rules. Trend percentile here is the one every page shows; a backtest ranks each past day from stored prices, which can differ by a point or two.{" "}
+                  <Link href="/signals/indicators" className="font-semibold text-accent underline">
+                    Indicators guide
+                  </Link>
+                </>
+              } bodyClassName="overflow-x-auto">
               <Readings answer={stockAnswer} onAdd={addReading} full={strategy.entry.conds.length >= MAX_ENTRY} />
             </Panel>
           )}

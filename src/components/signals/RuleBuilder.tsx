@@ -3,17 +3,17 @@
 import { METRICS, METRIC_BY_ID, defaultLevel } from "@/lib/signals/metrics";
 import { OPS, STOP_LIMITS, conditionFor, usesMetric, type Condition, type Op, type RuleSet, type Stops } from "@/lib/signals/strategy";
 import { MINI_SEG, miniSegBtn } from "@/components/baskets/Panel";
-import { MetricInfo, MetricPicker } from "./MetricPicker";
+import { MetricPicker } from "./MetricPicker";
 
 // The Rules panel of the signal backtest: entry and exit conditions (indicator, comparison, a number
 // or another indicator of the same kind) and the exit controls. Indicators this stock's prices can't
-// give (no high/low for a Screener-priced stock) are listed but can't be picked. Each indicator has a
-// small "i" with its one-line note and a link to the indicators guide.
+// give (no high/low for a Screener-priced stock) are listed but can't be picked. The panel's one "i"
+// links to the indicators guide; the picker shows each indicator's note under its name.
 
 const FIELD = "min-h-9 rounded border border-line bg-panel-2 px-1.5 font-mono text-xs font-semibold text-ink sm:min-h-8";
 const ADD = "inline-flex min-h-9 items-center rounded border border-btn bg-bg px-2 font-mono text-[11px] font-semibold text-accent hover:bg-accent/10 disabled:opacity-50 sm:min-h-7";
 
-function ConditionRow({ c, onChange, onRemove, unavailable, n }: { c: Condition; onChange: (c: Condition) => void; onRemove: () => void; unavailable: Record<string, string>; n: number }) {
+function ConditionRow({ c, onChange, onRemove, unavailable, n, side }: { c: Condition; onChange: (c: Condition) => void; onRemove: () => void; unavailable: Record<string, string>; n: number; /** "Entry" or "Exit", so a screen reader tells the two lists apart. */ side: string }) {
   const def = METRIC_BY_ID.get(c.m);
   const kind = def?.kind ?? "price";
   const sameKind = METRICS.filter((m) => m.kind === kind && m.id !== c.m);
@@ -35,9 +35,8 @@ function ConditionRow({ c, onChange, onRemove, unavailable, n }: { c: Condition;
   const vsMetric = !!c.r;
   return (
     <li className="flex flex-wrap items-center gap-1.5 rounded border border-line bg-bg p-1.5">
-      <MetricPicker label={`Condition ${n}: indicator`} value={c.m} onChange={setMetric} unavailable={unavailable} />
-      <MetricInfo id={c.m} />
-      <select aria-label={`Condition ${n}: comparison`} value={c.op} onChange={(e) => setOp(e.target.value as Op)} className={FIELD}>
+      <MetricPicker label={`${side} condition ${n}: indicator`} value={c.m} onChange={setMetric} unavailable={unavailable} />
+      <select aria-label={`${side} condition ${n}: comparison`} value={c.op} onChange={(e) => setOp(e.target.value as Op)} className={FIELD}>
         {ops.map((o) => (
           <option key={o.id} value={o.id}>
             {o.label}
@@ -46,23 +45,20 @@ function ConditionRow({ c, onChange, onRemove, unavailable, n }: { c: Condition;
       </select>
       {c.op === "rising" || c.op === "falling" ? (
         <label className="flex items-center gap-1 text-[11px] text-ink-soft">
-          <input aria-label={`Condition ${n}: days`} type="number" min={1} max={250} value={c.n ?? 5} onChange={(e) => onChange({ ...c, n: Number(e.target.value) })} className={FIELD + " w-16"} />
+          <input aria-label={`${side} condition ${n}: days`} type="number" min={1} max={250} value={c.n ?? 5} onChange={(e) => onChange({ ...c, n: Number(e.target.value) })} className={FIELD + " w-16"} />
           days
         </label>
       ) : (
         <>
           {c.op === "within" && (
             <label className="flex items-center gap-1 text-[11px] text-ink-soft">
-              <input aria-label={`Condition ${n}: percent`} type="number" step="0.5" min={0.1} max={50} value={c.v ?? 2} onChange={(e) => onChange({ ...c, v: Number(e.target.value) })} className={FIELD + " w-16"} />% of
+              <input aria-label={`${side} condition ${n}: percent`} type="number" step="0.5" min={0.1} max={50} value={c.v ?? 2} onChange={(e) => onChange({ ...c, v: Number(e.target.value) })} className={FIELD + " w-16"} />% of
             </label>
           )}
           {vsMetric || c.op === "within" ? (
-            <>
-              <MetricPicker label={`Condition ${n}: compared with`} value={c.r ?? sameKind[0]?.id ?? ""} onChange={(r) => onChange({ ...c, r })} kind={kind} exclude={c.m} unavailable={unavailable} />
-              {c.r && c.r !== "close" && <MetricInfo id={c.r} />}
-            </>
+            <MetricPicker label={`${side} condition ${n}: compared with`} value={c.r ?? sameKind[0]?.id ?? ""} onChange={(r) => onChange({ ...c, r })} kind={kind} exclude={c.m} unavailable={unavailable} />
           ) : (
-            <input aria-label={`Condition ${n}: level`} type="number" step="any" value={c.v ?? 0} onChange={(e) => onChange({ ...c, v: e.target.value === "" ? 0 : Number(e.target.value) })} className={FIELD + " w-20"} />
+            <input aria-label={`${side} condition ${n}: level`} type="number" step="any" value={c.v ?? 0} onChange={(e) => onChange({ ...c, v: e.target.value === "" ? 0 : Number(e.target.value) })} className={FIELD + " w-20"} />
           )}
           {usesMetric(c.op) && c.op !== "within" && sameKind.length > 0 && (
             <button
@@ -76,7 +72,7 @@ function ConditionRow({ c, onChange, onRemove, unavailable, n }: { c: Condition;
           )}
         </>
       )}
-      <button type="button" onClick={onRemove} aria-label={`Remove condition ${n}`} className="ml-auto inline-flex min-h-9 min-w-9 items-center justify-center rounded border border-btn text-ink-soft hover:text-ink sm:min-h-7 sm:min-w-7">
+      <button type="button" onClick={onRemove} aria-label={`Remove ${side.toLowerCase()} condition ${n}`} className="ml-auto inline-flex min-h-9 min-w-9 items-center justify-center rounded border border-btn text-ink-soft hover:text-ink sm:min-h-7 sm:min-w-7">
         ×
       </button>
     </li>
@@ -105,6 +101,7 @@ export function RuleSetEditor({ title, rules, onChange, max, unavailable, note }
             <ConditionRow
               key={i}
               n={i + 1}
+              side={title.startsWith("Exit") ? "Exit" : "Entry"}
               c={c}
               unavailable={unavailable}
               onChange={(next) => onChange({ ...rules, conds: rules.conds.map((x, j) => (j === i ? next : x)) })}

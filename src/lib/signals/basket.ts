@@ -3,7 +3,7 @@
 // basket's value is the average of its slots (each a one-stock backtest, ./engine.ts), and "held" is
 // every stock bought on the first day in equal parts and kept. A stock listed after the range starts
 // keeps its slot in cash until its first close. Pure, so it is unit-tested.
-import { figures, runSignals, SPLIT_AT, tradeStats, type ExitReason, type Figures, type SignalResult, type Trade } from "./engine";
+import { figures, runSignals, SPLIT_AT, splitPart, tradeStats, type ExitReason, type Figures, type SignalResult, type Trade } from "./engine";
 import type { Metrics } from "./compute";
 import type { Strategy } from "./strategy";
 
@@ -74,11 +74,7 @@ export function runBasketSignals(stocks: { ticker: string; mx: Metrics }[], s: S
   const trades: BasketTrade[] = runs.flatMap((x) => x.r.trades.map((t) => ({ ...t, ticker: x.ticker }))).sort((a, b) => a.entryT.localeCompare(b.entryT));
   const closed = trades.filter((t) => t.exitT);
   const cut = Math.min(curve.length - 1, Math.max(1, Math.floor(curve.length * SPLIT_AT)));
-  const part = (a: number, b: number, ts: Trade[]) => {
-    const f = figures(curve.slice(a, b + 1).map((p) => p.rules), days.slice(a, b + 1), rf);
-    const st = tradeStats(ts);
-    return { cagr: f.cagr, closed: st.closed, winRate: st.winRate };
-  };
+  const part = (a: number, b: number, ts: Trade[]) => splitPart(curve.slice(a, b + 1).map((p) => p.rules), days.slice(a, b + 1), ts, rf);
   const niftyVals = curve.map((p) => p.nifty);
   return {
     from,

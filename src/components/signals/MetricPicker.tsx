@@ -1,29 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { GROUPS, GROUP_QUESTION, METRICS, METRIC_BY_ID, type MetricKind } from "@/lib/signals/metrics";
-import { InfoTip } from "@/components/InfoTip";
 
 // The rule builder's indicator picker: a search box over the 64 indicators, grouped by the question
 // each answers ("Is it trending?") rather than by jargon, with each one's note as a line under its
-// name. An indicator this stock's prices can't give is listed but can't be picked.
+// name (so no per-indicator "i"). An indicator this stock's prices can't give is listed but can't be picked.
 
 const FIELD = "min-h-9 rounded border border-line bg-panel-2 px-1.5 font-mono text-xs font-semibold text-ink sm:min-h-8";
-
-/** A small "i" with an indicator's one-line note and a link to its section of the guide. */
-export function MetricInfo({ id }: { id: string }) {
-  const m = METRIC_BY_ID.get(id);
-  if (!m) return null;
-  return (
-    <InfoTip label={`About ${m.label}`}>
-      {m.note}{" "}
-      <Link href={`/signals/indicators#${m.id}`} className="font-semibold text-accent underline">
-        Learn more
-      </Link>
-    </InfoTip>
-  );
-}
 
 export function MetricPicker({ value, onChange, kind, exclude, unavailable, label }: { value: string; onChange: (id: string) => void; kind?: MetricKind; exclude?: string; unavailable: Record<string, string>; label: string }) {
   const [open, setOpen] = useState(false);
@@ -61,7 +45,7 @@ export function MetricPicker({ value, onChange, kind, exclude, unavailable, labe
 
   return (
     <div ref={box} className="relative min-w-0">
-      <button type="button" aria-label={label} aria-expanded={open} aria-controls={listId} onClick={() => setOpen((o) => !o)} className={FIELD + " inline-flex max-w-full items-center gap-1 text-left"}>
+      <button type="button" aria-label={label} aria-expanded={open} aria-controls={listId} onClick={() => setOpen((o) => !o)} className={FIELD + " inline-flex max-w-full items-center gap-1 border-btn text-left"}>
         <span className="truncate">{current?.label ?? "Pick an indicator"}</span>
         <span aria-hidden className="text-ink-soft">▾</span>
       </button>

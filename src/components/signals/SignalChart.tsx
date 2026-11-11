@@ -60,7 +60,11 @@ export function SignalChart({
     });
     chartRef.current = chart;
     chart.subscribeClick((p) => p.time != null && pickRef.current?.(timeToDay(p.time)));
+    // A narrower box (a window resized, a tablet turned) shows the whole range again, not a cut of it.
+    const ro = new ResizeObserver(() => chart.timeScale().fitContent());
+    ro.observe(el);
     return () => {
+      ro.disconnect();
       chart.remove();
       chartRef.current = null;
     };

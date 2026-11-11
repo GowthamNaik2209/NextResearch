@@ -1,6 +1,7 @@
 // A user's saved signal rules (prisma SignalStrategy, docs/SIGNALS.md section 6): one set per stock
 // or basket, so opening it again picks up where they left off, with the alert email on or off.
 // Rules are re-read through parseStrategy, so a row saved by older code still loads.
+import { randomBytes } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { parseStrategy, type Strategy } from "./strategy";
 import type { Scope } from "./targets";
@@ -38,15 +39,17 @@ export async function saveSignal(userId: string, scope: Scope, target: string, n
   // New rules start their checks afresh: the next nightly check reads them from that close on.
   const r = await prisma.signalStrategy.upsert({
     where,
-    create: { userId, scope, target, name, rules: strategy, alerts },
+    // The unsubscribe link's secret: random, not the guessable default id.
+    create: { userId, scope, target, name, rules: strategy, alerts, token: randomBytes(24).toString("base64url") },
     update: { name, rules: strategy, alerts, checkedDay: null },
     select: SELECT,
   });
   return toSaved(r);
 }
 
+/** Email on or off. Raw SQL so `updatedAt` stays as it was: it orders "reopen where you left off" by the last save. */
 export async function setAlerts(userId: string, id: string, on: boolean): Promise<boolean> {
-  const { count } = await prisma.signalStrategy.updateMany({ where: { id, userId }, data: { alerts: on } });
+  const count = await prisma.$executeRaw`UPDATE "SignalStrategy" SET "alerts" = ${on} WHERE "id" = ${id} AND "userId" = ${userId}`;
   return count > 0;
 }
 
@@ -60,6 +63,6 @@ export async function unsubscribeAlerts(token: string): Promise<boolean> {
   if (!token) return false;
   const row = await prisma.signalStrategy.findUnique({ where: { token }, select: { userId: true } });
   if (!row) return false;
-  await prisma.signalStrategy.updateMany({ where: { userId: row.userId }, data: { alerts: false } });
+  await prisma.$executeRaw`UPDATE "SignalStrategy" SET "alerts" = false WHERE "userId" = ${row.userId}`;
   return true;
 }

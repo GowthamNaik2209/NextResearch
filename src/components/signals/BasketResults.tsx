@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
 import { HEAT_IDS } from "@/lib/signals/readings";
 import { METRIC_BY_ID } from "@/lib/signals/metrics";
 import { Panel } from "@/components/baskets/Panel";
+import { SLOTS } from "@/components/charts/palette";
+import { useSiteTheme } from "@/lib/theme";
 import { fmtDay, NA, signedPct } from "@/lib/format";
-import { MetricInfo } from "./MetricPicker";
 import { SignalChart, type ChartLine } from "./SignalChart";
 import { SplitRow } from "./StockResults";
 import { ResultHeader } from "./ResultHeader";
@@ -18,7 +20,7 @@ import { REASON, Tile, fmtValue, num, tone, type BasketAnswer } from "./ui";
 
 const SHORT: Record<string, string> = {
   sma200: "vs SMA 200",
-  macd: "MACD",
+  macd: "MACD vs signal",
   adx: "ADX",
   supertrend: "Supertrend",
   rsi14: "RSI 14",
@@ -30,14 +32,15 @@ const SHORT: Record<string, string> = {
 
 export function BasketResults({ answer, busy, onOpenStock }: { answer: BasketAnswer; busy: boolean; onOpenStock: (ticker: string) => void }) {
   const r = answer.result;
+  const slots = SLOTS[useSiteTheme()];
   const growth = useMemo((): ChartLine[] => {
     const nifty = r.curve.filter((p) => p.nifty != null).map((p) => ({ t: p.t, v: p.nifty as number }));
     return [
       { id: "rules", color: "--accent", width: 2, points: r.curve.map((p) => ({ t: p.t, v: p.rules })) },
       { id: "hold", color: "--ink-soft", width: 1, points: r.curve.map((p) => ({ t: p.t, v: p.hold })) },
-      ...(nifty.length ? [{ id: "nifty", color: "--amber", width: 1 as const, dash: "dash" as const, points: nifty }] : []),
+      ...(nifty.length ? [{ id: "nifty", color: slots[0], width: 1 as const, dash: "dash" as const, points: nifty }] : []),
     ];
-  }, [r]);
+  }, [r, slots]);
   const held = useMemo(() => r.curve.map((p) => ({ t: p.t, v: p.held })), [r]);
   const now = new Map(r.stocks.map((s) => [s.ticker, s]));
   const last = r.curve[r.curve.length - 1];
@@ -62,12 +65,12 @@ export function BasketResults({ answer, busy, onOpenStock }: { answer: BasketAns
         <Tile label="Rule met last close" value={String(r.stocks.filter((s) => s.pending).length)} sub="trade at the next close" />
       </div>
 
-      <Panel title={`${answer.name} · growth of ₹100 · ${fmtDay(r.from)} – ${fmtDay(r.to)}`} info="Each stock has an equal slot, in the stock while the rules hold it and in cash otherwise. Held: every stock bought on the first day in equal parts and kept." bodyClassName="p-2">
+      <Panel title={`${answer.name} · growth of ₹100 · ${fmtDay(r.from)} – ${fmtDay(r.to)}`} info="Each stock has an equal slot, in the stock while the rules hold it and in cash otherwise. Held: every stock bought on the first day in equal parts and kept. Below: the earlier and later parts of the range; rules that only did well early were often fitted to those years." bodyClassName="p-2">
         <SignalChart label="Growth of 100 rupees" lines={growth} height={220} />
         <div className="mt-1 flex flex-wrap gap-x-3 px-1 font-mono text-[11px] text-ink-soft">
           <span className="text-accent">━ Rules</span>
           <span>━ Held</span>
-          <span className="text-amber">┅ Nifty 50</span>
+          <span style={{ color: slots[0] }}>┅ Nifty 50</span>
         </div>
         <div className="mt-2 border-t border-line pt-1">
           <div className="px-1 text-[10px] font-semibold uppercase tracking-wider text-ink-soft">Stocks the rules held each day (of {r.stats.size})</div>
@@ -76,16 +79,23 @@ export function BasketResults({ answer, busy, onOpenStock }: { answer: BasketAns
         <SplitRow split={r.split} />
       </Panel>
 
-      <Panel title={`Signal heatmap · ${fmtDay(answer.lastDay, { short: true })} close`} info="Each stock's key readings on the last close; green is the side trend followers read as strength. Click a stock to open its own backtest with these rules." bodyClassName="overflow-x-auto">
+      <Panel title={`Signal heatmap · ${fmtDay(answer.lastDay, { short: true })} close`} info={
+            <>
+              Each stock&rsquo;s key readings on the last close; green is the side trend followers read as strength. Click a stock to open its own backtest with these rules.{" "}
+              <Link href="/signals/indicators" className="font-semibold text-accent underline">
+                Indicators guide
+              </Link>
+            </>
+          } bodyClassName="overflow-x-auto">
         <table className="w-full min-w-[44rem] text-xs">
           <thead>
             <tr className="border-b border-line text-[10px] uppercase tracking-wider text-ink-soft">
               <th className="px-2 py-1.5 text-left font-semibold">Stock</th>
               {HEAT_IDS.map((id) => (
-                <th key={id} className="px-1 py-1.5 text-center font-semibold">
-                  <span className="inline-flex items-center gap-0.5">
-                    {SHORT[id] ?? METRIC_BY_ID.get(id)?.label} <MetricInfo id={id} />
-                  </span>
+                <th key={id} title={METRIC_BY_ID.get(id)?.note} className="px-1 py-1.5 text-center font-semibold">
+                  <Link href={`/signals/indicators#${id}`} className="decoration-dotted underline-offset-2 hover:underline">
+                    {SHORT[id] ?? METRIC_BY_ID.get(id)?.label}
+                  </Link>
                 </th>
               ))}
               <th className="px-2 py-1.5 text-center font-semibold">Rules now</th>
@@ -107,7 +117,7 @@ export function BasketResults({ answer, busy, onOpenStock }: { answer: BasketAns
                     const cls = x?.tone === "up" ? "bg-pos/15 text-pos" : x?.tone === "down" ? "bg-danger/15 text-danger" : "text-ink-soft";
                     return (
                       <td key={id} title={x?.state ?? x?.unavailable ?? undefined} className={"px-1 py-1 text-center font-mono text-[11px] " + cls}>
-                        {x?.unavailable ? "n/a" : id === "sma200" || id === "supertrend" ? (x?.state?.replace("Price ", "") ?? NA) : fmtValue(def, x?.value ?? null)}
+                        {x?.unavailable ? "n/a" : id === "sma200" || id === "supertrend" ? (x?.state?.replace("Price ", "") ?? NA) : id === "macd" ? (x?.state?.replace(" signal", "").toLowerCase() ?? NA) : fmtValue(def, x?.value ?? null)}
                       </td>
                     );
                   })}

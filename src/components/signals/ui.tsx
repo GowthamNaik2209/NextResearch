@@ -44,8 +44,10 @@ export function fmtValue(def: MetricDef, v: number | null): string {
   if (v == null) return NA;
   if (def.id === "trendPct") return ordinal(Math.round(v));
   switch (def.kind) {
-    case "price":
-      return `₹${v.toLocaleString("en-IN", { maximumFractionDigits: v < 100 ? 2 : 1 })}`;
+    case "price": {
+      const dp = v < 100 ? 2 : 1;
+      return `₹${v.toLocaleString("en-IN", { minimumFractionDigits: dp, maximumFractionDigits: dp })}`;
+    }
     case "pct":
       if (def.id === "rsNifty63" || def.id === "rsInd63") return `${v > 0 ? "+" : ""}${num(v)} pts`;
       return def.id === "hv60" || def.id === "atrPct" || def.id === "bbWidth" || def.id === "fromHigh52" || def.id === "fromLow52" ? `${num(v)}%` : signedPct(v, 1);

@@ -13,7 +13,7 @@ function subscribe(onChange: () => void) {
   return () => mq.removeEventListener("change", onChange);
 }
 
-export function SignalsGate({ children }: { children: ReactNode }) {
+export function SignalsGate({ children, what = "build and backtest entry and exit rules" }: { children: ReactNode; /** What the larger screen is for, after "Open this page on a larger screen to". */ what?: string }) {
   // Unknown on the server: nothing is drawn until the browser says which it is.
   const phone = useSyncExternalStore(subscribe, () => window.matchMedia(PHONE_QUERY).matches, () => null);
   // The content appears only after the page loads, so a link to an anchor in it (the guide's
@@ -28,7 +28,7 @@ export function SignalsGate({ children }: { children: ReactNode }) {
     return (
       <div className="rounded-md border border-line bg-panel px-4 py-5 text-sm text-ink-soft">
         <p className="font-semibold text-ink">Signals works on a tablet or computer for now.</p>
-        <p className="mt-1">Open this page on a larger screen to build and backtest entry and exit rules.</p>
+        <p className="mt-1">Open this page on a larger screen to {what}.</p>
         <Link href="/baskets" className="mt-3 inline-flex min-h-10 items-center rounded border border-btn px-3 text-xs font-semibold text-accent">
           Go to Baskets
         </Link>

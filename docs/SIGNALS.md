@@ -99,9 +99,10 @@ is false. Catalogue: `src/lib/signals/metrics.ts`.
 - **Verdict line** over the results: what ₹1 lakh became under the rules and held, then badges: beat
   holding or not, too few trades (under 5), weaker in recent years (the later part ≥ 10 points a year
   below the earlier one).
-- **Indicator picker** grouped by the question each answers, with search; every indicator has a
-  small "i" (one line and "Learn more") that opens its section of the **indicators guide**
-  (`/signals/indicators`, content in `src/lib/signals/guide.ts`).
+- **Indicator picker** grouped by the question each answers, with search, showing each indicator's
+  one-line note under its name. **One "i" per section**, never one per indicator: the Rules, Readings
+  now and heatmap notes link to the **indicators guide** (`/signals/indicators`, content in
+  `src/lib/signals/guide.ts`); a readings row or heatmap heading shows its note on hover.
 - **Why it traded:** a click on a trade arrow or a trade row shows the close the rule was met on and
   the rules' indicators then.
 - **Status strip:** whether the rules hold the stock (or how many of the basket) now, with Save and

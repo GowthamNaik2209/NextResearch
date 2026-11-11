@@ -3,10 +3,12 @@
 import { FEW_TRADES, type Figures, type SignalResult } from "@/lib/signals/engine";
 import { verdict } from "@/lib/signals/describe";
 import { InfoTip } from "@/components/InfoTip";
+import { signedPct } from "@/lib/format";
 import { Badge } from "./ui";
 
 // The line over the results: what ₹1 lakh became under the rules and simply held, then the honest
-// badges (beat holding or not, too few trades, weaker in the later part of the range).
+// badges (beat holding or not, too few trades, weaker in the later part of the range: only when both
+// parts span a year or more, as a part's yearly return is left out under a year).
 
 // The later part reads as weaker when its yearly return is this many points below the earlier part's.
 const WEAKER_BY = 10;
@@ -25,7 +27,7 @@ export function ResultHeader({ rules, hold, figures, closed, split }: { rules: n
           <span className="inline-flex items-center gap-1">
             <Badge kind="warn">Weaker in recent years</Badge>
             <InfoTip label="About weaker in recent years">
-              The rules made {a!.toFixed(0)}% a year in the first part of the range but {b!.toFixed(0)}% in the last part. Rules that only worked earlier were often fitted to those years.
+              The rules made {signedPct(a, 1)} a year in the earlier part of the range but {signedPct(b, 1)} in the later part. Rules that only worked earlier were often fitted to those years.
             </InfoTip>
           </span>
         )}
