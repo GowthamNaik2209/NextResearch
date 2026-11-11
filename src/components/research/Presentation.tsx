@@ -92,6 +92,9 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
       window.history.pushState(window.history.state, "", url);
     }
     leavingByLink = false;
+    // The page the deck opened on: if the deck unmounts because something navigated to another
+    // page (the stock pop-up's Signals, any link), stepping back would undo that navigation.
+    const openedOn = window.location.pathname;
     let leftByBack = false;
     const onPop = () => {
       leftByBack = true;
@@ -100,7 +103,7 @@ export function Presentation({ icon, kicker, ariaLabel, slides, renderSlide, cta
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
-      if (leftByBack || leavingByLink) return;
+      if (leftByBack || leavingByLink || window.location.pathname !== openedOn) return;
       pendingBack = window.setTimeout(() => {
         pendingBack = null;
         window.history.back();

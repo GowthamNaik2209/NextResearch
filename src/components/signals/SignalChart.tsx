@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ColorType, CrosshairMode, HistogramSeries, LineSeries, createChart, createSeriesMarkers, type IChartApi, type SeriesMarker, type Time } from "lightweight-charts";
 import { STYLE, type Dash } from "@/components/charts/palette";
-import { ZOOM_OPTIONS } from "@/components/charts/ChartZoom";
+import { ZOOM_OPTIONS, useChartZoom } from "@/components/charts/ChartZoom";
 import { tickLabel } from "@/components/charts/ticks";
 import { cssVar, useSiteTheme } from "@/lib/theme";
 import { fmtDay } from "@/lib/format";
 
 // The signal backtest's line charts (price with the rules' indicator lines and trade markers; an
 // indicator strip; growth of ₹100). Colours are read from the site's tokens by name, since the
-// chart draws on a canvas: "--ink" etc., or a hex from the chart palette.
+// chart draws on a canvas: "--ink" etc., or a hex from the chart palette. Zooming works as on the
+// site's other charts (useChartZoom): only a pinch (or Ctrl/⌘ + wheel) zooms; a plain scroll or an
+// up/down swipe scrolls the page, and a sideways swipe reads the chart.
 
 export type ChartLine = { id: string; color: string; dash?: Dash; width?: 1 | 2 | 3; points: { t: string; v: number }[] };
 export type ChartMark = { t: string; kind: "entry" | "exit" };
@@ -107,6 +109,13 @@ export function SignalChart({
       for (const s of made) chart.removeSeries(s);
     };
   }, [lines, marks, levels, bars, theme]);
+
+  // The full view, in bar positions: how far zooming out goes.
+  const home = useMemo(() => {
+    const n = Math.max(bars?.length ?? 0, ...lines.map((l) => l.points.length));
+    return n > 1 ? { from: 0, to: n - 1 } : null;
+  }, [lines, bars]);
+  useChartZoom(chartRef, box, home);
 
   return <div ref={box} role="img" aria-label={label} style={{ height }} className="w-full min-w-0" />;
 }

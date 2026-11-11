@@ -73,7 +73,8 @@ export type SignalResult = {
   /** The price-level indicators the rules read, for the chart. */
   overlays: { id: string; points: { t: string; v: number }[] }[];
   /** The first other indicator the rules read, for the strip under the chart. */
-  osc: { id: string; points: { t: string; v: number }[] } | null;
+  /** The other indicators the rules read (MACD, RSI…), for the strip under the chart. */
+  oscs: { id: string; points: { t: string; v: number }[] }[];
 };
 
 const isNum = (v: number | null | undefined): v is number => v != null && Number.isFinite(v);
@@ -273,7 +274,7 @@ export function runSignals(mx: Metrics, s: Strategy, rf: number): SignalResult |
     return { id, points: pts };
   };
   const overlays = used.filter((id) => id !== "close" && METRIC_BY_ID.get(id)?.kind === "price").map(window);
-  const oscId = used.find((id) => METRIC_BY_ID.get(id)?.kind !== "price");
+  const oscIds = used.filter((id) => METRIC_BY_ID.get(id)?.kind !== "price");
 
   return {
     from: t[start],
@@ -293,6 +294,6 @@ export function runSignals(mx: Metrics, s: Strategy, rf: number): SignalResult |
     pending: pending?.kind ?? null,
     pendingReason: pending?.reason ?? null,
     overlays,
-    osc: oscId ? window(oscId) : null,
+    oscs: oscIds.map(window),
   };
 }

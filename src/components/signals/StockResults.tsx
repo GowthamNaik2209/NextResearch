@@ -83,8 +83,21 @@ export function StockResults({ answer, strategy, busy }: { answer: StockAnswer; 
       ...(nifty.length ? [{ id: "nifty", color: slots[0], width: 1 as const, dash: "dash" as const, points: nifty }] : []),
     ];
   }, [r, slots]);
-  const oscLines = useMemo((): ChartLine[] => (r.osc ? [{ id: r.osc.id, color: "--accent", width: 1, points: r.osc.points }] : []), [r]);
-  const oscDef = r.osc ? METRIC_BY_ID.get(r.osc.id) : undefined;
+  // The strip under the chart: the rules' other indicators, those on one scale drawn together (MACD
+  // line and signal, %K and %D); a menu picks between scales when the rules use more than one.
+  const groups = useMemo(() => {
+    const byKind = new Map<string, NonNullable<typeof r.oscs>>();
+    for (const o of r.oscs) {
+      const k = METRIC_BY_ID.get(o.id)?.kind ?? o.id;
+      byKind.set(k, [...(byKind.get(k) ?? []), o]);
+    }
+    return [...byKind.values()];
+  }, [r]);
+  const [groupAt, setGroupAt] = useState(0);
+  const group = useMemo(() => groups[Math.min(groupAt, groups.length - 1)] ?? [], [groups, groupAt]);
+  const groupLabel = (g: typeof group) => g.map((o) => METRIC_BY_ID.get(o.id)?.label ?? o.id).join(" + ");
+  const oscLines = useMemo((): ChartLine[] => group.map((o, i) => ({ id: o.id, color: i === 0 ? "--accent" : slots[(i + 1) % slots.length], width: 1, points: o.points })), [group, slots]);
+  const oscDef = group[0] ? METRIC_BY_ID.get(group[0].id) : undefined;
   const oscLevels = useMemo(
     () => (oscDef?.id === "rsi14" || oscDef?.id === "mfi14" ? [30, 70] : oscDef?.kind === "stoch" || oscDef?.id === "stochRsi" ? [20, 80] : oscDef?.kind === "willr" ? [-80, -20] : oscDef?.kind === "cci" ? [-100, 100] : oscDef?.kind === "pct" || oscDef?.kind === "macdh" ? [0] : []),
     [oscDef],
@@ -162,12 +175,30 @@ export function StockResults({ answer, strategy, busy }: { answer: StockAnswer; 
             )}
           </div>
         )}
-        {r.osc && oscDef && (
+        {oscDef && (
           <div className="mt-2 border-t border-line pt-1">
-            <div className="flex items-center gap-1 px-1 text-[10px] font-semibold uppercase tracking-wider text-ink-soft">
-              {oscDef.label}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-[10px] font-semibold uppercase tracking-wider text-ink-soft">
+              {groups.length > 1 ? (
+                <select
+                  aria-label="Indicator shown under the chart"
+                  value={Math.min(groupAt, groups.length - 1)}
+                  onChange={(e) => setGroupAt(Number(e.target.value))}
+                  className="min-h-8 rounded border border-btn bg-panel-2 px-1.5 font-mono text-[11px] font-semibold normal-case tracking-normal text-ink sm:min-h-7"
+                >
+                  {groups.map((g, i) => (
+                    <option key={i} value={i}>
+                      {groupLabel(g)}
+                    </option>
+                  ))}
+                </select>
+              ) : null}
+              {group.map((o, i) => (
+                <span key={o.id} className="normal-case tracking-normal" style={{ color: i === 0 ? "var(--accent)" : slots[(i + 1) % slots.length] }}>
+                  ━ {METRIC_BY_ID.get(o.id)?.label}
+                </span>
+              ))}
             </div>
-            <SignalChart label={`${oscDef.label} over the range`} lines={oscLines} height={110} levels={oscLevels} onPick={onPick} />
+            <SignalChart label={`${groupLabel(group)} over the range`} lines={oscLines} height={120} levels={oscLevels} onPick={onPick} />
           </div>
         )}
       </Panel>

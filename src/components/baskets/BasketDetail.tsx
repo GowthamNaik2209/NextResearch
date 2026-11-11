@@ -1548,6 +1548,18 @@ export function BasketDetail(p: BasketDetailProps) {
             <button type="button" onClick={exportWorkbook} disabled={!stocks.length || exporting} title="Download everything on this page as an Excel workbook" className={btnSec}>
               {exporting ? "Exporting…" : "Export Excel"}
             </button>
+            {/* Entry and exit rules backtested on this basket (docs/SIGNALS.md): an industry's, or the
+                owner's own; its Back returns here. Tablets and computers only for now. */}
+            {(p.mode === "industry" || (p.mode === "saved" && p.isOwner)) && (
+              <button
+                type="button"
+                onClick={() => router.push(`/signals?b=${encodeURIComponent(p.mode === "industry" ? `industry:${p.id}` : p.id)}&from=${encodeURIComponent(window.location.pathname + window.location.search)}`)}
+                title="Backtest entry and exit rules from technical indicators on this basket's stocks (signed in)"
+                className={btnSec + " max-sm:hidden"}
+              >
+                Signals
+              </button>
+            )}
             {canEdit && !draft && (
               <MoreMenu
                 items={[

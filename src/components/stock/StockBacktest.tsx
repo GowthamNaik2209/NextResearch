@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { BasketStock } from "@/lib/baskets/industry";
@@ -122,6 +122,7 @@ function useStockRecord(ticker: string, on: boolean, attempt: number) {
 }
 
 export function StockBacktest({ ticker, name }: { ticker: string; name: string }) {
+  const router = useRouter();
   const [mode, setMode] = useState<"backtest" | "projection">("backtest");
   // Bumped each time Projection is opened, so a failed load is tried again.
   const [attempt, setAttempt] = useState(0);
@@ -209,14 +210,17 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
             Projection
           </button>
         </div>
-        <Link
-          href={`/signals?t=${encodeURIComponent(ticker)}`}
+        <button
+          type="button"
+          // Signals for this stock only; its Back returns to this page as it is now (a stock pop-up's
+          // own ?stock=, the Charts pop-up's ?view=charts, a report's ?report=).
+          onClick={() => router.push(`/signals?t=${encodeURIComponent(ticker)}&from=${encodeURIComponent(window.location.pathname + window.location.search)}`)}
           title="Backtest entry and exit rules from technical indicators on this stock (signed in)"
           // Tablets and computers only for now (docs/SIGNALS.md).
           className="inline-flex min-h-9 items-center rounded border border-btn px-3 text-xs font-semibold text-accent hover:bg-accent/10 max-sm:hidden sm:min-h-8 pointer-coarse:min-h-10"
         >
           Signals
-        </Link>
+        </button>
         {projOn ? (
           <>
             {projSeg("Next", "h", HORIZONS, (h) => `${h}Y`, (h) => `Project ${HORIZON_LONG[h]} ahead`)}

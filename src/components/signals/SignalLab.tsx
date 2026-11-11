@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CHECKS, COSTS, MAX_ENTRY, MAX_EXIT, PRESETS, RANGES, conditionFor, encodeStrategy, type Strategy } from "@/lib/signals/strategy";
 import { describeStrategy } from "@/lib/signals/describe";
@@ -19,13 +20,15 @@ import { BTN, FIELD, ctlLabel, segBtn, type Answer } from "./ui";
 // The signal backtest (docs/SIGNALS.md): pick a stock or basket, start from an idea or build rules,
 // and see how they would have traded. Changing the stock, basket, range, check or costs runs again at
 // once; rule edits wait for Run, so a half-made rule isn't sent. Saved rules (one set per stock or
-// basket) open where they were left, and their email switch turns on the nightly alert.
+// basket) open where they were left, and their email switch turns on the nightly alert. `locked`: it
+// was opened for one stock or basket (its pop-up or page), so there is no Stock/Basket switch or
+// picker; opening another stock or saved signal goes to that one's own Signals page.
 
 type Where = { scope: Scope; target: string };
 
 const sameRules = (a: Strategy, b: Strategy) => JSON.stringify(a) === JSON.stringify(b);
 
-export function SignalLab({ choices, initial, initialStrategy, initialSaved, notFound }: { choices: TargetChoices; initial: Where; initialStrategy: Strategy; initialSaved: SavedSignal[]; /** The link named a stock or basket that isn't available here. */ notFound?: string | null }) {
+export function SignalLab({ choices, initial, initialStrategy, initialSaved, notFound, locked = false }: { choices: TargetChoices; initial: Where; initialStrategy: Strategy; initialSaved: SavedSignal[]; /** The link named a stock or basket that isn't available here. */ notFound?: string | null; locked?: boolean }) {
   const [where, setWhere] = useState<Where>(initial);
   const [strategy, setStrategy] = useState<Strategy>(initialStrategy);
   const [ran, setRan] = useState<{ key: string; answer: Answer } | null>(null);
@@ -34,6 +37,7 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
   const [preset, setPreset] = useState("");
   const [note, setNote] = useState<string | null>(notFound ? `${notFound} isn't a covered stock or one of your baskets, so this opened instead.` : null);
   const top = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const rulesRef = useRef<HTMLDivElement>(null);
   const [saved, setSaved] = useState<SavedSignal[]>(initialSaved);
   const [saving, setSaving] = useState(false);
@@ -54,6 +58,9 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
         return;
       }
       setRan({ key: keyOf(w, s), answer: body as Answer });
+      // Only while this page is the one showing: an answer that lands after leaving must not write
+      // its stock and rules into another page's address.
+      if (window.location.pathname !== "/signals") return;
       const url = new URL(window.location.href);
       url.searchParams.delete(w.scope === "stock" ? "b" : "t");
       url.searchParams.set(w.scope === "stock" ? "t" : "b", w.target);
@@ -105,6 +112,12 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
       setPreset("");
       setNote(rules ? null : "Your saved rules for this one are loaded.");
     } else setNote(null);
+  };
+  /** A link to another stock's or basket's Signals: locked to it with Back to this page, or the full page. */
+  const elsewhere = (w: Where, rules: Strategy, lockHere: boolean) => {
+    const q = new URLSearchParams({ [w.scope === "stock" ? "t" : "b"]: w.target, s: encodeStrategy(rules) });
+    if (lockHere) q.set("from", window.location.pathname + window.location.search);
+    router.push(`/signals?${q}`);
   };
   const applyPreset = (id: string) => {
     const p = PRESETS.find((x) => x.id === id);
@@ -179,6 +192,15 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
       <StarterCards active={preset} onPick={applyPreset} />
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border border-line bg-panel px-3 py-2">
+        {locked ? (
+          <div className="flex min-w-0 items-center gap-1.5">
+            <span className={ctlLabel}>{where.scope === "stock" ? "Stock" : "Basket"}</span>
+            <span className="truncate text-sm font-semibold text-ink">
+              {where.scope === "stock" ? `${choices.stocks.find((x) => x.ticker === where.target)?.name ?? where.target} · ${where.target}` : ([...choices.baskets, ...choices.industries].find((x) => x.target === where.target)?.name ?? "Basket")}
+            </span>
+          </div>
+        ) : (
+          <>
         <div className={MINI_SEG} role="group" aria-label="Backtest on">
           {(["stock", "basket"] as const).map((sc) => (
             <button
@@ -223,6 +245,8 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
             </select>
           )}
         </label>
+          </>
+        )}
         <div className="flex items-center gap-1.5">
           <span className={ctlLabel}>Range</span>
           <div className={MINI_SEG} role="group" aria-label="Range">
@@ -296,6 +320,7 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
               answer={basketAnswer}
               busy={busy}
               onOpenStock={(t) => {
+                if (locked) return elsewhere({ scope: "stock", target: t }, strategy, true);
                 go({ scope: "stock", target: t }, strategy);
                 top.current?.scrollIntoView({ block: "start", behavior: "smooth" });
               }}
@@ -341,7 +366,7 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
             </div>
           </Panel>
 
-          <SavedPanel saved={saved} current={here?.id ?? null} onOpen={(s) => go({ scope: s.scope, target: s.target }, s.strategy)} onAlerts={toggleAlerts} onDelete={setDeleting} />
+          <SavedPanel saved={saved} current={here?.id ?? null} onOpen={(s) => (locked ? s.scope !== where.scope || s.target !== where.target ? elsewhere({ scope: s.scope, target: s.target }, s.strategy, false) : go(where, s.strategy) : go({ scope: s.scope, target: s.target }, s.strategy))} onAlerts={toggleAlerts} onDelete={setDeleting} />
 
           {stockAnswer && (
             <Panel title={`Readings now · ${stockAnswer.ticker} · ${fmtDay(stockAnswer.lastDay, { short: true })} close`} info={
