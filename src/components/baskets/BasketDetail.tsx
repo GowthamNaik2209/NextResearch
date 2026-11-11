@@ -3,6 +3,7 @@
 import { InfoTip } from "@/components/InfoTip";
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
+import { weightingParams } from "@/lib/signals/weighting";
 import Link from "next/link";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
@@ -1553,7 +1554,15 @@ export function BasketDetail(p: BasketDetailProps) {
             {(p.mode === "industry" || (p.mode === "saved" && p.isOwner)) && (
               <button
                 type="button"
-                onClick={() => router.push(`/signals?b=${encodeURIComponent(p.mode === "industry" ? `industry:${p.id}` : p.id)}&from=${encodeURIComponent(window.location.pathname + window.location.search)}`)}
+                // The basket's weighting goes with it (equal, market cap or the custom %).
+                onClick={() => {
+                  const q = new URLSearchParams({
+                    b: p.mode === "industry" ? `industry:${p.id}` : p.id,
+                    ...weightingParams({ scheme: weighting, weights: strategy.weights }),
+                    from: window.location.pathname + window.location.search,
+                  });
+                  router.push(`/signals?${q}`);
+                }}
                 title="Backtest entry and exit rules from technical indicators on this basket's stocks (signed in)"
                 className={btnSec + " max-sm:hidden"}
               >

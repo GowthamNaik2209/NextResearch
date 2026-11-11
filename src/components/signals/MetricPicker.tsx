@@ -11,6 +11,9 @@ const FIELD = "min-h-9 rounded border border-line bg-panel-2 px-1.5 font-mono te
 
 export function MetricPicker({ value, onChange, kind, exclude, unavailable, label }: { value: string; onChange: (id: string) => void; kind?: MetricKind; exclude?: string; unavailable: Record<string, string>; label: string }) {
   const [open, setOpen] = useState(false);
+  // Where the list opens: from the button's left edge, moved left as far as it needs to stay on
+  // screen (a picker near the right edge would otherwise run off it), and never wider than the screen.
+  const [place, setPlace] = useState<{ left: number; width: number }>({ left: 0, width: 352 });
   const [q, setQ] = useState("");
   const box = useRef<HTMLDivElement>(null);
   const listId = useId();
@@ -45,12 +48,22 @@ export function MetricPicker({ value, onChange, kind, exclude, unavailable, labe
 
   return (
     <div ref={box} className="relative min-w-0">
-      <button type="button" aria-label={label} aria-expanded={open} aria-controls={listId} onClick={() => setOpen((o) => !o)} className={FIELD + " inline-flex max-w-full items-center gap-1 border-btn text-left"}>
+      <button
+        type="button"
+        aria-label={label}
+        aria-expanded={open}
+        aria-controls={listId}
+        onClick={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          const width = Math.min(352, window.innerWidth - 24);
+          setPlace({ width, left: Math.min(0, window.innerWidth - 12 - (r.left + width)) });
+          setOpen((o) => !o);
+        }} className={FIELD + " inline-flex max-w-full items-center gap-1 border-btn text-left"}>
         <span className="truncate">{current?.label ?? "Pick an indicator"}</span>
         <span aria-hidden className="text-ink-soft">▾</span>
       </button>
       {open && (
-        <div id={listId} className="absolute left-0 top-full z-30 mt-1 flex max-h-80 w-[22rem] max-w-[80vw] flex-col overflow-hidden rounded-md border border-line bg-panel shadow-lg">
+        <div id={listId} style={{ left: place.left, width: place.width }} className="absolute top-full z-30 mt-1 flex max-h-80 flex-col overflow-hidden rounded-md border border-line bg-panel shadow-lg">
           <input
             autoFocus
             value={q}

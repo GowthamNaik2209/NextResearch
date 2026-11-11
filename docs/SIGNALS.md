@@ -84,9 +84,13 @@ is false. Catalogue: `src/lib/signals/metrics.ts`.
 
 - A basket is an industry ("industry:<slug>", every listed stock mapped in it) or one of the user's
   own baskets (`src/lib/signals/targets.ts`). The same rules run on every stock, each in its own
-  equal slot: in the stock while its rules hold it, in cash otherwise (`src/lib/signals/basket.ts`).
-  The basket's value is the average of its slots; "held" is every stock bought on the first day in
-  equal parts. A stock listed after the range starts keeps its slot in cash until its first close.
+  slot: in the stock while its rules hold it, in cash otherwise (`src/lib/signals/basket.ts`).
+- Slots are sized by the basket's weighting (`src/lib/signals/weighting.ts`): equal, market cap, or
+  the user's own %. Opened from a basket's page, Signals takes that page's weighting (`?w=`, `?wt=`)
+  and says so in a line over the results; a Weighting control changes it. The basket's value is the
+  weighted average of its slots; "held" is every stock bought on the first day in those weights and
+  kept. The page's rebalancing doesn't apply: each stock gets in and out on its own rules. A stock
+  listed after the range starts keeps its slot in cash until its first close.
 - A stock that can't give an indicator the rules use (no high/low) sits the basket out and is named.
 - Results: the tiles, growth of ₹100 with the number of stocks held each day, the split, a signal
   heatmap (each stock's key readings now and whether the rules hold it) and each stock's own figures.

@@ -12,10 +12,12 @@ import { SignalChart, type ChartLine } from "./SignalChart";
 import { SplitRow } from "./StockResults";
 import { ResultHeader } from "./ResultHeader";
 import { REASON, Tile, fmtValue, num, tone, type BasketAnswer } from "./ui";
+import { WEIGHTING_LABEL } from "@/lib/signals/weighting";
 
 // A basket's results (docs/SIGNALS.md section 4): each stock in its own equal slot, in cash while the
 // rules are out. The tiles, growth of ₹100 with how many stocks the rules held, the signal heatmap
-// (each stock's key readings now, and whether the rules hold it), and each stock's own figures.
+// (each stock's key readings now, and whether the rules hold it), and each stock's own figures. Slots
+// are sized by the basket's weighting (from its page, or the Weighting control), said in a line on top.
 // Clicking a stock opens its own backtest with the same rules.
 
 const SHORT: Record<string, string> = {
@@ -30,7 +32,7 @@ const SHORT: Record<string, string> = {
   trendPct: "Trend",
 };
 
-export function BasketResults({ answer, busy, onOpenStock }: { answer: BasketAnswer; busy: boolean; onOpenStock: (ticker: string) => void }) {
+export function BasketResults({ answer, busy, onOpenStock, carried = false }: { answer: BasketAnswer; busy: boolean; onOpenStock: (ticker: string) => void; /** The weighting came from the basket's page. */ carried?: boolean }) {
   const r = answer.result;
   const slots = SLOTS[useSiteTheme()];
   const growth = useMemo((): ChartLine[] => {
@@ -49,6 +51,18 @@ export function BasketResults({ answer, busy, onOpenStock }: { answer: BasketAns
   return (
     <div className={"flex min-w-0 flex-col gap-3 " + (busy ? "opacity-60" : "")} aria-busy={busy}>
       <ResultHeader rules={last.rules} hold={last.hold} figures={{ rules: r.rules, hold: r.hold }} closed={r.stats.closed} split={r.split} />
+      {(() => {
+        const top = r.weights.slice().sort((a, b) => b.share - a.share)[0];
+        return (
+          <p className="rounded-md border border-line bg-panel px-3 py-1.5 text-[11px] leading-relaxed text-ink-soft">
+            The whole basket is backtested as one: each of its {r.stats.size} stocks has a slot sized by{" "}
+            <b className="font-semibold text-ink">{WEIGHTING_LABEL[answer.weighting].toLowerCase()} weighting</b>
+            {carried ? ", carried from the basket page" : ""}
+            {answer.weighting !== "equal" && top ? ` (largest: ${top.ticker} ${num(top.share)}%)` : ""}. A slot holds its stock while the rules are in and cash while they&rsquo;re out, and every stock
+            follows the same rules. The basket page&rsquo;s rebalancing isn&rsquo;t used here, since each stock gets in and out on its own rules.
+          </p>
+        );
+      })()}
       {(answer.skipped.length > 0 || answer.missing.length > 0) && (
         <p className="rounded-md border border-line bg-panel px-3 py-1.5 text-[11px] text-ink-soft">
           Left out: {[...answer.skipped.map((s) => `${s.ticker} (${s.why})`), ...answer.missing.map((t) => `${t} (no prices)`)].join("; ")}.

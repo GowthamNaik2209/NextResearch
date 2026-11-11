@@ -14,6 +14,7 @@ export type BasketAnswer = {
   target: string;
   name: string;
   lastDay: string;
+  weighting: "equal" | "mcap" | "custom";
   result: BasketResult;
   heat: { ticker: string; readings: Reading[] }[];
   skipped: { ticker: string; why: string }[];
