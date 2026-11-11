@@ -71,7 +71,8 @@ const fromYahoo = (h: DailyHistory): Fetched => ({
     });
   })(),
 });
-const fromCloses = (pts: PricePoint[]): Fetched => ({ source: "screener", exchange: "NSE", bars: pts.map((p) => ({ t: p.t, o: null, h: null, l: null, c: p.c, v: null })) });
+// Screener: closes and volumes only (no open, high or low).
+const fromCloses = (pts: (PricePoint & { v: number | null })[]): Fetched => ({ source: "screener", exchange: "NSE", bars: pts.map((p) => ({ t: p.t, o: null, h: null, l: null, c: p.c, v: p.v })) });
 
 /** The last `days` of a series (five years, or a deep one's whole history), choosing its source afresh. */
 async function fetchWhole(key: string, benchmark: boolean, days = STORE_DAYS): Promise<Fetched | null> {
