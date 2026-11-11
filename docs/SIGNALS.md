@@ -20,7 +20,7 @@ sell. Mock-up: [mockups/signals-preview.html](mockups/signals-preview.html).
   relative strength against the industry (`src/lib/signals/data.ts`). Built only when a rule uses one
   of those two, once per server instance at a time, and kept for six hours. A request waits up to 25
   seconds for it; past that it answers "still loading, run again in a minute" while the build carries
-  on. Until then the readings show those two as "Loads when a rule uses it". The default rules don't
+  on. Until then the readings show those two as "When used". The default rules don't
   need it, so a first visit never waits on it.
 - **Missing inputs:** a stock priced from Screener (two NSE SME listings) has closes and volume but no
   open, high or low; every indicator that needs them is marked unavailable for it, and a rule using

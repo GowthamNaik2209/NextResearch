@@ -162,7 +162,7 @@ test("Readings now show the site's Trend, not the price-store ranking", () => {
   const tr = (x: ReturnType<typeof readingsNow>) => x.find((r) => r.id === "trendPct")!;
   assert.equal(tr(readingsNow(mx, 48)).value, 48);
   assert.equal(tr(readingsNow(mx, 85)).state, "Top fifth");
-  assert.equal(tr(readingsNow(mx, null)).state, "Not enough history");
+  assert.equal(tr(readingsNow(mx, null)).state, "Too new");
 });
 
 test("strategies are checked: unknown indicators, mismatched kinds, numbers kept in range", () => {

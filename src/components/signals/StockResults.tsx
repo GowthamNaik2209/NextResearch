@@ -304,8 +304,8 @@ export function Readings({ answer, onAdd, full }: { answer: StockAnswer; onAdd: 
   return (
     <table className="w-full table-fixed text-xs">
       <colgroup>
-        <col className="w-[40%]" />
-        <col className="w-[23%]" />
+        <col className="w-[36%]" />
+        <col className="w-[22%]" />
         <col />
         <col className="w-10" />
       </colgroup>
@@ -339,7 +339,7 @@ function ReadingGroup({ group, byId, onAdd, full }: { group: string; byId: Map<s
             <td className="px-2 py-1 text-right font-mono">{na ? "n/a" : fmtValue(def, x?.value ?? null)}</td>
             <td className="px-2 py-1">
               {x?.state && (
-                <span className={"inline-block rounded border px-1 font-mono text-[10.5px] leading-snug " + (x.tone === "up" ? "border-pos/50 text-pos" : x.tone === "down" ? "border-danger/50 text-danger" : "border-line text-ink-soft")}>{x.state}</span>
+                <span className={"inline-block whitespace-nowrap rounded border px-1 font-mono text-[10.5px] leading-snug " + (x.tone === "up" ? "border-pos/50 text-pos" : x.tone === "down" ? "border-danger/50 text-danger" : "border-line text-ink-soft")}>{x.state}</span>
               )}
             </td>
             <td className="px-1 py-0.5 text-right">
