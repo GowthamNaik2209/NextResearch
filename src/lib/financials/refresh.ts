@@ -27,6 +27,7 @@ import type { SupplierFinancials } from "@/lib/sector-content";
 import { listIpos } from "@/lib/ipo-content";
 import { FISCAL_YEARS, formatAsOf, formatPrice } from "./rows";
 import { readCompanyTable } from "./query";
+import { hasQuote } from "./no-quote";
 import { latestDueTradingDay } from "./trading-day";
 import { writeFinancials } from "./write";
 
@@ -312,7 +313,7 @@ export type ChunkOptions = {
 const CHUNK_FETCH: FetchOptions = { attempts: 2, timeoutMs: 10_000, retryDelayMs: 2000 };
 const CHUNK_WORKERS = 2;
 // More misses than this and a run is not published (see runChunk); a couple of companies Screener
-// can't read (e.g. DIGIFIBRE) just keep their older snapshot and date.
+// can't read just keep their older snapshot and date (listings with no traded price are not tried).
 export const maxFailures = (total: number) => Math.max(5, Math.ceil(total * 0.05));
 // Screener refused us: no chunk for this long (the lease is held, so every instance waits).
 const BLOCKED_BACKOFF_SECONDS = 15 * 60;
@@ -352,7 +353,8 @@ export async function runChunk(prisma: PrismaClient, opts: ChunkOptions): Promis
     // have no snapshot on or before the published date, so the site doesn't show them yet (query.ts).
     const ipos = listedIposToAdd(new Set(Object.keys(table)), target, log);
     const newNames = new Map(ipos.map((i) => [i.ticker, i.name]));
-    const all: SupplierFinancials[] = [...Object.values(table), ...ipos.map((i) => ({ ticker: i.ticker }))];
+    // Listings with no traded price (./no-quote.ts) keep their stored figures and are not tried.
+    const all: SupplierFinancials[] = [...Object.values(table), ...ipos.map((i) => ({ ticker: i.ticker }))].filter((f) => hasQuote(f.ticker));
     const todo = all.filter((f) => !done.has(f.ticker) && !failed.has(f.ticker));
     run.total = all.length;
     run.done = all.filter((f) => done.has(f.ticker)).length;
