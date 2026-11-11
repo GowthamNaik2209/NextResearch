@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Signals preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+<style>
+:root{--bg:#f8f4ea;--panel:#efe9d9;--panel-2:#e5dec9;--ink:#14201a;--ink-soft:#536157;--line:#d4cab0;--grid:#ddd5bd;--accent:#0f5c4a;--amber:#a8650a;--danger:#ac3628;--pos:#187043;--btn:color-mix(in srgb,var(--accent) 55%,var(--line))}
+:root[data-theme=dark]{--bg:#0c1110;--panel:#121a17;--panel-2:#18231f;--ink:#eef2ea;--ink-soft:#93a399;--line:#25342d;--grid:#1a2721;--accent:#f0b53f;--amber:#e08a3c;--danger:#e8705e;--pos:#5fcf8e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "IBM Plex Sans",system-ui,sans-serif}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+.wrap{max-width:1440px;margin:0 auto;padding:16px}
+h1{font:700 22px "Space Grotesk",sans-serif;margin:0}
+h2{font:600 11px "IBM Plex Sans";letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;min-width:0}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.pb{padding:10px 12px}
+.seg{display:inline-flex;border:1px solid var(--btn);border-radius:6px;overflow:hidden;background:var(--bg)}
+.seg button{border:0;border-right:1px solid var(--line);background:none;color:var(--ink-soft);font:600 11px "IBM Plex Mono";padding:0 10px;min-height:30px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--ink);color:var(--bg)}
+.btn{border:1px solid var(--btn);background:var(--panel-2);color:var(--ink);border-radius:6px;font:600 12px "IBM Plex Sans";padding:0 12px;min-height:32px;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--btn);border-radius:999px;padding:2px 8px;font:600 11px "IBM Plex Mono";color:var(--ink-soft);background:var(--bg);cursor:pointer;white-space:nowrap}
+.lbl{font:600 10px "IBM Plex Sans";letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.grid-main{display:grid;gap:12px;grid-template-columns:minmax(0,1fr) 380px;margin-top:12px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.kpi{padding:8px 10px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 -1px -1px 0}
+.kpi .v{font:600 18px "IBM Plex Mono"}
+.kpi .s{font:400 11px "IBM Plex Mono";color:var(--ink-soft)}
+.up{color:var(--pos)}.dn{color:var(--danger)}.mid{color:var(--amber)}
+table{border-collapse:collapse;width:100%}
+th{font:600 10px "IBM Plex Sans";letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:5px 8px;border-bottom:1px solid var(--grid);font-size:12.5px;white-space:nowrap}
+td.n,th.n{text-align:right;font-family:"IBM Plex Mono";font-size:12px}
+tr.grp td{background:var(--panel-2);font:600 10px "IBM Plex Sans";letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.state{display:inline-block;font:600 10.5px "IBM Plex Mono";padding:1px 6px;border-radius:4px;border:1px solid currentColor}
+.add{border:1px solid var(--btn);background:var(--bg);color:var(--accent);font:600 10.5px "IBM Plex Mono";border-radius:4px;padding:1px 5px;cursor:pointer}
+.cond{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);margin-bottom:6px}
+.cond select,.cond input,.inp{font:600 12px "IBM Plex Mono";color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:3px 6px;min-height:28px}
+.cond input{width:64px}
+.x{margin-left:auto;border:0;background:none;color:var(--ink-soft);cursor:pointer;font-size:15px}
+.scroll{overflow-x:auto}
+.hm td.c{text-align:center;font:600 11px "IBM Plex Mono";border-left:1px solid var(--bg)}
+.c.p{background:color-mix(in srgb,var(--pos) 22%,transparent);color:var(--pos)}
+.c.d{background:color-mix(in srgb,var(--danger) 18%,transparent);color:var(--danger)}
+.c.m{color:var(--ink-soft)}
+.note{font-size:11px;color:var(--ink-soft)}
+.i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid var(--btn);font:600 10px "IBM Plex Mono";color:var(--accent);cursor:help}
+.view{display:none}.view.on{display:block}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+.split>div{background:var(--panel);padding:8px 10px}
+svg text{font:400 10px "IBM Plex Mono";fill:var(--ink-soft)}
+.banner{border:1px dashed var(--btn);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--ink-soft);margin-top:10px}
+@media (max-width:1100px){.grid-main{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.wrap{padding:12px}.split{grid-template-columns:1fr}.hide-sm{display:none}h1{font-size:19px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar" style="justify-content:space-between">
+    <div>
+      <div class="lbl">Baskets · Signals <span class="chip" style="margin-left:6px;cursor:default">Signed-in feature</span></div>
+      <h1>Signal backtest</h1>
+    </div>
+    <div class="bar">
+      <div class="seg" id="scope"><button class="on" data-v="stock">Stock</button><button data-v="basket">Basket</button></div>
+      <button class="btn" id="theme">Dark mode</button>
+    </div>
+  </div>
+
+  <!-- ============ STOCK VIEW ============ -->
+  <section class="view on" id="v-stock">
+    <div class="panel pb bar" style="margin-top:12px">
+      <span class="lbl">Stock</span><select class="inp"><option>BEL · Bharat Electronics</option><option>HAL · Hindustan Aeronautics</option></select>
+      <span class="lbl">Range</span><div class="seg"><button>1Y</button><button>2Y</button><button>3Y</button><button class="on">5Y</button></div>
+      <span class="lbl">Check</span><div class="seg"><button class="on">Daily</button><button>Weekly</button><button>Monthly</button></div>
+      <span class="lbl">Costs</span><select class="inp"><option>0.2% round trip</option><option>0.1%</option><option>0.5%</option><option>None</option></select>
+      <span class="lbl">Start from</span><select class="inp" id="preset"><option>My rules</option><option>Golden cross</option><option>Trend top fifth</option><option>RSI pullback in uptrend</option><option>20-day breakout (Donchian)</option><option>Supertrend follow</option><option>MACD + ADX</option><option>Bollinger squeeze breakout</option></select>
+    </div>
+
+    <div class="grid-main">
+      <!-- left: results -->
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div class="kpis">
+          <div class="kpi"><div class="lbl">Rules · CAGR</div><div class="v up">+27.4%</div><div class="s">hold +31.2% · Nifty +12.0%</div></div>
+          <div class="kpi"><div class="lbl">Largest fall</div><div class="v">−13.8%</div><div class="s">hold −32.5%</div></div>
+          <div class="kpi"><div class="lbl">Trades</div><div class="v">11</div><div class="s">avg 64 days held</div></div>
+          <div class="kpi"><div class="lbl">Win rate</div><div class="v">64%</div><div class="s">7 of 11</div></div>
+          <div class="kpi"><div class="lbl">Avg win / loss</div><div class="v"><span class="up">+21%</span> / <span class="dn">−6%</span></div><div class="s">payoff 3.5×</div></div>
+          <div class="kpi"><div class="lbl">Time invested</div><div class="v">58%</div><div class="s">rest in cash</div></div>
+          <div class="kpi"><div class="lbl">Sharpe · Sortino</div><div class="v">1.42 · 2.10</div><div class="s">hold 1.05 · 1.48</div></div>
+          <div class="kpi"><div class="lbl">Now</div><div class="v up" style="font-size:15px">In since 14 Aug</div><div class="s">+18.6% open trade</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="ph"><h2>BEL · price, 200-day average and rule trades · 5Y</h2>
+            <div class="bar hide-sm" style="gap:6px"><span class="chip">+ SMA 50</span><span class="chip" style="color:var(--accent)">SMA 200 ✓</span><span class="chip">+ Bollinger</span><span class="chip">+ Supertrend</span></div></div>
+          <div class="pb"><svg id="price" viewBox="0 0 900 260" width="100%" preserveAspectRatio="none" style="display:block;height:260px"></svg>
+            <div class="bar note" style="margin-top:4px;gap:12px"><span><b class="up">▲</b> entry</span><span><b class="dn">▼</b> exit</span><span>shaded = holding</span><span>RSI 14 below</span></div>
+            <svg id="osc" viewBox="0 0 900 70" width="100%" preserveAspectRatio="none" style="display:block;height:70px;margin-top:6px"></svg>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="ph"><h2>Growth of ₹100 · rules vs bought and held vs Nifty 50</h2><span class="i" title="Rules: in the stock while the entry rules hold, in cash after an exit. Costs taken off each trade.">i</span></div>
+          <div class="pb"><svg id="eq" viewBox="0 0 900 180" width="100%" preserveAspectRatio="none" style="display:block;height:180px"></svg>
+            <div class="bar note" style="gap:12px;margin-top:4px"><span style="color:var(--accent)">━ Rules</span><span>━ Bought and held</span><span style="color:var(--amber)">┅ Nifty 50</span></div></div>
+          <div class="split" style="border-top:1px solid var(--line)">
+            <div><div class="lbl">First 3 years · rules found here</div><div class="mono">CAGR <b class="up">+29.1%</b> · win 67% · 6 trades</div></div>
+            <div><div class="lbl">Last 2 years · out of sample <span class="i" title="If a rule only works in the years it was tuned on, it is probably fitted to noise.">i</span></div><div class="mono">CAGR <b class="up">+24.8%</b> · win 60% · 5 trades</div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="ph"><h2>Trades</h2><button class="btn" style="min-height:26px">Download Excel</button></div>
+          <div class="scroll"><table>
+            <thead><tr><th>#</th><th>Entry</th><th class="n">Price</th><th>Exit</th><th class="n">Price</th><th>Why it exited</th><th class="n">Days</th><th class="n">Return</th></tr></thead>
+            <tbody id="trades"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- right: builder + dashboard -->
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div class="panel">
+          <div class="ph"><h2>Rules</h2><span class="note">Signal on the close, trade next day</span></div>
+          <div class="pb">
+            <div class="bar" style="margin-bottom:6px"><span class="lbl">Entry when</span><div class="seg"><button class="on">All</button><button>Any</button></div><span class="note">are true</span></div>
+            <div id="entry"></div>
+            <button class="add" data-add="entry">+ Add condition</button>
+
+            <div class="bar" style="margin:14px 0 6px"><span class="lbl">Exit when</span><div class="seg"><button>All</button><button class="on">Any</button></div><span class="note">is true</span></div>
+            <div id="exit"></div>
+            <button class="add" data-add="exit">+ Add condition</button>
+
+            <div class="lbl" style="margin:14px 0 6px">Exit controls</div>
+            <div class="cond"><label class="mono" style="font-size:12px"><input type="checkbox" checked> Trailing stop</label><input value="15"><span class="note">% below the highest close</span></div>
+            <div class="cond"><label class="mono" style="font-size:12px"><input type="checkbox" checked> Stop loss</label><input value="8"><span class="note">% below entry</span></div>
+            <div class="cond"><label class="mono" style="font-size:12px"><input type="checkbox"> ATR stop (Chandelier)</label><input value="3"><span class="note">× ATR 22 below the high</span></div>
+            <div class="cond"><label class="mono" style="font-size:12px"><input type="checkbox"> Take profit</label><input value="40"><span class="note">% above entry</span></div>
+            <div class="cond"><label class="mono" style="font-size:12px"><input type="checkbox"> Time stop</label><input value="120"><span class="note">trading days</span></div>
+
+            <div class="bar" style="margin-top:12px"><button class="btn primary">Run backtest</button><button class="btn">Save strategy</button><button class="btn">Try on another stock</button></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="ph"><h2>Indicators now · BEL · 10 Nov close</h2><span class="note">+ adds to rules</span></div>
+          <div class="scroll"><table><tbody id="dash"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BASKET VIEW ============ -->
+  <section class="view" id="v-basket">
+    <div class="panel pb bar" style="margin-top:12px">
+      <span class="lbl">Run on</span><div class="seg" id="bmode"><button class="on">My basket</button><button>Screen a universe</button></div>
+      <select class="inp"><option>Defence & aerospace · 12 stocks</option><option>My watchlist · 18 stocks</option><option>All covered companies · 446</option></select>
+      <span class="lbl">Sizing</span><select class="inp"><option>Equal slot each, idle slots in cash</option><option>Equal among stocks that are in</option></select>
+      <span class="lbl">Max held</span><select class="inp"><option>All</option><option>5</option><option>10</option></select>
+      <span class="lbl">Rank ties by</span><select class="inp"><option>Trend percentile</option><option>RS vs Nifty 3M</option><option>Lowest volatility</option></select>
+      <span class="lbl">Range</span><div class="seg"><button>1Y</button><button>3Y</button><button class="on">5Y</button></div>
+      <span class="chip">Rules: Golden cross + Trend ≥ 80 · exit trailing 15%</span>
+    </div>
+
+    <div class="kpis" style="margin-top:12px">
+      <div class="kpi"><div class="lbl">Rules · CAGR</div><div class="v up">+24.9%</div><div class="s">basket held +28.0% · Nifty +12.0%</div></div>
+      <div class="kpi"><div class="lbl">Largest fall</div><div class="v">−16.2%</div><div class="s">held −29.4%</div></div>
+      <div class="kpi"><div class="lbl">Trades</div><div class="v">58</div><div class="s">across 12 stocks</div></div>
+      <div class="kpi"><div class="lbl">Win rate</div><div class="v">59%</div><div class="s">payoff 2.8×</div></div>
+      <div class="kpi"><div class="lbl">Avg stocks held</div><div class="v">6.4</div><div class="s">of 12 · cash 47%</div></div>
+      <div class="kpi"><div class="lbl">In now</div><div class="v up">7</div><div class="s">2 entered this week</div></div>
+    </div>
+
+    <div class="grid-main" style="grid-template-columns:minmax(0,1fr)">
+      <div class="panel">
+        <div class="ph"><h2>Signal heatmap · 10 Nov close</h2><span class="note">Green = the bullish side of each reading · tap a stock to open its own backtest</span></div>
+        <div class="scroll"><table class="hm"><thead id="hmh"></thead><tbody id="hmb"></tbody></table></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h2>Growth of ₹100 · rules vs basket held vs Nifty 50, and stocks held</h2></div>
+        <div class="pb"><svg id="beq" viewBox="0 0 900 200" width="100%" preserveAspectRatio="none" style="display:block;height:200px"></svg>
+          <svg id="held" viewBox="0 0 900 50" width="100%" preserveAspectRatio="none" style="display:block;height:50px;margin-top:4px"></svg>
+          <div class="note">Bars: number of stocks the rules held each week (of 12)</div></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h2>By stock</h2></div>
+        <div class="scroll"><table><thead><tr><th>Stock</th><th class="n">Trades</th><th class="n">Win rate</th><th class="n">Rules return</th><th class="n">Held return</th><th class="n">Time in</th><th>Now</th></tr></thead><tbody id="bys"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="banner">Rule triggers on past prices only: no taxes, dividends not added, costs as set above. A research tool, not investment advice. Signals are never "buy" or "sell" calls.</div>
+</div>
+
+<script>
+const $=(s)=>document.querySelector(s);
+let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+document.querySelectorAll('.seg').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;g.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))}));
+$('#scope').addEventListener('click',e=>{const v=e.target.dataset.v;if(!v)return;$('#v-stock').classList.toggle('on',v==='stock');$('#v-basket').classList.toggle('on',v==='basket')});
+$('#theme').onclick=()=>{const d=document.documentElement;const on=d.dataset.theme==='dark';d.dataset.theme=on?'light':'dark';$('#theme').textContent=on?'Dark mode':'Light mode';draw()};
+
+const METRICS={
+ 'Trend':['Price','SMA 20','SMA 50','SMA 100','SMA 200','EMA 9','EMA 21','EMA 50','MACD line','MACD signal','MACD histogram','ADX 14','+DI / −DI','Supertrend 10,3','Parabolic SAR','Ichimoku cloud','Aroon 25'],
+ 'Momentum':['RSI 14','Stochastic %K 14,3','Stochastic RSI','Williams %R','CCI 20','Rate of change','Momentum 12-1'],
+ 'Volatility':['Bollinger %B 20,2','Bollinger width','ATR 14 %','Keltner channel','Historical volatility 60D'],
+ 'Volume':['Volume vs 20D avg','OBV','Money flow index 14','Chaikin money flow 20','VWAP 20D'],
+ 'Levels':['52W high','52W low','Donchian 20 high','Donchian 55 high','Donchian 20 low','Gap up / down','Pivot (classic)'],
+ 'Relative':['Trend percentile','RS vs Nifty 50 (3M)','RS vs industry (3M)','Mansfield RS','Beta 2Y']
+};
+const OPS=['crosses above','crosses below','is above','is below','≥','≤','rises for','falls for','flips up','flips down'];
+const metricSelect=(v)=>'<select>'+Object.entries(METRICS).map(([g,l])=>'<optgroup label="'+g+'">'+l.map(m=>'<option'+(m===v?' selected':'')+'>'+m+'</option>').join('')+'</optgroup>').join('')+'</select>';
+const opSelect=(v)=>'<select>'+OPS.map(o=>'<option'+(o===v?' selected':'')+'>'+o+'</option>').join('')+'</select>';
+const cond=(m,o,val)=>{const d=document.createElement('div');d.className='cond';d.innerHTML=metricSelect(m)+opSelect(o)+(METRICS.Trend.includes(val)||val==='0'&&false?metricSelect(val):'<input value="'+val+'">')+'<button class="x" aria-label="Remove">×</button>';d.querySelector('.x').onclick=()=>d.remove();return d};
+[['Price','crosses above','SMA 200'],['RSI 14','≥','50'],['Trend percentile','≥','80']].forEach(c=>$('#entry').append(cond(...c)));
+[['Price','crosses below','SMA 50'],['Supertrend 10,3','flips down','']].forEach(c=>$('#exit').append(cond(...c)));
+document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>$('#'+b.dataset.add).append(cond('RSI 14','≥','50')));
+
+const DASH=[
+ ['Trend',[['Price vs SMA 200','+12.4%','Above','p'],['SMA 50 vs SMA 200','Golden cross 14 Aug','Up','p'],['EMA 9 vs EMA 21','+0.8%','Above','p'],['MACD 12,26,9','4.2 vs 3.1','Above signal','p'],['ADX 14','31 · +DI 27 / −DI 14','Strong trend','p'],['Supertrend 10,3','₹398','Up since 2 Oct','p'],['Parabolic SAR','₹404','Below price','p'],['Ichimoku','Above cloud','Above','p'],['Aroon 25','Up 88 / Down 20','Up','p']]],
+ ['Momentum',[['RSI 14','63','Neutral','m'],['Stochastic %K 14,3','78 / %D 71','Near overbought','m'],['Williams %R','−22','Near overbought','m'],['CCI 20','85','Neutral','m'],['Rate of change 3M','+14.2%','Up','p'],['Momentum 12-1','+46%','Strong','p']]],
+ ['Volatility',[['Bollinger %B 20,2','0.82','Upper half','m'],['Bollinger width','9.1%','No squeeze','m'],['ATR 14','₹8.9 · 2.1%','Normal','m'],['Historical vol 60D','28%','Normal','m'],['Keltner 20,2','Inside','Inside','m']]],
+ ['Volume',[['Volume vs 20D avg','1.6×','High','p'],['OBV 20D','Rising','Rising','p'],['Money flow index 14','58','Neutral','m'],['Chaikin money flow 20','+0.12','Buying','p'],['VWAP 20D','₹412','Above','p']]],
+ ['Levels',[['52W high','₹436 · −3.9%','Near high','p'],['52W low','₹240 · +74%','—','m'],['Donchian 20 / 55','₹436 / ₹436','At 20D high','p'],['Pivot (classic)','P ₹415 · R1 ₹424 · S1 ₹405','Above P','p']]],
+ ['Relative',[['Trend percentile','88th','Top fifth','p'],['RS vs Nifty 50 3M','+9.4 pts','Leading','p'],['RS vs industry 3M','+3.8 pts','Leading','p'],['Mansfield RS','+1.9','Above zero','p'],['Beta 2Y','1.12','—','m']]]
+];
+$('#dash').innerHTML=DASH.map(([g,rows])=>'<tr class="grp"><td colspan="4">'+g+'</td></tr>'+rows.map(([n,v,s,c])=>'<tr><td>'+n+'</td><td class="n">'+v+'</td><td><span class="state '+(c==='p'?'up':c==='d'?'dn':'')+'" style="'+(c==='m'?'color:var(--ink-soft)':'')+'">'+s+'</span></td><td><button class="add" title="Add to entry rules">+</button></td></tr>').join('')).join('');
+
+const TR=[['12 Jan 22','₹ 68','4 Mar 22','₹ 74','Price below SMA 50',35,'+8.8%'],['21 Apr 22','₹ 82','19 May 22','₹ 77','Stop loss 8%',20,'−6.1%'],['30 Jun 22','₹ 80','16 Dec 22','₹ 101','Trailing stop 15%',118,'+26.3%'],['3 Apr 23','₹ 98','21 Jul 23','₹ 128','Supertrend flipped down',77,'+30.6%'],['1 Sep 23','₹ 134','10 Oct 23','₹ 128','Price below SMA 50',27,'−4.5%'],['8 Dec 23','₹ 164','29 Feb 24','₹ 202','Trailing stop 15%',56,'+23.2%'],['19 Mar 24','₹ 212','18 Jul 24','₹ 324','Trailing stop 15%',83,'+52.8%'],['30 Sep 24','₹ 282','4 Nov 24','₹ 268','Price below SMA 50',24,'−5.0%'],['17 Feb 25','₹ 266','2 Apr 25','₹ 254','Stop loss 8%',30,'−4.5%'],['12 May 25','₹ 318','4 Jul 25','₹ 392','Supertrend flipped down',37,'+23.3%'],['14 Aug 25','₹ 352','open','₹ 418','—',61,'+18.6%']];
+$('#trades').innerHTML=TR.map((t,i)=>'<tr><td class="n">'+(i+1)+'</td><td>'+t[0]+'</td><td class="n">'+t[1]+'</td><td>'+t[2]+'</td><td class="n">'+t[3]+'</td><td>'+t[4]+'</td><td class="n">'+t[5]+'</td><td class="n '+(t[6][0]==='+'?'up':'dn')+'">'+t[6]+'</td></tr>').join('');
+
+const STK=['BEL','HAL','BDL','MAZDOCK','COCHINSHIP','GRSE','DATAPATTNS','ASTRAMICRO','PARAS','BEML','SOLARINDS','MTARTECH'];
+const COLS=['> SMA 200','Golden cross','MACD','ADX > 25','Supertrend','RSI 14','BB %B','Vol vs avg','RS vs Nifty','Trend pct','Rules now'];
+$('#hmh').innerHTML='<tr><th>Stock</th>'+COLS.map(c=>'<th class="n" style="text-align:center">'+c+'</th>').join('')+'</tr>';
+seed=11;
+$('#hmb').innerHTML=STK.map(s=>{const r=()=>rnd();const cells=[r()>.35?['+8%','p']:['−5%','d'],r()>.4?['Yes','p']:['No','d'],r()>.45?['Above','p']:['Below','d'],r()>.5?[String(20+Math.round(r()*20)),'p']:[String(12+Math.round(r()*10)),'m'],r()>.4?['Up','p']:['Down','d'],[String(35+Math.round(r()*40)),'m'],[(r()).toFixed(2),'m'],[(0.6+r()*1.4).toFixed(1)+'×','m'],r()>.45?['+'+Math.round(r()*12),'p']:['−'+Math.round(r()*10),'d'],[String(20+Math.round(r()*78)),'m']];const tp=+cells[9][0];cells[9][1]=tp>=80?'p':tp<40?'d':'m';const inn=cells[0][1]==='p'&&tp>=60;cells.push(inn?['IN','p']:['OUT','m']);return '<tr><td class="mono" style="font-weight:600">'+s+'</td>'+cells.map(([v,c])=>'<td class="c '+c+'">'+v+'</td>').join('')+'</tr>'}).join('');
+seed=5;
+$('#bys').innerHTML=STK.map(s=>{const t=2+Math.round(rnd()*6),w=Math.round(40+rnd()*40),rr=Math.round(-10+rnd()*90),hr=Math.round(-15+rnd()*140),ti=Math.round(30+rnd()*50),now=rnd()>.45;return '<tr><td class="mono" style="font-weight:600">'+s+'</td><td class="n">'+t+'</td><td class="n">'+w+'%</td><td class="n '+(rr>=0?'up':'dn')+'">'+(rr>=0?'+':'')+rr+'%</td><td class="n">'+(hr>=0?'+':'')+hr+'%</td><td class="n">'+ti+'%</td><td><span class="state '+(now?'up':'')+'" style="'+(now?'':'color:var(--ink-soft)')+'">'+(now?'In':'Out')+'</span></td></tr>'}).join('');
+
+function series(n,drift,vol,s){seed=s;let v=100,o=[];for(let i=0;i<n;i++){v*=1+drift+(rnd()-.5)*vol;o.push(v)}return o}
+const css=(v)=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function path(arr,W,H,lo,hi,pad=6){return arr.map((v,i)=>(i?'L':'M')+(i/(arr.length-1)*W).toFixed(1)+','+(pad+(1-(v-lo)/(hi-lo))*(H-2*pad)).toFixed(1)).join('')}
+function draw(){
+ const N=260,px=series(N,.0042,.07,3),sma=px.map((_,i)=>{const a=px.slice(Math.max(0,i-40),i+1);return a.reduce((x,y)=>x+y,0)/a.length});
+ const lo=Math.min(...px)*.95,hi=Math.max(...px)*1.03,W=900,H=260;
+ const trades=[[8,22],[30,36],[50,92],[110,140],[150,156],[168,190],[198,226],[238,244],[246,252],[253,259]];
+ let s='';[0.25,.5,.75].forEach(f=>s+='<line x1="0" x2="900" y1="'+H*f+'" y2="'+H*f+'" stroke="'+css('--grid')+'"/>');
+ trades.forEach(([a,b])=>s+='<rect x="'+(a/(N-1)*W)+'" y="0" width="'+((b-a)/(N-1)*W)+'" height="'+H+'" fill="'+css('--pos')+'" opacity=".09"/>');
+ s+='<path d="'+path(sma,W,H,lo,hi)+'" fill="none" stroke="'+css('--amber')+'" stroke-width="1.4" stroke-dasharray="4 3"/>';
+ s+='<path d="'+path(px,W,H,lo,hi)+'" fill="none" stroke="'+css('--ink')+'" stroke-width="1.5"/>';
+ const y=(v)=>6+(1-(v-lo)/(hi-lo))*(H-12);
+ trades.forEach(([a,b],k)=>{const xa=a/(N-1)*W,xb=b/(N-1)*W;s+='<path d="M'+xa+','+(y(px[a])+16)+'l-6,10h12z" fill="'+css('--pos')+'"/>';if(k<trades.length-1)s+='<path d="M'+xb+','+(y(px[b])-16)+'l-6,-10h12z" fill="'+css('--danger')+'"/>'});
+ ['Nov 21','Nov 22','Nov 23','Nov 24','Nov 25'].forEach((t,i)=>s+='<text x="'+(i*W/4+(i===4?-40:4))+'" y="'+(H-4)+'">'+t+'</text>');
+ $('#price').innerHTML=s;
+ let rsi=series(N,0,.25,9).map((v,i)=>50+20*Math.sin(i/9)+(v-100)*.6);let o='<rect x="0" y="'+(70*.3)+'" width="900" height="'+(70*.4)+'" fill="'+css('--panel-2')+'"/>';
+ o+='<path d="'+path(rsi,900,70,10,90,2)+'" fill="none" stroke="'+css('--accent')+'" stroke-width="1.2"/><text x="4" y="12">RSI 14 · 70</text><text x="4" y="66">30</text>';$('#osc').innerHTML=o;
+ const eqH=series(N,.0042,.07,3),eqR=eqH.map((v,i)=>100*Math.pow(1.0039,i)*(1+.04*Math.sin(i/13))),nif=series(N,.0018,.03,21);
+ const all=[...eqH,...eqR,...nif],l2=Math.min(...all)*.95,h2=Math.max(...all)*1.03;
+ let e='';[0.25,.5,.75].forEach(f=>e+='<line x1="0" x2="900" y1="'+180*f+'" y2="'+180*f+'" stroke="'+css('--grid')+'"/>');
+ e+='<path d="'+path(nif,900,180,l2,h2)+'" fill="none" stroke="'+css('--amber')+'" stroke-dasharray="3 3"/><path d="'+path(eqH,900,180,l2,h2)+'" fill="none" stroke="'+css('--ink-soft')+'" stroke-width="1.3"/><path d="'+path(eqR,900,180,l2,h2)+'" fill="none" stroke="'+css('--accent')+'" stroke-width="2"/><line x1="'+(900*.6)+'" x2="'+(900*.6)+'" y1="0" y2="180" stroke="'+css('--line')+'" stroke-dasharray="2 4"/><text x="'+(900*.6+4)+'" y="12">out of sample →</text>';
+ $('#eq').innerHTML=e;
+ const bH=series(N,.0038,.05,4),bR=bH.map((v,i)=>100*Math.pow(1.0035,i)*(1+.03*Math.sin(i/11))),bn=series(N,.0018,.03,21),a3=[...bH,...bR,...bn],l3=Math.min(...a3)*.95,h3=Math.max(...a3)*1.03;
+ $('#beq').innerHTML='<path d="'+path(bn,900,200,l3,h3)+'" fill="none" stroke="'+css('--amber')+'" stroke-dasharray="3 3"/><path d="'+path(bH,900,200,l3,h3)+'" fill="none" stroke="'+css('--ink-soft')+'" stroke-width="1.3"/><path d="'+path(bR,900,200,l3,h3)+'" fill="none" stroke="'+css('--accent')+'" stroke-width="2"/>';
+ seed=13;let hb='';for(let i=0;i<130;i++){const h=3+Math.round((Math.sin(i/9)+1)*4+rnd()*2);hb+='<rect x="'+(i*900/130)+'" y="'+(50-h*4)+'" width="'+(900/130-1.5)+'" height="'+(h*4)+'" fill="'+css('--accent')+'" opacity=".55"/>'}$('#held').innerHTML=hb;
+}
+draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,484 @@
+// The indicator guide: for every metric of the catalogue (./metrics.ts), what it measures, how
+// traders commonly use it in rules, its usual trap, how this tool works it out and an example rule.
+// Read by the Signals guide page and the rule builder's "i" notes. Plain words; it describes common
+// practice and is not investment advice. The "how" lines match ./indicators.ts and ./compute.ts.
+
+export type GuideEntry = {
+  /** One plain sentence: what it measures. */
+  what: string;
+  /** 1–2 sentences: how people commonly use it in rules (generic, e.g. "A close above it is often read as..."). */
+  use: string;
+  /** 1 sentence: the most common trap or limitation. */
+  trap: string;
+  /** How it is worked out, in plain words or a short formula (≤ 160 characters). */
+  how: string;
+  /** An example rule in this tool's words, e.g. "Price crosses above SMA 200". Use labels exactly as in metrics.ts. */
+  example: string;
+};
+
+/** The intro shown at the top of the guide page: 2 short sentences. */
+export const GUIDE_INTRO =
+  "Each indicator below says what it measures, how traders commonly use it in entry and exit rules, and where it tends to mislead. These describe common practice on daily NSE prices, not advice: test any rule on past prices before relying on it.";
+
+/** Keyed by metric id from metrics.ts; every id present. */
+export const GUIDE: Record<string, GuideEntry> = {
+  // Trend
+  close: {
+    what: "The stock's closing price for the day, in ₹.",
+    use: "Most rules compare the close with a moving average, a band or a past high or low. A close through a line is often read as a change in direction.",
+    trap: "One day's close can be noise, so a single cross often reverses within days.",
+    how: "The day's NSE close.",
+    example: "Price crosses above SMA 50",
+  },
+  sma20: {
+    what: "The average closing price of the last 20 trading days, about one month.",
+    use: "A close above it is often read as a short-term uptrend. Some traders use a close back below it as an exit.",
+    trap: "In a sideways market the price crosses it again and again, giving many false signals.",
+    how: "Sum of the last 20 closes ÷ 20.",
+    example: "Price crosses above SMA 20",
+  },
+  sma50: {
+    what: "The average closing price of the last 50 trading days, about one quarter.",
+    use: "Often used as the medium-term trend line. SMA 50 crossing above SMA 200 is the well-known \"golden cross\".",
+    trap: "It reacts late, so by the time it turns much of the move may be over.",
+    how: "Sum of the last 50 closes ÷ 50.",
+    example: "SMA 50 crosses above SMA 200",
+  },
+  sma100: {
+    what: "The average closing price of the last 100 trading days, about five months.",
+    use: "Some traders use it as a middle ground between the 50-day and 200-day lines. A close above it is often read as a healthy trend.",
+    trap: "It is less watched than the 50 and 200-day lines, so it rarely acts as a level others react to.",
+    how: "Sum of the last 100 closes ÷ 100.",
+    example: "Price is above SMA 100",
+  },
+  sma200: {
+    what: "The average closing price of the last 200 trading days, close to a year.",
+    use: "The usual long-term trend line: a close above it is often read as a long-term uptrend. Many rules only allow entries while the price is above it.",
+    trap: "It turns very slowly, so exits based on it can give back a large part of a gain.",
+    how: "Sum of the last 200 closes ÷ 200.",
+    example: "Price crosses above SMA 200",
+  },
+  ema9: {
+    what: "An average of the last 9 or so closes that gives recent days more weight.",
+    use: "Used for very short-term timing; a close below it is often read as momentum fading. Some traders pair it with EMA 21 as a crossover.",
+    trap: "It is so fast that it flips on ordinary daily noise.",
+    how: "Today's close × 2/10 plus yesterday's EMA × 8/10; starts from the simple average of the first 9 closes.",
+    example: "EMA 9 crosses above EMA 21",
+  },
+  ema21: {
+    what: "An average of about a month of closes that gives recent days more weight.",
+    use: "A common short-term trend line; pullbacks that hold above it are often read as a trend staying intact.",
+    trap: "Like any average, it lags and whipsaws in sideways markets.",
+    how: "Today's close × 2/22 plus yesterday's EMA × 20/22; starts from the simple average of the first 21 closes.",
+    example: "Price crosses above EMA 21",
+  },
+  ema50: {
+    what: "An average of about a quarter of closes that gives recent days more weight.",
+    use: "Used like SMA 50 but turns a little sooner. A close above it is often read as a medium-term uptrend.",
+    trap: "Turning sooner also means more false turns than SMA 50.",
+    how: "Today's close × 2/51 plus yesterday's EMA × 49/51; starts from the simple average of the first 50 closes.",
+    example: "Price is above EMA 50",
+  },
+  macd: {
+    what: "The gap between a 12-day and a 26-day exponential average of the close, in ₹.",
+    use: "Above zero is often read as the short trend running above the long one. Rules usually watch it cross its signal line or cross zero.",
+    trap: "It is in rupees, so the same number means different things for a ₹100 stock and a ₹10,000 stock.",
+    how: "EMA 12 of closes − EMA 26 of closes.",
+    example: "MACD line 12,26 crosses above MACD signal 9",
+  },
+  macdSignal: {
+    what: "A 9-day exponential average of the MACD line.",
+    use: "The MACD line crossing above it is the usual MACD entry signal; crossing below is often used as an exit.",
+    trap: "Crosses happen often in sideways markets and many reverse quickly.",
+    how: "EMA 9 of the MACD line.",
+    example: "MACD line 12,26 crosses below MACD signal 9",
+  },
+  macdHist: {
+    what: "The gap between the MACD line and its signal line.",
+    use: "It turning positive is the same event as the MACD crossover. A shrinking histogram is often read as momentum slowing.",
+    trap: "A shrinking bar can just pause, not reverse, so it is an early and often wrong warning.",
+    how: "MACD line − MACD signal.",
+    example: "MACD histogram crosses above 0",
+  },
+  adx: {
+    what: "How strong a trend is, from 0 to 100, whether it is up or down.",
+    use: "Above 25 is usually read as trending and below 20 as sideways. Some traders use it as a filter so trend rules only fire when ADX is high.",
+    trap: "It does not say the direction; a strong fall also gives a high ADX.",
+    how: "Wilder's 14-day average of |+DI − −DI| ÷ (+DI + −DI) × 100.",
+    example: "ADX 14 is above 25",
+  },
+  pdi: {
+    what: "How much of the recent range came from up moves, over 14 days.",
+    use: "+DI above −DI is often read as up moves leading. A cross of +DI over −DI is a common trend entry.",
+    trap: "The two lines cross often when there is no real trend, so traders tend to check ADX too.",
+    how: "Wilder's 14-day average of up moves in the high ÷ ATR 14 × 100.",
+    example: "+DI 14 crosses above −DI 14",
+  },
+  mdi: {
+    what: "How much of the recent range came from down moves, over 14 days.",
+    use: "−DI above +DI is often read as down moves leading. Some traders use −DI crossing above +DI as an exit.",
+    trap: "On its own it says little; it is meant to be read against +DI.",
+    how: "Wilder's 14-day average of down moves in the low ÷ ATR 14 × 100.",
+    example: "−DI 14 crosses above +DI 14",
+  },
+  supertrend: {
+    what: "A trailing line that sits below the price in an uptrend and above it in a downtrend.",
+    use: "A close above it is often read as an uptrend starting and a close below it as one ending. Many traders use it as a trailing exit.",
+    trap: "In choppy markets it flips side often, each flip a small loss.",
+    how: "Midpoint of the day's high and low ± 3 × ATR 10, only moving in the trend's direction; it flips when the close crosses it.",
+    example: "Price crosses above Supertrend 10,3",
+  },
+  psar: {
+    what: "A trailing stop line that moves closer to the price the longer a trend runs.",
+    use: "A close below it in an uptrend is often used as an exit. Some traders use the flip to below the price as an entry.",
+    trap: "It always assumes a trend, so sideways markets give a stream of reversals.",
+    how: "Each day moves toward the trend's extreme by a factor that starts at 0.02 and rises 0.02 per new extreme, up to 0.2.",
+    example: "Price crosses below Parabolic SAR",
+  },
+  tenkan: {
+    what: "The midpoint of the highest high and lowest low of the last 9 days.",
+    use: "The fast line of Ichimoku. Tenkan crossing above Kijun is often read as a short-term turn up.",
+    trap: "It is a midpoint, not an average, so it can sit flat for days and then jump.",
+    how: "(Highest high of 9 days + lowest low of 9 days) ÷ 2.",
+    example: "Ichimoku Tenkan 9 crosses above Ichimoku Kijun 26",
+  },
+  kijun: {
+    what: "The midpoint of the highest high and lowest low of the last 26 days.",
+    use: "The slower Ichimoku line, often read as a balance level. A close above it is often read as the trend favouring up moves.",
+    trap: "It is flat during ranges, so crosses of it then say little.",
+    how: "(Highest high of 26 days + lowest low of 26 days) ÷ 2.",
+    example: "Price crosses above Ichimoku Kijun 26",
+  },
+  cloudTop: {
+    what: "The upper edge of the Ichimoku cloud plotted for today.",
+    use: "A close above the cloud is often read as an uptrend. Some traders only allow entries above the cloud top.",
+    trap: "The cloud uses data from 26 days ago, so it can lag a fast move.",
+    how: "Higher of span A ((Tenkan + Kijun) ÷ 2) and span B (52-day high-low midpoint), both as worked out 26 days ago.",
+    example: "Price crosses above Ichimoku cloud top",
+  },
+  cloudBottom: {
+    what: "The lower edge of the Ichimoku cloud plotted for today.",
+    use: "A close below the cloud is often read as a downtrend; some traders use it as an exit.",
+    trap: "A thin cloud gives little cushion, so the price slips through it easily.",
+    how: "Lower of span A ((Tenkan + Kijun) ÷ 2) and span B (52-day high-low midpoint), both as worked out 26 days ago.",
+    example: "Price crosses below Ichimoku cloud bottom",
+  },
+  aroonUp: {
+    what: "How recently the stock made its 25-day high, from 100 (today) down to 0 (25 days ago).",
+    use: "Aroon up near 100 is often read as fresh strength. Aroon up crossing above Aroon down is a common trend signal.",
+    trap: "It only counts days since the high, not how big the move was.",
+    how: "100 × (25 − days since the highest high of the last 25 days) ÷ 25.",
+    example: "Aroon up 25 crosses above Aroon down 25",
+  },
+  aroonDown: {
+    what: "How recently the stock made its 25-day low, from 100 (today) down to 0 (25 days ago).",
+    use: "Aroon down near 100 is often read as fresh weakness; some traders use it as an exit.",
+    trap: "A tiny new low counts the same as a big one.",
+    how: "100 × (25 − days since the lowest low of the last 25 days) ÷ 25.",
+    example: "Aroon down 25 is above 70",
+  },
+
+  // Momentum
+  rsi14: {
+    what: "How strong recent gains are against recent losses, on a 0 to 100 scale.",
+    use: "Above 70 is usually read as overbought and below 30 as oversold. Some traders look for an entry when RSI climbs back above 30.",
+    trap: "In a strong trend RSI can stay above 70 or below 30 for weeks.",
+    how: "Wilder's 14-day: 100 − 100 ÷ (1 + average gain ÷ average loss).",
+    example: "RSI 14 crosses above 30",
+  },
+  stochK: {
+    what: "Where the close sits in the last 14 days' high-low range, smoothed over 3 days, from 0 to 100.",
+    use: "Above 80 is often read as near the top of the range and below 20 near the bottom. %K crossing %D is a common timing signal.",
+    trap: "In a trend it stays pinned near one end, so \"overbought\" readings can last.",
+    how: "100 × (close − 14-day low) ÷ (14-day high − 14-day low), then a 3-day average.",
+    example: "Stochastic %K 14,3 crosses above Stochastic %D 3",
+  },
+  stochD: {
+    what: "A 3-day average of Stochastic %K.",
+    use: "Used as the signal line for %K. A cross of %K above %D below 20 is a common entry pattern.",
+    trap: "Being smoothed twice, it reacts late to sharp moves.",
+    how: "Average of the last 3 days of %K.",
+    example: "Stochastic %D 3 is below 20",
+  },
+  stochRsi: {
+    what: "Where RSI 14 sits within its own range over the last 14 days, from 0 to 100.",
+    use: "Some traders use it for faster overbought and oversold reads than RSI, often with 80 and 20 as lines.",
+    trap: "It is very jumpy and hits 0 or 100 often, so it gives many signals.",
+    how: "100 × (RSI − 14-day low of RSI) ÷ (14-day high of RSI − 14-day low of RSI).",
+    example: "Stochastic RSI 14 crosses above 20",
+  },
+  willr: {
+    what: "Where the close sits in the last 14 days' high-low range, from −100 (at the low) to 0 (at the high).",
+    use: "Above −20 is often read as near the top of the range and below −80 near the bottom.",
+    trap: "Like the stochastic, it can stay near one end for a long time in a trend.",
+    how: "−100 × (14-day high − close) ÷ (14-day high − 14-day low).",
+    example: "Williams %R 14 crosses above −80",
+  },
+  cci20: {
+    what: "How far the typical price is from its 20-day average, scaled by how much it usually strays.",
+    use: "Above +100 is often read as unusual strength and below −100 as unusual weakness. Some traders use a cross above +100 as a breakout entry.",
+    trap: "It has no upper or lower limit, so extreme readings can keep getting more extreme.",
+    how: "(Typical price − its 20-day average) ÷ (0.015 × 20-day mean deviation); typical price = (high + low + close) ÷ 3.",
+    example: "CCI 20 crosses above 100",
+  },
+  roc21: {
+    what: "The price change over the last 21 trading days, about one month, in %.",
+    use: "Some traders require a positive 1-month return before an entry, as a sign the move has started.",
+    trap: "One month is short, so it often catches a bounce rather than a trend.",
+    how: "(Close ÷ close 21 trading days ago − 1) × 100.",
+    example: "Return 1M is above 5",
+  },
+  roc63: {
+    what: "The price change over the last 63 trading days, about three months, in %.",
+    use: "Often used as a medium-term momentum filter, for example only allowing entries after a positive quarter.",
+    trap: "It depends on the start date, so one big day three months ago can swing it.",
+    how: "(Close ÷ close 63 trading days ago − 1) × 100.",
+    example: "Return 3M is above 0",
+  },
+  roc126: {
+    what: "The price change over the last 126 trading days, about six months, in %.",
+    use: "A common momentum filter in longer-term rules; positive is often read as an established uptrend.",
+    trap: "It reacts slowly, so it still looks good for a while after a trend turns.",
+    how: "(Close ÷ close 126 trading days ago − 1) × 100.",
+    example: "Return 6M is above 10",
+  },
+  roc252: {
+    what: "The price change over the last 252 trading days, about one year, in %.",
+    use: "Used as a long-term trend filter; some rules only allow entries when the past year is positive.",
+    trap: "It includes the most recent month, which often reverses, so many traders prefer Momentum 12-1.",
+    how: "(Close ÷ close 252 trading days ago − 1) × 100.",
+    example: "Return 12M is above 0",
+  },
+  mom12_1: {
+    what: "The return from 12 months ago to 1 month ago, in %, leaving out the latest month.",
+    use: "A standard momentum measure in research: stocks with high 12-1 momentum have tended to keep outperforming for a while. Often used as an entry filter.",
+    trap: "Momentum can reverse sharply, and it has had painful crashes when markets turn.",
+    how: "(Close 21 trading days ago ÷ close 252 trading days ago − 1) × 100.",
+    example: "Momentum 12-1 is above 20",
+  },
+
+  // Volatility
+  bbUpper: {
+    what: "A line 2 standard deviations above the 20-day average close.",
+    use: "A close above it is read two ways: as a breakout in trend rules, or as stretched in mean-reversion rules.",
+    trap: "Strong trends \"walk the band\", so a touch is not on its own a reason for an exit.",
+    how: "SMA 20 + 2 × standard deviation of the last 20 closes.",
+    example: "Price crosses above Bollinger upper 20,2",
+  },
+  bbMid: {
+    what: "The 20-day simple average of the close, the middle of the Bollinger Bands.",
+    use: "Often used as the target or exit for trades that start near a band. A close above it is read as the short-term trend up.",
+    trap: "It is the same as SMA 20, with the same lag.",
+    how: "Sum of the last 20 closes ÷ 20.",
+    example: "Price crosses above Bollinger middle 20",
+  },
+  bbLower: {
+    what: "A line 2 standard deviations below the 20-day average close.",
+    use: "In mean-reversion rules, a close back above it after a dip below is often used as an entry.",
+    trap: "In a falling market the price can keep closing below it.",
+    how: "SMA 20 − 2 × standard deviation of the last 20 closes.",
+    example: "Price crosses above Bollinger lower 20,2",
+  },
+  bbPctB: {
+    what: "Where the close sits between the Bollinger Bands: 0 at the lower band, 1 at the upper.",
+    use: "Below 0 is often read as stretched to the downside and above 1 as stretched up. It lets one rule work across stocks of any price.",
+    trap: "It says where the price is, not whether it will come back.",
+    how: "(Close − lower band) ÷ (upper band − lower band).",
+    example: "Bollinger %B crosses above 0",
+  },
+  bbWidth: {
+    what: "The distance between the Bollinger Bands as a % of the middle line.",
+    use: "A low width, a \"squeeze\", is often read as a quiet spell before a big move. Some traders pair it with a breakout rule.",
+    trap: "A squeeze says a move may come, not which way.",
+    how: "(Upper band − lower band) ÷ middle band × 100.",
+    example: "Bollinger width is below 8",
+  },
+  atrPct: {
+    what: "The average daily range over 14 days, including gaps, as a % of the close.",
+    use: "Used to size stops: some traders set an exit a few ATRs below the entry. A rising ATR is often read as rising nervousness.",
+    trap: "It measures the size of moves, not their direction.",
+    how: "Wilder's 14-day average of the true range (the largest of high − low, |high − previous close|, |low − previous close|) ÷ close × 100.",
+    example: "ATR 14 % is below 3",
+  },
+  kcUpper: {
+    what: "A line 2 average true ranges above the 20-day exponential average.",
+    use: "A close above it is often read as a strong breakout. Some traders compare it with the Bollinger upper band to spot squeezes.",
+    trap: "Like any band, breakouts above it often fail in sideways markets.",
+    how: "EMA 20 of closes + 2 × ATR 10.",
+    example: "Price crosses above Keltner upper 20",
+  },
+  kcLower: {
+    what: "A line 2 average true ranges below the 20-day exponential average.",
+    use: "A close below it is often read as unusual weakness; some traders use it as an exit or a stop level.",
+    trap: "In a sharp fall the price can stay below it for days.",
+    how: "EMA 20 of closes − 2 × ATR 10.",
+    example: "Price crosses below Keltner lower 20",
+  },
+  hv60: {
+    what: "How much the daily returns have swung over the last 60 days, scaled up to a year, in %.",
+    use: "Some traders avoid entries when volatility is high, or size positions smaller. A falling reading is often read as the stock settling.",
+    trap: "It looks backward and can jump suddenly on news.",
+    how: "Standard deviation of 60 daily log returns × √252 × 100.",
+    example: "Historical volatility 60D is below 30",
+  },
+
+  // Volume
+  volRatio: {
+    what: "The day's traded volume compared with its average of the last 20 days.",
+    use: "A reading above 1.5 or 2 is often read as unusual interest. Many traders want high volume to confirm a breakout.",
+    trap: "A volume spike can come from a block deal or an index change, not a real shift in demand.",
+    how: "Day's volume ÷ 20-day average volume (today included).",
+    example: "Volume vs 20D average is above 2",
+  },
+  obv: {
+    what: "A running total that adds the day's volume on up days and takes it off on down days.",
+    use: "OBV rising while the price is flat is often read as accumulation. Rules usually compare OBV with its own average.",
+    trap: "The level itself means nothing; only its direction is useful.",
+    how: "Previous OBV + volume if the close rose, − volume if it fell, unchanged if flat.",
+    example: "OBV crosses above OBV 20D average",
+  },
+  obvSma20: {
+    what: "The 20-day average of on-balance volume.",
+    use: "Used as a signal line: OBV above it is often read as volume flowing in.",
+    trap: "It lags OBV, and OBV itself can be skewed by one very heavy day.",
+    how: "Sum of the last 20 days of OBV ÷ 20.",
+    example: "OBV is above OBV 20D average",
+  },
+  mfi14: {
+    what: "An RSI-like reading, 0 to 100, that weights each day's price move by its volume.",
+    use: "Above 80 is often read as overbought and below 20 as oversold. Some traders watch for it disagreeing with the price.",
+    trap: "Like RSI, it can stay at extremes during strong trends.",
+    how: "100 − 100 ÷ (1 + money flow on up days ÷ on down days), over 14 days; money flow = typical price × volume.",
+    example: "Money flow index 14 crosses above 20",
+  },
+  cmf20: {
+    what: "Whether the stock has been closing near its daily highs or lows, weighted by volume, from −1 to 1.",
+    use: "Above 0 is often read as closes near the highs on volume and below 0 near the lows. Some traders require it above 0 for an entry.",
+    trap: "It ignores gaps between days, so a stock can gap down and still score well.",
+    how: "20-day sum of ((close − low) − (high − close)) ÷ (high − low) × volume, ÷ 20-day volume.",
+    example: "Chaikin money flow 20 is above 0.1",
+  },
+  vwap20: {
+    what: "The average price traded over the last 20 days, weighting each day by its volume.",
+    use: "A close above it is often read as the average recent holder being in profit. Some traders use it as a trend line.",
+    trap: "This is a 20-day daily version, not the intraday VWAP many traders mean.",
+    how: "20-day sum of typical price × volume ÷ 20-day sum of volume; typical price = (high + low + close) ÷ 3.",
+    example: "Price crosses above VWAP 20D",
+  },
+
+  // Levels
+  high52: {
+    what: "The highest price of the 52 weeks before the day, not counting the day itself.",
+    use: "A close above it is a new 52-week high, often read as a breakout. Many momentum rules use it as an entry trigger.",
+    trap: "Breakouts often pull back soon after, and stocks near old highs can stall there.",
+    how: "Highest high of the 252 trading days before the day (the close where a day has no high).",
+    example: "Price crosses above 52W high",
+  },
+  low52: {
+    what: "The lowest price of the 52 weeks before the day, not counting the day itself.",
+    use: "A close below it is a new 52-week low; some traders use it as an exit or to avoid an entry.",
+    trap: "A stock at a low can keep making lower lows.",
+    how: "Lowest low of the 252 trading days before the day (the close where a day has no low).",
+    example: "Price crosses below 52W low",
+  },
+  fromHigh52: {
+    what: "How far the close is below the highest price of the past 52 weeks, in %.",
+    use: "Small readings are often read as strength near the highs. Some traders use it to find stocks within a few % of a breakout.",
+    trap: "A stock 40% below its high is not cheap just because of that.",
+    how: "(1 − close ÷ highest high of the 252 trading days to the day) × 100.",
+    example: "% below 52W high is below 5",
+  },
+  fromLow52: {
+    what: "How far the close is above the lowest price of the past 52 weeks, in %.",
+    use: "Large readings are often read as a strong recovery. Some traders use it to avoid stocks still near their lows.",
+    trap: "A high reading can also mean the move is already stretched.",
+    how: "(Close ÷ lowest low of the 252 trading days to the day − 1) × 100.",
+    example: "% above 52W low is above 30",
+  },
+  dch20: {
+    what: "The highest price of the 20 days before the day, the top of the Donchian channel.",
+    use: "A close above it is often read as a short-term breakout; it is the classic \"Turtle\" entry.",
+    trap: "Short breakouts fail often, so these rules usually need a wider exit to work.",
+    how: "Highest high of the 20 trading days before the day.",
+    example: "Price crosses above 20D high",
+  },
+  dch55: {
+    what: "The highest price of the 55 days before the day.",
+    use: "A slower breakout level than the 20-day high; a close above it is often read as a bigger trend starting.",
+    trap: "Fewer signals than the 20-day high, and each one comes later in the move.",
+    how: "Highest high of the 55 trading days before the day.",
+    example: "Price crosses above 55D high",
+  },
+  dcl20: {
+    what: "The lowest price of the 20 days before the day, the bottom of the Donchian channel.",
+    use: "A close below it is a common exit for breakout rules.",
+    trap: "In a volatile stock it can sit far below the price, giving back a lot before the exit.",
+    how: "Lowest low of the 20 trading days before the day.",
+    example: "Price crosses below 20D low",
+  },
+  gap: {
+    what: "How far the day's open is from the day before's close, in %.",
+    use: "A large gap up is often read as news-driven interest. Some traders avoid entries on big gaps or wait for them to fill.",
+    trap: "Results days and corporate actions cause large gaps that may not repeat.",
+    how: "(Open ÷ previous close − 1) × 100.",
+    example: "Gap at open is above 2",
+  },
+  pivot: {
+    what: "The average of the day before's high, low and close, a level many day traders watch.",
+    use: "Opening and closing above it is often read as a firm day. It is more common in intraday trading than daily rules.",
+    trap: "It resets every day, so it says little about the longer trend.",
+    how: "(Previous high + previous low + previous close) ÷ 3.",
+    example: "Price is above Pivot (classic)",
+  },
+  r1: {
+    what: "The first resistance level worked out from the day before's prices.",
+    use: "A close above it is often read as a strong day. Some traders treat it as a short-term target.",
+    trap: "It is arithmetic, not a level other investors necessarily care about.",
+    how: "2 × pivot − previous low.",
+    example: "Price crosses above Pivot R1",
+  },
+  s1: {
+    what: "The first support level worked out from the day before's prices.",
+    use: "A close below it is often read as a weak day; some traders use it as a stop.",
+    trap: "In a fall it is broken easily, as it is based on one day only.",
+    how: "2 × pivot − previous high.",
+    example: "Price crosses below Pivot S1",
+  },
+
+  // Relative
+  trendPct: {
+    what: "Where the stock's past-year return ranks among the site's covered stocks that day, from 1 to 99.",
+    use: "High readings are often read as a market leader. Some traders only allow entries for stocks in the top part of the ranking.",
+    trap: "It ranks against covered stocks only, and a leader can fall fast when the market turns.",
+    how: "Past-year price return, ranked against every covered stock's that day as a percentile, 1 to 99.",
+    example: "Trend percentile is above 80",
+  },
+  rsNifty63: {
+    what: "The stock's 3-month return minus the Nifty 50's, in percentage points.",
+    use: "Above 0 is often read as the stock beating the market lately. Some traders require it for an entry.",
+    trap: "A stock can beat a falling Nifty 50 and still lose money.",
+    how: "Return 3M of the stock − Return 3M of the Nifty 50 (63 trading days).",
+    example: "RS vs Nifty 50 3M crosses above 0",
+  },
+  rsInd63: {
+    what: "The stock's 3-month return minus that of the median covered stock in its industry, in percentage points.",
+    use: "Above 0 is often read as a leader within its industry. Some traders use it to pick the stronger names in a strong industry.",
+    trap: "Industries with few covered stocks make the median less reliable.",
+    how: "Return 3M of the stock − median Return 3M of covered stocks in the same industry that day.",
+    example: "RS vs industry 3M is above 5",
+  },
+  mansfield: {
+    what: "The stock's price relative to the Nifty 50, compared with its own average of the past year, in %.",
+    use: "Above 0 is often read as the stock outperforming the market lately; a cross above 0 is a common entry filter.",
+    trap: "It compares with the stock's own past, so a long-term laggard can read positive on a short bounce.",
+    how: "(Price ÷ Nifty 50) ÷ its 252-day average − 1, × 100.",
+    example: "Mansfield RS crosses above 0",
+  },
+  beta252: {
+    what: "How much the stock has tended to move for each 1% move in the Nifty 50, over the past year.",
+    use: "Above 1 is often read as more volatile than the market and below 1 as calmer. Some traders filter on it to control risk.",
+    trap: "It changes over time and says nothing about moves that are specific to the company.",
+    how: "Covariance of daily log returns with the Nifty 50's ÷ the Nifty 50's variance, over 252 days.",
+    example: "Beta 1Y is below 1",
+  },
+};

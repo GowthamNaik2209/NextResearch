@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { BasketStock } from "@/lib/baskets/industry";
@@ -208,6 +209,14 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
             Projection
           </button>
         </div>
+        <Link
+          href={`/signals?t=${encodeURIComponent(ticker)}`}
+          title="Backtest entry and exit rules from technical indicators on this stock (signed in)"
+          // Tablets and computers only for now (docs/SIGNALS.md).
+          className="inline-flex min-h-9 items-center rounded border border-btn px-3 text-xs font-semibold text-accent hover:bg-accent/10 max-sm:hidden sm:min-h-8 pointer-coarse:min-h-10"
+        >
+          Signals
+        </Link>
         {projOn ? (
           <>
             {projSeg("Next", "h", HORIZONS, (h) => `${h}Y`, (h) => `Project ${HORIZON_LONG[h]} ahead`)}
