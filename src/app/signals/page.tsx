@@ -56,7 +56,7 @@ export default async function SignalsPage({ searchParams }: { searchParams: Prom
         </nav>
         <header className="flex flex-col gap-1">
           <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Signal backtest</h1>
-          <p className="max-w-3xl text-sm text-ink-soft">Pick a stock or basket, start from an idea or set your own entry and exit rules, and see how they would have traded over past prices.</p>
+          <p className="max-w-3xl text-sm text-ink-soft">Test entry and exit rules on a stock, or on a basket you created, at the weighting you saved for it.</p>
         </header>
         <SignalsGate>
           <SignalLab key={`${where.scope}:${where.target}:${back}`} choices={choices} initial={where} initialStrategy={strategy} initialSaved={saved} notFound={asked && !target ? asked.target : null} locked={!!back && !!target} />
