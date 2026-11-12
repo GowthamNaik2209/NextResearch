@@ -86,8 +86,9 @@ is false. Catalogue: `src/lib/signals/metrics.ts`.
   own baskets (`src/lib/signals/targets.ts`). The same rules run on every stock, each in its own
   slot: in the stock while its rules hold it, in cash otherwise (`src/lib/signals/basket.ts`).
 - Slots are sized by the basket's weighting (`src/lib/signals/weighting.ts`): equal, market cap, or
-  the user's own %. Opened from a basket's page, Signals takes that page's weighting (`?w=`, `?wt=`)
-  and says so in a line over the results; a Weighting control changes it. The basket's value is the
+  the user's own %, always the basket's saved one (an own basket's as stored, an industry basket's
+  equal), for the page and the nightly alerts alike; a line over the results says which. There is no
+  weighting control on Signals. The basket's value is the
   weighted average of its slots; "held" is every stock bought on the first day in those weights and
   kept. The page's rebalancing doesn't apply: each stock gets in and out on its own rules. A stock
   listed after the range starts keeps its slot in cash until its first close.

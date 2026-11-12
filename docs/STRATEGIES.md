@@ -67,7 +67,8 @@ its weights and lines with it.
 
 **What the chart opens on** (changed Oct 2026, owner's call): a basket of up to 24 stocks (each its own
 line style: every rule-based basket, most of your own, small industries) opens with every stock's line
-on; a bigger one opens on the basket alone. Every kind of basket can draw every one of its stocks (up to
+on; a bigger one opens on the basket alone. A stock you add (Create basket, or your own basket) gets
+its line at once while the chart has fewer than 24; past that, tick the ones to draw. Every kind of basket can draw every one of its stocks (up to
 75 lines); past 24 the line styles repeat, so hovering a row under the chart previews its line and
 tapping its swatch pins it. A basket from an industry (its page, or a saved basket or draft copied from
 one) opens compared with the Nifty 50, its index and that industry's basket; any other (rule-based, your

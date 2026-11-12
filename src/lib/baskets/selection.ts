@@ -121,12 +121,19 @@ export function selectionReducer(state: SelectionState, action: SelectionAction)
       const earlier = Object.fromEntries(tickers.flatMap((t) => (state.takenOff[t]?.weight != null ? [[t, state.takenOff[t].weight!]] : [])));
       const takenOff = { ...state.takenOff };
       for (const t of tickers) delete takenOff[t];
-      // No line for a new stock: every basket opens with no stock lines and only the reader draws
-      // them (one default for every kind of basket, see docs/STRATEGIES.md), so an add never
-      // changes the chart.
+      // A stock you add shows on the chart at once: it gets a line while the chart has fewer than
+      // DISTINCT_LINES (each its own style); past that, the reader ticks the ones to draw.
+      const picks = { ...state.chart.picks };
+      for (const t of tickers) {
+        if (picks[t] != null || Object.keys(picks).length >= DISTINCT_LINES) continue;
+        const slot = freeSlot(picks);
+        if (slot == null) break;
+        picks[t] = slot;
+      }
       return {
         ...state,
         stocks: [...state.stocks, ...fresh],
+        chart: { ...state.chart, picks },
         custom: state.custom ? addToWeights(state.custom, tickers, earlier) : null,
         pickedFrom: action.from ? { ...state.pickedFrom, ...Object.fromEntries(tickers.map((t) => [t, action.from!])) } : state.pickedFrom,
         takenOff,

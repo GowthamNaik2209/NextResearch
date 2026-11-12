@@ -17,7 +17,7 @@ import { WEIGHTING_LABEL } from "@/lib/signals/weighting";
 // A basket's results (docs/SIGNALS.md section 4): each stock in its own equal slot, in cash while the
 // rules are out. The tiles, growth of ₹100 with how many stocks the rules held, the signal heatmap
 // (each stock's key readings now, and whether the rules hold it), and each stock's own figures. Slots
-// are sized by the basket's weighting (from its page, or the Weighting control), said in a line on top.
+// are sized by the basket's saved weighting, said in a line on top.
 // Clicking a stock opens its own backtest with the same rules.
 
 const SHORT: Record<string, string> = {
@@ -32,7 +32,7 @@ const SHORT: Record<string, string> = {
   trendPct: "Trend",
 };
 
-export function BasketResults({ answer, busy, onOpenStock, carried = false }: { answer: BasketAnswer; busy: boolean; onOpenStock: (ticker: string) => void; /** The weighting came from the basket's page. */ carried?: boolean }) {
+export function BasketResults({ answer, busy, onOpenStock }: { answer: BasketAnswer; busy: boolean; onOpenStock: (ticker: string) => void }) {
   const r = answer.result;
   const slots = SLOTS[useSiteTheme()];
   const growth = useMemo((): ChartLine[] => {
@@ -56,8 +56,8 @@ export function BasketResults({ answer, busy, onOpenStock, carried = false }: { 
         return (
           <p className="rounded-md border border-line bg-panel px-3 py-1.5 text-[11px] leading-relaxed text-ink-soft">
             The whole basket is backtested as one: each of its {r.stats.size} stocks has a slot sized by{" "}
+            {answer.target.startsWith("industry:") ? "the industry basket's " : "the basket's saved "}
             <b className="font-semibold text-ink">{WEIGHTING_LABEL[answer.weighting].toLowerCase()} weighting</b>
-            {carried ? ", carried from the basket page" : ""}
             {answer.weighting !== "equal" && top ? ` (largest: ${top.ticker} ${num(top.share)}%)` : ""}. A slot holds its stock while the rules are in and cash while they&rsquo;re out, and every stock
             follows the same rules. The basket page&rsquo;s rebalancing isn&rsquo;t used here, since each stock gets in and out on its own rules.
           </p>

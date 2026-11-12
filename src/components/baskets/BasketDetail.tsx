@@ -3,7 +3,6 @@
 import { InfoTip } from "@/components/InfoTip";
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { weightingParams } from "@/lib/signals/weighting";
 import Link from "next/link";
 import type { ChartRange } from "@/lib/live/yahoo";
 import type { Benchmark } from "@/lib/sector-content/benchmarks";
@@ -1558,7 +1557,6 @@ export function BasketDetail(p: BasketDetailProps) {
                 onClick={() => {
                   const q = new URLSearchParams({
                     b: p.mode === "industry" ? `industry:${p.id}` : p.id,
-                    ...weightingParams({ scheme: weighting, weights: strategy.weights }),
                     from: window.location.pathname + window.location.search,
                   });
                   router.push(`/signals?${q}`);
