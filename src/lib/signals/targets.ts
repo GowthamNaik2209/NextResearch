@@ -1,11 +1,13 @@
 // What a signal backtest runs on (docs/SIGNALS.md section 4): one covered stock, an industry's
 // basket ("industry:<slug>", every listed stock mapped in it) or one of the user's own baskets (its
-// id). Server only: an own basket is read from the database, and only by its owner.
+// id). Server only: an own basket is read from the database, and only by its owner. A basket comes
+// with its saved weighting: an own basket's as stored, an industry basket's equal (its page's).
 import { prisma } from "@/lib/prisma";
+import { EQUAL, type SignalWeighting } from "./weighting";
 import { basketStock, getIndustryBasket, listBasketUniverse, listIndustryBaskets } from "@/lib/baskets/industry";
 
 export type Scope = "stock" | "basket";
-export type Target = { scope: Scope; target: string; name: string; tickers: string[] };
+export type Target = { scope: Scope; target: string; name: string; tickers: string[]; weighting: SignalWeighting };
 
 export type TargetChoices = {
   stocks: { ticker: string; name: string }[];
@@ -19,16 +21,23 @@ export const isScope = (v: unknown): v is Scope => v === "stock" || v === "baske
 export async function resolveTarget(scope: Scope, target: string, userId: string): Promise<Target | null> {
   if (scope === "stock") {
     const s = basketStock(target.toUpperCase());
-    return s ? { scope, target: s.ticker, name: s.name, tickers: [s.ticker] } : null;
+    return s ? { scope, target: s.ticker, name: s.name, tickers: [s.ticker], weighting: EQUAL } : null;
   }
   if (target.startsWith("industry:")) {
     const b = getIndustryBasket(target.slice("industry:".length));
-    return b && b.stocks.length ? { scope, target, name: b.name, tickers: b.stocks.map((s) => s.ticker) } : null;
+    return b && b.stocks.length ? { scope, target, name: b.name, tickers: b.stocks.map((s) => s.ticker), weighting: EQUAL } : null;
   }
   if (!/^[A-Za-z0-9_-]{1,64}$/.test(target)) return null;
-  const row = await prisma.basket.findFirst({ where: { id: target, userId }, select: { name: true, items: { select: { ticker: true } } } });
+  const row = await prisma.basket.findFirst({ where: { id: target, userId }, select: { name: true, weighting: true, customWeighting: true, items: { select: { ticker: true, weight: true } } } });
   const tickers = row?.items.map((i) => i.ticker).filter((t) => basketStock(t)) ?? [];
-  return row && tickers.length ? { scope, target, name: row.name, tickers } : null;
+  if (!row || !tickers.length) return null;
+  // As the basket's page reads it (lib/baskets/store.ts toSaved): custom wins, then market cap.
+  const weighting: SignalWeighting = row.customWeighting
+    ? { scheme: "custom", weights: Object.fromEntries(row.items.filter((i) => i.weight != null).map((i) => [i.ticker, i.weight!])) }
+    : row.weighting === "MCAP"
+      ? { scheme: "mcap" }
+      : EQUAL;
+  return { scope, target, name: row.name, tickers, weighting };
 }
 
 /** Everything the picker offers this user: covered stocks, industry baskets, and their own baskets. */

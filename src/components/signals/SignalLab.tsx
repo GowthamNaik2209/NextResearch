@@ -7,7 +7,6 @@ import { CHECKS, COSTS, MAX_ENTRY, MAX_EXIT, PRESETS, RANGES, conditionFor, enco
 import { describeStrategy } from "@/lib/signals/describe";
 import type { SavedSignal } from "@/lib/signals/saved";
 import type { Scope, TargetChoices } from "@/lib/signals/targets";
-import { EQUAL, weightingParams, type SignalWeighting } from "@/lib/signals/weighting";
 import { MINI_SEG, Panel } from "@/components/baskets/Panel";
 import { ConfirmDialog } from "@/components/baskets/ConfirmDialog";
 import { fmtDay, signedPct } from "@/lib/format";
@@ -29,16 +28,12 @@ type Where = { scope: Scope; target: string };
 
 const sameRules = (a: Strategy, b: Strategy) => JSON.stringify(a) === JSON.stringify(b);
 
-export function SignalLab({ choices, initial, initialStrategy, initialSaved, notFound, locked = false, initialWeighting = EQUAL }: { choices: TargetChoices; initial: Where; initialStrategy: Strategy; initialSaved: SavedSignal[]; /** The link named a stock or basket that isn't available here. */ notFound?: string | null; locked?: boolean; /** A basket's weighting, carried from its page. */ initialWeighting?: SignalWeighting }) {
+export function SignalLab({ choices, initial, initialStrategy, initialSaved, notFound, locked = false }: { choices: TargetChoices; initial: Where; initialStrategy: Strategy; initialSaved: SavedSignal[]; /** The link named a stock or basket that isn't available here. */ notFound?: string | null; locked?: boolean }) {
   const [where, setWhere] = useState<Where>(initial);
-  const [weighting, setWeighting] = useState<SignalWeighting>(initialWeighting);
-  // The page's own custom %, kept so switching to Equal and back doesn't lose them.
-  const pageCustom = initialWeighting.scheme === "custom" ? initialWeighting : null;
   const [strategy, setStrategy] = useState<Strategy>(initialStrategy);
   const [ran, setRan] = useState<{ key: string; answer: Answer } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [preset, setPreset] = useState("");
   const [note, setNote] = useState<string | null>(notFound ? `${notFound} isn't a covered stock or one of your baskets, so this opened instead.` : null);
   const top = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -49,17 +44,12 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
   const req = useRef(0);
 
   const keyOf = (w: Where, s: Strategy) => `${w.scope}|${w.target}|${JSON.stringify(s)}`;
-  const weightingRef = useRef(weighting);
-  useEffect(() => {
-    weightingRef.current = weighting;
-  });
   const run = useCallback(async (w: Where, s: Strategy) => {
-    const wq = w.scope === "basket" ? weightingParams(weightingRef.current) : {};
     const id = ++req.current;
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch("/api/signals", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ scope: w.scope, target: w.target, strategy: s, ...wq }) });
+      const res = await fetch("/api/signals", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ scope: w.scope, target: w.target, strategy: s }) });
       const body = await res.json().catch(() => null);
       if (id !== req.current) return;
       if (!res.ok) {
@@ -74,9 +64,6 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
       url.searchParams.delete(w.scope === "stock" ? "b" : "t");
       url.searchParams.set(w.scope === "stock" ? "t" : "b", w.target);
       url.searchParams.set("s", encodeStrategy(s));
-      url.searchParams.delete("w");
-      url.searchParams.delete("wt");
-      for (const [k, v] of Object.entries(wq)) url.searchParams.set(k, v);
       window.history.replaceState(null, "", url);
     } catch {
       if (id === req.current) setError("The backtest couldn't run right now. Check your connection and try again.");
@@ -86,7 +73,7 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
   }, []);
 
   // The first run, and again whenever the stock/basket or a setting outside the rules changes.
-  const outer = `${where.scope}|${where.target}|${strategy.range}|${strategy.check}|${strategy.cost}|${where.scope === "basket" ? JSON.stringify(weighting) : ""}`;
+  const outer = `${where.scope}|${where.target}|${strategy.range}|${strategy.check}|${strategy.cost}`;
   const latest = useRef({ where, strategy });
   // Kept current before the run below reads it (effects run in order).
   useEffect(() => {
@@ -109,8 +96,10 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
   }, [stockAnswer]);
   const sentence = describeStrategy(strategy);
 
+  // The idea whose rules are on screen (range and costs aside), highlighted in the cards; none once edited.
+  const preset = PRESETS.find((p) => sameRules({ ...p.strategy, range: strategy.range, cost: strategy.cost }, strategy))?.id ?? "";
+
   const set = (patch: Partial<Strategy>) => {
-    setPreset("");
     // An edit makes the last note (added, saved, emails on) out of date.
     setNote(null);
     setStrategy((s) => ({ ...s, ...patch }));
@@ -121,7 +110,6 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
     setWhere(w);
     if (mine) {
       setStrategy(mine);
-      setPreset("");
       setNote(rules ? null : "Your saved rules for this one are loaded.");
     } else setNote(null);
   };
@@ -134,7 +122,6 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
   const applyPreset = (id: string) => {
     const p = PRESETS.find((x) => x.id === id);
     if (!p) return;
-    setPreset(id);
     setNote(null);
     const next = { ...p.strategy, range: strategy.range, cost: strategy.cost };
     setStrategy(next);
@@ -279,18 +266,6 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
             ))}
           </div>
         </div>
-        {where.scope === "basket" && (
-          <div className="flex items-center gap-1.5">
-            <span className={ctlLabel}>Weighting</span>
-            <div className={MINI_SEG} role="group" aria-label="Weighting">
-              {([EQUAL, { scheme: "mcap" } as SignalWeighting, ...(pageCustom ? [pageCustom] : [])] as SignalWeighting[]).map((x) => (
-                <button key={x.scheme} type="button" aria-pressed={weighting.scheme === x.scheme} onClick={() => setWeighting(x)} className={segBtn(weighting.scheme === x.scheme)}>
-                  {x.scheme === "mcap" ? "M-cap" : x.scheme === "custom" ? "Custom" : "Equal"}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
         <label className="flex items-center gap-1.5">
           <span className={ctlLabel}>Costs</span>
           <select value={strategy.cost} onChange={(e) => set({ cost: Number(e.target.value) })} className={FIELD}>
@@ -343,7 +318,6 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
             <BasketResults
               answer={basketAnswer}
               busy={busy}
-              carried={locked && JSON.stringify(weighting) === JSON.stringify(initialWeighting)}
               onOpenStock={(t) => {
                 if (locked) return elsewhere({ scope: "stock", target: t }, strategy, true);
                 go({ scope: "stock", target: t }, strategy);

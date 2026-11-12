@@ -10,7 +10,6 @@ import { listTargets, resolveTarget, type Scope } from "@/lib/signals/targets";
 import { SignalLab } from "@/components/signals/SignalLab";
 import { SignalsGate } from "@/components/signals/SignalsGate";
 import { safeNext } from "@/lib/safe-next";
-import { parseWeighting } from "@/lib/signals/weighting";
 
 // Signal backtests (docs/SIGNALS.md): entry and exit rules from technical indicators, backtested on a
 // covered stock or a basket. Signed-in only, and tablets and computers only (SignalsGate). `?t=` picks
@@ -18,14 +17,14 @@ import { parseWeighting } from "@/lib/signals/weighting";
 // the rules (strategy.ts). With neither, it opens the user's most recently saved signal where they
 // left it; a stock or basket with saved rules opens with them unless the link carries rules.
 // `?from=` (a same-site path, the stock pop-up's or basket page's) means it was opened for that one
-// stock or basket: no Stock/Basket switch or picker, and Back returns there. `?w=`/`?wt=`: a basket's
-// weighting from its page (lib/signals/weighting.ts).
+// stock or basket: no Stock/Basket switch or picker, and Back returns there. A basket runs at its
+// saved weighting (lib/signals/targets.ts).
 export const metadata = { title: "Signal backtest", robots: { index: false, follow: false } };
 
 const DEFAULT_TICKER = "BEL";
 
-export default async function SignalsPage({ searchParams }: { searchParams: Promise<{ t?: string; b?: string; s?: string; from?: string; w?: string; wt?: string }> }) {
-  const { t, b, s, from, w, wt } = await searchParams;
+export default async function SignalsPage({ searchParams }: { searchParams: Promise<{ t?: string; b?: string; s?: string; from?: string }> }) {
+  const { t, b, s, from } = await searchParams;
   const user = await getCurrentUser();
   if (!user) {
     const q = new URLSearchParams(Object.entries({ t, b, from }).filter((e): e is [string, string] => !!e[1]));
@@ -57,10 +56,10 @@ export default async function SignalsPage({ searchParams }: { searchParams: Prom
         </nav>
         <header className="flex flex-col gap-1">
           <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Signal backtest</h1>
-          <p className="max-w-3xl text-sm text-ink-soft">Pick a stock or basket, start from an idea or set your own entry and exit rules, and see how they would have traded over past prices.</p>
+          <p className="max-w-3xl text-sm text-ink-soft">Test entry and exit rules on a stock, or on a basket you created, at the weighting you saved for it.</p>
         </header>
         <SignalsGate>
-          <SignalLab key={`${where.scope}:${where.target}:${back}`} choices={choices} initial={where} initialStrategy={strategy} initialSaved={saved} notFound={asked && !target ? asked.target : null} locked={!!back && !!target} initialWeighting={parseWeighting(w, wt)} />
+          <SignalLab key={`${where.scope}:${where.target}:${back}`} choices={choices} initial={where} initialStrategy={strategy} initialSaved={saved} notFound={asked && !target ? asked.target : null} locked={!!back && !!target} />
         </SignalsGate>
       </main>
       <SiteFooter />

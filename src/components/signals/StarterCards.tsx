@@ -3,7 +3,8 @@
 import { PRESETS } from "@/lib/signals/strategy";
 
 // "Start from an idea": the ready-made rules as cards, each with the plain idea behind it, so a first
-// visit starts from something that makes sense rather than an empty builder.
+// visit starts from something that makes sense rather than an empty builder. The card whose rules
+// are on screen is marked "In use" until the rules are edited.
 const IDEA: Record<string, string> = {
   "trend-200": "Ride the long trend",
   "golden-cross": "Ride the long trend",
@@ -28,9 +29,12 @@ export function StarterCards({ active, onPick }: { active: string; onPick: (id: 
               type="button"
               aria-pressed={on}
               onClick={() => onPick(p.id)}
-              className={"flex min-w-0 flex-col items-start gap-0.5 rounded-md border px-2.5 py-2 text-left hover:bg-accent/10 " + (on ? "border-accent bg-accent/10" : "border-btn bg-panel")}
+              className={"relative flex min-w-0 flex-col items-start gap-0.5 rounded-md border px-2.5 py-2 text-left hover:bg-accent/10 " + (on ? "border-accent bg-accent/15 ring-2 ring-accent" : "border-btn bg-panel")}
             >
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">{IDEA[p.id] ?? "Idea"}</span>
+              <span className="flex w-full items-center justify-between gap-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">{IDEA[p.id] ?? "Idea"}</span>
+                {on && <span className="shrink-0 rounded bg-accent px-1.5 py-px text-[10px] font-semibold text-bg">✓ In use</span>}
+              </span>
               <span className="text-sm font-semibold text-ink">{p.label}</span>
               <span title={p.note} className="line-clamp-3 text-[11px] leading-snug text-ink-soft">
                 {p.note}

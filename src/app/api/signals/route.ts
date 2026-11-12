@@ -10,13 +10,13 @@ import { runBasketSignals } from "@/lib/signals/basket";
 import { HEAT_IDS, readingsNow } from "@/lib/signals/readings";
 import { parseStrategy, strategyMetrics } from "@/lib/signals/strategy";
 import { isScope, resolveTarget } from "@/lib/signals/targets";
-import { parseWeighting, slotWeights } from "@/lib/signals/weighting";
+import { slotWeights } from "@/lib/signals/weighting";
 
-// POST /api/signals { scope, target, strategy, w?, wt? } — signed-in only (docs/SIGNALS.md): a rule backtest
+// POST /api/signals { scope, target, strategy } — signed-in only (docs/SIGNALS.md): a rule backtest
 // on one covered stock (scope "stock", target its ticker) or a basket (scope "basket", target
 // "industry:<slug>" or one of the user's own basket ids), over the price store. A stock comes with
 // every indicator's reading on its last close; a basket with each stock's key readings (the heatmap),
-// its slots sized by `w`/`wt` (the basket page's weighting: equal, mcap, or custom %).
+// its slots sized by the basket's saved weighting (equal, mcap, or custom %).
 // Per user and per strategy, so never cached. `ticker` alone still means one stock.
 const NO_STORE = { "Cache-Control": "private, no-store" };
 // A new server instance reads every stock of a basket (up to 75) from the price store, or builds the
@@ -28,7 +28,7 @@ const fail = (status: number, error: string) => NextResponse.json({ error }, { s
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return fail(401, "Sign in to run signal backtests");
-  const body = (await req.json().catch(() => null)) as { scope?: unknown; target?: unknown; ticker?: unknown; strategy?: unknown; w?: unknown; wt?: unknown } | null;
+  const body = (await req.json().catch(() => null)) as { scope?: unknown; target?: unknown; ticker?: unknown; strategy?: unknown } | null;
   await ensureFinancials();
   const scope = isScope(body?.scope) ? body.scope : "stock";
   const raw = typeof body?.target === "string" ? body.target : typeof body?.ticker === "string" ? body.ticker : "";
@@ -67,13 +67,12 @@ export async function POST(req: Request) {
     });
     const days = data.nifty.map((p) => p.t);
     const from = rangeStart(days, parsed.strategy.range);
-    const weighting = parseWeighting(body?.w, body?.wt);
-    const weights = slotWeights(usable.map(({ ticker }) => ({ ticker, mcapCr: basketStock(ticker)?.mcapCr ?? null })), weighting);
+    const weights = slotWeights(usable.map(({ ticker }) => ({ ticker, mcapCr: basketStock(ticker)?.mcapCr ?? null })), target.weighting);
     const result = runBasketSignals(usable, parsed.strategy, MARKET.rf, days.slice(from), data.nifty.slice(from).map((p) => p.c), weights ?? undefined);
     if (!result) return fail(422, "Not enough price history in this range");
     const heat = usable.map(({ ticker, mx }) => ({ ticker, readings: readingsNow(mx, basketStock(ticker)?.trend, HEAT_IDS) }));
     return NextResponse.json(
-      { kind: "basket", scope, target: target.target, name: target.name, lastDay: result.to, weighting: weighting.scheme, result, heat, skipped, missing: data.missing },
+      { kind: "basket", scope, target: target.target, name: target.name, lastDay: result.to, weighting: target.weighting.scheme, result, heat, skipped, missing: data.missing },
       { headers: NO_STORE },
     );
   } catch (e) {

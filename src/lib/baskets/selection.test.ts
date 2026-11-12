@@ -40,10 +40,12 @@ test("a removed line is never passed on to another stock", () => {
   assert.deepEqual(reduce(s0, { type: "remove", ticker: "A" }).chart.picks, { B: 1 });
 });
 
-test("add never draws a line: only the reader does", () => {
+test("an added stock gets its line, until the chart has a line per style", () => {
   const s0 = start(["A"], null, { A: 0 });
-  assert.deepEqual(reduce(s0, { type: "add", stocks: [stock("B")] }).chart.picks, { A: 0 });
-  assert.deepEqual(reduce(start([]), { type: "add", stocks: [stock("B")] }).chart.picks, {});
+  assert.deepEqual(reduce(s0, { type: "add", stocks: [stock("B")] }).chart.picks, { A: 0, B: 1 });
+  assert.deepEqual(reduce(start([]), { type: "add", stocks: [stock("B")] }).chart.picks, { B: 0 });
+  const many = Array.from({ length: DISTINCT_LINES + 3 }, (_, i) => stock(`S${i}`));
+  assert.equal(Object.keys(reduce(start([]), { type: "add", stocks: many }).chart.picks).length, DISTINCT_LINES);
 });
 
 test("the chart can draw every stock a basket holds", () => {

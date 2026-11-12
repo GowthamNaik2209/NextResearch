@@ -14,7 +14,9 @@ import { METRIC_BY_ID } from "./metrics";
 import { parseStrategy, strategyMetrics, type Strategy } from "./strategy";
 import { describeTrigger } from "./describe";
 import { renderAlertEmail, type AlertItem } from "./alert-email";
-import { resolveTarget, type Scope } from "./targets";
+import { resolveTarget, type Target } from "./targets";
+import { basketStock } from "@/lib/baskets/industry";
+import { slotWeights } from "./weighting";
 
 export const alertsLive = () => process.env.SIGNAL_ALERTS_SEND === "1" && mailerReady();
 
@@ -24,7 +26,7 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 type Met = { ticker: string; kind: "entry" | "exit"; reason: string; price: number };
 
 /** What the rules met on the target's last close, and that close's date. Null when its prices can't load. */
-async function metOnLastClose(scope: Scope, tickers: string[], s: Strategy): Promise<{ lastDay: string; met: Met[] } | null> {
+async function metOnLastClose({ scope, tickers, weighting }: Target, s: Strategy): Promise<{ lastDay: string; met: Met[] } | null> {
   const needPanel = strategyMetrics(s).some((id) => METRIC_BY_ID.get(id)?.needs?.includes("panel"));
   if (scope === "stock") {
     const d = await loadStock(tickers[0], needPanel);
@@ -35,11 +37,12 @@ async function metOnLastClose(scope: Scope, tickers: string[], s: Strategy): Pro
   }
   const b = await loadBasket(tickers, needPanel);
   if (!b?.stocks.length) return null;
-  // As the page does: a stock that can't give an indicator the rules use, or the ATR stop, sits out.
+  // As the page does (and at the basket's saved weighting): a stock that can't give an indicator the rules use, or the ATR stop, sits out.
   const usable = b.stocks.filter(({ mx }) => !strategyMetrics(s).some((id) => mx.unavailable(id)) && !(s.stops.atr && mx.unavailable("atrPct")));
   const days = b.nifty.map((p) => p.t);
   const from = rangeStart(days, s.range);
-  const r = runBasketSignals(usable, s, MARKET.rf, days.slice(from), b.nifty.slice(from).map((p) => p.c));
+  const weights = slotWeights(usable.map(({ ticker }) => ({ ticker, mcapCr: basketStock(ticker)?.mcapCr ?? null })), weighting);
+  const r = runBasketSignals(usable, s, MARKET.rf, days.slice(from), b.nifty.slice(from).map((p) => p.c), weights ?? undefined);
   if (!r) return null;
   const last = new Map(usable.map(({ ticker, mx }) => [ticker, mx.ctx.bars]));
   return {
@@ -65,7 +68,7 @@ export async function checkSignals(deadline: number): Promise<CheckReport> {
     }
     try {
       const target = await resolveTarget(row.scope, row.target, row.userId);
-      const got = target ? await metOnLastClose(target.scope, target.tickers, p.strategy) : null;
+      const got = target ? await metOnLastClose(target, p.strategy) : null;
       if (!got) {
         out.failed++;
         continue;

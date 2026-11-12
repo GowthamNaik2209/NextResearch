@@ -4,7 +4,7 @@ import { Metrics, alignTo, dataGaps, type DailyBars } from "./compute";
 import { isCheckDay, runSignals } from "./engine";
 import { readingsNow } from "./readings";
 import { runBasketSignals } from "./basket";
-import { parseWeighting, slotWeights, weightingParams } from "./weighting";
+import { slotWeights } from "./weighting";
 import { NSE_HOLIDAYS } from "@/lib/financials/trading-day";
 import { decodeStrategy, encodeStrategy, parseStrategy, PRESETS, type Strategy } from "./strategy";
 
@@ -213,17 +213,16 @@ test("a basket is the average of its stocks' slots, an idle slot in cash", () =>
   near(r.stats.timeIn, (3 / 6 / 2) * 100);
 });
 
-test("a weighted basket sizes each slot by its weight, and reads the weighting from the link", () => {
+test("a weighted basket sizes each slot by its weight, and custom % size only the stocks given one", () => {
   const up = bars([100, 101, 106, 110, 120, 130]);
   const flat = bars([100, 100, 100, 100, 100, 100]);
   const s = strat({ entry: { all: true, conds: [{ m: "close", op: "above", v: 105 }] } });
-  const w = slotWeights([{ ticker: "UP", mcapCr: 300 }, { ticker: "FLAT", mcapCr: 100 }], parseWeighting("mcap", null));
+  const w = slotWeights([{ ticker: "UP", mcapCr: 300 }, { ticker: "FLAT", mcapCr: 100 }], { scheme: "mcap" });
   const r = runBasketSignals([{ ticker: "UP", mx: metrics(up) }, { ticker: "FLAT", mx: metrics(flat) }], s, 0, up.t, up.c.map(() => 100), w ?? undefined)!;
   near(r.curve[r.curve.length - 1].rules, 0.75 * 100 * (130 / 110) + 0.25 * 100);
   near(r.curve[r.curve.length - 1].hold, 0.75 * 130 + 0.25 * 100);
   near(r.weights.find((x) => x.ticker === "UP")!.share, 75);
   near(r.stats.timeIn, (3 / 6) * 75);
-  assert.deepEqual(parseWeighting("custom", "UP:40,FLAT:60"), { scheme: "custom", weights: { UP: 40, FLAT: 60 } });
-  assert.deepEqual(parseWeighting("custom", null), { scheme: "equal" });
-  assert.deepEqual(weightingParams({ scheme: "custom", weights: { UP: 40, FLAT: 60 } }), { w: "custom", wt: "FLAT:60,UP:40" });
+  assert.deepEqual([...slotWeights([{ ticker: "UP", mcapCr: 1 }, { ticker: "FLAT", mcapCr: 1 }], { scheme: "custom", weights: { UP: 40 } })!], [["UP", 40], ["FLAT", 0]]);
+  assert.equal(slotWeights([{ ticker: "UP", mcapCr: 1 }], { scheme: "equal" }), null);
 });
