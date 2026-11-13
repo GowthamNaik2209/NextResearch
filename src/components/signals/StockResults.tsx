@@ -69,8 +69,8 @@ export function StockResults({ answer, strategy, busy }: { answer: StockAnswer; 
 
   const priceLines = useMemo(
     (): ChartLine[] => [
-      { id: "close", color: "--ink", width: 2, points: r.curve.map((p) => ({ t: p.t, v: p.price })) },
-      ...r.overlays.map((o, i) => ({ id: o.id, color: slots[i % slots.length], width: 1 as const, dash: (i % 2 ? "dash" : "solid") as "dash" | "solid", points: o.points })),
+      { id: "close", label: "Price", color: "--ink", width: 2, points: r.curve.map((p) => ({ t: p.t, v: p.price })) },
+      ...r.overlays.map((o, i) => ({ id: o.id, label: METRIC_BY_ID.get(o.id)?.label ?? o.id, color: slots[i % slots.length], width: 1 as const, dash: (i % 2 ? "dash" : "solid") as "dash" | "solid", points: o.points })),
     ],
     [r, slots],
   );
@@ -78,9 +78,9 @@ export function StockResults({ answer, strategy, busy }: { answer: StockAnswer; 
   const growth = useMemo((): ChartLine[] => {
     const nifty = r.curve.filter((p) => p.nifty != null).map((p) => ({ t: p.t, v: p.nifty as number }));
     return [
-      { id: "rules", color: "--accent", width: 2, points: r.curve.map((p) => ({ t: p.t, v: p.rules })) },
-      { id: "hold", color: "--ink-soft", width: 1, points: r.curve.map((p) => ({ t: p.t, v: p.hold })) },
-      ...(nifty.length ? [{ id: "nifty", color: slots[0], width: 1 as const, dash: "dash" as const, points: nifty }] : []),
+      { id: "rules", label: "Rules", color: "--accent", width: 2, points: r.curve.map((p) => ({ t: p.t, v: p.rules })) },
+      { id: "hold", label: "Held", color: "--ink-soft", width: 1, points: r.curve.map((p) => ({ t: p.t, v: p.hold })) },
+      ...(nifty.length ? [{ id: "nifty", label: "Nifty 50", color: slots[0], width: 1 as const, dash: "dash" as const, points: nifty }] : []),
     ];
   }, [r, slots]);
   // The strip under the chart: the rules' other indicators, those on one scale drawn together (MACD
@@ -96,7 +96,7 @@ export function StockResults({ answer, strategy, busy }: { answer: StockAnswer; 
   const [groupAt, setGroupAt] = useState(0);
   const group = useMemo(() => groups[Math.min(groupAt, groups.length - 1)] ?? [], [groups, groupAt]);
   const groupLabel = (g: typeof group) => g.map((o) => METRIC_BY_ID.get(o.id)?.label ?? o.id).join(" + ");
-  const oscLines = useMemo((): ChartLine[] => group.map((o, i) => ({ id: o.id, color: i === 0 ? "--accent" : slots[(i + 1) % slots.length], width: 1, points: o.points })), [group, slots]);
+  const oscLines = useMemo((): ChartLine[] => group.map((o, i) => ({ id: o.id, label: METRIC_BY_ID.get(o.id)?.label ?? o.id, color: i === 0 ? "--accent" : slots[(i + 1) % slots.length], width: 1, points: o.points })), [group, slots]);
   const oscDef = group[0] ? METRIC_BY_ID.get(group[0].id) : undefined;
   const oscLevels = useMemo(
     () => (oscDef?.id === "rsi14" || oscDef?.id === "mfi14" ? [30, 70] : oscDef?.kind === "stoch" || oscDef?.id === "stochRsi" ? [20, 80] : oscDef?.kind === "willr" ? [-80, -20] : oscDef?.kind === "cci" ? [-100, 100] : oscDef?.kind === "pct" || oscDef?.kind === "macdh" ? [0] : []),
@@ -155,12 +155,6 @@ export function StockResults({ answer, strategy, busy }: { answer: StockAnswer; 
       <Panel title={`${answer.ticker} · price, the rules' indicators and trades · ${rangeLabel}`} info="Click a green or red arrow to see why the rules traded there. A rule met on a close trades at the next close." bodyClassName="p-2">
         <SignalChart label={`${answer.ticker} price with trades`} lines={priceLines} marks={marks} height={300} onPick={onPick} />
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 px-1 font-mono text-[11px] text-ink-soft">
-          <span className="text-ink">━ Price</span>
-          {r.overlays.map((o, i) => (
-            <span key={o.id} style={{ color: slots[i % slots.length] }}>
-              {i % 2 ? "┅" : "━"} {METRIC_BY_ID.get(o.id)?.label}
-            </span>
-          ))}
           <span className="text-pos">▲ entry</span>
           <span className="text-danger">▼ exit</span>
           <span>click an arrow: why it traded</span>
@@ -192,11 +186,6 @@ export function StockResults({ answer, strategy, busy }: { answer: StockAnswer; 
                   ))}
                 </select>
               ) : null}
-              {group.map((o, i) => (
-                <span key={o.id} className="normal-case tracking-normal" style={{ color: i === 0 ? "var(--accent)" : slots[(i + 1) % slots.length] }}>
-                  ━ {METRIC_BY_ID.get(o.id)?.label}
-                </span>
-              ))}
             </div>
             <SignalChart label={`${groupLabel(group)} over the range`} lines={oscLines} height={120} levels={oscLevels} onPick={onPick} />
           </div>
@@ -205,11 +194,6 @@ export function StockResults({ answer, strategy, busy }: { answer: StockAnswer; 
 
       <Panel title="Growth of ₹100 · rules vs held vs Nifty 50" info="Rules: in the stock while the rules hold it, in cash after an exit, costs taken off each trade. Held: bought on the first day and kept. Below: the earlier and later parts of the range; rules that only did well early were often fitted to those years." bodyClassName="p-2">
         <SignalChart label="Growth of 100 rupees" lines={growth} height={200} />
-        <div className="mt-1 flex flex-wrap gap-x-3 px-1 font-mono text-[11px] text-ink-soft">
-          <span className="text-accent">━ Rules</span>
-          <span>━ Held</span>
-          <span style={{ color: slots[0] }}>┅ Nifty 50</span>
-        </div>
         <SplitRow split={r.split} />
       </Panel>
 
