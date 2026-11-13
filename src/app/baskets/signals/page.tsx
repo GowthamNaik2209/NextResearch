@@ -3,7 +3,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ensureFinancials } from "@/lib/financials/load";
 import { listFinancials } from "@/lib/financials/store";
-import { ordinal, trendDetail, trendLabel } from "@/lib/financials/trend";
+import { ordinal, rankIn, sortedReturns, trendDetail, trendLabel } from "@/lib/financials/trend";
 import { listBasketUniverse } from "@/lib/baskets/industry";
 import { isReit } from "@/components/stock/merge";
 import { BAND_LABEL, MIN_INDEX_PEERS, MIN_MONTHS, MIN_PEERS, bandOf, versus } from "@/lib/valuation/pe-context";
@@ -61,6 +61,14 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
   const rows = listFinancials();
   const ranked = rows.filter((f) => typeof f.cagr?.[0] === "number").length;
   const trend = stock ? trendDetail(rows, stock.ticker) : null;
+  // Every ranked stock, highest percentile first: the same rankIn the pop-up's Trend uses.
+  const names = new Map(universe.map((s) => [s.ticker, s.name]));
+  const sorted = sortedReturns(rows);
+  const ranking = rows
+    .filter((f) => typeof f.cagr?.[0] === "number" && Number.isFinite(f.cagr[0]))
+    .map((f) => ({ ticker: f.ticker, name: names.get(f.ticker) ?? f.ticker, ret: f.cagr![0] as number }))
+    .map((r) => ({ ...r, pct: rankIn(sorted, r.ret).pct }))
+    .sort((a, b) => b.ret - a.ret || a.name.localeCompare(b.name));
   const pe = stock && !isReit(stock.ticker) ? await peWorking(stock.ticker) : null;
 
   return (
@@ -121,6 +129,36 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
             ))}
           </Table>
           <Note>Useful across many stocks, small for any one. Today&rsquo;s covered companies scored back to 2022, which flatters it a little.</Note>
+          <H3>Every covered stock, ranked</H3>
+          <P>
+            All {ranking.length} ranked stocks from our last data update, highest percentile first. Click a stock for its worked example.
+          </P>
+          <Table
+            tall
+            min="min-w-[18rem]"
+            head={
+              <>
+                <Th>#</Th>
+                <Th left>Stock</Th>
+                <Th>1Y return</Th>
+                <Th>Trend</Th>
+              </>
+            }
+          >
+            {ranking.map((r, i) => (
+              <Row key={r.ticker} last={i === ranking.length - 1}>
+                <Td>{i + 1}</Td>
+                <Td left wrap>
+                  <Link href={`${PATH}?t=${encodeURIComponent(r.ticker)}#example`} className={"hover:underline " + (r.ticker === stock?.ticker ? "font-semibold text-accent" : "")}>
+                    {r.name}
+                  </Link>{" "}
+                  <span className="font-mono text-[10px] text-ink-soft max-sm:block">{r.ticker}</span>
+                </Td>
+                <Td tone={r.ret}>{ret1y(r.ret)}</Td>
+                <Td>{ordinal(r.pct)}</Td>
+              </Row>
+            ))}
+          </Table>
         </section>
 
         <section className="flex flex-col gap-2">
@@ -150,7 +188,8 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
 
         <section className="flex flex-col gap-3">
           <H2 id="example">4. Worked example</H2>
-          <ExampleStockSelect stocks={universe.map((s) => ({ ticker: s.ticker, name: s.name }))} value={stock?.ticker} path={PATH} />
+          {/* Keyed: a stock picked in the ranked list (a client navigation) must show in the menu too. */}
+          <ExampleStockSelect key={stock?.ticker} stocks={universe.map((s) => ({ ticker: s.ticker, name: s.name }))} value={stock?.ticker} path={PATH} />
           {!stock ? (
             <P>No figures for this stock in our last data update.</P>
           ) : (
@@ -234,32 +273,31 @@ function PeExample({ name, w }: { name: string; w: PeWorking }) {
           <P>
             The last weekly close of each month since {monthYear(w.samples[0].t)}: {w.samples.length} month{w.samples.length === 1 ? "" : "s"}, {withPe} with a P/E.
           </P>
-          <div className="max-h-[28rem] overflow-y-auto rounded border border-line">
-            <Table
-              min="min-w-[34rem]"
-              head={
-                <>
-                  <Th left>Week of</Th>
-                  <Th>Close ₹</Th>
-                  <Th>Market cap then ₹ Cr</Th>
-                  <Th>Year used</Th>
-                  <Th>Net profit ₹ Cr</Th>
-                  <Th>P/E then</Th>
-                </>
-              }
-            >
-              {w.samples.map((s, i) => (
-                <Row key={s.t} last={i === w.samples.length - 1}>
-                  <Td left>{fmtDay(s.t)}</Td>
-                  <Td>{inr(s.close, 2)}</Td>
-                  <Td>{cr(s.mcapCr)}</Td>
-                  <Td>FY{String(s.fy).slice(2)}</Td>
-                  <Td>{cr(s.profitCr)}</Td>
-                  <Td>{s.pe != null ? x1(s.pe) : s.profitCr != null && s.profitCr <= 0 ? "loss" : NA}</Td>
-                </Row>
-              ))}
-            </Table>
-          </div>
+          <Table
+            tall
+            min="min-w-[34rem]"
+            head={
+              <>
+                <Th left>Week of</Th>
+                <Th>Close ₹</Th>
+                <Th>Market cap then ₹ Cr</Th>
+                <Th>Year used</Th>
+                <Th>Net profit ₹ Cr</Th>
+                <Th>P/E then</Th>
+              </>
+            }
+          >
+            {w.samples.map((s, i) => (
+              <Row key={s.t} last={i === w.samples.length - 1}>
+                <Td left>{fmtDay(s.t)}</Td>
+                <Td>{inr(s.close, 2)}</Td>
+                <Td>{cr(s.mcapCr)}</Td>
+                <Td>FY{String(s.fy).slice(2)}</Td>
+                <Td>{cr(s.profitCr)}</Td>
+                <Td>{s.pe != null ? x1(s.pe) : s.profitCr != null && s.profitCr <= 0 ? "loss" : NA}</Td>
+              </Row>
+            ))}
+          </Table>
           {w.pe != null && w.samples.at(-1)?.pe != null && (
             <Note>
               The last row is today&rsquo;s price on the latest reported year&rsquo;s profit ({x1(w.samples.at(-1)!.pe!)}); the P/E above ({x1(w.pe)})

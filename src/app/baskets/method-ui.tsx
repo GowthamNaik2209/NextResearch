@@ -36,11 +36,12 @@ export const Td = ({ children, left, tone, wrap, hide }: { children: ReactNode; 
     {children}
   </td>
 );
-/** A table that scrolls sideways inside its own box on a phone, never the page. */
-export const Table = ({ min, head, children }: { min: string; head: ReactNode; children: ReactNode }) => (
-  <div className="max-w-full overflow-x-auto">
+/** A table that scrolls sideways inside its own box on a phone, never the page. `tall`: a long list
+ * that also scrolls down inside a framed box, its column labels staying in view. */
+export const Table = ({ min, head, children, tall }: { min: string; head: ReactNode; children: ReactNode; tall?: boolean }) => (
+  <div className={"max-w-full overflow-x-auto" + (tall ? " max-h-[28rem] overflow-y-auto rounded border border-line" : "")}>
     <table className={`w-full ${min} border-collapse text-xs`}>
-      <thead className="border-b border-line text-[10px] uppercase tracking-wider text-ink-soft">
+      <thead className={"border-b border-line text-[10px] uppercase tracking-wider text-ink-soft" + (tall ? " sticky top-0 z-10 bg-panel shadow-[0_1px_0_var(--line)]" : "")}>
         <tr>{head}</tr>
       </thead>
       <tbody className="text-ink">{children}</tbody>

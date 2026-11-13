@@ -38,9 +38,9 @@ export function BasketResults({ answer, busy, onOpenStock }: { answer: BasketAns
   const growth = useMemo((): ChartLine[] => {
     const nifty = r.curve.filter((p) => p.nifty != null).map((p) => ({ t: p.t, v: p.nifty as number }));
     return [
-      { id: "rules", color: "--accent", width: 2, points: r.curve.map((p) => ({ t: p.t, v: p.rules })) },
-      { id: "hold", color: "--ink-soft", width: 1, points: r.curve.map((p) => ({ t: p.t, v: p.hold })) },
-      ...(nifty.length ? [{ id: "nifty", color: slots[0], width: 1 as const, dash: "dash" as const, points: nifty }] : []),
+      { id: "rules", label: "Rules", color: "--accent", width: 2, points: r.curve.map((p) => ({ t: p.t, v: p.rules })) },
+      { id: "hold", label: "Held", color: "--ink-soft", width: 1, points: r.curve.map((p) => ({ t: p.t, v: p.hold })) },
+      ...(nifty.length ? [{ id: "nifty", label: "Nifty 50", color: slots[0], width: 1 as const, dash: "dash" as const, points: nifty }] : []),
     ];
   }, [r, slots]);
   const held = useMemo(() => r.curve.map((p) => ({ t: p.t, v: p.held })), [r]);
@@ -81,11 +81,6 @@ export function BasketResults({ answer, busy, onOpenStock }: { answer: BasketAns
 
       <Panel title={`${answer.name} · growth of ₹100 · ${fmtDay(r.from)} – ${fmtDay(r.to)}`} info="Each stock has an equal slot, in the stock while the rules hold it and in cash otherwise. Held: every stock bought on the first day in equal parts and kept. Below: the earlier and later parts of the range; rules that only did well early were often fitted to those years." bodyClassName="p-2">
         <SignalChart label="Growth of 100 rupees" lines={growth} height={220} />
-        <div className="mt-1 flex flex-wrap gap-x-3 px-1 font-mono text-[11px] text-ink-soft">
-          <span className="text-accent">━ Rules</span>
-          <span>━ Held</span>
-          <span style={{ color: slots[0] }}>┅ Nifty 50</span>
-        </div>
         <div className="mt-2 border-t border-line pt-1">
           <div className="px-1 text-[10px] font-semibold uppercase tracking-wider text-ink-soft">Stocks the rules held each day (of {r.stats.size})</div>
           <SignalChart label="Stocks held each day" lines={[]} bars={held} height={80} />
