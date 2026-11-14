@@ -85,14 +85,18 @@ quote each new page the day it ships. For a new module **and for any new feature
   `hidden sm:block`) rather than not rendering it (see `/signals/indicators`).
 - **One `<h1>`**, holding the page's name only (no buttons or badges inside it).
 - **Structured data** with `<JsonLd>` (`src/components/JsonLd.tsx`): `breadcrumbLd`, a `webPageLd` of
-  the right type (`CollectionPage`, `TechArticle`, `Report`), `itemListLd` for lists of companies or
-  baskets, and `faqJsonLd` for a visible `FaqSection`. Facts in FAQs must match the code.
+  the right type (`CollectionPage`, `TechArticle`; a research report's `Report` node is built by hand
+  in `/docs/[slug]`), `itemListLd` for lists of companies or baskets (names only for items with no
+  page of their own), and `faqJsonLd` for a visible `FaqSection`. Facts in FAQs must match the code.
+- **Every listed URL resolves.** A sitemap or llms.txt URL never 404s on a quiet day (a rule-based
+  basket with no stocks today shows an "empty today" page, not a 404).
 - **Sitemap and llms.txt.** Add the route to `src/app/sitemap.ts` and a one-line entry to
   `src/app/llms.txt/route.ts`, built from the same source as the page (as `ideaCatalog()` is), never
   a hand-typed list. Update `SITE_DESCRIPTION` / layout keywords when the feature is a headline one.
 - **Method pages** describe how it works now (no "what changed" copy).
 - Green when: `src/app/seo.test.ts` (in `npm test`) passes; it fails for any page that is neither
-  noindex nor wired as above. After release: fetch the live page, `/sitemap.xml` and `/llms.txt`, and
+  noindex nor has a canonical, `shareMeta`, structured data, a sitemap entry and an llms.txt line. The
+  `<h1>`, HTML text and FAQ facts aren't machine-checked: the neutral review covers them. After release: fetch the live page, `/sitemap.xml` and `/llms.txt`, and
   check the title, canonical, `<h1>` and structured data are as intended.
 
 ## Gate 7 - Release

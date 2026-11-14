@@ -38,7 +38,8 @@ export default async function IposPage({ searchParams }: { searchParams: Promise
         <JsonLd
           graph={[
             webPageLd({ type: "CollectionPage", path: "/ipos", name: "Upcoming IPOs in India: prospectus summaries", description: String(metadata.description) }),
-            itemListLd("Upcoming and recent Indian IPOs", ipos.map((i) => ({ name: `${i.name} IPO`, path: `/ipos?ipo=${i.slug}` }))),
+            // Names only: each IPO opens in a viewer on this page (?ipo= is canonical to /ipos), not a page of its own.
+            itemListLd("Upcoming and recent Indian IPOs", ipos.map((i) => ({ name: `${i.name} IPO` }))),
           ]}
         />
       </main>

@@ -19,6 +19,8 @@ export function webPageLd({ type = "WebPage", path, name, description, dateModif
     "@type": type,
     url: `${SITE_URL}${path}`,
     name,
+    // Article types (TechArticle, Report) are read by their headline and publisher.
+    ...(/Article|Report/.test(type) ? { headline: name, publisher: { "@id": `${SITE_URL}/#org` } } : {}),
     ...(description ? { description } : {}),
     ...(dateModified ? { dateModified } : {}),
     inLanguage: "en-IN",
@@ -26,12 +28,12 @@ export function webPageLd({ type = "WebPage", path, name, description, dateModif
   };
 }
 
-/** An ItemList node of named links. */
-export function itemListLd(name: string, items: { name: string; path: string }[]) {
+/** An ItemList node of named links (an item without a page of its own gives no path). */
+export function itemListLd(name: string, items: { name: string; path?: string }[]) {
   return {
     "@type": "ItemList",
     name,
     numberOfItems: items.length,
-    itemListElement: items.map((x, i) => ({ "@type": "ListItem", position: i + 1, name: x.name, url: `${SITE_URL}${x.path}` })),
+    itemListElement: items.map((x, i) => ({ "@type": "ListItem", position: i + 1, name: x.name, ...(x.path ? { url: `${SITE_URL}${x.path}` } : {}) })),
   };
 }

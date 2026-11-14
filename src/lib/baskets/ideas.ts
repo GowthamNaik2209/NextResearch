@@ -10,7 +10,7 @@ const DAY = 86_400_000;
 /** Lookbacks the "Top performers" idea ranks over, each opening the basket chart on that range. */
 export const TOP_PERIODS = [
   { id: "6M", days: 183, long: "6 months" },
-  { id: "1Y", days: 365, long: "1 year" },
+  { id: "1Y", days: 365, long: "year" },
   { id: "2Y", days: 730, long: "2 years" },
   { id: "3Y", days: 1095, long: "3 years" },
   { id: "5Y", days: 1826, long: "5 years" },

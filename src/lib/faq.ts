@@ -158,19 +158,19 @@ export function basketsFaq(ruleBasketTitles: string[]): Faq[] {
     },
     {
       q: "How is a basket backtested?",
-      a: "The basket is bought on the first day of the period you pick (from 1 month to 5 years) at equal weights, by market cap or at weights you set, and then held or rebalanced monthly, quarterly or when a stock drifts too far from its target. Its daily value is charted against the Nifty 50 and, for an industry, its index, with each stock's return and contribution.",
+      a: "The basket is bought on the first day of the period you pick (from 1 month to 5 years) at equal weights, by market cap or at weights you set, and then held or rebalanced monthly, quarterly or when a stock drifts too far from its target. Its daily value is charted against the Nifty 50 (or the Sensex) and, where one exists, its industry's NSE index, with each stock's return and contribution.",
     },
     {
       q: "What are rule-based baskets?",
-      a: `Ready-made baskets chosen by a fixed rule and re-ranked every trading day: ${listJoin(ruleBasketTitles)}. One-off results (a single year's exceptional gain, say) are left out of the rules.`,
+      a: `Ready-made baskets chosen by a fixed rule and re-ranked every trading day: ${listJoin(ruleBasketTitles)}. Companies whose recent figures are distorted by a one-off year (an exceptional gain or write-down) are left out; you can still add them to your own baskets.`,
     },
     {
       q: "What do Bear, Base and Bull mean?",
       a: "They are a basket's model projections over the next one and two years. Base starts from a market-implied return (the RBI repo rate plus the basket's beta times India's equity risk premium) tilted slightly by fundamentals; Bear and Bull are a range from each stock's own volatility. They are projections from market pricing and past data, not forecasts or recommendations.",
     },
     {
-      q: "Do I need an account to build a basket?",
-      a: "No account is needed to open, chart or compare any industry, policy or rule-based basket. A free account lets you save your own baskets and share them by link.",
+      q: "Do I need an account to use baskets?",
+      a: "Opening, charting or comparing any industry, policy or rule-based basket needs no account. Building, saving and sharing your own basket needs a free account.",
     },
   ];
 }
@@ -183,7 +183,7 @@ export const FLOWS_FAQ: Faq[] = [
   },
   {
     q: "Where do the FII and DII figures come from?",
-    a: "Daily cash-market buying and selling and the FII/DII index-futures positions are NSE's figures (the cash numbers are provisional, published after each trading day). FPI flows by sector are NSDL's fortnightly reports, mutual funds' daily equity trades are SEBI's, bulk and block deals are NSE's, and stake changes come from each company's quarterly shareholding pattern.",
+    a: "For the latest days, cash-market buying and selling are NSE's provisional evening figures; earlier days are NSDL's confirmed figures and, for DII before June 2026, SEBI's mutual-fund figures. FII/DII index-futures positions and bulk and block deals are NSE's, FPI flows by sector are NSDL's fortnightly reports, and stake changes come from each company's quarterly shareholding pattern.",
   },
   {
     q: "What does net FII selling mean?",

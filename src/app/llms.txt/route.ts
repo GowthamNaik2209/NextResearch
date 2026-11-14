@@ -45,7 +45,12 @@ export async function GET() {
   }
   out.push("", "## Stock baskets", "");
   out.push(`- [Build a basket](${SITE_URL}/baskets): mix stocks from any covered industry or policy, backtested against the Nifty 50, with Bear, Base and Bull projections.`);
-  for (const s of sectors) out.push(`- [${s.name} basket](${SITE_URL}/baskets/industry/${s.slug}): all ${sectorCompanyCounts(s).listed} listed ${s.name} stocks as one basket, backtested against the Nifty 50.`);
+  for (const s of sectors)
+    out.push(
+      s.category === "index"
+        ? `- [${s.name} basket](${SITE_URL}/baskets/industry/${s.slug}): today's ${s.name} stocks as one basket, held over the period and compared with the index itself.`
+        : `- [${s.name} basket](${SITE_URL}/baskets/industry/${s.slug}): all ${sectorCompanyCounts(s).listed} listed ${s.name} stocks as one basket, backtested against the Nifty 50.`,
+    );
   out.push("", "## Rule-based baskets (re-ranked daily)", "");
   for (const i of ideaCatalog()) out.push(`- [${i.title}](${SITE_URL}/baskets/ideas/${i.id}): ${sentence(i.blurb)}`);
   out.push(
@@ -66,6 +71,7 @@ export async function GET() {
     "",
     "## Optional",
     "",
+    `- [Analysis: every industry, policy and IPO deep dive, report and basket chart](${SITE_URL}/docs)`,
     `- [All companies A-Z](${SITE_URL}/companies)`,
     `- [Companies in several supply chains](${SITE_URL}/connections)`,
     `- [Stock baskets, backtested against the Nifty 50](${SITE_URL}/baskets)`,

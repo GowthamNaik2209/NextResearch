@@ -10,7 +10,7 @@ import { ensureFinancials } from "@/lib/financials/load";
 import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk-data";
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { categoryWord } from "@/lib/sector-content/core";
-import { shareMeta } from "@/lib/site";
+import { NOT_FOUND_METADATA, shareMeta } from "@/lib/site";
 import { JsonLd, breadcrumbLd, itemListLd, webPageLd } from "@/components/JsonLd";
 import { companySlug } from "@/lib/sector-content/companies";
 import { isoDay } from "@/lib/financials/rows";
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   await ensureRiskStats();
   const { slug } = await params;
   const b = getIndustryBasket(slug);
-  if (!b) return { title: "Page not found", robots: { index: false } };
+  if (!b) return NOT_FOUND_METADATA;
   return {
     title: `${b.name} stock basket: ${b.stocks.length} listed stocks backtested`,
     description: `${b.category === "index" ? `All ${b.stocks.length} ${b.name} stocks` : `All ${b.stocks.length} listed ${b.name} stocks NextResearch maps`}, as one basket backtested against the Nifty 50${b.indices[0] ? ` and the ${b.indices[0].name}` : ""}, with each stock's return and contribution.`,
