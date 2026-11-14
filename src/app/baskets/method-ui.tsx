@@ -9,7 +9,11 @@ export function H2({ id, children }: { id: string; children: ReactNode }) {
     </h2>
   );
 }
-export const H3 = ({ children }: { children: ReactNode }) => <h3 className="font-semibold text-ink">{children}</h3>;
+export const H3 = ({ id, children }: { id?: string; children: ReactNode }) => (
+  <h3 id={id} className="scroll-mt-20 font-semibold text-ink">
+    {children}
+  </h3>
+);
 export const P = ({ children }: { children: ReactNode }) => <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">{children}</p>;
 export const B = ({ children }: { children: ReactNode }) => <b className="text-ink">{children}</b>;
 export const Note = ({ children }: { children: ReactNode }) => <p className="max-w-3xl text-[11px] leading-relaxed text-ink-soft">{children}</p>;

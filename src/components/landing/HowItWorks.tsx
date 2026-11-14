@@ -16,6 +16,14 @@ const RECORD: { big: string; body: string; verdict: string; tone: "good" | "mid"
   { big: "−4 to −11 pts", body: "Typical gap between the actual return and Base. Most of it is the market’s move, which the model can’t foresee.", verdict: "Not a forecast", tone: "bad" },
 ];
 // Ink on a toned border: tinted text on a tint fell under 4.5:1 in the light theme.
+// The full method pages, one tap from the section rather than buried in the folded panel. The
+// indicators guide is tablet and desktop only (like Signals), so its button is too.
+const GUIDES: { href: string; label: string; phone?: false }[] = [
+  { href: "/baskets/projections", label: "Projections method" },
+  { href: "/baskets/signals#ranking", label: "Percentile ranking of every stock" },
+  { href: "/baskets/signals#pe", label: "P/E in context" },
+  { href: "/signals/indicators", label: "Indicators guide", phone: false },
+];
 const TONE = { good: "border-pos text-ink", mid: "border-line text-ink-soft", bad: "border-danger text-ink" };
 
 function Topic({ title, line, children }: { title: string; line: string; children: ReactNode }) {
@@ -50,6 +58,19 @@ export function HowItWorks() {
         </div>
 
         <ResearchFlows />
+
+        <nav aria-label="Method pages" className="flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-sm font-semibold text-ink">Read the full method:</span>
+          {GUIDES.map((g) => (
+            <Link
+              key={g.href}
+              href={g.href}
+              className={`${g.phone === false ? "hidden sm:inline-flex" : "inline-flex"} tap-y items-center rounded-full border border-accent px-3.5 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-accent/10`}
+            >
+              {g.label} &rarr;
+            </Link>
+          ))}
+        </nav>
 
         <details className="group rounded-2xl border border-line bg-panel">
           <summary className="grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-5 py-4">
