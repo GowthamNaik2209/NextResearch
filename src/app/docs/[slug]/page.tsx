@@ -7,8 +7,9 @@ import { OpenReportButton } from "@/components/research/OpenReport";
 import { getSector, listSectorSlugs } from "@/lib/sector-content";
 import { getResearchForSector } from "@/lib/sector-content/docs";
 import { buildDeck } from "@/lib/sector-content/reports";
-import { NOT_FOUND_METADATA, midSentence, shareMeta } from "@/lib/site";
+import { NOT_FOUND_METADATA, SITE_URL, midSentence, shareMeta } from "@/lib/site";
 import { ensureFinancials } from "@/lib/financials/load";
+import { JsonLd, breadcrumbLd, webPageLd } from "@/components/JsonLd";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
 export const revalidate = 900;
@@ -79,6 +80,75 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
           </section>
         )}
 
+        {/* The report in brief, as text: the slides open in a viewer, so without this the page's HTML
+            held only the title and links, with nothing for search engines or AI assistants to read. */}
+        {deck && (
+          <section aria-labelledby="brief-h" className="flex flex-col gap-4">
+            <h2 id="brief-h" className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">
+              The report in brief
+            </h2>
+            <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {deck.report.keyStats.map((k) => (
+                <div key={k.label} className="rounded-xl border border-line bg-panel p-3">
+                  <dt className="text-[10px] font-semibold uppercase tracking-wider text-ink-soft">{k.label}</dt>
+                  <dd className="mt-1 font-mono text-base font-semibold text-ink">{k.value}</dd>
+                  {k.sub && <dd className="mt-0.5 text-[11px] text-ink-soft">{k.sub}</dd>}
+                </div>
+              ))}
+            </dl>
+            <ol className="flex list-decimal flex-col gap-2 pl-5 text-sm leading-relaxed text-ink">
+              {deck.report.thesis.map((t) => (
+                <li key={t.title}>
+                  <h3 className="inline font-semibold">{t.title}.</h3> <span className="text-ink-soft">{t.body}</span>
+                </li>
+              ))}
+            </ol>
+            <details className="group rounded-xl border border-line bg-panel px-4 py-3">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden">
+                Drivers, risks and outlook
+                <span aria-hidden className="text-lg leading-none font-semibold text-accent transition group-open:rotate-45">
+                  +
+                </span>
+              </summary>
+              <div className="mt-3 flex flex-col gap-4 text-sm leading-relaxed">
+                <div>
+                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Growth drivers</h3>
+                  <ul className="mt-1.5 flex flex-col gap-1.5">
+                    {deck.report.drivers.map((d) => (
+                      <li key={d.title}>
+                        <span className="font-semibold text-ink">{d.title}</span> <span className="font-mono text-xs text-accent">{d.metric}</span>
+                        <span className="block text-ink-soft">{d.body}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Risks</h3>
+                  <ul className="mt-1.5 flex flex-col gap-1.5">
+                    {deck.report.risks.map((r) => (
+                      <li key={r.risk}>
+                        <span className="font-semibold text-ink">{r.risk}</span>
+                        <span className="block text-ink-soft">Mitigant: {r.mitigant}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Outlook</h3>
+                  <dl className="mt-1.5 grid gap-x-3 gap-y-1 sm:grid-cols-[4rem_minmax(0,1fr)]">
+                    <dt className="font-semibold text-pos">Bull</dt>
+                    <dd className="text-ink-soft">{deck.report.outlook.bull}</dd>
+                    <dt className="font-semibold text-ink">Base</dt>
+                    <dd className="text-ink-soft">{deck.report.outlook.base}</dd>
+                    <dt className="font-semibold text-danger">Bear</dt>
+                    <dd className="text-ink-soft">{deck.report.outlook.bear}</dd>
+                  </dl>
+                </div>
+              </div>
+            </details>
+          </section>
+        )}
+
         <section>
           <h2 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-ink-soft">Further reading</h2>
           {links.length === 0 ? (
@@ -101,6 +171,29 @@ export default async function SectorDocsPage({ params }: { params: Promise<{ slu
             </ul>
           )}
         </section>
+        <JsonLd
+          graph={[
+            breadcrumbLd([
+              ["Analysis", "/docs"],
+              [`${sector.name}: research report`, `/docs/${slug}`],
+            ]),
+            deck
+              ? {
+                  "@type": "Report",
+                  headline: deck.report.title,
+                  alternativeHeadline: deck.report.subtitle,
+                  abstract: deck.report.thesis.map((t) => `${t.title}. ${t.body}`).join(" "),
+                  url: `${SITE_URL}/docs/${slug}`,
+                  about: { "@type": "Thing", name: sector.name, url: `${SITE_URL}/sector/${slug}` },
+                  inLanguage: "en-IN",
+                  author: { "@id": `${SITE_URL}/#org` },
+                  publisher: { "@id": `${SITE_URL}/#org` },
+                  isPartOf: { "@id": `${SITE_URL}/#website` },
+                  citation: links.map((l) => ({ "@type": "CreativeWork", name: l.title, url: l.url, publisher: { "@type": "Organization", name: l.source } })),
+                }
+              : webPageLd({ path: `/docs/${slug}`, name: `${sector.name}: further reading` }),
+          ]}
+        />
       </main>
       <SiteFooter />
     </>

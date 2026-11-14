@@ -7,6 +7,7 @@ import { OpenStockCard } from "@/components/stock/OpenStockCard";
 import { findSupplierByTicker, listSectors } from "@/lib/sector-content";
 import { ensureFinancials } from "@/lib/financials/load";
 import { shareMeta } from "@/lib/site";
+import { JsonLd, webPageLd } from "@/components/JsonLd";
 import { ConnectionsSearch } from "@/components/ConnectionsSearch";
 import { connectionRowId, type ConnectionsSearchEntry } from "@/lib/connections-search";
 
@@ -115,6 +116,7 @@ export default async function ConnectionsPage() {
           })}
         </ol>
         <p className="text-xs text-ink-soft">Information and research only — exposure labels are editorial classifications, not investment advice.</p>
+        <JsonLd graph={[webPageLd({ type: "CollectionPage", path: "/connections", name: metadata.title, description: metadata.description })]} />
       </main>
       <SiteFooter />
     </>

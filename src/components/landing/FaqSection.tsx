@@ -1,3 +1,6 @@
+import { JsonLd } from "@/components/JsonLd";
+import { faqJsonLd } from "@/lib/faq";
+
 // Keep these answers accurate - they are the site's plain-language statement of what it is
 // (information, not advice) and where its data comes from.
 const FAQ = [
@@ -15,7 +18,7 @@ const FAQ = [
   },
   {
     q: "Do I need an account?",
-    a: "You can browse every industry, report, chart and company without one. An account is only needed to save companies to a watchlist and to keep your own baskets.",
+    a: "You can browse every industry, report, chart, basket and company without one. An account is only needed to save companies to a watchlist, keep your own baskets, and run and save signal backtests with email alerts.",
   },
 ];
 
@@ -41,6 +44,7 @@ export function FaqSection() {
           ))}
         </div>
       </div>
+      <JsonLd graph={[faqJsonLd(FAQ)]} />
     </section>
   );
 }

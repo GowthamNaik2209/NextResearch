@@ -20,7 +20,7 @@ export const CONTACT_EMAIL = "queries@nextresearchapp.com";
 // No list of themes here: a hand-typed list drifted from the content (this is read at import time,
 // before the content can be). Pages that name the themes use themeNames() below.
 export const SITE_DESCRIPTION =
-  "Thematic research on India in one place: industries and policies mapped by supply chain, stock heatmaps, IPO deep dives and backtested baskets, with each listed company's financials, peers and risks.";
+  "Thematic research on India in one place: industries and policies mapped by supply chain, stock heatmaps, backtested baskets and signals, FII and DII flows and IPO deep dives, with each listed company's financials, peers and risks.";
 
 /**
  * The live industries and policies as a phrase for descriptions and share cards, from the content
@@ -80,7 +80,8 @@ export function jsonLd(data: unknown): string {
 
 // What a dynamic route's generateMetadata returns for an unknown slug. The page then calls
 // notFound(), but the head comes from generateMetadata, so `{}` would leave the home page title.
-export const NOT_FOUND_METADATA = { title: "Page not found", robots: { index: false } } as const;
+// openGraph/twitter null: the layout's share tags would otherwise give a 404 the home page's og:url.
+export const NOT_FOUND_METADATA = { title: "Page not found", robots: { index: false }, openGraph: null, twitter: null } as const;
 
 // Title Case names ("Vehicle OEMs & Assembly", "Semiconductors (Fab + ATMP)") used mid-sentence:
 // only plain capitalised words drop to lower case, so acronyms (OEMs, DC, REIT, EPC, ATMP) and

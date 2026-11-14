@@ -72,8 +72,14 @@ export const metadata: Metadata = {
     "hospital stocks India",
     "capital market stocks India",
     "NSE BSE company research",
+    "stock basket backtest India",
+    "rule-based stock screens India",
+    "FII DII flows today",
+    "technical indicators backtest NSE",
+    "stock heatmap India",
   ],
-  alternates: { canonical: "/" },
+  // No canonical here: every segment inherits this object, so a "/" here pointed 404s and pages
+  // without their own at the home page. Each indexable page sets its own (the home page in page.tsx).
   ...shareMeta({ title: SITE_NAME, line: "All your thematic research on India, in one place.", path: "/", image: null }),
   robots: { index: true, follow: true, googleBot: { "max-image-preview": "large", "max-snippet": -1 } },
   verification: {

@@ -6,6 +6,7 @@ import { SITE_URL } from "@/lib/site";
 import { ensureFinancials } from "@/lib/financials/load";
 import { asOfDate } from "@/lib/financials/rows";
 import { dataAsOf } from "@/lib/sector-content/insights";
+import { ideaCatalog } from "@/lib/baskets/ideas";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
 export const revalidate = 900;
@@ -25,9 +26,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/baskets`, lastModified: updated, changeFrequency: "weekly", priority: 0.7 },
     { url: `${SITE_URL}/baskets/projections`, lastModified: updated, changeFrequency: "monthly", priority: 0.4 },
     { url: `${SITE_URL}/baskets/signals`, lastModified: updated, changeFrequency: "monthly", priority: 0.4 },
+    { url: `${SITE_URL}/signals/indicators`, lastModified: updated, changeFrequency: "monthly", priority: 0.4 },
+    ...ideaCatalog().map((i) => ({ url: `${SITE_URL}/baskets/ideas/${i.id}`, lastModified: updated, changeFrequency: "daily" as const, priority: 0.6 })),
     ...sectors.map((s) => ({ url: `${SITE_URL}/baskets/industry/${s.slug}`, lastModified: updated, changeFrequency: "weekly" as const, priority: 0.6 })),
     { url: `${SITE_URL}/connections`, lastModified: updated, changeFrequency: "weekly", priority: 0.6 },
     { url: `${SITE_URL}/updates`, lastModified: updated, changeFrequency: "daily", priority: 0.6 },
+    { url: `${SITE_URL}/updates?view=flows`, lastModified: updated, changeFrequency: "daily", priority: 0.6 },
     ...sectors.map((s) => ({ url: `${SITE_URL}/sector/${s.slug}`, lastModified: updated, changeFrequency: "weekly" as const, priority: 0.9 })),
     ...sectors
       .filter((s) => buildDeck(s.slug))

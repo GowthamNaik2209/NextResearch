@@ -11,6 +11,7 @@ import { peWorking, type PeWorking } from "@/lib/valuation/pe-data";
 import { PeContextView } from "@/components/stock/PeContextView";
 import { NA, fmtDay, inr, signedPct } from "@/lib/format";
 import { shareMeta } from "@/lib/site";
+import { JsonLd, breadcrumbLd, webPageLd } from "@/components/JsonLd";
 import { ExampleStockSelect } from "../projections/ExampleStockSelect";
 import { B, Bullets, Formula, H2, H3, Note, P, Row, Table, Td, Th } from "../method-ui";
 
@@ -129,7 +130,7 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
             ))}
           </Table>
           <Note>Useful across many stocks, small for any one. Today&rsquo;s covered companies scored back to 2022, which flatters it a little.</Note>
-          <H3>Every covered stock, ranked</H3>
+          <H3 id="ranking">Every covered stock, ranked</H3>
           <P>
             All {ranking.length} ranked stocks from our last data update, highest percentile first. Click a stock for its worked example.
           </P>
@@ -207,6 +208,15 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
             </>
           )}
         </section>
+        <JsonLd
+          graph={[
+            breadcrumbLd([
+              ["Baskets", "/baskets"],
+              ["Trend and P/E in context", PATH],
+            ]),
+            webPageLd({ type: "TechArticle", path: PATH, name: metadata.title, description: metadata.description }),
+          ]}
+        />
       </main>
       <SiteFooter />
     </>

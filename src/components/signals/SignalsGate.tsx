@@ -24,15 +24,19 @@ export function SignalsGate({ children, what = "build and backtest entry and exi
     if (id) document.getElementById(id)?.scrollIntoView();
   }, [phone]);
   if (phone === null) return <div className="min-h-48" aria-busy />;
-  if (phone)
-    return (
-      <div className="rounded-md border border-line bg-panel px-4 py-5 text-sm text-ink-soft">
-        <p className="font-semibold text-ink">Signals works on a tablet or computer for now.</p>
-        <p className="mt-1">Open this page on a larger screen to {what}.</p>
-        <Link href="/baskets" className="mt-3 inline-flex min-h-10 items-center rounded border border-btn px-3 text-xs font-semibold text-accent">
-          Go to Baskets
-        </Link>
-      </div>
-    );
+  if (phone) return <SignalsPhoneNote what={what} />;
   return <>{children}</>;
+}
+
+/** What a phone sees instead of Signals. `className` lets a page show it by CSS alone (the guide, whose text is in the HTML). */
+export function SignalsPhoneNote({ what, className = "" }: { what: string; className?: string }) {
+  return (
+    <div className={`rounded-md border border-line bg-panel px-4 py-5 text-sm text-ink-soft ${className}`}>
+      <p className="font-semibold text-ink">Signals works on a tablet or computer for now.</p>
+      <p className="mt-1">Open this page on a larger screen to {what}.</p>
+      <Link href="/baskets" className="mt-3 inline-flex min-h-10 items-center rounded border border-btn px-3 text-xs font-semibold text-accent">
+        Go to Baskets
+      </Link>
+    </div>
+  );
 }

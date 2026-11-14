@@ -10,7 +10,11 @@ import { ensureFinancials } from "@/lib/financials/load";
 import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk-data";
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { categoryWord } from "@/lib/sector-content/core";
-import { shareMeta } from "@/lib/site";
+import { NOT_FOUND_METADATA, shareMeta } from "@/lib/site";
+import { JsonLd, breadcrumbLd, itemListLd, webPageLd } from "@/components/JsonLd";
+import { companySlug } from "@/lib/sector-content/companies";
+import { isoDay } from "@/lib/financials/rows";
+import { dataAsOf } from "@/lib/sector-content/insights";
 
 export async function generateStaticParams() {
   await ensureFinancials();
@@ -23,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   await ensureRiskStats();
   const { slug } = await params;
   const b = getIndustryBasket(slug);
-  if (!b) return { title: "Page not found", robots: { index: false } };
+  if (!b) return NOT_FOUND_METADATA;
   return {
     title: `${b.name} stock basket: ${b.stocks.length} listed stocks backtested`,
     description: `${b.category === "index" ? `All ${b.stocks.length} ${b.name} stocks` : `All ${b.stocks.length} listed ${b.name} stocks NextResearch maps`}, as one basket backtested against the Nifty 50${b.indices[0] ? ` and the ${b.indices[0].name}` : ""}, with each stock's return and contribution.`,
@@ -72,6 +76,16 @@ export default async function IndustryBasketPage({ params }: { params: Promise<{
           universe={null}
           watchlist={[]}
           {...compareProps(b.slug)}
+        />
+        <JsonLd
+          graph={[
+            breadcrumbLd([
+              ["Baskets", "/baskets"],
+              [`${b.name} basket`, `/baskets/industry/${b.slug}`],
+            ]),
+            webPageLd({ path: `/baskets/industry/${b.slug}`, name: `${b.name} stock basket`, dateModified: isoDay(dataAsOf()) }),
+            itemListLd(`Stocks in the ${b.name} basket`, b.stocks.map((s) => ({ name: `${s.name} (${s.ticker})`, path: `/company/${companySlug(s.ticker)}` }))),
+          ]}
         />
       </main>
       <SiteFooter />

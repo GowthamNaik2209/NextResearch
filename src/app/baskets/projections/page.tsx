@@ -32,6 +32,7 @@ import { NA, fmtDay, signedPct } from "@/lib/format";
 import { ExampleStockSelect } from "./ExampleStockSelect";
 import { B, Bullets, Formula, H2, H3, Note, P, Row, Table, Td, Th } from "../method-ui";
 import { shareMeta } from "@/lib/site";
+import { JsonLd, breadcrumbLd, webPageLd } from "@/components/JsonLd";
 
 // How the basket pages' Projections are worked out (docs/PROJECTIONS.md, section 4), in full, with a
 // worked example: any stock's own figures run through each step by the same code the baskets use,
@@ -206,6 +207,15 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
           )}
           {stock && checks && <StockChecks name={stock.name} checks={checks} />}
         </section>
+        <JsonLd
+          graph={[
+            breadcrumbLd([
+              ["Baskets", "/baskets"],
+              ["How projections are worked out", "/baskets/projections"],
+            ]),
+            webPageLd({ type: "TechArticle", path: "/baskets/projections", name: metadata.title, description: metadata.description }),
+          ]}
+        />
       </main>
       <SiteFooter />
     </>

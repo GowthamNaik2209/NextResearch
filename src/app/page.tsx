@@ -18,6 +18,8 @@ import { ensureFinancials } from "@/lib/financials/load";
 import { MarketPulse } from "@/components/landing/MarketPulse";
 import { getMarketFigures, getMarketStocks, marketTiles } from "@/lib/landing/market-data";
 
+export const metadata = { alternates: { canonical: "/" } };
+
 // Landing page: a thin composition of section components (src/components/landing/). All the
 // numbers on it come from the sector content via src/lib/sector-content/{stats,insights}.ts.
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ report?: string; ipo?: string; view?: string; sector?: string }> }) {

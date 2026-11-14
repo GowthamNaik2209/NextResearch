@@ -5,13 +5,16 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { BasketDetail } from "@/components/baskets/BasketDetail";
 import { getCurrentUser } from "@/lib/auth";
 import { getIdea } from "@/lib/baskets/ideas-data";
+import { ideaCatalog } from "@/lib/baskets/ideas";
 import { basketStock, dominantIndustry } from "@/lib/baskets/industry";
 import { compareProps } from "@/lib/baskets/page-props";
 import { ensureFinancials } from "@/lib/financials/load";
 import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk-data";
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { sep } from "@/lib/format";
-import { shareMeta } from "@/lib/site";
+import { NOT_FOUND_METADATA, shareMeta } from "@/lib/site";
+import { JsonLd, breadcrumbLd, itemListLd, webPageLd } from "@/components/JsonLd";
+import { companySlug } from "@/lib/sector-content/companies";
 
 // A rule-based basket (a "basket idea" in the code): today's list for one rule, as a basket anyone can chart and save as their own.
 // The list moves with prices, so the page is rendered per request from the day's cached lists.
@@ -35,7 +38,17 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const got = await loadIdea(id);
   if (got === "unavailable") return { title: "Rule-based basket", robots: { index: false } };
-  if (!got) return { title: "Page not found", robots: { index: false } };
+  if (!got) {
+    // A rule with no stocks today is still its page (the sitemap lists every rule): not a 404.
+    const rule = ideaCatalog().find((i) => i.id === id);
+    if (!rule) return NOT_FOUND_METADATA;
+    return {
+      title: `${rule.title}: a rule-based stock basket`,
+      description: `${rule.blurb} Re-ranked daily on NextResearch.`,
+      alternates: { canonical: `/baskets/ideas/${id}` },
+      ...shareMeta({ title: rule.title, line: "A rule-based stock basket, re-ranked daily.", path: `/baskets/ideas/${id}` }),
+    };
+  }
   return {
     title: `${got.idea.title}: a rule-based stock basket`,
     description: `${got.idea.blurb} Re-ranked daily and backtested against the Nifty 50 on NextResearch.`,
@@ -52,7 +65,11 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const [got, user] = await Promise.all([loadIdea(id), getCurrentUser()]);
   if (got === "unavailable") return <Updating />;
-  if (!got) notFound();
+  if (!got) {
+    const rule = ideaCatalog().find((i) => i.id === id);
+    if (!rule) notFound();
+    return <EmptyToday title={rule.title} blurb={rule.blurb} />;
+  }
   const { idea, asOf } = got;
   const stocks = idea.stocks.map((s) => basketStock(s.ticker)).filter((s) => s !== null);
 
@@ -82,6 +99,33 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
           pickedOn={Object.fromEntries(idea.stocks.map((s) => [s.ticker, s.stat]))}
           {...compareProps(dominantIndustry(stocks.map((s) => s.ticker)))}
         />
+        <JsonLd
+          graph={[
+            breadcrumbLd([
+              ["Baskets", "/baskets"],
+              [idea.title, `/baskets/ideas/${idea.id}`],
+            ]),
+            webPageLd({ path: `/baskets/ideas/${idea.id}`, name: `${idea.title}: a rule-based stock basket`, description: idea.rule, dateModified: asOf.slice(0, 10) }),
+            itemListLd(`${idea.title}: today's stocks`, stocks.map((s) => ({ name: `${s.name} (${s.ticker})`, path: `/company/${companySlug(s.ticker)}` }))),
+          ]}
+        />
+      </main>
+      <SiteFooter />
+    </>
+  );
+}
+
+function EmptyToday({ title, blurb }: { title: string; blurb: string }) {
+  return (
+    <>
+      <SiteHeader />
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-3 px-5 pt-6 pb-14 sm:py-14">
+        <Link href="/baskets#ideas" className="-my-1 inline-flex min-h-8 items-center self-start text-xs font-semibold text-accent hover:underline pointer-coarse:min-h-9">
+          &larr; Rule-based baskets
+        </Link>
+        <h1 className="font-display text-2xl font-bold text-ink">{title}</h1>
+        <p className="max-w-xl text-sm leading-relaxed text-ink-soft">{blurb}</p>
+        <p className="max-w-xl text-sm leading-relaxed text-ink-soft">No covered company meets this rule today. The list is re-ranked after each trading day.</p>
       </main>
       <SiteFooter />
     </>
