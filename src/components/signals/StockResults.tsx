@@ -99,7 +99,7 @@ export function StockResults({ answer, strategy, busy }: { answer: StockAnswer; 
   const oscLines = useMemo((): ChartLine[] => group.map((o, i) => ({ id: o.id, label: METRIC_BY_ID.get(o.id)?.label ?? o.id, color: i === 0 ? "--accent" : slots[(i + 1) % slots.length], width: 1, points: o.points })), [group, slots]);
   const oscDef = group[0] ? METRIC_BY_ID.get(group[0].id) : undefined;
   const oscLevels = useMemo(
-    () => (oscDef?.id === "rsi14" || oscDef?.id === "mfi14" ? [30, 70] : oscDef?.kind === "stoch" || oscDef?.id === "stochRsi" ? [20, 80] : oscDef?.kind === "willr" ? [-80, -20] : oscDef?.kind === "cci" ? [-100, 100] : oscDef?.kind === "pct" || oscDef?.kind === "macdh" ? [0] : []),
+    () => (oscDef?.id === "rsi14" || oscDef?.id === "mfi14" ? [30, 70] : oscDef?.id === "rsi2" ? [10, 90] : oscDef?.id === "rsi4" ? [25, 75] : oscDef?.kind === "force" || oscDef?.kind === "power" ? [0] : oscDef?.kind === "stoch" || oscDef?.id === "stochRsi" ? [20, 80] : oscDef?.kind === "willr" ? [-80, -20] : oscDef?.kind === "cci" ? [-100, 100] : oscDef?.kind === "pct" || oscDef?.kind === "macdh" ? [0] : []),
     [oscDef],
   );
   // A click on the chart: the trade that entered or left on that very day (an arrow), else the nearest

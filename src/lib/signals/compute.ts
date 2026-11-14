@@ -71,10 +71,10 @@ export class Metrics {
   private compute(id: string): Record<string, Series> {
     const { bars, nifty, panel } = this.ctx;
     const { o, h, l, c, v, t } = bars;
-    const m = /^(sma|ema|roc)(\d+)$/.exec(id);
+    const m = /^(sma|ema|roc|rsi)(\d+)$/.exec(id);
     if (m) {
       const n = Number(m[2]);
-      return { [id]: m[1] === "sma" ? I.sma(c, n) : m[1] === "ema" ? I.ema(c, n) : I.roc(c, n) };
+      return { [id]: m[1] === "sma" ? I.sma(c, n) : m[1] === "ema" ? I.ema(c, n) : m[1] === "rsi" ? I.rsi(c, n) : I.roc(c, n) };
     }
     switch (id) {
       case "close":
@@ -105,8 +105,6 @@ export class Metrics {
         const x = I.aroon(h, l);
         return { aroonUp: x.up, aroonDown: x.down };
       }
-      case "rsi14":
-        return { rsi14: I.rsi(c, 14) };
       case "stochK":
       case "stochD": {
         const x = I.stochastic(h, l, c);
@@ -120,6 +118,15 @@ export class Metrics {
         return { cci20: I.cci(h, l, c) };
       case "mom12_1":
         return { mom12_1: I.lagReturn(c, 252, 21) };
+      case "force2":
+        return { force2: I.forceIndex(c, v, 2) };
+      case "force13":
+        return { force13: I.forceIndex(c, v, 13) };
+      case "bullPower":
+      case "bearPower": {
+        const e = this.get("ema13");
+        return { bullPower: h.map((x, i) => (x != null && e[i] != null ? x - (e[i] as number) : null)), bearPower: l.map((x, i) => (x != null && e[i] != null ? x - (e[i] as number) : null)) };
+      }
       case "bbUpper":
       case "bbMid":
       case "bbLower":
@@ -128,6 +135,8 @@ export class Metrics {
         const x = I.bollinger(c);
         return { bbUpper: x.upper, bbMid: x.mid, bbLower: x.lower, bbPctB: x.pctB, bbWidth: x.width };
       }
+      case "bbWidthLow126":
+        return { bbWidthLow126: I.lowest(this.get("bbWidth"), 126) };
       case "atrPct": {
         const a = I.atr(h, l, c, 14);
         return { atrPct: a.map((x, i) => (x != null && c[i] ? (x / (c[i] as number)) * 100 : null)) };
@@ -173,6 +182,17 @@ export class Metrics {
         return { dch55: I.highest(orClose(h, c), 55, true) };
       case "dcl20":
         return { dcl20: I.lowest(orClose(l, c), 20, true) };
+      case "dcl10":
+        return { dcl10: I.lowest(orClose(l, c), 10, true) };
+      case "hc7":
+        return { hc7: I.highest(c, 6, true) };
+      case "lc7":
+        return { lc7: I.lowest(c, 6, true) };
+      case "darvasTop":
+      case "darvasBottom": {
+        const x = I.darvas(orClose(h, c), orClose(l, c), c);
+        return { darvasTop: x.top, darvasBottom: x.bottom };
+      }
       case "gap":
         return { gap: o.map((x, i) => (x != null && i > 0 && c[i - 1] ? (x / (c[i - 1] as number) - 1) * 100 : null)) };
       case "pivot":
@@ -187,9 +207,11 @@ export class Metrics {
       }
       case "trendPct":
         return { trendPct: t.map((d) => panel?.trend.get(d) ?? null) };
-      case "rsNifty63": {
-        const a = I.roc(c, 63), b = I.roc(nifty, 63);
-        return { rsNifty63: a.map((x, i) => (x != null && b[i] != null ? x - (b[i] as number) : null)) };
+      case "rsNifty63":
+      case "rsNifty252": {
+        const n = id === "rsNifty63" ? 63 : 252;
+        const a = I.roc(c, n), b = I.roc(nifty, n);
+        return { [id]: a.map((x, i) => (x != null && b[i] != null ? x - (b[i] as number) : null)) };
       }
       case "rsInd63": {
         const a = I.roc(c, 63);

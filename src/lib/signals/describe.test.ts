@@ -5,6 +5,7 @@ import { renderAlertEmail } from "./alert-email";
 import { GUIDE } from "./guide";
 import { METRICS } from "./metrics";
 import { PRESETS } from "./strategy";
+import { IDEA_SETS } from "./books";
 
 test("rules read as one plain sentence each", () => {
   const s = PRESETS.find((p) => p.id === "trend-200")!.strategy;
@@ -15,10 +16,10 @@ test("rules read as one plain sentence each", () => {
   assert.match(m.entry, /checked on a month's last close/);
 });
 
-test("every preset describes without leftovers, and never says buy or sell", () => {
-  for (const p of PRESETS) {
+test("every idea describes without leftovers, and never says buy or sell", () => {
+  for (const p of IDEA_SETS.flatMap((x) => x.ideas)) {
     const d = describeStrategy(p.strategy);
-    for (const line of [d.entry, d.exit]) {
+    for (const line of [d.entry, d.exit, p.idea, p.label, p.note]) {
       assert.doesNotMatch(line, /undefined|NaN|\bbuy\b|\bsell\b/i, p.id);
     }
   }
@@ -53,4 +54,8 @@ test("the alert email names each trigger, links the backtest and carries the uns
 test("the indicator guide covers every indicator", () => {
   for (const m of METRICS) assert.ok(GUIDE[m.id]?.what, m.id);
   assert.equal(Object.keys(GUIDE).length, METRICS.length);
+});
+
+test("the indicator guide describes practice, never buy or sell", () => {
+  for (const [id, g] of Object.entries(GUIDE)) for (const line of Object.values(g)) assert.doesNotMatch(line, /\b(buy|buys|buying|bought|sell|sells|selling|sold)\b/i, id);
 });

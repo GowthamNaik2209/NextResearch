@@ -22,6 +22,10 @@ function stateOf(def: MetricDef, v: number, at: (id: string) => number | null): 
     case "mfi14":
     case "stochRsi":
       return band(v, def.id === "stochRsi" ? 80 : 70, def.id === "stochRsi" ? 20 : 30, "Overbought", "Oversold");
+    case "rsi2":
+      return band(v, 90, 10, "Overbought", "Oversold");
+    case "rsi4":
+      return band(v, 75, 25, "Overbought", "Oversold");
     case "stochK":
     case "stochD":
       return band(v, 80, 20, "Overbought", "Oversold");
@@ -73,10 +77,11 @@ function stateOf(def: MetricDef, v: number, at: (id: string) => number | null): 
     case "hv60":
     case "atrPct":
     case "bbWidth":
+    case "bbWidthLow126":
     case "gap":
       return [null, "flat"];
   }
-  if (def.kind === "pct" || def.kind === "macdh") return v > 0 ? ["Up", "up"] : v < 0 ? ["Down", "down"] : [null, "flat"];
+  if (def.kind === "pct" || def.kind === "macdh" || def.kind === "force" || def.kind === "power") return v > 0 ? ["Up", "up"] : v < 0 ? ["Down", "down"] : [null, "flat"];
   return [null, "flat"];
 }
 

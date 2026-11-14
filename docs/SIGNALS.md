@@ -34,12 +34,12 @@ is false. Catalogue: `src/lib/signals/metrics.ts`.
 
 | Group | Indicators |
 | --- | --- |
-| Trend | Price; SMA 20/50/100/200; EMA 9/21/50; MACD 12,26,9 (line, signal, histogram); ADX 14 with +DI / −DI; Supertrend 10,3; Parabolic SAR 0.02/0.2; Ichimoku 9,26,52 (Tenkan, Kijun, cloud top and bottom); Aroon 25 up / down |
-| Momentum | RSI 14 (Wilder); Stochastic %K 14,3 and %D 3; Stochastic RSI 14; Williams %R 14; CCI 20; return over 1, 3, 6 and 12 months; momentum 12-1 |
-| Volatility | Bollinger 20,2 (upper, middle, lower, %B, width); ATR 14 as % of price; Keltner 20, 2×ATR 10; historical volatility 60 days |
+| Trend | Price; SMA 5/20/50/100/150 (30 weeks)/200/210 (10 months); EMA 9/13/21/26/50/65 (13 weeks); MACD 12,26,9 (line, signal, histogram); ADX 14 with +DI / −DI; Supertrend 10,3; Parabolic SAR 0.02/0.2; Ichimoku 9,26,52 (Tenkan, Kijun, cloud top and bottom); Aroon 25 up / down |
+| Momentum | RSI 2, 4 and 14 (Wilder); Stochastic %K 14,3 and %D 3; Stochastic RSI 14; Williams %R 14; CCI 20; return over 1, 3, 6 and 12 months; momentum 12-1; Elder's Force Index (2- and 13-day EMA of change × volume) and Elder-ray bull and bear power (high or low less EMA 13) |
+| Volatility | Bollinger 20,2 (upper, middle, lower, %B, width, and the width's 6-month low); ATR 14 as % of price; Keltner 20, 2×ATR 10; historical volatility 60 days |
 | Volume | Volume vs its 20-day average; OBV and its 20-day average; Money Flow Index 14; Chaikin Money Flow 20; VWAP 20 days |
-| Levels | 52-week high and low and the distance from each; 20- and 55-day highs, 20-day low (all before the day, so a close above is a breakout); gap at the open; classic pivot, R1 and S1 from the day before |
-| Relative | Trend percentile (past-year return ranked among covered stocks that day); return minus the Nifty 50's over 3 months; return minus the industry median's over 3 months; Mansfield RS (52 weeks); beta 1 year |
+| Levels | 52-week high and low and the distance from each; 20- and 55-day highs, 10- and 20-day lows, 7-day closing high and low (all before the day, so a close above is a breakout); Darvas box top and bottom (a top not beaten for 3 days, the low after it not undercut for 3 days; known before the day, the bottom kept until the next box); gap at the open; classic pivot, R1 and S1 from the day before |
+| Relative | Trend percentile (past-year return ranked among covered stocks that day); return minus the Nifty 50's over 3 and 12 months; return minus the industry median's over 3 months; Mansfield RS (52 weeks); beta 1 year |
 
 ## 3. Rules
 
@@ -99,7 +99,12 @@ is false. Catalogue: `src/lib/signals/metrics.ts`.
 
 ## 4c. Making it easy to read
 
-- **Start from an idea:** the presets as cards with the idea behind each.
+- **Start from an idea:** the presets as cards with the idea behind each. A picker beside the title
+  ("Rules from the books") swaps them for one trading book's rules (`src/lib/signals/books.ts`):
+  Wilder, the Turtles (Faith), Connors and Alvarez (two books), Faber, Antonacci, Weinstein, Darvas, Minervini,
+  Elder and Bollinger. Each card is our version of a rule the book is known for, built only from the
+  catalogue; a book shows only the rules the tool can test (at most 8, never padded), with one line
+  on where they differ from the book. Rules that open as a book's idea open with that book showing.
 - **Rules in a sentence** above the builder ("Get in when … Get out when …"), from `describe.ts`.
 - **Verdict line** over the results: what ₹1 lakh became under the rules and held, then badges: beat
   holding or not, too few trades (under 5), weaker in recent years (the later part ≥ 10 points a year

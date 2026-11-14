@@ -6,7 +6,9 @@ import { readingsNow } from "./readings";
 import { runBasketSignals } from "./basket";
 import { slotWeights } from "./weighting";
 import { NSE_HOLIDAYS } from "@/lib/financials/trading-day";
-import { decodeStrategy, encodeStrategy, parseStrategy, PRESETS, type Strategy } from "./strategy";
+import { decodeStrategy, encodeStrategy, parseStrategy, type Strategy } from "./strategy";
+import { IDEA_SETS } from "./books";
+import { METRIC_BY_ID } from "./metrics";
 
 const near = (a: number | null | undefined, b: number, eps = 1e-6) => assert.ok(a != null && Math.abs(a - b) < eps, `${a} != ${b}`);
 
@@ -181,8 +183,8 @@ test("strategies are checked: unknown indicators, mismatched kinds, numbers kept
   }
 });
 
-test("every preset is a valid strategy and survives the URL", () => {
-  for (const pr of PRESETS) {
+test("every idea, the site's and the books', is a valid strategy and survives the URL", () => {
+  for (const pr of IDEA_SETS.flatMap((x) => x.ideas)) {
     const p = parseStrategy(pr.strategy);
     assert.ok(p.ok, pr.id);
     assert.deepEqual(decodeStrategy(encodeStrategy(pr.strategy)), p.ok ? p.strategy : null, pr.id);
@@ -225,4 +227,36 @@ test("a weighted basket sizes each slot by its weight, and custom % size only th
   near(r.stats.timeIn, (3 / 6) * 75);
   assert.deepEqual([...slotWeights([{ ticker: "UP", mcapCr: 1 }, { ticker: "FLAT", mcapCr: 1 }], { scheme: "custom", weights: { UP: 40 } })!], [["UP", 40], ["FLAT", 0]]);
   assert.equal(slotWeights([{ ticker: "UP", mcapCr: 1 }], { scheme: "equal" }), null);
+});
+
+test("idea sets: unique ids, at most 8 cards each, only catalogue indicators, and each runs", () => {
+  const ids = IDEA_SETS.flatMap((x) => x.ideas.map((p) => p.id));
+  assert.equal(new Set(ids).size, ids.length);
+  // A zig-zag climb with volume swings, long enough for the 210-day average.
+  const c = Array.from({ length: 600 }, (_, i) => 100 * 1.0008 ** i * (1 + 0.06 * Math.sin(i / 9)));
+  const b = { ...bars(c), v: c.map((_, i) => 1000 * (1 + (i % 7 === 0 ? 2 : 0))) };
+  for (const set of IDEA_SETS) {
+    assert.ok(set.ideas.length >= 1 && set.ideas.length <= 8, set.id);
+    for (const p of set.ideas) {
+      for (const cnd of [...p.strategy.entry.conds, ...p.strategy.exit.conds]) {
+        assert.ok(METRIC_BY_ID.has(cnd.m) && (!cnd.r || METRIC_BY_ID.has(cnd.r)), `${p.id}: ${cnd.m} ${cnd.r ?? ""}`);
+      }
+      const r = runSignals(metrics(b), p.strategy, 0.055);
+      assert.ok(r, p.id);
+      for (const t of r!.trades) assert.ok(Number.isFinite(t.ret), p.id);
+    }
+  }
+});
+
+test("the Darvas card enters on the close above a box top that formed the day before", () => {
+  const card = IDEA_SETS.flatMap((x) => x.ideas).find((p) => p.id === "darvas-box")!;
+  // 25 quiet days first, so the 20-day volume average exists; their box breaks on ordinary volume.
+  const pad = 25;
+  const h = [...Array(pad).fill(91), 105, 110, 108, 107, 106, 107, 115, 116, 117];
+  const l = [...Array(pad).fill(89), 100, 104, 100, 101, 102, 103, 108, 110, 112];
+  const c = [...Array(pad).fill(90), 104, 108, 102, 104, 105, 106, 114, 115, 116];
+  const b = { ...bars(c), h, l, v: c.map((_, i) => (i === pad + 6 ? 3000 : 1000)) };
+  const r = runSignals(metrics(b), { ...card.strategy, cost: 0 }, 0)!;
+  // Met on the close at 114 (above the 110 top on 3× volume): in at the next close.
+  assert.equal(r.trades[0]?.entryPx, 115);
 });

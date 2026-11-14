@@ -51,16 +51,19 @@ export function fmtValue(def: MetricDef, v: number | null): string {
     }
     case "pct":
       if (def.id === "rsNifty63" || def.id === "rsInd63") return `${v > 0 ? "+" : ""}${num(v)} pts`;
-      return def.id === "hv60" || def.id === "atrPct" || def.id === "bbWidth" || def.id === "fromHigh52" || def.id === "fromLow52" ? `${num(v)}%` : signedPct(v, 1);
+      if (def.id === "rsNifty252") return `${v > 0 ? "+" : ""}${num(v)} pts`;
+      return def.id === "hv60" || def.id === "atrPct" || def.id === "bbWidth" || def.id === "bbWidthLow126" || def.id === "fromHigh52" || def.id === "fromLow52" ? `${num(v)}%` : signedPct(v, 1);
     case "ratio":
       return `${num(v, 2)}×`;
     case "obv":
+    case "force":
       return Math.abs(v) >= 1e7 ? `${num(v / 1e7, 2)} Cr` : Math.abs(v) >= 1e5 ? `${num(v / 1e5)} L` : num(v, 0);
     case "pctb":
     case "cmf":
     case "beta":
     case "macd":
     case "macdh":
+    case "power":
       return num(v, 2);
     default:
       return num(v);

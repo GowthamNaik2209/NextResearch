@@ -54,9 +54,13 @@ export default async function SignalsPage({ searchParams }: { searchParams: Prom
             Indicators guide
           </Link>
         </nav>
-        <header className="flex flex-col gap-1">
-          <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Signal backtest</h1>
-          <p className="max-w-3xl text-sm text-ink-soft">Test entry and exit rules on a stock, or on a basket you created, at the weighting you saved for it.</p>
+        <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+          <div className="flex min-w-0 flex-col gap-1">
+            <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Signal backtest</h1>
+            <p className="max-w-3xl text-sm text-ink-soft">Test entry and exit rules on a stock, or on a basket you created, at the weighting you saved for it.</p>
+          </div>
+          {/* The book picker (SignalLab) is drawn here, beside the title. */}
+          <div id="signal-books" className="flex min-w-0 sm:w-[26rem] sm:justify-end empty:hidden" />
         </header>
         <SignalsGate>
           <SignalLab key={`${where.scope}:${where.target}:${back}`} choices={choices} initial={where} initialStrategy={strategy} initialSaved={saved} notFound={asked && !target ? asked.target : null} locked={!!back && !!target} />

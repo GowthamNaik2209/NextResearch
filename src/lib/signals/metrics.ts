@@ -20,7 +20,9 @@ export type MetricKind =
   | "obv"
   | "cmf"
   | "mansfield"
-  | "beta";
+  | "beta"
+  | "force" // Force Index: price change × volume
+  | "power"; // Elder-ray: a high or low less EMA 13, in ₹
 
 /** What a metric needs beyond daily closes: the day's open/high/low, its volume, or every covered stock's closes. */
 export type MetricNeed = "hl" | "vol" | "panel";
@@ -35,9 +37,15 @@ export const METRICS: MetricDef[] = [
   M("sma50", "SMA 50", "Trend", "price", "Average of the last 50 closes."),
   M("sma100", "SMA 100", "Trend", "price", "Average of the last 100 closes."),
   M("sma200", "SMA 200", "Trend", "price", "Average of the last 200 closes: the usual long-term trend line."),
+  M("sma5", "SMA 5", "Trend", "price", "Average of the last 5 closes: about a week."),
+  M("sma150", "SMA 150 (30 weeks)", "Trend", "price", "Average of the last 150 closes, the daily form of the 30-week average."),
+  M("sma210", "SMA 210 (10 months)", "Trend", "price", "Average of the last 210 closes, the daily form of the 10-month average."),
   M("ema9", "EMA 9", "Trend", "price", "Exponential average of the closes, 9 days: recent days count more."),
+  M("ema13", "EMA 13", "Trend", "price", "Exponential average of the closes, 13 days."),
   M("ema21", "EMA 21", "Trend", "price", "Exponential average of the closes, 21 days."),
   M("ema50", "EMA 50", "Trend", "price", "Exponential average of the closes, 50 days."),
+  M("ema26", "EMA 26", "Trend", "price", "Exponential average of the closes, 26 days."),
+  M("ema65", "EMA 65 (13 weeks)", "Trend", "price", "Exponential average of the closes, 65 days: the daily form of a 13-week average."),
   M("macd", "MACD line 12,26", "Trend", "macd", "EMA 12 less EMA 26: above zero when the short trend is above the long one."),
   M("macdSignal", "MACD signal 9", "Trend", "macd", "EMA 9 of the MACD line; the line crossing it is the usual MACD signal."),
   M("macdHist", "MACD histogram", "Trend", "macdh", "MACD line less its signal: above zero while the line is above the signal."),
@@ -54,6 +62,8 @@ export const METRICS: MetricDef[] = [
   M("aroonDown", "Aroon down 25", "Trend", "aroon", "100 on a day that makes a 25-day low.", ["hl"]),
 
   M("rsi14", "RSI 14", "Momentum", "osc", "Wilder's relative strength, 0 to 100: above 70 is usually read as overbought, below 30 oversold."),
+  M("rsi2", "RSI 2", "Momentum", "osc", "RSI over 2 days, 0 to 100: very fast, so under 10 is a sharp short dip."),
+  M("rsi4", "RSI 4", "Momentum", "osc", "RSI over 4 days, 0 to 100."),
   M("stochK", "Stochastic %K 14,3", "Momentum", "stoch", "Where the close sits in the 14-day range, smoothed over 3 days, 0 to 100.", ["hl"]),
   M("stochD", "Stochastic %D 3", "Momentum", "stoch", "3-day average of %K.", ["hl"]),
   M("stochRsi", "Stochastic RSI 14", "Momentum", "osc", "Where RSI 14 sits in its own 14-day range, 0 to 100."),
@@ -64,12 +74,17 @@ export const METRICS: MetricDef[] = [
   M("roc126", "Return 6M", "Momentum", "pct", "Change over the last 126 trading days, %."),
   M("roc252", "Return 12M", "Momentum", "pct", "Change over the last 252 trading days, %."),
   M("mom12_1", "Momentum 12-1", "Momentum", "pct", "Return from 12 months ago to 1 month ago, %: the momentum measure that ranked covered stocks best."),
+  M("force2", "Force Index 2", "Momentum", "force", "The day's change × its volume, 2-day EMA: below 0 is a short pullback.", ["vol"]),
+  M("force13", "Force Index 13", "Momentum", "force", "The day's change × its volume, 13-day EMA: above 0 when buyers have led lately.", ["vol"]),
+  M("bullPower", "Bull power 13", "Momentum", "power", "The day's high less EMA 13, ₹: how far buyers pushed above the average.", ["hl"]),
+  M("bearPower", "Bear power 13", "Momentum", "power", "The day's low less EMA 13, ₹: how far sellers pushed below the average.", ["hl"]),
 
   M("bbUpper", "Bollinger upper 20,2", "Volatility", "price", "SMA 20 plus 2 standard deviations of the closes."),
   M("bbMid", "Bollinger middle 20", "Volatility", "price", "SMA 20."),
   M("bbLower", "Bollinger lower 20,2", "Volatility", "price", "SMA 20 less 2 standard deviations."),
   M("bbPctB", "Bollinger %B", "Volatility", "pctb", "Where the close sits between the bands: 0 at the lower, 1 at the upper."),
   M("bbWidth", "Bollinger width", "Volatility", "pct", "Band width as % of the middle: a low width is a squeeze."),
+  M("bbWidthLow126", "Bollinger width 6M low", "Volatility", "pct", "The lowest Bollinger width of the last 126 days: width near it is a six-month squeeze."),
   M("atrPct", "ATR 14 %", "Volatility", "pct", "Average true range over 14 days, as % of the close.", ["hl"]),
   M("kcUpper", "Keltner upper 20", "Volatility", "price", "EMA 20 plus 2 × ATR 10.", ["hl"]),
   M("kcLower", "Keltner lower 20", "Volatility", "price", "EMA 20 less 2 × ATR 10.", ["hl"]),
@@ -89,6 +104,11 @@ export const METRICS: MetricDef[] = [
   M("dch20", "20D high", "Levels", "price", "Highest high of the 20 days before the day (Donchian): a close above is a breakout."),
   M("dch55", "55D high", "Levels", "price", "Highest high of the 55 days before the day."),
   M("dcl20", "20D low", "Levels", "price", "Lowest low of the 20 days before the day."),
+  M("dcl10", "10D low", "Levels", "price", "Lowest low of the 10 days before the day."),
+  M("hc7", "7D closing high", "Levels", "price", "Highest close of the 6 days before the day: a close above it is a new 7-day closing high."),
+  M("lc7", "7D closing low", "Levels", "price", "Lowest close of the 6 days before the day: a close below it is a new 7-day closing low."),
+  M("darvasTop", "Darvas box top", "Levels", "price", "Top of the latest Darvas box: a high not beaten for 3 days. A close above it is a breakout."),
+  M("darvasBottom", "Darvas box bottom", "Levels", "price", "Bottom of the latest Darvas box: the low after its top, not undercut for 3 days. Kept until the next box forms."),
   M("gap", "Gap at open", "Levels", "pct", "The open against the day before's close, %.", ["hl"]),
   M("pivot", "Pivot (classic)", "Levels", "price", "The day before's high, low and close averaged.", ["hl"]),
   M("r1", "Pivot R1", "Levels", "price", "2 × pivot less the day before's low.", ["hl"]),
@@ -96,6 +116,7 @@ export const METRICS: MetricDef[] = [
 
   M("trendPct", "Trend percentile", "Relative", "osc", "The past-year return ranked among covered stocks that day, 1 to 99.", ["panel"]),
   M("rsNifty63", "RS vs Nifty 50 3M", "Relative", "pct", "3-month return less the Nifty 50's, percentage points."),
+  M("rsNifty252", "RS vs Nifty 50 12M", "Relative", "pct", "12-month return less the Nifty 50's, percentage points."),
   M("rsInd63", "RS vs industry 3M", "Relative", "pct", "3-month return less its industry's median covered stock, percentage points.", ["panel"]),
   M("mansfield", "Mansfield RS", "Relative", "mansfield", "Price ÷ Nifty 50 against its own 52-week average, %: above 0 is outperforming lately."),
   M("beta252", "Beta 1Y", "Relative", "beta", "Sensitivity to the Nifty 50 over the last year of daily returns."),

@@ -357,6 +357,56 @@ export function vwap(h: Series, l: Series, c: Series, v: Series, n = 20): Series
   return zip(sma(pv, n), sma(v, n), (a, b) => (b > 0 ? a / b : null));
 }
 
+/** Elder's Force Index: the day's change × its volume, smoothed by an EMA of `n` days. */
+export function forceIndex(c: Series, v: Series, n: number): Series {
+  const raw: Series = c.map((cl, i) => (i > 0 && isNum(cl) && isNum(c[i - 1]) && isNum(v[i]) ? (cl - (c[i - 1] as number)) * (v[i] as number) : null));
+  return ema(raw, n);
+}
+
+/**
+ * Darvas boxes. A top is a high not beaten for `n` days after it; a bottom is the lowest low since
+ * that top, not undercut for `n` days. Once both hold, the box stands until a close goes through
+ * either side, and a new one forms. Each day's values are the boxes known before that day, so a
+ * close above `top` is a breakout. `bottom` stays at the latest box's bottom until the next box
+ * forms (it moves up with each box: the stop Darvas raised).
+ */
+export function darvas(h: Series, l: Series, c: Series, n = 3): { top: Series; bottom: Series } {
+  const top: Series = new Array(c.length).fill(null);
+  const bottom: Series = new Array(c.length).fill(null);
+  let hi: number | null = null, hiAge = 0;
+  let lo: number | null = null, loAge = 0;
+  let boxTop: number | null = null, boxBot: number | null = null, lastBot: number | null = null;
+  for (let i = 0; i < c.length; i++) {
+    top[i] = boxTop;
+    bottom[i] = lastBot;
+    const H = h[i], L = l[i], C = c[i];
+    if (!isNum(H) || !isNum(L) || !isNum(C)) continue;
+    if (boxTop != null && boxBot != null) {
+      if (C <= boxTop && C >= boxBot) continue;
+      // Broken either way: start looking for the next box from this day.
+      boxTop = boxBot = null;
+      hi = lo = null;
+    }
+    if (hi == null || H > hi) {
+      hi = H;
+      hiAge = 0;
+      lo = L;
+      loAge = 0;
+      continue;
+    }
+    hiAge++;
+    if (lo == null || L < lo) {
+      lo = L;
+      loAge = 0;
+    } else loAge++;
+    if (hiAge >= n && loAge >= n) {
+      boxTop = hi;
+      boxBot = lastBot = lo;
+    }
+  }
+  return { top, bottom };
+}
+
 /** Rolling beta of daily returns against the benchmark's over `n` days. */
 export function beta(c: Series, bench: Series, n = 252): Series {
   const r = logReturns(c), m = logReturns(bench);

@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CHECKS, COSTS, MAX_ENTRY, MAX_EXIT, PRESETS, RANGES, conditionFor, encodeStrategy, type Strategy } from "@/lib/signals/strategy";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
+import { CHECKS, COSTS, MAX_ENTRY, MAX_EXIT, RANGES, conditionFor, encodeStrategy, parseStrategy, type Strategy } from "@/lib/signals/strategy";
+import { CLASSIC, IDEA_SETS, type IdeaSet } from "@/lib/signals/books";
 import { describeStrategy } from "@/lib/signals/describe";
 import type { SavedSignal } from "@/lib/signals/saved";
 import type { Scope, TargetChoices } from "@/lib/signals/targets";
@@ -11,7 +13,7 @@ import { MINI_SEG, Panel } from "@/components/baskets/Panel";
 import { ConfirmDialog } from "@/components/baskets/ConfirmDialog";
 import { fmtDay, signedPct } from "@/lib/format";
 import { RuleSetEditor, StopsEditor } from "./RuleBuilder";
-import { StarterCards } from "./StarterCards";
+import { BookPicker, StarterCards } from "./StarterCards";
 import { StockResults, Readings } from "./StockResults";
 import { BasketResults } from "./BasketResults";
 import { SavedPanel } from "./SavedPanel";
@@ -26,11 +28,24 @@ import { BTN, FIELD, ctlLabel, segBtn, type Answer } from "./ui";
 
 type Where = { scope: Scope; target: string };
 
-const sameRules = (a: Strategy, b: Strategy) => JSON.stringify(a) === JSON.stringify(b);
+// Rules read back from a link or a save come in parseStrategy's key order; compare in that order.
+const canon = (s: Strategy) => {
+  const p = parseStrategy(s);
+  return JSON.stringify(p.ok ? p.strategy : s);
+};
+const sameRules = (a: Strategy, b: Strategy) => canon(a) === canon(b);
+/** The idea in a set whose rules are these (range and costs aside). */
+const ideaIn = (set: IdeaSet, s: Strategy) => set.ideas.find((p) => sameRules({ ...p.strategy, range: s.range, cost: s.cost }, s));
+// The page header's slot for the book picker (app/signals/page.tsx): the picker sits beside the title.
+const noSubscribe = () => () => {};
 
 export function SignalLab({ choices, initial, initialStrategy, initialSaved, notFound, locked = false }: { choices: TargetChoices; initial: Where; initialStrategy: Strategy; initialSaved: SavedSignal[]; /** The link named a stock or basket that isn't available here. */ notFound?: string | null; locked?: boolean }) {
   const [where, setWhere] = useState<Where>(initial);
   const [strategy, setStrategy] = useState<Strategy>(initialStrategy);
+  // Rules that open as one of a book's ideas open with that book's cards showing.
+  const [setId, setSetId] = useState(() => IDEA_SETS.find((x) => ideaIn(x, initialStrategy))?.id ?? CLASSIC.id);
+  const ideaSet = IDEA_SETS.find((x) => x.id === setId) ?? CLASSIC;
+  const pickerSlot = useSyncExternalStore(noSubscribe, () => document.getElementById("signal-books"), () => null);
   const [ran, setRan] = useState<{ key: string; answer: Answer } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -97,7 +112,7 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
   const sentence = describeStrategy(strategy);
 
   // The idea whose rules are on screen (range and costs aside), highlighted in the cards; none once edited.
-  const preset = PRESETS.find((p) => sameRules({ ...p.strategy, range: strategy.range, cost: strategy.cost }, strategy))?.id ?? "";
+  const preset = ideaIn(ideaSet, strategy)?.id ?? "";
 
   const set = (patch: Partial<Strategy>) => {
     // An edit makes the last note (added, saved, emails on) out of date.
@@ -120,7 +135,7 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
     router.push(`/signals?${q}`);
   };
   const applyPreset = (id: string) => {
-    const p = PRESETS.find((x) => x.id === id);
+    const p = ideaSet.ideas.find((x) => x.id === id);
     if (!p) return;
     setNote(null);
     const next = { ...p.strategy, range: strategy.range, cost: strategy.cost };
@@ -188,7 +203,8 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
 
   return (
     <div ref={top} className="flex scroll-mt-16 flex-col gap-3">
-      <StarterCards active={preset} onPick={applyPreset} />
+      {pickerSlot && createPortal(<BookPicker value={setId} onChange={setSetId} />, pickerSlot)}
+      <StarterCards set={ideaSet} active={preset} onPick={applyPreset} />
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border border-line bg-panel px-3 py-2">
         {locked ? (

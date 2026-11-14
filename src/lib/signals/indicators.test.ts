@@ -130,3 +130,22 @@ test("crosses compare yesterday with today", () => {
   assert.equal(I.crossesBelow([3, 2, 1], [2, 2, 2], 2), true);
   assert.equal(I.crossesAbove(a, 1.5, 0), false);
 });
+
+test("Force Index: change × volume, smoothed by an EMA", () => {
+  const f = I.forceIndex([10, 11, 10, 12], [100, 200, 300, 400], 1);
+  assert.deepEqual(f, [null, 200, -300, 800]);
+});
+
+test("Darvas box: a top and bottom hold after 3 days; a close above the top breaks out, the bottom stays as the stop", () => {
+  // High 110 on day 1, not beaten on days 2-4; low 100 on day 2, not undercut on days 3-5: box 110/100 from day 5.
+  const h = [105, 110, 108, 107, 106, 107, 115, 116];
+  const l = [100, 104, 100, 101, 102, 103, 108, 110];
+  const c = [104, 108, 102, 104, 105, 106, 114, 115];
+  const x = I.darvas(h, l, c, 3);
+  assert.equal(x.top[5], null);
+  assert.equal(x.top[6], 110);
+  assert.equal(x.bottom[6], 100);
+  // Day 6 closes at 114, above the top: the box is gone, the bottom stays.
+  assert.equal(x.top[7], null);
+  assert.equal(x.bottom[7], 100);
+});
