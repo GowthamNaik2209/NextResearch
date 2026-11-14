@@ -5,6 +5,7 @@ import { IpoGrid } from "@/components/ipo/IpoGrid";
 import { getIpoDeck, ipoCards } from "@/lib/analysis-props";
 import { ensureFinancials } from "@/lib/financials/load";
 import { shareMeta } from "@/lib/site";
+import { JsonLd, itemListLd, webPageLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Upcoming IPOs in India: prospectus summaries",
@@ -34,6 +35,12 @@ export default async function IposPage({ searchParams }: { searchParams: Promise
         <p className="text-xs text-ink-soft">
           From offer documents and dated reporting; terms can change until the final prospectus. Not investment advice.
         </p>
+        <JsonLd
+          graph={[
+            webPageLd({ type: "CollectionPage", path: "/ipos", name: "Upcoming IPOs in India: prospectus summaries", description: String(metadata.description) }),
+            itemListLd("Upcoming and recent Indian IPOs", ipos.map((i) => ({ name: `${i.name} IPO`, path: `/ipos?ipo=${i.slug}` }))),
+          ]}
+        />
       </main>
       <SiteFooter />
     </>

@@ -129,13 +129,17 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           </nav>
           <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="font-display text-3xl font-bold text-ink">
-                {c.name} <span className="font-mono text-lg font-semibold text-ink-soft">{c.ticker}</span>
+              {/* The heading is the name and ticker only (search engines read the button's label as part of
+                  an <h1> around it); the inline h1 keeps the pill flowing after the name as before. */}
+              <div className="font-display text-3xl font-bold text-ink">
+                <h1 className="inline">
+                  {c.name} <span className="font-mono text-lg font-semibold text-ink-soft">{c.ticker}</span>
+                </h1>
                 {/* A space, not a margin, so the pill lines up with the name when it wraps on a phone. */}{" "}
                 <span className="inline-flex align-middle">
                   <WatchlistButton ticker={c.ticker} name={c.name} variant="pill" />
                 </span>
-              </h1>
+              </div>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
                 {multiSector ? `${primary.sectorName}: ${primary.role}` : primary.role}
               </p>

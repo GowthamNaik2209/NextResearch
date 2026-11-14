@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { listCompanyPages } from "@/lib/sector-content/companies";
 import { ensureFinancials } from "@/lib/financials/load";
 import { themeNames, shareMeta } from "@/lib/site";
+import { JsonLd, itemListLd, webPageLd } from "@/components/JsonLd";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
 export const revalidate = 900;
@@ -38,6 +39,12 @@ export default async function CompaniesPage() {
           </p>
         </div>
         <CompanyIndex companies={index} />
+        <JsonLd
+          graph={[
+            webPageLd({ type: "CollectionPage", path: "/companies", name: "Indian listed companies by supply chain: A-Z" }),
+            itemListLd("Covered companies, A-Z", companies.map((c) => ({ name: c.name, path: `/company/${c.slug}` }))),
+          ]}
+        />
       </main>
       <SiteFooter />
     </>

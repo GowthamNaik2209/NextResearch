@@ -12,13 +12,28 @@ import { ToneChips } from "./ToneChips";
 import { TONES, type UpdatesView } from "./controls";
 import { PeriodSelect } from "./PeriodSelect";
 import { parsePeriod } from "@/lib/flows/periods";
+import { FaqSection } from "@/components/FaqSection";
+import { JsonLd, webPageLd } from "@/components/JsonLd";
+import { FLOWS_FAQ, faqJsonLd } from "@/lib/faq";
 
-export const metadata = {
-  title: "Updates: industry, policy and company news",
-  description: "Latest news across the industries, policies and listed companies NextResearch covers, and where foreign and domestic institutions are putting money.",
-  alternates: { canonical: "/updates" },
-  ...shareMeta({ title: "Industry and company news", line: "The latest across every theme NextResearch maps.", path: "/updates" }),
-};
+// The two views are two pages to search engines: news, and the FII / DII flows (?view=flows), each with
+// its own title and canonical. Other filters (industry, tone, period) fold into their view's canonical.
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
+  if ((await searchParams).view === "flows")
+    return {
+      title: "FII and DII flows today: cash, futures, sector flows and stake changes",
+      description:
+        "Where foreign (FII/FPI) and domestic (DII) institutions are putting money in Indian stocks: daily cash-market flows, FII index-futures positioning, NSDL sector flows, quarterly stake changes in covered companies and bulk and block deals.",
+      alternates: { canonical: "/updates?view=flows" },
+      ...shareMeta({ title: "FII and DII flows", line: "Where institutional money is moving.", path: "/updates?view=flows" }),
+    };
+  return {
+    title: "Updates: industry, policy and company news",
+    description: "Latest news across the industries, policies and listed companies NextResearch covers, and where foreign and domestic institutions are putting money.",
+    alternates: { canonical: "/updates" },
+    ...shareMeta({ title: "Industry and company news", line: "The latest across every theme NextResearch maps.", path: "/updates" }),
+  };
+}
 
 const GROUP = { policy: "Policies", index: "Indices" } as const;
 
@@ -56,6 +71,9 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
           <>
             <PeriodSelect period={period} sector={active?.slug} />
             <FlowsView key={`flows-${active?.slug ?? "all"}-${period}`} period={period} sectorSlug={active?.slug} sectorName={active?.name} />
+            <div className="max-w-3xl">
+              <FaqSection faqs={FLOWS_FAQ} headingClassName="text-xs font-bold uppercase tracking-widest text-ink-soft" />
+            </div>
           </>
         ) : (
           <NewsFeed
@@ -70,6 +88,13 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
             header={(counts) => <ToneChips counts={counts} active={tone} sector={active?.slug} period={period} />}
           />
         )}
+        <JsonLd
+          graph={
+            view === "flows"
+              ? [webPageLd({ path: "/updates?view=flows", name: "FII and DII flows" }), faqJsonLd(FLOWS_FAQ)]
+              : [webPageLd({ type: "CollectionPage", path: "/updates", name: "Industry, policy and company news" })]
+          }
+        />
       </main>
       <SiteFooter />
     </>

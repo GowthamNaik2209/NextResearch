@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildIdeas, priceStat, sinceRange, themeFootprint, withBacktestReturns, type IdeaStockInfo, type PriceSnapshot } from "./ideas";
+import { buildIdeas, ideaCatalog, priceStat, sinceRange, themeFootprint, withBacktestReturns, type IdeaStockInfo, type PriceSnapshot } from "./ideas";
 import { runBacktest } from "./backtest";
 import { onBenchWindow } from "./run";
 
@@ -220,4 +220,11 @@ test("themeFootprint counts industries and policies as /connections does, leavin
   // An unknown slug is an industry (category is optional and defaults to one); the index is neither.
   assert.deepEqual(f, { industries: 3, policies: 1 });
   assert.deepEqual(themeFootprint(["nifty50"], (s) => cat[s as keyof typeof cat]), { industries: 0, policies: 0 });
+});
+
+test("ideaCatalog lists every rule, with no prices needed", () => {
+  const ids = ideaCatalog().map((i) => i.id);
+  for (const id of ["top-6m", "top-5y", "quality", "bottlenecks", "cross-industry", "recent-ipos", "compounders", "garp", "turnarounds", "margins"]) assert.ok(ids.includes(id), id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.ok(ideaCatalog().every((i) => i.title && i.blurb));
 });

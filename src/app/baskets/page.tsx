@@ -17,8 +17,12 @@ import { ensureFinancials } from "@/lib/financials/load";
 import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk-data";
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { basketCases } from "@/lib/baskets/projection-data";
-import { shareMeta } from "@/lib/site";
+import { midSentence, shareMeta } from "@/lib/site";
 import type { BasketFigures } from "@/lib/baskets/stats";
+import { FaqSection } from "@/components/FaqSection";
+import { JsonLd, breadcrumbLd, itemListLd, webPageLd } from "@/components/JsonLd";
+import { ideaCatalog } from "@/lib/baskets/ideas";
+import { basketsFaq, faqJsonLd } from "@/lib/faq";
 
 export const metadata = {
   title: "Stock baskets: build your own from any mix of Indian industries",
@@ -72,6 +76,8 @@ export default async function BasketsPage() {
   });
   const mineCount = user && !mineFailed ? mine.length : null;
   const createHref = user ? "/baskets/new" : "/login?next=/baskets/new";
+  const ideas = ideaCatalog();
+  const faqs = basketsFaq(ideas.filter((i) => !i.id.startsWith("top-")).map((i) => midSentence(i.title)).concat("the biggest gainers over 6 months to 5 years"));
   const industryRows: IndustryRow[] = listIndustryBaskets().map((b) => ({ kind: "industry", slug: b.slug, name: b.name, category: b.category, count: b.stocks.length, proj: b.stocks.length ? basketCases(b.stocks, "equal")["1"] : null }));
 
   return (
@@ -163,6 +169,16 @@ export default async function BasketsPage() {
             <IndustryTable rows={industryRows} />
           </Suspense>
         </section>
+        <FaqSection faqs={faqs} headingClassName="mt-4 font-display text-lg font-bold text-ink sm:text-xl" />
+        <JsonLd
+          graph={[
+            breadcrumbLd([["Baskets", "/baskets"]]),
+            webPageLd({ type: "CollectionPage", path: "/baskets", name: "Stock baskets", description: metadata.description }),
+            itemListLd("Rule-based stock baskets", ideas.map((i) => ({ name: i.title, path: `/baskets/ideas/${i.id}` }))),
+            itemListLd("Industry and policy stock baskets", industryRows.map((r) => ({ name: `${r.name} basket`, path: `/baskets/industry/${r.slug}` }))),
+            faqJsonLd(faqs),
+          ]}
+        />
       </main>
       <SiteFooter />
     </>

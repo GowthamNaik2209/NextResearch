@@ -149,7 +149,7 @@ const monthYear = (t: string) => fmtMonth(t);
  * with a one-off year (outlier, ./outliers.ts) are in none of them: a ranking on distorted figures
  * (or a price move on a one-off) mostly ranks the one-off. Users can still add them to their own baskets.
  */
-export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: number): Idea[] {
+export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: number, keepEmpty = false): Idea[] {
   const stocks = all.filter((s) => !s.outlier);
   const stat = (t: string) => snap.stats[t];
   const ret1y = (list: string[]) => mean(list.map((t) => stat(t)?.ret["1Y"]).filter((v): v is number => v != null));
@@ -242,7 +242,15 @@ export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: numbe
     ideas.push({ ...k, range: "1Y", ret: ret1y(k.stocks.map((s) => s.ticker)), retLabel: "1Y" });
   }
 
-  return ideas.filter((i) => i.stocks.length > 0);
+  return keepEmpty ? ideas : ideas.filter((i) => i.stocks.length > 0);
+}
+
+/**
+ * Every rule-based basket's id, name and one line, without prices: what the sitemap and llms.txt
+ * list. The same rules run on no stocks, so a new rule shows up there with nothing else to edit.
+ */
+export function ideaCatalog(): Pick<Idea, "id" | "title" | "blurb">[] {
+  return buildIdeas([], { asOf: "", stats: {} }, 0, true).map(({ id, title, blurb }) => ({ id, title, blurb }));
 }
 
 /** What a card needs from the idea's own backtest: the basket's return and each held stock's. */

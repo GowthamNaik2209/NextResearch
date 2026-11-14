@@ -12,6 +12,8 @@ import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { sep } from "@/lib/format";
 import { shareMeta } from "@/lib/site";
+import { JsonLd, breadcrumbLd, itemListLd, webPageLd } from "@/components/JsonLd";
+import { companySlug } from "@/lib/sector-content/companies";
 
 // A rule-based basket (a "basket idea" in the code): today's list for one rule, as a basket anyone can chart and save as their own.
 // The list moves with prices, so the page is rendered per request from the day's cached lists.
@@ -81,6 +83,16 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
           joinAtListing={idea.joinAtListing}
           pickedOn={Object.fromEntries(idea.stocks.map((s) => [s.ticker, s.stat]))}
           {...compareProps(dominantIndustry(stocks.map((s) => s.ticker)))}
+        />
+        <JsonLd
+          graph={[
+            breadcrumbLd([
+              ["Baskets", "/baskets"],
+              [idea.title, `/baskets/ideas/${idea.id}`],
+            ]),
+            webPageLd({ path: `/baskets/ideas/${idea.id}`, name: `${idea.title}: a rule-based stock basket`, description: idea.rule, dateModified: asOf.slice(0, 10) }),
+            itemListLd(`${idea.title}: today's stocks`, stocks.map((s) => ({ name: `${s.name} (${s.ticker})`, path: `/company/${companySlug(s.ticker)}` }))),
+          ]}
         />
       </main>
       <SiteFooter />

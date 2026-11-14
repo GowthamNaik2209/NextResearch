@@ -4,6 +4,9 @@ import { ReadingList } from "@/components/research/ReadingList";
 import { analysisProps, analysisView } from "@/lib/analysis-props";
 import { ensureFinancials } from "@/lib/financials/load";
 import { themeNames, shareMeta } from "@/lib/site";
+import { JsonLd, itemListLd, webPageLd } from "@/components/JsonLd";
+import { listSectors } from "@/lib/sector-content";
+import { buildDeck } from "@/lib/sector-content/reports";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -40,6 +43,17 @@ export default async function DocsPage({ searchParams }: { searchParams: Promise
           initialView={analysisView(view)}
           initialSector={sector}
           initialCharts={view === "charts"}
+        />
+        <JsonLd
+          graph={[
+            webPageLd({ type: "CollectionPage", path: "/docs", name: "Analysis: industries, policies and IPOs" }),
+            itemListLd(
+              "Research reports",
+              listSectors()
+                .filter((s) => !s.muted && buildDeck(s.slug))
+                .map((s) => ({ name: `${s.name}: research report`, path: `/docs/${s.slug}` })),
+            ),
+          ]}
         />
       </main>
       <SiteFooter />

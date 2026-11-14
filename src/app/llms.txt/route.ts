@@ -4,6 +4,7 @@ import { buildDeck } from "@/lib/sector-content/reports";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { ensureFinancials } from "@/lib/financials/load";
 import { companyWhere, sentence } from "@/lib/faq";
+import { ideaCatalog } from "@/lib/baskets/ideas";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
 
 // /llms.txt (llmstxt.org): a plain-text map of the site for AI assistants and answer engines - what
@@ -26,7 +27,8 @@ export async function GET() {
   const out: string[] = [
     `# ${SITE_NAME}`,
     "",
-    `> ${SITE_TAGLINE}. ${SITE_DESCRIPTION}`,
+    // The description opens with the tagline's own words; joined, they would say it twice.
+    `> ${SITE_TAGLINE}: ${SITE_DESCRIPTION.replace(/^Thematic research on India in one place: /, "")}`,
     "",
     `Coverage: ${themes} industries and policies${indices.length ? `, plus the ${indices.map((s) => s.name).join(" and ")}` : ""}; ${companies.length} NSE-listed companies, each placed in the supply-chain layer(s) it serves. Company figures (market cap, price, P/E, ROCE, ROE, five years of revenue and profit) are one snapshot as of ${dataAsOf()}, refreshed after each trading day. For information only, not investment advice.`,
   ];
@@ -41,6 +43,19 @@ export async function GET() {
     out.push("", "## Research reports", "");
     for (const s of reports) out.push(`- [${s.name}: research report](${SITE_URL}/docs/${s.slug}): a 10-slide report with its primary sources.`);
   }
+  out.push("", "## Stock baskets", "");
+  out.push(`- [Build a basket](${SITE_URL}/baskets): mix stocks from any covered industry or policy, backtested against the Nifty 50, with Bear, Base and Bull projections.`);
+  for (const s of sectors) out.push(`- [${s.name} basket](${SITE_URL}/baskets/industry/${s.slug}): all ${sectorCompanyCounts(s).listed} listed ${s.name} stocks as one basket, backtested against the Nifty 50.`);
+  out.push("", "## Rule-based baskets (re-ranked daily)", "");
+  for (const i of ideaCatalog()) out.push(`- [${i.title}](${SITE_URL}/baskets/ideas/${i.id}): ${sentence(i.blurb)}`);
+  out.push(
+    "",
+    "## Methods and guides",
+    "",
+    `- [How basket projections are worked out](${SITE_URL}/baskets/projections): Bear, Base and Bull 1- and 2-year ranges from a market-implied return (RBI repo rate plus beta times India's equity risk premium) and each stock's volatility, with out-of-sample checks.`,
+    `- [Trend and P/E in context](${SITE_URL}/baskets/signals): a stock's past-year return ranked among covered stocks, and today's P/E against its own history and its industry's median.`,
+    `- [Technical indicators guide](${SITE_URL}/signals/indicators): what each indicator in the signal backtest (moving averages, RSI, MACD and others) measures, how it is worked out and where it misleads.`,
+  );
   out.push("", "## Companies", "");
   for (const c of companies) {
     const p = primaryAppearance(c);
@@ -56,6 +71,8 @@ export async function GET() {
     `- [Stock baskets, backtested against the Nifty 50](${SITE_URL}/baskets)`,
     `- [Upcoming IPO prospectus summaries](${SITE_URL}/ipos)`,
     `- [Industry and company news](${SITE_URL}/updates)`,
+    `- [FII and DII flows](${SITE_URL}/updates?view=flows): daily foreign and domestic institutional cash flows, FII index-futures positioning, sector flows, quarterly stake changes and bulk and block deals.`,
+    `- [Signal backtests](${SITE_URL}/signals) (free account, tablet or computer): test a technical rule on any covered stock or a saved basket, save it and get an email when it fires.`,
     "",
   );
   return new Response(out.join("\n"), { headers: { "Content-Type": "text/plain; charset=utf-8" } });

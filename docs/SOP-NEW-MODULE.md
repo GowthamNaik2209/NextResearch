@@ -1,7 +1,8 @@
 # SOP: building a new module (industry, policy or index)
 
 The standard procedure every new industry, policy or index follows, and the extension of an existing
-one. A module is **done only when every gate below is green**. The how-to for each step is in
+one. A module is **done only when every gate below is green**. Gate 6b (SEO and AEO) applies to every
+new feature or page as well, module or not. The how-to for each step is in
 [PLAYBOOK.md](PLAYBOOK.md) (sections 1-4); this page is the order and the gates.
 
 ## Roles
@@ -68,6 +69,31 @@ rule-based baskets, industry/policy basket and pool, basket picker, projections,
 may be left out of a surface only by a named rule in the test (screenOut, too little price history,
 enabler, unlisted), never silently. It runs over **all** modules, old and new, every time.
 - Green when: `npm test` (serial if the pooler drops) and `check-coverage.ts` both pass.
+
+## Gate 6b - SEO and AEO (lead; also for every new feature or page, not only modules)
+
+Search engines and AI assistants (ChatGPT, Perplexity, Claude, Google AI Overviews) should find and
+quote each new page the day it ships. For a new module **and for any new feature, page or view**:
+
+- **Indexable or not, on purpose.** Public research pages are indexable; account, sign-in, unsubscribe
+  and saved-by-link pages set `robots: { index: false }`. Never leave a public page noindex by default.
+- **Metadata.** A specific `title` (what a person would search for), a `description` of one or two
+  sentences, `alternates.canonical` (its own path; a view that is a page of its own, like
+  `/updates?view=flows`, gets its own), and `shareMeta()` for link previews.
+- **Text in the HTML.** What the page explains must be in the server-rendered HTML, not only in a
+  pop-up, deck viewer or client-only component. A phone-only restriction hides by CSS (`sm:hidden` /
+  `hidden sm:block`) rather than not rendering it (see `/signals/indicators`).
+- **One `<h1>`**, holding the page's name only (no buttons or badges inside it).
+- **Structured data** with `<JsonLd>` (`src/components/JsonLd.tsx`): `breadcrumbLd`, a `webPageLd` of
+  the right type (`CollectionPage`, `TechArticle`, `Report`), `itemListLd` for lists of companies or
+  baskets, and `faqJsonLd` for a visible `FaqSection`. Facts in FAQs must match the code.
+- **Sitemap and llms.txt.** Add the route to `src/app/sitemap.ts` and a one-line entry to
+  `src/app/llms.txt/route.ts`, built from the same source as the page (as `ideaCatalog()` is), never
+  a hand-typed list. Update `SITE_DESCRIPTION` / layout keywords when the feature is a headline one.
+- **Method pages** describe how it works now (no "what changed" copy).
+- Green when: `src/app/seo.test.ts` (in `npm test`) passes; it fails for any page that is neither
+  noindex nor wired as above. After release: fetch the live page, `/sitemap.xml` and `/llms.txt`, and
+  check the title, canonical, `<h1>` and structured data are as intended.
 
 ## Gate 7 - Release
 

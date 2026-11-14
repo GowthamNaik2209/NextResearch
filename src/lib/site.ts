@@ -20,7 +20,7 @@ export const CONTACT_EMAIL = "queries@nextresearchapp.com";
 // No list of themes here: a hand-typed list drifted from the content (this is read at import time,
 // before the content can be). Pages that name the themes use themeNames() below.
 export const SITE_DESCRIPTION =
-  "Thematic research on India in one place: industries and policies mapped by supply chain, stock heatmaps, IPO deep dives and backtested baskets, with each listed company's financials, peers and risks.";
+  "Thematic research on India in one place: industries and policies mapped by supply chain, stock heatmaps, backtested baskets and signals, FII and DII flows and IPO deep dives, with each listed company's financials, peers and risks.";
 
 /**
  * The live industries and policies as a phrase for descriptions and share cards, from the content

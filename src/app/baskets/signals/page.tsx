@@ -11,6 +11,7 @@ import { peWorking, type PeWorking } from "@/lib/valuation/pe-data";
 import { PeContextView } from "@/components/stock/PeContextView";
 import { NA, fmtDay, inr, signedPct } from "@/lib/format";
 import { shareMeta } from "@/lib/site";
+import { JsonLd, breadcrumbLd, webPageLd } from "@/components/JsonLd";
 import { ExampleStockSelect } from "../projections/ExampleStockSelect";
 import { B, Bullets, Formula, H2, H3, Note, P, Row, Table, Td, Th } from "../method-ui";
 
@@ -207,6 +208,15 @@ export default async function SignalsMethodPage({ searchParams }: { searchParams
             </>
           )}
         </section>
+        <JsonLd
+          graph={[
+            breadcrumbLd([
+              ["Baskets", "/baskets"],
+              ["Trend and P/E in context", PATH],
+            ]),
+            webPageLd({ type: "TechArticle", path: PATH, name: metadata.title, description: metadata.description }),
+          ]}
+        />
       </main>
       <SiteFooter />
     </>

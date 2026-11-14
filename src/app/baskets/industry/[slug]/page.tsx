@@ -11,6 +11,10 @@ import { ensureRiskStats, riskStatsLoading } from "@/lib/baskets/projection-risk
 import { ProjectionStatsPending } from "@/components/baskets/ProjectionStatsPending";
 import { categoryWord } from "@/lib/sector-content/core";
 import { shareMeta } from "@/lib/site";
+import { JsonLd, breadcrumbLd, itemListLd, webPageLd } from "@/components/JsonLd";
+import { companySlug } from "@/lib/sector-content/companies";
+import { isoDay } from "@/lib/financials/rows";
+import { dataAsOf } from "@/lib/sector-content/insights";
 
 export async function generateStaticParams() {
   await ensureFinancials();
@@ -72,6 +76,16 @@ export default async function IndustryBasketPage({ params }: { params: Promise<{
           universe={null}
           watchlist={[]}
           {...compareProps(b.slug)}
+        />
+        <JsonLd
+          graph={[
+            breadcrumbLd([
+              ["Baskets", "/baskets"],
+              [`${b.name} basket`, `/baskets/industry/${b.slug}`],
+            ]),
+            webPageLd({ path: `/baskets/industry/${b.slug}`, name: `${b.name} stock basket`, dateModified: isoDay(dataAsOf()) }),
+            itemListLd(`Stocks in the ${b.name} basket`, b.stocks.map((s) => ({ name: `${s.name} (${s.ticker})`, path: `/company/${companySlug(s.ticker)}` }))),
+          ]}
         />
       </main>
       <SiteFooter />
