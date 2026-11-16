@@ -331,7 +331,10 @@ function SavePrompt({ ticker, name, onClose }: { ticker: string; name?: string; 
           <Link
             ref={firstRef}
             href={`/signup${q}`}
-            onClick={() => rememberPendingSave(ticker)}
+            onClick={() => {
+              rememberPendingSave(ticker);
+              track("signup_click", { from: "watchlist_prompt" });
+            }}
             className="rounded-lg bg-accent px-3 py-2.5 text-center text-sm font-semibold text-bg hover:opacity-90"
           >
             Create free account

@@ -13,6 +13,7 @@ import { NewsView } from "./NewsView";
 import { FundamentalsView } from "./FundamentalsView";
 import { BackToChartButton, BacktestButton } from "./BacktestButtons";
 import { onFullEntry, useFullView } from "./useFullView";
+import { track } from "@/lib/analytics";
 
 // lightweight-charts is only needed once someone opens the Chart tab.
 const ChartView = dynamic(() => import("./ChartView").then((m) => m.ChartView), {
@@ -51,6 +52,8 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
   const stats = mergeStats(f, api);
   // Backtest & project (Chart tab) opens the full-screen view; its Back returns to the chart.
   const fv = useFullView(onClose, { restore: true });
+  // Funnel: the pop-up opened, then each other tab looked at.
+  useEffect(() => track("view_stock", { ticker }), [ticker]);
   const full = fv.full && supplier.listed;
 
   return (
@@ -108,7 +111,10 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
               type="button"
               role="tab"
               aria-selected={tab === t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => {
+                if (t.id !== tab) track("view_stock_tab", { ticker, tab: t.id });
+                setTab(t.id);
+              }}
               className={
                 // The pill style is the reference for stock tabs elsewhere (explorer card). tap-target
                 // grows the pill's hit area to 40px; touch screens (incl. tablets on sm sizing) also
