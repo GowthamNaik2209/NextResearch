@@ -28,12 +28,15 @@ export function ReturnCards({
   basket,
   picks,
   benches,
+  dense = false,
 }: {
   range: ChartRange;
   basket: CardLine;
   /** The picked stocks' backtest, with the tickers and weighting named under the figure. */
   picks: (CardLine & { tickers: string[]; weighting: "equal" | "mcap" }) | null;
   benches: CardLine[];
+  /** The basket pages' flat strip (full width, square cells); the Analysis charts keep the cards. */
+  dense?: boolean;
 }) {
   const [loads, setLoads] = useState<Record<string, Load>>({});
   // One string of every key, so a re-render with the same lines doesn't re-run the effect.
@@ -82,8 +85,8 @@ export function ReturnCards({
   // One row on every screen, one column per card (2 or 3), so the cards never stack on phones.
   const count = 1 + (picks ? 1 : 0) + benches.length;
   return (
-    <section aria-label="Backtest summary" className="grid max-w-3xl gap-2 sm:gap-3" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}>
-      <Stat label={basket.label} value={b.value} loading={b.loading} note={basket.note} strong />
+    <section aria-label="Backtest summary" className={dense ? "grid gap-2" : "grid max-w-3xl gap-2 sm:gap-3"} style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}>
+      <Stat label={basket.label} value={b.value} loading={b.loading} note={basket.note} strong dense={dense} />
       {picks && p && (
         <Stat
           label={picks.label}
@@ -92,12 +95,13 @@ export function ReturnCards({
           who="picks"
           diff={gap(p.value, true)}
           note={p.note}
+          dense={dense}
           title={`${picks.tickers.join(", ")} · ${picks.weighting === "mcap" ? "market-cap" : "equal"} weight`}
         />
       )}
       {benches.map((line) => {
         const c = card(line);
-        return <Stat key={line.key} label={line.label} value={c.value} loading={c.loading} note={c.note} diff={gap(c.value, false)} />;
+        return <Stat key={line.key} label={line.label} value={c.value} loading={c.loading} note={c.note} diff={gap(c.value, false)} dense={dense} />;
       })}
     </section>
   );
@@ -107,7 +111,7 @@ export function ReturnCards({
 // Compact on purpose: three of these share one row on a phone. The gap is one short line,
 // signed: on the picks card it is the picks against the basket, on an index card the basket
 // against that index.
-function Stat({ label, value, loading, diff, note, title, strong, who = "basket" }: { label: string; value: number | null; loading: boolean; diff?: number | null; note?: string; title?: string; strong?: boolean; who?: "basket" | "picks" }) {
+function Stat({ label, value, loading, diff, note, title, strong, dense, who = "basket" }: { label: string; value: number | null; loading: boolean; diff?: number | null; note?: string; title?: string; strong?: boolean; dense?: boolean; who?: "basket" | "picks" }) {
   // "pts" only from sm: a phone's third-of-a-row card has room for the number alone.
   const pts =
     diff == null ? null : (
@@ -118,7 +122,7 @@ function Stat({ label, value, loading, diff, note, title, strong, who = "basket"
       </>
     );
   return (
-    <div title={title} className={"min-w-0 rounded-xl border px-2.5 py-2 sm:p-3 " + (strong ? "border-accent bg-accent/5" : "border-line bg-panel")}>
+    <div title={title} className={"min-w-0 border " + (dense ? "rounded-md px-2.5 py-1.5 sm:px-3 " : "rounded-xl px-2.5 py-2 sm:p-3 ") + (strong ? "border-accent bg-accent/5" : "border-line bg-panel")}>
       <div className="truncate text-[10px] leading-snug text-ink-soft sm:text-[11px]">{label}</div>
       <div className={"mt-0.5 font-mono text-base font-bold sm:text-lg " + (value == null ? "text-ink-soft" : value >= 0 ? "text-pos" : "text-danger")}>{value != null ? pct(value) : loading ? "…" : "—"}</div>
       {diff != null && (
