@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { UserMenu } from "./UserMenu";
 import { MobileMenu } from "./MobileMenu";
@@ -6,6 +5,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { ShortcutLink } from "./KeyboardShortcuts";
 import { NavPill } from "./NavPill";
 import { WatchlistNavLink } from "./WatchlistNavLink";
+import { SignupLink } from "./SignupLink";
 
 export async function SiteHeader() {
   const user = await getCurrentUser();
@@ -36,9 +36,9 @@ export async function SiteHeader() {
           {/* Signed-out only, so it never shares the row with the landing-page name chip. All widths
               see the same "Sign up" label everywhere (it fits beside the logo and icons at 375px). */}
           {!user && (
-            <Link href="/signup" className="tap-target whitespace-nowrap rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-bg hover:opacity-90 sm:px-3.5 sm:py-2 sm:text-sm">
+            <SignupLink from="header" className="tap-target whitespace-nowrap rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-bg hover:opacity-90 sm:px-3.5 sm:py-2 sm:text-sm">
               Sign up
-            </Link>
+            </SignupLink>
           )}
           <UserMenu key={`${user?.id ?? "anon"}-${displayName}`} email={user?.email ?? null} displayName={displayName} />
         </div>

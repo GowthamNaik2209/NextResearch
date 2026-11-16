@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { login, loginWithGoogle } from "@/app/auth/actions";
 import { SiteHeader } from "@/components/SiteHeader";
 import { redirect } from "next/navigation";
 import { safeNext } from "@/lib/safe-next";
 import { getCurrentUser } from "@/lib/auth";
+import { SignupLink } from "@/components/SignupLink";
 
 export const metadata = { title: "Log in", robots: { index: false, follow: true } };
 
@@ -85,9 +85,9 @@ export default async function LoginPage({
 
         <p className="mt-6 text-sm text-ink-soft">
           No account?{" "}
-          <Link href={signupHref} className="tap-target text-accent hover:underline">
+          <SignupLink from="login_page" href={signupHref} className="tap-target text-accent hover:underline">
             Sign up
-          </Link>
+          </SignupLink>
         </p>
       </div>
     </main>

@@ -1,6 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { NewsList } from "@/components/NewsList";
-import { getLatestNews, getNewsForTickers } from "@/lib/live/news";
+import { getLatestNews, getNewsForSectors, getNewsForTickers } from "@/lib/live/news";
 import { classifyTone, type Tone } from "@/lib/news-tone";
 import { getStakeMoves } from "@/lib/flows/query";
 import { presentableNews } from "@/lib/news-display";
@@ -11,6 +11,13 @@ type Props = {
   sectorSlug?: string;
   /** Or show news for specific tickers (e.g. a watchlist) instead of the platform feed. */
   tickers?: string[];
+  /** Or news across several followed industries (/watchlist), leaving out `excludeTickers`. */
+  sectorSlugs?: string[];
+  excludeTickers?: string[];
+  /** The empty-feed line, when the default ("check back soon") doesn't fit. */
+  emptyText?: string;
+  /** Keep the industry on phones (see NewsList), for a feed mixing industries. */
+  sectorOnPhones?: boolean;
   limit: number;
   showSector?: boolean;
   /** Tag headlines with the company's quarterly FII/DII stake move when it is notable. */
@@ -37,9 +44,13 @@ export function NewsFeed(props: Props) {
 
 const SPARE = 6;
 
-async function NewsFeedContent({ sectorSlug, tickers, limit, showSector = true, stakeTags = false, twoColumns = false, tone, header }: Props) {
+async function NewsFeedContent({ sectorSlug, tickers, sectorSlugs, excludeTickers, emptyText, sectorOnPhones = false, limit, showSector = true, stakeTags = false, twoColumns = false, tone, header }: Props) {
   // A few spare headlines, so dropping grey-market and stale IPO stories still fills the list.
-  const fetched = tickers ? await getNewsForTickers(tickers, limit + SPARE) : await getLatestNews({ sectorSlug, limit: limit + SPARE });
+  const fetched = tickers
+    ? await getNewsForTickers(tickers, limit + SPARE)
+    : sectorSlugs
+      ? await getNewsForSectors(sectorSlugs, limit + SPARE, excludeTickers)
+      : await getLatestNews({ sectorSlug, limit: limit + SPARE });
   const live = fetched.live;
   const all = presentableNews(fetched.items, isListedTicker).slice(0, limit);
   const tones = all.map((n) => classifyTone(n.headline).tone);
@@ -52,11 +63,11 @@ async function NewsFeedContent({ sectorSlug, tickers, limit, showSector = true, 
       {header?.(counts)}
       {items.length === 0 ? (
         <p className="rounded-2xl border border-line bg-panel px-5 py-6 text-sm text-ink-soft">
-          {all.length > 0 ? "No headlines of this kind in the latest news. Pick All to see every headline." : "No recent headlines right now — check back soon."}
+          {all.length > 0 ? "No headlines of this kind in the latest news. Pick All to see every headline." : (emptyText ?? "No recent headlines right now — check back soon.")}
         </p>
       ) : (
         <div>
-          <NewsList items={items} showSector={showSector} stakes={stakes} twoColumns={twoColumns} />
+          <NewsList items={items} showSector={showSector} stakes={stakes} twoColumns={twoColumns} sectorOnPhones={sectorOnPhones} />
           <p className="mt-2 text-[11px] text-ink-soft">
             {live ? "Live headlines via Google News, refreshed every 15 minutes." : "Live feed unavailable right now — showing curated headlines."}
           </p>

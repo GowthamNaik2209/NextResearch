@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import { track } from "@/lib/analytics";
 import { createPortal } from "react-dom";
 import type { Deck } from "@/lib/sector-content/reports";
 import type { IpoDeck } from "@/lib/ipo-content";
@@ -119,12 +120,14 @@ type LazyProps<T> = {
 
 /** A research deck by slug, loaded on open. */
 export function LazyResearchDeck({ slug, initialDeck, onClose, urlParam, adoptHistoryEntry }: LazyProps<Deck>) {
+  useEffect(() => track("open_report", { sector: slug }), [slug]);
   const { deck, failed } = useDeck(reportUrl(slug), slug, initialDeck);
   return deck ? <ResearchDeck deck={deck} onClose={onClose} urlParam={urlParam} adoptHistoryEntry={adoptHistoryEntry} /> : <DeckLoading failed={failed} onClose={onClose} />;
 }
 
 /** An IPO deck by slug, loaded on open. */
 export function LazyIpoDeck({ slug, initialDeck, onClose, urlParam, adoptHistoryEntry }: LazyProps<IpoDeck>) {
+  useEffect(() => track("open_ipo_deck", { ipo: slug }), [slug]);
   const { deck, failed } = useDeck(ipoUrl(slug), slug, initialDeck);
   return deck ? <IpoDeckView deck={deck} onClose={onClose} urlParam={urlParam} adoptHistoryEntry={adoptHistoryEntry} /> : <DeckLoading failed={failed} onClose={onClose} />;
 }

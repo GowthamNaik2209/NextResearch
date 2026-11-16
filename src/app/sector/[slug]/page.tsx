@@ -26,6 +26,7 @@ import { isoDay } from "@/lib/financials/rows";
 import type { Metadata } from "next";
 import { Points } from "@/components/Points";
 import { IndustryActions } from "@/components/charts/IndustryHeatmap";
+import { FollowIndustryButton } from "@/components/FollowIndustryButton";
 import { actionClass } from "@/components/charts/action-class";
 import { industryViewData, industryViewOptions } from "@/lib/baskets/industry-views";
 import { ensureFinancials } from "@/lib/financials/load";
@@ -141,17 +142,22 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                 <p className="mt-1 text-sm text-ink-soft">{sector.tagline}</p>
               </div>
             </div>
-            {sector.dataStatus && (
-              <span
-                className={
-                  sector.dataStatus === "demo"
-                    ? "text-[11px] text-ink-soft sm:mt-1"
-                    : "rounded-full border border-amber/40 bg-amber/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-ink"
-                }
-              >
-                {sector.dataStatus === "demo" ? "From publicly available information" : sector.dataStatus}
-              </span>
-            )}
+            {/* Follow sits with the name (the action row below is full at desktop widths): its news then
+                shows on /watchlist. A muted module can't be followed. Phones: its own line under the name. */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:ml-auto sm:flex-col sm:items-end">
+              {!sector.muted && <FollowIndustryButton slug={sector.slug} name={sector.name} word={categoryWord(sector.category)} />}
+              {sector.dataStatus && (
+                <span
+                  className={
+                    sector.dataStatus === "demo"
+                      ? "text-[11px] text-ink-soft"
+                      : "rounded-full border border-amber/40 bg-amber/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-ink"
+                  }
+                >
+                  {sector.dataStatus === "demo" ? "From publicly available information" : sector.dataStatus}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

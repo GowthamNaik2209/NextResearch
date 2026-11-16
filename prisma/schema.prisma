@@ -111,6 +111,7 @@ model Profile {
   email     String      @unique
   createdAt DateTime    @default(now())
   watchlist Watchlist[]
+  follows   IndustryFollow[]
   baskets   Basket[]
   emailPref EmailPref?
   signals   SignalStrategy[]
@@ -158,6 +159,19 @@ model Watchlist {
   addedAt    DateTime @default(now())
 
   @@unique([userId, companyId])
+}
+
+// An industry, policy or index a user follows ("Follow industry" on its page): its headlines show
+// on /watchlist beside the saved stocks' news. `sectorSlug` is the content slug (sector content
+// lives in git, not the database), so a slug whose module is later retired or muted is simply
+// skipped on read (src/lib/follows.ts), never an error.
+model IndustryFollow {
+  userId     String
+  user       Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sectorSlug String
+  followedAt DateTime @default(now())
+
+  @@id([userId, sectorSlug])
 }
 
 // A user's own basket of stocks: tracked and backtested, never traded. Industry baskets

@@ -19,6 +19,8 @@ import { WatchlistRow } from "./WatchlistRow";
 import { WatchlistBacktest, WatchlistNewsGate } from "./WatchlistLive";
 import { BriefToggle } from "./BriefToggle";
 import { briefEnabled } from "@/lib/brief/prefs";
+import { followedSectors } from "@/lib/follows";
+import { FollowedChips, FollowedNewsGate } from "./WatchlistFollows";
 
 export const metadata = { title: "Watchlist", robots: { index: false, follow: false } };
 
@@ -47,7 +49,16 @@ export default async function WatchlistPage() {
     orderBy: { addedAt: "desc" },
   });
   // On when it can't be read (a database blip), as it is for everyone who hasn't turned it off.
-  const [live, brief] = await Promise.all([quotes(rows.map((r) => r.company.ticker)), briefEnabled(user.id).catch(() => true)]);
+  // Follows: none shown when they can't be read (a database blip) - the stocks still render.
+  const [live, brief, follows] = await Promise.all([
+    quotes(rows.map((r) => r.company.ticker)),
+    briefEnabled(user.id).catch(() => true),
+    followedSectors(user.id).catch((e) => {
+      console.error("watchlist follows read failed", e);
+      return [];
+    }),
+  ]);
+  const watched = rows.map((r) => r.company.ticker);
   const basketable = rows.map((r) => r.company.ticker).filter((t) => basketStock(t));
 
   return (
@@ -58,7 +69,7 @@ export default async function WatchlistPage() {
           <div>
             <h1 className="font-display text-2xl font-bold text-ink">Watchlist</h1>
             <p className="mt-1 text-sm text-ink-soft">
-              Companies you&rsquo;ve saved by tapping the heart next to a ticker anywhere in the explorer.
+              Companies you&rsquo;ve saved with the heart, and industries you follow.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -69,14 +80,27 @@ export default async function WatchlistPage() {
           </div>
         </div>
 
+        {follows.length > 0 && (
+          <section aria-labelledby="following-heading">
+            <h2 id="following-heading" className="font-display text-lg font-bold text-ink">
+              Industries you follow
+            </h2>
+            <div className="mt-3">
+              <FollowedChips follows={follows} />
+            </div>
+          </section>
+        )}
+
         {rows.length === 0 ? (
           <div className="rounded-2xl border border-line bg-panel p-8 text-center">
             <p className="text-sm text-ink-soft">
-              Nothing saved yet. Open any{" "}
-              <Link href="/" className="text-accent hover:underline">
-                sector
+              {follows.length > 0 ? "No companies saved yet." : "Nothing saved yet."} Open any{" "}
+              <Link href="/#themes" className="text-accent hover:underline">
+                industry
               </Link>
-              , click into a component, and tap the heart next to a listed company&rsquo;s ticker.
+              {follows.length > 0
+                ? " and tap the heart next to a listed company to keep it here."
+                : " and tap Follow industry to see its news here, or the heart next to a listed company to keep the company."}
             </p>
           </div>
         ) : (
@@ -182,11 +206,33 @@ export default async function WatchlistPage() {
           <WatchlistNewsGate tickers={rows.map((r) => r.company.ticker)}>
             <section className="mt-4 max-w-3xl">
               <h2 className="font-display text-lg font-bold text-ink">News on your watchlist</h2>
+              {follows.length === 0 && (
+                <p className="mt-1 text-xs text-ink-soft">Tap Follow industry on any industry&rsquo;s page to add its news here too.</p>
+              )}
               <div className="mt-3">
                 <NewsFeed tickers={rows.map((r) => r.company.ticker)} limit={8} showSector={false} />
               </div>
             </section>
           </WatchlistNewsGate>
+        )}
+
+        {follows.length > 0 && (
+          <FollowedNewsGate slugs={follows.map((f) => f.slug)}>
+            <section className="mt-4 max-w-3xl">
+              <h2 className="font-display text-lg font-bold text-ink">News from industries you follow</h2>
+              {rows.length > 0 && <p className="mt-1 text-xs text-ink-soft">Skips the companies you saved: their news is in the list above.</p>}
+              <div className="mt-3">
+                {/* Tagged with the industry, so a mixed feed says where each headline comes from. */}
+                <NewsFeed
+                  sectorSlugs={follows.map((f) => f.slug)}
+                  excludeTickers={watched}
+                  sectorOnPhones
+                  limit={10}
+                  emptyText="No recent headlines from these industries right now — check back soon."
+                />
+              </div>
+            </section>
+          </FollowedNewsGate>
         )}
       </main>
       <SiteFooter />

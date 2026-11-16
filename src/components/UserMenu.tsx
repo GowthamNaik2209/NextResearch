@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout, updateDisplayName } from "@/app/auth/actions";
+import { forgetFollows } from "@/components/FollowIndustryButton";
 import { ThemeToggle } from "./ThemeToggle";
 import { ACCOUNT_MENU_EVENT, useShortcutHint, withHint } from "./KeyboardShortcuts";
 
@@ -191,7 +192,7 @@ export function UserMenu({ email, displayName }: Props) {
               >
                 All companies
               </Link>
-              <form action={logout} className="mt-1">
+              <form action={logout} onSubmit={forgetFollows} className="mt-1">
                 <button
                   type="submit"
                   className="w-full rounded-lg border border-btn px-2 py-1.5 pointer-coarse:py-2.5 text-left text-xs text-ink-soft hover:border-danger hover:text-danger"

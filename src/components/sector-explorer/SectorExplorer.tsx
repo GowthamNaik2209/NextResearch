@@ -17,6 +17,7 @@ import { installFinancials } from "@/lib/financials/store";
 import { listScenarioSections, listScenarios, scenarioCompanies, scenarioZoneImpacts } from "@/lib/sector-content/scenarios";
 import { mountExplorer, type ExplorerController, type ExplorerDom, type ImpactMap } from "./engine";
 import { GUIDED_TOUR_ENABLED } from "@/lib/feature-flags";
+import { track } from "@/lib/analytics";
 import { SupplierDetail } from "./SupplierDetail";
 import { HeatmapStage } from "./HeatmapStage";
 import { MacroPanel } from "./MacroPanel";
@@ -328,6 +329,9 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
     setIsPanelOpen(!!validZone || listScenarios(sector.slug).some((x) => linked.includes(x.id)));
     setIsSheetFull(!!validCompany);
 
+    // Funnel: the map opened, and on what a shared link pointed it at (a post's ?scenario= link).
+    track("open_map", { sector: sector.slug, entry: validCompany ? "company" : validZone ? "zone" : listScenarios(sector.slug).some((x) => linked.includes(x.id)) ? "scenario" : "none" });
+
     // ?tour=1 (from the overview page's "Start guided tour" action) auto-starts
     // the camera cycle once the scene has had a moment to settle into its default
     // view — muted for now (see GUIDED_TOUR_ENABLED) along with the rest of the tour.
@@ -414,6 +418,16 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
     if (url !== window.location.pathname + window.location.search) window.history.replaceState(null, "", url);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentZoneId, currentSupplier, scenarioKey]);
+
+  // Funnel: each layer/system and each what-if picked (a deep link's own pick counts once too).
+  useEffect(() => {
+    if (currentZoneId) track("select_zone", { sector: sector.slug, zone: currentZoneId });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentZoneId]);
+  useEffect(() => {
+    if (scenarioKey) track("run_scenario", { sector: sector.slug, scenario: scenarioKey });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scenarioKey]);
 
   const zone = currentZoneId ? sector.zones.find((z) => z.id === currentZoneId) ?? null : null;
   // Normalized to plain keys once here — a zone's suppliers may be bare keys or

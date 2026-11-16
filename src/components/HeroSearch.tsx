@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SearchEntry } from "@/lib/sector-content/stats";
+import { track } from "@/lib/analytics";
 
 // Lower is better. The label leads: an exact name, then a name that starts with the term, then
 // one with a word that does ("steel" -> "Tata Steel"), then anywhere in it. Aliases (ticker,
@@ -82,9 +83,13 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
       e.preventDefault();
       const pick = results[active >= 0 ? active : 0];
       setOpen(false);
+      trackPick(pick);
       router.push(pick.href);
     }
   };
+
+  // Funnel: which result a search led to (not the typed text: see analytics.ts).
+  const trackPick = (r: SearchEntry) => track("search", { result_type: r.kind, result: r.label, term_length: q.trim().length });
 
   const optionId = (i: number) => `${listId}-opt-${i}`;
   // Keep the arrow-key highlight in view once the list scrolls ("Show all").
@@ -137,7 +142,10 @@ export function HeroSearch({ index }: { index: SearchEntry[] }) {
               <Link
                 href={r.href}
                 tabIndex={-1}
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  trackPick(r);
+                  setOpen(false);
+                }}
                 onMouseEnter={() => setActive(i)}
                 className={"flex items-center justify-between gap-3 px-4 py-2.5 " + (i === active ? "bg-accent/10 shadow-[inset_3px_0_0_var(--accent)]" : "hover:bg-panel-2")}
               >

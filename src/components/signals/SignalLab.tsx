@@ -16,6 +16,7 @@ import { StockResults, Readings } from "./StockResults";
 import { BasketResults } from "./BasketResults";
 import { SavedPanel } from "./SavedPanel";
 import { BTN, FIELD, ctlLabel, segBtn, type Answer } from "./ui";
+import { track } from "@/lib/analytics";
 
 // The signal backtest (docs/SIGNALS.md): pick a stock or basket, start from an idea or build rules,
 // and see how they would have traded. Changing the stock, basket, range, check or costs runs again at
@@ -143,6 +144,7 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
       const body = await res.json().catch(() => null);
       if (!res.ok) return setError(body?.error ?? "Couldn't save right now. Try again shortly.");
       const s = body.saved as SavedSignal;
+      track("save_signal", { scope: where.scope, target: where.target, alerts: alerts ? "on" : "off" });
       setSaved((list) => [s, ...list.filter((x) => x.id !== s.id)]);
       setNote(alerts ? "Saved, and emails are on: you'll get one when these rules are met on a close." : "Saved. These rules open here next time.");
       // Rules saved before they were run: run them, so the status and results describe what was saved.
