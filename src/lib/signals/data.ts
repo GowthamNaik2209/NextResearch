@@ -7,6 +7,7 @@ import { listBasketUniverse } from "@/lib/baskets/industry";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { rankIn } from "@/lib/financials/trend";
 import { alignTo, dataGaps, Metrics, type DailyBars, type PanelRows } from "./compute";
+import { PENDING, waitUpTo } from "./wait";
 
 const PANEL_TTL_MS = 6 * 60 * 60 * 1000;
 const TREND_DAYS = 252;
@@ -83,9 +84,9 @@ function panel(): Promise<Panel | null> {
     .finally(() => (building = null));
   return building;
 }
-// How long a request waits for a panel still building before answering "try again shortly".
-const PANEL_WAIT_MS = 25_000;
-const PENDING = Symbol("pending");
+// How long a page request waits for a panel still building before answering "try again shortly".
+// The nightly alert check (./alerts.ts) can't ask again, so it passes its own, longer wait.
+export const PANEL_WAIT_MS = 25_000;
 
 export type StockData = { mx: Metrics; source: string; lastDay: string };
 
@@ -98,12 +99,11 @@ export class PanelPending extends Error {
 
 /**
  * A covered stock's metrics, or null when the store has no prices for it. `needPanel`: the rules read
- * the Trend percentile or RS vs industry, so the panel is built if this instance hasn't one.
+ * the Trend percentile or RS vs industry, so the panel is built if this instance hasn't one, waiting
+ * up to `panelWaitMs` for it before throwing PanelPending.
  */
-export async function loadStock(ticker: string, needPanel: boolean): Promise<StockData | null> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const waitPanel = () => Promise.race([panel(), new Promise<typeof PENDING>((r) => (timer = setTimeout(() => r(PENDING), PANEL_WAIT_MS)))]).finally(() => clearTimeout(timer));
-  const [stock, nifty, p] = await Promise.all([storedDailyBars(ticker, "5Y"), storedDailyChart(BENCHMARKS.nifty50.symbol, "5Y"), needPanel ? waitPanel() : Promise.resolve(peekPanel())]);
+export async function loadStock(ticker: string, needPanel: boolean, panelWaitMs = PANEL_WAIT_MS): Promise<StockData | null> {
+  const [stock, nifty, p] = await Promise.all([storedDailyBars(ticker, "5Y"), storedDailyChart(BENCHMARKS.nifty50.symbol, "5Y"), needPanel ? waitUpTo(panel(), panelWaitMs) : Promise.resolve(peekPanel())]);
   if (p === PENDING) throw new PanelPending();
   if (!stock || stock.bars.length < 30) return null;
   const b = stock.bars;
@@ -118,14 +118,14 @@ const BASKET_READS = 8;
 export type BasketData = { stocks: { ticker: string; mx: Metrics }[]; missing: string[]; nifty: { t: string; c: number }[] };
 
 /** Every stock of a basket (those with prices), and the Nifty 50's closes for the basket's calendar. */
-export async function loadBasket(tickers: string[], needPanel: boolean): Promise<BasketData | null> {
+export async function loadBasket(tickers: string[], needPanel: boolean, panelWaitMs = PANEL_WAIT_MS): Promise<BasketData | null> {
   const nifty = await storedDailyChart(BENCHMARKS.nifty50.symbol, "5Y");
   if (!nifty?.length) return null;
   const stocks: { ticker: string; mx: Metrics }[] = [];
   const missing: string[] = [];
   for (let i = 0; i < tickers.length; i += BASKET_READS) {
     const batch = tickers.slice(i, i + BASKET_READS);
-    const got = await Promise.all(batch.map((t) => loadStock(t, needPanel)));
+    const got = await Promise.all(batch.map((t) => loadStock(t, needPanel, panelWaitMs)));
     batch.forEach((t, j) => (got[j] ? stocks.push({ ticker: t, mx: got[j]!.mx }) : missing.push(t)));
   }
   return { stocks, missing, nifty };
