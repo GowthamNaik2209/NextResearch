@@ -28,6 +28,7 @@ import { isAbout } from "@/lib/live/news";
 import { analysisChartIndustries, analysisProps } from "@/lib/analysis-props";
 import { midSentence, themeNames } from "@/lib/site";
 import { getFinancials } from "@/lib/financials/store";
+import { hasQuote } from "@/lib/financials/no-quote";
 import { industryPe, pePeers } from "@/lib/valuation/pe-data";
 import { MIN_INDEX_PEERS, MIN_PEERS } from "@/lib/valuation/pe-context";
 import { isReit } from "@/components/stock/merge";
@@ -100,6 +101,11 @@ const RULES = {
       const home = pePeers(p.ticker);
       return !home || home.peers.filter((s) => s.pe != null).length < home.min;
     },
+  },
+  noQuote: {
+    id: "no-quote",
+    reason: "no traded price from any source (financials/no-quote.ts NO_QUOTE): the price store skips it and it keeps its stored figures with a note",
+    applies: (p) => !hasQuote(p.ticker),
   },
   deckCurated: {
     id: "deck-curated",
@@ -253,7 +259,7 @@ test("P/E in context: its home industry's median among covered stocks", () => {
 
 test("price store keeps a series for it (backtests, projections' risk)", () => {
   const keys = new Set(storeKeys().map((k) => k.key));
-  check("the price store's keys (prices/refresh.ts storeKeys)", (p) => keys.has(p.ticker));
+  check("the price store's keys (prices/refresh.ts storeKeys)", (p) => keys.has(p.ticker), [RULES.noQuote]);
 });
 
 test("footprint and /connections", () => {
