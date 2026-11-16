@@ -190,8 +190,8 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
 
   return (
     <div ref={top} className="flex scroll-mt-16 flex-col gap-3">
-      <StarterCards active={preset} onPick={applyPreset} />
-
+      {/* What is being tested comes first: the stock or basket, then range, check and costs. Under the
+          idea cards it sat a screen down, so the page didn't say whose backtest it was. */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border border-line bg-panel px-3 py-2">
         {locked ? (
           <div className="flex min-w-0 items-center gap-1.5">
@@ -279,6 +279,8 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
           </select>
         </label>
       </div>
+
+      <StarterCards active={preset} onPick={applyPreset} />
 
       {(status || note) && (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-accent/50 bg-accent/5 px-3 py-2 text-xs">
