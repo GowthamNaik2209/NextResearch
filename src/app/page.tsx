@@ -7,7 +7,6 @@ import { ReadingList } from "@/components/research/ReadingList";
 import { analysisProps, analysisView } from "@/lib/analysis-props";
 import { IdeasSection } from "@/components/IdeasSection";
 import { Hero } from "@/components/landing/Hero";
-import { StatsStrip } from "@/components/landing/StatsStrip";
 import { FeaturedThesis } from "@/components/landing/FeaturedThesis";
 import { UpdatesSection } from "@/components/landing/UpdatesSection";
 import { HowItWorks } from "@/components/landing/HowItWorks";
@@ -35,9 +34,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <SiteHeader />
       <main className="flex-1">
         <section className="border-b border-line">
-          <Hero featured={featured} searchIndex={buildSearchIndex()} themeRows={buildHeroThemeRows(featured?.slug)} />
-          <StatsStrip stats={getPlatformStats()} />
+          <Hero featured={featured} searchIndex={buildSearchIndex()} themeRows={buildHeroThemeRows(featured?.slug)} stats={getPlatformStats()} />
         </section>
+
+        {/* The question paths come straight after the hero: they tell the story (industry to basket) before the data. */}
+        <HowItWorks />
 
         {/* The market by industry: the tiles render now, the figures stream in (promises, read in the browser with use()). */}
         <MarketPulse tiles={marketTiles()} figures={getMarketFigures()} stocks={getMarketStocks()} />
@@ -65,7 +66,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </section>
 
         <UpdatesSection />
-        <HowItWorks />
         <CompanyFeatures />
         <FaqSection />
         <ClosingCta />
