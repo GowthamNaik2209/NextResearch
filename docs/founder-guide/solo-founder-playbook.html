@@ -1,0 +1,436 @@
+<title>The Solo Founder Build Log</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single build-log column; each section is a "module" the reader operates, ruled like a terminal ledger */
+:root{
+  --bg:#f6f7f4; --surface:#ffffff; --sunk:#eceee8; --fg:#15180f; --muted:#5b6152; --line:#d9dcd2;
+  --accent:#1f8a4c; --accent-ink:#ffffff; --accent-soft:#dff1e5; --warn:#b5651d;
+  --display:"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --body:"IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e0f0b; --surface:#16180f; --sunk:#1d2015; --fg:#eef0e6; --muted:#9aa08c; --line:#2c3022;
+  --accent:#f2c84b; --accent-ink:#15180f; --accent-soft:#3a3214; --warn:#e8995a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e0f0b; --surface:#16180f; --sunk:#1d2015; --fg:#eef0e6; --muted:#9aa08c; --line:#2c3022;
+  --accent:#f2c84b; --accent-ink:#15180f; --accent-soft:#3a3214; --warn:#e8995a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+.wrap{max-width:880px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.1}
+p{margin:0}
+.mono{font-family:var(--mono)}
+a{color:var(--accent)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.hero{padding-block:56px 32px;display:grid;gap:20px;border-bottom:1px solid var(--line)}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.hero h1{font-size:clamp(36px,7vw,68px);font-weight:800;letter-spacing:-.02em}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p.lede{max-width:62ch;color:var(--muted);font-size:18px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:8px}
+.stat{background:var(--surface);padding:14px 16px}
+.stat b{display:block;font:700 30px/1 var(--display);font-variant-numeric:tabular-nums}
+.stat span{font:12px/1.3 var(--mono);color:var(--muted)}
+
+section.mod{padding-block:44px 8px;display:grid;gap:18px}
+section.mod>*{min-width:0}
+.mod-head{display:grid;gap:8px}
+.mod-head .tag{font:500 12px/1 var(--mono);color:var(--accent);letter-spacing:.08em;text-transform:uppercase}
+.mod-head h2{font-size:clamp(26px,4.4vw,36px);font-weight:700;letter-spacing:-.01em}
+.mod-head p{color:var(--muted);max-width:64ch}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:4px}
+
+/* weeks */
+.weeks{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:16px;align-items:end}
+.wk{background:none;border:0;padding:0;display:grid;gap:8px;text-align:left}
+.wk .col{height:120px;display:flex;align-items:flex-end}
+.wk .col i{display:block;width:100%;background:var(--line);border-radius:3px 3px 0 0;transition:background .15s}
+.wk:hover .col i{background:var(--muted)}
+.wk[aria-pressed="true"] .col i{background:var(--accent)}
+.wk .wl{font:500 12px var(--mono);color:var(--muted)}
+.wk[aria-pressed="true"] .wl{color:var(--fg)}
+.detail ul{margin:0;padding-left:18px;display:grid;gap:4px}
+/* chart */
+.chart-box{padding:16px;overflow-x:auto}
+.chart-box svg{display:block;width:100%;min-width:560px;height:auto}
+.bar{fill:var(--line);transition:fill .15s}
+.bar.ms{fill:var(--muted)}
+.bar.on{fill:var(--accent)}
+.barhit{fill:transparent;cursor:pointer}
+.axis{fill:var(--muted);font:11px var(--mono)}
+.grid{stroke:var(--line);stroke-width:1}
+.detail{border-top:1px solid var(--line);padding:18px;display:grid;gap:10px;min-height:150px}
+.detail .d-date{font:500 13px var(--mono);color:var(--muted)}
+.detail h3{font-size:22px}
+.quote{font:14px/1.55 var(--mono);background:var(--sunk);border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 4px 4px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 16px}
+.chip{border:1px solid var(--line);background:transparent;border-radius:99px;padding:5px 11px;font:12px var(--mono);color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+/* stack map */
+.stack{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:0}
+@media (max-width:680px){.stack{grid-template-columns:1fr}}
+.stack svg{width:100%;height:auto;display:block;border-right:1px solid var(--line)}
+@media (max-width:680px){.stack svg{border-right:0;border-bottom:1px solid var(--line)}}
+.node rect{fill:var(--sunk);stroke:var(--line);stroke-width:1.2;transition:fill .15s,stroke .15s}
+.node text{fill:var(--fg);font:600 13px var(--body);pointer-events:none}
+.node text.sub{fill:var(--muted);font:11px var(--mono)}
+.node{cursor:pointer}
+.node:hover rect{stroke:var(--accent)}
+.node.on rect{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
+.edge{stroke:var(--muted);stroke-width:1.4;fill:none;stroke-dasharray:4 4}
+.edge-label{fill:var(--muted);font:10px var(--mono)}
+.stack-info{padding:20px;display:grid;gap:12px;align-content:start}
+.stack-info h3{font-size:24px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
+.stack-info .kv{grid-template-columns:1fr;gap:2px}
+.stack-info .kv dd{margin-bottom:10px}
+@media (max-width:520px){.kv{grid-template-columns:1fr;gap:2px}.kv dd{margin-bottom:10px}}
+.kv dt{font:500 12px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding-top:2px}
+.kv dd{margin:0}
+
+/* release flow */
+.flow{padding:18px;display:grid;gap:18px}
+.track{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
+.step{height:6px;background:var(--line);border-radius:3px;transition:background .2s}
+.step.done{background:var(--accent)}
+.flow-body{display:grid;grid-template-columns:72px minmax(0,1fr);gap:16px;align-items:start}
+.flow-num{font:800 56px/0.9 var(--display);color:var(--accent);font-variant-numeric:tabular-nums}
+.flow-body h3{font-size:22px;margin-bottom:6px}
+.who{display:inline-block;font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;padding:3px 8px;border-radius:3px;background:var(--sunk);color:var(--muted);margin-bottom:8px}
+.who.you{background:var(--accent);color:var(--accent-ink)}
+.flow-ctrl{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);padding:9px 16px;border-radius:4px;font-weight:600;min-height:40px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.4;cursor:default}
+
+/* prompts */
+.tabs{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:10px 12px;font:500 13px var(--body);color:var(--muted);white-space:nowrap;min-height:44px}
+.tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.tabpanel{padding:18px;display:grid;gap:14px}
+.tabpanel .why{color:var(--muted);font-size:15px;max-width:64ch}
+.tabpanel .then{font-size:14px}
+.tabpanel .then b{font-family:var(--mono);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-right:6px}
+
+/* loop */
+.loop{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.loop-item{background:var(--surface);padding:16px;display:grid;gap:6px;align-content:start}
+.loop-item .n{font:500 12px var(--mono);color:var(--accent)}
+.loop-item h3{font-size:17px}
+.loop-item p{font-size:14px;color:var(--muted)}
+.origin{display:grid;gap:10px}
+.origin-row{display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px;padding:14px 16px;border-top:1px solid var(--line)}
+.origin-row:first-child{border-top:0}
+.origin-row b{font-family:var(--display);font-size:17px}
+.origin-row p{font-size:14px;color:var(--muted)}
+@media (max-width:520px){.origin-row{grid-template-columns:1fr;gap:4px}.flow-body{grid-template-columns:1fr}.flow-num{font-size:40px}}
+
+/* prompt styles */
+.seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid var(--line)}
+@media (max-width:560px){.seg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.seg button{background:none;border:0;border-right:1px solid var(--line);padding:12px 10px;display:grid;gap:6px;text-align:left;min-height:64px}
+.seg button:last-child{border-right:0}
+.seg button .lbl{font:600 14px var(--body)}
+.seg button .len{height:4px;background:var(--line);border-radius:2px}
+.seg button .len i{display:block;height:100%;background:var(--muted);border-radius:2px}
+.seg button[aria-checked="true"]{background:var(--accent-soft)}
+.seg button[aria-checked="true"] .len i{background:var(--accent)}
+.style-body{padding:18px;display:grid;gap:12px}
+.style-body .kv{font-size:15px}
+
+/* checklist */
+.check{padding:8px 0}
+.check-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 18px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.meter{flex:1;min-width:140px;height:8px;background:var(--sunk);border-radius:4px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.check-count{font:500 13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.check label{display:grid;grid-template-columns:24px minmax(0,1fr);gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);cursor:pointer;align-items:start}
+.check label:last-child{border-bottom:0}
+.check input{width:20px;height:20px;accent-color:var(--accent);margin:2px 0 0}
+.check .t{font-weight:600}
+.check .s{display:block;font-size:14px;color:var(--muted);font-weight:400}
+.check input:checked + span .t{text-decoration:line-through;text-decoration-color:var(--muted)}
+
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px;display:grid;gap:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">A guide for solo founders</div>
+  <h1>How you can build a product <em>alone</em> with the help of AI tools</h1>
+  <p class="lede">Lessons from five weeks of building <a href="https://nextresearchapp.in">NextResearch</a>.</p>
+  <div class="stats">
+    <div class="stat"><b>5</b><span>weeks</span></div>
+    <div class="stat"><b>309</b><span>changes saved</span></div>
+    <div class="stat"><b>64</b><span>releases</span></div>
+    <div class="stat"><b>~590</b><span>requests to the AI</span></div>
+  </div>
+</header>
+
+<section class="mod" id="timeline">
+  <div class="mod-head">
+    <h2>Five weeks, week by week</h2>
+    <p>Tap a week.</p>
+  </div>
+  <div class="panel">
+    <div class="weeks" id="weeks" role="group" aria-label="Weeks"></div>
+    <div class="detail" id="detail" aria-live="polite"></div>
+  </div>
+</section>
+
+<section class="mod" id="stack">
+  <div class="mod-head">
+    <h2>The tools you need</h2>
+    <p>Tap a piece.</p>
+  </div>
+  <div class="panel stack">
+    <svg id="stackmap" viewBox="0 0 340 430" role="group" aria-label="Diagram of the stack"></svg>
+    <div class="stack-info" id="stackinfo" aria-live="polite"></div>
+  </div>
+</section>
+
+<section class="mod" id="release">
+  <div class="mod-head">
+    <h2>How a change goes live</h2>
+    <p>Highlighted steps are yours.</p>
+  </div>
+  <div class="panel flow">
+    <div class="track" id="track"></div>
+    <div class="flow-body" id="flowbody" aria-live="polite"></div>
+    <div class="flow-ctrl">
+      <button class="btn" id="prev" type="button">Back</button>
+      <button class="btn primary" id="next" type="button">Next step</button>
+    </div>
+  </div>
+</section>
+
+<section class="mod" id="ideas">
+  <div class="mod-head">
+    <h2>Where ideas come from</h2>
+    <p>Keep an idea list. Let users point the way.</p>
+  </div>
+  <div class="loop">
+    <div class="loop-item"><span class="n">1</span><h3>Hear it</h3><p>A user or friend asks for something, often in different words.</p></div>
+    <div class="loop-item"><span class="n">2</span><h3>Write it down</h3><p>An idea list in any notes app. Let it sit until it's had real thinking time.</p></div>
+    <div class="loop-item"><span class="n">3</span><h3>Bring references</h3><p>Saved social posts and app screenshots show the look you want.</p></div>
+    <div class="loop-item"><span class="n">4</span><h3>Mock it up</h3><p>The AI makes a mock-up in your brand's colours. You react.</p></div>
+    <div class="loop-item"><span class="n">5</span><h3>Build and test</h3><p>A second AI tests it on phones, tablets and laptops. Then you do.</p></div>
+    <div class="loop-item"><span class="n">6</span><h3>Show the same people</h3><p>Adjust, then make it live.</p></div>
+  </div>
+  <div class="panel origin">
+    <div class="origin-row"><b>Same question, three ways</b><p>When several users ask for the same thing in different words, that's your next feature. On NextResearch, backtesting came from users asking "would buying these have worked?"</p></div>
+    <div class="origin-row"><b>The next question</b><p>A shipped feature creates the next request. Once users could see past returns, they asked for a forward range, which became projections.</p></div>
+    <div class="origin-row"><b>The missing view</b><p>Listen for "it shows me X but not Y". A news page that missed institutional money flows became a flows dashboard.</p></div>
+  </div>
+</section>
+
+<section class="mod" id="styles">
+  <div class="mod-head">
+    <h2>Ways to prompt</h2>
+    <p>No single right way. Pick one.</p>
+  </div>
+  <div class="panel styles">
+    <div class="seg" role="radiogroup" aria-label="Prompt style" id="seg"></div>
+    <div class="style-body" id="stylebody" aria-live="polite"></div>
+  </div>
+</section>
+
+<section class="mod" id="prompts">
+  <div class="mod-head">
+    <h2>Prompts that worked</h2>
+    <p>Say what you saw and what you expected.</p>
+  </div>
+  <div class="panel">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="tabpanel" role="tabpanel" id="tabpanel" aria-live="polite"></div>
+  </div>
+</section>
+
+<section class="mod" id="checklist">
+  <div class="mod-head">
+    <h2>If you&rsquo;re starting this week</h2>
+    <p>Saved in this browser only.</p>
+  </div>
+  <div class="panel check">
+    <div class="check-head"><div class="meter"><i id="meter"></i></div><span class="check-count" id="count">0 of 0</span></div>
+    <div id="checks"></div>
+  </div>
+</section>
+
+<footer>
+  <span>Figures from five weeks of building <a href="https://nextresearchapp.in">nextresearchapp.in</a>.</span>
+  <span class="mono">Data as of 2 Nov 2026</span>
+</footer>
+</div>
+
+<script>
+(function(){
+const weeks=[
+ {n:8,t:"From idea to a live site",items:["A rough prototype made in an ordinary AI chat","Turned into a real product with sign-up and a database","A full day connecting code storage, hosting and the database","Live on the internet by the end of the week"]},
+ {n:26,t:"A test copy and first feedback",items:["A separate test version of the site, so nothing reaches users untested","First friends and users invited to try it","Small fixes from what they said"]},
+ {n:63,t:"Redesign, testing and more helpers",items:["Redesign based on apps and posts saved for inspiration","A second AI session now tests every change on phones, tablets and laptops","Several AI sessions working side by side on separate parts","Recipes written down for jobs that keep coming back"]},
+ {n:122,t:"Big features from user requests",items:["Mock-ups before every big feature","The most requested features built and tested","Data moved to one place, so numbers match everywhere"]},
+ {n:90,t:"Polish, speed and costs",items:["Unfinished features put on hold instead of shipped half-done","The site can be added to a phone's home screen","Its own web address","Lighter pages to stay within free plans"]}
+];
+const wbox=document.getElementById('weeks'),detail=document.getElementById('detail');
+const wmax=Math.max(...weeks.map(w=>w.n));
+weeks.forEach((w,i)=>{const b=document.createElement('button');b.type='button';b.className='wk';b.setAttribute('aria-pressed','false');
+  const c=document.createElement('span');c.className='col';const f=document.createElement('i');f.style.height=Math.max(6,w.n/wmax*100)+'%';c.appendChild(f);
+  const l=document.createElement('span');l.className='wl';l.textContent='Week '+(i+1);
+  b.append(c,l);b.addEventListener('click',()=>pickWeek(i));wbox.appendChild(b)});
+function pickWeek(i){
+  [...wbox.children].forEach((b,j)=>b.setAttribute('aria-pressed',i===j));
+  const w=weeks[i];detail.innerHTML='';
+  const a=document.createElement('div');a.className='d-date';a.textContent='Week '+(i+1)+' · '+w.n+' changes saved';
+  const h=document.createElement('h3');h.textContent=w.t;
+  const ul=document.createElement('ul');w.items.forEach(t=>{const li=document.createElement('li');li.textContent=t;ul.appendChild(li)});
+  detail.append(a,h,ul);
+}
+pickWeek(0);
+const NS='http://www.w3.org/2000/svg';
+function el(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+
+/* stack map */
+const nodes=[
+ {id:'you',x:20,y:16,w:300,h:52,name:'You',sub:'decide · review · test',
+  does:'Decide what to build, react to mock-ups, test on different devices, and give the go-ahead to release.',broke:'Repeating the same instructions every time, until they were written down for the AI to read.',cost:'Your time.',tip:'Send a screenshot with the problem circled, plus one line on what you expected.'},
+ {id:'ai',x:20,y:104,w:300,h:52,name:'AI coding tool',sub:'writes the code · runs tests',
+  does:'Writes the code, tests it, and releases changes when you say so.',broke:'Two AI sessions working at once got in each other\'s way, until each was given its own part of the work.',cost:'One AI subscription.',tip:'Ask it to check what exists before it builds, and to show a mock-up before big changes.'},
+ {id:'github',x:20,y:192,w:300,h:52,name:'GitHub',sub:'stores the code and its history',
+  does:'Keeps your code and a record of every change, so you can always go back.',broke:'Copying commands back and forth by hand, until the AI was allowed to do it directly.',cost:'Free.',tip:'Let the AI handle saving and releasing changes for you.'},
+ {id:'vercel',x:20,y:280,w:300,h:52,name:'Vercel',sub:'puts the site online',
+  does:'Puts your site on the internet and rebuilds it every time the code changes. Your test copy and live copy each get their own address.',broke:'Settings meant for the test copy ended up on the live one. One bad release, undone in a minute.',cost:'Free plan to start.',tip:'Learn how to put an older version back before you ever need to.'},
+ {id:'supabase',x:20,y:368,w:300,h:52,name:'Supabase',sub:'database · sign-up and login',
+  does:'Stores your data and handles sign-up and login.',broke:'Login sent people to the wrong address, then the database was empty. Later, usage crept towards the free limit.',cost:'Free plan; check usage weekly.',tip:'Make the AI ask you before it changes anything in the live database.'}
+];
+const sm=document.getElementById('stackmap'),info=document.getElementById('stackinfo');
+for(let i=0;i<nodes.length-1;i++){const a=nodes[i],b=nodes[i+1];el('path',{d:`M170 ${a.y+a.h} L170 ${b.y}`,class:'edge'},sm)}
+[['requests',86],['saves changes',174],['goes online',262],['reads and writes data',350]].forEach(([t,yy])=>{const e=el('text',{x:180,y:yy,class:'edge-label'},sm);e.textContent=t});
+const gEls={};
+nodes.forEach(n=>{
+  const g=el('g',{class:'node',tabindex:0,role:'button','aria-label':n.name},sm);
+  el('rect',{x:n.x,y:n.y,width:n.w,height:n.h,rx:4},g);
+  const t=el('text',{x:n.x+14,y:n.y+22},g);t.textContent=n.name;
+  const s=el('text',{x:n.x+14,y:n.y+40,class:'sub'},g);s.textContent=n.sub;
+  g.addEventListener('click',()=>showNode(n.id));
+  g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showNode(n.id)}});
+  gEls[n.id]=g;
+});
+function showNode(id){
+  const n=nodes.find(x=>x.id===id);
+  Object.entries(gEls).forEach(([k,g])=>g.classList.toggle('on',k===id));
+  info.innerHTML='';
+  const h=document.createElement('h3');h.textContent=n.name;
+  const dl=document.createElement('dl');dl.className='kv';
+  [['What it does',n.does],['What went wrong at first',n.broke],['Cost',n.cost],['Tip',n.tip]].forEach(([k,v])=>{const dt=document.createElement('dt');dt.textContent=k;const dd=document.createElement('dd');dd.textContent=v;dl.append(dt,dd)});
+  info.append(h,dl);
+}
+showNode('you');
+
+/* release flow */
+const steps=[
+ {who:'you',t:'Hear it, write it down',d:'A user asks for something. It goes on your idea list and waits until you have thought it through.'},
+ {who:'you',t:'Ask for a mock-up',d:'The AI makes a quick, rough version of the screen in your colours, using the examples you attached.'},
+ {who:'you',t:'React to it',d:'"Keep this text, it is shorter." "Move that button to the right." A few minutes of notes.'},
+ {who:'ai',t:'Build it',d:'The AI builds the real thing and runs its own checks.'},
+ {who:'ai',t:'A second AI tests it',d:'A separate AI session checks phones, tablets and laptops in light and dark mode, and reports only what it sees. The first one fixes it.'},
+ {who:'ai',t:'Put it on the test site',d:'The change goes to your private test copy, not the live site.'},
+ {who:'you',t:'Test on different devices',d:'Try it on different phones, a tablet, a laptop and more than one browser. Send back anything that feels off.'},
+ {who:'you',t:'Say "ship it"',d:'Only on your word does it go to the live site. The AI confirms it went through.'}
+];
+let cur=0;const track=document.getElementById('track'),fb=document.getElementById('flowbody'),prev=document.getElementById('prev'),next=document.getElementById('next');
+steps.forEach(()=>{const s=document.createElement('div');s.className='step';track.appendChild(s)});
+function renderFlow(){
+  [...track.children].forEach((s,i)=>s.classList.toggle('done',i<=cur));
+  const s=steps[cur];fb.innerHTML='';
+  const n=document.createElement('div');n.className='flow-num';n.textContent=String(cur+1).padStart(2,'0');
+  const c=document.createElement('div');
+  const w=document.createElement('span');w.className='who'+(s.who==='you'?' you':'');w.textContent=s.who==='you'?'You':'AI agent';
+  const h=document.createElement('h3');h.textContent=s.t;const p=document.createElement('p');p.textContent=s.d;
+  c.append(w,h,p);fb.append(n,c);
+  prev.disabled=cur===0;next.textContent=cur===steps.length-1?'Start again':'Next step';
+}
+prev.addEventListener('click',()=>{if(cur>0){cur--;renderFlow()}});
+next.addEventListener('click',()=>{cur=cur===steps.length-1?0:cur+1;renderFlow()});
+renderFlow();
+
+/* prompt patterns */
+const pats=[
+ {k:'Check first',q:'Go through this brief and tell me what is already built.',w:'Before anything is built, ask the AI to compare your plan with what exists.',r:'A clear list of what is missing and what to do first.'},
+ {k:'Circle it',q:'The marked button does not work on phone or laptop. Fix it.',w:'A screenshot with the problem circled shows where. One sentence says what you expected.',r:'A fix on the right spot.'},
+ {k:'Describe what people do',q:'On a phone, people try to pinch to zoom from the middle of the screen.',w:'You do not need technical words. Describe what a person does and expects.',r:'The AI works out how to make it happen.'},
+ {k:'Find the rest',q:'The chart jumps when the mouse moves over it. Fix it, then check the rest of the site for the same problem.',w:'Turn one problem into a search for all the similar ones.',r:'Every similar spot fixed at once.'},
+ {k:'Ask why',q:'I expected this to work differently. Explain your reasoning.',w:'Push back when something feels wrong.',r:'Either a better solution or a good explanation.'},
+ {k:'Write it down',q:'We agreed on this before. Write it down so you remember next time.',w:'If you correct the same thing twice, have it saved where the AI will read it.',r:'You stop repeating yourself.'}
+];
+const tabs=document.getElementById('tabs'),tp=document.getElementById('tabpanel');
+pats.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='tab';b.role='tab';b.id='tab'+i;b.textContent=p.k;b.setAttribute('aria-selected','false');b.addEventListener('click',()=>showPat(i));tabs.appendChild(b)});
+function showPat(i){
+  [...tabs.children].forEach((b,j)=>b.setAttribute('aria-selected',i===j));
+  const p=pats[i];tp.innerHTML='';tp.setAttribute('aria-labelledby','tab'+i);
+  const q=document.createElement('div');q.className='quote';q.textContent='"'+p.q+'"';
+  const w=document.createElement('p');w.className='why';w.textContent=p.w;
+  const r=document.createElement('p');r.className='then';r.innerHTML='<b>Result</b>';r.appendChild(document.createTextNode(p.r));
+  tp.append(q,w,r);
+}
+showPat(0);
+
+/* prompt styles */
+const styles=[
+ {k:'Short',q:'Test it, then put it on the test site.',when:'Once the AI knows your rules because they are written down.',risk:'On a brand-new project, a one-liner leaves too much to guesswork.'},
+ {k:'Screenshot + a line',q:'This gap is too big on phones, where space is already tight. Fix it.',when:'Anything you can see. Circle the problem, say what you expected.',risk:'Say which device the screenshot is from.'},
+ {k:'Half-formed idea',q:'I\'m thinking about adding something like this. What do you think? Think it through for me first.',when:'When you only half know what you want. Its suggestions help you finish the idea.',risk:'Not every suggestion is good. Keep what fits and push back on the rest.'},
+ {k:'Detailed brief',q:'Here is what we are building, who it is for, what each part should do, and what not to change. First check what already exists...',when:'The first version, or a big new section, where the AI will make many decisions on its own.',risk:'Still ask for a mock-up before it builds.'}
+];
+const seg=document.getElementById('seg'),sb=document.getElementById('stylebody');
+styles.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','radio');b.setAttribute('aria-checked','false');
+  const l=document.createElement('span');l.className='lbl';l.textContent=s.k;b.append(l);b.addEventListener('click',()=>showStyle(i));
+  b.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();const j=(i+(e.key==='ArrowRight'?1:-1)+styles.length)%styles.length;showStyle(j);seg.children[j].focus()}});
+  seg.appendChild(b)});
+function showStyle(i){
+  [...seg.children].forEach((b,j)=>{b.setAttribute('aria-checked',i===j);b.tabIndex=i===j?0:-1});
+  const s=styles[i];sb.innerHTML='';
+  const q=document.createElement('div');q.className='quote';q.textContent='"'+s.q+'"';
+  const dl=document.createElement('dl');dl.className='kv';
+  [['Good for',s.when],['Watch out',s.risk]].forEach(([k,v])=>{const dt=document.createElement('dt');dt.textContent=k;const dd=document.createElement('dd');dd.textContent=v;dl.append(dt,dd)});
+  sb.append(q,dl);
+}
+showStyle(2);
+
+/* checklist */
+const items=[
+ ['Make a rough prototype in an AI chat','One page you can click through. Keep going until the idea is clear.'],
+ ['Write a short brief','Then ask an AI coding tool what is missing before asking it to build.'],
+ ['Set up GitHub, Vercel and Supabase','Set aside a full day. Paste every error message back to the AI.'],
+ ['Make a separate test copy of your site','Every change goes there first.'],
+ ['Keep an idea list outside the AI','Let ideas sit before they become requests.'],
+ ['Talk to users every week','When several people ask for the same thing, build it.'],
+ ['Save designs you like','Posts and app screenshots to show the AI what you want.'],
+ ['Ask for a mock-up before big changes','React to the picture before anything is built.'],
+ ['Have a second AI test every change','On different phones, tablets and laptops, before you look.'],
+ ['Test on real devices yourself','Different phones, a laptop and more than one browser.'],
+ ['Nothing goes live without your OK','Write this rule down for the AI.'],
+ ['Write down rules you repeat','So the AI remembers them next time.'],
+ ['Check free-plan usage weekly','Put costly features on hold rather than shipping them half-done.']
+];
+const KEY='solo-founder-checklist-v2';let state={};
+try{state=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){state={}}
+const box=document.getElementById('checks'),meter=document.getElementById('meter'),count=document.getElementById('count');
+items.forEach(([t,s],i)=>{
+  const l=document.createElement('label');const inp=document.createElement('input');inp.type='checkbox';inp.id='c'+i;inp.checked=!!state[i];
+  const sp=document.createElement('span');const tt=document.createElement('span');tt.className='t';tt.textContent=t;const ss=document.createElement('span');ss.className='s';ss.textContent=s;sp.append(tt,ss);
+  l.append(inp,sp);box.appendChild(l);
+  inp.addEventListener('change',()=>{state[i]=inp.checked;try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}upd()});
+});
+function upd(){const n=items.filter((_,i)=>state[i]).length;meter.style.width=(n/items.length*100)+'%';count.textContent=n+' of '+items.length+' done'}
+upd();
+})();
+</script>
