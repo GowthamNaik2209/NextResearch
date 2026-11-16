@@ -25,17 +25,22 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 
 type Met = { ticker: string; kind: "entry" | "exit"; reason: string; price: number };
 
-/** What the rules met on the target's last close, and that close's date. Null when its prices can't load. */
-async function metOnLastClose({ scope, tickers, weighting }: Target, s: Strategy): Promise<{ lastDay: string; met: Met[] } | null> {
+/**
+ * What the rules met on the target's last close, and that close's date. Null when its prices can't load.
+ * A rule that reads the covered-stock panel waits for it up to the run's deadline: the cron lands on a
+ * fresh instance, where the panel takes longer than a page's wait to build, and there is no "again shortly".
+ */
+async function metOnLastClose({ scope, tickers, weighting }: Target, s: Strategy, deadline: number): Promise<{ lastDay: string; met: Met[] } | null> {
   const needPanel = strategyMetrics(s).some((id) => METRIC_BY_ID.get(id)?.needs?.includes("panel"));
+  const panelWaitMs = Math.max(0, deadline - Date.now());
   if (scope === "stock") {
-    const d = await loadStock(tickers[0], needPanel);
+    const d = await loadStock(tickers[0], needPanel, panelWaitMs);
     const r = d ? runSignals(d.mx, s, MARKET.rf) : null;
     if (!d || !r) return null;
     const c = d.mx.ctx.bars.c;
     return { lastDay: d.lastDay, met: r.pending ? [{ ticker: tickers[0], kind: r.pending, reason: r.pendingReason ?? "rule", price: c[c.length - 1] as number }] : [] };
   }
-  const b = await loadBasket(tickers, needPanel);
+  const b = await loadBasket(tickers, needPanel, panelWaitMs);
   if (!b?.stocks.length) return null;
   // As the page does (and at the basket's saved weighting): a stock that can't give an indicator the rules use, or the ATR stop, sits out.
   const usable = b.stocks.filter(({ mx }) => !strategyMetrics(s).some((id) => mx.unavailable(id)) && !(s.stops.atr && mx.unavailable("atrPct")));
@@ -68,7 +73,7 @@ export async function checkSignals(deadline: number): Promise<CheckReport> {
     }
     try {
       const target = await resolveTarget(row.scope, row.target, row.userId);
-      const got = target ? await metOnLastClose(target, p.strategy) : null;
+      const got = target ? await metOnLastClose(target, p.strategy, deadline) : null;
       if (!got) {
         out.failed++;
         continue;
