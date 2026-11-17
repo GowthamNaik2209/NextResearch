@@ -24,6 +24,9 @@ import { FollowedChips, FollowedNewsGate } from "./WatchlistFollows";
 
 export const metadata = { title: "Watchlist", robots: { index: false, follow: false } };
 
+// Each news half scrolls in its own box: about four headlines tall on phones, six on desktop.
+const NEWS_BOX = "max-h-[28rem] overflow-y-auto rounded-2xl lg:max-h-[38rem]";
+
 
 async function quotes(tickers: string[]): Promise<Map<string, Quote>> {
   const out = new Map<string, Quote>();
@@ -202,37 +205,66 @@ export default async function WatchlistPage() {
           </div>
         )}
 
-        {rows.length > 0 && (
-          <WatchlistNewsGate tickers={rows.map((r) => r.company.ticker)}>
-            <section className="mt-4 max-w-3xl">
-              <h2 className="font-display text-lg font-bold text-ink">News on your watchlist</h2>
-              {follows.length === 0 && (
-                <p className="mt-1 text-xs text-ink-soft">Tap Follow industry on any industry&rsquo;s page to add its news here too.</p>
-              )}
-              <div className="mt-3">
-                <NewsFeed tickers={rows.map((r) => r.company.ticker)} limit={8} showSector={false} />
-              </div>
-            </section>
-          </WatchlistNewsGate>
-        )}
+        {/* The news in two halves, side by side from desktop width (stacked on phones, stocks first):
+            the saved stocks' headlines and the followed industries'. Each list scrolls in its own box,
+            so a long one doesn't push the other down. A half that's gone (every stock removed, every
+            follow undone) leaves no gap: the columns are made per cell (grid-flow-col), so the other
+            half takes the full width. */}
+        {(rows.length > 0 || follows.length > 0) && (
+          <div className="mt-4 grid grid-cols-1 gap-8 lg:auto-cols-fr lg:grid-flow-col lg:grid-cols-none lg:gap-6">
+            {rows.length > 0 && (
+              <WatchlistNewsGate tickers={watched}>
+                <section aria-labelledby="stock-news-heading">
+                  <h2 id="stock-news-heading" className="font-display text-lg font-bold text-ink">
+                    News on your stocks
+                  </h2>
+                  <p className="mt-1 text-xs text-ink-soft">Headlines on the companies you saved.</p>
+                  <div className="mt-3">
+                    <NewsFeed tickers={watched} limit={20} showSector={false} listClassName={NEWS_BOX} />
+                  </div>
+                </section>
+              </WatchlistNewsGate>
+            )}
 
-        {follows.length > 0 && (
-          <FollowedNewsGate slugs={follows.map((f) => f.slug)}>
-            <section className="mt-4 max-w-3xl">
-              <h2 className="font-display text-lg font-bold text-ink">News from industries you follow</h2>
-              {rows.length > 0 && <p className="mt-1 text-xs text-ink-soft">Skips the companies you saved: their news is in the list above.</p>}
-              <div className="mt-3">
-                {/* Tagged with the industry, so a mixed feed says where each headline comes from. */}
-                <NewsFeed
-                  sectorSlugs={follows.map((f) => f.slug)}
-                  excludeTickers={watched}
-                  sectorOnPhones
-                  limit={10}
-                  emptyText="No recent headlines from these industries right now — check back soon."
-                />
-              </div>
-            </section>
-          </FollowedNewsGate>
+            {follows.length > 0 ? (
+              <FollowedNewsGate slugs={follows.map((f) => f.slug)}>
+                <section aria-labelledby="industry-news-heading" className="min-w-0">
+                  <h2 id="industry-news-heading" className="font-display text-lg font-bold text-ink">
+                    News from industries you follow
+                  </h2>
+                  <p className="mt-1 text-xs text-ink-soft">
+                    {rows.length > 0 ? "Leaves out the companies you saved, so no story shows twice." : "The latest from every industry you follow."}
+                  </p>
+                  <div className="mt-3">
+                    {/* Tagged with the industry, so a mixed feed says where each headline comes from. */}
+                    <NewsFeed
+                      sectorSlugs={follows.map((f) => f.slug)}
+                      excludeTickers={watched}
+                      sectorOnPhones
+                      limit={20}
+                      listClassName={NEWS_BOX}
+                      emptyText="No recent headlines from these industries right now — check back soon."
+                    />
+                  </div>
+                </section>
+              </FollowedNewsGate>
+            ) : (
+              // No follows yet: the half says how to fill it, instead of the page looking one-sided.
+              <section aria-labelledby="industry-news-heading" className="min-w-0">
+                <h2 id="industry-news-heading" className="font-display text-lg font-bold text-ink">
+                  News from industries you follow
+                </h2>
+                <p className="mt-1 text-xs text-ink-soft">You don&rsquo;t follow any industry yet.</p>
+                <div className="mt-3 rounded-2xl border border-line bg-panel px-5 py-6 text-sm text-ink-soft">
+                  Open any{" "}
+                  <Link href="/#themes" className="text-accent hover:underline">
+                    industry
+                  </Link>{" "}
+                  and tap Follow industry: its headlines show here, beside your stocks&rsquo; news.
+                </div>
+              </section>
+            )}
+          </div>
         )}
       </main>
       <SiteFooter />
