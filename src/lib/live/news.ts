@@ -651,6 +651,47 @@ export function feedCompanies(sectorSlug: string, companies: CompanyMetrics[], n
   return [...lead, ...rest];
 }
 
+// Followed industries (/watchlist): every followed module's feed companies, shared out so the
+// whole feed asks about FOLLOWED_TOTAL companies (one module gets its full PER_SECTOR_SINGLE; many get two
+// each, never more than FOLLOWED_MAX in all). A company in two followed modules is asked
+// about once, and the watchlist's own stocks are left out: their news is already in the section
+// above, so the same story never shows twice on the page.
+const FOLLOWED_TOTAL = 24;
+const FOLLOWED_MIN_PER_SECTOR = 2;
+// Every module followed (two each would be ~45 companies): the hard ceiling on upstream asks.
+const FOLLOWED_MAX = 36;
+
+/** The companies whose headlines make up the followed-industries feed (exported for tests). */
+export function followedFeedCompanies(slugs: string[], exclude: Iterable<string> = [], metricsFor = sectorCompanyMetrics): CompanyMetrics[] {
+  const skip = new Set(exclude);
+  const per = Math.max(FOLLOWED_MIN_PER_SECTOR, Math.min(PER_SECTOR_SINGLE, Math.floor(FOLLOWED_TOTAL / Math.max(1, slugs.length))));
+  const lists = slugs.map((slug) => feedCompanies(slug, metricsFor(slug).filter((c) => c.centrality >= CORE_CENTRALITY && !skip.has(c.ticker)), per));
+  // Round-robin, each module's biggest names first, so a cap still leaves every module its leaders.
+  const seen = new Set<string>();
+  const out: CompanyMetrics[] = [];
+  for (let i = 0; i < per && out.length < FOLLOWED_MAX; i++)
+    for (const list of lists) {
+      const c = list[i];
+      if (!c || seen.has(c.ticker) || out.length >= FOLLOWED_MAX) continue;
+      seen.add(c.ticker);
+      out.push(c);
+    }
+  return out;
+}
+
+/** Latest headlines across followed industries, newest first, leaving out `exclude`'s tickers. */
+export async function getNewsForSectors(slugs: string[], limit = 8, exclude: string[] = []): Promise<NewsResult> {
+  const companies = followedFeedCompanies(slugs, exclude);
+  if (companies.length === 0) return { items: [], live: false };
+  const live = balanced(dedupe((await mapPool(companies, 6, liveForCompany)).flat()), limit);
+  if (live.length > 0) return { items: live, live: true };
+  // Curated fallback: the followed modules' headlines, tagged with the module they came from.
+  const want = new Set(slugs);
+  const skip = new Set(exclude);
+  const tickers = new Set(companies.map((c) => c.ticker));
+  return { items: listNews().filter((n) => tickers.has(n.ticker) && !skip.has(n.ticker) && want.has(n.sectorSlug)).slice(0, limit), live: false };
+}
+
 /** Latest headlines for the whole platform, or one sector, newest first. */
 export async function getLatestNews({ sectorSlug, limit = 20 }: { sectorSlug?: string; limit?: number } = {}): Promise<NewsResult> {
   // One theme: every company in it (a company shared with other themes counts here too), tagged

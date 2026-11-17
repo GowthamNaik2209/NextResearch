@@ -14,6 +14,7 @@ import { HEAT_GRID_FULL, HeatGrid, HeatLegend, heatScale, type HeatCell } from "
 import { actionClass } from "./action-class";
 import { IndustryPools, type PoolsView } from "./IndustryPools";
 import { IndustryPicker } from "./IndustryPicker";
+import { track } from "@/lib/analytics";
 import type { IndustryPools as Pools, PoolMetricId } from "@/lib/baskets/pools";
 
 // An industry page's Stock heatmap and Industry pools: two buttons in the page's first row, each
@@ -140,6 +141,10 @@ function FullView({ view, slug, own, options, pickOnArrival }: { view: ViewId; s
   }, [slug, own.slug]);
   // undefined while it loads, null when it couldn't.
   const data = slug === own.slug ? own : got?.slug === slug ? got.data : undefined;
+  // Funnel: once per industry shown in this view (the picker switching industries counts again).
+  useEffect(() => {
+    track("open_industry_view", { view, sector: slug });
+  }, [view, slug]);
   // Kept across industries, so a switch compares like with like.
   const [range, setRange] = useState<ChartRange>("1Y");
   const [metric, setMetric] = useState<PoolMetricId>("rev");

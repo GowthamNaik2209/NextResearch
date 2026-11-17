@@ -14,9 +14,13 @@ export function NewsList({
   showSector = true,
   stakes,
   twoColumns = false,
+  sectorOnPhones = false,
 }: {
   items: NewsItem[];
   showSector?: boolean;
+  /** A feed mixing industries (/watchlist's followed news): below 480px, where the top line has no
+   * room for it, the industry goes on the source line instead of being left out. */
+  sectorOnPhones?: boolean;
   /** Quarterly FII/DII moves, tagged on each company's headlines. */
   stakes?: Map<string, StakeMove>;
   /** Two columns from desktop width, newest first along each row. */
@@ -51,6 +55,11 @@ export function NewsList({
               </a>
               <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-ink-soft">
                 <span>{cleanSource(n.source)}</span>
+                {showSector && sectorOnPhones && (
+                  <Link href={`/sector/${n.sectorSlug}`} className="min-w-0 truncate underline decoration-line underline-offset-2 hover:text-ink min-[480px]:hidden">
+                    · {n.sectorName}
+                  </Link>
+                )}
                 {reason && (
                   <>
                     <span aria-hidden="true">·</span>

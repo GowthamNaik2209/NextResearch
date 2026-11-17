@@ -1,6 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { NewsList } from "@/components/NewsList";
-import { getLatestNews, getNewsForTickers } from "@/lib/live/news";
+import { getLatestNews, getNewsForSectors, getNewsForTickers } from "@/lib/live/news";
 import { classifyTone, type Tone } from "@/lib/news-tone";
 import { getStakeMoves } from "@/lib/flows/query";
 import { presentableNews } from "@/lib/news-display";
@@ -11,12 +11,22 @@ type Props = {
   sectorSlug?: string;
   /** Or show news for specific tickers (e.g. a watchlist) instead of the platform feed. */
   tickers?: string[];
+  /** Or news across several followed industries (/watchlist), leaving out `excludeTickers`. */
+  sectorSlugs?: string[];
+  excludeTickers?: string[];
+  /** The empty-feed line, when the default ("check back soon") doesn't fit. */
+  emptyText?: string;
+  /** Keep the industry on phones (see NewsList), for a feed mixing industries. */
+  sectorOnPhones?: boolean;
   limit: number;
   showSector?: boolean;
   /** Tag headlines with the company's quarterly FII/DII stake move when it is notable. */
   stakeTags?: boolean;
   /** Two columns of headlines from desktop width (a full-width page). */
   twoColumns?: boolean;
+  /** Classes for the box around the headlines (e.g. a max height + overflow-y-auto, so the list
+   * scrolls in place); the source line stays under the box. */
+  listClassName?: string;
   /** Show only headlines of this tone. */
   tone?: Tone;
   /** Above the list once headlines have loaded: gets each tone's count (the tone filter). */
@@ -29,7 +39,7 @@ type Props = {
  */
 export function NewsFeed(props: Props) {
   return (
-    <Suspense fallback={<NewsSkeleton rows={Math.min(props.limit, 5)} withHeader={!!props.header} />}>
+    <Suspense fallback={<NewsSkeleton rows={Math.min(props.limit, 5)} withHeader={!!props.header} className={props.listClassName} />}>
       <NewsFeedContent {...props} />
     </Suspense>
   );
@@ -37,9 +47,13 @@ export function NewsFeed(props: Props) {
 
 const SPARE = 6;
 
-async function NewsFeedContent({ sectorSlug, tickers, limit, showSector = true, stakeTags = false, twoColumns = false, tone, header }: Props) {
+async function NewsFeedContent({ sectorSlug, tickers, sectorSlugs, excludeTickers, emptyText, sectorOnPhones = false, limit, showSector = true, stakeTags = false, twoColumns = false, listClassName, tone, header }: Props) {
   // A few spare headlines, so dropping grey-market and stale IPO stories still fills the list.
-  const fetched = tickers ? await getNewsForTickers(tickers, limit + SPARE) : await getLatestNews({ sectorSlug, limit: limit + SPARE });
+  const fetched = tickers
+    ? await getNewsForTickers(tickers, limit + SPARE)
+    : sectorSlugs
+      ? await getNewsForSectors(sectorSlugs, limit + SPARE, excludeTickers)
+      : await getLatestNews({ sectorSlug, limit: limit + SPARE });
   const live = fetched.live;
   const all = presentableNews(fetched.items, isListedTicker).slice(0, limit);
   const tones = all.map((n) => classifyTone(n.headline).tone);
@@ -52,11 +66,13 @@ async function NewsFeedContent({ sectorSlug, tickers, limit, showSector = true, 
       {header?.(counts)}
       {items.length === 0 ? (
         <p className="rounded-2xl border border-line bg-panel px-5 py-6 text-sm text-ink-soft">
-          {all.length > 0 ? "No headlines of this kind in the latest news. Pick All to see every headline." : "No recent headlines right now — check back soon."}
+          {all.length > 0 ? "No headlines of this kind in the latest news. Pick All to see every headline." : (emptyText ?? "No recent headlines right now — check back soon.")}
         </p>
       ) : (
         <div>
-          <NewsList items={items} showSector={showSector} stakes={stakes} twoColumns={twoColumns} />
+          <div className={listClassName}>
+            <NewsList items={items} showSector={showSector} stakes={stakes} twoColumns={twoColumns} sectorOnPhones={sectorOnPhones} />
+          </div>
           <p className="mt-2 text-[11px] text-ink-soft">
             {live ? "Live headlines via Google News, refreshed every 15 minutes." : "Live feed unavailable right now — showing curated headlines."}
           </p>
@@ -66,12 +82,12 @@ async function NewsFeedContent({ sectorSlug, tickers, limit, showSector = true, 
   );
 }
 
-function NewsSkeleton({ rows, withHeader }: { rows: number; withHeader: boolean }) {
+function NewsSkeleton({ rows, withHeader, className }: { rows: number; withHeader: boolean; className?: string }) {
   // The header row (the tone filter) keeps its place while loading, so the list doesn't jump down.
   return (
     <div className="flex flex-col gap-3">
       {withHeader && <div aria-hidden="true" className="h-9 w-64 max-w-full animate-pulse rounded-full bg-panel" />}
-      <div aria-busy="true" aria-label="Loading headlines" className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-panel">
+      <div aria-busy="true" aria-label="Loading headlines" className={"divide-y divide-line overflow-hidden rounded-2xl border border-line bg-panel " + (className ?? "")}>
         {Array.from({ length: rows }, (_, i) => (
           <div key={i} className="animate-pulse space-y-2 px-5 py-4">
             <div className="h-3 w-1/3 rounded bg-panel-2" />
