@@ -48,6 +48,7 @@ export function BlockCard({
                 ) : (
                   <span className="text-[10.5px] text-ink-soft">{r.period}</span>
                 ))}
+              {r.note && <span className="text-[10.5px] text-ink-soft">{r.note}</span>}
               {r.stale && (
                 <span className="rounded border border-line px-1 text-[9px] font-semibold uppercase tracking-wide text-amber-ink" title="From a quarter more than 200 days back">
                   older figure
@@ -63,11 +64,12 @@ export function BlockCard({
 }
 
 export function LenderBlock({ f, compact, className }: { f: SupplierFinancials; compact?: boolean; className?: string }) {
-  const { rows, missing } = lenderRows(f);
+  const { rows, missing, footnote } = lenderRows(f);
   return (
     <BlockCard title="Lending figures" info={LENDER_NOTE} rows={rows} compact={compact} className={className}>
       <p className="mt-1.5 text-[10.5px] leading-snug text-ink-soft">
-        {missing && "Lending figures not yet added. "}P/B and ROE: company snapshot{f.asOf ? ` as of ${f.asOf}` : ""}.
+        {missing && "Lending figures not yet added. "}
+        {footnote && `${footnote} `}P/B and ROE: company snapshot{f.asOf ? ` as of ${f.asOf}` : ""}.
       </p>
     </BlockCard>
   );

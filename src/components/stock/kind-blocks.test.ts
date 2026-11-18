@@ -4,7 +4,8 @@ import type { SupplierFinancials } from "@/lib/sector-content";
 import { lenderRatiosFrom } from "@/lib/financials/key-ratios";
 import { fundamentalsForKind, notMeaningfulNote } from "@/lib/financials/kinds";
 import type { Fundamentals } from "@/lib/live/screener-company";
-import { insurerRows, lenderRows } from "./kind-blocks";
+import { insurerRows, lenderRows, LENDER_UNREAD, NOT_IN_DISCLOSURE, NPA_NOT_REPORTED } from "./kind-blocks";
+import { EMPTY_LENDER } from "@/lib/financials/lender";
 import { ratioTiles } from "./ratio-tiles";
 
 const figs = { price: "Rs 2,000", mcap: "Rs 15,00,000 Cr", kpi: [20, 800, 1, null, 16.5, 1], rev: [80, 100], np: [8, 10], asOf: "16 Nov 2026" };
@@ -134,4 +135,45 @@ test("live fundamentals for a lender or insurer carry no ROCE and no operating m
   assert.equal(fund.industry!.median.roce, 7.1, "input untouched");
   assert.equal(fundamentalsForKind(fund, "operating"), fund);
   assert.equal(fundamentalsForKind(null, "lender"), null);
+});
+
+test("NPAs Screener doesn't report read as a dash with the reason; reported ones carry no note", () => {
+  const noNpa = lenderRatiosFrom({
+    gnpa: null, nnpa: null, finMargin: 30, finMarginYear: "Mar 2026", netProfit: 50,
+    totalAssets: [500, 400], deposits: null, bsYear: "Mar 2026", quarter: null,
+  });
+  const b = lenderRows({ ...nbfc, lender: noNpa });
+  const v = Object.fromEntries(b.rows.map((r) => [r.label, r]));
+  for (const l of ["Gross NPA", "Net NPA"]) assert.deepEqual([v[l].value, v[l].note], ["—", NPA_NOT_REPORTED], l);
+  assert.equal(v["Financing margin"].note, undefined);
+  assert.equal(b.footnote, undefined);
+  for (const r of lenderRows(bank).rows) assert.equal(r.note, undefined, r.label);
+  // No block stored yet: the "not yet added" flag says why, not a Screener note.
+  const none = lenderRows({ ...bank, lender: null });
+  assert.ok(none.rows.every((r) => r.note === undefined));
+  assert.equal(none.footnote, undefined);
+});
+
+test("a lender block stored with no figure read: one footnote, not a note on every row", () => {
+  const b = lenderRows({ ...bank, lender: lenderRatiosFrom(EMPTY_LENDER) });
+  assert.equal(b.missing, false);
+  assert.equal(b.footnote, LENDER_UNREAD);
+  assert.match(LENDER_UNREAD, /standalone page on Screener/);
+  assert.ok(b.rows.every((r) => r.note === undefined));
+  assert.equal(b.rows.find((r) => r.label === "Gross NPA")?.value, "—");
+});
+
+test("a hand-kept insurer figure the row leaves out reads as a dash with a note; known ones carry none", () => {
+  const partial: SupplierFinancials = { ...life, insurer: { ...life.insurer!, vnbMargin: null, solvency: null } };
+  const v = Object.fromEntries(insurerRows(partial).rows.map((r) => [r.label, r]));
+  for (const l of ["VNB margin", "Solvency ratio"]) {
+    assert.deepEqual([v[l].value, v[l].note, v[l].period], ["—", NOT_IN_DISCLOSURE, "Q2 FY27"], l);
+  }
+  assert.equal(v["P/EV"].note, undefined);
+  // A life insurer with no P/EV (no embedded value in the row).
+  const noEv = Object.fromEntries(insurerRows({ ...life, insurer: { ...life.insurer!, pev: null } }).rows.map((r) => [r.label, r]));
+  assert.deepEqual([noEv["P/EV"].value, noEv["P/EV"].note], ["—", NOT_IN_DISCLOSURE]);
+  for (const r of insurerRows(life).rows) assert.equal(r.note, undefined, r.label);
+  // Snapshot rows are not hand-kept: no disclosure note on them.
+  assert.equal(v["P/B"].note, undefined);
 });
