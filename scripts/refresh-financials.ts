@@ -114,7 +114,7 @@ async function main() {
     const failed: string[] = [];
     const revFlags: string[] = [];
     const history: Record<string, unknown> = {};
-    const updates: { f: SupplierFinancials; history: boolean; name?: string }[] = [];
+    const updates: { f: SupplierFinancials; history: boolean; name?: string; lender?: Snap["lender"] }[] = [];
     for (const old of todo) {
       const s = results.get(old.ticker);
       const ipoName = newNames.get(old.ticker);
@@ -125,7 +125,7 @@ async function main() {
       }
       if (fresh) {
         console.log(`${old.ticker} (${ipoName}, newly listed): ${lit(fresh)}`);
-        updates.push({ f: fresh, history: true, name: ipoName });
+        updates.push({ f: fresh, history: true, name: ipoName, lender: s.lender });
         continue;
       }
       const f = withSnapshot(old, s, SNAPSHOT_DATE);
@@ -149,7 +149,7 @@ async function main() {
         const show = (x: SupplierFinancials) => [x.mcap, x.price, x.note, x.cagr, x.range, x.kpi].map(lit).join(" | ");
         console.log(`${old.ticker} [${s.basis}]\n  was ${show(old)} (${old.asOf})\n  now ${show(f)}`);
       }
-      updates.push({ f, history: fixHistory });
+      updates.push({ f, history: fixHistory, lender: s.lender });
     }
 
     console.log(`updated ${updates.length}, failed ${failed.length}${failed.length ? ": " + failed.join(", ") : ""}`);
@@ -159,7 +159,7 @@ async function main() {
     }
 
     if (!run) return;
-    for (const u of updates) await writeFinancials(prisma, u.f, SNAPSHOT_DATE, { identity: { name: u.name ?? u.f.ticker, listed: true, role: "" }, history: u.history });
+    for (const u of updates) await writeFinancials(prisma, u.f, SNAPSHOT_DATE, { identity: { name: u.name ?? u.f.ticker, listed: true, role: "" }, history: u.history, lender: u.lender });
     Object.assign(run, { done: updates.length, total: todo.length, failed });
     await publishRun(prisma, run);
     console.log(`wrote ${updates.length} snapshots dated ${SNAPSHOT} and published them`);

@@ -77,6 +77,17 @@ model KpiSnapshot {
   cagr1y    Decimal?
   cagr3y    Decimal?
   cagr5y    Decimal?
+  // Lenders only (src/lib/financials/lender.ts); null for everyone else. NPAs are % for the quarter
+  // npaQuarter ("Sep 2026"); finMargin the latest full year's Financing Margin %; total assets and
+  // deposits (Rs cr; deposits banks only) at the latest year-end and the one before.
+  gnpa            Decimal?
+  nnpa            Decimal?
+  finMargin       Decimal?
+  totalAssets     Decimal?
+  totalAssetsPrev Decimal?
+  deposits        Decimal?
+  depositsPrev    Decimal?
+  npaQuarter      String?
 
   @@unique([companyId, asOf])
 }

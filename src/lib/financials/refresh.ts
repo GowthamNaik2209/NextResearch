@@ -30,6 +30,8 @@ import { readCompanyTable } from "./query";
 import { hasQuote } from "./no-quote";
 import { latestDueTradingDay } from "./trading-day";
 import { writeFinancials } from "./write";
+import { companyKind } from "./kinds";
+import { parseLenderFigures, type LenderFigures } from "./lender";
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -89,6 +91,8 @@ export type Snap = {
   history: { years: string[]; rev: (number | null)[]; np: (number | null)[] } | null;
   // Every quarter of the shareholding table (src/lib/flows/shareholding.ts stores them).
   shareholding: ShareholdingQuarter[];
+  // Lenders only (companyKind "lender"): NPAs, financing margin, total assets and deposits.
+  lender?: LenderFigures;
 };
 
 const yearOf = (label: string) => Number(label.match(/(\d{4})$/)?.[1] ?? 0);
@@ -153,6 +157,7 @@ export async function fetchSnapshot(ticker: string, standalone: boolean, tlSlug:
       np: idxs.map((i) => profit?.values[i] ?? null),
     };
   }
+  const lender = companyKind(ticker) === "lender" ? await lenderFigures(html, basis, base, o) : null;
   return {
     name: html.match(/<h1[^>]*>([^<]+)<\/h1>/)?.[1].trim() ?? null,
     mcap: k.marketCap,
@@ -164,7 +169,19 @@ export async function fetchSnapshot(ticker: string, standalone: boolean, tlSlug:
     latestRev,
     history,
     shareholding: parseShareholdingHistory(html),
+    ...(lender ? { lender } : {}),
   };
+}
+
+// A lender's figures from the page the snapshot read. Many consolidated pages (HDFC Bank, REC) leave
+// the NPA rows empty; the standalone page carries them, so the NPAs (and their quarter) come from
+// there in that case, one extra request per such lender. Everything else stays on the snapshot's basis.
+async function lenderFigures(html: string, basis: Snap["basis"], base: string, o: FetchOptions): Promise<LenderFigures | null> {
+  const f = parseLenderFigures(html);
+  if (!f || basis !== "consolidated" || f.gnpa != null || f.nnpa != null) return f;
+  const sa = await get(`${base}/`, o);
+  const own = sa && sa !== "missing" ? parseLenderFigures(sa) : null;
+  return own && (own.gnpa != null || own.nnpa != null) ? { ...f, gnpa: own.gnpa, nnpa: own.nnpa, quarter: own.quarter } : f;
 }
 
 function revenueRow(html: string, years: string[]): { label: string; values: (number | null)[] } | undefined {
@@ -384,13 +401,13 @@ export async function runChunk(prisma: PrismaClient, opts: ChunkOptions): Promis
         const name = newNames.get(old.ticker);
         const fresh = s && name ? newCompanyFigures(old.ticker, s, target) : null;
         if (s && name && fresh) {
-          await writeFinancials(prisma, fresh, target, { identity: { name, listed: true, role: "" } });
+          await writeFinancials(prisma, fresh, target, { identity: { name, listed: true, role: "" }, lender: s.lender });
           await saveShareholding(old.ticker, s.shareholding);
           log(`added newly listed ${old.ticker} (${name})`);
           run.done++;
           wrote++;
         } else if (s && !name) {
-          await writeFinancials(prisma, withSnapshot(old, s, target), target, { identity: { name: old.ticker }, history: false });
+          await writeFinancials(prisma, withSnapshot(old, s, target), target, { identity: { name: old.ticker }, history: false, lender: s.lender });
           await saveShareholding(old.ticker, s.shareholding);
           run.done++;
           wrote++;

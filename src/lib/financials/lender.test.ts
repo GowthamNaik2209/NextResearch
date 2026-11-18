@@ -1,0 +1,61 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { parseLenderFigures } from "./lender";
+import { lenderColumns } from "./write";
+
+const fixture = (dir: string, name: string) => fs.readFileSync(path.join(import.meta.dirname, dir, name), "utf8");
+const bank = fixture("__fixtures__", "screener-bank.html");
+const nbfc = fixture("__fixtures__", "screener-nbfc-no-npa.html");
+
+test("a bank page: latest quarter's NPAs, latest year's financing margin, last two year-ends of assets and deposits", () => {
+  // HDFCBANK standalone, 18 Nov 2026: quarters end Sep 2026 (GNPA 1.11%, NNPA 0.37%); P&L Mar 2026
+  // financing margin 12% (TTM 15% is not a year); balance sheet Mar 2026 / Mar 2025 (Sep 2026 is a half-year).
+  assert.deepEqual(parseLenderFigures(bank), {
+    gnpa: 1.11,
+    nnpa: 0.37,
+    finMargin: 12,
+    totalAssets: [4364886, 3910199],
+    deposits: [3105250, 2714715],
+    quarter: "Sep 2026",
+  });
+});
+
+test("an infrastructure NBFC: no deposits, empty NPA rows read as null, '(S)' year labels still count", () => {
+  // IRFC consolidated, 18 Nov 2026: every column carries Screener's "(S)" standalone marker.
+  assert.deepEqual(parseLenderFigures(nbfc), {
+    gnpa: null,
+    nnpa: null,
+    finMargin: 26,
+    totalAssets: [516676, 488835],
+    deposits: null,
+    quarter: null,
+  });
+});
+
+test("a lender page with no NPA rows at all", () => {
+  const stripped = bank.replace(/<tr[^>]*>(?:(?!<\/tr>)[\s\S])*?(?:Gross|Net) NPA %[\s\S]*?<\/tr>/g, "");
+  assert.ok(!stripped.includes("NPA %"));
+  const f = parseLenderFigures(stripped);
+  assert.equal(f?.gnpa, null);
+  assert.equal(f?.nnpa, null);
+  assert.equal(f?.quarter, null);
+  assert.equal(f?.finMargin, 12);
+});
+
+test("pages that are not a lender layout parse to null", () => {
+  assert.equal(parseLenderFigures(fixture("__fixtures__", "screener-insurer.html")), null);
+  assert.equal(parseLenderFigures(fixture("../live/__fixtures__", "screener-voltas.html")), null);
+  assert.equal(parseLenderFigures(""), null);
+});
+
+test("a lender's figures map onto the KpiSnapshot columns", () => {
+  assert.deepEqual(lenderColumns(parseLenderFigures(bank)!), {
+    gnpa: 1.11, nnpa: 0.37, finMargin: 12, totalAssets: 4364886, totalAssetsPrev: 3910199,
+    deposits: 3105250, depositsPrev: 2714715, npaQuarter: "Sep 2026",
+  });
+  const c = lenderColumns(parseLenderFigures(nbfc)!);
+  assert.equal(c.deposits, null);
+  assert.equal(c.depositsPrev, null);
+});

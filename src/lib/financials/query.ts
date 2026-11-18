@@ -45,7 +45,12 @@ async function latestKpis(prisma: PrismaClient, cutoff: Date | null) {
   if (!byDay.size) return new Map<string, CompanyFinRow["kpis"][number] & { companyId: string }>();
   const kpis = await prisma.kpiSnapshot.findMany({
     where: { OR: [...byDay].map(([t, ids]) => ({ asOf: new Date(t), companyId: { in: ids } })) },
-    omit: { id: true },
+    // The columns the table reads, named: a whole row would also ask for columns a database that
+    // is behind the schema does not have yet (the lender figures before migration 20261118120000).
+    select: {
+      companyId: true, asOf: true, price: true, marketCap: true, pe: true, bookValue: true, divYield: true, roce: true, roe: true,
+      faceValue: true, low52w: true, high52w: true, cagr1y: true, cagr3y: true, cagr5y: true,
+    },
   });
   return new Map(kpis.map((k) => [k.companyId, k]));
 }
