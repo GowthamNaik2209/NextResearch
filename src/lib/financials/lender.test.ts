@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { EMPTY_LENDER, lenderFromStandalone, parseLenderFigures } from "./lender";
 import { lenderColumns } from "./write";
-import { DEFAULT_GAP_MS, lenderSource } from "./refresh";
+import { DEFAULT_GAP_MS, lenderSource, newCompanyWriteOptions } from "./refresh";
 
 const fixture = (dir: string, name: string) => fs.readFileSync(path.join(import.meta.dirname, dir, name), "utf8");
 const bank = fixture("__fixtures__", "screener-bank.html");
@@ -87,4 +87,14 @@ test("a lender's figures: the page already read, else one more request, skipped 
   assert.equal(lenderSource(undefined, false), "fetch");
   assert.equal(lenderSource(undefined, true), "skip");
   assert.equal(DEFAULT_GAP_MS, 1000);
+});
+
+test("a company new to the table (--add, a listing-day IPO) is written with its lender figures, not without them", () => {
+  const lender = lenderFromStandalone(bank);
+  assert.deepEqual(newCompanyWriteOptions({ lender }, "UGRO Capital", "MSME lender"), {
+    identity: { name: "UGRO Capital", listed: true, role: "MSME lender" },
+    lender,
+  });
+  // Not a lender (no lender figures read): nothing extra written.
+  assert.deepEqual(newCompanyWriteOptions({}, "Indian Hotels"), { identity: { name: "Indian Hotels", listed: true, role: "" }, lender: null });
 });

@@ -9,6 +9,7 @@ import { NA, croreShort, pct } from "@/lib/format";
 import { notMeaningfulNote } from "@/lib/financials/kinds";
 import { poolFmt, poolTick } from "./pool-format";
 import {
+  LOWER_IS_BETTER,
   POOL_METRICS,
   companyValue,
   countedCompanies,
@@ -18,6 +19,7 @@ import {
   layerPools,
   layerShares,
   metricApplies,
+  metricAppliesTo,
   metricKind,
   poolMetric,
   poolMetricsFor,
@@ -56,17 +58,15 @@ const STALE_NOTE = "older figure";
 // Short cell marks in the layer table, explained under it: not meaningful (a lender's margin) and not applicable (a lender's NPA for a cable maker).
 const NM = "n.m.";
 const NAP = "n.a.";
-// The kind a lender or insurer metric is for, as the panel names it.
-const KIND_PLURAL = { lender: "lenders", insurer: "insurers" } as const;
 const PENDING_TITLE = { lender: "Lending figures not yet added", insurer: "Insurance figures not yet added" } as const;
 
 /** In place of the rows while no covered lender (insurer) has the chosen figure yet. */
-function FiguresPending({ kind, label, n }: { kind: "lender" | "insurer"; label: string; n: number }) {
+function FiguresPending({ kind, metric, n }: { kind: "lender" | "insurer"; metric: PoolMetricId; n: number }) {
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-line px-3 py-3">
       <h3 className="text-[13px] font-semibold text-ink">{PENDING_TITLE[kind]}</h3>
       <p className="text-xs leading-relaxed text-ink-soft">
-        {label} is shown for the {n} covered {n === 1 ? kind : KIND_PLURAL[kind]} here once their figures are added. It does not apply to the other companies. P/B and ROE are shown for every company now.
+        {poolMetric(metric).label} is shown for the covered {metricAppliesTo(metric)} here ({n}) once their figures are added. It does not apply to the other companies. P/B and ROE are shown for every company now.
       </p>
     </div>
   );
@@ -403,7 +403,7 @@ type RowsProps = { layers: LayerPool[]; metric: PoolMetricId; year: string; sel?
 function LayerRows(props: RowsProps) {
   const counted = props.layers.flatMap((l) => l.counted);
   const pending = figuresPending(counted, props.metric);
-  if (pending) return <FiguresPending kind={pending} label={poolMetric(props.metric).label} n={counted.filter((c) => metricApplies(c, props.metric)).length} />;
+  if (pending) return <FiguresPending kind={pending} metric={props.metric} n={counted.filter((c) => metricApplies(c, props.metric)).length} />;
   return <LayerRowsChart {...props} />;
 }
 
@@ -457,7 +457,7 @@ function LayerRowsChart({ layers, metric, year, sel, onPick }: RowsProps) {
               {!l.counted.length ? (
                 <span className="absolute left-2 top-1 text-[11px] text-ink-soft">Only low-exposure companies: add them above</span>
               ) : !applies(l) ? (
-                <span className="absolute left-2 top-1 text-[11px] text-ink-soft">Not applicable: no {KIND_PLURAL[only!]} in this layer</span>
+                <span className="absolute left-2 top-1 text-[11px] text-ink-soft">Not applicable: no {metricAppliesTo(metric)} in this layer</span>
               ) : m.kind === "pool" ? (
                 [...items]
                   .sort((a, b) => b.v - a.v)
@@ -527,14 +527,18 @@ function LayerRowsChart({ layers, metric, year, sel, onPick }: RowsProps) {
 function CompanyRows({ companies, colorOf, metric, year }: { companies: PoolCompany[]; colorOf: Map<string, string>; metric: PoolMetricId; year: string }) {
   const m = poolMetric(metric);
   const only = metricKind(metric);
-  // A lender (insurer) metric lists the lenders (insurers) only; the rest are not applicable.
+  // A lender (insurer) metric lists the lenders (insurers) only; the rest are not applicable. VNB
+  // margin lists life insurers only, a combined ratio general and health insurers only.
   const listed = companies.filter((c) => metricApplies(c, metric));
+  const who = metricAppliesTo(metric);
   const pending = figuresPending(companies, metric);
-  if (pending) return <FiguresPending kind={pending} label={m.label} n={listed.length} />;
+  if (pending) return <FiguresPending kind={pending} metric={metric} n={listed.length} />;
   const others = companies.length - listed.length;
+  // Best first: highest, or lowest where lower is better (bad loans, combined ratio); no figure last either way.
+  const low = LOWER_IS_BETTER.has(metric);
   const ranked = listed
     .map((c) => ({ c, v: companyValue(c, metric) }))
-    .sort((a, b) => (b.v ?? -Infinity) - (a.v ?? -Infinity));
+    .sort((a, b) => (low ? (a.v ?? Infinity) - (b.v ?? Infinity) : (b.v ?? -Infinity) - (a.v ?? -Infinity)));
   const ss = shares(ranked, (r) => r.v);
   const { tk, x, hi } = scale(
     metric,
@@ -592,7 +596,7 @@ function CompanyRows({ companies, colorOf, metric, year }: { companies: PoolComp
       <Axis tk={tk} x={x} id={metric} />
       {only && others > 0 && (
         <p className="mt-1 text-[11px] text-ink-soft sm:text-xs">
-          Not applicable to the other {others} {others === 1 ? "company" : "companies"}, which {others === 1 ? "is not a" : "are not"} {others === 1 ? only : KIND_PLURAL[only]}.
+          Not applicable to the other {others} {others === 1 ? "company, which is not one of the" : "companies, which are not"} {who}.
         </p>
       )}
     </div>
@@ -622,9 +626,11 @@ function LayerTable({ layer, metric, year, offered }: { layer: LayerPool; metric
     // a lender's figure reads "n.a." for everyone else, an insurer's likewise).
     ...offered.filter((m) => !POOL_METRICS.some((p) => p.id === m.id)).map((m) => ({ id: m.id, label: m.label, cell: (c: PoolCompany) => (metricApplies(c, m.id) ? fmt(m.id, companyValue(c, m.id)) : NAP) })),
   ];
-  const key = (c: PoolCompany) => companyValue(c, metric) ?? -Infinity;
+  // Best first, as the ranking (lowest first for bad loans and the combined ratio); no figure last.
+  const low = LOWER_IS_BETTER.has(metric);
+  const key = (c: PoolCompany) => companyValue(c, metric) ?? (low ? Infinity : -Infinity);
   // Only the companies that count: the rest are in the low-exposure list, to add from there.
-  const rows = [...layer.counted].sort((a, b) => key(b) - key(a));
+  const rows = [...layer.counted].sort((a, b) => (low ? key(a) - key(b) : key(b) - key(a)));
   // The short marks used in the cells, explained once under the table.
   const hasNm = rows.some((c) => nmNote(c, "margin"));
   const hasNa = rows.some((c) => offered.some((m) => !metricApplies(c, m.id)));
@@ -680,7 +686,7 @@ function LayerTable({ layer, metric, year, offered }: { layer: LayerPool; metric
           <p className="mt-1.5 text-[11px] text-ink-soft">
             {hasNm && <>n.m.: not meaningful for lenders and insurers (margin and ROCE).</>}
             {hasNm && hasNa && " "}
-            {hasNa && `n.a.: not applicable (${[offered.some((m) => metricKind(m.id) === "lender") && "ROA and NPAs are lenders’ figures", offered.some((m) => metricKind(m.id) === "insurer") && "VNB margin, combined ratio and solvency are insurers’"].filter(Boolean).join("; ")}).`}
+            {hasNa && `n.a.: not applicable (${[offered.some((m) => metricKind(m.id) === "lender") && "ROA and NPAs are lenders’ figures", offered.some((m) => metricKind(m.id) === "insurer") && "VNB margin is life insurers’, combined ratio general and health insurers’, solvency every insurer’s"].filter(Boolean).join("; ")}).`}
           </p>
         )}
       </div>

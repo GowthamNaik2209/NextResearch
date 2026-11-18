@@ -100,14 +100,14 @@
   },
   {
     "ticker": "NIVABUPA",
-    "period": "Q2 FY27",
+    "period": "H1 FY27",
     "periodEnd": "2026-09-30",
     "vnbMargin": null,
     "embeddedValueCr": null,
-    "combinedRatio": null,
+    "combinedRatio": 99.5,
     "solvencyRatio": 2.03,
     "sourceUrl": "https://nsearchives.nseindia.com/corporate/MAXBUPA_10112026170703_Intimation-Transcript_Q2FY27final.pdf",
-    "readOn": "2026-11-18"
+    "readOn": "2026-11-19"
   },
   {
     "ticker": "NIACL",
@@ -130,5 +130,16 @@
     "solvencyRatio": 4.32,
     "sourceUrl": "https://www.gicre.in/images/2026/PressRelease13thAugust2026.pdf",
     "readOn": "2026-11-18"
+  },
+  {
+    "ticker": "RELIGARE",
+    "period": "H1 FY27",
+    "periodEnd": "2026-09-30",
+    "vnbMargin": null,
+    "embeddedValueCr": null,
+    "combinedRatio": 100.5,
+    "solvencyRatio": 1.55,
+    "sourceUrl": "https://docs.religare.com/pdf/REL-IR-Presentation-Q2FY27.pdf",
+    "readOn": "2026-11-19"
   }
 ]

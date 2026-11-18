@@ -223,11 +223,33 @@ export type SectorDef = {
   // the sector (e.g. power generation, where the end players are plant operators).
   integratorHeading?: string;
   integratorBlurb?: string;
+  // Further zones whose companies the integrator section shows as well, after the integrator zone's
+  // (Insurance: LIC and the group-owned life insurers beside the bank-promoted ones). Side links in
+  // them (a holding company) are left out.
+  integratorExtraZoneIds?: string[];
   // Phone/tablet overview framing: tilt, turn (up to 30 degrees) and re-centre a flat campus so it
   // fills the portrait stage (engine.ts portraitFit). On by default (QA: the authored low, wide
   // shots left the model a thin band across the middle third of a phone); `false` opts a sector out.
   portraitFit?: boolean;
+  // True: the industry's basket and pools (src/lib/baskets/industry.ts, pools-data.ts) hold only the
+  // companies central to it - centrality at or above CORE_CENTRALITY (./insights.ts), the line its
+  // combined revenue, news feed and stake changes already use. A side link rated medium or low (a
+  // bank that sells its group's policies, a holding company) stays mapped - explorer, company page,
+  // footprint - but its figures, mostly another industry's, are not counted in the industry's money.
+  basketCoreOnly?: boolean;
 };
+
+/** The integrator section's zones: the integrator zone, then any extra ones (integratorExtraZoneIds). */
+export function integratorZones(sector: Pick<SectorDef, "zones" | "integratorZoneId" | "integratorExtraZoneIds">): SectorZone[] {
+  if (!sector.integratorZoneId) return [];
+  const ids = [sector.integratorZoneId, ...(sector.integratorExtraZoneIds ?? [])];
+  return ids.flatMap((id) => sector.zones.filter((z) => z.id === id));
+}
+
+/** The integrator section's company links, each with its zone: the integrator zone's all, the extra zones' without side links. */
+export function integratorLinks(sector: Pick<SectorDef, "zones" | "integratorZoneId" | "integratorExtraZoneIds">): { zone: SectorZone; link: SectorCompanyLink }[] {
+  return integratorZones(sector).flatMap((zone, i) => zone.suppliers.filter((l) => i === 0 || !isSideLink(l)).map((link) => ({ zone, link })));
+}
 
 // A sector plus the registry key it is addressed by in URLs.
 export type SectorWithSlug = SectorDef & { slug: string };

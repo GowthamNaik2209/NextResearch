@@ -27,19 +27,27 @@ export function ratioTiles(f: SupplierFinancials | undefined, reit: boolean): Ra
   const nm = (t: RatioTile): RatioTile => (reit ? { label: t.label, value: "n/m", title: "Not meaningful for a REIT" } : t);
   const caution = k.caution ? { value: NA, sub: "See note", title: k.caution } : null;
   const kindNote = k.notMeaningful.includes("netMargin") ? notMeaningfulNote(f ? (f.kind ?? companyKind(f.ticker)) : null) : null;
+  // The year line: the year the figures are for, and when that isn't the table's latest, that the latest is not out yet.
+  const fyLine = fy && k.notOut ? `${fy} · ${k.notOut} not out yet` : fy;
+  const notOutTitle = k.notOut ? `${k.notOut} figures are not on Screener yet; these are for ${fy}, its latest year there.` : undefined;
+  // No year before to grow from: a dash with its reason, never a bare one.
+  const noGrowth = k.noPrior ? { value: NA, sub: `No ${k.noPrior} figure`, title: `A growth rate needs ${k.noPrior} as well, and the company table has no ${k.noPrior} figure for it.` } : null;
   return [
-    { label: "P/B", value: k.pb != null ? `${k.pb.toFixed(1)}x` : NA },
-    { label: "Revenue growth", ...(caution ?? { value: k.revGrowth != null ? signedPct(k.revGrowth, 1) : NA, tone: k.revGrowth, sub: fy }) },
+    // No P/B: say why (no book value in the company table, or a negative one), never a bare dash.
+    k.pb != null
+      ? { label: "P/B", value: `${k.pb.toFixed(1)}x` }
+      : { label: "P/B", value: NA, sub: typeof f?.kpi?.[1] === "number" && f.kpi[1] <= 0 ? "Negative book value" : "No book value figure" },
+    { label: "Revenue growth", ...(caution ?? ((k.revGrowth == null && noGrowth) || { value: k.revGrowth != null ? signedPct(k.revGrowth, 1) : NA, tone: k.revGrowth, sub: fyLine, title: notOutTitle })) },
     nm({
       label: "Profit growth",
       ...(caution ??
         (k.profitNote
-          ? { value: PROFIT_NOTE_LABEL[k.profitNote], sub: fy }
-          : { value: k.profitGrowth != null ? signedPct(k.profitGrowth, 1) : NA, tone: k.profitGrowth, sub: fy })),
+          ? { value: PROFIT_NOTE_LABEL[k.profitNote], sub: fyLine, title: notOutTitle }
+          : (k.profitGrowth == null && noGrowth) || { value: k.profitGrowth != null ? signedPct(k.profitGrowth, 1) : NA, tone: k.profitGrowth, sub: fyLine, title: notOutTitle })),
     }),
     kindNote
       ? { label: "Net margin", value: kindNote, muted: true }
-      : nm({ label: "Net margin", ...(caution ?? { value: k.netMargin != null ? pct(k.netMargin) : NA, sub: fy }) }),
+      : nm({ label: "Net margin", ...(caution ?? { value: k.netMargin != null ? pct(k.netMargin) : NA, sub: fyLine, title: notOutTitle }) }),
     {
       label: "1Y vs Nifty",
       // Whole points: the stock's 1Y return is Screener's whole-number figure.

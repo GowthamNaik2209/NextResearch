@@ -41,7 +41,26 @@ test("a note warning about the latest year leaves growth and margin out; a Jan-D
 
 test("missing figures give nulls, not zeros", () => {
   const k = keyRatios({ ticker: "A", price: "Rs 300", kpi: [30, -4, 1, 15, 12, 1], cagr: [25, null, null] });
-  assert.deepEqual(k, { pb: null, fy: null, caution: null, revGrowth: null, profitGrowth: null, profitNote: null, netMargin: null, nifty1y: null, vsNifty: null, notMeaningful: [] });
+  assert.deepEqual(k, { pb: null, fy: null, caution: null, revGrowth: null, profitGrowth: null, profitNote: null, netMargin: null, nifty1y: null, vsNifty: null, notMeaningful: [], notOut: null, noPrior: null });
+});
+
+test("a latest year not on Screener yet, or no year before it, is named rather than left a bare dash", () => {
+  // HDBFS's shape: FY26 not out, figures for FY25.
+  const late: SupplierFinancials = { ticker: "A", rev: [null, 12403, 14173, 16300, null], np: [null, 1959, 2461, 2176, null] };
+  assert.deepEqual([keyRatios(late).fy, keyRatios(late).notOut, keyRatios(late).noPrior], ["FY25", "FY26", null]);
+  const lateTiles = ratioTiles(late, false);
+  assert.equal(lateTiles.find((t) => t.label === "Revenue growth")!.sub, "FY25 · FY26 not out yet");
+  // UGROCAP's shape: only FY26 in the table, so no growth rate, and the tile says why.
+  const lone: SupplierFinancials = { ticker: "A", rev: [null, null, null, null, 1960], np: [null, null, null, null, 175] };
+  assert.deepEqual([keyRatios(lone).notOut, keyRatios(lone).noPrior], [null, "FY25"]);
+  for (const label of ["Revenue growth", "Profit growth"]) {
+    const t = ratioTiles(lone, false).find((x) => x.label === label)!;
+    assert.deepEqual([t.value, t.sub], ["—", "No FY25 figure"], label);
+    assert.ok(t.title);
+  }
+  // A full history: neither.
+  const full = keyRatios({ ticker: "A", rev: [1, 2, 3, 4, 5], np: [1, 1, 1, 1, 1] });
+  assert.deepEqual([full.notOut, full.noPrior], [null, null]);
 });
 
 test("the Nifty's 1Y return runs from the close a year before to the close on the day", () => {

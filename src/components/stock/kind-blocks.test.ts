@@ -38,12 +38,12 @@ test("the lender's year labels: the financing-margin year and the balance-sheet 
 
 test("a bank's block: the six lending figures in order, each period beside it, never NIM, CASA or loan growth; P/B and ROE stay in the tiles above", () => {
   const b = lenderRows(bank);
-  assert.deepEqual(labels(b.rows), ["ROA", "Gross NPA", "Net NPA", "Financing margin", "Deposit growth", "Balance-sheet growth"]);
+  assert.deepEqual(labels(b.rows), ["ROA", "Gross NPA", "Net NPA", "Financing profit / revenue", "Deposit growth", "Balance-sheet growth"]);
   const v = Object.fromEntries(b.rows.map((r) => [r.label, [r.value, r.period ?? null]]));
   assert.deepEqual(v["ROA"], ["9.52%", "FY26"]);
   assert.deepEqual(v["Gross NPA"], ["1.11%", "Sep 2026"]);
   assert.deepEqual(v["Net NPA"], ["0.37%", "Sep 2026"]);
-  assert.deepEqual(v["Financing margin"], ["12.4%", "FY26"]);
+  assert.deepEqual(v["Financing profit / revenue"], ["12.4%", "FY26"]);
   assert.deepEqual(v["Deposit growth"], ["+10.0%", "FY26"]);
   assert.deepEqual(v["Balance-sheet growth"], ["+10.0%", "FY26"]);
   assert.equal(b.missing, false);
@@ -144,7 +144,7 @@ test("NPAs Screener doesn't report read as a dash with the reason; reported ones
   const b = lenderRows({ ...nbfc, lender: noNpa });
   const v = Object.fromEntries(b.rows.map((r) => [r.label, r]));
   for (const l of ["Gross NPA", "Net NPA"]) assert.deepEqual([v[l].value, v[l].note], ["—", NPA_NOT_REPORTED], l);
-  assert.equal(v["Financing margin"].note, undefined);
+  assert.equal(v["Financing profit / revenue"].note, undefined);
   assert.equal(b.footnote, undefined);
   for (const r of lenderRows(bank).rows) assert.equal(r.note, undefined, r.label);
   // No block stored yet: the "not yet added" flag says why, not a Screener note.

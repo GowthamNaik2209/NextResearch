@@ -180,8 +180,8 @@ export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: numbe
   ideas.push({
     id: "quality",
     title: "Highest ROCE",
-    blurb: "The highest return on capital employed across every mapped industry.",
-    rule: `Highest ROCE among covered companies, among profitable companies (a P/E and a profit in the latest year) with positive book value, worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more: ROCE on a loss or negative equity isn't meaningful. ${ONE_OFF_NOTE}`,
+    blurb: "The highest return on capital employed, lenders and insurers aside: Quality lenders and Insurer value rank them.",
+    rule: `Highest ROCE among covered companies, among profitable companies (a P/E and a profit in the latest year) with positive book value, worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more: ROCE on a loss or negative equity isn't meaningful. Lenders and insurers are left out, as ROCE means nothing for them: Quality lenders and Insurer value rank them. ${ONE_OFF_NOTE}`,
     range: "1Y",
     stocks: quality.map((s) => ({ ticker: s.ticker, stat: `ROCE ${s.roce!.toFixed(0)}%` })),
     ret: ret1y(quality.map((s) => s.ticker)),

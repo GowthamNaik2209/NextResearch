@@ -21,9 +21,10 @@
 // their own metrics as well (poolMetricsFor): P/B, ROE and asset quality for lenders, P/B, ROE, VNB
 // margin, combined ratio and solvency for insurers, each the median of the companies that report it.
 // A lender metric (ROA, NPAs) applies only to lenders and an insurer metric only to insurers
-// (metricApplies); P/B and ROE apply to every company.
+// (metricApplies) - VNB margin only to life insurers, combined ratio only to general and health
+// insurers, solvency to every insurer; P/B and ROE apply to every company.
 
-import type { CompanyKind } from "@/lib/financials/kinds";
+import { isLifeInsurer, type CompanyKind } from "@/lib/financials/kinds";
 
 export type PoolCompany = {
   ticker: string;
@@ -116,11 +117,27 @@ const INSURER_ONLY: ReadonlySet<PoolMetricId> = new Set(["vnb", "combined", "sol
 /** The one kind of company a metric is for (ROA and NPAs: lenders; VNB margin, combined and solvency ratios: insurers), or null for every company. */
 export const metricKind = (id: PoolMetricId): FinancialKind | null => (LENDER_ONLY.has(id) ? "lender" : INSURER_ONLY.has(id) ? "insurer" : null);
 
-/** Whether a metric applies to a company at all: a lender metric reads "not applicable" for everyone else. */
+/** Whether a metric applies to a company at all: a lender metric reads "not applicable" for everyone
+ * else, VNB margin for an insurer that is not a life insurer, a combined ratio for a life insurer. */
 export const metricApplies = (c: PoolCompany, id: PoolMetricId) => {
   const k = metricKind(id);
-  return k == null || kindOf(c) === k;
+  if (k == null) return true;
+  if (kindOf(c) !== k) return false;
+  if (id === "vnb") return isLifeInsurer(c.ticker);
+  if (id === "combined") return !isLifeInsurer(c.ticker);
+  return true;
 };
+
+/** Who a lender or insurer metric is for, in the plural ("lenders", "life insurers"), or null for every company's. */
+export function metricAppliesTo(id: PoolMetricId): string | null {
+  if (id === "vnb") return "life insurers";
+  if (id === "combined") return "general and health insurers";
+  const k = metricKind(id);
+  return k === "lender" ? "lenders" : k === "insurer" ? "insurers" : null;
+}
+
+/** Metrics where lower is better (bad loans, an insurer's combined ratio): a ranking lists the lowest first. */
+export const LOWER_IS_BETTER: ReadonlySet<PoolMetricId> = new Set(["gnpa", "nnpa", "combined"]);
 
 /**
  * The kind whose figures a metric is still waiting on: a lender (insurer) metric when the companies
@@ -130,7 +147,7 @@ export const metricApplies = (c: PoolCompany, id: PoolMetricId) => {
 export function figuresPending(cs: PoolCompany[], id: PoolMetricId): FinancialKind | null {
   const k = metricKind(id);
   if (!k) return null;
-  const ofKind = cs.filter((c) => kindOf(c) === k);
+  const ofKind = cs.filter((c) => metricApplies(c, id));
   return ofKind.length && ofKind.every((c) => companyValue(c, id) == null) ? k : null;
 }
 
@@ -277,6 +294,8 @@ export type PoolTakeaway = {
 
 /** A layer whose one-off-year companies hold at least this share of its revenue isn't ranked: its shares would understate it. */
 export const ONE_OFF_MATERIAL = 0.1;
+/** With lender or insurer layers left out, the layers still ranked must hold at least this share of the revenue, or there is no takeaway. */
+export const RANKED_MIN_REVENUE = 0.5;
 
 /**
  * The one-line read under the bars: the layer that keeps the most profit for its revenue, and the
@@ -288,7 +307,8 @@ export const ONE_OFF_MATERIAL = 0.1;
  * below that it is ranked, with them listed so the sentence can say so. Lenders and insurers have no
  * meaningful margin (financials/kinds.ts), so a layer where they make up ONE_OFF_MATERIAL of the
  * revenue or more is left out the same way and named (a layer of lenders gets no margin claim).
- * Null when fewer than two layers can be ranked, or none of them makes a profit.
+ * Null when fewer than two layers can be ranked, none of them makes a profit, or the lender and
+ * insurer layers left out leave less than RANKED_MIN_REVENUE of the revenue ranked.
  */
 export function poolTakeaway(layers: LayerPool[]): PoolTakeaway | null {
   const rev = layerShares(layers, "rev");
@@ -318,6 +338,8 @@ export function poolTakeaway(layers: LayerPool[]): PoolTakeaway | null {
   // Most profit for its revenue first; the sort is stable, so ties keep the map's order.
   rows.sort((a, b) => b.ratio - a.ratio);
   if (rows.length < 2 || rows[0].profit == null) return null;
+  // Lenders and insurers left less than half the revenue to rank: the line would crown fringe layers.
+  if (financial.length && sum(rows.map((r) => r.revenue)) < RANKED_MIN_REVENUE) return null;
   return { more: rows[0], less: rows[rows.length - 1], skipped, financial };
 }
 

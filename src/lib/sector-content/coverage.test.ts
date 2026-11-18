@@ -80,7 +80,7 @@ const RULES = {
   },
   sideExposure: {
     id: "side-exposure",
-    reason: `its strongest link here is low strength or an enabler/lender (centrality < ${CORE_CENTRALITY}): sector news feeds and the per-industry stake changes leave it out (insights.ts CORE_CENTRALITY)`,
+    reason: `its strongest link here is low strength or an enabler/lender (centrality < ${CORE_CENTRALITY}): sector news feeds and the per-industry stake changes leave it out (insights.ts CORE_CENTRALITY), and so do the basket and pools of an industry marked basketCoreOnly`,
     applies: (p) => (metricsIn(p)?.centrality ?? 1) < CORE_CENTRALITY,
   },
   noOneYear: {
@@ -122,6 +122,9 @@ const RULES = {
     applies: () => true,
   },
 } satisfies Record<string, Rule>;
+
+/** Side exposure, only where the industry is marked basketCoreOnly (core.ts): its basket, pools and chart picker. */
+const coreOnly: Rule = { ...RULES.sideExposure, applies: (p) => !!p.sector.basketCoreOnly && RULES.sideExposure.applies(p) };
 
 // Companies whose names read like a bank, NBFC or insurer (FINANCIAL_NAME) but that earn fees, not
 // interest or premiums, so they stay "operating" (financials/kinds.ts): brokers, asset managers,
@@ -240,8 +243,8 @@ test("search index: one company row opening its page, naming the sector", () => 
 });
 
 test("industry basket and pools", () => {
-  check("the industry basket", (p) => !!getIndustryBasket(p.sector.slug)?.stocks.some((s) => s.ticker === p.ticker));
-  check("the industry pools", (p) => !!industryPools(p.sector.slug)?.companies.some((c) => c.ticker === p.ticker), [RULES.noFigures]);
+  check("the industry basket", (p) => !!getIndustryBasket(p.sector.slug)?.stocks.some((s) => s.ticker === p.ticker), [coreOnly]);
+  check("the industry pools", (p) => !!industryPools(p.sector.slug)?.companies.some((c) => c.ticker === p.ticker), [RULES.noFigures, coreOnly]);
 });
 
 test("rule-based baskets and stock screens: the universe they rank", () => {
@@ -395,7 +398,7 @@ test("/updates offers every live sector in its industry dropdown", () => {
 test("Analysis: the deck's company table and the chart picker", () => {
   check("the research deck's company table", (p) => !!buildDeck(p.sector.slug)?.companies.some((c) => c.ticker === p.ticker), [RULES.deckCurated]);
   const charts = new Map(analysisChartIndustries().map((i) => [i.slug, new Set(i.stocks.map((s) => s.ticker))]));
-  check("the Analysis chart picker", (p) => !!charts.get(p.sector.slug)?.has(p.ticker));
+  check("the Analysis chart picker", (p) => !!charts.get(p.sector.slug)?.has(p.ticker), [coreOnly]);
 });
 
 // ---- Per live sector ----

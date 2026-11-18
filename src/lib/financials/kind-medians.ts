@@ -6,7 +6,7 @@ import type { SupplierFinancials } from "@/lib/sector-content";
 import { keyRatios } from "./key-ratios";
 import { companyKind } from "./kinds";
 
-export type KindMedians = { kind: "lender" | "insurer"; /** Covered companies of that kind with a P/B or an ROE. */ n: number; pb: number | null; roe: number | null;
+export type KindMedians = { kind: "lender" | "insurer"; /** Covered companies of that kind with a P/B or an ROE (the stock route sets it to the peer set's size, the P/E in context count). */ n: number; pb: number | null; roe: number | null;
   /** The P/E median of the same peers as "P/E in context" (valuation/pe-data.ts), so the pop-up shows one number. */ pe?: number | null };
 
 const fin = (v: number | null | undefined): v is number => typeof v === "number" && Number.isFinite(v);

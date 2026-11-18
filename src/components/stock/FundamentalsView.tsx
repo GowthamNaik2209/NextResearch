@@ -182,7 +182,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
             <span>Lower is better for P/E and P/B. n/a = no industry median.</span>
             {kp && (peerPe != null || peerPb != null || peerRoe != null) && (
               <span>
-                † P/E, P/B and ROE: the median of {kp.n} covered {kp.kind === "lender" ? "lenders" : "insurers"} (company snapshot), as {kp.kind === "lender" ? "a lender" : "an insurer"} is set against its own kind.
+                † P/E, P/B and ROE: the median of {kp.n} covered {kp.kind === "lender" ? "banks and NBFCs" : "life and general insurers"} with a P/E (company snapshot), the same peers as P/E in context, as {kp.kind === "lender" ? "a lender" : "an insurer"} is set against its own kind.
               </span>
             )}
           </p>

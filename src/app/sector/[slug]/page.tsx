@@ -4,6 +4,8 @@ import {
   categoryWord,
   companyLinkKey,
   getSector,
+  integratorLinks,
+  integratorZones,
   listSectorSlugs,
   tickerForSupplier,
   EXPOSURE_TYPE_LABEL,
@@ -102,13 +104,12 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
   // The zone representing final assembly/integration (e.g. ev4w's "oem" zone
   // is Mahindra/Tata Motors) — surfaced as its own section instead of being
   // buried one click inside the 3D explorer like every other component.
-  const integratorZone = sector.integratorZoneId
-    ? sector.zones.find((z) => z.id === sector.integratorZoneId)
-    : undefined;
-  const integratorCompanies = (integratorZone?.suppliers ?? [])
-    .map((link) => {
+  const integratorZone = integratorZones(sector)[0];
+  // With any extra zones the sector names (Insurance: LIC's beside the bank-promoted insurers).
+  const integratorCompanies = integratorLinks(sector)
+    .map(({ zone, link }) => {
       const key = companyLinkKey(link);
-      return { key, company: sector.suppliers[key] };
+      return { key, zoneId: zone.id, company: sector.suppliers[key] };
     })
     .filter((x, i, all) => x.company && all.findIndex((y) => tickerForSupplier(y.company) === tickerForSupplier(x.company)) === i);
 
@@ -293,7 +294,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                 )}
               </p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {integratorCompanies.map(({ key, company }) => {
+                {integratorCompanies.map(({ key, zoneId, company }) => {
                   const ticker = company.listed ? tickerForSupplier(company) : null;
                   return (
                     <OpenStockCard key={key} ticker={tickerForSupplier(company)} supplier={company} className="rounded-xl border border-line bg-panel p-4 transition hover:border-accent">
@@ -313,7 +314,7 @@ export default async function SectorOverviewPage({ params }: { params: Promise<{
                       <p className="mt-1 text-xs leading-relaxed text-ink-soft">{company.role}</p>
                       <div className="mt-2 flex flex-wrap gap-x-4">
                         <Link
-                          href={`/sector/${sector.slug}/explore?zone=${encodeURIComponent(integratorZone.id)}&company=${encodeURIComponent(key)}`}
+                          href={`/sector/${sector.slug}/explore?zone=${encodeURIComponent(zoneId)}&company=${encodeURIComponent(key)}`}
                           className="tap-y inline-block text-[11px] text-accent hover:underline"
                         >
                           View in the map &rarr;

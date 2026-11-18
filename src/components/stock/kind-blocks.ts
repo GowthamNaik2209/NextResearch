@@ -39,7 +39,7 @@ const fin = (v: number | null | undefined): v is number => typeof v === "number"
 const times = (v: number | null | undefined, dp: number) => (fin(v) ? `${v.toFixed(dp)}x` : NA);
 const opt = (s: string | null | undefined) => s ?? undefined;
 
-/** A lender's block: ROA, gross and net NPA (of `quarter`), financing margin, deposit growth (banks only) and balance-sheet growth. */
+/** A lender's block: ROA, gross and net NPA (of `quarter`), financing profit over revenue (Screener's "financing margin", not NIM), deposit growth (banks only) and balance-sheet growth. */
 export function lenderRows(f: SupplierFinancials): Block {
   const l = f.lender ?? null;
   const year = opt(l?.year);
@@ -53,7 +53,7 @@ export function lenderRows(f: SupplierFinancials): Block {
     { label: "ROA", value: pct(l?.roa, 2), period: year },
     { label: "Gross NPA", value: pct(l?.gnpa, 2), period: opt(l?.quarter), ...npaNote },
     { label: "Net NPA", value: pct(l?.nnpa, 2), period: opt(l?.quarter), ...npaNote },
-    { label: "Financing margin", value: pct(l?.finMargin, 1), period: year },
+    { label: "Financing profit / revenue", value: pct(l?.finMargin, 1), period: year },
   ];
   // Only a bank takes deposits (kinds.ts BANKS): an NBFC gets no row rather than a dash that reads as
   // "not reported"; a bank without stored deposits reads "—".

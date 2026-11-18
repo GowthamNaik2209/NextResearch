@@ -27,9 +27,13 @@ const insurance = {
  ],
  featuredSignals: ["Monthly new-business premium by insurer (Life Insurance Council) and general premium (General Insurance Council)", "Half-yearly VNB margin, embedded value and 13th/61st-month persistency of the listed life insurers", "Quarterly combined ratio and solvency of general and health insurers (n basis vs CISR - check the basis)", "Motor third-party premium notification and claims trends after the Jun 2026 Supreme Court ruling", "IRDAI risk-based solvency rules and composite-licence notification under the 2025 Act", "Bima Sugam go-live and commission / expense-of-management rules"],
  dataStatus: "demo",
+ // Banks and holding companies are side links rated medium or low: mapped (explorer, company pages)
+ // but left out of the Insurance basket and pools, which are about the insurers' own money.
+ basketCoreOnly: true,
  integratorZoneId: "life_bank",
+ integratorExtraZoneIds: ["life_lic"],
  integratorHeading: "Life insurers",
- integratorBlurb: "Life insurers turn premiums into long-term promises - protection, savings and annuities - and earn the value of new business (VNB) on each year's sales. The bank-promoted private life insurers are where most listed value sits: they buy distribution from their parent banks, hold the policyholders' money for decades and report their worth as embedded value, so their VNB margins set the pace for the chain.",
+ integratorBlurb: "Life insurers turn premiums into long-term promises - protection, savings and annuities - and earn the value of new business (VNB) on each year's sales. LIC is the largest: its market value is more than the listed private life insurers' combined, though its VNB margin is lower as most of its sales are participating savings policies. The bank-promoted private insurers buy distribution from their parent banks and earn higher margins; the group-owned ones (Bajaj, Tata AIA, Aditya Birla, Kotak, PNB MetLife) are unlisted, held through their parents.",
  layerNames: ["Distribution","Insurers","Claims & Reinsurance","Capital & Regulation"],
  shellMaxOpacity: 1, exoBaseOpacity: 0.55,
  defaultView: "overview",
@@ -52,7 +56,7 @@ const insurance = {
   keyRisks:["Tighter commission or mis-selling rules cut banca volumes", "Partner changes when a bank switches or adds insurers", "Banks prioritising deposit gathering over cross-sell in a tight-liquidity year"],
   investorMetrics:["Share of an insurer's new business from its parent bank (banca mix)", "Commission and fee income from insurance at the bank", "Value of the bank's stake in its insurer versus the bank's own market value"],
   relatedComponents:["life_bank","general","holdcos","digital_brokers"],
-  suppliers:[{key:"sbi", exposureType:"enabler", exposureStrength:"high"}, {key:"hdfcBank", exposureType:"enabler", exposureStrength:"high"}, {key:"icicibank", exposureType:"enabler", exposureStrength:"high"}, {key:"axisbank", exposureType:"enabler", exposureStrength:"medium"}, {key:"kotak", exposureType:"enabler", exposureStrength:"medium"}, {key:"canaraBank", exposureType:"enabler", exposureStrength:"medium"}]},
+  suppliers:[{key:"sbi", exposureType:"enabler", exposureStrength:"medium"}, {key:"hdfcBank", exposureType:"enabler", exposureStrength:"medium"}, {key:"icicibank", exposureType:"enabler", exposureStrength:"medium"}, {key:"axisbank", exposureType:"enabler", exposureStrength:"medium"}, {key:"kotak", exposureType:"enabler", exposureStrength:"medium"}, {key:"canaraBank", exposureType:"enabler", exposureStrength:"medium"}]},
 
  {id:"digital_brokers", color:"#C99A2E", label:"Online marketplaces & brokers", layer:0, pos:A.digital_brokers.pos, side:A.digital_brokers.side, desc:"Online insurance marketplaces, point-of-sale platforms and brokers that compare and sell policies from many insurers for a commission.",
   domainId:"distribution", displayOrder:2, dataStatus:"demo",
@@ -88,7 +92,7 @@ const insurance = {
   keyRisks:["Share loss to private insurers in individual business", "Government stake sales adding supply of LIC shares", "Policy-driven investment decisions at LIC"],
   investorMetrics:["Share of first-year premium (individual and group)", "VNB margin and its trend as the mix shifts", "Embedded value", "Agency count and productivity", "Persistency"],
   relatedComponents:["life_bank","holdcos","regulator"],
-  suppliers:[{key:"lic", exposureType:"operator", exposureStrength:"high"}, {key:"bajajLife", exposureType:"operator", exposureStrength:"high"}, {key:"tataAiaLife", exposureType:"operator", exposureStrength:"high"}, {key:"abslInsurance", exposureType:"operator", exposureStrength:"medium"}, {key:"kotakLife", exposureType:"operator", exposureStrength:"medium"}, {key:"pnbMetLife", exposureType:"operator", exposureStrength:"medium"}, {key:"bajajfinsv", exposureType:"owner", exposureStrength:"medium"}]},
+  suppliers:[{key:"lic", exposureType:"operator", exposureStrength:"high"}, {key:"bajajLife", exposureType:"operator", exposureStrength:"high"}, {key:"tataAiaLife", exposureType:"operator", exposureStrength:"high"}, {key:"abslInsurance", exposureType:"operator", exposureStrength:"medium"}, {key:"kotakLife", exposureType:"operator", exposureStrength:"medium"}, {key:"pnbMetLife", exposureType:"operator", exposureStrength:"medium"}, {key:"bajajfinsv", exposureType:"enabler", exposureStrength:"medium"}]},
 
  {id:"general", color:"#D96C2B", label:"Multi-line general insurers", layer:1, pos:A.general.pos, side:A.general.side, desc:"Insurers writing motor, health, fire, engineering, marine and crop covers for households and companies, judged on combined ratio and float income.",
   domainId:"nonlife", displayOrder:5, dataStatus:"demo",
@@ -148,7 +152,7 @@ const insurance = {
   keyRisks:["Capital calls on loss-making insurers", "Lending arms dominate group figures, hiding the insurance story", "Governance and control changes (Religare 2025)"],
   investorMetrics:["Look-through value of each insurance stake", "Capital injected into insurers", "Holding-company discount to sum of parts"],
   relatedComponents:["life_lic","general","health","reinsurance","bancassurance"],
-  suppliers:[{key:"bajajfinsv", exposureType:"enabler", exposureStrength:"high"}, {key:"bajajHoldings", exposureType:"enabler", exposureStrength:"medium"}, {key:"abCapital", exposureType:"enabler", exposureStrength:"medium"}, {key:"religare", exposureType:"enabler", exposureStrength:"high"}, {key:"icicibank", exposureType:"enabler", exposureStrength:"medium"}, {key:"jioFin", exposureType:"enabler", exposureStrength:"low"}]},
+  suppliers:[{key:"bajajfinsv", exposureType:"enabler", exposureStrength:"medium"}, {key:"bajajHoldings", exposureType:"enabler", exposureStrength:"medium"}, {key:"abCapital", exposureType:"enabler", exposureStrength:"medium"}, {key:"religare", exposureType:"enabler", exposureStrength:"high"}, {key:"icicibank", exposureType:"enabler", exposureStrength:"medium"}, {key:"jioFin", exposureType:"enabler", exposureStrength:"low"}]},
 
  {id:"regulator", color:"#7A5CC7", label:"Regulator & public rails", layer:3, pos:A.regulator.pos, side:A.regulator.side, desc:"The insurance regulator and the shared public platforms that set rules for products, capital, commissions and claims.",
   domainId:"capital_regulation", displayOrder:10, dataStatus:"demo",

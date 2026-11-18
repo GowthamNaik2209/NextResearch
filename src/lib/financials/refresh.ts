@@ -251,6 +251,15 @@ export function newCompanyFigures(ticker: string, s: Snap, asOf: Date): Supplier
 }
 
 /**
+ * How a company new to the table is written (--add, an IPO on its listing day): listed, under its
+ * name and role, with a lender's own figures from the same Screener read (never dropped, or its
+ * lending block stays empty until the next full refresh).
+ */
+export function newCompanyWriteOptions(s: Pick<Snap, "lender">, name: string, role = ""): Parameters<typeof writeFinancials>[3] {
+  return { identity: { name, listed: true, role }, lender: s.lender ?? null };
+}
+
+/**
  * IPOs that are listed by `day` (their deck's live stage, src/lib/ipo-content/status.ts) and carry a
  * ticker the company table doesn't track yet: a run adds them, so a new listing publishes with
  * everyone else on one date. A listed deck without a ticker is skipped (symbols are never guessed).
@@ -417,7 +426,7 @@ export async function runChunk(prisma: PrismaClient, opts: ChunkOptions): Promis
         const name = newNames.get(old.ticker);
         const fresh = s && name ? newCompanyFigures(old.ticker, s, target) : null;
         if (s && name && fresh) {
-          await writeFinancials(prisma, fresh, target, { identity: { name, listed: true, role: "" }, lender: s.lender });
+          await writeFinancials(prisma, fresh, target, newCompanyWriteOptions(s, name));
           await saveShareholding(old.ticker, s.shareholding);
           log(`added newly listed ${old.ticker} (${name})`);
           run.done++;

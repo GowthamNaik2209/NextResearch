@@ -31,6 +31,10 @@ export type KeyRatios = {
   vsNifty: number | null;
   /** Ratios that mean nothing for this kind of company (net margin and ROCE for lenders and insurers). */
   notMeaningful: NotMeaningful[];
+  /** The latest table year ("FY26") when the company's latest reported year (`fy`) is older: its figures are not on Screener yet. */
+  notOut: string | null;
+  /** The year before `fy` ("FY25") when the table has none for it: why there is no growth rate. */
+  noPrior: string | null;
 };
 
 export type NotMeaningful = "netMargin" | "roce";
@@ -144,11 +148,14 @@ export function keyRatios(f: SupplierFinancials | undefined): KeyRatios {
     nifty1y: fin(nifty) ? nifty : null,
     vsNifty: fin(ret1y) && fin(nifty) ? ret1y - nifty : null,
     notMeaningful,
+    // A Jan-Dec reporter's latest column is its own; only a March year can be "not out" here.
+    notOut: i >= 0 && i < FISCAL_YEARS.length - 1 && !CALENDAR_YEAR.test(note) ? `FY${String(FISCAL_YEARS[FISCAL_YEARS.length - 1]).slice(-2)}` : null,
+    noPrior: year != null && fin(r) && !fin(r0) ? (CALENDAR_YEAR.test(note) ? `CY${String(year - 2).slice(-2)}` : `FY${String(year - 1).slice(-2)}`) : null,
   };
 }
 
 export const KEY_STATS_NOTE =
-  "P/B is price ÷ book value. Growth and net margin are for the latest reported year; 1Y vs Nifty is the 1-year price return minus the Nifty 50's, in points.";
+  "P/B is price ÷ book value. Growth and net margin are for the latest reported year (where Screener does not have a company's latest year yet, the year before, marked); a growth rate needs the year before it too. 1Y vs Nifty is the 1-year price return minus the Nifty 50's, in points.";
 
 const DAY = 86_400_000;
 // The closes at each end must be this close to the dates asked for (a gap in the series gives no figure).

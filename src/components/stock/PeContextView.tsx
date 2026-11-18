@@ -1,6 +1,6 @@
 import { InfoTip } from "@/components/InfoTip";
 import { MethodLink } from "./MethodLink";
-import { BAND_LABEL, bandOf, peerClause, peMedianLabel, peNote, versus, type PeContext } from "@/lib/valuation/pe-context";
+import { BAND_LABEL, MIN_MONTHS, bandOf, peerClause, peMedianLabel, peNote, versus, type PeContext } from "@/lib/valuation/pe-context";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monthYear = (iso: string) => `${MONTHS[Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}`;
@@ -47,6 +47,7 @@ export function PeContextView({ ctx, ticker, className = "" }: { ctx: PeContext;
             {h ? "It" : `P/E ${x(pe)}`} is {versus(pe, ind.median)} {peerClause(ind, x(ind.median))}
           </li>
         )}
+        {!h && <li className="text-ink-soft">No usual range of its own yet: that needs {MIN_MONTHS / 12} years of month-end P/Es.</li>}
       </ul>
       <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-ink-soft">
         <span><span aria-hidden className="mr-1 inline-block h-2 w-2 rounded-full bg-accent align-middle" />Today</span>

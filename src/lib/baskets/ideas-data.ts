@@ -164,9 +164,9 @@ export const getIdeas = unstable_cache(
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },
-  // v13: Quality lenders and Insurer value added, and the ROCE/margin screens skip lenders and
-  // insurers, so cached v12 lists aren't served.
-  ["basket-ideas-v13"],
+  // v14: lists built before the lender and insurer figures were stored (v13) left Quality lenders
+  // and Insurer value empty for a day; a new key so those lists aren't served.
+  ["basket-ideas-v14"],
   { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
 );
 

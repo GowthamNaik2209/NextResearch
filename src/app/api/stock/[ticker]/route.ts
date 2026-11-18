@@ -8,8 +8,8 @@ import { isListedTicker } from "@/lib/news-listed";
 import { getCompanyFootprint } from "@/lib/sector-content/exposure";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { ensureFinancials } from "@/lib/financials/load";
-import { companyKind, fundamentalsForKind, INSURERS, LENDERS } from "@/lib/financials/kinds";
-import { industryPe } from "@/lib/valuation/pe-data";
+import { companyKind, fundamentalsForKind } from "@/lib/financials/kinds";
+import { industryPe, pePeers } from "@/lib/valuation/pe-data";
 import { kindMedians } from "@/lib/financials/kind-medians";
 
 // One slow upstream must not hold the whole response (an Apollo pop-up once sat on "fetching" for
@@ -41,9 +41,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
   // never gets them as a number (financials/kinds.ts).
   const kind = companyKind(ticker.toUpperCase());
   const fundamentals = fundamentalsForKind(screener ?? (await within(getYahooFundamentals(ticker), null)), kind);
-  // A lender's or an insurer's P/B and ROE are set against covered companies of its own kind (company table).
-  // Its P/E median is the one "P/E in context" shows (the same covered companies of its kind).
-  const kindPeers = kind === "operating" ? null : { ...kindMedians((kind === "lender" ? LENDERS : INSURERS).flatMap((t) => companyFinancials(t) ?? []), kind), pe: industryPe(ticker.toUpperCase())?.median ?? null };
+  // A lender's or an insurer's P/E, P/B and ROE are set against one set of peers: the covered companies
+  // of its own kind with a P/E, the same ones "P/E in context" counts, so both say the same number.
+  const T = ticker.toUpperCase();
+  const peerSet = kind === "operating" ? [] : (pePeers(T)?.peers ?? []).filter((p) => p.pe != null).map((p) => p.ticker);
+  const kindPeers =
+    kind === "operating" ? null : { ...kindMedians(peerSet.flatMap((t) => companyFinancials(t) ?? []), kind), n: peerSet.length, pe: industryPe(T)?.median ?? null };
   // `ts` lets the browser render "3h ago" against its own clock (this response is CDN-cached).
   // Grey-market and stale IPO run-up stories left out, cut-off headlines marked with an ellipsis.
   const news = presentableNews(newsResult.items, isListedTicker).map(({ headline, source, url, date, ts }) => ({ headline, source, url, date, ts }));
