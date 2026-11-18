@@ -11,6 +11,12 @@ import { KEY_STATS_NOTE } from "@/lib/financials/key-ratios";
 import { ratioTiles } from "./ratio-tiles";
 import { PeContextLoader } from "./PeContextLoader";
 import { MethodLink } from "./MethodLink";
+import { companyKind, notMeaningfulNote } from "@/lib/financials/kinds";
+import { LenderBlock } from "./LenderBlock";
+import { InsurerBlock } from "./InsurerBlock";
+
+/** A tile's value that is a short note ("Not meaningful for lenders"): small, soft, wrapping. */
+const NoteValue = ({ children }: { children: string }) => <span className="block font-sans text-[11px] font-normal leading-snug text-ink-soft">{children}</span>;
 
 const Label = ({ children }: { children: React.ReactNode }) => (
   <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-soft">{children}</div>
@@ -78,6 +84,9 @@ export function SummaryView({
   const asOf = s.asOf ? `as of ${s.asOf}` : "snapshot";
   const maxRev = Math.max(1, ...rev.map((r) => r.revenue ?? 0));
   const tl = f?.tl;
+  // Lenders and insurers: ROCE and net margin read as a note, and their own block follows Key stats.
+  const kind = f ? (f.kind ?? companyKind(f.ticker)) : "operating";
+  const kindNote = notMeaningfulNote(kind);
 
   // [label, value, optional] - optional chips are hidden on phones (and in the narrow side panel) to
   // keep whole rows. No snapshot "Price" tile: beside the live price in the header it read as a
@@ -87,14 +96,18 @@ export function SummaryView({
     ["Mkt Cap", croreShort(s.marketCapCr)],
     ["Stock P/E", nm(s.pe != null ? `${s.pe.toFixed(1)}x` : NA)],
     ["Div Yield", nm(fmtYield(s.divYield)), true],
-    ["ROCE", pct(s.roce)],
+    ["ROCE", kindNote ? <NoteValue key="roce">{kindNote}</NoteValue> : pct(s.roce)],
     ["ROE", nm(pct(s.roe))],
-    ...ratioTiles(f, s.reit).map(({ label, value, tone, sub, title }): [string, React.ReactNode] => [
+    ...ratioTiles(f, s.reit).map(({ label, value, tone, sub, title, muted }): [string, React.ReactNode] => [
       label,
+      muted ? (
+        <NoteValue key={label}>{value}</NoteValue>
+      ) : (
       <span key={label} title={title}>
         <span className={"block " + (value === "n/m" ? "text-ink-soft" : tone !== undefined ? pctTone(tone, 1) : "")}>{value}</span>
         {sub && <span className="block text-[10.5px] font-normal text-ink-soft">{sub}</span>}
-      </span>,
+      </span>
+      ),
     ]),
   ];
   const below52 = s.price != null && s.high52w != null && s.high52w > 0 ? (1 - s.price / s.high52w) * 100 : null;
@@ -124,6 +137,9 @@ export function SummaryView({
         </div>
         {s.reit && <p className="mt-2 text-[11px] leading-snug text-ink-soft">n/m = not meaningful for a REIT. {REIT_NOTE}</p>}
       </div>
+
+      {f && kind === "lender" && <LenderBlock f={f} compact={compact} className={phoneHide.trim()} />}
+      {f && kind === "insurer" && <InsurerBlock f={f} compact={compact} className={phoneHide.trim()} />}
 
       {!s.reit && s.pe != null && <PeContextLoader key={ticker} ticker={ticker} className={phoneHide.trim()} />}
 

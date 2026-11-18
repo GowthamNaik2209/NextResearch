@@ -49,6 +49,11 @@ export type LenderRatios = {
   bsGrowth: number | null;
   /** The quarter the NPAs are from ("Sep 2026"). */
   quarter: string | null;
+  /** The full year the financing margin and ROA are for ("FY26"), and the latest year-end the growths run to. */
+  year: string | null;
+  bsYear: string | null;
+  /** It takes deposits (a bank); an NBFC's balance sheet has no Deposits row. */
+  bank: boolean;
 };
 
 export type ProfitNote = "from a loss" | "to a loss" | "loss narrowed" | "loss widened";
@@ -67,6 +72,11 @@ const rs = (s?: string | null) => {
 
 const growth = (now: number | null | undefined, prev: number | null | undefined) => (fin(now) && fin(prev) && prev > 0 ? (now / prev - 1) * 100 : null);
 const yearOf = (label: string | null) => /\b(\d{4})\b/.exec(label ?? "")?.[1] ?? null;
+/** "Mar 2026" -> "FY26" (an Indian fiscal year); any other year-end is kept as Screener labels it. */
+const fyOf = (label: string | null) => {
+  const m = /^Mar (\d{4})/.exec(label ?? "");
+  return m ? `FY${m[1].slice(-2)}` : label;
+};
 
 /** A lender's ratios from its stored figures. ROA only when the profit and the balance sheet are for the same year. */
 export function lenderRatiosFrom(l: LenderFigures): LenderRatios {
@@ -83,6 +93,9 @@ export function lenderRatiosFrom(l: LenderFigures): LenderRatios {
     depositGrowth: growth(l.deposits?.[0], l.deposits?.[1]),
     bsGrowth: growth(assets, assetsPrev),
     quarter: l.quarter,
+    year: fyOf(l.finMarginYear),
+    bsYear: fyOf(l.bsYear),
+    bank: l.deposits != null,
   };
 }
 

@@ -8,6 +8,7 @@
 // registrars, rating agencies and insurance brokers or aggregators earn fees
 // and stay "operating".
 import type { SupplierFinancials } from "@/lib/sector-content";
+import type { Fundamentals } from "@/lib/live/screener-company";
 
 export type CompanyKind = "operating" | "lender" | "insurer";
 
@@ -50,4 +51,28 @@ export function companyKind(ticker: string): CompanyKind {
 export function forDisplay(f: SupplierFinancials): SupplierFinancials {
   if ((f.kind ?? companyKind(f.ticker)) === "operating" || !f.kpi || f.kpi[3] == null) return f;
   return { ...f, kpi: f.kpi.map((v, i) => (i === 3 ? null : v)) };
+}
+
+/** What a ROCE or net-margin figure reads as for a lender or an insurer; null for an operating company. */
+export function notMeaningfulNote(kind: CompanyKind | null | undefined): string | null {
+  return kind === "lender" ? "Not meaningful for lenders" : kind === "insurer" ? "Not meaningful for insurers" : null;
+}
+
+// Screener's operating rows (a lender's page has none; an insurer's are not an operating business's).
+const OPERATING_SERIES = /^(Operating Profit|OPM %)$/;
+
+/**
+ * Live Screener fundamentals as the pop-up gets them (api/stock/[ticker]): for a lender or an insurer
+ * no ROCE (its own, the peers' median or the top ratios) and no operating profit or margin rows, so no
+ * surface can show them as a number. A copy; an operating company's come back unchanged.
+ */
+export function fundamentalsForKind(fund: Fundamentals | null, kind: CompanyKind): Fundamentals | null {
+  if (!fund || kind === "operating") return fund;
+  const ind = fund.industry;
+  return {
+    ...fund,
+    kpi: fund.kpi ? { ...fund.kpi, roce: null } : fund.kpi,
+    industry: ind ? { ...ind, median: { ...ind.median, roce: null }, self: ind.self ? { ...ind.self, roce: null } : null } : ind,
+    annual: fund.annual ? { ...fund.annual, series: fund.annual.series.filter((r) => !OPERATING_SERIES.test(r.label)) } : fund.annual,
+  };
 }

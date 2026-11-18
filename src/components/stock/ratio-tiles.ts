@@ -1,7 +1,9 @@
 // The Key stats ratio tiles (financials/key-ratios.ts) as label, value and second line, shared by the
 // stock pop-up and the company page so both read the same. Every tile is always returned (a missing
-// figure reads "—"), so the grids keep whole rows.
+// figure reads "—"), so the grids keep whole rows. A lender's or an insurer's net margin reads as a
+// short note ("Not meaningful for lenders"), not a number or a bare dash.
 import { keyRatios, PROFIT_NOTE_LABEL } from "@/lib/financials/key-ratios";
+import { companyKind, notMeaningfulNote } from "@/lib/financials/kinds";
 import type { SupplierFinancials } from "@/lib/sector-content";
 import { NA, pct, signedPct } from "@/lib/format";
 
@@ -13,6 +15,8 @@ export type RatioTile = {
   sub?: string;
   /** Hover text: why a figure is left out. */
   title?: string;
+  /** The value is a short note (not meaningful for this kind of company): shown small and soft. */
+  muted?: boolean;
 };
 
 export function ratioTiles(f: SupplierFinancials | undefined, reit: boolean): RatioTile[] {
@@ -22,6 +26,7 @@ export function ratioTiles(f: SupplierFinancials | undefined, reit: boolean): Ra
   // growth and margin are as little use as P/E.
   const nm = (t: RatioTile): RatioTile => (reit ? { label: t.label, value: "n/m", title: "Not meaningful for a REIT" } : t);
   const caution = k.caution ? { value: NA, sub: "See note", title: k.caution } : null;
+  const kindNote = k.notMeaningful.includes("netMargin") ? notMeaningfulNote(f ? (f.kind ?? companyKind(f.ticker)) : null) : null;
   return [
     { label: "P/B", value: k.pb != null ? `${k.pb.toFixed(1)}x` : NA },
     { label: "Revenue growth", ...(caution ?? { value: k.revGrowth != null ? signedPct(k.revGrowth, 1) : NA, tone: k.revGrowth, sub: fy }) },
@@ -32,7 +37,9 @@ export function ratioTiles(f: SupplierFinancials | undefined, reit: boolean): Ra
           ? { value: PROFIT_NOTE_LABEL[k.profitNote], sub: fy }
           : { value: k.profitGrowth != null ? signedPct(k.profitGrowth, 1) : NA, tone: k.profitGrowth, sub: fy })),
     }),
-    nm({ label: "Net margin", ...(caution ?? { value: k.netMargin != null ? pct(k.netMargin) : NA, sub: fy }) }),
+    kindNote
+      ? { label: "Net margin", value: kindNote, muted: true }
+      : nm({ label: "Net margin", ...(caution ?? { value: k.netMargin != null ? pct(k.netMargin) : NA, sub: fy }) }),
     {
       label: "1Y vs Nifty",
       // Whole points: the stock's 1Y return is Screener's whole-number figure.

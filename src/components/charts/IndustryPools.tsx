@@ -6,6 +6,8 @@ import { ScrollX } from "@/components/ScrollX";
 import { useSegmentTip } from "@/components/charts/SegmentTip";
 import { StockLink } from "@/components/stock/StockLink";
 import { NA, croreShort, pct } from "@/lib/format";
+import { notMeaningfulNote } from "@/lib/financials/kinds";
+import { poolFmt, poolTick } from "./pool-format";
 import {
   POOL_METRICS,
   companyValue,
@@ -15,11 +17,13 @@ import {
   layerPools,
   layerShares,
   poolMetric,
+  poolMetricsFor,
   poolTakeaway,
   shares,
   type IndustryPools as Pools,
   type LayerPool,
   type PoolCompany,
+  type PoolMetric,
   type PoolMetricId,
   type PoolTakeaway,
   type TakeawayRow,
@@ -36,24 +40,16 @@ type View = PoolsView;
 /** A share as a percent; a sliver reads "<1%", not "0%". */
 const sharePct = (s: number, dp = 0) => (s > 0 && s * 100 < 10 ** -dp ? `<${10 ** -dp}%` : pct(s * 100, dp));
 
-// Rates as the panel prints them; pools read in ₹ Cr.
-function fmt(id: PoolMetricId, v: number | null): string {
-  if (v == null) return NA;
-  if (id === "margin" || id === "growth") return pct(v * 100);
-  if (id === "pe") return `${v.toFixed(1)}×`;
-  if (id === "roce") return pct(v);
-  return croreShort(v);
-}
+// Rates as the panel prints them; pools read in ₹ Cr (units in ./pool-format.ts).
+const fmt = poolFmt;
+const tickLabel = poolTick;
 
-/** Axis labels: rates as on the bars; ₹ Cr in one unit across the axis (lakh crore once it reaches one). */
-function tickLabel(id: PoolMetricId, t: number, top: number): string {
-  if (t === 0) return "0";
-  if (id === "margin" || id === "growth") return pct(t * 100, 0);
-  if (id === "pe") return `${t}×`;
-  if (id === "roce") return pct(t, 0);
-  const a = Math.abs(t);
-  return `${t < 0 ? "−" : ""}${top >= 100_000 ? `₹${+(a / 100_000).toFixed(2)}L Cr` : `₹${(a / 1000).toLocaleString("en-IN")}k Cr`}`;
-}
+// Margin and ROCE mean nothing for a lender or an insurer (financials/kinds.ts): its cells read as a note.
+const RETURN_ON_SALES_OR_CAPITAL: ReadonlySet<PoolMetricId> = new Set(["margin", "roce"]);
+const nmNote = (c: PoolCompany, id: PoolMetricId) => (RETURN_ON_SALES_OR_CAPITAL.has(id) ? notMeaningfulNote(c.kind) : null);
+// The insurers' hand-kept figures; a stale quarter's is marked.
+const HAND_KEPT: ReadonlySet<PoolMetricId> = new Set(["vnb", "combined", "solvency"]);
+const STALE_NOTE = "older figure";
 
 /** Round steps across [lo, hi], about `n` of them. */
 function ticks(lo: number, hi: number, n = 4): number[] {
@@ -102,9 +98,13 @@ export function IndustryPools({
 }) {
   // Layers the map gives one domain colour get a shade each, used by the bars, legend and rows alike.
   const pools = useMemo(() => ({ ...raw, layers: distinctLayerColors(raw.layers) }), [raw]);
+  // The usual metrics, plus the lender set when the industry has a lender and the insurer set when it has an insurer.
+  const offered = useMemo(() => poolMetricsFor(raw), [raw]);
   const [metricOwn, setMetricOwn] = useState<PoolMetricId>("rev");
   const [viewOwn, setViewOwn] = useState<View>("layer");
-  const metric = metricIn ?? metricOwn;
+  // A lender metric kept by the full-screen view falls back to revenue in an industry without lenders.
+  const wanted = metricIn ?? metricOwn;
+  const metric = offered.some((x) => x.id === wanted) ? wanted : "rev";
   const view = viewIn ?? viewOwn;
   const setMetric = onMetric ?? setMetricOwn;
   const setView = onView ?? setViewOwn;
@@ -142,7 +142,7 @@ export function IndustryPools({
 
       <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
         <div role="group" aria-label="Metric" className="scrollbar-none -mx-3 flex gap-1.5 overflow-x-auto px-3 sm:mx-0 sm:flex-wrap sm:px-0">
-          {POOL_METRICS.map((x) => (
+          {offered.map((x) => (
             <button
               key={x.id}
               type="button"
@@ -207,10 +207,11 @@ export function IndustryPools({
         <CompanyRows companies={counted} colorOf={colorOf} metric={metric} year={pools.year} />
       )}
 
-      {sel && <LayerTable layer={layers.find((l) => l.name === sel)!} metric={metric} year={pools.year} />}
+      {sel && <LayerTable layer={layers.find((l) => l.name === sel)!} metric={metric} year={pools.year} offered={offered} />}
 
       <p className="max-w-4xl text-[11px] leading-relaxed text-ink-soft sm:text-xs">
         Company-wide {pools.year} figures, each company in its main layer; one-off years left out of profit. P/E is today&rsquo;s market cap over {pools.year} profit; ROCE is the layer median.
+        {pools.companies.some((c) => c.kind && c.kind !== "operating") && " Margin and ROCE are not meaningful for lenders and insurers, so they are left out of those; P/B, ROE and the lender and insurer figures are layer medians."}
       </p>
     </div>
   );
@@ -468,7 +469,11 @@ function LayerRows({ layers, metric, year, sel, onPick }: { layers: LayerPool[];
                         : ""
                     : items.length
                       ? `${items.length} ${items.length === 1 ? "co" : "cos"}`
-                      : "one-off year"}
+                      : l.counted.every((c) => nmNote(c, metric))
+                        ? "not meaningful"
+                        : l.counted.some((c) => c.oneOff)
+                          ? "one-off year"
+                          : "no figure"}
               </span>
             </span>
           </button>
@@ -518,12 +523,16 @@ function CompanyRows({ companies, colorOf, metric, year }: { companies: PoolComp
               {fmt(metric, v)}
               <span className="ml-1.5 text-[11px] font-normal text-ink-soft sm:ml-0 sm:block">
                 {v == null
-                  ? c.oneOff && (metric === "np" || metric === "margin" || metric === "pe")
+                  ? nmNote(c, metric)
+                    ? "not meaningful"
+                    : c.oneOff && (metric === "np" || metric === "margin" || metric === "pe")
                     ? "one-off year"
                     : (metric === "np" || metric === "margin" || metric === "pe") && (c.np[1] ?? 0) < 0
                       ? "loss"
                       : "no figure"
-                  : m.kind === "pool"
+                  : HAND_KEPT.has(metric) && c.insurerFresh === "stale"
+                    ? STALE_NOTE
+                    : m.kind === "pool"
                     ? ss[i].share != null
                       ? `${sharePct(ss[i].share!, 1)} of pool`
                       : "loss"
@@ -550,15 +559,17 @@ function metricLabel(m: { id: PoolMetricId; label: string }, year: string): stri
 const STICKY = "sticky left-0 z-[1] min-w-[8.5rem] max-w-[11rem] bg-panel sm:static sm:max-w-none";
 
 /** The picked layer's companies with every figure; the chosen metric's column is marked. */
-function LayerTable({ layer, metric, year }: { layer: LayerPool; metric: PoolMetricId; year: string }) {
+function LayerTable({ layer, metric, year, offered }: { layer: LayerPool; metric: PoolMetricId; year: string; offered: PoolMetric[] }) {
   const cols: { id: PoolMetricId; label: string; cell: (c: PoolCompany) => string }[] = [
     { id: "rev", label: "Revenue", cell: (c) => croreShort(c.rev[1]) },
     { id: "np", label: "Net profit", cell: (c) => croreShort(c.np[1]) },
-    { id: "margin", label: "Margin", cell: (c) => (c.np[1] != null && c.rev[1] ? pct((c.np[1] / c.rev[1]) * 100) : NA) },
+    { id: "margin", label: "Margin", cell: (c) => nmNote(c, "margin") ?? (c.np[1] != null && c.rev[1] ? pct((c.np[1] / c.rev[1]) * 100) : NA) },
     { id: "growth", label: "Rev growth", cell: (c) => fmt("growth", companyValue(c, "growth")) },
     { id: "mcap", label: "Mkt cap", cell: (c) => croreShort(c.mcapCr) },
     { id: "pe", label: `P/E (${year})`, cell: (c) => (c.np[1] != null && c.np[1] > 0 && c.mcapCr != null ? `${(c.mcapCr / c.np[1]).toFixed(1)}×` : c.np[1] != null && c.np[1] <= 0 ? "loss" : NA) },
-    { id: "roce", label: "ROCE", cell: (c) => fmt("roce", c.roce) },
+    { id: "roce", label: "ROCE", cell: (c) => nmNote(c, "roce") ?? fmt("roce", companyValue(c, "roce")) },
+    // The lender and insurer figures when the industry offers them (P/B and ROE for every company).
+    ...offered.filter((m) => !POOL_METRICS.includes(m)).map((m) => ({ id: m.id, label: m.label, cell: (c: PoolCompany) => fmt(m.id, companyValue(c, m.id)) })),
   ];
   const key = (c: PoolCompany) => companyValue(c, metric) ?? -Infinity;
   // Only the companies that count: the rest are in the low-exposure list, to add from there.
@@ -598,6 +609,7 @@ function LayerTable({ layer, metric, year }: { layer: LayerPool; metric: PoolMet
                     </StockLink>
                     <span className="ml-1.5 font-mono text-[10px] text-ink-soft">{c.ticker}</span>
                     {c.oneOff && <Tag title={`${c.oneOff}: its profit, margin and P/E are left out of the pool totals`}>One-off year · profit not in totals</Tag>}
+                    {c.insurerFresh === "stale" && <Tag title="Its VNB margin, combined and solvency ratios are from a quarter more than 200 days back">Older figure</Tag>}
                   </td>
                   {cols.map((col) => (
                     <td key={col.id} className={"px-2 py-1.5 text-right whitespace-nowrap " + (col.id === metric ? "bg-panel-2 font-semibold" : "") + (col.id === "np" && (c.np[1] ?? 0) < 0 ? " text-danger" : "")}>

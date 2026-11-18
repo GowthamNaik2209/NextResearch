@@ -24,6 +24,9 @@ import { TREND_NOTE, trendLabel } from "@/lib/financials/trend";
 import { peContext } from "@/lib/valuation/pe-data";
 import { PeContextView } from "@/components/stock/PeContextView";
 import { MethodLink } from "@/components/stock/MethodLink";
+import { companyKind, notMeaningfulNote } from "@/lib/financials/kinds";
+import { LenderBlock } from "@/components/stock/LenderBlock";
+import { InsurerBlock } from "@/components/stock/InsurerBlock";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
 export const revalidate = 900;
@@ -92,6 +95,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   // (companies.ts), and multi-sector companies get a line naming every sector they appear in.
   const primary = primaryAppearance(c);
   const asOf = f?.asOf ?? supplier.sourceDate ?? dataAsOf();
+  // Lenders and insurers: ROCE and net margin read as a note, and their own block follows the tiles (as in the pop-up).
+  const kind = f ? (f.kind ?? companyKind(f.ticker)) : "operating";
+  const kindNote = notMeaningfulNote(kind);
 
   const stats = [
     { label: "Market cap", value: s0.marketCapCr != null ? croreShort(s0.marketCapCr) : undefined },
@@ -103,7 +109,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
     { label: "Dividend yield", value: s0.reit ? "n/m" : s0.divYield != null ? fmtYield(s0.divYield) : undefined },
   ];
   // Every tile shows (a missing figure as "—", as in the pop-up) so the grid keeps whole rows; the FAQ gets only real figures.
-  const tiles = stats.map((s) => ({ label: s.label, value: s.value ?? NA }));
+  const tiles = stats.map((s) => (kindNote && s.label === "ROCE" ? { label: s.label, value: kindNote, muted: true } : { label: s.label, value: s.value ?? NA, muted: false }));
   // The ratios worked out from the same table, as in the pop-up; kept out of `stats`, which feeds the FAQ.
   const ratios = ratioTiles(f, s0.reit);
 
@@ -171,18 +177,26 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                   {tiles.map((s) => (
                     <div key={s.label} className="rounded-xl border border-line bg-panel p-4">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">{s.label}</p>
-                      <p className="mt-1 whitespace-nowrap font-mono text-base font-semibold text-ink sm:text-lg">{s.value}</p>
+                      {s.muted ? (
+                        <p className="mt-1 text-xs leading-snug text-ink-soft">{s.value}</p>
+                      ) : (
+                        <p className="mt-1 whitespace-nowrap font-mono text-base font-semibold text-ink sm:text-lg">{s.value}</p>
+                      )}
                     </div>
                   ))}
                   {ratios.map((s) => (
                     <div key={s.label} className="rounded-xl border border-line bg-panel p-4">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">{s.label}</p>
-                      <p
-                        title={s.title}
-                        className={"mt-1 whitespace-nowrap font-mono text-base font-semibold sm:text-lg " + (s.value === "n/m" ? "text-ink-soft" : s.tone !== undefined ? pctTone(s.tone, 1) : "text-ink")}
-                      >
-                        {s.value}
-                      </p>
+                      {s.muted ? (
+                        <p className="mt-1 text-xs leading-snug text-ink-soft">{s.value}</p>
+                      ) : (
+                        <p
+                          title={s.title}
+                          className={"mt-1 whitespace-nowrap font-mono text-base font-semibold sm:text-lg " + (s.value === "n/m" ? "text-ink-soft" : s.tone !== undefined ? pctTone(s.tone, 1) : "text-ink")}
+                        >
+                          {s.value}
+                        </p>
+                      )}
                       {s.sub && <p className="text-[11px] text-ink-soft">{s.sub}</p>}
                     </div>
                   ))}
@@ -206,6 +220,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                   </span>
                   Snapshot as of {asOf}; the live card updates price and chart only.
                 </p>
+                {f && kind === "lender" && <LenderBlock f={f} compact className="mt-5 rounded-xl border border-line bg-panel p-4" />}
+                {f && kind === "insurer" && <InsurerBlock f={f} compact className="mt-5 rounded-xl border border-line bg-panel p-4" />}
                 {pe && <PeContextView ctx={pe} ticker={c.ticker} className="mt-5 rounded-xl border border-line bg-panel p-4" />}
               </section>
             )}
