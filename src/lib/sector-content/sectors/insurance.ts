@@ -12,7 +12,6 @@ const D = "18 Nov 2026";
 
 const insurance = {
  id: "insurance", icon: "IN", name: "Insurance",
- muted: true,
  tagline: "Life, general and health insurers, the reinsurers behind them, and the banks, brokers and TPAs that sell policies and settle claims - India's risk-pooling chain",
  headerTitle: "INSURANCE",
  headerSub: "India's insurance chain from the bank branch and the app where a policy is sold, through the insurers that price and hold the risk, to the reinsurers, claims administrators, owners and regulator behind them",

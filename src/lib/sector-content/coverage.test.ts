@@ -129,6 +129,9 @@ const RULES = {
 const OPERATING_FINANCIALS: Record<string, string> = {
   MOTILALOFS: "a broker and asset manager: fee income, its lending book is a side business",
   JMFINANCIL: "an investment bank and broker: advisory and broking fees lead its income",
+  FINOPB: "a payments bank: payments banks may not lend, its income is transaction fees",
+  OFSS: "a banking-software maker: licence and services revenue",
+  EDELWEISS: "a diversified holding company: its standalone figures are a holdco's, not a lender's book",
 };
 // The name test for the drift check: kept to plain words, so a new bank, NBFC, housing financier or
 // insurer is caught by its name ("… Bank", "… Finance", "… Financiers", "… Insurance", "… Assurance").

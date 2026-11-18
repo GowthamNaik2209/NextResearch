@@ -14,7 +14,6 @@ const ow = link("owner");
 
 const banks = {
  id: "banks", icon: "BK", name: "Banks & NBFCs",
- muted: true,
  tagline: "Private, PSU and small-finance banks, NBFCs, housing financiers, MFIs and state lenders",
  headerTitle: "BANKING & CREDIT ANATOMY",
  headerSub: "How India's credit is made: from the niche lenders that meet borrowers, through the banks that hold the deposits, to the groups and state lenders behind them and the RBI rails underneath",

@@ -4,6 +4,7 @@ import { findSupplierByTicker, getSector, isSideLink, linkWeight, listSectors, p
 import { listCompanyPages, primaryAppearance, primaryIndustry } from "./companies";
 import { listCompanyMetrics } from "./insights";
 import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
+import { companyKind } from "@/lib/financials/kinds";
 import { industryPe, pePeers } from "@/lib/valuation/pe-data";
 
 before(installFinancialsFromDatabase);
@@ -67,14 +68,14 @@ test("the Nifty 50 is a company's home only where no industry or policy maps it 
 
 // P/E in context compares a stock with its primary industry: an industry it is mapped in directly
 // beats a policy or index home (Tata Power under the ALMM solar policy is compared with energy), a
-// side link never does (SBI stays with the Nifty 50, not real estate as a home-loan lender), and a
+// side link never does (SBI's home-loan link in real estate never makes it a real-estate stock), and a
 // company with no direct industry keeps its home.
 test("primary industry: a direct industry link over a policy or index home, never a side link", () => {
   const byTicker = new Map(listCompanyPages().map((p) => [p.ticker, p]));
   const of = (t: string) => primaryIndustry(byTicker.get(t)!).sectorSlug;
   assert.equal(of("TATAPOWER"), "energy");
   assert.equal(of("TMPV"), "ev4w");
-  assert.equal(of("SBIN"), "nifty50");
+  assert.equal(of("SBIN"), "banks"); // mapped directly in Banks & NBFCs; its real-estate home-loan link stays a side link
   // Ties go to the industry it has more of: Tata Power's four energy layers beat one transmission layer.
   assert.equal(of("BHARATFORG"), "aerospace");
   assert.equal(of("LT"), "realestate");
@@ -107,6 +108,7 @@ test("P/E peers: lenders against covered lenders, insurers against covered insur
   assert.ok(rec.peers.every((s) => s.ticker !== "KEI" && s.ticker !== "POLYCAB"), "no cable makers");
   const life = pePeers("HDFCLIFE")!;
   assert.equal(life.group, "insurer");
-  assert.ok(life.peers.every((s) => ["HDFCLIFE", "SBILIFE", "ICICIPRULI", "LICI", "ICICIGI", "NIACL", "GICRE", "STARHEALTH", "NIVABUPA"].includes(s.ticker)));
+  assert.ok(life.peers.length > 5 && life.peers.every((s) => companyKind(s.ticker) === "insurer"), "insurers only");
+  assert.ok(life.peers.some((s) => s.ticker === "LICI") && life.peers.some((s) => s.ticker === "GODIGIT"));
   assert.equal(industryPe("SBIN")?.group, "lender");
 });

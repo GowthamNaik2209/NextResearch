@@ -6,7 +6,6 @@ import { ASOF, co } from "./shared";
 
 const hotels = {
  id: "hotels", icon: "HT", name: "Hotels & Travel",
- muted: true,
  tagline: "Hotel chains, asset owners, airlines, airports, tour operators and the B2B and visa networks that move India's travellers",
  headerTitle: "HOTELS & TRAVEL",
  headerSub: "India's travel chain as one trip - from the hotel room and the holiday, back through the flight and the airport, to the wholesalers, visa desks and capital that sit behind every booking",

@@ -4894,6 +4894,25 @@
             "ticker": "KARAMTARA"
           }
         },
+        "zetwerk": {
+          "name": "Zetwerk Manufacturing Businesses",
+          "listed": true,
+          "role": "Asset-light contract manufacturer whose energy-products arm makes solar mounting structures, transformers and power equipment through its own and partner plants (listed Oct 2026)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Energy products grew 87% to ₹6,508 Cr in FY26 and are about 69% of manufacturing revenue (RHP, Oct 2026)",
+            "Manufacturing order book doubled to ₹13,062 Cr by Jun 2026, led by solar structures and power equipment"
+          ],
+          "risks": [
+            "Adjusted EBITDA margin under 3%, negative operating cash flow and still loss-making at group level",
+            "About 41% of revenue is low-margin commodity trading (Terra91), not manufacturing",
+            "US tariffs on Indian solar piles cut US orders; listed Oct 2026, so a very short public track record"
+          ],
+          "f": {
+            "ticker": "ZETWERK"
+          }
+        },
         "utlSolar": {
           "name": "Fujiyama Power Systems (UTL Solar)",
           "listed": true,
@@ -9653,6 +9672,24 @@
             "ticker": "GVT&D"
           }
         },
+        "zetwerk": {
+          "name": "Zetwerk Manufacturing Businesses",
+          "listed": true,
+          "role": "Contract manufacturer making transformers and power equipment alongside solar structures (listed Oct 2026; also in solar)",
+          "dataStatus": "demo",
+          "sourceDate": "3 Nov 2026",
+          "strengths": [
+            "Energy products (solar structures, transformers, power equipment) were ₹6,508 Cr of FY26 revenue, +87% (RHP)",
+            "Order book of ₹13,062 Cr (Jun 2026) gives visibility"
+          ],
+          "risks": [
+            "Transformers are a small part of a mostly solar-structure and trading business",
+            "Thin margins and group losses; listed Oct 2026"
+          ],
+          "f": {
+            "ticker": "ZETWERK"
+          }
+        },
         "taril": {
           "name": "Transformers & Rectifiers (India)",
           "listed": true,
@@ -10915,6 +10952,3633 @@
           "f": {
             "ticker": "UNIECOM"
           }
+        }
+      }
+    },
+    {
+      "key": "banks",
+      "suppliers": {
+        "bajfinance": {
+          "name": "Bajaj Finance",
+          "listed": true,
+          "role": "India's largest retail NBFC: point-of-sale EMIs for consumer durables and phones, personal, small-business, gold and (through Bajaj Housing) home loans, cross-sold to a very large customer base",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Point-of-sale finance network at tens of thousands of retail counters creates customers at near-zero cost",
+            "Strong analytics and a long record of growth through cycles",
+            "AAA rating and group backing keep its funding cost low for an NBFC"
+          ],
+          "risks": [
+            "Credit costs rose in small personal and rural loans in FY25",
+            "RBI tightening on unsecured lending hits it first",
+            "As an NBFC it pays more for funds than banks and feels rate hikes faster"
+          ],
+          "f": {
+            "ticker": "BAJFINANCE"
+          }
+        },
+        "sbiCard": {
+          "name": "SBI Cards and Payment Services",
+          "listed": true,
+          "role": "SBI's majority-owned credit-card issuer - the largest card company that is not a bank - earning interest on revolving balances plus interchange and fees",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Access to SBI's huge customer base to sign up cardholders",
+            "Large co-brand portfolio (railways, fuel, retail, airlines)",
+            "Spends grow with consumption and online payments"
+          ],
+          "risks": [
+            "Credit costs rose sharply in FY25 as revolvers defaulted",
+            "Higher risk weights on cards (Nov 2023) raised capital needs",
+            "Interchange depends on network and RBI rules"
+          ],
+          "f": {
+            "ticker": "SBICARD"
+          }
+        },
+        "hdbFinancial": {
+          "name": "HDB Financial Services",
+          "listed": true,
+          "role": "HDFC Bank's NBFC arm: consumer-durable, personal, vehicle and small-business loans in smaller towns; listed 2 Jul 2025",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "HDFC Bank parentage gives cheap funding and strong ratings",
+            "Wide reach in tier-2 and smaller towns",
+            "Diversified across consumer, vehicle and enterprise loans"
+          ],
+          "risks": [
+            "Commercial-vehicle and unsecured books are cyclical",
+            "Short listed history (Jul 2025)",
+            "Parent may shift products between the bank and the NBFC"
+          ],
+          "f": {
+            "ticker": "HDBFS"
+          }
+        },
+        "poonawalla": {
+          "name": "Poonawalla Fincorp",
+          "listed": true,
+          "role": "Cyrus Poonawalla group NBFC (formerly Magma Fincorp) rebuilding around consumer, MSME, pre-owned car and gold loans",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Strong promoter backing and high capital",
+            "New management (2024) expanding into many retail products",
+            "Sold its housing arm (2023), sharpening focus"
+          ],
+          "risks": [
+            "Took large credit losses on small-business and personal loans in FY25",
+            "Rapid launch of new products adds execution risk",
+            "Funding cost of a mid-sized NBFC"
+          ],
+          "f": {
+            "ticker": "POONAWALLA"
+          }
+        },
+        "kissht": {
+          "name": "OnEMI Technology Solutions (Kissht)",
+          "listed": true,
+          "role": "App-based lender for small personal loans and buy-now-pay-later through its own NBFC; listed 8 May 2026",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Digital underwriting and collections at small ticket sizes",
+            "IPO's fresh issue adds capital for growth",
+            "Large app user base in smaller towns"
+          ],
+          "risks": [
+            "Small-ticket unsecured loans are the riskiest slice of consumer credit",
+            "Exposed to RBI digital-lending rules",
+            "Newly listed (May 2026)"
+          ],
+          "f": {
+            "ticker": "KISSHT"
+          }
+        },
+        "paytm": {
+          "name": "One 97 Communications (Paytm)",
+          "listed": true,
+          "role": "Payments app and merchant devices that also source personal and merchant loans for partner banks and NBFCs, earning a fee with little credit risk",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "aka": [
+            "paytm"
+          ],
+          "strengths": [
+            "Merchant and user base gives lenders cheap customer acquisition",
+            "Distribution model keeps loans off its own balance sheet"
+          ],
+          "risks": [
+            "Lending partners can cut volumes when credit tightens",
+            "RBI rules on digital lending and default-loss guarantees",
+            "Its 2024 Payments Bank wind-down shows regulatory risk"
+          ],
+          "f": {
+            "ticker": "PAYTM"
+          }
+        },
+        "shriramfin": {
+          "name": "Shriram Finance",
+          "listed": true,
+          "role": "Largest financier of used commercial vehicles, with large small-business, car, two-wheeler and gold books; MUFG Bank took 20% for ₹39,618 Cr in Apr 2026",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Unmatched reach among truck owners and small businesses banks rarely serve",
+            "MUFG's investment adds capital and should lower funding costs",
+            "Long record of valuing and collecting on used vehicles"
+          ],
+          "risks": [
+            "Freight and rural cycles drive repayments",
+            "Still pays more for funds than banks",
+            "Integration of a large foreign shareholder's priorities"
+          ],
+          "f": {
+            "ticker": "SHRIRAMFIN"
+          }
+        },
+        "cholaFin": {
+          "name": "Cholamandalam Investment and Finance",
+          "listed": true,
+          "role": "Murugappa group lender: vehicle loans, loans against property, home loans and newer consumer and SME loans",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Strong vehicle-finance franchise with dealer tie-ups across India",
+            "Diversified into property-backed and home loans",
+            "Group backing and good credit ratings"
+          ],
+          "risks": [
+            "Newer consumer and small-business loans carry higher losses",
+            "Vehicle cycles and rural demand",
+            "Bond and bank funding costs rise with rates"
+          ],
+          "f": {
+            "ticker": "CHOLAFIN"
+          }
+        },
+        "mahindraFinance": {
+          "name": "Mahindra & Mahindra Financial Services",
+          "listed": true,
+          "role": "Rural lender for tractors, utility vehicles, cars and two-wheelers, tied to Mahindra's dealer network",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Deep rural reach through Mahindra dealers",
+            "Parent's tractor and SUV leadership feeds loan demand",
+            "Rural housing and insurance broking arms"
+          ],
+          "risks": [
+            "Monsoon and harvest-dependent repayments",
+            "History of lumpy credit costs in bad rural years",
+            "Competition from banks in new-vehicle loans"
+          ],
+          "f": {
+            "ticker": "M&MFIN"
+          }
+        },
+        "sundaramFinance": {
+          "name": "Sundaram Finance",
+          "listed": true,
+          "role": "Chennai-based commercial-vehicle, car and equipment financier with home-finance and asset-management arms, known for low losses over cycles",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Conservative underwriting and steady asset quality over decades",
+            "Strong in south India with loyal customers",
+            "Group businesses in housing finance and asset management"
+          ],
+          "risks": [
+            "Slower growth than more aggressive peers",
+            "Concentrated in south India",
+            "Vehicle-cycle exposure"
+          ],
+          "f": {
+            "ticker": "SUNDARMFIN"
+          }
+        },
+        "tataCapital": {
+          "name": "Tata Capital",
+          "listed": true,
+          "role": "Tata group's lender for retail, small business, corporate and, since absorbing Tata Motors Finance (effective May 2025), Tata trucks and cars; listed 13 Oct 2025",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Tata brand and AAA rating lower funding costs",
+            "Broad product range across retail, SME and corporate",
+            "IPO capital funds growth"
+          ],
+          "risks": [
+            "Tata Motors Finance book brought higher-risk vehicle loans",
+            "Integration of the merged vehicle business",
+            "Short listed history (Oct 2025)"
+          ],
+          "f": {
+            "ticker": "TATACAP"
+          }
+        },
+        "muthootFinance": {
+          "name": "Muthoot Finance",
+          "listed": true,
+          "role": "Largest gold-loan NBFC, with thousands of branches, and owner of Belstar Microfinance and a home-finance arm",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Brand and branch network built over decades",
+            "Gold collateral keeps losses low",
+            "Rising gold prices lift loan sizes"
+          ],
+          "risks": [
+            "Bank competition in gold loans",
+            "RBI's gold-lending rules and auction norms",
+            "Microfinance subsidiary adds cyclical risk"
+          ],
+          "f": {
+            "ticker": "MUTHOOTFIN"
+          }
+        },
+        "manappuram": {
+          "name": "Manappuram Finance",
+          "listed": true,
+          "role": "Second-largest gold-loan NBFC, with the Asirvad microfinance subsidiary; Bain Capital became a joint controller after its Apr 2026 open offer",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Large gold-loan franchise in the south",
+            "Bain Capital's investment (completed Mar-Apr 2026) adds capital",
+            "Diversified into vehicle and home loans"
+          ],
+          "risks": [
+            "Asirvad's microfinance losses in FY25",
+            "Shared control between founders and Bain",
+            "Gold-price swings"
+          ],
+          "f": {
+            "ticker": "MANAPPURAM"
+          }
+        },
+        "iiflFinance": {
+          "name": "IIFL Finance",
+          "listed": true,
+          "role": "Gold, home (IIFL Home Finance), MSME and microfinance (IIFL Samasta) lender",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Large gold and small-business franchise",
+            "Diversified across secured products",
+            "Resumed gold lending after RBI lifted its embargo (Sep 2024)"
+          ],
+          "risks": [
+            "RBI's Mar 2024 gold-loan embargo shows compliance risk",
+            "Microfinance subsidiary's losses",
+            "Not to be confused with IIFL Capital (broking) or 360 ONE"
+          ],
+          "f": {
+            "ticker": "IIFL"
+          }
+        },
+        "csbBank": {
+          "name": "CSB Bank",
+          "listed": true,
+          "role": "Kerala-based old private bank controlled by Fairfax, with a gold-loan-heavy book",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Fast-growing gold-loan book with low losses",
+            "Fairfax ownership brings capital",
+            "New technology platform built since 2022"
+          ],
+          "risks": [
+            "Concentration in gold loans and Kerala",
+            "Fairfax's plan to buy IDBI Bank raises questions about holding two banks",
+            "Higher-cost deposits than large banks"
+          ],
+          "f": {
+            "ticker": "CSBBANK"
+          }
+        },
+        "creditAccess": {
+          "name": "CreditAccess Grameen",
+          "listed": true,
+          "role": "Largest NBFC-MFI, strongest in Karnataka, Maharashtra and Tamil Nadu",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Scale and lower funding cost than smaller MFIs",
+            "Weathered the FY25 stress better than most peers",
+            "Adding individual and secured loans"
+          ],
+          "risks": [
+            "Microfinance credit cycles",
+            "State-level collection disruptions (Karnataka 2025)",
+            "Funding concentration in banks"
+          ],
+          "f": {
+            "ticker": "CREDITACC"
+          }
+        },
+        "spandana": {
+          "name": "Spandana Sphoorty Financial",
+          "listed": true,
+          "role": "NBFC-MFI that took heavy losses in the FY25 stress and is rebuilding its book",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Large rural borrower base across many states",
+            "Recovery potential as overdues fall"
+          ],
+          "risks": [
+            "Heavy FY25 losses eroded capital",
+            "Management changes",
+            "Shrinking book while it cleans up"
+          ],
+          "f": {
+            "ticker": "SPANDANA"
+          }
+        },
+        "fusionFinance": {
+          "name": "Fusion Finance",
+          "listed": true,
+          "role": "North and central India MFI (formerly Fusion Micro Finance), recapitalised after FY25 losses",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Presence in under-served northern and central states",
+            "Fresh capital raised after the losses"
+          ],
+          "risks": [
+            "Heavy losses in FY25",
+            "High concentration in microfinance",
+            "Funding access for a mid-sized MFI"
+          ],
+          "f": {
+            "ticker": "FUSION"
+          }
+        },
+        "satin": {
+          "name": "Satin Creditcare Network",
+          "listed": true,
+          "role": "MFI focused on Uttar Pradesh, Bihar and the east, with small housing and MSME arms",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Long record in the northern heartland",
+            "Held up better than several peers in FY25"
+          ],
+          "risks": [
+            "Concentrated in a few states",
+            "Microfinance cycles and elections",
+            "Funding cost"
+          ],
+          "f": {
+            "ticker": "SATIN"
+          }
+        },
+        "muthootMicrofin": {
+          "name": "Muthoot Microfin",
+          "listed": true,
+          "role": "Muthoot Pappachan group (not Muthoot Finance) MFI strongest in Kerala and Tamil Nadu; listed Dec 2023",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Group brand and gold-loan cross-sell",
+            "Southern base with lower stress than the north"
+          ],
+          "risks": [
+            "Microfinance cycles",
+            "Tamil Nadu concentration",
+            "Not part of Muthoot Finance - names confuse"
+          ],
+          "f": {
+            "ticker": "MUTHOOTMF"
+          }
+        },
+        "fiveStar": {
+          "name": "Five-Star Business Finance",
+          "listed": true,
+          "role": "Small-ticket loans to small businesses against self-occupied houses in rural and semi-urban South India",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "High yields with property security",
+            "Low leverage and strong capital",
+            "In-house underwriting of informal incomes"
+          ],
+          "risks": [
+            "Concentration in Andhra Pradesh, Telangana and Tamil Nadu",
+            "Slower growth while tightening underwriting"
+          ],
+          "f": {
+            "ticker": "FIVESTAR"
+          }
+        },
+        "capriGlobal": {
+          "name": "Capri Global Capital",
+          "listed": true,
+          "role": "MSME, affordable housing and gold lender that also distributes car loans for banks",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Fast-growing gold-loan branches",
+            "Fee income from car-loan distribution",
+            "Diversified secured book"
+          ],
+          "risks": [
+            "Rapid branch expansion",
+            "Funding cost",
+            "Competition in gold loans"
+          ],
+          "f": {
+            "ticker": "CGCL"
+          }
+        },
+        "sbfc": {
+          "name": "SBFC Finance",
+          "listed": true,
+          "role": "Secured MSME and gold loans in smaller towns; listed Aug 2023",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Secured, small-ticket book",
+            "Private-equity backing (Clermont, Arpwood)"
+          ],
+          "risks": [
+            "Mid-sized NBFC funding cost",
+            "Competition from larger lenders"
+          ],
+          "f": {
+            "ticker": "SBFC"
+          }
+        },
+        "ugro": {
+          "name": "UGRO Capital",
+          "listed": true,
+          "role": "Data-led MSME lender that co-lends with banks and finances machinery and supply chains",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Co-lending partnerships with banks keep capital needs low",
+            "Uses GST and bank-statement data for underwriting"
+          ],
+          "risks": [
+            "Unsecured and micro-enterprise loans carry higher losses",
+            "Frequent capital raising"
+          ],
+          "f": {
+            "ticker": "UGROCAP"
+          }
+        },
+        "masFinancial": {
+          "name": "MAS Financial Services",
+          "listed": true,
+          "role": "Ahmedabad-based MSME and two-wheeler lender that originates loans for and with banks",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Long, steady record in Gujarat",
+            "Partnerships with banks for co-lending and assignment"
+          ],
+          "risks": [
+            "Western-India concentration",
+            "Slower growth than newer peers"
+          ],
+          "f": {
+            "ticker": "MASFIN"
+          }
+        },
+        "aadharHfc": {
+          "name": "Aadhar Housing Finance",
+          "listed": true,
+          "role": "Largest affordable housing finance company, lending to low-income and informal-income families; Blackstone-backed, listed May 2024",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Widest branch network in affordable housing",
+            "Low ticket sizes with steady asset quality",
+            "Blackstone backing"
+          ],
+          "risks": [
+            "Promoter sell-downs create share overhang",
+            "Competition from banks and SFBs",
+            "Funding cost"
+          ],
+          "f": {
+            "ticker": "AADHARHFC"
+          }
+        },
+        "aavas": {
+          "name": "Aavas Financiers",
+          "listed": true,
+          "role": "Rajasthan-origin affordable HFC serving self-employed families in western and central India",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Strong underwriting of informal incomes",
+            "Low credit losses over cycles"
+          ],
+          "risks": [
+            "Slower growth in recent years",
+            "Ownership changes among private-equity investors"
+          ],
+          "f": {
+            "ticker": "AAVAS"
+          }
+        },
+        "homeFirst": {
+          "name": "Home First Finance Company India",
+          "listed": true,
+          "role": "Affordable home loans to salaried and self-employed borrowers in western and southern cities",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Technology-led underwriting",
+            "Fast AUM growth with low losses"
+          ],
+          "risks": [
+            "Concentrated in Gujarat and Maharashtra",
+            "Spread pressure from banks"
+          ],
+          "f": {
+            "ticker": "HOMEFIRST"
+          }
+        },
+        "aptus": {
+          "name": "Aptus Value Housing Finance",
+          "listed": true,
+          "role": "South-India home loans to self-employed families, plus small-business loans",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "High yields and low leverage",
+            "Strong in Tamil Nadu and Andhra Pradesh"
+          ],
+          "risks": [
+            "Southern concentration",
+            "Growth into new states"
+          ],
+          "f": {
+            "ticker": "APTUS"
+          }
+        },
+        "indiaShelter": {
+          "name": "India Shelter Finance",
+          "listed": true,
+          "role": "Affordable housing lender in tier-2 and tier-3 towns; listed Dec 2023",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Fast branch expansion",
+            "Mix of home and property-backed loans"
+          ],
+          "risks": [
+            "Short listed history",
+            "Execution in new states"
+          ],
+          "f": {
+            "ticker": "INDIASHLTR"
+          }
+        },
+        "repcoHome": {
+          "name": "Repco Home Finance",
+          "listed": true,
+          "role": "Tamil Nadu-based home lender to non-salaried borrowers, promoted by Repco Bank",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Niche in non-salaried borrowers in the south",
+            "Asset quality improved since FY22"
+          ],
+          "risks": [
+            "Slow growth",
+            "Tamil Nadu concentration"
+          ],
+          "f": {
+            "ticker": "REPCOHOME"
+          }
+        },
+        "hdfcBank": {
+          "name": "HDFC Bank",
+          "listed": true,
+          "role": "Largest private bank and, since absorbing HDFC Ltd (Jul 2023), India's biggest private home lender; parent of HDB Financial, HDFC AMC, HDFC Life and HDFC Ergo",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Largest private deposit franchise and long record of low bad loans",
+            "Mortgage book inherited from HDFC Ltd",
+            "Valuable listed and unlisted subsidiaries"
+          ],
+          "risks": [
+            "Working down a high loan-to-deposit ratio left by the merger",
+            "Deposit competition raises funding costs",
+            "Size makes outgrowing the system harder"
+          ],
+          "f": {
+            "ticker": "HDFCBANK"
+          }
+        },
+        "icicibank": {
+          "name": "ICICI Bank",
+          "listed": true,
+          "role": "Second-largest private bank, strong in retail, business banking and corporate, with insurance, AMC and broking subsidiaries",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "High-quality deposit base and low credit costs",
+            "Digital-first retail and business banking",
+            "Well-capitalised"
+          ],
+          "risks": [
+            "Leadership succession after a long tenure",
+            "Unsecured retail and small-business stress if the cycle turns"
+          ],
+          "f": {
+            "ticker": "ICICIBANK"
+          }
+        },
+        "sbi": {
+          "name": "State Bank of India",
+          "listed": true,
+          "role": "India's largest bank by deposits, loans and branches; parent of SBI Card, SBI Life and SBI Funds",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Lowest-cost funding and the widest reach",
+            "Largest home-loan book in India",
+            "Valuable listed subsidiaries"
+          ],
+          "risks": [
+            "Government ownership can push policy lending and wage costs",
+            "Large corporate and infrastructure exposure"
+          ],
+          "f": {
+            "ticker": "SBIN"
+          }
+        },
+        "axisbank": {
+          "name": "Axis Bank",
+          "listed": true,
+          "role": "Third-largest private bank, with a big card and corporate book enlarged by Citi's India consumer business (2023)",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Citi integration added affluent customers and cards",
+            "Strong corporate and transaction banking"
+          ],
+          "risks": [
+            "Weaker deposit franchise than HDFC Bank and ICICI Bank",
+            "Card and unsecured retail stress"
+          ],
+          "f": {
+            "ticker": "AXISBANK"
+          }
+        },
+        "kotak": {
+          "name": "Kotak Mahindra Bank",
+          "listed": true,
+          "role": "Private bank with broking, investment banking, AMC and insurance arms; strong in affluent retail and business banking",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "High capital and conservative lending",
+            "Low-cost deposits from affluent customers",
+            "Diversified financial-services group"
+          ],
+          "risks": [
+            "RBI's 2024 curb on digital onboarding (lifted 2025) slowed growth",
+            "Unsecured retail losses",
+            "Smaller branch network than the top three"
+          ],
+          "f": {
+            "ticker": "KOTAKBANK"
+          }
+        },
+        "bankOfBaroda": {
+          "name": "Bank of Baroda",
+          "listed": true,
+          "role": "Second-largest public-sector bank (merged Vijaya and Dena Banks in 2019), with a large overseas book",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Strong digital retail push (bob World)",
+            "Diversified corporate, retail and international book"
+          ],
+          "risks": [
+            "Corporate-loan pricing competition",
+            "Treasury sensitivity to bond yields"
+          ],
+          "f": {
+            "ticker": "BANKBARODA"
+          }
+        },
+        "pnb": {
+          "name": "Punjab National Bank",
+          "listed": true,
+          "role": "Large public-sector bank (merged Oriental Bank of Commerce and United Bank in 2020) strong in north India",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Large CASA base in north India",
+            "Recoveries on old written-off loans"
+          ],
+          "risks": [
+            "Legacy bad-loan history (2018 fraud)",
+            "Higher cost-to-income than private peers"
+          ],
+          "f": {
+            "ticker": "PNB"
+          }
+        },
+        "canaraBank": {
+          "name": "Canara Bank",
+          "listed": true,
+          "role": "Large public-sector bank (merged Syndicate Bank in 2020) that listed its AMC (Canara Robeco) and life insurer (Canara HSBC Life) in 2025",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Strong south-India deposit base",
+            "Subsidiary listings unlocked value"
+          ],
+          "risks": [
+            "Corporate and farm loan exposure",
+            "Wage and pension costs"
+          ],
+          "f": {
+            "ticker": "CANBK"
+          }
+        },
+        "unionBank": {
+          "name": "Union Bank of India",
+          "listed": true,
+          "role": "Large public-sector bank (merged Andhra Bank and Corporation Bank in 2020)",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Large national branch network",
+            "Improved asset quality since the merger"
+          ],
+          "risks": [
+            "Corporate-loan concentration",
+            "Integration of legacy systems"
+          ],
+          "f": {
+            "ticker": "UNIONBANK"
+          }
+        },
+        "indianBank": {
+          "name": "Indian Bank",
+          "listed": true,
+          "role": "Chennai-based public-sector bank (merged Allahabad Bank in 2020)",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Strong south-India deposit base",
+            "Among the better asset-quality PSU banks"
+          ],
+          "risks": [
+            "Corporate and farm exposures",
+            "Government shareholding sales"
+          ],
+          "f": {
+            "ticker": "INDIANB"
+          }
+        },
+        "bankOfIndia": {
+          "name": "Bank of India",
+          "listed": true,
+          "role": "Mumbai-based public-sector bank with a national network and overseas branches",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Large deposit base and recoveries on old loans"
+          ],
+          "risks": [
+            "Higher cost-to-income than peers",
+            "Government share sales"
+          ],
+          "f": {
+            "ticker": "BANKINDIA"
+          }
+        },
+        "bankOfMaharashtra": {
+          "name": "Bank of Maharashtra",
+          "listed": true,
+          "role": "Pune-based public-sector bank, one of the fastest-growing PSU banks with strong ratios",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Fast loan growth with low costs",
+            "High share of current and savings deposits"
+          ],
+          "risks": [
+            "Government must sell shares to meet public-float rules",
+            "Concentration in Maharashtra"
+          ],
+          "f": {
+            "ticker": "MAHABANK"
+          }
+        },
+        "centralBank": {
+          "name": "Central Bank of India",
+          "listed": true,
+          "role": "Public-sector bank with a large rural and semi-urban network, still majority government-owned",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Large CASA base from rural branches"
+          ],
+          "risks": [
+            "Government share sales to reach 25% public float",
+            "Higher costs and lower productivity"
+          ],
+          "f": {
+            "ticker": "CENTRALBK"
+          }
+        },
+        "iob": {
+          "name": "Indian Overseas Bank",
+          "listed": true,
+          "role": "Chennai-based public-sector bank, majority government-owned",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Recovered from RBI's prompt corrective action (2021)"
+          ],
+          "risks": [
+            "Government share sales",
+            "Limited scale versus large PSU banks"
+          ],
+          "f": {
+            "ticker": "IOB"
+          }
+        },
+        "ucoBank": {
+          "name": "UCO Bank",
+          "listed": true,
+          "role": "Kolkata-based public-sector bank, majority government-owned",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Deposit base in east India"
+          ],
+          "risks": [
+            "Government share sales",
+            "Small scale and higher costs"
+          ],
+          "f": {
+            "ticker": "UCOBANK"
+          }
+        },
+        "psb": {
+          "name": "Punjab & Sind Bank",
+          "listed": true,
+          "role": "Small Delhi-based public-sector bank, majority government-owned",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Strong in Punjab and Delhi"
+          ],
+          "risks": [
+            "Smallest PSU bank; share sales and merger candidate",
+            "Lower returns than peers"
+          ],
+          "f": {
+            "ticker": "PSB"
+          }
+        },
+        "indusInd": {
+          "name": "IndusInd Bank",
+          "listed": true,
+          "role": "Hinduja-promoted private bank heavy in vehicle finance, microfinance and corporate loans",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Strong vehicle-finance franchise",
+            "New management since 2025 tightening controls"
+          ],
+          "risks": [
+            "2025 derivative-accounting lapse led to a loss quarter and CEO exit",
+            "Microfinance stress",
+            "Deposit confidence after governance issues"
+          ],
+          "f": {
+            "ticker": "INDUSINDBK"
+          }
+        },
+        "idfcFirst": {
+          "name": "IDFC First Bank",
+          "listed": true,
+          "role": "Retail-led private bank built from IDFC Bank and Capital First; merged its parent IDFC Ltd in 2024",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Fast retail deposit and loan growth",
+            "Shift away from legacy infrastructure loans"
+          ],
+          "risks": [
+            "Microfinance and unsecured loan stress",
+            "High cost-to-income while it scales"
+          ],
+          "f": {
+            "ticker": "IDFCFIRSTB"
+          }
+        },
+        "yesBank": {
+          "name": "Yes Bank",
+          "listed": true,
+          "role": "Private bank rescued by an SBI-led group in 2020; Japan's SMBC bought 20% in Sep 2025 (RBI approval in Aug 2025 allowed up to 24.99%)",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "SMBC's ownership adds credibility and possible funding support",
+            "Bad loans cleaned up since 2020"
+          ],
+          "risks": [
+            "Returns still below peers",
+            "Deposit franchise still rebuilding"
+          ],
+          "f": {
+            "ticker": "YESBANK"
+          }
+        },
+        "federalBank": {
+          "name": "Federal Bank",
+          "listed": true,
+          "role": "Kerala-based private bank with a large NRI deposit base; Blackstone subscribing ₹6,196 Cr of warrants for up to 9.99% (RBI nod Feb 2026)",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Strong remittance and NRI deposits",
+            "Blackstone capital supports growth"
+          ],
+          "risks": [
+            "Kerala concentration",
+            "Leadership transition (2024)"
+          ],
+          "f": {
+            "ticker": "FEDERALBNK"
+          }
+        },
+        "rblBank": {
+          "name": "RBL Bank",
+          "listed": true,
+          "role": "Mid-size private bank that Emirates NBD took 60% of (completed 18 Jun 2026, ~$2.75 bn)",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Emirates NBD's capital and Gulf corridor",
+            "Large card and retail franchise"
+          ],
+          "risks": [
+            "Card and microfinance losses",
+            "Strategy and management change under new owner"
+          ],
+          "f": {
+            "ticker": "RBLBANK"
+          }
+        },
+        "idbiBank": {
+          "name": "IDBI Bank",
+          "listed": true,
+          "role": "Former development bank classed by RBI as private since 2019; government and LIC are selling 60.72% to Fairfax (Cabinet approval 14 Oct 2026, RBI nod pending)",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Clean balance sheet after recapitalisation",
+            "Strategic owner coming in"
+          ],
+          "risks": [
+            "Deal still needs RBI approval and an open offer",
+            "Fairfax already controls CSB Bank"
+          ],
+          "f": {
+            "ticker": "IDBI"
+          }
+        },
+        "bandhanBank": {
+          "name": "Bandhan Bank",
+          "listed": true,
+          "role": "Kolkata-based bank that began as an MFI and still has a large micro-loan book in eastern India",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Low-cost deposits from a large eastern branch network",
+            "Diversifying into housing (former Gruh Finance) and secured loans"
+          ],
+          "risks": [
+            "Microfinance stress in its home states",
+            "Leadership changes (2024-25)"
+          ],
+          "f": {
+            "ticker": "BANDHANBNK"
+          }
+        },
+        "cityUnion": {
+          "name": "City Union Bank",
+          "listed": true,
+          "role": "Tamil Nadu old private bank lending to traders, MSMEs and gold borrowers",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Long record of steady profits",
+            "Gold-loan and MSME niche"
+          ],
+          "risks": [
+            "Tamil Nadu concentration",
+            "Slow growth"
+          ],
+          "f": {
+            "ticker": "CUB"
+          }
+        },
+        "karurVysya": {
+          "name": "Karur Vysya Bank",
+          "listed": true,
+          "role": "Tamil Nadu old private bank with retail, MSME, gold and agriculture loans",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Strong recovery in asset quality since FY21",
+            "Granular deposit base"
+          ],
+          "risks": [
+            "Regional concentration"
+          ],
+          "f": {
+            "ticker": "KARURVYSYA"
+          }
+        },
+        "jkBank": {
+          "name": "Jammu and Kashmir Bank",
+          "listed": true,
+          "role": "J&K government-controlled bank with a dominant share of the union territory's banking",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Near-monopoly deposit base in J&K"
+          ],
+          "risks": [
+            "Government control and regional politics",
+            "Concentration in one region"
+          ],
+          "f": {
+            "ticker": "J&KBANK"
+          }
+        },
+        "tmb": {
+          "name": "Tamilnad Mercantile Bank",
+          "listed": true,
+          "role": "Tamil Nadu old private bank lending to traders and MSMEs; listed 2022",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "High capital and steady asset quality"
+          ],
+          "risks": [
+            "Tamil Nadu concentration",
+            "Slow loan growth"
+          ],
+          "f": {
+            "ticker": "TMB"
+          }
+        },
+        "karnatakaBank": {
+          "name": "Karnataka Bank",
+          "listed": true,
+          "role": "Mangaluru-based old private bank",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Established deposit base in Karnataka"
+          ],
+          "risks": [
+            "Management churn (2024-25)",
+            "Small scale"
+          ],
+          "f": {
+            "ticker": "KTKBANK"
+          }
+        },
+        "southIndianBank": {
+          "name": "South Indian Bank",
+          "listed": true,
+          "role": "Kerala-based old private bank with NRI deposits",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "NRI remittance deposits",
+            "Cleaned-up corporate book"
+          ],
+          "risks": [
+            "Kerala concentration",
+            "Lower returns than peers"
+          ],
+          "f": {
+            "ticker": "SOUTHBANK"
+          }
+        },
+        "dcbBank": {
+          "name": "DCB Bank",
+          "listed": true,
+          "role": "Small private bank promoted by the Aga Khan Fund for Economic Development, lending against property and to small businesses",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Secured, granular loan book"
+          ],
+          "risks": [
+            "High deposit costs",
+            "Small scale"
+          ],
+          "f": {
+            "ticker": "DCBBANK"
+          }
+        },
+        "auBank": {
+          "name": "AU Small Finance Bank",
+          "listed": true,
+          "role": "Largest small finance bank (merged Fincare SFB in 2024); received RBI's in-principle approval to become a universal bank (Aug 2025)",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Mostly secured book (vehicles, small business, housing)",
+            "First SFB on the path to a universal licence",
+            "Fast deposit growth"
+          ],
+          "risks": [
+            "Fincare's microfinance book",
+            "Higher deposit costs than large banks",
+            "Final universal-bank licence still pending"
+          ],
+          "f": {
+            "ticker": "AUBANK"
+          }
+        },
+        "equitas": {
+          "name": "Equitas Small Finance Bank",
+          "listed": true,
+          "role": "Chennai-based SFB with vehicle, small-business, housing and microfinance loans",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Mostly secured book",
+            "Growing retail deposits"
+          ],
+          "risks": [
+            "Microfinance losses in FY25",
+            "Southern concentration"
+          ],
+          "f": {
+            "ticker": "EQUITASBNK"
+          }
+        },
+        "ujjivan": {
+          "name": "Ujjivan Small Finance Bank",
+          "listed": true,
+          "role": "SFB that grew out of an MFI and is shifting to secured loans",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Large retail deposit base for an SFB",
+            "Moving to housing and secured loans"
+          ],
+          "risks": [
+            "Microfinance still a big share",
+            "Deposit costs"
+          ],
+          "f": {
+            "ticker": "UJJIVANSFB"
+          }
+        },
+        "janaSfb": {
+          "name": "Jana Small Finance Bank",
+          "listed": true,
+          "role": "Bengaluru-based SFB moving from microfinance to secured loans; listed Feb 2024",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Fast shift to secured lending"
+          ],
+          "risks": [
+            "Microfinance legacy",
+            "Thin capital relative to growth"
+          ],
+          "f": {
+            "ticker": "JSFB"
+          }
+        },
+        "utkarsh": {
+          "name": "Utkarsh Small Finance Bank",
+          "listed": true,
+          "role": "Varanasi-based SFB with a large microfinance book in Bihar and Uttar Pradesh",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Strong presence in under-banked states"
+          ],
+          "risks": [
+            "Heavy microfinance losses in FY25",
+            "Concentrated geography"
+          ],
+          "f": {
+            "ticker": "UTKARSHBNK"
+          }
+        },
+        "suryoday": {
+          "name": "Suryoday Small Finance Bank",
+          "listed": true,
+          "role": "Mumbai-based SFB with microfinance, vehicle and housing loans",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Diversifying into secured loans"
+          ],
+          "risks": [
+            "Microfinance stress",
+            "Small scale"
+          ],
+          "f": {
+            "ticker": "SURYODAY"
+          }
+        },
+        "esaf": {
+          "name": "ESAF Small Finance Bank",
+          "listed": true,
+          "role": "Kerala-based SFB that began as a microfinance NGO",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Rural deposit base in Kerala"
+          ],
+          "risks": [
+            "Heavy microfinance losses",
+            "Capital needs"
+          ],
+          "f": {
+            "ticker": "ESAFSFB"
+          }
+        },
+        "capitalSfb": {
+          "name": "Capital Small Finance Bank",
+          "listed": true,
+          "role": "Jalandhar-based SFB lending to farmers and small businesses in Punjab; listed Feb 2024",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Low-cost rural deposits",
+            "Mostly secured loans"
+          ],
+          "risks": [
+            "Punjab concentration",
+            "Small scale"
+          ],
+          "f": {
+            "ticker": "CAPITALSFB"
+          }
+        },
+        "fino": {
+          "name": "Fino Payments Bank",
+          "listed": true,
+          "role": "Payments bank that takes deposits and runs remittances, cash and payments through merchant points but cannot lend",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Large merchant network in small towns",
+            "Fee income without credit risk"
+          ],
+          "risks": [
+            "Payments-bank model has thin economics",
+            "Depends on remittance and cash-withdrawal volumes"
+          ],
+          "f": {
+            "ticker": "FINOPB"
+          }
+        },
+        "ltFinance": {
+          "name": "L&T Finance",
+          "listed": true,
+          "role": "L&T's lender, now mostly retail (rural, two-wheeler, home, personal, gold) after exiting wholesale loans; renamed from L&T Finance Holdings in 2024",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "L&T parentage and AAA rating",
+            "Successful shift to retail"
+          ],
+          "risks": [
+            "Rural and microfinance books are cyclical",
+            "Name confusion with the parent L&T"
+          ],
+          "f": {
+            "ticker": "LTF"
+          }
+        },
+        "abCapital": {
+          "name": "Aditya Birla Capital",
+          "listed": true,
+          "role": "Aditya Birla group's financial-services holding company that now lends directly (Aditya Birla Finance merged into it, effective 1 Apr 2025), with housing finance, AMC and insurance arms",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Group brand and broad product range",
+            "Merger simplified the structure"
+          ],
+          "risks": [
+            "Holding-company discount on non-lending arms",
+            "Execution across many businesses"
+          ],
+          "f": {
+            "ticker": "ABCAPITAL"
+          }
+        },
+        "piramalFinance": {
+          "name": "Piramal Finance",
+          "listed": true,
+          "role": "Retail-led NBFC (home, small-business, used-car loans) with a run-off wholesale book; Piramal Enterprises merged into it and it relisted in Nov 2025",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Fast-growing retail book",
+            "Strong capital"
+          ],
+          "risks": [
+            "Legacy real-estate wholesale loans still running off",
+            "Retail growth must outrun the wholesale run-off"
+          ],
+          "f": {
+            "ticker": "PIRAMALFIN"
+          }
+        },
+        "sammaan": {
+          "name": "Sammaan Capital",
+          "listed": true,
+          "role": "Former Indiabulls Housing Finance; Abu Dhabi's IHC became promoter and controlling shareholder on 15 May 2026",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "IHC's ~₹8,850 Cr investment repairs capital",
+            "Shift to asset-light retail lending"
+          ],
+          "risks": [
+            "Legacy wholesale book and governance history",
+            "Rebuilding growth under new owners"
+          ],
+          "f": {
+            "ticker": "SAMMAANCAP"
+          }
+        },
+        "jioFin": {
+          "name": "Jio Financial Services",
+          "listed": true,
+          "role": "Reliance group's financial-services arm: Jio Credit lending, Jio Payments Bank, leasing and the BlackRock ventures",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Reliance's customer base and balance sheet",
+            "Very high capital to fund growth"
+          ],
+          "risks": [
+            "Lending book is still small and early",
+            "Profits so far lean on investment income"
+          ],
+          "f": {
+            "ticker": "JIOFIN"
+          }
+        },
+        "authum": {
+          "name": "Authum Investment & Infrastructure",
+          "listed": true,
+          "role": "NBFC that bought stressed lenders' books (Reliance Commercial and Reliance Home Finance) and holds a large investment portfolio",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Bought loan books cheaply through resolution"
+          ],
+          "risks": [
+            "Profits lean on investment gains more than lending",
+            "Concentrated promoter control"
+          ],
+          "f": {
+            "ticker": "AIIL"
+          }
+        },
+        "bajajfinsv": {
+          "name": "Bajaj Finserv",
+          "listed": true,
+          "role": "Holding company owning a little over half of Bajaj Finance (and through it Bajaj Housing) plus the group's life and general insurers",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "One stock for lending, insurance and asset management",
+            "Took full ownership of the insurers by buying out Allianz"
+          ],
+          "risks": [
+            "Trades at a holding-company discount",
+            "Value moves mostly with Bajaj Finance"
+          ],
+          "f": {
+            "ticker": "BAJAJFINSV"
+          }
+        },
+        "bajajHoldings": {
+          "name": "Bajaj Holdings & Investment",
+          "listed": true,
+          "role": "Bajaj group holding company whose value is its stakes in Bajaj Finserv and Bajaj Auto",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Owns pieces of two strong franchises",
+            "Large cash and investment portfolio"
+          ],
+          "risks": [
+            "Deep holding-company discount",
+            "Earnings mix of lending (via Finserv) and auto"
+          ],
+          "f": {
+            "ticker": "BAJAJHLDNG"
+          }
+        },
+        "cholaHoldings": {
+          "name": "Cholamandalam Financial Holdings",
+          "listed": true,
+          "role": "Murugappa group holding company that owns the controlling stakes in Cholamandalam Investment and Finance and Cholamandalam MS General Insurance",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Look-through exposure to a fast-growing lender and an insurer"
+          ],
+          "risks": [
+            "Holding-company discount",
+            "Value moves with Chola Investment"
+          ],
+          "f": {
+            "ticker": "CHOLAHLDNG"
+          }
+        },
+        "bajajHfl": {
+          "name": "Bajaj Housing Finance",
+          "listed": true,
+          "role": "Bajaj Finance's home-loan subsidiary: prime salaried home loans, loans against property and developer finance; listed Sep 2024",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "AAA rating and low funding cost for an HFC",
+            "Fast growth with very low losses"
+          ],
+          "risks": [
+            "Thin spreads in prime home loans",
+            "Bajaj Finance must cut its stake over time to meet public-float rules"
+          ],
+          "f": {
+            "ticker": "BAJAJHFL"
+          }
+        },
+        "lichf": {
+          "name": "LIC Housing Finance",
+          "listed": true,
+          "role": "One of the largest housing finance companies, promoted by LIC, lending mostly to salaried buyers",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "LIC parentage and wide reach",
+            "Large, granular home-loan book"
+          ],
+          "risks": [
+            "Spread pressure from banks",
+            "Developer-loan legacy"
+          ],
+          "f": {
+            "ticker": "LICHSGFIN"
+          }
+        },
+        "pnbHousing": {
+          "name": "PNB Housing Finance",
+          "listed": true,
+          "role": "Large HFC promoted by PNB, growing in affordable and emerging-market loans after a clean-up",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Cleaned-up corporate book",
+            "Growth in affordable and self-employed segments"
+          ],
+          "risks": [
+            "Management transition (2025)",
+            "Competition with banks"
+          ],
+          "f": {
+            "ticker": "PNBHOUSING"
+          }
+        },
+        "canFinHomes": {
+          "name": "Can Fin Homes",
+          "listed": true,
+          "role": "Canara Bank-promoted HFC for salaried home buyers, strongest in south India",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Low-cost operations and long record",
+            "Canara Bank parentage"
+          ],
+          "risks": [
+            "Southern concentration",
+            "Thin spreads"
+          ],
+          "f": {
+            "ticker": "CANFINHOME"
+          }
+        },
+        "pfc": {
+          "name": "Power Finance Corporation",
+          "listed": true,
+          "role": "Largest power-sector lender and REC's parent, funding generation, transmission, distribution and renewables",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Near-sovereign borrowing cost",
+            "Grows with India's power capex"
+          ],
+          "risks": [
+            "Concentrated exposure to state discoms and private gencos",
+            "Bond-market cost when rates rise"
+          ],
+          "f": {
+            "ticker": "PFC"
+          }
+        },
+        "rec": {
+          "name": "REC",
+          "listed": true,
+          "role": "State power lender to utilities and nodal agency for the RDSS distribution scheme; a PFC subsidiary",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Government-backed borrowing",
+            "Diversifying into infrastructure beyond power"
+          ],
+          "risks": [
+            "State-discom exposure",
+            "Policy on dividends and lending targets"
+          ],
+          "f": {
+            "ticker": "RECLTD"
+          }
+        },
+        "irfc": {
+          "name": "Indian Railway Finance Corporation",
+          "listed": true,
+          "role": "Financing arm of Indian Railways that borrows and leases rolling stock and assets to the Railways at a cost-plus spread",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Near-zero credit risk: the Railways is its main borrower",
+            "Funding cost passed through"
+          ],
+          "risks": [
+            "Growth depends on how much the Railways borrows",
+            "Thin, fixed spread"
+          ],
+          "f": {
+            "ticker": "IRFC"
+          }
+        },
+        "ireda": {
+          "name": "Indian Renewable Energy Development Agency",
+          "listed": true,
+          "role": "Government lender for solar, wind, hydro, storage and green-hydrogen projects; listed Nov 2023",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Direct play on renewable capex",
+            "Government ownership lowers funding cost"
+          ],
+          "risks": [
+            "Project risk in new technologies",
+            "Stress in some solar and wind developers"
+          ],
+          "f": {
+            "ticker": "IREDA"
+          }
+        },
+        "hudco": {
+          "name": "Housing and Urban Development Corporation",
+          "listed": true,
+          "role": "State lender to housing boards, urban bodies and infrastructure agencies",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Grows with state urban and housing capex",
+            "Government guarantee on much of its book"
+          ],
+          "risks": [
+            "Concentration in state-government agencies",
+            "Policy-driven lending"
+          ],
+          "f": {
+            "ticker": "HUDCO"
+          }
+        },
+        "ifci": {
+          "name": "IFCI",
+          "listed": true,
+          "role": "Legacy government development lender, now small; the government is consolidating its subsidiaries",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Government support"
+          ],
+          "risks": [
+            "Weak legacy loan book",
+            "Shrinking core lending"
+          ],
+          "f": {
+            "ticker": "IFCI"
+          }
+        },
+        "rbi": {
+          "name": "Reserve Bank of India",
+          "listed": false,
+          "role": "Central bank and regulator: sets the repo rate, licenses and supervises banks and NBFCs, and sets capital and risk-weight rules",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Raised the repo rate to 5.50% on 7 Oct 2026 and turned to 'calibrated tightening'"
+          ],
+          "risks": [
+            "Not investable - every lender's cost and growth turn on its decisions"
+          ],
+          "notes": [
+            "Owns NHB and DICGC",
+            "Publishes the Financial Stability Report each June and December",
+            "No listed market data"
+          ]
+        },
+        "nabard": {
+          "name": "NABARD",
+          "listed": false,
+          "role": "National Bank for Agriculture and Rural Development: refinances farm and rural lending by banks, co-operatives and MFIs",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Main refinance source for rural credit"
+          ],
+          "risks": [
+            "Unlisted, government-owned"
+          ],
+          "notes": [
+            "Wholly owned by the government",
+            "No listed market data"
+          ]
+        },
+        "sidbi": {
+          "name": "SIDBI",
+          "listed": false,
+          "role": "Small Industries Development Bank of India: refinances banks, NBFCs and MFIs that lend to small businesses",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Key funding source for MSME-focused NBFCs and MFIs"
+          ],
+          "risks": [
+            "Unlisted, government-controlled"
+          ],
+          "notes": [
+            "Owned by the government and public-sector institutions",
+            "No listed market data"
+          ]
+        },
+        "nhb": {
+          "name": "National Housing Bank",
+          "listed": false,
+          "role": "Refinances housing finance companies and runs housing schemes",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Cheap refinance for affordable HFCs"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Wholly owned by the government since 2019 (previously RBI)",
+            "No listed market data"
+          ]
+        },
+        "nabfid": {
+          "name": "NaBFID",
+          "listed": false,
+          "role": "National Bank for Financing Infrastructure and Development: long-term infrastructure lender set up in 2021",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Long-tenor funding for infrastructure"
+          ],
+          "risks": [
+            "Unlisted; still building its book"
+          ],
+          "notes": [
+            "Government-owned development finance institution",
+            "No listed market data"
+          ]
+        },
+        "narcl": {
+          "name": "National Asset Reconstruction Company",
+          "listed": false,
+          "role": "Government-backed 'bad bank' that buys large stressed loans from banks, with security receipts guaranteed by the government",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Clears large bad loans off bank balance sheets"
+          ],
+          "risks": [
+            "Unlisted; slow recoveries so far"
+          ],
+          "notes": [
+            "Set up 2021, majority-owned by public-sector banks",
+            "No listed market data"
+          ]
+        },
+        "edelweiss": {
+          "name": "Edelweiss Financial Services",
+          "listed": true,
+          "role": "Owns Edelweiss ARC, one of the largest private asset reconstruction companies, plus credit, alternatives and insurance businesses",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "ARC earns from buying and resolving bad loans",
+            "Alternatives business with fee income"
+          ],
+          "risks": [
+            "Bad-loan supply is low while banks are healthy",
+            "RBI scrutiny of group structures (2024)"
+          ],
+          "f": {
+            "ticker": "EDELWEISS"
+          }
+        },
+        "cibil": {
+          "name": "TransUnion CIBIL",
+          "listed": false,
+          "role": "India's largest credit bureau; its score is checked on almost every retail loan application",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Data on most Indian borrowers"
+          ],
+          "risks": [
+            "Unlisted (owned by TransUnion)"
+          ],
+          "notes": [
+            "Experian, CRIF High Mark and Equifax are the other three bureaus",
+            "No listed market data"
+          ]
+        },
+        "npci": {
+          "name": "NPCI",
+          "listed": false,
+          "role": "National Payments Corporation of India: runs UPI, RuPay and NACH e-mandates that collect most EMIs",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Owns the rails behind UPI and EMI collection"
+          ],
+          "risks": [
+            "Unlisted, owned by banks"
+          ],
+          "notes": [
+            "Not-for-profit, promoted by RBI and IBA",
+            "No listed market data"
+          ]
+        },
+        "pineLabs": {
+          "name": "Pine Labs",
+          "listed": true,
+          "role": "Merchant payments leader whose card machines offer brand and bank EMIs at the point of sale; listed Nov 2025",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Leader in point-of-sale EMI for brands",
+            "Issuing software for banks"
+          ],
+          "risks": [
+            "Depends on lenders' appetite for consumer EMIs",
+            "Competition in payments"
+          ],
+          "f": {
+            "ticker": "PINELABS"
+          }
+        },
+        "ofss": {
+          "name": "Oracle Financial Services Software",
+          "listed": true,
+          "role": "Maker of Flexcube core banking and other banking software used by Indian and global banks",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Installed base in many banks",
+            "Debt-free and pays large dividends"
+          ],
+          "risks": [
+            "Most revenue comes from overseas banks",
+            "Long, lumpy deal cycles"
+          ],
+          "f": {
+            "ticker": "OFSS"
+          }
+        },
+        "nucleus": {
+          "name": "Nucleus Software Exports",
+          "listed": true,
+          "role": "Maker of FinnOne loan-management and FinnAxia transaction-banking software used by Indian banks and NBFCs",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Long-standing NBFC and bank client base"
+          ],
+          "risks": [
+            "Small company with lumpy deals",
+            "Competition from larger vendors"
+          ],
+          "f": {
+            "ticker": "NUCLEUS"
+          }
+        },
+        "intellect": {
+          "name": "Intellect Design Arena",
+          "listed": true,
+          "role": "Banking software maker (core banking, transaction banking, insurance) selling to Indian and global banks",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Modern, modular banking products"
+          ],
+          "risks": [
+            "Long sales cycles",
+            "Global clients weigh more than Indian ones"
+          ],
+          "f": {
+            "ticker": "INTELLECT"
+          }
+        },
+        "tcs": {
+          "name": "Tata Consultancy Services",
+          "listed": true,
+          "role": "IT services leader whose BaNCS software runs core banking and payments at several banks",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "BaNCS and large bank IT contracts"
+          ],
+          "risks": [
+            "Banking software is a small part of a large IT business"
+          ],
+          "f": {
+            "ticker": "TCS"
+          }
+        },
+        "infy": {
+          "name": "Infosys",
+          "listed": true,
+          "role": "IT services leader whose Finacle core-banking software runs many Indian banks",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Finacle's installed base in Indian banks"
+          ],
+          "risks": [
+            "Finacle is a small part of a large IT business"
+          ],
+          "f": {
+            "ticker": "INFY"
+          }
+        }
+      }
+    },
+    {
+      "key": "insurance",
+      "suppliers": {
+        "sbi": {
+          "name": "State Bank of India",
+          "listed": true,
+          "role": "Promoter of SBI Life and SBI General; its branches are SBI Life's main sales channel",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Widest branch network in India sells SBI Life's policies at the lowest distribution cost",
+            "Its stake in SBI Life is one of its most valuable subsidiaries"
+          ],
+          "risks": [
+            "Insurance is a small part of a very large bank's earnings",
+            "Mis-selling scrutiny on policies sold to depositors"
+          ],
+          "f": {
+            "ticker": "SBIN"
+          }
+        },
+        "hdfcBank": {
+          "name": "HDFC Bank",
+          "listed": true,
+          "role": "Promoter of HDFC Life and HDFC ERGO and the largest bancassurance partner of HDFC Life",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Large affluent customer base for protection and savings policies",
+            "Owns both a life and a general insurer"
+          ],
+          "risks": [
+            "HDFC Life also sells through other banks, and HDFC Bank sells other insurers' policies",
+            "Insurance is a minor part of bank-level figures"
+          ],
+          "f": {
+            "ticker": "HDFCBANK"
+          }
+        },
+        "icicibank": {
+          "name": "ICICI Bank",
+          "listed": true,
+          "role": "Controlling shareholder of ICICI Life and ICICI Lombard; sells both through its branches and app",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Owns a leading life insurer and the largest private general insurer",
+            "Strong digital cross-sell to retail and business customers"
+          ],
+          "risks": [
+            "Bank figures dominate; insurance value is in subsidiaries",
+            "Group insurers also compete for the same customers with other banks' partners"
+          ],
+          "f": {
+            "ticker": "ICICIBANK"
+          }
+        },
+        "axisbank": {
+          "name": "Axis Bank",
+          "listed": true,
+          "role": "Co-owner (about a fifth) of Axis Max Life and its main bancassurance channel",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Branch and card base drives Axis Max Life's banca sales",
+            "Option to raise its stake in the insurer (discussed in 2026)"
+          ],
+          "risks": [
+            "Minority stake: most of the insurer's value goes to Max Financial",
+            "Insurance is a small part of the bank's figures"
+          ],
+          "f": {
+            "ticker": "AXISBANK"
+          }
+        },
+        "kotak": {
+          "name": "Kotak Mahindra Bank",
+          "listed": true,
+          "role": "Owns Kotak Mahindra Life outright and a minority of Zurich Kotak General; sells both through branches",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Wholly owns its life insurer",
+            "Affluent customers suit protection and savings policies"
+          ],
+          "risks": [
+            "Life insurer is unlisted; its value is buried in bank figures",
+            "Sold control of the general insurer to Zurich (2024)"
+          ],
+          "f": {
+            "ticker": "KOTAKBANK"
+          }
+        },
+        "canaraBank": {
+          "name": "Canara Bank",
+          "listed": true,
+          "role": "Promoter of listed Canara HSBC Life and its main distribution partner",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Large public-sector branch network in the south and in smaller towns",
+            "Holds a listed stake in Canara HSBC Life"
+          ],
+          "risks": [
+            "Insurance is a small part of a large bank",
+            "Public-sector bank cross-sell is slower than private peers'"
+          ],
+          "f": {
+            "ticker": "CANBK"
+          }
+        },
+        "pbFintech": {
+          "name": "PB Fintech (PolicyBazaar, Paisabazaar)",
+          "listed": true,
+          "role": "India's largest online insurance marketplace, strongest in term life and retail health, with renewal income building each year",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Dominant share of online term and health sales",
+            "Renewals give a growing recurring base",
+            "Call-centre-assisted model converts first-time buyers"
+          ],
+          "risks": [
+            "Bima Sugam and insurers' own apps could cut the take rate",
+            "IRDAI commission and expense-of-management rules",
+            "Heavy marketing spend"
+          ],
+          "f": {
+            "ticker": "POLICYBZR"
+          }
+        },
+        "turtlemint": {
+          "name": "Turtlemint Fintech Solutions",
+          "listed": true,
+          "role": "Platform that lets independent agents and point-of-sale persons quote and sell motor, health and life policies from many insurers",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Agent-tech model reaches small-town buyers who want advice",
+            "Multi-insurer, multi-line catalogue"
+          ],
+          "risks": [
+            "Listed only on 29 Jun 2026; short public track record",
+            "Motor-heavy commissions are thin and price-sensitive"
+          ],
+          "f": {
+            "ticker": "TURTLEMINT"
+          }
+        },
+        "insuranceDekho": {
+          "name": "InsuranceDekho",
+          "listed": false,
+          "role": "Online and agent-led insurance broker from the Girnar (CarDekho) group",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Strong in motor insurance through the CarDekho car-buying funnel"
+          ],
+          "risks": [
+            "Unlisted; IPO plans reported in 2026 but not confirmed filed"
+          ],
+          "notes": [
+            "Unlisted - no market data"
+          ]
+        },
+        "prudent": {
+          "name": "Prudent Corporate Advisory Services",
+          "listed": true,
+          "role": "Mutual-fund distribution platform with a growing insurance-broking arm selling through its distributor network",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Tens of thousands of distributors can cross-sell insurance",
+            "Strong in smaller towns"
+          ],
+          "risks": [
+            "Insurance is a small share of its income; mutual-fund trail dominates"
+          ],
+          "f": {
+            "ticker": "PRUDENT"
+          }
+        },
+        "hdfclife": {
+          "name": "HDFC Life Insurance",
+          "listed": true,
+          "role": "Large private life insurer; HDFC Bank and other banks sell 58% of its individual policies (H1 FY27)",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Balanced product mix across protection, non-par, par, ULIP and annuity",
+            "Many bank partners beyond HDFC Bank, plus agency"
+          ],
+          "risks": [
+            "Persistency slipped in H1 FY27 (13th month 83% vs 86%, company)",
+            "Commission and surrender-value rules and loss of GST input credit"
+          ],
+          "f": {
+            "ticker": "HDFCLIFE"
+          }
+        },
+        "sbilife": {
+          "name": "SBI Life Insurance",
+          "listed": true,
+          "role": "SBI-promoted life insurer selling mainly through State Bank branches",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Lowest-cost distribution in the industry via SBI's branches",
+            "Among the highest value-of-new-business returns of the large listed life insurers (company)"
+          ],
+          "risks": [
+            "Heavy reliance on a single bank channel",
+            "ULIP-heavy mix swings with equity markets"
+          ],
+          "f": {
+            "ticker": "SBILIFE"
+          }
+        },
+        "iciciLife": {
+          "name": "ICICI Life Insurance",
+          "listed": true,
+          "role": "ICICI Bank-controlled life insurer (formerly ICICI Prudential Life), strong in protection and ULIPs",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "aka": [
+            "icici prudential life",
+            "icici pru life",
+            "icicipruli"
+          ],
+          "strengths": [
+            "Retail protection and annuity growth; VNB grew 22.3% in H1 FY27 (company)",
+            "13th-month persistency of 84.5% (H1 FY27, company)"
+          ],
+          "risks": [
+            "Savings APE grew slowly (6.6% in H1 FY27)",
+            "Renamed and re-symbolled in Oct 2026 - check old-name data"
+          ],
+          "f": {
+            "ticker": "ICICILIFE"
+          }
+        },
+        "maxFinancial": {
+          "name": "Max Financial Services (Axis Max Life)",
+          "listed": true,
+          "role": "Listed holding company of Axis Max Life Insurance (Axis Bank entities own the rest); its value is almost entirely the life insurer",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "aka": [
+            "axis max life",
+            "max life insurance"
+          ],
+          "strengths": [
+            "Balanced agency and Axis Bank banca distribution",
+            "VNB grew 21% in H1 FY27 and embedded value 17% (company)"
+          ],
+          "risks": [
+            "Holding-company structure; Axis Bank may raise its stake",
+            "Solvency eased over the year to Sep 2026 (company) - see the insurer figures"
+          ],
+          "f": {
+            "ticker": "MFSL"
+          }
+        },
+        "canaraHsbcLife": {
+          "name": "Canara HSBC Life Insurance",
+          "listed": true,
+          "role": "Canara Bank-HSBC life insurer selling mainly through Canara Bank branches; listed 17 Oct 2025",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Captive public-sector branch network",
+            "HSBC's product and risk know-how"
+          ],
+          "risks": [
+            "Smaller scale than the large bank-led peers",
+            "Dependence on one public-sector bank"
+          ],
+          "f": {
+            "ticker": "CANHLIFE"
+          }
+        },
+        "indiaFirstLife": {
+          "name": "IndiaFirst Life Insurance",
+          "listed": false,
+          "role": "Bank of Baroda- and Union Bank-promoted life insurer selling through their branches",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Two public-sector bank partners"
+          ],
+          "risks": [
+            "Unlisted; earlier IPO filing did not lead to a listing"
+          ],
+          "notes": [
+            "Unlisted - no market data"
+          ]
+        },
+        "lic": {
+          "name": "Life Insurance Corporation of India",
+          "listed": true,
+          "role": "State-owned market leader: 58.77% of first-year premium in H1 FY27 and most group life and pension business (company)",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Largest agency force and brand trust in rural India",
+            "Embedded value larger than all listed private life insurers combined"
+          ],
+          "risks": [
+            "Mostly participating policies, so a lower VNB margin than private peers",
+            "Government ownership and future stake sales"
+          ],
+          "f": {
+            "ticker": "LICI"
+          }
+        },
+        "bajajLife": {
+          "name": "Bajaj Life Insurance",
+          "listed": false,
+          "role": "Bajaj group's life insurer (formerly Bajaj Allianz Life), wholly Bajaj-owned after Allianz's exit in 2026",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "aka": [
+            "bajaj allianz life"
+          ],
+          "strengths": [
+            "Fast-growing agency and bank partnerships",
+            "Full control lets the group set strategy alone"
+          ],
+          "risks": [
+            "Unlisted; held through Bajaj Finserv and Bajaj Holdings"
+          ],
+          "notes": [
+            "Unlisted - exposure through BAJAJFINSV and BAJAJHLDNG"
+          ]
+        },
+        "tataAiaLife": {
+          "name": "Tata AIA Life Insurance",
+          "listed": false,
+          "role": "Tata Sons-AIA joint venture; a large seller of protection and ULIPs",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Strong protection franchise and AIA's know-how"
+          ],
+          "risks": [
+            "No listed proxy (Tata Sons is unlisted)"
+          ],
+          "notes": [
+            "Unlisted - no market data"
+          ]
+        },
+        "abslInsurance": {
+          "name": "Aditya Birla Sun Life Insurance",
+          "listed": false,
+          "role": "Life arm of Aditya Birla Capital, a joint venture with Sun Life",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Group cross-sell across lending, AMC and health insurance"
+          ],
+          "risks": [
+            "Mid-sized player; exposure only via ABCAPITAL"
+          ],
+          "notes": [
+            "Unlisted - exposure through ABCAPITAL"
+          ]
+        },
+        "kotakLife": {
+          "name": "Kotak Mahindra Life Insurance",
+          "listed": false,
+          "role": "Life insurer wholly owned by Kotak Mahindra Bank",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Bank parent's affluent customers"
+          ],
+          "risks": [
+            "Unlisted; value sits inside Kotak Mahindra Bank"
+          ],
+          "notes": [
+            "Unlisted - exposure through KOTAKBANK"
+          ]
+        },
+        "pnbMetLife": {
+          "name": "PNB MetLife India Insurance",
+          "listed": false,
+          "role": "MetLife-led life insurer with Punjab National Bank as partner and distributor",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "PNB's branch network"
+          ],
+          "risks": [
+            "Unlisted; minority bank partner"
+          ],
+          "notes": [
+            "Unlisted - no market data"
+          ]
+        },
+        "iciciLombard": {
+          "name": "ICICI Lombard General Insurance",
+          "listed": true,
+          "role": "Largest private general insurer across motor, health, fire and engineering, selling through ICICI Bank, agents, brokers and online",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Diversified book and large reinsurance and catastrophe protection",
+            "Reports a combined ratio excluding catastrophe losses, making trends easier to read"
+          ],
+          "risks": [
+            "Motor third-party claims inflation before any premium revision",
+            "Flood losses lifted the Q2 FY27 combined ratio (company)"
+          ],
+          "f": {
+            "ticker": "ICICIGI"
+          }
+        },
+        "newIndia": {
+          "name": "New India Assurance",
+          "listed": true,
+          "role": "Largest general insurer by premium (government-owned), with the biggest health and commercial books",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Largest premium base and pan-India reach",
+            "Large investment portfolio built over decades"
+          ],
+          "risks": [
+            "Underwriting losses in motor third-party, group health and property",
+            "Solvency headroom over the 1.5x regulatory minimum is thin for an insurer of its size"
+          ],
+          "f": {
+            "ticker": "NIACL"
+          }
+        },
+        "goDigit": {
+          "name": "Go Digit General Insurance",
+          "listed": true,
+          "role": "Digital-first private general insurer, mostly motor, selling through agents, brokers and partner apps",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "aka": [
+            "digit insurance",
+            "go digit"
+          ],
+          "strengths": [
+            "Low-cost digital operations and fast growth",
+            "Underwriting near break-even on its reported CISR (Q2 FY27, company)"
+          ],
+          "risks": [
+            "Motor-heavy book exposed to third-party claims",
+            "Reports several combined-ratio bases - compare with care"
+          ],
+          "f": {
+            "ticker": "GODIGIT"
+          }
+        },
+        "bajajGeneral": {
+          "name": "Bajaj General Insurance",
+          "listed": false,
+          "role": "Bajaj group's general insurer (formerly Bajaj Allianz General), wholly Bajaj-owned after Allianz's exit",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "aka": [
+            "bajaj allianz general"
+          ],
+          "strengths": [
+            "Among the most profitable private general insurers historically"
+          ],
+          "risks": [
+            "Unlisted; exposure only via Bajaj Finserv and Bajaj Holdings"
+          ],
+          "notes": [
+            "Unlisted - exposure through BAJAJFINSV and BAJAJHLDNG"
+          ]
+        },
+        "hdfcErgo": {
+          "name": "HDFC ERGO General Insurance",
+          "listed": false,
+          "role": "HDFC Bank's general insurer with large retail health and motor books",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "HDFC Bank distribution"
+          ],
+          "risks": [
+            "Unlisted; value inside HDFC Bank"
+          ],
+          "notes": [
+            "Unlisted - exposure through HDFCBANK"
+          ]
+        },
+        "tataAig": {
+          "name": "Tata AIG General Insurance",
+          "listed": false,
+          "role": "Tata Sons-AIG joint venture, strong in commercial lines and motor",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Commercial and specialty underwriting skill from AIG"
+          ],
+          "risks": [
+            "No listed proxy"
+          ],
+          "notes": [
+            "Unlisted - no market data"
+          ]
+        },
+        "starHealth": {
+          "name": "Star Health and Allied Insurance",
+          "listed": true,
+          "role": "India's largest standalone health insurer, focused on retail policies sold through agents",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Largest retail health book and agency network",
+            "Underwriting profit in Q2 FY27, its fifth straight quarter of improvement (company)"
+          ],
+          "risks": [
+            "Claims inflation from hospital price rises",
+            "Share loss to multi-line insurers and Niva Bupa"
+          ],
+          "f": {
+            "ticker": "STARHEALTH"
+          }
+        },
+        "nivaBupa": {
+          "name": "Niva Bupa Health Insurance",
+          "listed": true,
+          "role": "Standalone health insurer promoted by the UK's Bupa (formerly Max Bupa), gaining retail health share",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "aka": [
+            "max bupa"
+          ],
+          "strengths": [
+            "Fast premium growth through banks and online",
+            "Bupa's global health-insurance know-how"
+          ],
+          "risks": [
+            "Profitability is still young; Q2 is seasonally weak",
+            "Ind AS vs Indian GAAP profit gaps confuse comparisons"
+          ],
+          "f": {
+            "ticker": "NIVABUPA"
+          }
+        },
+        "careHealth": {
+          "name": "Care Health Insurance",
+          "listed": false,
+          "role": "Standalone health insurer, a subsidiary of listed Religare Enterprises",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "One of the top standalone health insurers by retail premium"
+          ],
+          "risks": [
+            "Unlisted itself; parent Religare saw a control change in 2025"
+          ],
+          "notes": [
+            "Subsidiary of Religare Enterprises (listed separately)",
+            "No listed market data for the insurer"
+          ]
+        },
+        "adityaBirlaHealth": {
+          "name": "Aditya Birla Health Insurance",
+          "listed": false,
+          "role": "Health insurance arm of Aditya Birla Capital, focused on wellness-linked retail policies",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Wellness rewards and group cross-sell"
+          ],
+          "risks": [
+            "Unlisted; exposure only via ABCAPITAL"
+          ],
+          "notes": [
+            "Unlisted - exposure through ABCAPITAL"
+          ]
+        },
+        "manipalCigna": {
+          "name": "ManipalCigna Health Insurance",
+          "listed": false,
+          "role": "Manipal group-Cigna standalone health insurer",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Hospital-group parentage"
+          ],
+          "risks": [
+            "Reported stake talks with LIC (2024-25) not confirmed closed"
+          ],
+          "notes": [
+            "Unlisted - no market data"
+          ]
+        },
+        "gicRe": {
+          "name": "General Insurance Corporation of India (GIC Re)",
+          "listed": true,
+          "role": "State-owned national reinsurer; receives a statutory share of every Indian general policy and leads most domestic treaties",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "aka": [
+            "gic re",
+            "general insurance corporation"
+          ],
+          "strengths": [
+            "Dominant domestic reinsurer with statutory business",
+            "Very high solvency and a large investment book"
+          ],
+          "risks": [
+            "Catastrophe and crop losses swing results",
+            "New private reinsurers and foreign branches compete for treaties"
+          ],
+          "f": {
+            "ticker": "GICRE"
+          }
+        },
+        "allianzJioRe": {
+          "name": "Allianz Jio Reinsurance",
+          "listed": false,
+          "role": "50:50 Allianz-Jio Financial reinsurer registered by IRDAI in Mar 2026, the second private Indian reinsurer",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Allianz's global reinsurance expertise with Jio's capital"
+          ],
+          "risks": [
+            "New entrant building a book in a market anchored by GIC Re"
+          ],
+          "notes": [
+            "Unlisted - exposure through JIOFIN"
+          ]
+        },
+        "munichReIndia": {
+          "name": "Munich Re (India branch)",
+          "listed": false,
+          "role": "Foreign reinsurer branch in India competing with GIC Re for treaty and large-risk business",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Global capacity and pricing data"
+          ],
+          "risks": [
+            "Branch capital and statutory cession rules favour GIC Re"
+          ],
+          "notes": [
+            "Not listed in India"
+          ]
+        },
+        "swissReIndia": {
+          "name": "Swiss Re (India branch)",
+          "listed": false,
+          "role": "Foreign reinsurer branch in India writing treaty, life and specialty reinsurance",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Global capacity and life reinsurance expertise"
+          ],
+          "risks": [
+            "Competes with GIC Re's statutory advantage"
+          ],
+          "notes": [
+            "Not listed in India"
+          ]
+        },
+        "mediAssist": {
+          "name": "Medi Assist Healthcare Services",
+          "listed": true,
+          "role": "India's largest third-party administrator (TPA) - processes cashless and reimbursement claims for insurers and employers",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Scale leader; bought Paramount TPA (Jul 2025)",
+            "Revenue grows with group health premiums under management"
+          ],
+          "risks": [
+            "Insurers bringing claims processing in-house",
+            "Fee pressure; regulatory changes to TPA roles"
+          ],
+          "f": {
+            "ticker": "MEDIASSIST"
+          }
+        },
+        "hitpa": {
+          "name": "Health Insurance TPA of India",
+          "listed": false,
+          "role": "TPA owned by the public-sector general insurers, handling much of their group and government-scheme health claims",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Captive volume from state-owned insurers"
+          ],
+          "risks": [
+            "Unlisted; depends on its owners' strategy"
+          ],
+          "notes": [
+            "Unlisted - no market data"
+          ]
+        },
+        "bajajfinsv": {
+          "name": "Bajaj Finserv",
+          "listed": true,
+          "role": "Holding company of Bajaj Life and Bajaj General (with Bajaj Holdings) and of Bajaj Finance",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Full control of two large insurers after buying out Allianz (23% closed 8 Jan 2026)",
+            "Insurance and lending in one stock"
+          ],
+          "risks": [
+            "Lending (Bajaj Finance) drives the group figures",
+            "Holding-company discount"
+          ],
+          "f": {
+            "ticker": "BAJAJFINSV"
+          }
+        },
+        "bajajHoldings": {
+          "name": "Bajaj Holdings & Investment",
+          "listed": true,
+          "role": "Bajaj group holding company with direct stakes in Bajaj Life and Bajaj General alongside Bajaj Finserv",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Look-through exposure to Bajaj Finserv, Bajaj Auto and the insurers"
+          ],
+          "risks": [
+            "Deep holding-company discount",
+            "Insurance is one of several holdings"
+          ],
+          "f": {
+            "ticker": "BAJAJHLDNG"
+          }
+        },
+        "abCapital": {
+          "name": "Aditya Birla Capital",
+          "listed": true,
+          "role": "Holds Aditya Birla Sun Life Insurance and Aditya Birla Health Insurance alongside lending and asset management",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Life, health, lending and AMC under one brand"
+          ],
+          "risks": [
+            "Lending drives group figures",
+            "Insurance arms are mid-sized"
+          ],
+          "f": {
+            "ticker": "ABCAPITAL"
+          }
+        },
+        "religare": {
+          "name": "Religare Enterprises",
+          "listed": true,
+          "role": "Parent of Care Health Insurance - its main source of value",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Majority stake in a large standalone health insurer"
+          ],
+          "risks": [
+            "Control change and governance disputes in 2025",
+            "Value depends on one unlisted subsidiary"
+          ],
+          "f": {
+            "ticker": "RELIGARE"
+          }
+        },
+        "jioFin": {
+          "name": "Jio Financial Services",
+          "listed": true,
+          "role": "Reliance group's financial-services arm; 50% owner of Allianz Jio Reinsurance and an insurance broker",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Reliance's customer reach for insurance broking",
+            "Reinsurance JV with Allianz"
+          ],
+          "risks": [
+            "Insurance is a very small part of the group today"
+          ],
+          "f": {
+            "ticker": "JIOFIN"
+          }
+        },
+        "irdai": {
+          "name": "IRDAI (Insurance Regulatory and Development Authority of India)",
+          "listed": false,
+          "role": "Licenses insurers and intermediaries; sets solvency (150% control level), product, commission/expense and claims rules",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Clear capital rules; moving to risk-based solvency"
+          ],
+          "risks": [
+            "Rule changes can shift value between customers, distributors and insurers quickly"
+          ],
+          "notes": [
+            "Regulator - not investable"
+          ]
+        },
+        "bimaSugam": {
+          "name": "Bima Sugam India Federation",
+          "listed": false,
+          "role": "Not-for-profit owner of Bima Sugam, the public marketplace meant to list, sell and service every policy",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Could cut acquisition cost for simple covers"
+          ],
+          "risks": [
+            "Repeated launch delays; motor first, life and health later"
+          ],
+          "notes": [
+            "Industry utility - not investable"
+          ]
+        },
+        "nhcx": {
+          "name": "National Health Claims Exchange (NHCX)",
+          "listed": false,
+          "role": "Government digital exchange for health-claim messages between hospitals, TPAs and insurers",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Standard claim formats can speed cashless approvals"
+          ],
+          "risks": [
+            "Hospital adoption is uneven"
+          ],
+          "notes": [
+            "Public infrastructure - not investable"
+          ]
+        }
+      }
+    },
+    {
+      "key": "hotels",
+      "suppliers": {
+        "indhotel": {
+          "name": "Indian Hotels Company (IHCL)",
+          "listed": true,
+          "role": "India's largest hotel company - Taj, Vivanta, SeleQtions, Ginger and others - with 670 hotels signed and 390 operating (Sep 2026), growing mainly through management contracts",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "ihcl",
+            "taj hotels",
+            "indian hotels"
+          ],
+          "strengths": [
+            "Q2 FY27 revenue rose 21% with domestic same-store RevPAR up 25%; FY27 revenue guidance raised to 15-17% (26 Oct 2026)",
+            "Pipeline of 280 hotels (32,000+ rooms), mostly capital-light management contracts, so fee income grows faster than owned rooms",
+            "Spans luxury (Taj) to economy (Ginger), plus new businesses (Qmin, amã Stays)"
+          ],
+          "risks": [
+            "A wave of new signings across the industry lifts supply from 2027",
+            "Event shocks (conflict, terror attacks) hit its leisure and Mumbai-heavy portfolio",
+            "Rich valuation leaves little room for slips - see the figures"
+          ],
+          "f": {
+            "ticker": "INDHOTEL"
+          }
+        },
+        "itchotels": {
+          "name": "ITC Hotels",
+          "listed": true,
+          "role": "Owner-operator of ITC's luxury hotels plus managed Welcomhotel, Storii, Fortune and Mementos brands; demerged from ITC (effective 1 Jan 2025) and listed 29 Jan 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "welcomhotel",
+            "fortune hotels"
+          ],
+          "strengths": [
+            "Q2 FY27 revenue rose ~26% and net profit ~52%, with RevPAR up 21% (company results, Oct 2026)",
+            "Owns large flagship luxury hotels in key cities - hard-to-copy assets",
+            "Asset-light growth through managed brands"
+          ],
+          "risks": [
+            "ITC still holds about 40%, so a parent stake sale is an overhang",
+            "Branded-residence income is lumpy",
+            "Capex for new owned hotels and refurbishments"
+          ],
+          "f": {
+            "ticker": "ITCHOTELS"
+          }
+        },
+        "eihotel": {
+          "name": "EIH (Oberoi Hotels)",
+          "listed": true,
+          "role": "Owner-operator of Oberoi and Trident hotels - the highest room rates among Indian listed hotel companies - plus flight catering and selective management contracts",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "oberoi hotels",
+            "eih ltd",
+            "trident hotels"
+          ],
+          "strengths": [
+            "Top-end Oberoi brand commands premium rates at home and abroad",
+            "Mostly owned hotels with a strong balance sheet",
+            "Flight catering adds airline-linked revenue"
+          ],
+          "risks": [
+            "Slow, owned-asset growth versus fee-led peers",
+            "Concentration in a few luxury markets",
+            "Large promoter and strategic holdings limit the free float"
+          ],
+          "f": {
+            "ticker": "EIHOTEL"
+          }
+        },
+        "theleela": {
+          "name": "Leela Palaces Hotels & Resorts (formerly Schloss Bangalore)",
+          "listed": true,
+          "role": "Owner and operator of The Leela palaces and hotels, controlled by Brookfield; listed 2 Jun 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "the leela",
+            "leela palaces",
+            "schloss bangalore"
+          ],
+          "strengths": [
+            "Pure luxury portfolio with high room rates in Delhi, Mumbai, Bengaluru, Udaipur and other leisure spots",
+            "IPO proceeds used to repay debt",
+            "Brookfield's backing for acquisitions and management contracts"
+          ],
+          "risks": [
+            "Still more leveraged than older peers",
+            "Brookfield may sell down over time",
+            "Small portfolio: one weak market moves results"
+          ],
+          "f": {
+            "ticker": "THELEELA"
+          }
+        },
+        "eihahotels": {
+          "name": "EIH Associated Hotels",
+          "listed": true,
+          "role": "Separately listed Oberoi-group company that owns a few Oberoi and Trident hotels, run by EIH",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Owns established leisure and city hotels under Oberoi management"
+          ],
+          "risks": [
+            "Small, thinly traded; easily confused with EIH itself",
+            "Growth depends on the parent's decisions"
+          ],
+          "f": {
+            "ticker": "EIHAHOTELS"
+          }
+        },
+        "lemontree": {
+          "name": "Lemon Tree Hotels",
+          "listed": true,
+          "role": "Largest listed midscale chain (Aurika, Lemon Tree Premier, Lemon Tree, Red Fox, Keys), moving its owned hotels into Fleur Hotels to become mainly a brand and management business",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "aurika",
+            "fleur hotels",
+            "red fox hotels"
+          ],
+          "strengths": [
+            "Leading midscale brand with a large managed and franchised pipeline in tier-2/3 cities",
+            "Fleur reorganisation brings Warburg Pincus in (up to ₹960 Cr) and separates owned hotels from the fee business",
+            "Lower GST on rooms up to ₹7,500 suits its price points"
+          ],
+          "risks": [
+            "Fleur scheme still needs NCLT and shareholder approval (applied Oct 2026)",
+            "Midscale rates are sensitive to new supply",
+            "Debt in the owned-hotel business until Fleur raises capital"
+          ],
+          "f": {
+            "ticker": "LEMONTREE"
+          }
+        },
+        "parkhotels": {
+          "name": "Apeejay Surrendra Park Hotels",
+          "listed": true,
+          "role": "Owner-operator of THE Park and Zone by The Park hotels, plus the Flurys bakery chain; listed 12 Feb 2024",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "the park hotels",
+            "flurys"
+          ],
+          "strengths": [
+            "Design-led upscale-boutique brand with owned hotels in key cities",
+            "Flurys adds a growing food-retail business",
+            "IPO money used to repay debt"
+          ],
+          "risks": [
+            "Smaller scale than national chains",
+            "Kolkata and eastern India concentration",
+            "Expansion capex in owned hotels"
+          ],
+          "f": {
+            "ticker": "PARKHOTELS"
+          }
+        },
+        "rohltd": {
+          "name": "Royal Orchid Hotels",
+          "listed": true,
+          "role": "Asset-light midscale chain (Regenta, Royal Orchid) mostly managing and franchising hotels in tier-2/3 cities",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "regenta",
+            "royal orchid hotels"
+          ],
+          "strengths": [
+            "Fee-led model needs little capital",
+            "Early mover in branding small-city hotels"
+          ],
+          "risks": [
+            "Small fees per hotel; owner churn",
+            "Competition from IHCL Ginger, Lemon Tree Keys and global economy brands"
+          ],
+          "f": {
+            "ticker": "ROHLTD"
+          }
+        },
+        "sarovar": {
+          "name": "Sarovar Hotels",
+          "listed": false,
+          "role": "One of India's largest third-party midscale hotel managers (Sarovar Premiere, Sarovar Portico, Hometel), owned by France's Louvre Hotels Group",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large managed portfolio across tier-1 and tier-2 cities"
+          ],
+          "risks": [
+            "Unlisted; parent's strategy set from abroad (Jin Jiang-owned Louvre Hotels)"
+          ],
+          "notes": [
+            "Subsidiary of Louvre Hotels Group (Jin Jiang International)",
+            "No listed market data"
+          ]
+        },
+        "pride": {
+          "name": "Pride Hotels",
+          "listed": false,
+          "role": "Midscale-upscale hotel chain (Pride Plaza, Pride Hotel) planning an IPO",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Established chain in business cities"
+          ],
+          "risks": [
+            "Unlisted; IPO timing uncertain"
+          ],
+          "notes": [
+            "SEBI cleared its IPO in Jan 2026 (press reports); no RHP seen as of Nov 2026",
+            "No listed market data"
+          ]
+        },
+        "prism": {
+          "name": "PRISM (OYO)",
+          "listed": false,
+          "role": "Budget franchise and stay platform - OYO in India, plus Motel 6 and Studio 6 in the US, which now bring more than half of bookings",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Largest budget-hotel franchise network in India",
+            "US economy motels add steadier, higher-rate revenue"
+          ],
+          "risks": [
+            "Unlisted; past losses and owner disputes",
+            "Most revenue now from outside India"
+          ],
+          "notes": [
+            "Formerly Oravel Stays; updated draft IPO papers (UDRHP-I) filed 30 Jun 2026, no RHP yet",
+            "See the OYO IPO deck",
+            "No listed market data"
+          ]
+        },
+        "treebo": {
+          "name": "Treebo Hotels",
+          "listed": false,
+          "role": "Budget hotel franchise chain for business and leisure travellers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Tech-led franchise model with a large mid-market network"
+          ],
+          "risks": [
+            "Unlisted; a planned 2025 tie-up with Accor and InterGlobe was called off"
+          ],
+          "notes": [
+            "Private (VC-backed)",
+            "No listed market data"
+          ]
+        },
+        "fabhotels": {
+          "name": "FabHotels",
+          "listed": false,
+          "role": "Budget franchise chain focused on business travellers in metros",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Standardised budget rooms aimed at corporate travellers"
+          ],
+          "risks": [
+            "Unlisted; small scale versus OYO and Treebo"
+          ],
+          "notes": [
+            "Private (VC-backed)",
+            "No listed market data"
+          ]
+        },
+        "igh": {
+          "name": "InterGlobe Hotels",
+          "listed": false,
+          "role": "Accor's Indian joint venture with InterGlobe Enterprises (IndiGo's promoter group) - ibis, Novotel and Mercure hotels",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Standard-format economy and midscale hotels backed by Accor's distribution"
+          ],
+          "risks": [
+            "Unlisted; IPO only being evaluated"
+          ],
+          "notes": [
+            "CCI cleared a merger with six Accor-linked hotel companies (Aug 2026, press reports)",
+            "Not the airline - InterGlobe Aviation is IndiGo",
+            "No listed market data"
+          ]
+        },
+        "thomascook": {
+          "name": "Thomas Cook (India)",
+          "listed": true,
+          "role": "Largest listed tour operator (Thomas Cook, SOTC), with Sterling Holiday Resorts, DEI destination management and one of India's largest travel-forex businesses",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "sotc",
+            "sterling holiday resorts",
+            "thomas cook india"
+          ],
+          "strengths": [
+            "Spans outbound and domestic holidays, MICE, resorts and forex - several ways to earn on one traveller",
+            "Customer advances fund working capital",
+            "Financial services (forex) revenue grew in Q2 FY27 while travel softened"
+          ],
+          "risks": [
+            "Q2 FY27 total income fell ~5% as outbound travel slowed (company results, Nov 2026)",
+            "West Asia exposure through its Dubai-based destination business",
+            "Not related to the UK Thomas Cook that collapsed in 2019 - news can confuse them"
+          ],
+          "f": {
+            "ticker": "THOMASCOOK"
+          }
+        },
+        "mhril": {
+          "name": "Mahindra Holidays & Resorts India",
+          "listed": true,
+          "role": "Holiday-ownership (timeshare) company - Club Mahindra members prepay for 25 years of resort stays - plus Holiday Club Resorts in Finland",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "club mahindra",
+            "holiday club resorts"
+          ],
+          "strengths": [
+            "Members pay up front, so cash comes before revenue",
+            "Adding resort rooms in domestic drive-to destinations"
+          ],
+          "risks": [
+            "Member additions depend on aggressive selling",
+            "European arm (Holiday Club) is weak",
+            "Accounting defers revenue, so reported profit lags cash"
+          ],
+          "f": {
+            "ticker": "MHRIL"
+          }
+        },
+        "irctc": {
+          "name": "IRCTC",
+          "listed": true,
+          "role": "Indian Railways' tourism and catering arm - tour packages, Bharat Gaurav and luxury trains, and Rail Neer - alongside its online ticketing",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Unique access to rail-based tourism and pilgrim circuits",
+            "Low-capital tourism packages built on railway assets"
+          ],
+          "risks": [
+            "Tourism is a small part of its profit; ticketing dominates",
+            "Fees and terms set by the Railways ministry"
+          ],
+          "f": {
+            "ticker": "IRCTC"
+          }
+        },
+        "cordelia": {
+          "name": "Cordelia Cruises",
+          "listed": false,
+          "role": "India's main domestic ocean-cruise operator (Waterways Leisure Tourism), sailing from Mumbai, Goa, Kochi and Chennai",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "First mover in domestic cruising as ports add cruise terminals"
+          ],
+          "risks": [
+            "Unlisted; small fleet and seasonal demand"
+          ],
+          "notes": [
+            "Private",
+            "No listed market data"
+          ]
+        },
+        "wonderla": {
+          "name": "Wonderla Holidays",
+          "listed": true,
+          "role": "Owner-operator of amusement and water parks in Kochi, Bengaluru, Hyderabad, Bhubaneswar and Chennai, plus a resort in Bengaluru",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Builds its own rides in-house, lowering park capex",
+            "Debt-free expansion into new cities"
+          ],
+          "risks": [
+            "Footfall swings with weather and school calendars",
+            "New parks take seasons to ramp up"
+          ],
+          "f": {
+            "ticker": "WONDERLA"
+          }
+        },
+        "imagicaa": {
+          "name": "Imagicaaworld Entertainment",
+          "listed": true,
+          "role": "Imagica theme, water and snow parks at Khopoli near Mumbai, plus water parks added since the Malpani group took control in 2022",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "imagica",
+            "wet n joy"
+          ],
+          "strengths": [
+            "Turnaround under new owners after a debt resolution",
+            "Adding parks in new cities with lower capital"
+          ],
+          "risks": [
+            "Past financial distress",
+            "Single large destination still dominates revenue"
+          ],
+          "f": {
+            "ticker": "IMAGICAA"
+          }
+        },
+        "indigo": {
+          "name": "InterGlobe Aviation (IndiGo)",
+          "listed": true,
+          "role": "India's largest airline - 65.4% of domestic passengers in Sep 2026 (DGCA) - whose capacity sets fares and arrivals in most hotel markets",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "indigo"
+          ],
+          "strengths": [
+            "Dominant share and the lowest unit costs in Indian aviation",
+            "Large aircraft order book and growing international network"
+          ],
+          "risks": [
+            "Dec 2025 mass cancellations under new crew-rest rules led to regulator action",
+            "Engine-related groundings, jet fuel and the rupee"
+          ],
+          "f": {
+            "ticker": "INDIGO"
+          }
+        },
+        "airIndia": {
+          "name": "Air India",
+          "listed": false,
+          "role": "Tata Sons' airline group (Air India and Air India Express), with Singapore Airlines holding about 25% - the second pole of India's airline duopoly (26.8% domestic share, Sep 2026)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Largest international network from India; large fleet renewal under way"
+          ],
+          "risks": [
+            "Unlisted; the Jun 2025 Ahmedabad crash and integration of Vistara and AIX Connect"
+          ],
+          "notes": [
+            "Owned by Tata Sons (Singapore Airlines ~25%)",
+            "No listed market data"
+          ]
+        },
+        "akasa": {
+          "name": "Akasa Air",
+          "listed": false,
+          "role": "Third-largest domestic airline, low-cost, backed by the Jhunjhunwala family",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Young Boeing 737 MAX fleet and steady share gains"
+          ],
+          "risks": [
+            "Unlisted; aircraft delivery delays limit growth"
+          ],
+          "notes": [
+            "Private",
+            "No listed market data"
+          ]
+        },
+        "spicejet": {
+          "name": "SpiceJet",
+          "listed": true,
+          "role": "Distressed low-cost airline with a small and shrinking share of domestic traffic",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Fresh equity raised in 2024-25 to restart grounded aircraft"
+          ],
+          "risks": [
+            "Lessor insolvency petitions before the NCLT",
+            "Heavy flight cancellations and a small operating fleet in 2026",
+            "Repeated losses and unpaid dues"
+          ],
+          "f": {
+            "ticker": "SPICEJET"
+          }
+        },
+        "gmrairport": {
+          "name": "GMR Airports",
+          "listed": true,
+          "role": "Operator of Delhi (India's busiest airport), Hyderabad and Goa (Mopa) airports, plus overseas airport stakes and city-side land",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "gmr airports infrastructure"
+          ],
+          "strengths": [
+            "Delhi and Hyderabad are long, high-traffic concessions",
+            "Non-aero income and city-side real estate add upside",
+            "Aéroports de Paris is a strategic shareholder"
+          ],
+          "risks": [
+            "Heavy debt from terminal expansions",
+            "Returns depend on AERA tariff orders",
+            "Traffic slowed in FY26 as airlines lacked aircraft"
+          ],
+          "f": {
+            "ticker": "GMRAIRPORT"
+          }
+        },
+        "adanient": {
+          "name": "Adani Enterprises",
+          "listed": true,
+          "role": "Holds Adani Airport Holdings - Mumbai, Navi Mumbai (opened Dec 2025), Ahmedabad, Lucknow, Jaipur, Guwahati, Thiruvananthapuram and Mangaluru airports - inside a diversified group incubator",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "adani airport holdings",
+            "adani airports"
+          ],
+          "strengths": [
+            "India's largest private airport network",
+            "Navi Mumbai adds Mumbai's second airport"
+          ],
+          "risks": [
+            "Airports are one of many businesses; listing of the airport arm only talked about",
+            "Heavy debt across the group's projects; governance questions"
+          ],
+          "f": {
+            "ticker": "ADANIENT"
+          }
+        },
+        "bial": {
+          "name": "Bangalore International Airport",
+          "listed": false,
+          "role": "Operator of Bengaluru's Kempegowda airport, majority-owned by Fairfax India (Toronto-listed)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "One of India's fastest-growing large airports with a second terminal"
+          ],
+          "risks": [
+            "Unlisted in India; exposure only through Fairfax India"
+          ],
+          "notes": [
+            "Majority-owned by Fairfax India Holdings",
+            "No listed market data"
+          ]
+        },
+        "nial": {
+          "name": "Noida International Airport",
+          "listed": false,
+          "role": "Delhi's second airport at Jewar, built by Zurich Airport",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large greenfield capacity for the Delhi region"
+          ],
+          "risks": [
+            "Unlisted; early-stage traffic ramp-up"
+          ],
+          "notes": [
+            "Subsidiary of Zurich Airport",
+            "Opened in 2026; sources differ on the commercial start date",
+            "No listed market data"
+          ]
+        },
+        "travelfood": {
+          "name": "Travel Food Services",
+          "listed": true,
+          "role": "India's largest airport food and lounge concessionaire (with an SSP joint venture); listed 14 Jul 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Long concessions at major Indian airports",
+            "Runs its own lounges directly after ending its Dreamfolks arrangement (Sep 2025)"
+          ],
+          "risks": [
+            "Concentration in a few airport groups and their re-tenders",
+            "Concession fees take a large share of sales"
+          ],
+          "f": {
+            "ticker": "TRAVELFOOD"
+          }
+        },
+        "dreamfolks": {
+          "name": "Dreamfolks Services",
+          "listed": true,
+          "role": "Airport-service aggregator that sold lounge access through card issuers; stopped its domestic airport lounge service from 16 Sep 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Still runs global lounge and other travel services and is signing new partnerships"
+          ],
+          "risks": [
+            "Lost its core domestic lounge business after operators and banks ended contracts (2025)",
+            "Turned loss-making as volumes fell"
+          ],
+          "f": {
+            "ticker": "DREAMFOLKS"
+          }
+        },
+        "tbotek": {
+          "name": "TBO Tek",
+          "listed": true,
+          "role": "Global B2B travel marketplace connecting travel agents to hotels and airlines; hotels are its main profit source",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "tbo",
+            "travel boutique online"
+          ],
+          "strengths": [
+            "Serves travel agents in many countries - growth beyond India",
+            "Classic Vacations (US luxury, completed 2 Oct 2025) adds high-value hotel demand",
+            "Asset-light with customer money funding working capital"
+          ],
+          "risks": [
+            "Acquisition integration and higher leverage",
+            "Middle East exposure in a conflict year",
+            "Hotel chains and airlines pushing direct booking"
+          ],
+          "f": {
+            "ticker": "TBOTEK"
+          }
+        },
+        "rategain": {
+          "name": "RateGain Travel Technologies",
+          "listed": true,
+          "role": "Hotel and airline software: channel distribution, rate intelligence and marketing that help hotels sell rooms across every booking channel",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Recurring SaaS revenue from global hotel chains",
+            "Grows with travel volumes without inventory risk"
+          ],
+          "risks": [
+            "Most revenue is from the US and Europe, not India",
+            "Slower growth in its distribution business"
+          ],
+          "f": {
+            "ticker": "RATEGAIN"
+          }
+        },
+        "ixigo": {
+          "name": "Le Travenues Technology (ixigo)",
+          "listed": true,
+          "role": "Mass-market travel app selling trains, flights, buses and hotels - a demand channel for rooms and seats",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "ixigo",
+            "abhibus",
+            "confirmtkt"
+          ],
+          "strengths": [
+            "Large tier-2 and Gen-Z user base built on train bookings",
+            "Growing hotels business"
+          ],
+          "risks": [
+            "Thin take rates on flights",
+            "Depends on IRCTC partner terms for trains"
+          ],
+          "f": {
+            "ticker": "IXIGO"
+          }
+        },
+        "yatra": {
+          "name": "Yatra Online",
+          "listed": true,
+          "role": "Corporate-travel focused online agent selling flights, hotels and MICE to companies",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Sticky corporate contracts feed business-hotel demand"
+          ],
+          "risks": [
+            "Small scale; corporate travel budgets are cyclical"
+          ],
+          "f": {
+            "ticker": "YATRA"
+          }
+        },
+        "easemytrip": {
+          "name": "Easy Trip Planners (EaseMyTrip)",
+          "listed": true,
+          "role": "Flight-led online travel agent expanding into hotels and holidays",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "easemytrip"
+          ],
+          "strengths": [
+            "Low-cost model with a debt-light balance sheet"
+          ],
+          "risks": [
+            "Heavy dependence on air-ticket volumes",
+            "Governance questions and promoter stake sales in 2025"
+          ],
+          "f": {
+            "ticker": "EASEMYTRIP"
+          }
+        },
+        "makemytrip": {
+          "name": "MakeMyTrip",
+          "listed": false,
+          "role": "India's largest online seller of hotels and holidays (MakeMyTrip, Goibibo) - the biggest single demand channel for Indian hotels; listed on Nasdaq, not in India",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Leads the high-commission hotel and holiday end of online travel"
+          ],
+          "risks": [
+            "Not listed in India",
+            "Hotel chains pushing guests to book direct"
+          ],
+          "notes": [
+            "Listed on Nasdaq (MMYT)",
+            "No NSE market data"
+          ]
+        },
+        "bls": {
+          "name": "BLS International Services",
+          "listed": true,
+          "role": "Visa, passport and consular outsourcing for 40+ governments plus Indian citizen services",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "bls international"
+          ],
+          "strengths": [
+            "Asset-light, cash-generative contracts tied to outbound travel volumes",
+            "Delhi High Court quashed the MEA's tender debarment (18 Dec 2025)"
+          ],
+          "risks": [
+            "MEA may issue a fresh show-cause notice; contract wins are politically exposed",
+            "Visa-policy changes in destination countries",
+            "Not the same company as BLS E-Services"
+          ],
+          "f": {
+            "ticker": "BLS"
+          }
+        },
+        "vfs": {
+          "name": "VFS Global",
+          "listed": false,
+          "role": "World's largest visa-outsourcing company and BLS's main rival",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Scale across most major visa-issuing governments"
+          ],
+          "risks": [
+            "Unlisted; private-equity owned with a possible IPO"
+          ],
+          "notes": [
+            "Majority-owned by Blackstone; Temasek reported to have bought a minority stake (2024)",
+            "No listed market data"
+          ]
+        },
+        "chalet": {
+          "name": "Chalet Hotels",
+          "listed": true,
+          "role": "Owner of Marriott-branded hotels in Mumbai, Bengaluru, Hyderabad and Pune plus office buildings; K Raheja Corp group; launched its own luxury brand Athiva in 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "chalet hotels"
+          ],
+          "strengths": [
+            "Large upscale hotels in supply-constrained city markets",
+            "Office rentals add steadier income",
+            "Own brand (Athiva) adds a fee option"
+          ],
+          "risks": [
+            "Mumbai concentration",
+            "Construction capex and leverage",
+            "Dependence on Marriott for distribution"
+          ],
+          "f": {
+            "ticker": "CHALET"
+          }
+        },
+        "ventive": {
+          "name": "Ventive Hospitality",
+          "listed": true,
+          "role": "Blackstone and Panchshil-backed owner of luxury hotels in Pune (JW Marriott, Ritz-Carlton) and resorts in the Maldives, plus offices; listed 30 Dec 2024",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "ventive"
+          ],
+          "strengths": [
+            "Luxury assets with high room rates",
+            "Offices and Maldives resorts diversify income"
+          ],
+          "risks": [
+            "Maldives exposure to currency and tourism swings",
+            "Blackstone may sell down",
+            "Pune concentration"
+          ],
+          "f": {
+            "ticker": "VENTIVE"
+          }
+        },
+        "samhi": {
+          "name": "SAMHI Hotels",
+          "listed": true,
+          "role": "Buys, rebrands and turns around upscale and midscale business hotels run under Marriott, Hyatt and IHG brands; listed 22 Sep 2023",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "samhi"
+          ],
+          "strengths": [
+            "Turnaround model adds RevPAR on acquired hotels",
+            "Steady deleveraging since the IPO"
+          ],
+          "risks": [
+            "Still carries meaningful debt",
+            "Business-hotel exposure to corporate travel cycles"
+          ],
+          "f": {
+            "ticker": "SAMHI"
+          }
+        },
+        "juniper": {
+          "name": "Juniper Hotels",
+          "listed": true,
+          "role": "India's largest owner of Hyatt-branded hotels (Grand Hyatt Mumbai, Andaz Delhi and others), co-owned by the Saraf group and a Hyatt affiliate; listed 28 Feb 2024",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "juniper hotels"
+          ],
+          "strengths": [
+            "Large owned luxury and upscale hotels plus serviced apartments",
+            "Hyatt affiliate as co-promoter"
+          ],
+          "risks": [
+            "Leverage from building large hotels",
+            "Not related to Juniper Green Energy or Juniper Networks - news can confuse them"
+          ],
+          "f": {
+            "ticker": "JUNIPER"
+          }
+        },
+        "brighotel": {
+          "name": "Brigade Hotel Ventures",
+          "listed": true,
+          "role": "Brigade Group's hotel-owning arm - Marriott, Accor and IHG-branded hotels in Bengaluru, Chennai, Kochi and other south Indian cities; listed 31 Jul 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "brigade hotels"
+          ],
+          "strengths": [
+            "Hotels inside Brigade's mixed-use developments",
+            "IPO money cut debt"
+          ],
+          "risks": [
+            "South India concentration",
+            "Dependence on the parent developer's projects"
+          ],
+          "f": {
+            "ticker": "BRIGHOTEL"
+          }
+        },
+        "fleur": {
+          "name": "Fleur Hotels",
+          "listed": false,
+          "role": "Will hold Lemon Tree's owned hotels after the Jan 2026 scheme, with Warburg Pincus as investor; listing targeted 2027",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Owned portfolio of a leading midscale chain with fresh equity"
+          ],
+          "risks": [
+            "Unlisted; scheme awaits NCLT and shareholder approval"
+          ],
+          "notes": [
+            "Board approval 9 Jan 2026; CCI approval Apr 2026; NCLT application Oct 2026 (company filing)",
+            "No listed market data"
+          ]
         }
       }
     },
