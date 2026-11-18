@@ -1,9 +1,12 @@
 // The Key stats ratios worked out from the company table itself, so the pop-up and the company page
 // show the same figures on the same date: P/B, the latest reported year's revenue and profit growth
 // and net margin, and the 1Y price return against the Nifty 50's over the same year (the index's
-// 1Y return to the snapshot date comes from the price store, ./query.ts withNifty). Pure: no
-// server-only imports.
+// 1Y return to the snapshot date comes from the price store, ./query.ts withNifty). A lender's or
+// an insurer's net margin and ROCE mean nothing (./kinds.ts), so they are marked not meaningful;
+// a lender gets its own ratios instead (lenderRatios). Pure: no server-only imports.
 import type { SupplierFinancials } from "@/lib/sector-content";
+import { companyKind } from "./kinds";
+import type { LenderFigures } from "./lender";
 import { FISCAL_YEARS } from "./rows";
 
 export type KeyRatios = {
@@ -26,6 +29,26 @@ export type KeyRatios = {
   nifty1y: number | null;
   /** The stock's 1Y price return minus the Nifty 50's, percentage points. */
   vsNifty: number | null;
+  /** Ratios that mean nothing for this kind of company (net margin and ROCE for lenders and insurers). */
+  notMeaningful: NotMeaningful[];
+};
+
+export type NotMeaningful = "netMargin" | "roce";
+
+/** A lender's own ratios, all from its standalone page (./lender.ts). */
+export type LenderRatios = {
+  /** Return on assets: the year's net profit over the average of the two year-end total assets, %. */
+  roa: number | null;
+  /** Gross and net NPA, % of advances, for `quarter`. */
+  gnpa: number | null;
+  nnpa: number | null;
+  /** Financing margin of the latest full year, %. */
+  finMargin: number | null;
+  /** Deposits and total assets at the latest year-end over the one before, %. */
+  depositGrowth: number | null;
+  bsGrowth: number | null;
+  /** The quarter the NPAs are from ("Sep 2026"). */
+  quarter: string | null;
 };
 
 export type ProfitNote = "from a loss" | "to a loss" | "loss narrowed" | "loss widened";
@@ -42,7 +65,35 @@ const rs = (s?: string | null) => {
   return Number.isFinite(n) && n > 0 ? n : null;
 };
 
+const growth = (now: number | null | undefined, prev: number | null | undefined) => (fin(now) && fin(prev) && prev > 0 ? (now / prev - 1) * 100 : null);
+const yearOf = (label: string | null) => /\b(\d{4})\b/.exec(label ?? "")?.[1] ?? null;
+
+/** A lender's ratios from its stored figures. ROA only when the profit and the balance sheet are for the same year. */
+export function lenderRatiosFrom(l: LenderFigures): LenderRatios {
+  const [assets, assetsPrev] = l.totalAssets;
+  const year = yearOf(l.bsYear);
+  const aligned = year != null && year === yearOf(l.finMarginYear);
+  // Both year-ends must be there and positive: half of one figure is not an average.
+  const avg = fin(assets) && fin(assetsPrev) && assets > 0 && assetsPrev > 0 ? (assets + assetsPrev) / 2 : null;
+  return {
+    roa: aligned && fin(l.netProfit) && avg != null ? (l.netProfit / avg) * 100 : null,
+    gnpa: l.gnpa,
+    nnpa: l.nnpa,
+    finMargin: l.finMargin,
+    depositGrowth: growth(l.deposits?.[0], l.deposits?.[1]),
+    bsGrowth: growth(assets, assetsPrev),
+    quarter: l.quarter,
+  };
+}
+
+/** The lender block of a row (worked out when the table is read, ./rows.ts); null for anyone but a lender. */
+export function lenderRatios(f: SupplierFinancials): LenderRatios | null {
+  return (f.kind ?? companyKind(f.ticker)) === "lender" ? (f.lender ?? null) : null;
+}
+
 export function keyRatios(f: SupplierFinancials | undefined): KeyRatios {
+  const kind = f ? (f.kind ?? companyKind(f.ticker)) : "operating";
+  const notMeaningful: NotMeaningful[] = kind === "operating" ? [] : ["netMargin", "roce"];
   const price = rs(f?.price);
   const book = f?.kpi?.[1];
   const rev = f?.rev ?? [];
@@ -79,9 +130,10 @@ export function keyRatios(f: SupplierFinancials | undefined): KeyRatios {
     revGrowth: !caution && fin(r) && fin(r0) && r0 > 0 ? (r / r0 - 1) * 100 : null,
     profitGrowth: !caution && both && p0 > 0 && p > 0 ? (p / p0 - 1) * 100 : null,
     profitNote: caution ? null : profitNote,
-    netMargin: !caution && fin(r) && r > 0 && fin(p) ? (p / r) * 100 : null,
+    netMargin: !notMeaningful.length && !caution && fin(r) && r > 0 && fin(p) ? (p / r) * 100 : null,
     nifty1y: fin(nifty) ? nifty : null,
     vsNifty: fin(ret1y) && fin(nifty) ? ret1y - nifty : null,
+    notMeaningful,
   };
 }
 

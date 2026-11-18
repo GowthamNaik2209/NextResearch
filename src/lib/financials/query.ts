@@ -5,6 +5,8 @@
 import type { PrismaClient } from "@/generated/prisma/client";
 import type { SupplierFinancials } from "@/lib/sector-content";
 import { FISCAL_YEARS, rowToFinancials, type CompanyFinRow } from "./rows";
+import { readInsurerRows, readLenderFigures } from "./blocks";
+import { companyKind } from "./kinds";
 import { publishedCutoff } from "./trading-day";
 import { withTrend } from "./trend";
 import { withNifty } from "./key-ratios";
@@ -73,6 +75,16 @@ export async function readCompanyTableAt(prisma: PrismaClient, cutoff: Date | nu
     }),
     latestKpis(prisma, cutoff),
   ]);
+  // The lender and insurer blocks (./blocks.ts): read on their own, so a database without their
+  // columns or table yet still gives the rest of the table.
+  const ofKind = (kind: "lender" | "insurer") => rows.filter((r) => companyKind(r.ticker) === kind);
+  const [lenders, insurers] = await Promise.all([
+    readLenderFigures(prisma, ofKind("lender").flatMap((r) => {
+      const k = kpis.get(r.id);
+      return k ? [{ companyId: r.id, asOf: k.asOf }] : [];
+    })),
+    readInsurerRows(prisma, ofKind("insurer").map((r) => r.id)),
+  ]);
   // Each company's Trend percentile is ranked over this same table, so it moves with the published date.
   const table = withTrend(Object.fromEntries(
     rows.flatMap(({ id, ...r }) => {
@@ -80,7 +92,7 @@ export async function readCompanyTableAt(prisma: PrismaClient, cutoff: Date | nu
       // Held to a published date, a company whose first snapshot is newer (an IPO a run is adding)
       // joins the table when that run publishes, with everyone else.
       if (!k && r._count.kpis > 0) return [];
-      return [[r.ticker, rowToFinancials({ ...r, kpis: k ? [k] : [] })]];
+      return [[r.ticker, rowToFinancials({ ...r, kpis: k ? [k] : [] }, { lender: lenders.get(id), insurer: insurers.get(id) })]];
     }),
   ));
   // The Nifty 50's 1Y return to each company's snapshot day (nearly all share one), for "1Y vs Nifty".

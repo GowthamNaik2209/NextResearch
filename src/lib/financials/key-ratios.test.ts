@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { keyRatios, oneYearTo, withNifty } from "./key-ratios";
+import { keyRatios, lenderRatios, lenderRatiosFrom, oneYearTo, withNifty } from "./key-ratios";
 import { ratioTiles } from "@/components/stock/ratio-tiles";
 import type { SupplierFinancials } from "@/lib/sector-content";
 
@@ -41,7 +41,7 @@ test("a note warning about the latest year leaves growth and margin out; a Jan-D
 
 test("missing figures give nulls, not zeros", () => {
   const k = keyRatios({ ticker: "A", price: "Rs 300", kpi: [30, -4, 1, 15, 12, 1], cagr: [25, null, null] });
-  assert.deepEqual(k, { pb: null, fy: null, caution: null, revGrowth: null, profitGrowth: null, profitNote: null, netMargin: null, nifty1y: null, vsNifty: null });
+  assert.deepEqual(k, { pb: null, fy: null, caution: null, revGrowth: null, profitGrowth: null, profitNote: null, netMargin: null, nifty1y: null, vsNifty: null, notMeaningful: [] });
 });
 
 test("the Nifty's 1Y return runs from the close a year before to the close on the day", () => {
@@ -78,4 +78,48 @@ test("tiles: always five, REIT profit figures n/m, 1Y vs Nifty in whole points",
   assert.equal(t[4].sub, "Nifty −4.1%");
   assert.deepEqual(ratioTiles(f, true).map((x) => x.value), ["3.0x", "+25.0%", "n/m", "n/m", "0 pts"]);
   assert.deepEqual(ratioTiles({ ticker: "B" }, false).map((x) => x.value), ["—", "—", "—", "—", "—"]);
+});
+
+test("lender ROA is standalone net profit over average total assets; growths year on year", () => {
+  const l = lenderRatiosFrom({
+    gnpa: 1.2, nnpa: 0.3, finMargin: 12, finMarginYear: "Mar 2026", netProfit: 100,
+    totalAssets: [1100, 900], deposits: [880, 800], bsYear: "Mar 2026", quarter: "Sep 2026",
+  });
+  close(l.roa!, 10);
+  close(l.depositGrowth!, 10);
+  close(l.bsGrowth!, (1100 / 900 - 1) * 100);
+  assert.deepEqual([l.gnpa, l.nnpa, l.finMargin, l.quarter], [1.2, 0.3, 12, "Sep 2026"]);
+});
+
+test("lender ROA is null when the balance-sheet year and the profit year differ, or a figure is missing", () => {
+  const base = { gnpa: null, nnpa: null, finMargin: null, netProfit: 100, totalAssets: [1100, 900] as [number, number], deposits: null, quarter: null };
+  assert.equal(lenderRatiosFrom({ ...base, finMarginYear: "Mar 2026", bsYear: "Mar 2025" }).roa, null);
+  assert.equal(lenderRatiosFrom({ ...base, finMarginYear: null, bsYear: "Mar 2026" }).roa, null);
+  assert.equal(lenderRatiosFrom({ ...base, finMarginYear: "Mar 2026", bsYear: "Mar 2026", netProfit: null }).roa, null);
+  assert.equal(lenderRatiosFrom({ ...base, finMarginYear: "Mar 2026", bsYear: "Mar 2026", totalAssets: [1100, null] }).roa, null);
+  // An NBFC has no deposits; a previous figure of zero gives no growth rather than infinity.
+  const nbfc = lenderRatiosFrom({ ...base, finMarginYear: "Mar 2026", bsYear: "Mar 2026", totalAssets: [1100, 0] });
+  assert.deepEqual([nbfc.depositGrowth, nbfc.bsGrowth, nbfc.roa], [null, null, null]);
+});
+
+test("lenderRatios reads the block for lenders only", () => {
+  const block = lenderRatiosFrom({ gnpa: 1, nnpa: 0.2, finMargin: 3, finMarginYear: "Mar 2026", netProfit: 10, totalAssets: [110, 90], deposits: null, bsYear: "Mar 2026", quarter: "Sep 2026" });
+  assert.equal(lenderRatios({ ticker: "HDFCBANK", kind: "lender", lender: block }), block);
+  assert.equal(lenderRatios({ ticker: "HDFCBANK", kind: "lender", lender: null }), null);
+  assert.equal(lenderRatios({ ticker: "TCS", kind: "operating", lender: block }), null);
+});
+
+test("a bank's or an insurer's net margin and ROCE are not meaningful; an operating company is unchanged", () => {
+  const figs = { price: "Rs 300", kpi: [30, 100, 1, 15, 12, 1], rev: [80, 100], np: [8, 10] };
+  const bank = keyRatios({ ticker: "HDFCBANK", kind: "lender", ...figs });
+  assert.equal(bank.netMargin, null);
+  assert.deepEqual(bank.notMeaningful, ["netMargin", "roce"]);
+  close(bank.revGrowth!, 25);
+  close(bank.pb!, 3);
+  assert.deepEqual(keyRatios({ ticker: "HDFCLIFE", kind: "insurer", ...figs }).notMeaningful, ["netMargin", "roce"]);
+  // Without a kind on the row, the ticker's kind in code decides.
+  assert.equal(keyRatios({ ticker: "SBIN", ...figs }).netMargin, null);
+  const op = keyRatios({ ticker: "TCS", kind: "operating", ...figs });
+  close(op.netMargin!, 10);
+  assert.deepEqual(op.notMeaningful, []);
 });

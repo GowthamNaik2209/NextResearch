@@ -4,6 +4,9 @@
 // lookups (getSector, listSectors, findSupplierByTicker...) live in ./index.ts, which re-exports
 // all of this, so server code can keep importing "@/lib/sector-content".
 import { syntheticTicker } from "@/lib/slugify";
+import type { CompanyKind } from "@/lib/financials/kinds";
+import type { LenderRatios } from "@/lib/financials/key-ratios";
+import type { InsurerFigures } from "@/lib/financials/insurer";
 
 export type SectorCategory = "sector" | "policy" | "index";
 
@@ -130,6 +133,12 @@ export type SupplierFinancials = {
   // Latest-year profit/revenue dominated by a one-off (e.g. SPARC's FY26 priority-review
   // voucher sale): kept out of the landing page's rule-based idea screens.
   screenOut?: boolean;
+  // Lender, insurer or operating company (financials/kinds.ts), set on every row of the company table.
+  kind?: CompanyKind;
+  // A lender's own ratios (financials/key-ratios.ts lenderRatiosFrom): only on lenders, null when none
+  // are stored yet. An insurer's hand-kept figures (financials/insurer.ts): only on insurers, likewise.
+  lender?: LenderRatios | null;
+  insurer?: InsurerFigures | null;
 };
 
 export type SectorSupplier = {
