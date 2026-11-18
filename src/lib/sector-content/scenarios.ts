@@ -17,6 +17,9 @@ import { HOSPITALS_SCENARIOS } from "./sectors/hospitals.extras";
 import { CAPMARKETS_SCENARIOS } from "./sectors/capmarkets.extras";
 import { TRANSMISSION_SCENARIOS } from "./sectors/transmission.extras";
 import { CONSUMERINTERNET_SCENARIOS } from "./sectors/consumerinternet.extras";
+import { BANKS_SCENARIOS } from "./sectors/banks.extras";
+import { INSURANCE_SCENARIOS } from "./sectors/insurance.extras";
+import { HOTELS_SCENARIOS } from "./sectors/hotels.extras";
 import { NIFTY50_SCENARIOS, NIFTY50_SCENARIO_SECTIONS } from "./indices/nifty50.extras";
 
 export type Severity = 1 | 2 | 3; // 3 = directly hit / directly helped
@@ -618,6 +621,9 @@ export const SCENARIOS: Record<string, Scenario[]> = {
   capmarkets: CAPMARKETS_SCENARIOS,
   transmission: TRANSMISSION_SCENARIOS,
   consumerinternet: CONSUMERINTERNET_SCENARIOS,
+  banks: BANKS_SCENARIOS,
+  insurance: INSURANCE_SCENARIOS,
+  hotels: HOTELS_SCENARIOS,
   semicon2: SEMICON2_SCENARIOS,
   rareearth: RAREEARTH_SCENARIOS,
   defenceproc: DEFENCEPROC_SCENARIOS,

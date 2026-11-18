@@ -1,0 +1,55 @@
+// insurance: zones, suppliers, camera views and the 3D build hook for this sector. Scenarios and
+// the reading list live in ./insurance.extras.ts. Type-checked by inference only (SectorDef in
+// ../core.ts is the shape it follows); npm run validate:content guards the zone/company graph.
+import { INSURANCE_ANCHORS as A, INSURANCE_VIEWS, buildInsurance } from "../models/insurance";
+
+const insurance = {
+ id: "insurance", icon: "IN", name: "Insurance",
+ muted: true,
+ tagline: "Life, general and health insurers, the reinsurers behind them, and the banks, brokers and TPAs that sell policies and settle claims - India's risk-pooling chain",
+ headerTitle: "INSURANCE",
+ headerSub: "India's insurance chain from the bank branch and the app where a policy is sold, through the insurers that price and hold the risk, to the reinsurers, claims administrators, owners and regulator behind them",
+ whyNow: [] as string[],
+ thesisSummary: [] as string[],
+ featuredSignals: [] as string[],
+ dataStatus: "demo",
+ integratorZoneId: "life_bank",
+ integratorHeading: "Life insurers",
+ integratorBlurb: "Life insurers turn premiums into long-term promises - protection, savings and annuities - and earn the value of new business (VNB) on each year's sales. The bank-promoted private life insurers are where most listed value sits: they buy distribution from their parent banks, hold the policyholders' money for decades and report their worth as embedded value, so their VNB margins set the pace for the chain.",
+ layerNames: ["Distribution","Insurers","Claims & Reinsurance","Capital & Regulation"],
+ shellMaxOpacity: 1, exoBaseOpacity: 0.55,
+ defaultView: "overview",
+ views: INSURANCE_VIEWS,
+ domains: [
+ {id:"life", title:"Life insurance", shortTitle:"Life", description:"Protection, savings (par, non-par, ULIP) and annuity policies - LIC plus private, mostly bank-promoted, life insurers valued on VNB and embedded value.", color:"#2E86AB", relatedDomains:["distribution","capital_regulation"]},
+ {id:"nonlife", title:"General & health insurance", shortTitle:"Non-life", description:"Motor, health, fire, crop and commercial covers written by multi-line general insurers and standalone health insurers, judged on combined ratio.", color:"#D96C2B", relatedDomains:["claims_reinsurance","distribution"]},
+ {id:"distribution", title:"Distribution", shortTitle:"Distribution", description:"Bancassurance partners, agents, brokers and online marketplaces that sell policies and earn commission - the most contested part of the chain.", color:"#C99A2E", relatedDomains:["life","nonlife"]},
+ {id:"claims_reinsurance", title:"Claims & reinsurance", shortTitle:"Claims", description:"Third-party administrators that process health claims and the reinsurers that take a share of every large risk.", color:"#1E9E76", relatedDomains:["nonlife"]},
+ {id:"capital_regulation", title:"Capital & regulation", shortTitle:"Capital", description:"Holding companies and promoters that fund insurers' solvency, and the regulator and public rails (IRDAI, Bima Sugam, NHCX) that set the rules.", color:"#7A5CC7", relatedDomains:["life","nonlife"]},
+ ],
+ zones: [
+ {id:"bancassurance", color:"#C99A2E", label:"Bank partners (bancassurance)", layer:0, pos:A.bancassurance.pos, side:A.bancassurance.side, desc:"Banks that sell their own group's life, general and health policies through branches and apps, and earn commission and dividends from the insurer.",
+  domainId:"distribution", displayOrder:1, dataStatus:"demo", suppliers:[]},
+ {id:"digital_brokers", color:"#C99A2E", label:"Online marketplaces & brokers", layer:0, pos:A.digital_brokers.pos, side:A.digital_brokers.side, desc:"Online insurance marketplaces, point-of-sale platforms and brokers that compare and sell policies from many insurers for a commission.",
+  domainId:"distribution", displayOrder:2, dataStatus:"demo", suppliers:[]},
+ {id:"life_bank", color:"#2E86AB", label:"Bank-promoted life insurers", layer:1, pos:A.life_bank.pos, side:A.life_bank.side, desc:"Private life insurers owned by or tied to a large bank, which sell mostly through that bank's branches and report VNB and embedded value.",
+  domainId:"life", displayOrder:3, dataStatus:"demo", suppliers:[]},
+ {id:"life_lic", color:"#2E86AB", label:"LIC and group-owned life insurers", layer:1, pos:A.life_lic.pos, side:A.life_lic.side, desc:"The state-owned market leader and the life insurers owned by large business groups, which rely more on agents than on a single bank.",
+  domainId:"life", displayOrder:4, dataStatus:"demo", suppliers:[]},
+ {id:"general", color:"#D96C2B", label:"Multi-line general insurers", layer:1, pos:A.general.pos, side:A.general.side, desc:"Insurers writing motor, health, fire, engineering, marine and crop covers for households and companies, judged on combined ratio and float income.",
+  domainId:"nonlife", displayOrder:5, dataStatus:"demo", suppliers:[]},
+ {id:"health", color:"#D96C2B", label:"Standalone health insurers", layer:1, pos:A.health.pos, side:A.health.side, desc:"Insurers licensed only for health, personal accident and travel cover, selling mostly retail family policies through agents and online.",
+  domainId:"nonlife", displayOrder:6, dataStatus:"demo", suppliers:[]},
+ {id:"reinsurance", color:"#1E9E76", label:"Reinsurers", layer:2, pos:A.reinsurance.pos, side:A.reinsurance.side, desc:"Companies that insure the insurers - taking a share of large property, crop, motor and life risks in return for a share of premium.",
+  domainId:"claims_reinsurance", displayOrder:7, dataStatus:"demo", suppliers:[]},
+ {id:"tpa_claims", color:"#1E9E76", label:"TPAs & claims rails", layer:2, pos:A.tpa_claims.pos, side:A.tpa_claims.side, desc:"Third-party administrators and claims networks that process cashless hospital claims for insurers and employers.",
+  domainId:"claims_reinsurance", displayOrder:8, dataStatus:"demo", suppliers:[]},
+ {id:"holdcos", color:"#7A5CC7", label:"Insurance holding companies & promoters", layer:3, pos:A.holdcos.pos, side:A.holdcos.side, desc:"Listed groups whose value includes large unlisted insurers - the way to own Bajaj, Aditya Birla, Care Health and Jio's insurance ventures.",
+  domainId:"capital_regulation", displayOrder:9, dataStatus:"demo", suppliers:[]},
+ {id:"regulator", color:"#7A5CC7", label:"Regulator & public rails", layer:3, pos:A.regulator.pos, side:A.regulator.side, desc:"The insurance regulator and the shared public platforms that set rules for products, capital, commissions and claims.",
+  domainId:"capital_regulation", displayOrder:10, dataStatus:"demo", suppliers:[]},
+ ],
+ suppliers: {},
+ build: function(ctx: Parameters<typeof buildInsurance>[0]){ return buildInsurance(ctx, this); },
+};
+export default insurance;

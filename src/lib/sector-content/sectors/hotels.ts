@@ -1,0 +1,57 @@
+// hotels: zones, suppliers, camera views and the 3D build hook for this sector. Scenarios and
+// the reading list live in ./hotels.extras.ts. Type-checked by inference only (SectorDef in
+// ../core.ts is the shape it follows); npm run validate:content guards the zone/company graph.
+import { HOTELS_ANCHORS as A, HOTELS_VIEWS, buildHotels } from "../models/hotels";
+
+const hotels = {
+ id: "hotels", icon: "HT", name: "Hotels & Travel",
+ muted: true,
+ tagline: "Hotel chains, asset owners, airlines, airports, tour operators and the B2B and visa networks that move India's travellers",
+ headerTitle: "HOTELS & TRAVEL",
+ headerSub: "India's travel chain as one trip - from the hotel room and the holiday, back through the flight and the airport, to the wholesalers, visa desks and capital that sit behind every booking",
+ whyNow: [] as string[],
+ thesisSummary: [] as string[],
+ featuredSignals: [] as string[],
+ dataStatus: "demo",
+ integratorZoneId: "luxury_chains",
+ integratorHeading: "Hotel chains",
+ integratorBlurb: "The big hotel brands (Taj, ITC, Oberoi, Leela) set room rates for the market, run most of the branded pipeline and increasingly earn fees on hotels other people own - so their RevPAR and signings set the pace for the whole chain.",
+ layerNames: ["Hotels & Stays","Leisure & Holidays","Getting There","Booking & Capital"],
+ shellMaxOpacity: 1, exoBaseOpacity: 0.55,
+ defaultView: "overview",
+ views: HOTELS_VIEWS,
+ domains: [
+ {id:"hotel_brands", title:"Hotel brands & operators", shortTitle:"Hotels", description:"Chains that own, lease, manage or franchise hotels - from palaces to budget franchise rooms; RevPAR, occupancy and signed pipeline drive value.", color:"#2E86AB", relatedDomains:["leisure","distribution","hotel_capital"]},
+ {id:"leisure", title:"Leisure & holidays", shortTitle:"Leisure", description:"Tour operators, holiday ownership, rail tourism, cruises and theme parks - discretionary trips that fill rooms and seats.", color:"#1E9E76", relatedDomains:["hotel_brands","aviation"]},
+ {id:"aviation", title:"Airlines & airports", shortTitle:"Aviation", description:"Domestic airlines, the airport concessions they fly to, and the food, lounges and retail inside terminals.", color:"#3D5A80", relatedDomains:["hotel_brands","leisure"]},
+ {id:"distribution", title:"Distribution & travel services", shortTitle:"Distribution", description:"B2B wholesalers, hotel distribution software, online agents, visa outsourcing and travel forex - the networks that sell and process trips.", color:"#D96C2B", relatedDomains:["hotel_brands","aviation"]},
+ {id:"hotel_capital", title:"Hotel real estate & capital", shortTitle:"Capital", description:"Listed owners of branded hotels, mostly private-equity backed, that lease the brand and management from global or Indian operators.", color:"#B5179E", relatedDomains:["hotel_brands"]},
+ ],
+ zones: [
+ {id:"luxury_chains", color:"#2E86AB", label:"Luxury & upscale hotel chains", layer:0, pos:A.luxury_chains.pos, side:A.luxury_chains.side, desc:"Indian-owned luxury and upscale brands that own, lease and manage palaces, business hotels and resorts (Taj, ITC, Oberoi, Leela).",
+  domainId:"hotel_brands", displayOrder:1, dataStatus:"demo", suppliers:[]},
+ {id:"midscale_chains", color:"#2E86AB", label:"Midscale, economy & regional chains", layer:0, pos:A.midscale_chains.pos, side:A.midscale_chains.side, desc:"Domestic chains for business and tier-2/3 travellers - midscale and economy rooms, owned or managed (Lemon Tree, Park, Royal Orchid, Sarovar, Pride).",
+  domainId:"hotel_brands", displayOrder:2, dataStatus:"demo", suppliers:[]},
+ {id:"franchise_stays", color:"#2E86AB", label:"Budget franchise & stay platforms", layer:0, pos:A.franchise_stays.pos, side:A.franchise_stays.side, desc:"Platforms that put a brand, software and demand on independent budget hotels and homes for a fee (OYO, Treebo, FabHotels, Ginger, ibis).",
+  domainId:"hotel_brands", displayOrder:3, dataStatus:"demo", suppliers:[]},
+ {id:"holidays", color:"#1E9E76", label:"Tour operators, holiday ownership & rail tourism", layer:1, pos:A.holidays.pos, side:A.holidays.side, desc:"Package-holiday and MICE operators, timeshare resorts, cruises and Indian Railways' tourism arm (Thomas Cook/SOTC, Club Mahindra, IRCTC, Cordelia).",
+  domainId:"leisure", displayOrder:4, dataStatus:"demo", suppliers:[]},
+ {id:"parks", color:"#1E9E76", label:"Theme parks & leisure destinations", layer:1, pos:A.parks.pos, side:A.parks.side, desc:"Amusement and water parks, the main listed play on day-trip family leisure (Wonderla, Imagicaa).",
+  domainId:"leisure", displayOrder:5, dataStatus:"demo", suppliers:[]},
+ {id:"airlines", color:"#3D5A80", label:"Domestic airlines", layer:2, pos:A.airlines.pos, side:A.airlines.side, desc:"Airlines that carry most leisure and business travellers to hotels - a duopoly of IndiGo and Air India group.",
+  domainId:"aviation", displayOrder:6, dataStatus:"demo", suppliers:[]},
+ {id:"airports", color:"#3D5A80", label:"Airport operators", layer:2, pos:A.airports.pos, side:A.airports.side, desc:"Private airport concessions that earn aero charges (regulated) and non-aero income (retail, F&B, parking, real estate) at India's busiest hubs.",
+  domainId:"aviation", displayOrder:7, dataStatus:"demo", suppliers:[]},
+ {id:"airport_services", color:"#3D5A80", label:"Airport food, lounges & travel retail", layer:2, pos:A.airport_services.pos, side:A.airport_services.side, desc:"Concessionaires that sell food, lounge access and services to passengers inside terminals.",
+  domainId:"aviation", displayOrder:8, dataStatus:"demo", suppliers:[]},
+ {id:"distribution", color:"#D96C2B", label:"Wholesale travel & hotel distribution", layer:3, pos:A.distribution.pos, side:A.distribution.side, desc:"B2B travel wholesalers and hotel distribution software that sell rooms and seats to agents worldwide; online agents linked from Consumer Internet.",
+  domainId:"distribution", displayOrder:9, dataStatus:"demo", suppliers:[]},
+ {id:"visa_forex", color:"#D96C2B", label:"Visa outsourcing & travel forex", layer:3, pos:A.visa_forex.pos, side:A.visa_forex.side, desc:"Firms that run visa, passport and consular application centres for governments and sell travel foreign exchange.",
+  domainId:"distribution", displayOrder:10, dataStatus:"demo", suppliers:[]},
+ {id:"asset_owners", color:"#B5179E", label:"Institutional hotel owners", layer:3, pos:A.asset_owners.pos, side:A.asset_owners.side, desc:"Listed owners of branded upscale hotels run under Marriott, Hyatt, Hilton and other brands - mostly private-equity or developer backed.",
+  domainId:"hotel_capital", displayOrder:11, dataStatus:"demo", suppliers:[]},
+ ],
+ suppliers: {},
+ build: function(ctx: Parameters<typeof buildHotels>[0]){ return buildHotels(ctx, this); },
+};
+export default hotels;
