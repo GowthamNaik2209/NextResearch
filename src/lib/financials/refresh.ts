@@ -31,7 +31,7 @@ import { hasQuote } from "./no-quote";
 import { latestDueTradingDay } from "./trading-day";
 import { writeFinancials } from "./write";
 import { companyKind } from "./kinds";
-import { parseLenderFigures, type LenderFigures } from "./lender";
+import { lenderFromStandalone, type LenderFigures } from "./lender";
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -91,7 +91,7 @@ export type Snap = {
   history: { years: string[]; rev: (number | null)[]; np: (number | null)[] } | null;
   // Every quarter of the shareholding table (src/lib/flows/shareholding.ts stores them).
   shareholding: ShareholdingQuarter[];
-  // Lenders only (companyKind "lender"): NPAs, financing margin, total assets and deposits.
+  // Lenders only (companyKind "lender"), standalone basis: NPAs, financing margin, net profit, total assets, deposits.
   lender?: LenderFigures;
 };
 
@@ -118,12 +118,14 @@ export async function fetchSnapshot(ticker: string, standalone: boolean, tlSlug:
     html = await get(standalone ? `${base}/` : `${base}/consolidated/`, o);
   }
   if (html === null || html === "missing") return null;
+  let saPage: string | "missing" | null | undefined; // the standalone page when this check fetched it
   if (!standalone) {
     // Consolidated is the default; standalone when it is an empty template or its accounts stop
     // years earlier than the standalone page's (a stale consolidated filing, e.g. RailTel).
     const usable = isUsablePage(html);
     if (!usable || latestYear(html) < new Date().getFullYear() - 1) {
       const sa = await get(`${base}/`, o);
+      saPage = sa;
       if (sa === null) return null;
       if (sa !== "missing" && isUsablePage(sa) && (!usable || latestYear(sa) > latestYear(html))) {
         html = sa;
@@ -157,7 +159,7 @@ export async function fetchSnapshot(ticker: string, standalone: boolean, tlSlug:
       np: idxs.map((i) => profit?.values[i] ?? null),
     };
   }
-  const lender = companyKind(ticker) === "lender" ? await lenderFigures(html, basis, base, o) : null;
+  const lender = companyKind(ticker) === "lender" ? await lenderFigures(basis === "standalone" ? html : saPage, base, o) : null;
   return {
     name: html.match(/<h1[^>]*>([^<]+)<\/h1>/)?.[1].trim() ?? null,
     mcap: k.marketCap,
@@ -173,15 +175,12 @@ export async function fetchSnapshot(ticker: string, standalone: boolean, tlSlug:
   };
 }
 
-// A lender's figures from the page the snapshot read. Many consolidated pages (HDFC Bank, REC) leave
-// the NPA rows empty; the standalone page carries them, so the NPAs (and their quarter) come from
-// there in that case, one extra request per such lender. Everything else stays on the snapshot's basis.
-async function lenderFigures(html: string, basis: Snap["basis"], base: string, o: FetchOptions): Promise<LenderFigures | null> {
-  const f = parseLenderFigures(html);
-  if (!f || basis !== "consolidated" || f.gnpa != null || f.nnpa != null) return f;
-  const sa = await get(`${base}/`, o);
-  const own = sa && sa !== "missing" ? parseLenderFigures(sa) : null;
-  return own && (own.gnpa != null || own.nnpa != null) ? { ...f, gnpa: own.gnpa, nnpa: own.nnpa, quarter: own.quarter } : f;
+// A lender's figures, always from its standalone page (./lender.ts says why): a page already read
+// (the snapshot's own when standalone, or the basis check's), else one more request. A standalone
+// page that cannot be read gives an all-null block, never consolidated figures. ScreenerBlocked
+// propagates like the main request's.
+async function lenderFigures(standalonePage: string | "missing" | null | undefined, base: string, o: FetchOptions): Promise<LenderFigures> {
+  return lenderFromStandalone(standalonePage === undefined ? await get(`${base}/`, o) : standalonePage);
 }
 
 function revenueRow(html: string, years: string[]): { label: string; values: (number | null)[] } | undefined {

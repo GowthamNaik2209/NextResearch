@@ -1,8 +1,13 @@
 // A lender's own figures from its Screener.in company page: asset quality (gross and net NPA % of the
-// latest quarter), financing margin of the latest full year, and the last two year-end total assets
-// and deposits (return on assets and deposit growth are worked out from these where they are shown).
-// Pure: the daily refresh (./refresh.ts) calls it only for companies whose kind is "lender"
-// (./kinds.ts), and ./write.ts stores the result on that day's KpiSnapshot.
+// latest quarter), financing margin and net profit of the latest full year, and the last two year-end
+// total assets and deposits (return on assets and deposit growth are worked out from these where they
+// are shown). Pure: the daily refresh (./refresh.ts) calls it only for companies whose kind is
+// "lender" (./kinds.ts), and ./write.ts stores the result on that day's KpiSnapshot.
+//
+// Always the STANDALONE page, whatever basis the company's snapshot uses: a consolidated bank page
+// folds in insurance and other subsidiaries (HDFC Bank's consolidated financing margin reads -12%
+// against 12% standalone) and often leaves the NPA rows empty. One basis for the whole block, so
+// return on assets is standalone profit over standalone assets.
 //
 // Screener lays a lender's page out differently from everyone else's: its P&L has "Revenue",
 // "Interest", "Financing Profit" and "Financing Margin %" rows instead of "Sales" and "Operating
@@ -14,10 +19,16 @@ export type LenderFigures = {
   gnpa: number | null;
   nnpa: number | null;
   finMargin: number | null;
+  // The full year finMargin and netProfit are for ("Mar 2026")
+  finMarginYear: string | null;
+  // Net profit (Rs cr) of that year, for return on assets
+  netProfit: number | null;
   // [latest year-end, the year-end before]
   totalAssets: [number | null, number | null];
   // null when the balance sheet has no Deposits row (an NBFC); [latest, previous] for a bank
   deposits: [number | null, number | null] | null;
+  // The latest year-end the assets and deposits are at ("Mar 2026")
+  bsYear: string | null;
   // The quarter the NPAs are from ("Sep 2026"), null when the page shows none
   quarter: string | null;
 };
@@ -60,7 +71,7 @@ export function parseLenderFigures(html: string): LenderFigures | null {
   // company) tells the balance sheet's year-ends from a half-year column such as "Sep 2026".
   const years = pl.cols.map((c, i) => (monthOf(c) ? i : -1)).filter((i) => i >= 0);
   const lastYear = years.at(-1);
-  const finMargin = lastYear == null ? null : (pl.rows.get("Financing Margin %")?.[lastYear] ?? null);
+  const atYear = (label: string) => (lastYear == null ? null : (pl.rows.get(label)?.[lastYear] ?? null));
   const yearEnd = lastYear == null ? "Mar" : monthOf(pl.cols[lastYear]);
 
   const bs = table(html, "balance-sheet");
@@ -82,9 +93,23 @@ export function parseLenderFigures(html: string): LenderFigures | null {
   return {
     gnpa: qi < 0 ? null : (g?.[qi] ?? null),
     nnpa: qi < 0 ? null : (n?.[qi] ?? null),
-    finMargin,
+    finMargin: atYear("Financing Margin %"),
+    finMarginYear: lastYear == null ? null : periodOf(pl.cols[lastYear]),
+    netProfit: atYear("Net Profit"),
     totalAssets: lastTwo("Total Assets") ?? [null, null],
     deposits: lastTwo("Deposits"),
+    bsYear: ends.length && bs ? periodOf(bs.cols[ends.at(-1)!]) : null,
     quarter: qi < 0 ? null : periodOf(q!.cols[qi]),
   };
+}
+
+/** The block stored for a lender whose standalone page could not be read: nothing, rather than consolidated figures. */
+export const EMPTY_LENDER: LenderFigures = {
+  gnpa: null, nnpa: null, finMargin: null, finMarginYear: null, netProfit: null,
+  totalAssets: [null, null], deposits: null, bsYear: null, quarter: null,
+};
+
+/** A lender's block from its standalone page as fetched (null: request failed; "missing": 404). */
+export function lenderFromStandalone(html: string | "missing" | null): LenderFigures {
+  return (html && html !== "missing" ? parseLenderFigures(html) : null) ?? EMPTY_LENDER;
 }

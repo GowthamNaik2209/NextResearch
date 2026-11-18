@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { parseLenderFigures } from "./lender";
+import { EMPTY_LENDER, lenderFromStandalone, parseLenderFigures } from "./lender";
 import { lenderColumns } from "./write";
 
 const fixture = (dir: string, name: string) => fs.readFileSync(path.join(import.meta.dirname, dir, name), "utf8");
@@ -16,8 +16,11 @@ test("a bank page: latest quarter's NPAs, latest year's financing margin, last t
     gnpa: 1.11,
     nnpa: 0.37,
     finMargin: 12,
+    finMarginYear: "Mar 2026",
+    netProfit: 74671,
     totalAssets: [4364886, 3910199],
     deposits: [3105250, 2714715],
+    bsYear: "Mar 2026",
     quarter: "Sep 2026",
   });
 });
@@ -28,8 +31,11 @@ test("an infrastructure NBFC: no deposits, empty NPA rows read as null, '(S)' ye
     gnpa: null,
     nnpa: null,
     finMargin: 26,
+    finMarginYear: "Mar 2026",
+    netProfit: 7009,
     totalAssets: [516676, 488835],
     deposits: null,
+    bsYear: "Mar 2026",
     quarter: null,
   });
 });
@@ -54,8 +60,18 @@ test("a lender's figures map onto the KpiSnapshot columns", () => {
   assert.deepEqual(lenderColumns(parseLenderFigures(bank)!), {
     gnpa: 1.11, nnpa: 0.37, finMargin: 12, totalAssets: 4364886, totalAssetsPrev: 3910199,
     deposits: 3105250, depositsPrev: 2714715, npaQuarter: "Sep 2026",
+    lenderNetProfit: 74671, bsYear: "Mar 2026", finMarginYear: "Mar 2026",
   });
   const c = lenderColumns(parseLenderFigures(nbfc)!);
   assert.equal(c.deposits, null);
   assert.equal(c.depositsPrev, null);
+});
+
+test("the lender block comes from the standalone page; no standalone page means all nulls, never consolidated", () => {
+  assert.deepEqual(lenderFromStandalone(bank), parseLenderFigures(bank));
+  for (const miss of [null, "missing" as const, fixture("__fixtures__", "screener-insurer.html")]) assert.deepEqual(lenderFromStandalone(miss), EMPTY_LENDER);
+  assert.deepEqual(EMPTY_LENDER, {
+    gnpa: null, nnpa: null, finMargin: null, finMarginYear: null, netProfit: null,
+    totalAssets: [null, null], deposits: null, bsYear: null, quarter: null,
+  });
 });

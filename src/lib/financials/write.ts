@@ -9,7 +9,7 @@
 //
 // A lender's own figures (./lender.ts) go on the same KpiSnapshot in a second, separate update, so a
 // database that does not have those columns yet (migration 20261118120000 not applied) still takes
-// every company's snapshot: that update alone fails, is logged once and skipped.
+// every company's snapshot: that update alone fails, is logged and skipped (so is any other failure of it).
 import type { PrismaClient } from "@/generated/prisma/client";
 import type { SupplierFinancials } from "@/lib/sector-content";
 import type { LenderFigures } from "./lender";
@@ -33,6 +33,9 @@ export function lenderColumns(l: LenderFigures) {
     deposits: l.deposits?.[0] ?? null,
     depositsPrev: l.deposits?.[1] ?? null,
     npaQuarter: l.quarter,
+    lenderNetProfit: l.netProfit,
+    bsYear: l.bsYear,
+    finMarginYear: l.finMarginYear,
   };
 }
 
@@ -85,9 +88,11 @@ export async function writeFinancials(
     // updateMany: no row comes back, so nothing reads columns the database may not have.
     await retrying(f.ticker, () => prisma.kpiSnapshot.updateMany({ where: { company: { ticker: f.ticker }, asOf }, data: lenderColumns(lender) }));
   } catch (e) {
-    if (!NO_COLUMN.test(`${(e as { code?: string }).code ?? ""} ${String(e)}`)) throw e;
-    if (!warnedNoLenderColumns) console.warn("KpiSnapshot has no lender columns yet (migration 20261118120000 not applied): lender figures not stored");
-    warnedNoLenderColumns = true;
+    // The snapshot itself is committed: a failed lender update never fails the company or the run.
+    const msg = `${(e as { code?: string }).code ?? ""} ${String(e)}`;
+    if (!NO_COLUMN.test(msg)) console.warn(`  ${f.ticker}: lender figures not stored (${msg.trim().slice(0, 120)})`);
+    else if (!warnedNoLenderColumns) console.warn("KpiSnapshot has no lender columns yet (migration 20261118120000 not applied): lender figures not stored");
+    if (NO_COLUMN.test(msg)) warnedNoLenderColumns = true;
   }
 }
 
