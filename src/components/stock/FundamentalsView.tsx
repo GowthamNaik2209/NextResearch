@@ -48,6 +48,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
   const kindNote = notMeaningfulNote(f ? (f.kind ?? companyKind(f.ticker)) : null);
   // Its P/B and ROE against covered lenders (insurers): Screener's industry table has no median for them.
   const kp = api?.kindPeers ?? null;
+  const peerPe = kp?.pe ?? null;
   const peerPb = kp?.pb ?? null;
   const peerRoe = kp?.roe ?? null;
 
@@ -58,7 +59,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
   const qtrVar = self?.qtrProfitVarPct ?? null;
   const qtrProfitText = qtrVar == null || npQtr == null ? undefined : npQtr < 0 ? "loss" : qtrVar <= -100 ? "—" : undefined;
   const rows: Row[] = [
-    { label: "P/E (TTM)", company: s.pe, industry: med?.pe ?? null, unit: "x", better: "low", digits: 1 },
+    { label: "P/E (TTM)", company: s.pe, industry: kp ? peerPe : med?.pe ?? null, unit: "x", better: "low", digits: 1, peer: peerPe != null },
     // One decimal, as the Key stats tile reads it.
     { label: "P/B", company: pb, industry: peerPb, unit: "x", better: "low", digits: 1, peer: peerPb != null },
     { label: "ROE", company: s.roe, industry: peerRoe, unit: "%", better: "high", digits: 1, peer: peerRoe != null },
@@ -179,9 +180,9 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
             <span><span className="text-pos">▲</span> better than industry median</span>
             <span><span className="text-danger">▼</span> worse than industry median</span>
             <span>Lower is better for P/E and P/B. n/a = no industry median.</span>
-            {kp && (peerPb != null || peerRoe != null) && (
+            {kp && (peerPe != null || peerPb != null || peerRoe != null) && (
               <span>
-                † P/B and ROE: the median of {kp.n} covered {kp.kind === "lender" ? "lenders" : "insurers"} (company snapshot), as {kp.kind === "lender" ? "a lender" : "an insurer"} is set against its own kind.
+                † P/E, P/B and ROE: the median of {kp.n} covered {kp.kind === "lender" ? "lenders" : "insurers"} (company snapshot), as {kp.kind === "lender" ? "a lender" : "an insurer"} is set against its own kind.
               </span>
             )}
           </p>

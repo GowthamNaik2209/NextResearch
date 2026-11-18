@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { bandOf, MIN_MONTHS, peHistory, peerLine, peMedianLabel, peNote, versus } from "./pe-context";
+import { peerClause, bandOf, MIN_MONTHS, peHistory, peerLine, peMedianLabel, peNote, versus } from "./pe-context";
 
 // Month-end closes from Jun 2022 for `months` months, at a constant price unless `price` says otherwise.
 function closes(months: number, price: (i: number) => number = () => 100) {
@@ -52,4 +52,12 @@ test("a lender or an insurer is compared with covered companies of its own kind,
   assert.match(peNote(null), /primary industry/);
   assert.match(peNote("lender"), /covered lenders/);
   assert.doesNotMatch(peNote("insurer"), /primary industry/);
+});
+
+test("peerClause: one clause with no second bracket", () => {
+  const base = { slug: "x", name: "Power", median: 15.5, n: 12 };
+  assert.equal(peerClause(base, "15.5x"), "the median of 12 covered Power stocks: 15.5x");
+  assert.equal(peerClause({ ...base, slug: "lender", n: 22, group: "lender" }, "15.5x"), "the median of 22 covered banks and NBFCs across industries: 15.5x");
+  assert.equal(peerClause({ ...base, slug: "insurer", n: 8, group: "insurer" }, "39.6x"), "the median of 8 covered life and general insurers across industries: 39.6x");
+  assert.ok(!/\)\s*[:(]/.test(peerClause({ ...base, group: "lender" }, "1x")));
 });

@@ -29,10 +29,16 @@ export type PeHistory = {
 export type PeIndustry = { slug: string; name: string; median: number; n: number; group?: "lender" | "insurer" };
 
 const GROUP_PEERS = { lender: "lenders (banks and NBFCs, across industries)", insurer: "insurers (life and general, across industries)" } as const;
+const GROUP_SCOPE = { lender: "banks and NBFCs", insurer: "life and general insurers" } as const;
 
-/** "the median of 12 covered Power stocks" / "the median of 22 covered lenders (…)". */
+/** "the median of 12 covered Power stocks" / "the median of 22 covered lenders (banks and NBFCs, across industries)". */
 export function peerLine(ind: PeIndustry): string {
   return ind.group ? `the median of ${ind.n} covered ${GROUP_PEERS[ind.group]}` : `the median of ${ind.n} covered ${ind.name} stocks`;
+}
+
+/** The sentence's tail, one bracket-free clause: "the median of 12 covered Power stocks: 15.5x" / "the median of 22 covered banks and NBFCs across industries: 15.5x". */
+export function peerClause(ind: PeIndustry, median: string): string {
+  return ind.group ? `the median of ${ind.n} covered ${GROUP_SCOPE[ind.group]} across industries: ${median}` : `${peerLine(ind)}: ${median}`;
 }
 
 /** The legend's name for the peers' median tick. */

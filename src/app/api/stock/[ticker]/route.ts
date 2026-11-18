@@ -9,6 +9,7 @@ import { getCompanyFootprint } from "@/lib/sector-content/exposure";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { ensureFinancials } from "@/lib/financials/load";
 import { companyKind, fundamentalsForKind, INSURERS, LENDERS } from "@/lib/financials/kinds";
+import { industryPe } from "@/lib/valuation/pe-data";
 import { kindMedians } from "@/lib/financials/kind-medians";
 
 // One slow upstream must not hold the whole response (an Apollo pop-up once sat on "fetching" for
@@ -41,7 +42,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
   const kind = companyKind(ticker.toUpperCase());
   const fundamentals = fundamentalsForKind(screener ?? (await within(getYahooFundamentals(ticker), null)), kind);
   // A lender's or an insurer's P/B and ROE are set against covered companies of its own kind (company table).
-  const kindPeers = kind === "operating" ? null : kindMedians((kind === "lender" ? LENDERS : INSURERS).flatMap((t) => companyFinancials(t) ?? []), kind);
+  // Its P/E median is the one "P/E in context" shows (the same covered companies of its kind).
+  const kindPeers = kind === "operating" ? null : { ...kindMedians((kind === "lender" ? LENDERS : INSURERS).flatMap((t) => companyFinancials(t) ?? []), kind), pe: industryPe(ticker.toUpperCase())?.median ?? null };
   // `ts` lets the browser render "3h ago" against its own clock (this response is CDN-cached).
   // Grey-market and stale IPO run-up stories left out, cut-off headlines marked with an ellipsis.
   const news = presentableNews(newsResult.items, isListedTicker).map(({ headline, source, url, date, ts }) => ({ headline, source, url, date, ts }));

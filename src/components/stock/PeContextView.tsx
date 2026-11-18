@@ -1,6 +1,6 @@
 import { InfoTip } from "@/components/InfoTip";
 import { MethodLink } from "./MethodLink";
-import { BAND_LABEL, bandOf, peerLine, peMedianLabel, peNote, versus, type PeContext } from "@/lib/valuation/pe-context";
+import { BAND_LABEL, bandOf, peerClause, peMedianLabel, peNote, versus, type PeContext } from "@/lib/valuation/pe-context";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monthYear = (iso: string) => `${MONTHS[Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}`;
@@ -44,7 +44,7 @@ export function PeContextView({ ctx, ticker, className = "" }: { ctx: PeContext;
         )}
         {ind && (
           <li className="text-ink-soft">
-            {h ? "It" : `P/E ${x(pe)}`} is {versus(pe, ind.median)} {peerLine(ind)} ({x(ind.median)})
+            {h ? "It" : `P/E ${x(pe)}`} is {versus(pe, ind.median)} {peerClause(ind, x(ind.median))}
           </li>
         )}
       </ul>
