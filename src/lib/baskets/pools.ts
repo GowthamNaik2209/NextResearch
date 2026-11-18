@@ -20,6 +20,8 @@
 // margin); their revenue, profit, market cap, growth and P/E still count. Pools holding one offer
 // their own metrics as well (poolMetricsFor): P/B, ROE and asset quality for lenders, P/B, ROE, VNB
 // margin, combined ratio and solvency for insurers, each the median of the companies that report it.
+// A lender metric (ROA, NPAs) applies only to lenders and an insurer metric only to insurers
+// (metricApplies); P/B and ROE apply to every company.
 
 import type { CompanyKind } from "@/lib/financials/kinds";
 
@@ -105,6 +107,33 @@ export const poolMetric = (id: PoolMetricId) => ALL_METRICS.find((m) => m.id ===
 
 const kindOf = (c: PoolCompany): CompanyKind => c.kind ?? "operating";
 
+/** A lender or an insurer: the kinds with metrics of their own. */
+export type FinancialKind = Exclude<CompanyKind, "operating">;
+
+const LENDER_ONLY: ReadonlySet<PoolMetricId> = new Set(["roa", "gnpa", "nnpa"]);
+const INSURER_ONLY: ReadonlySet<PoolMetricId> = new Set(["vnb", "combined", "solvency"]);
+
+/** The one kind of company a metric is for (ROA and NPAs: lenders; VNB margin, combined and solvency ratios: insurers), or null for every company. */
+export const metricKind = (id: PoolMetricId): FinancialKind | null => (LENDER_ONLY.has(id) ? "lender" : INSURER_ONLY.has(id) ? "insurer" : null);
+
+/** Whether a metric applies to a company at all: a lender metric reads "not applicable" for everyone else. */
+export const metricApplies = (c: PoolCompany, id: PoolMetricId) => {
+  const k = metricKind(id);
+  return k == null || kindOf(c) === k;
+};
+
+/**
+ * The kind whose figures a metric is still waiting on: a lender (insurer) metric when the companies
+ * hold a lender (insurer) but none of them has the figure yet. Null when some have it, when the
+ * metric is every company's, or when no company of that kind is there.
+ */
+export function figuresPending(cs: PoolCompany[], id: PoolMetricId): FinancialKind | null {
+  const k = metricKind(id);
+  if (!k) return null;
+  const ofKind = cs.filter((c) => kindOf(c) === k);
+  return ofKind.length && ofKind.every((c) => companyValue(c, id) == null) ? k : null;
+}
+
 /** The metrics an industry's pools offer: the standard ones, then the lender set and the insurer set when it holds one (P/B and ROE once). */
 export function poolMetricsFor(p: IndustryPools): PoolMetric[] {
   const has = (k: CompanyKind) => p.companies.some((c) => kindOf(c) === k);
@@ -150,13 +179,14 @@ export function companyValue(c: PoolCompany, id: PoolMetricId): number | null {
       return kindOf(c) === "operating" && num(c.roce) ? c.roce : null;
     case "pb":
     case "roe":
+      return own(c[id]);
     case "roa":
     case "gnpa":
     case "nnpa":
     case "vnb":
     case "combined":
     case "solvency":
-      return own(c[id]);
+      return metricApplies(c, id) ? own(c[id]) : null;
   }
 }
 
@@ -241,6 +271,8 @@ export type PoolTakeaway = {
   less: TakeawayRow;
   /** Layers left out of the ranking: one-off-year companies, in the revenue bar but not the profit bar, are too big a part of them. */
   skipped: { layer: string; companies: string[] }[];
+  /** Layers left out of the ranking as lenders and insurers make up ONE_OFF_MATERIAL or more of their revenue: profit over income is no margin for them. */
+  financial: string[];
 };
 
 /** A layer whose one-off-year companies hold at least this share of its revenue isn't ranked: its shares would understate it. */
@@ -253,19 +285,27 @@ export const ONE_OFF_MATERIAL = 0.1;
  * below any profit). That's a ratio, so a small layer with a fat margin beats a big one that is
  * merely above average. A one-off year's company is in the revenue bar but not the profit bar: a
  * layer where such companies hold ONE_OFF_MATERIAL of the revenue or more is left out and named;
- * below that it is ranked, with them listed so the sentence can say so. Null when fewer than two
- * layers can be ranked, or none of them makes a profit.
+ * below that it is ranked, with them listed so the sentence can say so. Lenders and insurers have no
+ * meaningful margin (financials/kinds.ts), so a layer where they make up ONE_OFF_MATERIAL of the
+ * revenue or more is left out the same way and named (a layer of lenders gets no margin claim).
+ * Null when fewer than two layers can be ranked, or none of them makes a profit.
  */
 export function poolTakeaway(layers: LayerPool[]): PoolTakeaway | null {
   const rev = layerShares(layers, "rev");
   const np = layerShares(layers, "np");
   const rows: TakeawayRow[] = [];
   const skipped: PoolTakeaway["skipped"] = [];
+  const financial: string[] = [];
   layers.forEach((l, i) => {
     const revenue = rev[i].share;
     const revCr = rev[i].value;
     const profitCr = np[i].value;
     if (revenue == null || revCr == null) return;
+    const finRev = groupValue(l.counted.filter((c) => kindOf(c) !== "operating"), "rev") ?? 0;
+    if (finRev > 0 && finRev >= ONE_OFF_MATERIAL * revCr) {
+      financial.push(l.name);
+      return;
+    }
     const oneOff = l.counted.filter((c) => c.oneOff);
     const oneOffRev = groupValue(oneOff, "rev") ?? 0;
     if (oneOff.length && (profitCr == null || oneOffRev >= ONE_OFF_MATERIAL * revCr)) {
@@ -278,7 +318,7 @@ export function poolTakeaway(layers: LayerPool[]): PoolTakeaway | null {
   // Most profit for its revenue first; the sort is stable, so ties keep the map's order.
   rows.sort((a, b) => b.ratio - a.ratio);
   if (rows.length < 2 || rows[0].profit == null) return null;
-  return { more: rows[0], less: rows[rows.length - 1], skipped };
+  return { more: rows[0], less: rows[rows.length - 1], skipped, financial };
 }
 
 // Layer colours. The map colours layers by domain, so neighbours often share a colour (AMCs and

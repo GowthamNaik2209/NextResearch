@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { StockLink } from "@/components/stock/StockLink";
-import { fmtDay, NA, pct, signedPct } from "@/lib/format";
+import { fmtDay, NA, pct, signedNum, signedPct } from "@/lib/format";
 import { GROWTH_FADE, IC, LONG_RUN_GROWTH, MARKET, SCENARIOS, VOL_FLOOR, type Scenario, type StockProjection } from "@/lib/baskets/projection";
 import { stockPath } from "@/lib/baskets/projection-basket";
 import { notMeaningfulNote } from "@/lib/financials/kinds";
@@ -240,7 +240,7 @@ function AssumptionsView({ view, single }: { view: ProjectionView; single: boole
         <li>
           <b className="font-semibold text-ink">Fundamentals tilt</b>: IC {IC} × volatility × its standardised fundamentals score (within ±3). The score is one year&rsquo;s return on revenue growth
           (its usual rate faded {Math.round(GROWTH_FADE * 100)}% toward {pct(LONG_RUN_GROWTH * 100, 0)}) and the net margin moving a third of the way toward the average of its own usual margin and its industry&rsquo;s, with today&rsquo;s P/E held;
-          it is measured against every covered company. Loss-makers (no positive P/E or margin) get the market return only.
+          it is measured against every covered company. Lenders and insurers are scored on revenue growth alone, their margin held. Loss-makers (no positive P/E or margin) get the market return only.
         </li>
         <li>
           <b className="font-semibold text-ink">Base</b>: the typical outcome, (1 + market return + tilt) × e<sup>−σ²h/2</sup> − 1 (2 years: the market return compounded, the tilt once).{" "}
@@ -256,7 +256,7 @@ function Row({ ticker, name, proj, view, cols, notHeld }: { ticker: string; name
   const { h, scenario } = view.settings;
   const stock = (
     <td className="sticky left-0 z-[1] bg-panel px-1.5 py-1 align-middle">
-      <StockLink ticker={ticker} className="block max-w-[11rem] font-semibold pointer-coarse:flex pointer-coarse:min-h-9 pointer-coarse:items-center leading-snug text-ink [overflow-wrap:anywhere] hover:text-accent hover:underline">
+      <StockLink ticker={ticker} className="block min-w-[7.5rem] max-w-[11rem] font-semibold pointer-coarse:flex pointer-coarse:min-h-9 pointer-coarse:items-center leading-snug text-ink break-words hover:text-accent hover:underline">
         {name}
       </StockLink>
       <span className="font-mono text-[10px] text-ink-soft">{ticker}</span>
@@ -304,8 +304,10 @@ function Row({ ticker, name, proj, view, cols, notHeld }: { ticker: string; name
           <>
             {signedPct(proj.tilt * 100, 2)}
             <Note title="Standardised fundamentals score, then revenue growth a year and net margin today → a year on">
-              z {proj.z > 0 ? "+" : ""}{proj.z.toFixed(1)} · growth {proj.growth != null ? pct(proj.growth * 100, 0) : NA} · margin {notMeaningfulNote(proj.kind)?.replace(/^N/, "n") ?? `${proj.marginNow != null ? pct(proj.marginNow * 100) : NA} → ${proj.marginThen != null ? pct(proj.marginThen * 100) : NA}`}
+              z {signedNum(proj.z, 1)} · growth {proj.growth != null ? pct(proj.growth * 100, 0) : NA}
             </Note>
+            {/* Its own line, so the table isn't widened by one long note. */}
+            <Note>margin {notMeaningfulNote(proj.kind)?.replace(/^N/, "n") ?? `${proj.marginNow != null ? pct(proj.marginNow * 100) : NA} → ${proj.marginThen != null ? pct(proj.marginThen * 100) : NA}`}</Note>
           </>
         ) : (
           <>

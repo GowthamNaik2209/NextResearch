@@ -36,7 +36,12 @@ export const INSURERS: readonly string[] = [
   "ICICIGI", "NIACL", "GICRE", "STARHEALTH", "NIVABUPA",
 ];
 
+/** The insurers that write life policies (they report VNB margin and embedded value; the rest report a combined ratio). */
+export const LIFE_INSURERS: readonly string[] = ["HDFCLIFE", "SBILIFE", "ICICIPRULI", "LICI"];
+
 const LENDER_SET = new Set(LENDERS);
+const LIFE_SET = new Set(LIFE_INSURERS);
+export const isLifeInsurer = (ticker: string) => LIFE_SET.has(ticker);
 const BANK_SET = new Set(BANKS);
 const INSURER_SET = new Set(INSURERS);
 

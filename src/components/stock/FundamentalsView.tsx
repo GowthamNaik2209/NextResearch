@@ -8,7 +8,8 @@ import { companyKind, notMeaningfulNote } from "@/lib/financials/kinds";
 
 // `text` replaces the company's number where a rate would mislead (profit growth off a loss); `muted`
 // marks it as a note ("Not meaningful for lenders") rather than a figure.
-type Row = { label: string; company: number | null; industry: number | null; unit: string; better: "low" | "high" | null; digits?: number; text?: string; muted?: boolean };
+// `peer` marks an industry figure that is the median of covered companies of the same kind (a lender's P/B and ROE).
+type Row = { label: string; company: number | null; industry: number | null; unit: string; better: "low" | "high" | null; digits?: number; text?: string; muted?: boolean; peer?: boolean };
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <section>
@@ -45,6 +46,10 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
   const asOf = s.asOf ? `as of ${s.asOf}` : "snapshot";
   // A lender's or an insurer's ROCE means nothing: the row reads as a note, with no industry median.
   const kindNote = notMeaningfulNote(f ? (f.kind ?? companyKind(f.ticker)) : null);
+  // Its P/B and ROE against covered lenders (insurers): Screener's industry table has no median for them.
+  const kp = api?.kindPeers ?? null;
+  const peerPb = kp?.pb ?? null;
+  const peerRoe = kp?.roe ?? null;
 
   // A growth rate is only a growth rate between two profits: Screener still prints one when the
   // latest quarter is a loss (Swiggy "15.6%" on two losses) or the year-ago one was (a rate below
@@ -54,8 +59,9 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
   const qtrProfitText = qtrVar == null || npQtr == null ? undefined : npQtr < 0 ? "loss" : qtrVar <= -100 ? "—" : undefined;
   const rows: Row[] = [
     { label: "P/E (TTM)", company: s.pe, industry: med?.pe ?? null, unit: "x", better: "low", digits: 1 },
-    { label: "P/B", company: pb, industry: null, unit: "x", better: "low", digits: 2 },
-    { label: "ROE", company: s.roe, industry: null, unit: "%", better: "high", digits: 1 },
+    // One decimal, as the Key stats tile reads it.
+    { label: "P/B", company: pb, industry: peerPb, unit: "x", better: "low", digits: 1, peer: peerPb != null },
+    { label: "ROE", company: s.roe, industry: peerRoe, unit: "%", better: "high", digits: 1, peer: peerRoe != null },
     kindNote
       ? { label: "ROCE", company: null, industry: null, unit: "%", better: null, text: kindNote, muted: true }
       : { label: "ROCE", company: s.roce, industry: med?.roce ?? null, unit: "%", better: "high", digits: 1 },
@@ -159,6 +165,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
                     {hasIndustry && (
                       <td className="px-3 py-3 text-right font-mono text-ink-soft" title={r.industry == null && !r.muted ? "No industry median available" : undefined}>
                         {r.muted ? "" : r.industry == null ? "n/a" : fmtRow(r.industry, r)}
+                        {r.peer && <span className="ml-0.5 font-sans">†</span>}
                       </td>
                     )}
                   </tr>
@@ -172,6 +179,11 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
             <span><span className="text-pos">▲</span> better than industry median</span>
             <span><span className="text-danger">▼</span> worse than industry median</span>
             <span>Lower is better for P/E and P/B. n/a = no industry median.</span>
+            {kp && (peerPb != null || peerRoe != null) && (
+              <span>
+                † P/B and ROE: the median of {kp.n} covered {kp.kind === "lender" ? "lenders" : "insurers"} (company snapshot), as {kp.kind === "lender" ? "a lender" : "an insurer"} is set against its own kind.
+              </span>
+            )}
           </p>
         ) : (
           fund && <p className="mt-2 text-[11px] text-ink-soft">Industry medians aren&rsquo;t available for this company right now.</p>

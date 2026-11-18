@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { compounders, garp, insurerValue, kpiScreens, qualityLenders, turnarounds, wideningMargins, KPI_LIST_N, type KpiStock } from "./kpi-screens";
+import { compounders, garp, insurerValue, kpiScreens, qualityLenders, screensAwaitingFigures, turnarounds, wideningMargins, KPI_LIST_N, type KpiStock } from "./kpi-screens";
 
 // Fixture companies: revenue and profit FY22..FY26 (₹ Cr), worth ₹5,000 Cr unless said otherwise.
 const co = (ticker: string, o: Partial<KpiStock> = {}): KpiStock => ({ ticker, name: ticker, mcapCr: 5000, pe: 20, roce: 20, rev: [1000, 1200, 1400, 1600, 1800], np: [100, 120, 140, 160, 180], ...o });
@@ -150,4 +150,18 @@ test("the lender and insurer screens are in the list, each with its thresholds i
   for (const s of [q, v]) assert.ok(!s.rule.includes("\n") && s.rule.includes("₹1,000 Cr"), s.id);
   assert.ok(q.rule.includes("ROE 15%+") && q.rule.includes("net NPA 1% or less"), q.rule);
   assert.ok(v.rule.includes("VNB margin 20%+") && v.rule.includes("P/EV"), v.rule);
+});
+
+test("screensAwaitingFigures: the lender and insurer screens say their figures are not yet added while no covered company of that kind has them", () => {
+  const bank = co("BANK", { kind: "lender", roe: 17, nnpa: null });
+  const life = co("LIFE", { kind: "insurer", insurer: null });
+  const none = screensAwaitingFigures([co("OPCO"), bank, life]);
+  assert.match(none["quality-lenders"], /not yet added/);
+  assert.match(none["insurer-value"], /not yet added/);
+  // One lender with a net NPA: the rule runs, so an empty list is a real "none passes".
+  const some = screensAwaitingFigures([bank, co("NBFC", { kind: "lender", nnpa: 2.5 }), co("LIFE2", { kind: "insurer", insurer: { vnbMargin: 25, pev: 2.1, fresh: "stale" } })]);
+  assert.equal(some["quality-lenders"], undefined);
+  assert.equal(some["insurer-value"], undefined);
+  // The other screens never wait.
+  assert.deepEqual(Object.keys(none).sort(), ["insurer-value", "quality-lenders"]);
 });

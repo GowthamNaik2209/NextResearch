@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { bandOf, MIN_MONTHS, peHistory, versus } from "./pe-context";
+import { bandOf, MIN_MONTHS, peHistory, peerLine, peMedianLabel, peNote, versus } from "./pe-context";
 
 // Month-end closes from Jun 2022 for `months` months, at a constant price unless `price` says otherwise.
 function closes(months: number, price: (i: number) => number = () => 100) {
@@ -40,4 +40,16 @@ test("versus reads within 5% as in line", () => {
   assert.equal(versus(52, 50), "in line with");
   assert.equal(versus(40, 50), "20% below");
   assert.equal(versus(60, 50), "20% above");
+});
+
+test("a lender or an insurer is compared with covered companies of its own kind, and the text says so", () => {
+  const ind = { slug: "energy", name: "Power", median: 20, n: 12 };
+  assert.equal(peerLine(ind), "the median of 12 covered Power stocks");
+  assert.equal(peerLine({ ...ind, slug: "lender", name: "Lenders", n: 22, group: "lender" as const }), "the median of 22 covered lenders (banks and NBFCs, across industries)");
+  assert.equal(peerLine({ ...ind, slug: "insurer", name: "Insurers", n: 8, group: "insurer" as const }), "the median of 8 covered insurers (life and general, across industries)");
+  assert.equal(peMedianLabel(ind), "Industry median");
+  assert.equal(peMedianLabel({ ...ind, group: "lender" as const }), "Lenders’ median");
+  assert.match(peNote(null), /primary industry/);
+  assert.match(peNote("lender"), /covered lenders/);
+  assert.doesNotMatch(peNote("insurer"), /primary industry/);
 });

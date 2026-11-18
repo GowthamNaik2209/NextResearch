@@ -36,12 +36,10 @@ test("the lender's year labels: the financing-margin year and the balance-sheet 
   assert.deepEqual([dec.year, dec.bsYear], ["Dec 2025", null]);
 });
 
-test("a bank's block: the eight figures in order, each period beside it, never NIM, CASA or loan growth", () => {
+test("a bank's block: the six lending figures in order, each period beside it, never NIM, CASA or loan growth; P/B and ROE stay in the tiles above", () => {
   const b = lenderRows(bank);
-  assert.deepEqual(labels(b.rows), ["P/B", "ROE", "ROA", "Gross NPA", "Net NPA", "Financing margin", "Deposit growth", "Balance-sheet growth"]);
+  assert.deepEqual(labels(b.rows), ["ROA", "Gross NPA", "Net NPA", "Financing margin", "Deposit growth", "Balance-sheet growth"]);
   const v = Object.fromEntries(b.rows.map((r) => [r.label, [r.value, r.period ?? null]]));
-  assert.deepEqual(v["P/B"], ["2.5x", null]);
-  assert.deepEqual(v["ROE"], ["16.5%", null]);
   assert.deepEqual(v["ROA"], ["9.52%", "FY26"]);
   assert.deepEqual(v["Gross NPA"], ["1.11%", "Sep 2026"]);
   assert.deepEqual(v["Net NPA"], ["0.37%", "Sep 2026"]);
@@ -69,7 +67,7 @@ test("a lender with no stored figures yet: dashes (never 0) and a missing flag",
   const v = Object.fromEntries(b.rows.map((r) => [r.label, r.value]));
   assert.equal(v["Gross NPA"], "—");
   assert.equal(v["ROA"], "—");
-  assert.equal(v["P/B"], "2.5x", "P/B and ROE come from the snapshot");
+  assert.equal(v["P/B"], undefined, "P/B and ROE are the tiles' (not repeated in the block)");
   assert.equal(v["Deposit growth"], "—");
   // A zero NPA is a real zero; a missing one is a dash.
   const zero = lenderRows({ ...bank, lender: { ...bankBlock, nnpa: 0, gnpa: null } });
@@ -77,12 +75,10 @@ test("a lender with no stored figures yet: dashes (never 0) and a missing flag",
   assert.deepEqual([z["Gross NPA"], z["Net NPA"]], ["—", "0.00%"]);
 });
 
-test("a life insurer's block: hand-kept figures carry their quarter and source; no combined ratio row", () => {
+test("a life insurer's block: hand-kept figures carry their quarter and source; no combined ratio row; nothing the tiles already show", () => {
   const b = insurerRows(life);
-  assert.deepEqual(labels(b.rows), ["P/B", "ROE", "Revenue growth", "VNB margin", "P/EV", "Solvency ratio"]);
+  assert.deepEqual(labels(b.rows), ["VNB margin", "P/EV", "Solvency ratio"]);
   const v = Object.fromEntries(b.rows.map((r) => [r.label, r]));
-  assert.equal(v["Revenue growth"].value, "+25.0%");
-  assert.equal(v["Revenue growth"].period, "FY23");
   assert.equal(v["VNB margin"].value, "25.5%");
   assert.equal(v["P/EV"].value, "2.31x");
   assert.equal(v["Solvency ratio"].value, "1.94x");
@@ -91,21 +87,24 @@ test("a life insurer's block: hand-kept figures carry their quarter and source; 
     assert.equal(v[l].source, "https://example.com/q2.pdf", l);
     assert.equal(v[l].stale, false, l);
   }
-  assert.equal(v["P/B"].source, undefined);
   assert.equal(b.missing, false);
 });
 
 test("a general insurer's block: combined ratio, no VNB or P/EV; a stale quarter is marked", () => {
   const b = insurerRows(general);
-  assert.deepEqual(labels(b.rows), ["P/B", "ROE", "Revenue growth", "Combined ratio", "Solvency ratio"]);
+  assert.deepEqual(labels(b.rows), ["Combined ratio", "Solvency ratio"]);
   const c = b.rows.find((r) => r.label === "Combined ratio")!;
   assert.deepEqual([c.value, c.period, c.stale], ["102.6%", "Q1 FY27", true]);
 });
 
-test("an insurer with no hand-kept row yet: the snapshot rows only, and a missing flag", () => {
+test("an insurer with no hand-kept row yet: its rows still listed as dashes (life or general by kinds.ts), and a missing flag", () => {
   const b = insurerRows({ ...life, insurer: null });
-  assert.deepEqual(labels(b.rows), ["P/B", "ROE", "Revenue growth"]);
+  assert.deepEqual(labels(b.rows), ["VNB margin", "P/EV", "Solvency ratio"]);
+  assert.ok(b.rows.every((r) => r.value === "—" && r.note === undefined && r.period === undefined));
   assert.equal(b.missing, true);
+  const g = insurerRows({ ...general, insurer: null });
+  assert.deepEqual(labels(g.rows), ["Combined ratio", "Solvency ratio"]);
+  assert.equal(g.missing, true);
 });
 
 test("ROCE and net margin read as a note for lenders and insurers, never a number or a bare dash", () => {
@@ -174,6 +173,4 @@ test("a hand-kept insurer figure the row leaves out reads as a dash with a note;
   const noEv = Object.fromEntries(insurerRows({ ...life, insurer: { ...life.insurer!, pev: null } }).rows.map((r) => [r.label, r]));
   assert.deepEqual([noEv["P/EV"].value, noEv["P/EV"].note], ["—", NOT_IN_DISCLOSURE]);
   for (const r of insurerRows(life).rows) assert.equal(r.note, undefined, r.label);
-  // Snapshot rows are not hand-kept: no disclosure note on them.
-  assert.equal(v["P/B"].note, undefined);
 });

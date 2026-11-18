@@ -159,6 +159,11 @@ export default async function ProjectionMethodPage({ searchParams }: { searchPar
               {pct(LONG_RUN_GROWTH, 0)}, and net margin moving a third of the way toward the average of its own and its industry&rsquo;s. It is
               standardised against every covered company (median and spread), within ±{Z_MAX}. Loss-makers get no tilt.
             </li>
+            <li>
+              <B>Lenders and insurers</B> (banks, NBFCs, life and general insurers) are scored on revenue growth alone. Their income is interest
+              or premiums, so profit over revenue is not a margin that tells you much: their margin is held where it is (a factor of 1), and the
+              tilt comes from how fast revenue grows, faded the same way. They still need a positive P/E and a profit in the latest year.
+            </li>
             <li>Over 2 years the market return compounds, the tilt counts once, and the range widens with √2.</li>
           </Bullets>
         </section>

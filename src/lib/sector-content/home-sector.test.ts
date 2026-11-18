@@ -89,10 +89,24 @@ test("primary industry: a direct industry link over a policy or index home, neve
 
 // A company that falls back to the Nifty 50 is compared within its bracket of the index.
 test("P/E peers: a Nifty 50 fallback is compared within its bracket", () => {
-  const sbi = pePeers("SBIN")!;
-  assert.equal(sbi.name, "Financial Services (Nifty 50)");
-  assert.ok(sbi.peers.some((s) => s.ticker === "HDFCBANK"));
-  assert.ok(!sbi.peers.some((s) => s.ticker === "TCS"));
-  assert.equal(industryPe("SBIN")?.name, "Financial Services (Nifty 50)");
+  const tcs = pePeers("TCS")!;
+  assert.equal(tcs.name, "Information Technology (Nifty 50)");
+  assert.ok(tcs.peers.some((s) => s.ticker === "INFY"));
+  assert.ok(!tcs.peers.some((s) => s.ticker === "HDFCBANK"));
+  assert.equal(industryPe("TCS")?.name, "Information Technology (Nifty 50)");
   assert.equal(pePeers("TATAPOWER")!.name, getSector("energy")!.name);
+});
+
+// A lender or an insurer is compared with covered companies of its own kind, not its industry.
+test("P/E peers: lenders against covered lenders, insurers against covered insurers", () => {
+  const sbi = pePeers("SBIN")!;
+  assert.equal(sbi.group, "lender");
+  assert.ok(sbi.peers.some((s) => s.ticker === "RECLTD") && sbi.peers.some((s) => s.ticker === "HDFCBANK"));
+  assert.ok(!sbi.peers.some((s) => s.ticker === "TCS" || s.ticker === "HDFCLIFE"));
+  const rec = pePeers("RECLTD")!;
+  assert.ok(rec.peers.every((s) => s.ticker !== "KEI" && s.ticker !== "POLYCAB"), "no cable makers");
+  const life = pePeers("HDFCLIFE")!;
+  assert.equal(life.group, "insurer");
+  assert.ok(life.peers.every((s) => ["HDFCLIFE", "SBILIFE", "ICICIPRULI", "LICI", "ICICIGI", "NIACL", "GICRE", "STARHEALTH", "NIVABUPA"].includes(s.ticker)));
+  assert.equal(industryPe("SBIN")?.group, "lender");
 });

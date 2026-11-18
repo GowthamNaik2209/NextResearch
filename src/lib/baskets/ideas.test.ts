@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildIdeas, ideaCatalog, priceStat, sinceRange, themeFootprint, withBacktestReturns, type IdeaStockInfo, type PriceSnapshot } from "./ideas";
+import { buildIdeas, ideaCatalog, priceStat, sinceRange, themeFootprint, withAwaitingFigures, withBacktestReturns, type IdeaStockInfo, type PriceSnapshot } from "./ideas";
 import { runBacktest } from "./backtest";
 import { onBenchWindow } from "./run";
 
@@ -237,4 +237,21 @@ test("ideaCatalog lists every rule, with no prices needed", () => {
   for (const id of ["top-6m", "top-5y", "quality", "bottlenecks", "cross-industry", "recent-ipos", "compounders", "garp", "turnarounds", "margins", "quality-lenders", "insurer-value"]) assert.ok(ids.includes(id), id);
   assert.equal(new Set(ids).size, ids.length);
   assert.ok(ideaCatalog().every((i) => i.title && i.blurb));
+});
+
+test("ideaCatalog carries each rule's line, for a page with no stocks today", () => {
+  assert.match(ideaCatalog().find((i) => i.id === "quality-lenders")!.rule, /net NPA 1% or less/);
+});
+
+test("withAwaitingFigures: a screen waiting on figures is listed, in the catalog's order, with its note and no stocks", () => {
+  const today = buildIdeas([], { asOf: "", stats: {} }, 0, true).filter((i) => i.id === "quality" || i.id === "margins").map((i) => ({ ...i, stocks: [{ ticker: "X", stat: "s" }] }));
+  const out = withAwaitingFigures(today, { "quality-lenders": "Net NPA figures are not yet added." });
+  assert.deepEqual(out.map((i) => i.id), ["quality", "margins", "quality-lenders"]);
+  const ql = out[2];
+  assert.equal(ql.awaiting, "Net NPA figures are not yet added.");
+  assert.deepEqual(ql.stocks, []);
+  assert.equal(ql.ret, null);
+  // A screen that has stocks today is never marked waiting.
+  assert.equal(withAwaitingFigures(today, { margins: "x" }).filter((i) => i.id === "margins").length, 1);
+  assert.equal(withAwaitingFigures(today, { margins: "x" }).find((i) => i.id === "margins")!.awaiting, undefined);
 });

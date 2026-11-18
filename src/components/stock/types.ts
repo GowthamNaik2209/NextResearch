@@ -1,4 +1,5 @@
 import type { Fundamentals } from "@/lib/live/screener-company";
+import type { KindMedians } from "@/lib/financials/kind-medians";
 import type { Quote } from "@/lib/live/yahoo";
 import type { CompanyFootprint } from "@/lib/sector-content/exposure";
 
@@ -8,6 +9,8 @@ export type StockApi = {
   ticker: string;
   quote: Quote | null;
   fundamentals: Fundamentals | null;
+  /** A lender's or an insurer's peers: P/B and ROE medians of covered companies of its kind (null for any other company). */
+  kindPeers?: KindMedians | null;
   news: StockNews[];
   /** true = headlines are live (Google News); false = the curated fallback set. */
   newsLive: boolean;

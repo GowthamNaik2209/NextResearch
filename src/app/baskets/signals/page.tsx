@@ -334,8 +334,8 @@ function PeExample({ name, w }: { name: string; w: PeWorking }) {
       {w.peers.length > 0 && (
         <>
           <P>
-            {w.bracket ? "Nifty 50 bracket" : "Primary industry"}: <B>{w.homeName}</B>, {w.peers.filter((p) => p.pe != null).length} of {w.peers.length} covered stocks with a P/E, low
-            to high:
+            {w.group ? `Compared with its own kind (a ${w.group}'s P/E says little beside its industry's other companies)` : w.bracket ? "Nifty 50 bracket" : "Primary industry"}: <B>{w.homeName}</B>,{" "}
+            {w.peers.filter((p) => p.pe != null).length} of {w.peers.length} covered {w.group ? `${w.group}s` : "stocks"} with a P/E, low to high:
           </P>
           <div className="max-h-[20rem] overflow-y-auto rounded border border-line">
             <Table
@@ -363,7 +363,7 @@ function PeExample({ name, w }: { name: string; w: PeWorking }) {
               {w.pe != null ? <>; {x1(w.pe)} is {versus(w.pe, w.industry.median)} it.</> : "."}
             </P>
           ) : (
-            <P>Fewer than {w.minPeers} with a P/E, so no industry median.</P>
+            <P>Fewer than {w.minPeers} with a P/E, so no {w.group ? "peer" : "industry"} median.</P>
           )}
         </>
       )}

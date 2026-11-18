@@ -1,16 +1,16 @@
 // The rows of the lender and insurer blocks (LenderBlock.tsx, InsurerBlock.tsx) as label, value and
 // the period each figure is for, shared by the stock pop-up and the company page. Pure: the
 // components only lay these out. A figure that is not known reads "—", never 0, with the reason
-// beside it where one is known (a row's note, or the block's footnote).
-import { keyRatios } from "@/lib/financials/key-ratios";
-import { isBank } from "@/lib/financials/kinds";
+// beside it where one is known (a row's note, or the block's footnote). P/B, ROE and revenue growth
+// are left to the Key stats tiles right above the block, so no figure is shown twice.
+import { isBank, isLifeInsurer } from "@/lib/financials/kinds";
 import type { SupplierFinancials } from "@/lib/sector-content";
 import { NA, pct, signedPct } from "@/lib/format";
 
 export type BlockRow = {
   label: string;
   value: string;
-  /** The period the figure is for ("Sep 2026", "FY26", "Q2 FY27"); none for snapshot figures (P/B, ROE). */
+  /** The period the figure is for ("Sep 2026", "FY26", "Q2 FY27"); none while the figure is not yet added. */
   period?: string;
   /** A hand-kept figure's source (the insurer's public disclosure). */
   source?: string;
@@ -39,15 +39,7 @@ const fin = (v: number | null | undefined): v is number => typeof v === "number"
 const times = (v: number | null | undefined, dp: number) => (fin(v) ? `${v.toFixed(dp)}x` : NA);
 const opt = (s: string | null | undefined) => s ?? undefined;
 
-/** P/B and ROE, from the company snapshot like every other company's. */
-function snapshotRows(f: SupplierFinancials): BlockRow[] {
-  return [
-    { label: "P/B", value: times(keyRatios(f).pb, 1) },
-    { label: "ROE", value: pct(f.kpi?.[4]) },
-  ];
-}
-
-/** A lender's block: P/B, ROE, ROA, gross and net NPA (of `quarter`), financing margin, deposit growth (banks only) and balance-sheet growth. */
+/** A lender's block: ROA, gross and net NPA (of `quarter`), financing margin, deposit growth (banks only) and balance-sheet growth. */
 export function lenderRows(f: SupplierFinancials): Block {
   const l = f.lender ?? null;
   const year = opt(l?.year);
@@ -58,7 +50,6 @@ export function lenderRows(f: SupplierFinancials): Block {
   // NPAs with no quarter: Screener's standalone quarters show neither figure.
   const npaNote = l && !unread && !l.quarter ? { note: NPA_NOT_REPORTED } : {};
   const rows: BlockRow[] = [
-    ...snapshotRows(f),
     { label: "ROA", value: pct(l?.roa, 2), period: year },
     { label: "Gross NPA", value: pct(l?.gnpa, 2), period: opt(l?.quarter), ...npaNote },
     { label: "Net NPA", value: pct(l?.nnpa, 2), period: opt(l?.quarter), ...npaNote },
@@ -72,20 +63,20 @@ export function lenderRows(f: SupplierFinancials): Block {
 }
 
 /**
- * An insurer's block: P/B, ROE and revenue growth from the snapshot, then the hand-kept quarter's VNB
- * margin and P/EV (life insurers), combined ratio (general and health insurers) and solvency ratio,
- * each with its quarter and source. A row the insurer's kind of business does not report is left out
- * (a life insurer has no combined ratio; a general insurer no VNB or embedded value).
+ * An insurer's block: the hand-kept quarter's VNB margin and P/EV (life insurers), combined ratio
+ * (general and health insurers) and solvency ratio, each with its quarter and source. A row the
+ * insurer's kind of business does not report is left out (a life insurer has no combined ratio; a
+ * general insurer no VNB or embedded value). Before its quarter is added the same rows are listed as
+ * dashes, life or general by kinds.ts LIFE_INSURERS, and the block says the figures are not yet added.
  */
 export function insurerRows(f: SupplierFinancials): Block {
-  const k = keyRatios(f);
-  const rows: BlockRow[] = [
-    ...snapshotRows(f),
-    // Screener's revenue (premiums with investment income), labelled as Screener reports it.
-    { label: "Revenue growth", value: signedPct(k.revGrowth, 1), period: opt(k.fy) },
-  ];
   const i = f.insurer ?? null;
-  if (!i) return { rows, missing: true };
+  if (!i) {
+    const dash = (label: string): BlockRow => ({ label, value: NA });
+    const rows = isLifeInsurer(f.ticker) ? [dash("VNB margin"), dash("P/EV")] : [dash("Combined ratio")];
+    return { rows: [...rows, dash("Solvency ratio")], missing: true };
+  }
+  const rows: BlockRow[] = [];
   const life = fin(i.vnbMargin) || fin(i.pev);
   const general = fin(i.combinedRatio);
   // A figure the row leaves out reads "—" with a note; its quarter and source stay beside it.

@@ -250,8 +250,23 @@ export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: numbe
  * Every rule-based basket's id, name and one line, without prices: what the sitemap and llms.txt
  * list. The same rules run on no stocks, so a new rule shows up there with nothing else to edit.
  */
-export function ideaCatalog(): Pick<Idea, "id" | "title" | "blurb">[] {
-  return buildIdeas([], { asOf: "", stats: {} }, 0, true).map(({ id, title, blurb }) => ({ id, title, blurb }));
+export function ideaCatalog(): Pick<Idea, "id" | "title" | "blurb" | "rule">[] {
+  return buildIdeas([], { asOf: "", stats: {} }, 0, true).map(({ id, title, blurb, rule }) => ({ id, title, blurb, rule }));
+}
+
+/** A rule-based basket with no stocks today because its figures aren't added yet (kpi-screens.ts screensAwaitingFigures). */
+export type AwaitingIdea = Idea & { awaiting?: string };
+
+/**
+ * The day's ideas plus each screen still waiting on figures, as an empty idea carrying the line
+ * that says so: the Baskets page lists it (so it isn't reachable by URL only) without reading as
+ * "no company passes". In the catalog's order after the day's ideas; a screen with stocks today is
+ * never marked.
+ */
+export function withAwaitingFigures(ideas: Idea[], awaiting: Record<string, string>): AwaitingIdea[] {
+  const have = new Set(ideas.map((i) => i.id));
+  const empty = buildIdeas([], { asOf: "", stats: {} }, 0, true).filter((i) => awaiting[i.id] && !have.has(i.id));
+  return [...ideas, ...empty.map((i) => ({ ...i, stocks: [], ret: null, awaiting: awaiting[i.id] }))];
 }
 
 /** What a card needs from the idea's own backtest: the basket's return and each held stock's. */

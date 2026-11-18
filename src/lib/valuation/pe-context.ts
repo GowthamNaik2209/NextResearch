@@ -21,9 +21,26 @@ export type PeHistory = {
   p90: number;
 };
 
-export type PeIndustry = { slug: string; name: string; median: number; n: number };
+/**
+ * The covered stocks today's P/E is set against. For an operating company, its primary industry (or
+ * Nifty 50 bracket). A lender or an insurer is compared with covered companies of its own kind across
+ * industries instead (`group`): REC beside cable makers, or an insurer beside banks, says nothing.
+ */
+export type PeIndustry = { slug: string; name: string; median: number; n: number; group?: "lender" | "insurer" };
+
+const GROUP_PEERS = { lender: "lenders (banks and NBFCs, across industries)", insurer: "insurers (life and general, across industries)" } as const;
+
+/** "the median of 12 covered Power stocks" / "the median of 22 covered lenders (…)". */
+export function peerLine(ind: PeIndustry): string {
+  return ind.group ? `the median of ${ind.n} covered ${GROUP_PEERS[ind.group]}` : `the median of ${ind.n} covered ${ind.name} stocks`;
+}
+
+/** The legend's name for the peers' median tick. */
+export const peMedianLabel = (ind: PeIndustry) => (ind.group === "lender" ? "Lenders’ median" : ind.group === "insurer" ? "Insurers’ median" : "Industry median");
 
 export type PeContext = {
+  /** A lender or an insurer: its P/E is set against its own kind (PeIndustry). */
+  group?: "lender" | "insurer";
   pe: number | null;
   history: PeHistory | null;
   industry: PeIndustry | null;
@@ -107,5 +124,10 @@ export function versus(pe: number, median: number): string {
   return `${Math.round(Math.abs(d) * 100)}% ${d < 0 ? "below" : "above"}`;
 }
 
-export const PE_NOTE =
-  "Today's P/E against its own past P/Es since 2022 (the shaded band is the middle half) and the median of covered stocks in its primary industry. Context, not a call.";
+/** The "i" note: what today's P/E is set against (a lender's or insurer's peers are its own kind). */
+export function peNote(group: PeIndustry["group"] | null | undefined): string {
+  const peers = group ? `the median of covered ${group === "lender" ? "lenders" : "insurers"} (a ${group} is compared with ${group}s, not with its industry's other companies)` : "the median of covered stocks in its primary industry";
+  return `Today's P/E against its own past P/Es since 2022 (the shaded band is the middle half) and ${peers}. Context, not a call.`;
+}
+
+export const PE_NOTE = peNote(null);

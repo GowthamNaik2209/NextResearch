@@ -6,7 +6,8 @@ import { unstable_cache } from "next/cache";
 import { basketChart } from "@/lib/prices/store";
 import { companyFinancials, getSector } from "@/lib/sector-content";
 import { companySlug, getCompanyPage, primaryIndustry } from "@/lib/sector-content/companies";
-import { basketStock, getIndustryBasket } from "@/lib/baskets/industry";
+import { basketStock, getIndustryBasket, listBasketUniverse } from "@/lib/baskets/industry";
+import { companyKind } from "@/lib/financials/kinds";
 import { isReit } from "@/components/stock/merge";
 import { parseCrore } from "@/lib/sector-content/core";
 import { MIN_INDEX_PEERS, MIN_PEERS, historyOf, medianOf, peHistory, peSamples, type PeContext, type PeHistory, type PeIndustry, type PeSample } from "./pe-context";
@@ -30,14 +31,26 @@ const cachedHistory = unstable_cache(
   { revalidate: DAY_SECONDS },
 );
 
+/** The peers' names for a lender or an insurer, compared with its own kind across industries. */
+const GROUP_NAME = { lender: "Covered lenders", insurer: "Covered insurers" } as const;
+
 /**
  * The covered stocks the company's P/E is compared with: those in its primary industry
  * (primaryIndustry), or, for a company that falls back to the Nifty 50, those in its bracket of the
- * index (SBI with the Nifty 50's Financial Services stocks), with the fewest needed for a median.
+ * index, with the fewest needed for a median. A lender or an insurer (financials/kinds.ts) is compared
+ * with every covered company of its own kind instead: a state lender's P/E beside cable makers', or an
+ * insurer's beside banks', says nothing.
  */
-export function pePeers(ticker: string) {
+export function pePeers(ticker: string): { slug: string; name: string; bracket: boolean; group?: "lender" | "insurer"; peers: { ticker: string; name: string; pe: number | null }[]; min: number } | null {
   const page = getCompanyPage(companySlug(ticker));
   if (!page) return null;
+  const kind = companyKind(ticker);
+  if (kind !== "operating") {
+    const peers = listBasketUniverse()
+      .filter((s) => companyKind(s.ticker) === kind)
+      .map((s) => ({ ticker: s.ticker, name: s.name, pe: s.pe }));
+    return { slug: kind, name: GROUP_NAME[kind], bracket: false, group: kind, peers, min: MIN_PEERS };
+  }
   const a = primaryIndustry(page);
   const basket = getIndustryBasket(a.sectorSlug);
   if (!basket) return null;
@@ -53,7 +66,7 @@ export function industryPe(ticker: string): PeIndustry | null {
   if (!home) return null;
   const pes = home.peers.map((s) => s.pe).filter((v): v is number => v != null);
   const median = medianOf(pes);
-  return median != null && pes.length >= home.min ? { slug: home.slug, name: home.name, median, n: pes.length } : null;
+  return median != null && pes.length >= home.min ? { slug: home.slug, name: home.name, median, n: pes.length, ...(home.group ? { group: home.group } : {}) } : null;
 }
 
 /** Everything the method page's worked example shows for one stock: each month-end sample and each peer. */
@@ -72,6 +85,8 @@ export type PeWorking = {
   minPeers: number;
   /** The peers are a bracket of the Nifty 50, not an industry. */
   bracket: boolean;
+  /** A lender or an insurer: the peers are covered companies of its own kind. */
+  group?: "lender" | "insurer";
   peers: { ticker: string; name: string; pe: number | null }[];
 };
 
@@ -96,6 +111,7 @@ export async function peWorking(ticker: string): Promise<PeWorking | null> {
     homeName: home?.name ?? null,
     minPeers: home?.min ?? MIN_PEERS,
     bracket: home?.bracket ?? false,
+    ...(home?.group ? { group: home.group } : {}),
     peers: (home?.peers ?? []).slice().sort((a, b) => (a.pe ?? Infinity) - (b.pe ?? Infinity)),
   };
 }
@@ -107,5 +123,6 @@ export async function peContext(ticker: string): Promise<PeContext | null> {
   if (!f || !stock || isReit(ticker)) return null;
   const mcap = parseCrore(f.mcap);
   const history = mcap && f.np?.length ? await cachedHistory(ticker, mcap, f.np, tablePrice(f.price)).catch(() => null) : null;
-  return { pe: stock.pe, history, industry: industryPe(ticker) };
+  const kind = companyKind(ticker);
+  return { ...(kind !== "operating" ? { group: kind } : {}), pe: stock.pe, history, industry: industryPe(ticker) };
 }

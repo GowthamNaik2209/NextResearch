@@ -634,6 +634,11 @@ test("isAbout handles transmission names: metal prices, foreign parents, InvITs 
     ["PTC India Financial Services Q2 profit rises", "PTC India", "PTC", false],
     ["REC Q2 profit rises 10%", "REC", "RECLTD", true],
     ["REC trade volumes on IEX rise 30%", "REC", "RECLTD", false],
+    // "Rec" as a word (recreation, a recommendation) is not the acronym the company goes by.
+    ["Forest Rec parkrun Event number 612", "REC", "RECLTD", false],
+    ["Elbit Systems Q3 results. Highlights: Rec", "REC", "RECLTD", false],
+    ["Rec Ltd shares rise after Q2 results", "REC", "RECLTD", true],
+    ["Rural Electrification Corp raises bonds", "REC", "RECLTD", true],
     ["Adani Transmission bags Rs 2,000 crore order", "Adani Energy Solutions", "ADANIENSOL", true],
     ["Adani Green Energy commissions Khavda capacity", "Adani Energy Solutions", "ADANIENSOL", false],
     ["Techno Electric bags data centre order", "Techno Electric & Engineering", "TECHNOE", true],

@@ -177,6 +177,22 @@ export function insurerValue(stocks: KpiStock[]): KpiScreen["stocks"] {
   return rank(rows, "asc");
 }
 
+/**
+ * The screens still waiting on figures, each with the line its page and card show: Quality lenders
+ * while no covered lender has a net NPA, Insurer value while no covered insurer has a VNB margin and
+ * a P/EV. An empty list then means the figures aren't in yet, not that no company passes the rule.
+ */
+export function screensAwaitingFigures(stocks: KpiStock[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  const lenders = stocks.filter((s) => s.kind === "lender");
+  const insurers = stocks.filter((s) => s.kind === "insurer");
+  if (lenders.length && !lenders.some((s) => ok(s.nnpa)))
+    out["quality-lenders"] = "Net NPA figures are not yet added for covered lenders, so the list is empty until they are. It is not that no lender passes the rule.";
+  if (insurers.length && !insurers.some((s) => ok(s.insurer?.vnbMargin) && ok(s.insurer?.pev)))
+    out["insurer-value"] = "VNB margin and embedded value figures are not yet added for covered insurers, so the list is empty until they are. It is not that no insurer passes the rule.";
+  return out;
+}
+
 const cr = `₹${KPI_MIN_MCAP_CR.toLocaleString("en-IN")} Cr`;
 
 /** Every KPI screen, with its name and rule (a screen with no stocks is still returned; buildIdeas drops it). */

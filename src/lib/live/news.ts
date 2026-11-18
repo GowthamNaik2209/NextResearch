@@ -357,6 +357,12 @@ const NOT_ABOUT: Record<string, RegExp> = {
   // The word and the moon of Saturn, not the jeweller; the lost submersible.
   TITAN: /\btitan (submersible|sub|moon)\b|\boceangate\b/i,
 };
+// Companies that go by an acronym that is also a short word ("Forest Rec parkrun", "Highlights: Rec"):
+// a headline must carry the acronym in capitals (case-sensitive) or one of the fuller names.
+const ACRONYM_NAMES: Record<string, { caps: RegExp; full: RegExp }> = {
+  RECLTD: { caps: /\bREC\b/, full: /\brec (?:ltd|limited)\b|\brural electrification\b/i },
+};
+
 // Tickers that are ordinary words ("US Embassy ..."), so they don't identify the company on their own.
 // OIL and ROUTE are words; MEIL is also Megha Engineering's initials; "ARE&M" reads as "are m"
 // ("These are M&M's..."); ADVAIT is a first name.
@@ -434,6 +440,8 @@ function spans(h: string, phrase: string): [number, number][] {
  */
 export function isAbout(headline: string, company: { name: string; ticker: string }): boolean {
   if (NOT_ABOUT[company.ticker]?.test(headline)) return false;
+  const acronym = ACRONYM_NAMES[company.ticker];
+  if (acronym && !acronym.caps.test(headline) && !acronym.full.test(headline)) return false;
   const h = ` ${normalize(headline)} `;
   const words = nameWords(company.name);
   const own = words.join(" ");

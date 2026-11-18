@@ -6,7 +6,7 @@ import { lenderRows, type BlockRow } from "./kind-blocks";
 // (the rows come from kind-blocks.ts). One i button for the whole block.
 
 export const LENDER_NOTE =
-  "How a bank or a lending company (NBFC) is read: its price against its book (P/B), its return on equity and on assets, bad loans as a share of its loans (gross and net NPA), what it earns on its lending (financing margin) and how fast its balance sheet grew, and a bank's deposits. The lending figures are from the company's standalone accounts on Screener.in, with the quarter or year each is for.";
+  "How a bank or a lending company (NBFC) is read beyond the Key stats above (P/B and ROE): its return on assets, bad loans as a share of its loans (gross and net NPA), what it earns on its lending (financing margin) and how fast its balance sheet grew, and a bank's deposits. The lending figures are from the company's standalone accounts on Screener.in, with the quarter or year each is for.";
 
 /** The block's frame: a heading with one i button, the rows in a card (two columns from tablet width), and a footnote. */
 export function BlockCard({
@@ -67,10 +67,12 @@ export function LenderBlock({ f, compact, className }: { f: SupplierFinancials; 
   const { rows, missing, footnote } = lenderRows(f);
   return (
     <BlockCard title="Lending figures" info={LENDER_NOTE} rows={rows} compact={compact} className={className}>
-      <p className="mt-1.5 text-[10.5px] leading-snug text-ink-soft">
-        {missing && "Lending figures not yet added. "}
-        {footnote && `${footnote} `}P/B and ROE: company snapshot{f.asOf ? ` as of ${f.asOf}` : ""}.
-      </p>
+      {(missing || footnote) && (
+        <p className="mt-1.5 text-[10.5px] leading-snug text-ink-soft">
+          {missing && "Lending figures not yet added. "}
+          {footnote}
+        </p>
+      )}
     </BlockCard>
   );
 }
