@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { PrismaClient } from "@/generated/prisma/client";
-import { insurerFiguresFrom, lenderFromColumns, readInsurerRows, readLenderFigures } from "./blocks";
+import { insurerFiguresFrom, latestLenderFigures, LENDER_LOOKBACK_DAYS, lenderFromColumns, readInsurerRows, readLenderFigures } from "./blocks";
 import { rowToFinancials, type CompanyFinRow } from "./rows";
 import { withSnapshot, type Snap } from "./refresh";
 import { forDisplay } from "./kinds";
@@ -34,7 +34,7 @@ test("lender columns read back into the lender block", () => {
 });
 
 test("lender figures are read for the lenders' own snapshots", async () => {
-  const { prisma, calls } = fakePrisma(async () => [cols]);
+  const { prisma, calls } = fakePrisma(async () => [{ ...cols, asOf: AS_OF }]);
   const got = await readLenderFigures(prisma, [{ companyId: "c1", asOf: AS_OF }]);
   assert.equal(got.get("c1")?.netProfit, 100);
   assert.equal(calls.length, 1);
@@ -53,6 +53,39 @@ test("before the migration (no lender columns) the read gives no lender figures 
   // Any other failure still fails the table (it is retried; the installed copy is kept).
   const { prisma } = fakePrisma(async () => { throw Object.assign(new Error("Timed out"), { code: "P1008" }); });
   await assert.rejects(readLenderFigures(prisma, [{ companyId: "c1", asOf: AS_OF }]), /Timed out/);
+});
+
+test("a day whose standalone page failed (an all-null block) shows the latest earlier day's figures, in one query", async () => {
+  const before = day("2026-11-14");
+  // What the database holds on or before the published day, filtered as the where clause asks (rows
+  // with any lender period); the all-null row of the 17th is not one of them.
+  const stored = [
+    { ...cols, companyId: "c1", asOf: day("2026-11-13"), gnpa: 1.5 },
+    { ...cols, companyId: "c1", asOf: before, gnpa: 1.3 },
+    { ...cols, companyId: "c2", asOf: AS_OF, gnpa: 2.1 },
+    { ...cols, companyId: "c2", asOf: before, gnpa: 2.4 },
+  ];
+  const { prisma, calls } = fakePrisma(async () => stored);
+  const got = await readLenderFigures(prisma, [{ companyId: "c1", asOf: AS_OF }, { companyId: "c2", asOf: AS_OF }]);
+  assert.equal(calls.length, 1, "one query for every lender");
+  assert.equal(got.get("c1")?.gnpa, 1.3, "the latest day with figures, not the blank one");
+  assert.equal(got.get("c2")?.gnpa, 2.1, "the published day's own figures when they were read");
+  // The query: each lender up to its own snapshot day (and no further back than the lookback), and only rows with figures.
+  const where = (calls[0] as { where: { OR: { companyId: { in: string[] }; asOf: { lte: Date; gte: Date } }[]; AND: unknown[] } }).where;
+  assert.deepEqual(where.OR, [{ companyId: { in: ["c1", "c2"] }, asOf: { lte: AS_OF, gte: new Date(AS_OF.getTime() - LENDER_LOOKBACK_DAYS * 86_400_000) } }]);
+  assert.deepEqual(where.AND, [{ OR: [{ npaQuarter: { not: null } }, { finMarginYear: { not: null } }, { bsYear: { not: null } }] }]);
+  // A lender with no figures on any day in range gets none (the block then says it is not added yet).
+  const none = fakePrisma(async () => []);
+  assert.equal((await readLenderFigures(none.prisma, [{ companyId: "c3", asOf: AS_OF }])).size, 0);
+});
+
+test("the latest row per company wins whatever order the rows come in", () => {
+  const rows = [
+    { ...cols, companyId: "c1", asOf: day("2026-11-17"), gnpa: 1 },
+    { ...cols, companyId: "c1", asOf: day("2026-11-18"), gnpa: 2 },
+    { ...cols, companyId: "c1", asOf: day("2026-11-16"), gnpa: 3 },
+  ];
+  assert.equal(latestLenderFigures(rows).get("c1")?.gnpa, 2);
 });
 
 const insurerRow = (periodEnd: string, period: string) => ({

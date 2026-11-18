@@ -56,24 +56,48 @@ function notMigrated(e: unknown, what: string): boolean {
   return true;
 }
 
-/** The lender figures on the given snapshots (the lenders' own), by company id. */
+// How far back a lender's figures may come from when its latest snapshots stored none: NPAs are
+// quarterly and the rest yearly, so a quarter's worth of daily snapshots is plenty.
+export const LENDER_LOOKBACK_DAYS = 92;
+const DAY_MS = 86_400_000;
+
+/**
+ * The lender figures for the given snapshots (the lenders' own, at the published date), by company
+ * id: each lender's latest snapshot on or before that date that has lender figures. A day whose
+ * standalone page could not be read stored an all-null block (./lender.ts EMPTY_LENDER); the
+ * figures of the day before are shown instead of blanking the block. One query for every lender.
+ */
 export async function readLenderFigures(prisma: PrismaClient, snapshots: { companyId: string; asOf: Date }[]): Promise<Map<string, LenderFigures>> {
   if (!snapshots.length) return new Map();
   const byDay = new Map<number, string[]>();
   for (const s of snapshots) byDay.set(s.asOf.getTime(), [...(byDay.get(s.asOf.getTime()) ?? []), s.companyId]);
   try {
     const rows = await prisma.kpiSnapshot.findMany({
-      where: { OR: [...byDay].map(([t, ids]) => ({ asOf: new Date(t), companyId: { in: ids } })) },
+      where: {
+        OR: [...byDay].map(([t, ids]) => ({ companyId: { in: ids }, asOf: { lte: new Date(t), gte: new Date(t - LENDER_LOOKBACK_DAYS * DAY_MS) } })),
+        // A block with anything read has a period: the NPA quarter, the P&L year or the balance-sheet year.
+        AND: [{ OR: [{ npaQuarter: { not: null } }, { finMarginYear: { not: null } }, { bsYear: { not: null } }] }],
+      },
       select: {
-        companyId: true, gnpa: true, nnpa: true, finMargin: true, totalAssets: true, totalAssetsPrev: true, deposits: true,
+        companyId: true, asOf: true, gnpa: true, nnpa: true, finMargin: true, totalAssets: true, totalAssetsPrev: true, deposits: true,
         depositsPrev: true, npaQuarter: true, lenderNetProfit: true, bsYear: true, finMarginYear: true,
       },
     });
-    return new Map(rows.map(({ companyId, ...c }) => [companyId, lenderFromColumns(c)]));
+    return latestLenderFigures(rows);
   } catch (e) {
     if (notMigrated(e, "lender columns")) return new Map();
     throw e;
   }
+}
+
+/** Each company's latest row (by asOf) as its lender block. */
+export function latestLenderFigures(rows: (LenderCols & { companyId: string; asOf: Date })[]): Map<string, LenderFigures> {
+  const latest = new Map<string, LenderCols & { companyId: string; asOf: Date }>();
+  for (const r of rows) {
+    const had = latest.get(r.companyId);
+    if (!had || r.asOf > had.asOf) latest.set(r.companyId, r);
+  }
+  return new Map([...latest].map(([id, r]) => [id, lenderFromColumns(r)]));
 }
 
 /** One InsurerMetric row, as read. */
