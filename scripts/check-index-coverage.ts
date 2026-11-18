@@ -3,6 +3,7 @@
 //
 //   npx tsx scripts/check-index-coverage.ts
 //   npx tsx scripts/check-index-coverage.ts --industry="Capital Goods"
+// With --industry= only that industry's lines print; the final line still reports the whole index.
 //
 // Source of data/nifty500.csv: https://niftyindices.com/IndexConstituent/ind_nifty500list.csv
 // Refresh: download that file over data/nifty500.csv (columns: Company Name,Industry,Symbol,Series,ISIN Code).
@@ -45,6 +46,11 @@ function main() {
 
   const arg = process.argv.find((a) => a.startsWith("--industry="))?.slice("--industry=".length).toLowerCase();
   const r = indexCoverage(rows, covered);
+  if (arg && !r.industries.some((i) => i.industry.toLowerCase() === arg)) {
+    console.log(`Unknown industry "${arg}". Known: ${r.industries.map((i) => i.industry).sort().join("; ")}`);
+    process.exitCode = 1;
+    return;
+  }
   for (const i of r.industries) {
     if (arg && i.industry.toLowerCase() !== arg) continue;
     console.log(`${i.industry}: ${i.covered}/${i.total}`);

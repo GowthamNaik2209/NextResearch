@@ -5,12 +5,15 @@ export type IndexRow = { symbol: string; industry: string; name: string };
 export type IndustryCoverage = { industry: string; covered: number; total: number; missing: string[] };
 export type IndexCoverage = { industries: IndustryCoverage[]; covered: number; total: number; percent: number };
 
+/** Placeholder rows NSE pads the list with (a DUMMY* symbol; real members trade in series other than EQ too, e.g. REITs in RR, HFCL in BE) are not companies. */
+const isPlaceholder = (r: IndexRow) => r.symbol.startsWith("DUMMY");
+
 /** Per industry (most missing first, then name) and overall. A symbol listed twice counts once. */
 export function indexCoverage(rows: readonly IndexRow[], covered: ReadonlySet<string>): IndexCoverage {
   const seen = new Set<string>();
   const by = new Map<string, IndustryCoverage>();
   for (const r of rows) {
-    if (seen.has(r.symbol)) continue;
+    if (isPlaceholder(r) || seen.has(r.symbol)) continue;
     seen.add(r.symbol);
     const e = by.get(r.industry) ?? { industry: r.industry, covered: 0, total: 0, missing: [] };
     e.total++;
