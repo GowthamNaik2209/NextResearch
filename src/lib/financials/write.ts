@@ -22,6 +22,9 @@ const RETRYABLE = /P1001|P1002|P1008|P1017|P2028|ECONNRESET|EHOSTUNREACH|ETIMEDO
 const NO_COLUMN = /P2022|column .* does not exist/i;
 let warnedNoLenderColumns = false;
 
+/** True once a lender update in this process found no lender columns: the refresh then skips the extra standalone request (./refresh.ts). */
+export const lenderColumnsKnownMissing = () => warnedNoLenderColumns;
+
 /** A lender's figures as KpiSnapshot columns. */
 export function lenderColumns(l: LenderFigures) {
   return {

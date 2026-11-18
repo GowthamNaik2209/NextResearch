@@ -29,12 +29,14 @@ import { FISCAL_YEARS, formatAsOf, formatPrice } from "./rows";
 import { readCompanyTable } from "./query";
 import { hasQuote } from "./no-quote";
 import { latestDueTradingDay } from "./trading-day";
-import { writeFinancials } from "./write";
+import { lenderColumnsKnownMissing, writeFinancials } from "./write";
 import { companyKind } from "./kinds";
 import { lenderFromStandalone, type LenderFigures } from "./lender";
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** The pause between requests to Screener (a chunk's default gap between companies, and before a lender's extra request). */
+export const DEFAULT_GAP_MS = 1000;
 
 // ---------------------------------------------------------------- Screener
 
@@ -159,7 +161,7 @@ export async function fetchSnapshot(ticker: string, standalone: boolean, tlSlug:
       np: idxs.map((i) => profit?.values[i] ?? null),
     };
   }
-  const lender = companyKind(ticker) === "lender" ? await lenderFigures(basis === "standalone" ? html : saPage, base, o) : null;
+  const lender = companyKind(ticker) === "lender" ? await lenderFigures(basis === "standalone" ? html : saPage, base, o) : undefined;
   return {
     name: html.match(/<h1[^>]*>([^<]+)<\/h1>/)?.[1].trim() ?? null,
     mcap: k.marketCap,
@@ -175,12 +177,27 @@ export async function fetchSnapshot(ticker: string, standalone: boolean, tlSlug:
   };
 }
 
+/**
+ * Where a lender's figures come from: the standalone page already read ("page"), one more request
+ * ("fetch"), or none ("skip") when that request would be pointless because this process already
+ * found the database has no lender columns to store them in (./write.ts; migration not applied).
+ */
+export function lenderSource(standalonePage: string | "missing" | null | undefined, columnsMissing: boolean): "page" | "fetch" | "skip" {
+  if (standalonePage !== undefined) return "page";
+  return columnsMissing ? "skip" : "fetch";
+}
+
 // A lender's figures, always from its standalone page (./lender.ts says why): a page already read
-// (the snapshot's own when standalone, or the basis check's), else one more request. A standalone
-// page that cannot be read gives an all-null block, never consolidated figures. ScreenerBlocked
+// (the snapshot's own when standalone, or the basis check's), else one more request, after the
+// usual pause between requests. A standalone page that cannot be read gives an all-null block, never
+// consolidated figures (the app then shows the latest earlier day's, ./blocks.ts). ScreenerBlocked
 // propagates like the main request's.
-async function lenderFigures(standalonePage: string | "missing" | null | undefined, base: string, o: FetchOptions): Promise<LenderFigures> {
-  return lenderFromStandalone(standalonePage === undefined ? await get(`${base}/`, o) : standalonePage);
+async function lenderFigures(standalonePage: string | "missing" | null | undefined, base: string, o: FetchOptions): Promise<LenderFigures | undefined> {
+  const from = lenderSource(standalonePage, lenderColumnsKnownMissing());
+  if (from === "skip") return undefined;
+  if (from === "page" && standalonePage !== undefined) return lenderFromStandalone(standalonePage);
+  await sleep(DEFAULT_GAP_MS);
+  return lenderFromStandalone(await get(`${base}/`, o));
 }
 
 function revenueRow(html: string, years: string[]): { label: string; values: (number | null)[] } | undefined {
@@ -379,7 +396,7 @@ export async function runChunk(prisma: PrismaClient, opts: ChunkOptions): Promis
     let blocked = false;
     const saveShareholding = shareholdingWriter(prisma, log);
     let next = 0;
-    const gap = opts.gapMs ?? 1000;
+    const gap = opts.gapMs ?? DEFAULT_GAP_MS;
     // A couple of companies at a time, each worker pausing between requests (the script runs three).
     const worker = async () => {
       while (!blocked && next < todo.length && Date.now() - started < opts.budgetMs) {

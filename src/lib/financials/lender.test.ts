@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { EMPTY_LENDER, lenderFromStandalone, parseLenderFigures } from "./lender";
 import { lenderColumns } from "./write";
+import { DEFAULT_GAP_MS, lenderSource } from "./refresh";
 
 const fixture = (dir: string, name: string) => fs.readFileSync(path.join(import.meta.dirname, dir, name), "utf8");
 const bank = fixture("__fixtures__", "screener-bank.html");
@@ -74,4 +75,16 @@ test("the lender block comes from the standalone page; no standalone page means 
     gnpa: null, nnpa: null, finMargin: null, finMarginYear: null, netProfit: null,
     totalAssets: [null, null], deposits: null, bsYear: null, quarter: null,
   });
+});
+
+test("a lender's figures: the page already read, else one more request, skipped once the lender columns are known missing", () => {
+  // A page the snapshot or the basis check already read is used, whatever it was (even a failed one).
+  for (const page of ["<html/>", "missing", null] as const) {
+    assert.equal(lenderSource(page, false), "page");
+    assert.equal(lenderSource(page, true), "page");
+  }
+  // Not read yet: one more request, unless this process found no lender columns to store the figures in.
+  assert.equal(lenderSource(undefined, false), "fetch");
+  assert.equal(lenderSource(undefined, true), "skip");
+  assert.equal(DEFAULT_GAP_MS, 1000);
 });
