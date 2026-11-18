@@ -30,3 +30,21 @@ test("life insurers are insurers; general and health insurers are not life", () 
   assert.ok(isLifeInsurer("HDFCLIFE") && isLifeInsurer("LICI"));
   for (const t of ["ICICIGI", "NIACL", "GICRE", "STARHEALTH", "NIVABUPA", "HDFCBANK"]) assert.ok(!isLifeInsurer(t), t);
 });
+
+test("every lender and insurer in Banks & NBFCs and Insurance is tagged; fee earners stay operating", () => {
+  for (const t of ["RBLBANK", "IDBI", "J&KBANK", "PSB", "EQUITASBNK", "CAPITALSFB"]) assert.ok(isBank(t), t);
+  for (const t of ["HDBFS", "TATACAP", "SUNDARMFIN", "BAJAJHLDNG", "CHOLAHLDNG", "CANFINHOME", "IFCI", "SPANDANA", "MUTHOOTMF"]) {
+    assert.equal(companyKind(t), "lender", t);
+    assert.ok(!isBank(t), t);
+  }
+  assert.equal(companyKind("CANFINHOMES"), "operating", "the NSE symbol is CANFINHOME");
+  for (const t of ["ICICILIFE", "MFSL", "CANHLIFE"]) assert.ok(isLifeInsurer(t), t);
+  for (const t of ["GODIGIT", "RELIGARE"]) {
+    assert.equal(companyKind(t), "insurer", t);
+    assert.ok(!isLifeInsurer(t), t);
+  }
+  assert.equal(companyKind("ICICIPRULI"), "operating", "renamed ICICILIFE");
+  for (const t of ["FINOPB", "AIIL", "EDELWEISS", "PAYTM", "PINELABS", "OFSS", "NUCLEUS", "INTELLECT", "TURTLEMINT", "PRUDENT"]) {
+    assert.equal(companyKind(t), "operating", t);
+  }
+});

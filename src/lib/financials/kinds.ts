@@ -17,27 +17,39 @@ export const BANKS: readonly string[] = [
   "HDFCBANK", "ICICIBANK", "SBIN", "AXISBANK", "KOTAKBANK",
   "INDUSINDBK", "IDFCFIRSTB", "BANDHANBNK", "FEDERALBNK", "AUBANK", "YESBANK",
   "PNB", "BANKBARODA", "CANBK", "UNIONBANK",
+  "RBLBANK", "IDBI", "CUB", "KARURVYSYA", "J&KBANK", "TMB", "KTKBANK", "SOUTHBANK", "DCBBANK", "CSBBANK",
+  "BANKINDIA", "MAHABANK", "CENTRALBK", "IOB", "UCOBANK", "INDIANB", "PSB",
+  // Small finance banks
+  "EQUITASBNK", "UJJIVANSFB", "JSFB", "UTKARSHBNK", "SURYODAY", "ESAFSFB", "CAPITALSFB",
 ];
 
 export const LENDERS: readonly string[] = [
   ...BANKS,
   // NBFCs and holding companies led by lending
   "BAJFINANCE", "BAJAJFINSV", "JIOFIN", "SHRIRAMFIN", "CHOLAFIN", "MUTHOOTFIN", "MANAPPURAM", "M&MFIN", "POONAWALLA", "SBICARD",
+  "HDBFS", "KISSHT", "TATACAP", "IIFL", "SUNDARMFIN", "LTF", "ABCAPITAL", "PIRAMALFIN", "SAMMAANCAP",
+  "BAJAJHLDNG", "CHOLAHLDNG", "MUTHOOTMF", "FIVESTAR", "CGCL", "SBFC", "UGROCAP", "MASFIN",
   // Housing finance
-  "BAJAJHFL", "LICHSGFIN", "PNBHOUSING", "AADHARHFC", "AAVAS", "HOMEFIRST", "CANFINHOMES",
+  "BAJAJHFL", "LICHSGFIN", "PNBHOUSING", "AADHARHFC", "AAVAS", "HOMEFIRST", "CANFINHOME", "APTUS", "INDIASHLTR", "REPCOHOME",
   // Infrastructure and energy lenders
-  "RECLTD", "PFC", "IRFC", "IREDA", "HUDCO",
+  "RECLTD", "PFC", "IRFC", "IREDA", "HUDCO", "IFCI",
   // Microfinance
-  "CREDITACC",
+  "CREDITACC", "SPANDANA", "FUSION", "SATIN",
 ];
+
+/**
+ * The insurers that write life policies (they report VNB margin and embedded value; the rest report a combined ratio).
+ * MFSL is a holding company whose figures are Axis Max Life's; ICICILIFE was ICICIPRULI until 23 Oct 2026.
+ */
+export const LIFE_INSURERS: readonly string[] = ["HDFCLIFE", "SBILIFE", "ICICILIFE", "LICI", "MFSL", "CANHLIFE"];
 
 export const INSURERS: readonly string[] = [
-  "HDFCLIFE", "SBILIFE", "ICICIPRULI", "LICI",
-  "ICICIGI", "NIACL", "GICRE", "STARHEALTH", "NIVABUPA",
+  ...LIFE_INSURERS,
+  // General insurers and the reinsurer
+  "ICICIGI", "NIACL", "GODIGIT", "GICRE",
+  // Standalone health insurers (RELIGARE: its figures are Care Health's)
+  "STARHEALTH", "NIVABUPA", "RELIGARE",
 ];
-
-/** The insurers that write life policies (they report VNB margin and embedded value; the rest report a combined ratio). */
-export const LIFE_INSURERS: readonly string[] = ["HDFCLIFE", "SBILIFE", "ICICIPRULI", "LICI"];
 
 const LENDER_SET = new Set(LENDERS);
 const LIFE_SET = new Set(LIFE_INSURERS);

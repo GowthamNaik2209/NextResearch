@@ -154,6 +154,7 @@ const NO_BENCHMARK: Record<string, string> = {
   semicon2: "no semiconductor index (policy)",
   ecms: "no electronics-components index (policy)",
   capmarkets: "Nifty Capital Markets has no Yahoo symbol/ETF with a year of history mapped yet",
+  insurance: "Only insurance ETF (INSUREIETF) listed Aug 2026: under a year of history; revisit Aug 2027",
 };
 
 // Live sectors with no research deck: only a market index.
