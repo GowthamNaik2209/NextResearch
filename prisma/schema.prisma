@@ -39,6 +39,7 @@ model Company {
   screenOut      Boolean             @default(false)
   financials     FinancialSnapshot[]
   kpis           KpiSnapshot[]
+  insurerMetrics InsurerMetric[]
   shareholdings  Shareholding[]
   watchlistedBy  Watchlist[]
   createdAt      DateTime            @default(now())
@@ -55,6 +56,27 @@ model FinancialSnapshot {
   netProfitCr Decimal?
 
   @@unique([companyId, year])
+}
+
+// An insurer's quarterly figures, kept by hand from its public disclosures (data/insurer-metrics.json,
+// scripts/insurer-metrics.ts): VNB margin and embedded value (life), combined ratio (general/health),
+// solvency ratio (all). One row per insurer per quarter, with the source and the date it was read.
+model InsurerMetric {
+  id              String   @id @default(cuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  periodEnd       DateTime @db.Date
+  period          String // "Q2 FY27"
+  vnbMargin       Decimal? // %
+  embeddedValueCr Decimal? // Rs Cr
+  combinedRatio   Decimal? // %
+  solvencyRatio   Decimal? // times (1.9 = 190%)
+  sourceUrl       String
+  readOn          DateTime @db.Date
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([companyId, periodEnd])
 }
 
 // Point-in-time KPI/price snapshot (matches the artifact's kpi tuple + mcap/price/range/cagr).
