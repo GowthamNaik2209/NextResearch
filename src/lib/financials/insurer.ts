@@ -65,6 +65,15 @@ const isHttp = (v: unknown) => {
   }
 };
 
+// Sanity ranges for the hand-kept figures (a typo such as 1940 for 1.94x, or a ratio typed as a
+// fraction, is caught here): each must be null or inside its range.
+const RANGES: { key: "solvencyRatio" | "vnbMargin" | "combinedRatio" | "embeddedValueCr"; ok: (v: number) => boolean; says: string }[] = [
+  { key: "solvencyRatio", ok: (v) => v > 0 && v < 10, says: "between 0 and 10 (times, e.g. 1.94)" },
+  { key: "vnbMargin", ok: (v) => v >= 0 && v <= 200, says: "between 0 and 200 (%)" },
+  { key: "combinedRatio", ok: (v) => v >= 0 && v <= 200, says: "between 0 and 200 (%)" },
+  { key: "embeddedValueCr", ok: (v) => v > 0, says: "above 0 (Rs Cr)" },
+];
+
 /** Checks every row of the JSON file; a row with any problem is reported and the file must not be applied. */
 export function validateInsurerRows(input: unknown): { rows: InsurerRow[]; errors: string[] } {
   if (!Array.isArray(input)) return { rows: [], errors: ["the file must contain a JSON array"] };
@@ -86,6 +95,10 @@ export function validateInsurerRows(input: unknown): { rows: InsurerRow[]; error
     if (!isHttp(r.sourceUrl)) bad.push("sourceUrl must be an http(s) URL");
     for (const k of ["vnbMargin", "embeddedValueCr", "combinedRatio", "solvencyRatio"]) {
       if (!isNumOrNull(r[k])) bad.push(`${k} must be a number or null`);
+    }
+    for (const { key, ok, says } of RANGES) {
+      const v = r[key];
+      if (typeof v === "number" && Number.isFinite(v) && !ok(v)) bad.push(`${key} ${v} is out of range: must be ${says}`);
     }
     if (bad.length) {
       errors.push(`${at}: ${bad.join("; ")}`);

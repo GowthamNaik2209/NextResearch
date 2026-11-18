@@ -44,10 +44,12 @@ function main() {
   for (const s of listSectors().filter((x) => !x.muted))
     for (const sup of Object.values(s.suppliers)) if (sup.listed && sup.f?.ticker) covered.add(sup.f.ticker);
 
-  const arg = process.argv.find((a) => a.startsWith("--industry="))?.slice("--industry=".length).toLowerCase();
+  // Matched without case; the message repeats the industry as typed.
+  const typed = process.argv.find((a) => a.startsWith("--industry="))?.slice("--industry=".length);
+  const arg = typed?.toLowerCase();
   const r = indexCoverage(rows, covered);
   if (arg && !r.industries.some((i) => i.industry.toLowerCase() === arg)) {
-    console.log(`Unknown industry "${arg}". Known: ${r.industries.map((i) => i.industry).sort().join("; ")}`);
+    console.log(`Unknown industry "${typed}". Known: ${r.industries.map((i) => i.industry).sort().join("; ")}`);
     process.exitCode = 1;
     return;
   }

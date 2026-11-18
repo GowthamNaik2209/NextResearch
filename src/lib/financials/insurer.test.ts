@@ -67,3 +67,29 @@ test("duplicate (ticker, periodEnd) is an error; the file must be an array", () 
   assert.equal(validateInsurerRows([good, good]).errors.length, 1);
   assert.equal(validateInsurerRows({}).errors.length, 1);
 });
+
+test("hand-kept figures outside their sanity ranges are rejected with the row position", () => {
+  const out = [
+    { ...good, solvencyRatio: 0 },
+    { ...good, solvencyRatio: 194 },
+    { ...good, vnbMargin: -1 },
+    { ...good, vnbMargin: 250 },
+    { ...good, ticker: "ICICIGI", vnbMargin: null, embeddedValueCr: null, combinedRatio: 201 },
+    { ...good, embeddedValueCr: 0 },
+  ];
+  const r = validateInsurerRows(out);
+  assert.equal(r.rows.length, 0);
+  assert.equal(r.errors.length, 6);
+  assert.match(r.errors[0], /^row 1: solvencyRatio 0 is out of range/);
+  assert.match(r.errors[1], /^row 2: solvencyRatio 194 is out of range/);
+  assert.match(r.errors[2], /^row 3: vnbMargin -1 is out of range/);
+  assert.match(r.errors[3], /^row 4: vnbMargin 250 is out of range/);
+  assert.match(r.errors[4], /^row 5: combinedRatio 201 is out of range/);
+  assert.match(r.errors[5], /^row 6: embeddedValueCr 0 is out of range/);
+  // The edges inside the ranges, and nulls, pass.
+  const edge = validateInsurerRows([
+    { ...good, solvencyRatio: 9.99, vnbMargin: 0, embeddedValueCr: 0.5 },
+    { ...good, periodEnd: "2026-06-30", solvencyRatio: null, vnbMargin: 200, combinedRatio: 0, embeddedValueCr: null },
+  ]);
+  assert.deepEqual(edge.errors, []);
+});
