@@ -8,6 +8,7 @@
 // in place. So sector pages, idea screens and decks keep reading `supplier.f` as before, and the
 // same ticker shows the same figures everywhere.
 import type { SupplierFinancials } from "@/lib/sector-content";
+import { forDisplay } from "./kinds";
 
 type Ref = { f: SupplierFinancials; sectorNote: string | null };
 
@@ -40,7 +41,9 @@ export function missingTickers(byTicker: Record<string, SupplierFinancials>): st
  * here (one missing company must not take every page down); load.ts logs it and
  * financials.test.ts fails on it, so add it with scripts/refresh-financials.ts --add before pushing.
  */
-export function installFinancials(byTicker: Record<string, SupplierFinancials>, opts: { partial?: boolean } = {}) {
+export function installFinancials(raw: Record<string, SupplierFinancials>, opts: { partial?: boolean } = {}) {
+  // As the app shows them (a lender's or insurer's ROCE emptied, ./kinds.ts forDisplay).
+  const byTicker = Object.fromEntries(Object.entries(raw).map(([t, f]) => [t, forDisplay(f)]));
   table = opts.partial ? { ...table, ...byTicker } : { ...byTicker };
   for (const ref of refs) {
     const row = table[ref.f.ticker];

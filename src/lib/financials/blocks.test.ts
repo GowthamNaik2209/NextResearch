@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { insurerFiguresFrom, lenderFromColumns, readInsurerRows, readLenderFigures } from "./blocks";
 import { rowToFinancials, type CompanyFinRow } from "./rows";
+import { withSnapshot, type Snap } from "./refresh";
+import { forDisplay } from "./kinds";
+import { getFinancials, installFinancials } from "./store";
 
 const day = (s: string) => new Date(`${s}T00:00:00Z`);
 const AS_OF = day("2026-11-17");
@@ -99,16 +102,35 @@ test("every row carries its kind; the lender block only on lenders, the insurer 
   assert.equal(rowToFinancials(row("HDFCLIFE")).insurer, null);
 });
 
-test("a lender's or insurer's ROCE is not a number on the row, so no surface can show one; other figures stay", () => {
+test("the stored ROCE stays raw: the refresh reads a lender's ROCE back and keeps writing Screener's", () => {
   const withKpis = (ticker: string): CompanyFinRow => {
     const r = row(ticker);
     return { ...r, kpis: [{ ...r.kpis[0], pe: 18, bookValue: 600, roce: 7.5, roe: 16.4 }] };
   };
-  for (const t of ["HDFCBANK", "RECLTD", "HDFCLIFE", "ICICIGI"]) {
-    const f = rowToFinancials(withKpis(t));
-    assert.equal(f.kpi?.[3], null, t);
-    assert.equal(f.kpi?.[0], 18, `${t} P/E`);
-    assert.equal(f.kpi?.[4], 16.4, `${t} ROE`);
+  // What refresh.ts / scripts read (readCompanyTable -> rowToFinancials): Screener's figure, as stored.
+  for (const t of ["HDFCBANK", "RECLTD", "HDFCLIFE", "ICICIGI", "TCS"]) assert.equal(rowToFinancials(withKpis(t)).kpi?.[3], 7.5, t);
+  // withSnapshot keeps a null it reads as curated "not meaningful": a raw read means it writes today's ROCE.
+  const snap = { mcap: "Rs 1,00,000 Cr", price: 1000, cagr: [10, 12, 14], range: [800, 1100], kpi: [19, 610, 1.1, 7, 16.9, 1] } as unknown as Snap;
+  assert.equal(withSnapshot(rowToFinancials(withKpis("HDFCBANK")), snap, AS_OF).kpi?.[3], 7);
+  assert.equal(withSnapshot(rowToFinancials(withKpis("HDFCLIFE")), snap, AS_OF).kpi?.[3], 7);
+});
+
+test("as the app shows them, a lender's or insurer's ROCE is not a number; other figures stay", () => {
+  const withKpis = (ticker: string): CompanyFinRow => {
+    const r = row(ticker);
+    return { ...r, kpis: [{ ...r.kpis[0], pe: 18, bookValue: 600, roce: 7.5, roe: 16.4 }] };
+  };
+  const tickers = ["HDFCBANK", "RECLTD", "HDFCLIFE", "ICICIGI", "TCS"];
+  const raw = Object.fromEntries(tickers.map((t) => [t, rowToFinancials(withKpis(t))]));
+  // The app-facing install (load.ts ensureFinancials -> store.installFinancials; financialsFor uses forDisplay too).
+  installFinancials(raw);
+  for (const t of tickers.slice(0, 4)) {
+    assert.equal(getFinancials(t)?.kpi?.[3], null, t);
+    assert.equal(forDisplay(raw[t]).kpi?.[3], null, t);
+    assert.equal(getFinancials(t)?.kpi?.[0], 18, `${t} P/E`);
+    assert.equal(getFinancials(t)?.kpi?.[4], 16.4, `${t} ROE`);
   }
-  assert.equal(rowToFinancials(withKpis("TCS")).kpi?.[3], 7.5);
+  assert.equal(getFinancials("TCS")?.kpi?.[3], 7.5);
+  // The raw rows handed in are not changed.
+  assert.equal(raw.HDFCBANK.kpi?.[3], 7.5);
 });

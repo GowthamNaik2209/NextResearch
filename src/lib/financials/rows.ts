@@ -107,9 +107,6 @@ export function rowToFinancials(r: CompanyFinRow, blocks: KindBlocks = {}): Supp
     kind,
   };
   if (r.screenOut) f.screenOut = true;
-  // ROCE means nothing for a lender or an insurer (./kinds.ts): the slot is emptied here, where the
-  // table is read, so no surface (pop-up, screens, pools, decks, share images) can show it as a number.
-  if (kind !== "operating" && f.kpi) f.kpi = f.kpi.map((v, i) => (i === 3 ? null : v));
   // Each block only on its own kind; none stored yet reads as null.
   if (kind === "lender") f.lender = blocks.lender ? lenderRatiosFrom(blocks.lender) : null;
   // Freshness against the snapshot day, so the whole table is judged on one date.

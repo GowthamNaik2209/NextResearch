@@ -7,6 +7,8 @@
 // goes where most of its profit comes from. Brokers, asset managers, exchanges,
 // registrars, rating agencies and insurance brokers or aggregators earn fees
 // and stay "operating".
+import type { SupplierFinancials } from "@/lib/sector-content";
+
 export type CompanyKind = "operating" | "lender" | "insurer";
 
 export const LENDERS: readonly string[] = [
@@ -36,4 +38,16 @@ export function companyKind(ticker: string): CompanyKind {
   if (LENDER_SET.has(ticker)) return "lender";
   if (INSURER_SET.has(ticker)) return "insurer";
   return "operating";
+}
+
+/**
+ * The figures as the app shows them: a lender's or an insurer's ROCE (kpi[3]) emptied, so no surface
+ * (pop-up, screens, pools, decks, share images) can show it as a number. Applied only where the app
+ * installs the table (./store.ts installFinancials, ./load.ts financialsFor), never on the rows the
+ * refresh reads back (./query.ts readCompanyTable): the database keeps Screener's ROCE as reported,
+ * and the refresh treats a null it reads as a curated "not meaningful" it would keep writing.
+ */
+export function forDisplay(f: SupplierFinancials): SupplierFinancials {
+  if ((f.kind ?? companyKind(f.ticker)) === "operating" || !f.kpi || f.kpi[3] == null) return f;
+  return { ...f, kpi: f.kpi.map((v, i) => (i === 3 ? null : v)) };
 }
