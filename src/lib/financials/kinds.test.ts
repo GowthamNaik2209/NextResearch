@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { companyKind, INSURERS, LENDERS } from "./kinds";
+import { BANKS, companyKind, INSURERS, isBank, LENDERS } from "./kinds";
 
 test("lenders, insurers and everything else are told apart", () => {
   for (const t of ["HDFCBANK", "BAJFINANCE", "RECLTD", "PFC", "IRFC", "BAJAJFINSV", "JIOFIN"]) assert.equal(companyKind(t), "lender", t);
@@ -17,4 +17,10 @@ test("brokers, exchanges and insurance aggregators stay operating", () => {
 test("each ticker sits in exactly one list, once", () => {
   const all = [...LENDERS, ...INSURERS];
   assert.equal(new Set(all).size, all.length);
+});
+
+test("the banks are lenders; NBFCs and housing or infrastructure lenders are not banks", () => {
+  for (const t of BANKS) assert.ok(LENDERS.includes(t), t);
+  for (const t of ["HDFCBANK", "SBIN", "AUBANK", "YESBANK", "CANBK"]) assert.ok(isBank(t), t);
+  for (const t of ["BAJFINANCE", "BAJAJHFL", "RECLTD", "CREDITACC", "JIOFIN", "TCS", "HDFCLIFE"]) assert.ok(!isBank(t), t);
 });

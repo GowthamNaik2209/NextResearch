@@ -12,11 +12,15 @@ import type { Fundamentals } from "@/lib/live/screener-company";
 
 export type CompanyKind = "operating" | "lender" | "insurer";
 
-export const LENDERS: readonly string[] = [
-  // Banks
+/** The lenders that are banks (they take deposits): the lender block's deposit growth row is theirs. */
+export const BANKS: readonly string[] = [
   "HDFCBANK", "ICICIBANK", "SBIN", "AXISBANK", "KOTAKBANK",
   "INDUSINDBK", "IDFCFIRSTB", "BANDHANBNK", "FEDERALBNK", "AUBANK", "YESBANK",
   "PNB", "BANKBARODA", "CANBK", "UNIONBANK",
+];
+
+export const LENDERS: readonly string[] = [
+  ...BANKS,
   // NBFCs and holding companies led by lending
   "BAJFINANCE", "BAJAJFINSV", "JIOFIN", "SHRIRAMFIN", "CHOLAFIN", "MUTHOOTFIN", "MANAPPURAM", "M&MFIN", "POONAWALLA", "SBICARD",
   // Housing finance
@@ -33,7 +37,10 @@ export const INSURERS: readonly string[] = [
 ];
 
 const LENDER_SET = new Set(LENDERS);
+const BANK_SET = new Set(BANKS);
 const INSURER_SET = new Set(INSURERS);
+
+export const isBank = (ticker: string) => BANK_SET.has(ticker);
 
 export function companyKind(ticker: string): CompanyKind {
   if (LENDER_SET.has(ticker)) return "lender";

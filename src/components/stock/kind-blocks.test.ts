@@ -29,9 +29,8 @@ const general: SupplierFinancials = {
 
 const labels = (rows: { label: string }[]) => rows.map((r) => r.label);
 
-test("the lender's year labels: the financing-margin year and the balance-sheet year, and whether it takes deposits", () => {
-  assert.deepEqual([bankBlock.year, bankBlock.bsYear, bankBlock.bank], ["FY26", "FY26", true]);
-  assert.equal(nbfcBlock.bank, false);
+test("the lender's year labels: the financing-margin year and the balance-sheet year", () => {
+  assert.deepEqual([bankBlock.year, bankBlock.bsYear], ["FY26", "FY26"]);
   const dec = lenderRatiosFrom({ ...{ gnpa: null, nnpa: null, finMargin: null, netProfit: null, totalAssets: [null, null], deposits: null, quarter: null }, finMarginYear: "Dec 2025", bsYear: null });
   assert.deepEqual([dec.year, dec.bsYear], ["Dec 2025", null]);
 });
@@ -52,8 +51,15 @@ test("a bank's block: the eight figures in order, each period beside it, never N
   for (const r of b.rows) assert.doesNotMatch(r.label, /NIM|CASA|loan growth/i);
 });
 
-test("an NBFC (no deposits) has no deposit growth row", () => {
+test("the deposit growth row is a bank's (kinds.ts BANKS), whatever is stored; an NBFC has none", () => {
   assert.ok(!labels(lenderRows(nbfc).rows).includes("Deposit growth"));
+  // A bank with no stored deposits (or no lender figures at all) still shows the row, as a dash.
+  for (const l of [{ ...bankBlock, depositGrowth: null }, null]) {
+    const r = lenderRows({ ...bank, lender: l }).rows.find((x) => x.label === "Deposit growth");
+    assert.equal(r?.value, "—");
+  }
+  // An NBFC with a stored Deposits row is still not a bank.
+  assert.ok(!labels(lenderRows({ ...nbfc, lender: bankBlock }).rows).includes("Deposit growth"));
 });
 
 test("a lender with no stored figures yet: dashes (never 0) and a missing flag", () => {
@@ -63,7 +69,7 @@ test("a lender with no stored figures yet: dashes (never 0) and a missing flag",
   assert.equal(v["Gross NPA"], "—");
   assert.equal(v["ROA"], "—");
   assert.equal(v["P/B"], "2.5x", "P/B and ROE come from the snapshot");
-  assert.ok(!("Deposit growth" in v));
+  assert.equal(v["Deposit growth"], "—");
   // A zero NPA is a real zero; a missing one is a dash.
   const zero = lenderRows({ ...bank, lender: { ...bankBlock, nnpa: 0, gnpa: null } });
   const z = Object.fromEntries(zero.rows.map((r) => [r.label, r.value]));
@@ -72,10 +78,10 @@ test("a lender with no stored figures yet: dashes (never 0) and a missing flag",
 
 test("a life insurer's block: hand-kept figures carry their quarter and source; no combined ratio row", () => {
   const b = insurerRows(life);
-  assert.deepEqual(labels(b.rows), ["P/B", "ROE", "Premium growth", "VNB margin", "P/EV", "Solvency ratio"]);
+  assert.deepEqual(labels(b.rows), ["P/B", "ROE", "Revenue growth", "VNB margin", "P/EV", "Solvency ratio"]);
   const v = Object.fromEntries(b.rows.map((r) => [r.label, r]));
-  assert.equal(v["Premium growth"].value, "+25.0%");
-  assert.equal(v["Premium growth"].period, "FY23");
+  assert.equal(v["Revenue growth"].value, "+25.0%");
+  assert.equal(v["Revenue growth"].period, "FY23");
   assert.equal(v["VNB margin"].value, "25.5%");
   assert.equal(v["P/EV"].value, "2.31x");
   assert.equal(v["Solvency ratio"].value, "1.94x");
@@ -90,14 +96,14 @@ test("a life insurer's block: hand-kept figures carry their quarter and source; 
 
 test("a general insurer's block: combined ratio, no VNB or P/EV; a stale quarter is marked", () => {
   const b = insurerRows(general);
-  assert.deepEqual(labels(b.rows), ["P/B", "ROE", "Premium growth", "Combined ratio", "Solvency ratio"]);
+  assert.deepEqual(labels(b.rows), ["P/B", "ROE", "Revenue growth", "Combined ratio", "Solvency ratio"]);
   const c = b.rows.find((r) => r.label === "Combined ratio")!;
   assert.deepEqual([c.value, c.period, c.stale], ["102.6%", "Q1 FY27", true]);
 });
 
 test("an insurer with no hand-kept row yet: the snapshot rows only, and a missing flag", () => {
   const b = insurerRows({ ...life, insurer: null });
-  assert.deepEqual(labels(b.rows), ["P/B", "ROE", "Premium growth"]);
+  assert.deepEqual(labels(b.rows), ["P/B", "ROE", "Revenue growth"]);
   assert.equal(b.missing, true);
 });
 

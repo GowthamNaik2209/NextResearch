@@ -29,6 +29,7 @@ import { getSector } from "@/lib/sector-content";
 import { allChecks, stockChecks, type AllChecks, type StockCheck } from "@/lib/baskets/projection-check-data";
 import type { Landed } from "@/lib/baskets/projection-check";
 import { NA, fmtDay, signedPct } from "@/lib/format";
+import { notMeaningfulNote } from "@/lib/financials/kinds";
 import { ExampleStockSelect } from "./ExampleStockSelect";
 import { B, Bullets, Formula, H2, H3, Note, P, Row, Table, Td, Th } from "../method-ui";
 import { shareMeta } from "@/lib/site";
@@ -376,7 +377,9 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
     const raw = r && n != null ? n / r : null;
     return raw != null && Math.abs(raw - m) > 1e-9 ? ` (kept within −50% … +60%, from ${pct(raw, 2)})` : "";
   };
-  const marginCapped = f ? Math.abs(f.marginFactor - f.marginThen / f.marginNow) > 1e-12 : false;
+  const marginCapped = f && f.marginNow != null && f.marginThen != null ? Math.abs(f.marginFactor - f.marginThen / f.marginNow) > 1e-12 : false;
+  // A lender's or an insurer's net margin means nothing: its margins read as this note and are not used.
+  const nm = notMeaningfulNote(input.kind);
   const zRaw = f && ctx.scale.sd > 0 ? (f.score - ctx.scale.median) / ctx.scale.sd : 0;
   const zCapped = Math.abs(zRaw - ctx.z) > 1e-12;
 
@@ -427,7 +430,7 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
           {f && (
             <Row last>
               <Td left>Home industry median net margin</Td>
-              <Td>{f.indMargin == null ? "none" : pct(f.indMargin, 2)}</Td>
+              <Td>{nm ?? (f.indMargin == null ? "none" : pct(f.indMargin, 2))}</Td>
             </Row>
           )}
         </Table>
@@ -499,8 +502,8 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
                     <Td>{cr(rev)}</Td>
                     <Td>{cr(np)}</Td>
                     <Td>
-                      {m == null ? NA : pct(m, 2)}
-                      {!used ? " (left out)" : ""}
+                      {nm ?? (m == null ? NA : pct(m, 2))}
+                      {!nm && !used ? " (left out)" : ""}
                     </Td>
                     <Td tone={yoy ?? undefined}>{yoy == null ? NA : sPct(yoy)}</Td>
                   </Row>
@@ -517,18 +520,28 @@ function Example({ name, home, ctx, input, riskAsOf }: { name: string; home: str
               {Math.abs(g.faded - f.growth) > 1e-12 ? ` → kept within −25% … +40%: ${sPct(f.growth, 2)}` : ""}
               <br />
               <br />
-              margins used: {f.margins.map((m, i) => `${marginYears[i] != null ? fyLabel(marginYears[i]) + " " : ""}${pct(m, 2)}${capNote(m, marginYears[i])}`).join(" · ")}
-              <br />
-              own median = {pct(f.ownMargin, 2)} · industry median = {f.indMargin == null ? "none" : pct(f.indMargin, 2)}
-              <br />
-              aim = {f.indMargin == null ? `own median = ${pct(f.aimMargin, 2)}` : `(${pct(f.ownMargin, 2)} + ${pct(f.indMargin, 2)}) ÷ 2 = ${pct(f.aimMargin, 2)}`}
-              <br />
-              margin a year on = {pct(f.marginNow, 2)} + ({pct(f.aimMargin, 2)} − {pct(f.marginNow, 2)}) ÷ {MARGIN_YEARS} = {pct(f.marginThen, 2)}
-              <br />
-              margin factor = {pct(f.marginThen, 2)} ÷ {pct(f.marginNow, 2)} = {(f.marginThen / f.marginNow).toFixed(4)}
-              {marginCapped ? ` → kept within 1 ÷ ${1 + MARGIN_SHIFT_A_YEAR} … ${1 + MARGIN_SHIFT_A_YEAR}: ${f.marginFactor.toFixed(4)}` : ""}
-              <br />
-              <br />
+              {nm || f.marginNow == null || f.marginThen == null || f.ownMargin == null || f.aimMargin == null ? (
+                <>
+                  net margin: {nm ?? NA}, so no margin factor (it is 1)
+                  <br />
+                  <br />
+                </>
+              ) : (
+                <>
+                  margins used: {f.margins.map((m, i) => `${marginYears[i] != null ? fyLabel(marginYears[i]) + " " : ""}${pct(m, 2)}${capNote(m, marginYears[i])}`).join(" · ")}
+                  <br />
+                  own median = {pct(f.ownMargin, 2)} · industry median = {f.indMargin == null ? "none" : pct(f.indMargin, 2)}
+                  <br />
+                  aim = {f.indMargin == null ? `own median = ${pct(f.aimMargin, 2)}` : `(${pct(f.ownMargin, 2)} + ${pct(f.indMargin, 2)}) ÷ 2 = ${pct(f.aimMargin, 2)}`}
+                  <br />
+                  margin a year on = {pct(f.marginNow, 2)} + ({pct(f.aimMargin, 2)} − {pct(f.marginNow, 2)}) ÷ {MARGIN_YEARS} = {pct(f.marginThen, 2)}
+                  <br />
+                  margin factor = {pct(f.marginThen, 2)} ÷ {pct(f.marginNow, 2)} = {(f.marginThen / f.marginNow).toFixed(4)}
+                  {marginCapped ? ` → kept within 1 ÷ ${1 + MARGIN_SHIFT_A_YEAR} … ${1 + MARGIN_SHIFT_A_YEAR}: ${f.marginFactor.toFixed(4)}` : ""}
+                  <br />
+                  <br />
+                </>
+              )}
               score = {f4(1 + f.growth)} × {f.marginFactor.toFixed(4)} − 1 = {sPct(f.score, 2)}
             </Formula>
           </div>

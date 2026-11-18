@@ -6,14 +6,14 @@ import { insurerRows } from "./kind-blocks";
 // (the rows come from kind-blocks.ts). One i button for the whole block.
 
 export const INSURER_NOTE =
-  "How an insurer is read: its price against its book (P/B) and its return on equity, how fast premiums grew, how profitable a life insurer's new policies are (VNB margin) and its price against embedded value (P/EV), what a general insurer pays in claims and costs per ₹100 of premium (combined ratio; under 100% is an underwriting profit) and its capital cover (solvency ratio; the regulator asks for at least 1.5x). VNB margin, P/EV, combined and solvency ratios are kept by hand from each insurer's quarterly public disclosures; tap a quarter for its source.";
+  "How an insurer is read: its price against its book (P/B) and its return on equity, how fast its revenue (premiums and investment income) grew, how profitable a life insurer's new policies are (VNB margin) and its price against embedded value (P/EV), what a general insurer pays in claims and costs per ₹100 of premium (combined ratio; under 100% is an underwriting profit) and its capital cover (solvency ratio; the regulator asks for at least 1.5x). VNB margin, P/EV, combined and solvency ratios are kept by hand from each insurer's quarterly public disclosures; tap a quarter for its source.";
 
 export function InsurerBlock({ f, compact, className }: { f: SupplierFinancials; compact?: boolean; className?: string }) {
   const { rows, missing } = insurerRows(f);
   return (
     <BlockCard title="Insurance figures" info={INSURER_NOTE} rows={rows} compact={compact} className={className}>
       <p className="mt-1.5 text-[10.5px] leading-snug text-ink-soft">
-        {missing && "Insurance figures not yet added. "}P/B, ROE and premium growth: company snapshot{f.asOf ? ` as of ${f.asOf}` : ""}.
+        {missing && "Insurance figures not yet added. "}P/B, ROE and revenue growth: company snapshot{f.asOf ? ` as of ${f.asOf}` : ""}.
       </p>
     </BlockCard>
   );

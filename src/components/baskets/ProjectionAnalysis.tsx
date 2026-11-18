@@ -6,6 +6,7 @@ import { StockLink } from "@/components/stock/StockLink";
 import { fmtDay, NA, pct, signedPct } from "@/lib/format";
 import { GROWTH_FADE, IC, LONG_RUN_GROWTH, MARKET, SCENARIOS, VOL_FLOOR, type Scenario, type StockProjection } from "@/lib/baskets/projection";
 import { stockPath } from "@/lib/baskets/projection-basket";
+import { notMeaningfulNote } from "@/lib/financials/kinds";
 import { MINI_SEG, Panel, miniSegBtn } from "./Panel";
 import { HORIZON_LONG, PROJECTION_DISCLAIMER, SCENARIO_LABEL, type ProjectionView } from "./projection-view";
 
@@ -303,7 +304,7 @@ function Row({ ticker, name, proj, view, cols, notHeld }: { ticker: string; name
           <>
             {signedPct(proj.tilt * 100, 2)}
             <Note title="Standardised fundamentals score, then revenue growth a year and net margin today → a year on">
-              z {proj.z > 0 ? "+" : ""}{proj.z.toFixed(1)} · growth {proj.growth != null ? pct(proj.growth * 100, 0) : NA} · margin {proj.marginNow != null ? pct(proj.marginNow * 100) : NA} → {proj.marginThen != null ? pct(proj.marginThen * 100) : NA}
+              z {proj.z > 0 ? "+" : ""}{proj.z.toFixed(1)} · growth {proj.growth != null ? pct(proj.growth * 100, 0) : NA} · margin {notMeaningfulNote(proj.kind)?.replace(/^N/, "n") ?? `${proj.marginNow != null ? pct(proj.marginNow * 100) : NA} → ${proj.marginThen != null ? pct(proj.marginThen * 100) : NA}`}
             </Note>
           </>
         ) : (

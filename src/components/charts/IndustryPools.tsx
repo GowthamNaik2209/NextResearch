@@ -569,7 +569,7 @@ function LayerTable({ layer, metric, year, offered }: { layer: LayerPool; metric
     { id: "pe", label: `P/E (${year})`, cell: (c) => (c.np[1] != null && c.np[1] > 0 && c.mcapCr != null ? `${(c.mcapCr / c.np[1]).toFixed(1)}×` : c.np[1] != null && c.np[1] <= 0 ? "loss" : NA) },
     { id: "roce", label: "ROCE", cell: (c) => nmNote(c, "roce") ?? fmt("roce", companyValue(c, "roce")) },
     // The lender and insurer figures when the industry offers them (P/B and ROE for every company).
-    ...offered.filter((m) => !POOL_METRICS.includes(m)).map((m) => ({ id: m.id, label: m.label, cell: (c: PoolCompany) => fmt(m.id, companyValue(c, m.id)) })),
+    ...offered.filter((m) => !POOL_METRICS.some((p) => p.id === m.id)).map((m) => ({ id: m.id, label: m.label, cell: (c: PoolCompany) => fmt(m.id, companyValue(c, m.id)) })),
   ];
   const key = (c: PoolCompany) => companyValue(c, metric) ?? -Infinity;
   // Only the companies that count: the rest are in the low-exposure list, to add from there.

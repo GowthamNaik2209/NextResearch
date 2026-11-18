@@ -6,6 +6,7 @@ import { FISCAL_YEARS } from "@/lib/financials/rows";
 import type { SupplierFinancials } from "@/lib/sector-content";
 import { parseCrore } from "@/lib/sector-content/core";
 import { detectOutlier } from "./outliers";
+import { companyKind } from "@/lib/financials/kinds";
 import { casesFor, type Horizon, type ProjectionContext, type ProjectionInput } from "./projection";
 import { riskOf } from "./projection-risk";
 import type { PricePoint } from "./backtest";
@@ -96,6 +97,7 @@ export function inputOn(
       asOf: day,
       oneOffIndex: m ? Number(m[1]) - 22 : null,
       industry: { margin: industryMargin },
+      kind: f.kind ?? companyKind(f.ticker),
       risk: riskOf(upTo(pts), upTo(index)),
     },
   };

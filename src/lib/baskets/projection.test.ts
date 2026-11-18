@@ -125,8 +125,8 @@ test("margin: a third of the way to the average of its own and its industry's me
   const ind = explainStock({ ...base, industry: { margin: 0.2 } }, scale);
   assert.ok(ind.ok);
   if (ind.ok) {
-    near(ind.ctx.fundamentals!.aimMargin, 0.15);
-    near(ind.ctx.fundamentals!.marginThen, 0.1 + 0.05 / 3);
+    near(ind.ctx.fundamentals!.aimMargin!, 0.15);
+    near(ind.ctx.fundamentals!.marginThen!, 0.1 + 0.05 / 3);
   }
 });
 
@@ -240,4 +240,35 @@ test("annual volatility from daily and weekly bars", () => {
   const v = annualVol(daily)!;
   assert.ok(v > 0.1 && v < 0.2, `${v}`);
   assert.equal(annualVol(daily.slice(0, 5)), null);
+});
+
+test("a lender or an insurer: no margin factor (neutral), no margin figures; an operating company is unchanged", () => {
+  // Margin 2% today against a usual 10%: an operating company's factor is held at 1.15.
+  const np = [100, 110, 121, 133.1, 29.282];
+  const op = explainStock({ ...base, np }, scale);
+  const opKind = explainStock({ ...base, np, kind: "operating" }, scale);
+  assert.ok(op.ok && opKind.ok);
+  if (op.ok && opKind.ok) {
+    near(op.ctx.fundamentals!.marginFactor, 1.15);
+    assert.deepEqual(opKind.ctx.fundamentals, op.ctx.fundamentals);
+  }
+  for (const kind of ["lender", "insurer"] as const) {
+    const e = explainStock({ ...base, np, kind, industry: { margin: 0.2 } }, scale);
+    assert.ok(e.ok, kind);
+    if (!e.ok) continue;
+    const f = e.ctx.fundamentals!;
+    assert.equal(f.marginFactor, 1, kind);
+    assert.equal(f.marginUsed, false, kind);
+    assert.deepEqual([f.margins, f.ownMargin, f.indMargin, f.aimMargin, f.marginNow, f.marginThen], [[], null, null, null, null, null], kind);
+    // The score is growth alone.
+    near(f.score, f.growth);
+    const p = projectStock({ ...base, np, kind }, scale);
+    assert.ok(p.ok);
+    if (p.ok) {
+      assert.deepEqual([p.marginNow, p.marginThen, p.kind], [null, null, kind]);
+      assert.equal(compactProjection(p).ok && (compactProjection(p) as { kind?: string }).kind, kind);
+    }
+  }
+  // A lender still needs a profit to be scored.
+  assert.equal(fundamentalScore({ ...base, np: [10, 10, 10, 10, -5], kind: "lender" }), null);
 });

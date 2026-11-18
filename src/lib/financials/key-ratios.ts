@@ -52,8 +52,6 @@ export type LenderRatios = {
   /** The full year the financing margin and ROA are for ("FY26"), and the latest year-end the growths run to. */
   year: string | null;
   bsYear: string | null;
-  /** It takes deposits (a bank); an NBFC's balance sheet has no Deposits row. */
-  bank: boolean;
 };
 
 export type ProfitNote = "from a loss" | "to a loss" | "loss narrowed" | "loss widened";
@@ -95,7 +93,6 @@ export function lenderRatiosFrom(l: LenderFigures): LenderRatios {
     quarter: l.quarter,
     year: fyOf(l.finMarginYear),
     bsYear: fyOf(l.bsYear),
-    bank: l.deposits != null,
   };
 }
 

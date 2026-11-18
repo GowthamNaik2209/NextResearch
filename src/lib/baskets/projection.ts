@@ -7,7 +7,9 @@
 // Pure: the server feeds it a company's record, its price statistics (./projection-risk.ts) and the
 // spread of fundamentals scores across covered companies; the page reads the result. A stock
 // needs at least 3 consecutive fiscal years of results and 3 years of trading; anything less is
-// left out, with the reason.
+// left out, with the reason. A lender's or an insurer's net margin means nothing (financials/kinds.ts):
+// its margin factor is left neutral, so its score is growth alone.
+import type { CompanyKind } from "@/lib/financials/kinds";
 
 export type Scenario = "bear" | "base" | "bull";
 export type Horizon = 1 | 2;
@@ -83,8 +85,10 @@ export type ProjectionInput = {
   asOf?: string;
   /** Index (0-4) of a one-off year to leave out of the margins. */
   oneOffIndex?: number | null;
-  /** The home industry's median net margin (latest year, every listed company it maps). */
+  /** The home industry's median net margin (latest year, every listed operating company it maps). */
   industry: { margin: number | null };
+  /** Lender, insurer or operating company; missing reads as operating. */
+  kind?: CompanyKind;
   /** Price statistics; null or missing when not loaded yet. */
   risk?: RiskInput | null;
 };
@@ -97,14 +101,16 @@ export type Fundamentals = {
   /** The usual growth before fading (median year, CAGR or a recent slowdown, the lowest), then faded. */
   histGrowth: number;
   growth: number;
+  /** False for a lender or an insurer: no margin is used, the margin fields are empty and the factor is 1. */
+  marginUsed: boolean;
   /** Net margin each year used, its median, the industry's, and the one it moves toward. */
   margins: number[];
-  ownMargin: number;
+  ownMargin: number | null;
   indMargin: number | null;
-  aimMargin: number;
-  marginNow: number;
-  marginThen: number;
-  /** marginThen / marginNow, within the yearly limit. */
+  aimMargin: number | null;
+  marginNow: number | null;
+  marginThen: number | null;
+  /** marginThen / marginNow, within the yearly limit (1 when no margin is used). */
   marginFactor: number;
   /** (1 + growth) x marginFactor - 1. */
   score: number;
@@ -159,6 +165,8 @@ export type StockProjection =
       divYield: number;
       /** rf + beta x ERP - dividend yield, a year. */
       market: number;
+      /** Set for a lender or an insurer: its margins are not meaningful (marginNow/Then are null). */
+      kind?: Exclude<CompanyKind, "operating">;
       /** Revenue growth a year, margin now and a year on, and the score (P/E method only). */
       growth: number | null;
       marginNow: number | null;
@@ -253,12 +261,18 @@ function fundamentalsOf(x: ProjectionInput, run: [number, number]): { f: Fundame
   const ownMargin = median(margins)!;
   const revLast = revs[revs.length - 1];
   const npLast = nps[nps.length - 1];
+  const marginUsed = (x.kind ?? "operating") === "operating";
   // The fundamentals score needs a profit to grow: a positive P/E, a profit in the latest year and a
-  // positive usual margin. Anything else is projected on the market return alone.
-  if (!ok(x.pe) || x.pe <= 0 || npLast <= 0 || !(ownMargin > 0)) return { f: null, skipped };
+  // positive usual margin (not asked of a lender or an insurer). Anything else is projected on the
+  // market return alone.
+  if (!ok(x.pe) || x.pe <= 0 || npLast <= 0 || (marginUsed && !(ownMargin > 0))) return { f: null, skipped };
   const yoy: number[] = [];
   for (let i = 1; i < revs.length; i++) if (revs[i - 1] > 0) yoy.push(revs[i] / revs[i - 1] - 1);
   const { hist, growth } = usualGrowth(revs);
+  if (!marginUsed) {
+    // No margins are used, so none is left out.
+    return { f: { revs, yoy, histGrowth: hist, growth, marginUsed, margins: [], ownMargin: null, indMargin: null, aimMargin: null, marginNow: null, marginThen: null, marginFactor: 1, score: growth } };
+  }
   const marginNow = npLast / revLast;
   const indMargin = ok(x.industry.margin) && x.industry.margin > 0 ? x.industry.margin : null;
   const aimMargin = indMargin != null ? (ownMargin + indMargin) / 2 : ownMargin;
@@ -266,7 +280,7 @@ function fundamentalsOf(x: ProjectionInput, run: [number, number]): { f: Fundame
   const most = 1 + MARGIN_SHIFT_A_YEAR;
   const marginFactor = clamp(marginThen / marginNow, 1 / most, most);
   return {
-    f: { revs, yoy, histGrowth: hist, growth, margins, ownMargin, indMargin, aimMargin, marginNow, marginThen, marginFactor, score: (1 + growth) * marginFactor - 1 },
+    f: { revs, yoy, histGrowth: hist, growth, marginUsed, margins, ownMargin, indMargin, aimMargin, marginNow, marginThen, marginFactor, score: (1 + growth) * marginFactor - 1 },
     skipped,
   };
 }
@@ -365,6 +379,7 @@ export function projectStock(x: ProjectionInput, scale: ScoreScale): StockProjec
     volSource: c.volSource,
     divYield: c.divYield,
     market: c.market,
+    ...(x.kind && x.kind !== "operating" ? { kind: x.kind } : {}),
     growth: f?.growth ?? null,
     marginNow: f?.marginNow ?? null,
     marginThen: f?.marginThen ?? null,

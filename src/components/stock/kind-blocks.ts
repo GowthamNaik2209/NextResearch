@@ -2,6 +2,7 @@
 // the period each figure is for, shared by the stock pop-up and the company page. Pure: the
 // components only lay these out. A figure that is not known reads "—", never 0.
 import { keyRatios } from "@/lib/financials/key-ratios";
+import { isBank } from "@/lib/financials/kinds";
 import type { SupplierFinancials } from "@/lib/sector-content";
 import { NA, pct, signedPct } from "@/lib/format";
 
@@ -46,14 +47,15 @@ export function lenderRows(f: SupplierFinancials): Block {
     { label: "Net NPA", value: pct(l?.nnpa, 2), period: opt(l?.quarter) },
     { label: "Financing margin", value: pct(l?.finMargin, 1), period: year },
   ];
-  // An NBFC takes no deposits: no row rather than a dash that reads as "not reported".
-  if (l?.bank) rows.push({ label: "Deposit growth", value: signedPct(l.depositGrowth, 1), period: bsYear });
+  // Only a bank takes deposits (kinds.ts BANKS): an NBFC gets no row rather than a dash that reads as
+  // "not reported"; a bank without stored deposits reads "—".
+  if (isBank(f.ticker)) rows.push({ label: "Deposit growth", value: signedPct(l?.depositGrowth, 1), period: bsYear });
   rows.push({ label: "Balance-sheet growth", value: signedPct(l?.bsGrowth, 1), period: bsYear });
   return { rows, missing: !l };
 }
 
 /**
- * An insurer's block: P/B, ROE and premium growth from the snapshot, then the hand-kept quarter's VNB
+ * An insurer's block: P/B, ROE and revenue growth from the snapshot, then the hand-kept quarter's VNB
  * margin and P/EV (life insurers), combined ratio (general and health insurers) and solvency ratio,
  * each with its quarter and source. A row the insurer's kind of business does not report is left out
  * (a life insurer has no combined ratio; a general insurer no VNB or embedded value).
@@ -62,7 +64,8 @@ export function insurerRows(f: SupplierFinancials): Block {
   const k = keyRatios(f);
   const rows: BlockRow[] = [
     ...snapshotRows(f),
-    { label: "Premium growth", value: signedPct(k.revGrowth, 1), period: opt(k.fy) },
+    // Screener's revenue (premiums with investment income), labelled as Screener reports it.
+    { label: "Revenue growth", value: signedPct(k.revGrowth, 1), period: opt(k.fy) },
   ];
   const i = f.insurer ?? null;
   if (!i) return { rows, missing: true };
