@@ -30,7 +30,8 @@ import { analysisChartIndustries, analysisProps } from "@/lib/analysis-props";
 import { midSentence, themeNames } from "@/lib/site";
 import { getFinancials } from "@/lib/financials/store";
 import { hasQuote } from "@/lib/financials/no-quote";
-import { companyKind } from "@/lib/financials/kinds";
+import { companyKind, fundamentalsForKind } from "@/lib/financials/kinds";
+import type { Fundamentals } from "@/lib/live/screener-company";
 import { keyRatios } from "@/lib/financials/key-ratios";
 import { industryPe, pePeers } from "@/lib/valuation/pe-data";
 import { MIN_INDEX_PEERS, MIN_PEERS } from "@/lib/valuation/pe-context";
@@ -268,6 +269,31 @@ test("lenders and insurers: no ROCE or net margin as a number, on any figure sur
       if (c.kind !== kind) gaps.push(`${where}: the pools read it as ${c.kind ?? "operating"}`);
       for (const id of ["margin", "roce"] as const) if (companyValue(c, id) != null) gaps.push(`${where}: the pools' ${id} is ${companyValue(c, id)}`);
     }
+    // The research deck's company table (its authored beneficiaries only).
+    const d = buildDeck(p.sector.slug)?.companies.find((x) => x.ticker === p.ticker);
+    if (d) {
+      if (d.kind !== kind) gaps.push(`${where}: the deck reads it as ${d.kind}`);
+      if (d.npMargin != null) gaps.push(`${where}: the deck's net margin is ${d.npMargin}`);
+      if (d.roce != null) gaps.push(`${where}: the deck's ROCE is ${d.roce}`);
+    }
+    // The projection (baskets, the projections page and the workbook read its margins).
+    const proj = basketStock(p.ticker)?.proj;
+    if (proj?.ok) {
+      if (proj.kind !== kind) gaps.push(`${where}: the projection reads it as ${proj.kind ?? "operating"}`);
+      if (proj.marginNow != null || proj.marginThen != null) gaps.push(`${where}: the projection's margins are ${proj.marginNow} -> ${proj.marginThen}`);
+    }
+  }
+  // The live pop-up's fundamentals (Screener's ROCE, industry medians and OPM rows) for each kind.
+  const m = { pe: 20, marketCapCr: 100, divYield: 1, qtrProfitVarPct: 5, qtrSalesVarPct: 6, roce: 7.1 };
+  const fund = {
+    kpi: { roce: 7.1, roe: 16 },
+    industry: { peerCount: 10, median: { ...m }, self: { ...m } },
+    annual: { years: ["Mar 2026"], series: [{ label: "Sales", values: [2] }, { label: "Operating Profit", values: [1] }, { label: "OPM %", values: [31] }, { label: "Net Profit", values: [1] }] },
+  } as unknown as Fundamentals;
+  for (const kind of new Set(pairs().map((p) => companyKind(p.ticker)).filter((k) => k !== "operating"))) {
+    const b = fundamentalsForKind(fund, kind);
+    if (b?.kpi?.roce != null || b?.industry?.median.roce != null || b?.industry?.self?.roce != null) gaps.push(`fundamentalsForKind(${kind}): ROCE kept`);
+    if (b?.annual?.series.some((x) => /OPM|Operating Profit/.test(x.label))) gaps.push(`fundamentalsForKind(${kind}): operating margin rows kept`);
   }
   assert.deepEqual(gaps, []);
 });
