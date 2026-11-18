@@ -98,3 +98,17 @@ test("every row carries its kind; the lender block only on lenders, the insurer 
   assert.ok(!("lender" in life));
   assert.equal(rowToFinancials(row("HDFCLIFE")).insurer, null);
 });
+
+test("a lender's or insurer's ROCE is not a number on the row, so no surface can show one; other figures stay", () => {
+  const withKpis = (ticker: string): CompanyFinRow => {
+    const r = row(ticker);
+    return { ...r, kpis: [{ ...r.kpis[0], pe: 18, bookValue: 600, roce: 7.5, roe: 16.4 }] };
+  };
+  for (const t of ["HDFCBANK", "RECLTD", "HDFCLIFE", "ICICIGI"]) {
+    const f = rowToFinancials(withKpis(t));
+    assert.equal(f.kpi?.[3], null, t);
+    assert.equal(f.kpi?.[0], 18, `${t} P/E`);
+    assert.equal(f.kpi?.[4], 16.4, `${t} ROE`);
+  }
+  assert.equal(rowToFinancials(withKpis("TCS")).kpi?.[3], 7.5);
+});

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { compounders, garp, kpiScreens, turnarounds, wideningMargins, KPI_LIST_N, type KpiStock } from "./kpi-screens";
+import { compounders, garp, insurerValue, kpiScreens, qualityLenders, turnarounds, wideningMargins, KPI_LIST_N, type KpiStock } from "./kpi-screens";
 
 // Fixture companies: revenue and profit FY22..FY26 (₹ Cr), worth ₹5,000 Cr unless said otherwise.
 const co = (ticker: string, o: Partial<KpiStock> = {}): KpiStock => ({ ticker, name: ticker, mcapCr: 5000, pe: 20, roce: 20, rev: [1000, 1200, 1400, 1600, 1800], np: [100, 120, 140, 160, 180], ...o });
@@ -91,4 +91,63 @@ test("a company with a one-off year is in no screen, and every rule says so", ()
     assert.equal(s.stocks.length, 0, s.id);
     assert.ok(s.rule.includes("One-off years left out."), s.id);
   }
+});
+
+// ---- Lenders and insurers ----
+
+const bank = (ticker: string, roe: number | null, nnpa: number | null, o: Partial<KpiStock> = {}): KpiStock => co(ticker, { kind: "lender", roce: null, roe, nnpa, ...o });
+const life = (ticker: string, vnbMargin: number | null, pev: number | null, fresh: "fresh" | "stale" = "fresh", o: Partial<KpiStock> = {}): KpiStock =>
+  co(ticker, { kind: "insurer", roce: null, insurer: { vnbMargin, pev, fresh }, ...o });
+
+test("ROCE and margin screens skip lenders and insurers, as they skip REITs", () => {
+  // Shaped to pass every operating rule, even with a ROCE figure left on them.
+  const shapes = { roce: 25, pe: 15, rev: [500, 600, 700, 800, 900], np: [50, 100, 140, 200, 270] };
+  const xs = [co("OPCO", shapes), co("BANKX", { ...shapes, kind: "lender" }), co("LIFEX", { ...shapes, kind: "insurer" })];
+  for (const screen of [compounders, garp, wideningMargins]) assert.deepEqual(tickers(screen(xs)), ["OPCO"], screen.name);
+  // Turnarounds is about a loss and a recovery, not ROCE or margin: a lender can be one.
+  assert.deepEqual(tickers(turnarounds([co("YES", { kind: "lender", np: [-3000, 1000, 1200, 1500, 2000] })])), ["YES"]);
+});
+
+test("qualityLenders: ROE 15%+ and net NPA 1% or less, at the edges; highest ROE first", () => {
+  const list = qualityLenders([
+    bank("EDGE", 15, 1.0), // both on the line: in
+    bank("BEST", 22, 0.3),
+    bank("LOWROE", 14.9, 0.3),
+    bank("BADBOOK", 20, 1.01),
+    bank("NONPA", 20, null), // no NPA reported: can't show it is clean
+    bank("NOROE", null, 0.2),
+    bank("SMALL", 25, 0.1, { mcapCr: 400 }),
+    bank("ONEOFF", 25, 0.1, { outlier: true }),
+    co("OPCO", { roe: 30, nnpa: 0.1 }), // not a lender
+    life("LIFE", 30, 2, "fresh", { roe: 30, nnpa: 0.1 }),
+  ]);
+  assert.deepEqual(tickers(list), ["BEST", "EDGE"]);
+  assert.equal(list[0].stat, "ROE 22% · Net NPA 0.30%");
+});
+
+test("insurerValue: life insurers with VNB margin 20%+ on fresh figures, cheapest P/EV first", () => {
+  const list = insurerValue([
+    life("DEAR", 26, 3.1),
+    life("CHEAP", 20, 1.4), // VNB margin on the line: in
+    life("THIN", 19.9, 1.0),
+    life("STALE", 30, 0.9, "stale"),
+    life("NOPEV", 30, null),
+    life("GENERAL", null, 1.2), // no VNB margin: a general or health insurer
+    life("SMALL", 30, 1.0, "fresh", { mcapCr: 400 }),
+    co("OPCO", { insurer: { vnbMargin: 30, pev: 1, fresh: "fresh" } }), // not an insurer
+    bank("BANK", 20, 0.5, { insurer: { vnbMargin: 30, pev: 1, fresh: "fresh" } }),
+  ]);
+  assert.deepEqual(tickers(list), ["CHEAP", "DEAR"]);
+  assert.equal(list[0].stat, "P/EV 1.40x · VNB 20%");
+});
+
+test("the lender and insurer screens are in the list, each with its thresholds in its one-line rule", () => {
+  const screens = kpiScreens([bank("B", 20, 0.5), life("L", 25, 2)]);
+  const q = screens.find((s) => s.id === "quality-lenders")!;
+  const v = screens.find((s) => s.id === "insurer-value")!;
+  assert.deepEqual(tickers(q.stocks), ["B"]);
+  assert.deepEqual(tickers(v.stocks), ["L"]);
+  for (const s of [q, v]) assert.ok(!s.rule.includes("\n") && s.rule.includes("₹1,000 Cr"), s.id);
+  assert.ok(q.rule.includes("ROE 15%+") && q.rule.includes("net NPA 1% or less"), q.rule);
+  assert.ok(v.rule.includes("VNB margin 20%+") && v.rule.includes("P/EV"), v.rule);
 });

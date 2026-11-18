@@ -10,6 +10,7 @@ import { basketChart, basketSymbolChart } from "@/lib/prices/store";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listBasketUniverse } from "./industry";
 import { ensureFinancials } from "@/lib/financials/load";
+import { companyKind } from "@/lib/financials/kinds";
 import { backtestBasket, byDeadline, pricesPending } from "./run";
 import { heldStrategy } from "./strategy";
 import { detectOutlier } from "./outliers";
@@ -75,6 +76,11 @@ export function ideaStockInfo(): IdeaStockInfo[] {
       roce: num(f?.kpi?.[3]),
       pe: num(f?.kpi?.[0]),
       book: num(f?.kpi?.[1]),
+      roe: num(f?.kpi?.[4]),
+      // Lender or insurer: the ROCE and margin screens skip it; its own screens read its block.
+      kind: f?.kind ?? companyKind(st.ticker),
+      nnpa: num(f?.lender?.nnpa),
+      insurer: f?.insurer ? { vnbMargin: num(f.insurer.vnbMargin), pev: num(f.insurer.pev), fresh: f.insurer.fresh } : null,
       rev: f?.rev ?? undefined,
       np: f?.np ?? undefined,
       outlier: !!detectOutlier(f),
@@ -158,9 +164,9 @@ export const getIdeas = unstable_cache(
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },
-  // v12: Recent listings lists every listing of the past two years (no cap of 15), so cached v11
-  // lists aren't served.
-  ["basket-ideas-v12"],
+  // v13: Quality lenders and Insurer value added, and the ROCE/margin screens skip lenders and
+  // insurers, so cached v12 lists aren't served.
+  ["basket-ideas-v13"],
   { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
 );
 

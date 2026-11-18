@@ -6,7 +6,7 @@
 // Revenue, net profit and market cap are pools: they add up, so a layer or company has a share of
 // the industry's total. Margin, growth, P/E and ROCE are rates, worked out per layer from the same
 // companies (margin = the layer's profit over its revenue, not an average of margins; ROCE, which
-// has no capital figure to add up, is the median).
+// has no capital figure to add up, is the median, as are P/B, ROE and the lender and insurer figures).
 //
 // Two kinds of company are handled apart:
 //  - Low exposure: the figures are company-wide, not segment revenue, so a group that earns most of
@@ -14,6 +14,14 @@
 //    They are left out unless the viewer adds them, one by one (see ./pools-data.ts for the rule).
 //  - One-off year (./outliers.ts): left out of anything built on profit (profit, margin, P/E), as
 //    the screens leave them out; their revenue and market cap still count.
+//
+// Lenders and insurers (financials/kinds.ts) have no meaningful net margin or ROCE, so they are left
+// out of both (an enabler lender such as REC in the energy pools would otherwise swamp the layer's
+// margin); their revenue, profit, market cap, growth and P/E still count. Pools holding one offer
+// their own metrics as well (poolMetricsFor): P/B, ROE and asset quality for lenders, P/B, ROE, VNB
+// margin, combined ratio and solvency for insurers, each the median of the companies that report it.
+
+import type { CompanyKind } from "@/lib/financials/kinds";
 
 export type PoolCompany = {
   ticker: string;
@@ -29,6 +37,21 @@ export type PoolCompany = {
   oneOff?: string;
   /** Why its figures are mostly from outside this industry, when they are: it is left out unless the viewer adds it. */
   lowExposure?: string;
+  /** Lender, insurer or operating company; missing reads as operating. */
+  kind?: CompanyKind;
+  /** Price ÷ book value (x) and return on equity (%), for every kind. */
+  pb?: number | null;
+  roe?: number | null;
+  /** A lender's return on assets and gross / net NPA, %. */
+  roa?: number | null;
+  gnpa?: number | null;
+  nnpa?: number | null;
+  /** An insurer's VNB margin (%, life insurers only), combined ratio (%, general and health) and solvency ratio (x). */
+  vnb?: number | null;
+  combined?: number | null;
+  solvency?: number | null;
+  /** Whether the insurer's quarter is fresh: a stale one is still shown, marked (financials/insurer.ts). */
+  insurerFresh?: "fresh" | "stale";
 };
 
 export type PoolLayer = { name: string; color: string };
@@ -44,9 +67,10 @@ export type IndustryPools = {
   companies: PoolCompany[];
 };
 
-export type PoolMetricId = "rev" | "np" | "mcap" | "margin" | "growth" | "pe" | "roce";
+export type PoolMetricId = "rev" | "np" | "mcap" | "margin" | "growth" | "pe" | "roce" | "pb" | "roe" | "roa" | "gnpa" | "nnpa" | "vnb" | "combined" | "solvency";
 export type PoolMetric = { id: PoolMetricId; label: string; kind: "pool" | "rate" };
 
+/** The metrics every industry's pools offer. */
 export const POOL_METRICS: PoolMetric[] = [
   { id: "rev", label: "Revenue", kind: "pool" },
   { id: "np", label: "Net profit", kind: "pool" },
@@ -57,11 +81,46 @@ export const POOL_METRICS: PoolMetric[] = [
   { id: "roce", label: "ROCE", kind: "rate" },
 ];
 
-export const poolMetric = (id: PoolMetricId) => POOL_METRICS.find((m) => m.id === id)!;
+const PB: PoolMetric = { id: "pb", label: "P/B", kind: "rate" };
+const ROE: PoolMetric = { id: "roe", label: "ROE", kind: "rate" };
+/** Offered as well when the pools hold a lender. */
+export const LENDER_POOL_METRICS: PoolMetric[] = [
+  PB,
+  ROE,
+  { id: "roa", label: "ROA", kind: "rate" },
+  { id: "gnpa", label: "Gross NPA", kind: "rate" },
+  { id: "nnpa", label: "Net NPA", kind: "rate" },
+];
+/** Offered as well when the pools hold an insurer. */
+export const INSURER_POOL_METRICS: PoolMetric[] = [
+  PB,
+  ROE,
+  { id: "vnb", label: "VNB margin", kind: "rate" },
+  { id: "combined", label: "Combined ratio", kind: "rate" },
+  { id: "solvency", label: "Solvency", kind: "rate" },
+];
+
+const ALL_METRICS = [...POOL_METRICS, ...LENDER_POOL_METRICS, ...INSURER_POOL_METRICS];
+export const poolMetric = (id: PoolMetricId) => ALL_METRICS.find((m) => m.id === id)!;
+
+const kindOf = (c: PoolCompany): CompanyKind => c.kind ?? "operating";
+
+/** The metrics an industry's pools offer: the standard ones, then the lender set and the insurer set when it holds one (P/B and ROE once). */
+export function poolMetricsFor(p: IndustryPools): PoolMetric[] {
+  const has = (k: CompanyKind) => p.companies.some((c) => kindOf(c) === k);
+  const out = [...POOL_METRICS];
+  for (const m of [...(has("lender") ? LENDER_POOL_METRICS : []), ...(has("insurer") ? INSURER_POOL_METRICS : [])]) if (!out.includes(m)) out.push(m);
+  return out;
+}
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 const num = (x: number | null | undefined): x is number => typeof x === "number" && Number.isFinite(x);
 const profitOk = (c: PoolCompany) => !c.oneOff;
+/** Net margin and ROCE: only an operating company has one that means something. */
+const marginOk = (c: PoolCompany) => profitOk(c) && kindOf(c) === "operating";
+/** The rates read straight off each company and taken as the group's median. */
+const MEDIAN_RATES = new Set<PoolMetricId>(["roce", "pb", "roe", "roa", "gnpa", "nnpa", "vnb", "combined", "solvency"]);
+const own = (v: number | null | undefined) => (num(v) ? v : null);
 
 function median(xs: number[]): number | null {
   if (!xs.length) return null;
@@ -82,13 +141,22 @@ export function companyValue(c: PoolCompany, id: PoolMetricId): number | null {
     case "mcap":
       return num(c.mcapCr) ? c.mcapCr : null;
     case "margin":
-      return profitOk(c) && num(p1) && num(r1) && r1 > 0 ? p1 / r1 : null;
+      return marginOk(c) && num(p1) && num(r1) && r1 > 0 ? p1 / r1 : null;
     case "growth":
       return num(r0) && num(r1) && r0 > 0 ? r1 / r0 - 1 : null;
     case "pe":
       return profitOk(c) && num(p1) && p1 > 0 && num(c.mcapCr) ? c.mcapCr / p1 : null;
     case "roce":
-      return num(c.roce) ? c.roce : null;
+      return kindOf(c) === "operating" && num(c.roce) ? c.roce : null;
+    case "pb":
+    case "roe":
+    case "roa":
+    case "gnpa":
+    case "nnpa":
+    case "vnb":
+    case "combined":
+    case "solvency":
+      return own(c[id]);
   }
 }
 
@@ -101,14 +169,14 @@ export function groupValue(cs: PoolCompany[], id: PoolMetricId): number | null {
     const vs = cs.map((c) => companyValue(c, id)).filter(num);
     return vs.length ? sum(vs) : null;
   }
-  if (id === "roce") return median(cs.map((c) => companyValue(c, "roce")).filter(num));
+  if (MEDIAN_RATES.has(id)) return median(cs.map((c) => companyValue(c, id)).filter(num));
   // The same companies on both sides of the ratio: one missing a figure drops out of both.
   const both = (a: (c: PoolCompany) => number | null, b: (c: PoolCompany) => number | null) => {
     const k = cs.filter((c) => num(a(c)) && num(b(c)));
     return k.length ? [sum(k.map((c) => a(c)!)), sum(k.map((c) => b(c)!))] : null;
   };
   if (id === "margin") {
-    const r = both((c) => (profitOk(c) ? c.np[1] : null), (c) => c.rev[1]);
+    const r = both((c) => (marginOk(c) ? c.np[1] : null), (c) => c.rev[1]);
     return r && r[1] > 0 ? r[0] / r[1] : null;
   }
   if (id === "growth") {

@@ -5,6 +5,8 @@ import { getSector } from "@/lib/sector-content";
 import { companySlug, getCompanyPage } from "@/lib/sector-content/companies";
 import { getFinancials } from "@/lib/financials/store";
 import { FISCAL_YEARS } from "@/lib/financials/rows";
+import { companyKind } from "@/lib/financials/kinds";
+import { keyRatios } from "@/lib/financials/key-ratios";
 import { getIndustryBasket } from "./industry";
 import type { IndustryPools, PoolCompany } from "./pools";
 
@@ -46,6 +48,14 @@ export function industryPools(slug: string): IndustryPools | null {
     const weight = here.reduce((w, a) => Math.max(w, a.weight), 0);
     const at = (xs: (number | null)[] | undefined, i: number) => xs?.[i] ?? null;
     const last = FISCAL_YEARS.length - 1;
+    const kind = f.kind ?? companyKind(s.ticker);
+    // A lender's and an insurer's own figures (their blocks); none on an operating company.
+    const own =
+      kind === "lender"
+        ? { roa: f.lender?.roa ?? null, gnpa: f.lender?.gnpa ?? null, nnpa: f.lender?.nnpa ?? null }
+        : kind === "insurer" && f.insurer
+          ? { vnb: f.insurer.vnbMargin, combined: f.insurer.combinedRatio, solvency: f.insurer.solvency, insurerFresh: f.insurer.fresh }
+          : {};
     companies.push({
       ticker: s.ticker,
       name: s.name,
@@ -53,7 +63,12 @@ export function industryPools(slug: string): IndustryPools | null {
       rev: [at(f.rev, last - 1), at(f.rev, last)],
       np: [at(f.np, last - 1), at(f.np, last)],
       mcapCr: s.mcapCr,
+      // Null for a lender or insurer (the company table empties it; companyValue ignores it too).
       roce: f.kpi?.[3] ?? null,
+      kind,
+      pb: keyRatios(f).pb,
+      roe: f.kpi?.[4] ?? null,
+      ...own,
       ...(s.oneOff ? { oneOff: s.oneOff } : {}),
       strength: here.length ? strengthOf(weight) : "high",
       industries: s.industries.length,

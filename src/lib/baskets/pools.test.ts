@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { LOOKALIKE_DIST, companyValue, countedCompanies, distinctLayerColors, groupValue, layerPools, layerShares, poolTakeaway, shares, type IndustryPools, type PoolCompany } from "./pools";
+import { LOOKALIKE_DIST, POOL_METRICS, companyValue, countedCompanies, distinctLayerColors, groupValue, layerPools, layerShares, poolMetric, poolMetricsFor, poolTakeaway, shares, type IndustryPools, type PoolCompany } from "./pools";
 
 // Fixtures shaped like the solar modules industry's FY26 figures (₹ Cr: [FY25, FY26]).
 const co = (ticker: string, layer: string, rev: [number, number], np: [number, number], mcapCr: number, extra: Partial<PoolCompany> = {}): PoolCompany => ({
@@ -166,4 +166,49 @@ test("look-alike layer colours get distinct shades; the rest keep theirs", () =>
   const blues = out.slice(0, 3).map((l) => lum(l.color)).sort((a, b) => a - b);
   assert.ok(blues[1] - blues[0] > 60 && blues[2] - blues[1] > 60, `blues ${blues}`);
   assert.ok(LOOKALIKE_DIST > 0);
+});
+
+// ---- Lenders and insurers ----
+
+// An energy pool with an enabler lender in it (RECLTD's shape: a big profit on its interest income).
+const rec = co("RECLTD", "Finance", [50000, 56000], [14000, 16000], 110000, { kind: "lender", roce: 9.5, pb: 1.6, roe: 21, roa: 2.6, gnpa: 1.4, nnpa: 0.4 });
+const gen = co("GENCO", "Finance", [10000, 11000], [500, 550], 20000, { roce: 12, pb: 2.0, roe: 14 });
+
+test("a lender's margin and ROCE are not numbers: the layer's margin and ROCE are its operating companies' (Review Focus 4)", () => {
+  assert.equal(companyValue(rec, "margin"), null);
+  assert.equal(companyValue(rec, "roce"), null);
+  assert.equal(groupValue([rec, gen], "margin"), 550 / 11000);
+  assert.equal(groupValue([rec, gen], "roce"), 12);
+  assert.equal(groupValue([rec], "margin"), null);
+  // Pools still add up: its revenue, profit and market cap are real.
+  assert.equal(groupValue([rec, gen], "np"), 16000 + 550);
+  const life = co("LIFE", "Insurers", [1, 2], [1, 1], 1, { kind: "insurer", roce: 30 });
+  assert.equal(companyValue(life, "margin"), null);
+  assert.equal(companyValue(life, "roce"), null);
+});
+
+test("lender and insurer metrics: the company's own figure, the layer's median", () => {
+  const rec2 = { ...rec, ticker: "PFC", roe: 19, nnpa: 0.8 };
+  assert.equal(companyValue(rec, "nnpa"), 0.4);
+  assert.equal(groupValue([rec, rec2, gen], "nnpa"), (0.4 + 0.8) / 2);
+  assert.equal(groupValue([rec, rec2, gen], "roe"), 19);
+  assert.equal(groupValue([rec, gen], "pb"), 1.8);
+  assert.equal(companyValue(gen, "gnpa"), null);
+  const life = co("LIFE", "Insurers", [1, 2], [1, 1], 1, { kind: "insurer", vnb: 26, combined: null, solvency: 1.9, insurerFresh: "stale" });
+  // A stale quarter is still shown here (the panel marks it); only the Insurer value screen needs fresh figures.
+  assert.equal(companyValue(life, "vnb"), 26);
+  assert.equal(companyValue(life, "solvency"), 1.9);
+  assert.equal(companyValue(life, "combined"), null);
+  for (const id of ["pb", "roe", "roa", "gnpa", "nnpa", "vnb", "combined", "solvency"] as const) assert.equal(poolMetric(id).kind, "rate", id);
+});
+
+test("poolMetricsFor: the standard metrics, plus the lender set or the insurer set when the pools hold one", () => {
+  const ids = (p: IndustryPools) => poolMetricsFor(p).map((m) => m.id);
+  const std = POOL_METRICS.map((m) => m.id);
+  assert.deepEqual(ids(pools), std);
+  assert.deepEqual(ids({ ...pools, companies: [...pools.companies, rec] }), [...std, "pb", "roe", "roa", "gnpa", "nnpa"]);
+  const ins = co("ICICIGI", "Insurers", [1, 2], [1, 1], 1, { kind: "insurer" });
+  assert.deepEqual(ids({ ...pools, companies: [...pools.companies, ins] }), [...std, "pb", "roe", "vnb", "combined", "solvency"]);
+  // Both: pb and roe once.
+  assert.deepEqual(ids({ ...pools, companies: [rec, ins] }), [...std, "pb", "roe", "roa", "gnpa", "nnpa", "vnb", "combined", "solvency"]);
 });

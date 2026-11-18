@@ -133,11 +133,12 @@ export const SINCE_LISTING_NOTE =
  * ROCE means something only for a company that earns a profit on positive equity: on negative or
  * near-zero equity (a loss-making company that owes more than it owns) the ratio can read as 50%+
  * while the business loses money. So Highest ROCE needs a positive P/E, a profit in the latest year
- * and a book value that isn't negative.
+ * and a book value that isn't negative. And an operating company: a lender's or an insurer's ROCE
+ * means nothing (financials/kinds.ts; the company table empties it for them anyway).
  */
-export function roceMeaningful(s: Pick<IdeaStockInfo, "roce" | "pe" | "np" | "book">): boolean {
+export function roceMeaningful(s: Pick<IdeaStockInfo, "roce" | "pe" | "np" | "book" | "kind">): boolean {
   const np = s.np?.[4];
-  return s.roce != null && s.pe != null && s.pe > 0 && (np == null || np > 0) && !(s.book != null && s.book <= 0);
+  return (s.kind ?? "operating") === "operating" && s.roce != null && s.pe != null && s.pe > 0 && (np == null || np > 0) && !(s.book != null && s.book <= 0);
 }
 
 const pctTxt = (v: number) => signedPct(v);
