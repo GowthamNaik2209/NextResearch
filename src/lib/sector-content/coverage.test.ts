@@ -161,6 +161,7 @@ const NO_BENCHMARK: Record<string, string> = {
   ecms: "no electronics-components index (policy)",
   capmarkets: "Nifty Capital Markets has no Yahoo symbol/ETF with a year of history mapped yet",
   insurance: "Only insurance ETF (INSUREIETF) listed Aug 2026: under a year of history; revisit Aug 2027",
+  chemicals: "No Nifty Chemicals history on Yahoo (index returns one day); ETFs GROWWCHEM (Jan 2026) and CHEMICAL (Jul 2026) are under a year: revisit Jan 2027",
 };
 
 // Live sectors with no research deck: only a market index.
