@@ -27,6 +27,9 @@ import { consumerinternet } from "./consumerinternet";
 import { banks } from "./banks";
 import { insurance } from "./insurance";
 import { hotels } from "./hotels";
+import { itservices } from "./itservices";
+import { autos } from "./autos";
+import { chemicals } from "./chemicals";
 import { pliacc } from "./pliacc";
 import { greenh2 } from "./greenh2";
 import type { SectorCategory } from "@/lib/sector-content/core";
@@ -53,6 +56,9 @@ const REPORTS: Record<string, SectorReport> = {
   banks,
   insurance,
   hotels,
+  itservices,
+  autos,
+  chemicals,
   semicon2,
   rareearth,
   defenceproc,
