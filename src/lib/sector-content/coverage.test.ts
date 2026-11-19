@@ -76,7 +76,8 @@ const RULES = {
   oneOff: {
     id: "one-off-year",
     reason: "a one-off year (Company.screenOut or the detector in baskets/outliers.ts): kept out of rule-based screens, users may add it by hand with a note",
-    applies: (p) => !!detectOutlier(getFinancials(p.ticker)),
+    // The supplier's own figures carry a sector note too ("a one-off gain on ..."), as the screens read them.
+    applies: (p) => !!detectOutlier(p.sup.f ?? getFinancials(p.ticker)),
   },
   sideExposure: {
     id: "side-exposure",

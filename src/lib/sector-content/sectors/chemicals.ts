@@ -12,6 +12,9 @@ const op = link("operator");
 const en = link("enabler");
 const ds = link("direct_supplier");
 const ee = link("emerging_entrant");
+// Feedstock and conglomerates: mapped (explorer, company pages) but left out of the basket and pools
+// (basketCoreOnly), whose whole-company figures would be mostly fuels, retail, telecom or cement.
+const is = link("indirect_supplier");
 
 const chemicals = {
  id: "chemicals", icon: "CH", name: "Chemicals & Agrochem",
@@ -38,6 +41,7 @@ const chemicals = {
   "Soda ash and caustic soda prices against Chinese export prices",
  ],
  dataStatus: "demo",
+ basketCoreOnly: true,
  integratorZoneId: "intermediates",
  integratorHeading: "Specialty chemical makers",
  integratorBlurb: "Makers of benzene, phenol, amine and pyridine chemistry (Aarti, Deepak Nitrite, Atul, Jubilant Ingrevia) feed pharma, agrochem, dyes and polymers. Their volumes and spreads against Chinese prices are the clearest read on India's specialty chemicals cycle.",
@@ -159,7 +163,7 @@ const chemicals = {
   keyRisks:["Global soda ash oversupply and Chinese exports", "Power cost increases", "Weak chlorine prices forcing lower run rates", "Cheap imports from the Gulf and China"],
   investorMetrics:["Electrochemical unit (ECU) realisation", "Soda ash price vs China export price", "Power cost per tonne", "Share of derivatives in revenue", "Capacity utilisation"],
   relatedComponents:["petchem","consumer_specialty","intermediates"],
-  suppliers:[op("tataChem"), op("nirma"), op("ghcl"), op("dcmShriram"), op("gujAlkali"), op("epigral"), op("grasim","medium"), op("archean","medium")]},
+  suppliers:[op("tataChem"), op("nirma"), op("ghcl"), op("dcmShriram"), op("gujAlkali"), op("epigral"), is("grasim","medium"), op("archean","medium")]},
 
  {id:"petchem", color:"#D96C2B", label:"Petrochemicals, polymers & solvents", layer:2, pos:A.petchem.pos, side:A.petchem.side, desc:"Polymers, PVC, solvents and other large-volume petrochemicals made from crude and gas.",
   domainId:"commodity", displayOrder:10, dataStatus:"demo",
@@ -171,7 +175,7 @@ const chemicals = {
   keyRisks:["Global overcapacity from China's new crackers", "Feedstock cost spikes", "Margin collapse when supply returns", "Plastics regulations"],
   investorMetrics:["Polymer and PVC spreads over naphtha and ethylene", "Capacity utilisation", "Import share of Indian demand", "New capacity timelines"],
   relatedComponents:["feedstock","chlor_alkali","intermediates","consumer_specialty"],
-  suppliers:[op("reliance"), op("haldia"), op("chemplast"), op("supremePetro"), op("igPetro"), op("thirumalai"), op("gail","medium")]},
+  suppliers:[is("reliance"), op("haldia"), op("chemplast"), op("supremePetro"), op("igPetro"), op("thirumalai"), is("gail","medium")]},
 
  {id:"explosives", color:"#D96C2B", label:"Industrial explosives & nitrates", layer:2, pos:A.explosives.pos, side:A.explosives.side, desc:"Ammonium nitrate and industrial explosives for mining and infrastructure (Deepak Fertilisers, Solar Industries).",
   domainId:"commodity", displayOrder:11, dataStatus:"demo",
@@ -195,7 +199,7 @@ const chemicals = {
   keyRisks:["Hormuz closure lasting into 2027", "Government price controls on fuels", "LNG price spikes", "Delays in new refinery projects"],
   investorMetrics:["Refining and petrochemical margins", "LNG volumes regasified", "Gas transmission volumes", "Under-recoveries on fuels"],
   relatedComponents:["petchem","fertilisers","intermediates","terminals"],
-  suppliers:[ds("reliance"), ds("ioc"), ds("bpcl","medium"), ds("hpcl","medium"), ds("ongc","medium"), ds("gail"), ds("petronet")]},
+  suppliers:[is("reliance"), is("ioc"), is("bpcl","medium"), is("hpcl","medium"), is("ongc","medium"), is("gail"), is("petronet")]},
 
  {id:"terminals", color:"#3D5A80", label:"Chemical terminals & logistics", layer:3, pos:A.terminals.pos, side:A.terminals.side, desc:"Port tank terminals and logistics that store and move liquid chemicals and gases.",
   domainId:"feedstock", displayOrder:13, dataStatus:"demo",
@@ -277,7 +281,7 @@ const chemicals = {
  pcbl: {name:"PCBL Chemical", listed:true, role:"India's largest carbon black maker for tyres and rubber goods, adding specialty and battery-grade blacks and water-treatment chemicals (Aquapharm)", dataStatus:"demo", sourceDate:D, strengths:["Contracts with Indian and global tyre makers", "Specialty and conductive blacks earn more"], risks:["Feedstock oil spikes", "Debt from the Aquapharm acquisition and new plants"], f:co("PCBL")},
  himadri: {name:"Himadri Speciality Chemical", listed:true, role:"Kolkata coal-tar pitch, carbon black and specialty oils maker moving into battery materials", dataStatus:"demo", sourceDate:D, strengths:["Integrated coal-tar chain", "Net cash for new projects"], risks:["Battery materials still to prove out", "Coal tar supply from steelmakers"], f:co("HSCL")},
  nocil: {name:"NOCIL", listed:true, role:"India's largest rubber chemicals maker (accelerators, antioxidants) for tyre companies", dataStatus:"demo", sourceDate:D, strengths:["Approved with major tyre makers", "Debt-free"], risks:["Chinese and Korean imports keep prices down", "Margins well below earlier peaks"], f:co("NOCIL")},
- sudarshan: {name:"Sudarshan Chemical Industries", listed:true, role:"Pigment maker that bought Germany's Heubach group in 2025, becoming one of the world's largest pigment companies", dataStatus:"demo", sourceDate:D, strengths:["Global customer base and product range after Heubach", "Plants in India, Europe and the Americas"], risks:["Turning around Heubach's loss-making European plants", "Higher debt"], f:co("SUDARSCHEM")},
+ sudarshan: {name:"Sudarshan Chemical Industries", listed:true, role:"Pigment maker that bought Germany's Heubach group in 2025, becoming one of the world's largest pigment companies", dataStatus:"demo", sourceDate:D, strengths:["Global customer base and product range after Heubach", "Plants in India, Europe and the Americas"], risks:["Turning around Heubach's loss-making European plants", "Higher debt"], f:co("SUDARSCHEM","FY26 is the first full year with Heubach (acquired Mar 2025), so its growth over FY25 is mostly the acquisition")},
  bodal: {name:"Bodal Chemicals", listed:true, role:"Reactive dyes and dye intermediates for textiles, with a chlor-alkali unit", dataStatus:"demo", sourceDate:D, strengths:["Integration from intermediates to dyes"], risks:["Textile demand and Chinese dyes", "Weak profits"], f:co("BODALCHEM")},
 
  // --- Chlor-alkali & soda ash ---
@@ -301,7 +305,7 @@ const chemicals = {
 
  // --- Explosives ---
  solar: {name:"Solar Industries India", listed:true, role:"India's largest maker of industrial explosives, supplying bulk explosives to Coal India and miners at home and abroad (defence business covered elsewhere)", dataStatus:"demo", sourceDate:D, strengths:["Plants close to mines and a leading share of Coal India tenders", "Global mining customers"], risks:["Ammonium nitrate costs", "Rich valuation (see the figures)"], f:co("SOLARINDS","Mining explosives; defence is covered in Defence")},
- gocl: {name:"GOCL Corporation", listed:true, role:"Hinduja group company whose IDL Explosives makes industrial explosives and detonators", dataStatus:"demo", sourceDate:D, strengths:["Long record supplying mining explosives"], risks:["Small share versus Solar", "Group land and property dealings mix into results"], f:co("GOCLCORP")},
+ gocl: {name:"GOCL Corporation", listed:true, role:"Hinduja group company whose IDL Explosives makes industrial explosives and detonators", dataStatus:"demo", sourceDate:D, strengths:["Long record supplying mining explosives"], risks:["Small share versus Solar", "Group land and property dealings mix into results"], f:co("GOCLCORP","FY26 profit is dominated by one-off land sale gains (₹1,522 Cr profit on ₹10 Cr revenue), so its growth, margin, ROE and P/E are not meaningful")},
  premier: {name:"Premier Explosives", listed:true, role:"Explosives, detonators and propellant maker for mining, ISRO and defence", dataStatus:"demo", sourceDate:D, strengths:["Qualified with ISRO and DRDO"], risks:["Small; one plant incident moves results"], f:co("PREMEXPLN","Mining explosives are a smaller part than defence")},
 
  // --- Feedstock ---

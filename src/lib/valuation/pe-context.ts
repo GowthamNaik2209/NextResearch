@@ -127,6 +127,8 @@ export const BAND_LABEL: Record<PeBand, string> = { low: "Below its usual range"
 export function versus(pe: number, median: number): string {
   const d = pe / median - 1;
   if (Math.abs(d) < 0.05) return "in line with";
+  // Several times the median reads better as a multiple than as "13297% above".
+  if (pe / median >= 3) return `${Math.round(pe / median)} times`;
   return `${Math.round(Math.abs(d) * 100)}% ${d < 0 ? "below" : "above"}`;
 }
 

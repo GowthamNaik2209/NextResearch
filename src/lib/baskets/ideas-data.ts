@@ -147,6 +147,26 @@ async function priceSnapshot(): Promise<PriceSnapshot> {
 }
 
 /**
+ * Fills the day's price histories ahead of the first visitor (the evening cron, after the price
+ * store's top-up), then builds the lists. With ~700 covered stocks a cold day's histories take
+ * minutes to read, longer than one visit's budget, so without this the first visits of a day
+ * would each be cut short (and serve yesterday's lists) until enough of them had filled the cache.
+ */
+export async function warmIdeas(deadline: number): Promise<{ histories: number; of: number; built: boolean }> {
+  const tickers = listBasketUniverse().map((s) => s.ticker);
+  const day = ((await lastTradingDay()) ?? new Date().toISOString()).slice(0, 10);
+  let done = 0;
+  await mapLimit(tickers, CONCURRENCY, async (t) => {
+    if (Date.now() >= deadline) return;
+    await dayHistory(t, day).catch(() => null);
+    done++;
+  });
+  if (done < tickers.length || Date.now() >= deadline) return { histories: done, of: tickers.length, built: false };
+  const built = await getIdeas().then(() => true, () => false);
+  return { histories: done, of: tickers.length, built };
+}
+
+/**
  * The day of the latest close the lists were ranked on (the Nifty 50's last daily bar), not the
  * hour the lists were built: a rebuild after midnight on yesterday's closes still says yesterday.
  */

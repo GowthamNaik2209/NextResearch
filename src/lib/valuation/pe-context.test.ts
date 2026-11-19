@@ -40,6 +40,9 @@ test("versus reads within 5% as in line", () => {
   assert.equal(versus(52, 50), "in line with");
   assert.equal(versus(40, 50), "20% below");
   assert.equal(versus(60, 50), "20% above");
+  // Far above: a multiple, not "13297% above".
+  assert.equal(versus(3376, 25.2), "134 times");
+  assert.equal(versus(149, 50), "198% above");
 });
 
 test("a lender or an insurer is compared with covered companies of its own kind, and the text says so", () => {
