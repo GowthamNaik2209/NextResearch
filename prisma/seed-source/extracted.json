@@ -14583,6 +14583,4528 @@
       }
     },
     {
+      "key": "itservices",
+      "suppliers": {
+        "tcs": {
+          "name": "Tata Consultancy Services",
+          "listed": true,
+          "role": "India's largest IT services firm, strongest in banking and insurance, also building AI data centres through its HyperVault unit (OpenAI announced as the first customer, 100 MW, Feb 2026)",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Scale and long client relationships across banking, retail and manufacturing",
+            "Highest margins among the large firms and large cash payouts",
+            "Booked $9.6 bn of new contracts and passed $3.1 bn annualised AI revenue in Jul-Sep 2026"
+          ],
+          "risks": [
+            "Slowest growth in years: 0.5% quarter on quarter in constant currency (Jul-Sep 2026)",
+            "Data-centre build adds capital spending to an asset-light model",
+            "Workforce reductions and AI reshaping its labour-heavy model"
+          ],
+          "f": {
+            "ticker": "TCS"
+          }
+        },
+        "infy": {
+          "name": "Infosys",
+          "listed": true,
+          "role": "Second-largest IT services firm, strong in consulting-led, cloud and AI deals, with the Finacle banking software",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large-deal bookings of $5.2 bn in Jul-Sep 2026, including a mega deal above $2 bn",
+            "AI revenue reached 10.5% of revenue that quarter",
+            "Strong cash generation; ₹18,000 Cr buyback in 2025"
+          ],
+          "risks": [
+            "Cut FY27 constant-currency growth guidance to 1-2% (Oct 2026)",
+            "Dependence on US banking and retail clients",
+            "One-off labour-code charge of ₹1,289 Cr in Q3 FY26"
+          ],
+          "f": {
+            "ticker": "INFY"
+          }
+        },
+        "hcltech": {
+          "name": "HCL Technologies",
+          "listed": true,
+          "role": "IT services firm with the largest infrastructure-management business among Indian peers, an engineering R&D arm and its own software products (HCLSoftware)",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Software products add recurring, higher-margin income",
+            "Leader in infrastructure and engineering services",
+            "New bookings of about $3.3 bn in Jul-Sep 2026, up 27% on the year"
+          ],
+          "risks": [
+            "Software income is uneven from quarter to quarter",
+            "Infrastructure work is exposed to clients' cloud moves",
+            "Margins below TCS and Infosys"
+          ],
+          "f": {
+            "ticker": "HCLTECH"
+          }
+        },
+        "wipro": {
+          "name": "Wipro",
+          "listed": true,
+          "role": "Fourth-largest Indian IT firm (Azim Premji's), with the Capco consulting arm for banks and a large infrastructure and engineering business",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Capco gives access to bank transformation budgets",
+            "Strong balance sheet with net cash",
+            "Large engineering and infrastructure services base"
+          ],
+          "risks": [
+            "Growth has lagged the top peers for several years",
+            "Profit fell slightly in Jul-Sep 2026 on the year",
+            "Leadership and strategy changes in recent years"
+          ],
+          "f": {
+            "ticker": "WIPRO"
+          }
+        },
+        "techm": {
+          "name": "Tech Mahindra",
+          "listed": true,
+          "role": "Mahindra group's IT services firm, the largest Indian vendor to telecom operators, in a margin turnaround",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Turnaround under CEO Mohit Joshi has lifted margins from lows",
+            "Deep telecom and network expertise",
+            "Profit rose 32.7% on the year in Jul-Sep 2026"
+          ],
+          "risks": [
+            "Telecom clients' spending is weak globally",
+            "Margins still below larger peers",
+            "Turnaround depends on winning large deals outside telecom"
+          ],
+          "f": {
+            "ticker": "TECHM"
+          }
+        },
+        "ltm": {
+          "name": "LTM",
+          "listed": true,
+          "role": "L&T group's IT services firm, formed by merging LTI and Mindtree (2022) and renamed from LTIMindtree to LTM on 17 Apr 2026; strong in banking, insurance and consumer clients",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "aka": [
+            "LTIMindtree",
+            "LTI Mindtree"
+          ],
+          "strengths": [
+            "L&T parentage and a strong position in insurance and banking",
+            "Scale close to the top five after the merger",
+            "Cross-selling with L&T Technology Services and the wider L&T group"
+          ],
+          "risks": [
+            "Integration and rebranding after the merger",
+            "Client concentration in a few large accounts",
+            "Same AI and US-demand pressures as the large firms"
+          ],
+          "f": {
+            "ticker": "LTM"
+          }
+        },
+        "accenture": {
+          "name": "Accenture (India operations)",
+          "listed": false,
+          "role": "The largest global IT services firm, which runs most of its delivery from India and competes with the Indian firms for every large deal",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Global consulting brand and scale"
+          ],
+          "risks": [
+            "No Indian listing; listed in New York"
+          ],
+          "notes": [
+            "Listed on the NYSE (ACN), not in India",
+            "Shown as the main global competitor; no Indian market data"
+          ]
+        },
+        "cognizant": {
+          "name": "Cognizant (India operations)",
+          "listed": false,
+          "role": "US-listed IT services firm with most of its workforce in India, competing head-on with the top Indian firms",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large healthcare and banking client base"
+          ],
+          "risks": [
+            "No Indian listing; listed on Nasdaq"
+          ],
+          "notes": [
+            "Listed on Nasdaq (CTSH), not in India",
+            "No Indian market data"
+          ]
+        },
+        "persistent": {
+          "name": "Persistent Systems",
+          "listed": true,
+          "role": "Mid-tier firm built on product engineering for software, banking and healthcare companies",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Among the fastest-growing Indian IT firms over several years",
+            "Strong in product engineering and healthcare",
+            "Founder-led with a long record of execution"
+          ],
+          "risks": [
+            "Premium valuation leaves no room for a growth miss",
+            "Exposure to tech clients' R&D budgets",
+            "Acquisitions add integration work"
+          ],
+          "f": {
+            "ticker": "PERSISTENT"
+          }
+        },
+        "coforge": {
+          "name": "Coforge",
+          "listed": true,
+          "role": "Mid-tier firm focused on insurance, banking and travel, which closed its purchase of Encora (a deal of about $2.35 bn) on 23 Apr 2026 and earlier bought control of Cigniti (2024)",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Deep insurance and travel domain skills",
+            "Encora adds product engineering and US clients",
+            "Strong deal pipeline in its verticals"
+          ],
+          "risks": [
+            "Encora was paid mostly in new shares plus a $550 mn loan",
+            "Integration of two large acquisitions",
+            "Reported growth now mixes acquired and organic revenue"
+          ],
+          "f": {
+            "ticker": "COFORGE"
+          }
+        },
+        "mphasis": {
+          "name": "Mphasis",
+          "listed": true,
+          "role": "Blackstone-controlled firm strong in banking, mortgage and insurance operations and technology",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Deep relationships with large US banks",
+            "Blackstone's portfolio brings clients",
+            "Combined technology and operations offering"
+          ],
+          "risks": [
+            "US mortgage and banking cycles",
+            "Client concentration",
+            "Possible Blackstone stake sale"
+          ],
+          "f": {
+            "ticker": "MPHASIS"
+          }
+        },
+        "hexaware": {
+          "name": "Hexaware Technologies",
+          "listed": true,
+          "role": "Carlyle-owned mid-tier firm relisted in Feb 2025, selling automation-led IT and operations services to banking, healthcare and travel clients",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Automation platforms that cut delivery effort",
+            "Growing healthcare and banking business",
+            "Strong client mining in Europe and the US"
+          ],
+          "risks": [
+            "Carlyle may sell more shares",
+            "Short listed history since relisting",
+            "Mid-size firm competing for large deals"
+          ],
+          "f": {
+            "ticker": "HEXT"
+          }
+        },
+        "birlasoft": {
+          "name": "Birlasoft",
+          "listed": true,
+          "role": "CK Birla group firm focused on ERP (Oracle, SAP) and digital work for manufacturing, life sciences and energy clients",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Enterprise-application skills that clients need for cloud ERP moves",
+            "Group backing and net cash"
+          ],
+          "risks": [
+            "Growth slowed sharply after client ramp-downs",
+            "Small scale for large deals",
+            "Manufacturing clients cutting discretionary spend"
+          ],
+          "f": {
+            "ticker": "BSOFT"
+          }
+        },
+        "zensar": {
+          "name": "Zensar Technologies",
+          "listed": true,
+          "role": "RPG group firm serving high-tech, banking and insurance clients with experience design and application services",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Net cash and improved margins",
+            "Experience-design and digital work"
+          ],
+          "risks": [
+            "High concentration in a few large clients",
+            "Small scale"
+          ],
+          "f": {
+            "ticker": "ZENSARTECH"
+          }
+        },
+        "sonata": {
+          "name": "Sonata Software",
+          "listed": true,
+          "role": "Microsoft-focused services firm (Dynamics, Azure, Fabric) that also resells Microsoft and other software licences in India",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Close Microsoft partnership",
+            "Domestic licence-reselling business adds scale"
+          ],
+          "risks": [
+            "Large client ramp-downs hit international services",
+            "Low-margin reselling dilutes margins"
+          ],
+          "f": {
+            "ticker": "SONATSOFTW"
+          }
+        },
+        "mastek": {
+          "name": "Mastek",
+          "listed": true,
+          "role": "Oracle cloud and digital services firm with large UK public-sector and health clients, and Evosys for Oracle ERP",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Strong UK government and NHS relationships",
+            "Oracle cloud specialisation"
+          ],
+          "risks": [
+            "UK public-sector budget cycles",
+            "Small scale"
+          ],
+          "f": {
+            "ticker": "MASTEK"
+          }
+        },
+        "happiestMinds": {
+          "name": "Happiest Minds Technologies",
+          "listed": true,
+          "role": "Digital and product-engineering services firm founded by Ashok Soota, serving edtech, banking and industrial clients",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "All-digital revenue mix",
+            "Net cash and acquisitions in product engineering"
+          ],
+          "risks": [
+            "Edtech and small clients are volatile",
+            "Margins fell after acquisitions"
+          ],
+          "f": {
+            "ticker": "HAPPSTMNDS"
+          }
+        },
+        "fractal": {
+          "name": "Fractal Analytics",
+          "listed": true,
+          "role": "India's largest listed analytics and AI services firm, serving consumer-goods, retail, banking and healthcare clients; listed 16 Feb 2026 after a ₹2,834 Cr IPO",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Long relationships with large consumer-goods and tech clients",
+            "AI products alongside services",
+            "Scale among pure-play analytics firms"
+          ],
+          "risks": [
+            "Newly listed (Feb 2026), short price history",
+            "Competes with large IT firms' AI practices",
+            "Concentration in a few large clients"
+          ],
+          "f": {
+            "ticker": "FRACTAL"
+          }
+        },
+        "latentview": {
+          "name": "Latent View Analytics",
+          "listed": true,
+          "role": "Analytics and data-engineering firm with most revenue from US technology clients; bought Decision Point (consumer-goods analytics) in 2024",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Net cash from its 2021 IPO",
+            "Data-engineering skills in demand for AI programmes"
+          ],
+          "risks": [
+            "Heavy dependence on a few US tech clients",
+            "Small scale"
+          ],
+          "f": {
+            "ticker": "LATENTVIEW"
+          }
+        },
+        "tigerAnalytics": {
+          "name": "Tiger Analytics",
+          "listed": false,
+          "role": "Large unlisted data-science and AI services firm, Chennai-based delivery for US clients",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Scale in data science"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Private company",
+            "No listed market data"
+          ]
+        },
+        "muSigma": {
+          "name": "Mu Sigma",
+          "listed": false,
+          "role": "Bengaluru-based analytics firm, one of the earliest decision-science outsourcers to US companies",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Long client relationships"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Private company",
+            "No listed market data"
+          ]
+        },
+        "blackBox": {
+          "name": "Black Box",
+          "listed": true,
+          "role": "Network, data-centre and workplace infrastructure integrator and managed-services provider for US, European and Indian enterprises (owns the former US Black Box Corporation)",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Global field presence for network and data-centre builds",
+            "Data-centre work rising with AI capacity"
+          ],
+          "risks": [
+            "Thin margins on hardware pass-through",
+            "Turnaround history"
+          ],
+          "f": {
+            "ticker": "BBOX"
+          }
+        },
+        "alliedDigital": {
+          "name": "Allied Digital Services",
+          "listed": true,
+          "role": "Mumbai-based IT infrastructure and managed-services firm, also a smart-city and public-safety system integrator",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Government and US enterprise clients",
+            "Recurring managed services"
+          ],
+          "risks": [
+            "Lumpy government projects and slow payments",
+            "Small scale"
+          ],
+          "f": {
+            "ticker": "ADSL"
+          }
+        },
+        "dynacons": {
+          "name": "Dynacons Systems & Solutions",
+          "listed": true,
+          "role": "System integrator supplying IT infrastructure and services to Indian banks, government and public-sector companies",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Bank and public-sector client base"
+          ],
+          "risks": [
+            "Hardware-heavy, low-margin revenue",
+            "Working-capital needs"
+          ],
+          "f": {
+            "ticker": "DSSL"
+          }
+        },
+        "netweb": {
+          "name": "Netweb Technologies India",
+          "listed": true,
+          "role": "Indian maker of servers and high-performance and AI computing systems that infrastructure projects install",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Domestic server and AI-system manufacturing"
+          ],
+          "risks": [
+            "Hardware maker, not a services firm: a supplier to this zone",
+            "Lumpy government and research orders"
+          ],
+          "f": {
+            "ticker": "NETWEB"
+          }
+        },
+        "sify": {
+          "name": "Sify Technologies",
+          "listed": false,
+          "role": "Network, cloud and data-centre services provider to Indian enterprises",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Nationwide network and data-centre footprint"
+          ],
+          "risks": [
+            "No Indian listing"
+          ],
+          "notes": [
+            "Listed on Nasdaq (SIFY), not in India",
+            "No Indian market data"
+          ]
+        },
+        "ltts": {
+          "name": "L&T Technology Services",
+          "listed": true,
+          "role": "Engineering R&D firm of the L&T group serving mobility, plant and industrial, medical-device, telecom and semiconductor clients",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Broadest engineering portfolio among Indian ER&D firms",
+            "L&T group parentage and cross-selling"
+          ],
+          "risks": [
+            "Client R&D budgets cut in downturns",
+            "Margins pressured by acquisitions and investment"
+          ],
+          "f": {
+            "ticker": "LTTS"
+          }
+        },
+        "tataTech": {
+          "name": "Tata Technologies",
+          "listed": true,
+          "role": "Vehicle engineering and digital-manufacturing services firm, with Tata Motors and JLR as anchor clients, plus an engineering-education business; listed Nov 2023",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Full-vehicle engineering for EV programmes",
+            "Tata group anchor clients"
+          ],
+          "risks": [
+            "High dependence on Tata Motors and JLR",
+            "Global carmakers' R&D cuts"
+          ],
+          "f": {
+            "ticker": "TATATECH"
+          }
+        },
+        "kpit": {
+          "name": "KPIT Technologies",
+          "listed": true,
+          "role": "Vehicle software specialist: powertrain, electric-vehicle, autonomous-driving and middleware software for global carmakers",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Leader in software-defined vehicle work",
+            "Long relationships with European and Japanese carmakers"
+          ],
+          "risks": [
+            "Carmakers delaying EV and software programmes",
+            "Concentration in a few carmakers"
+          ],
+          "f": {
+            "ticker": "KPITTECH"
+          }
+        },
+        "tataelxsi": {
+          "name": "Tata Elxsi",
+          "listed": true,
+          "role": "Design and technology firm: vehicle software and electronics, media and broadcast technology, and medical-device engineering",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "High-margin design-led model",
+            "Strong in software-defined vehicles"
+          ],
+          "risks": [
+            "Media and communications clients cutting spend",
+            "Concentration in a few large clients"
+          ],
+          "f": {
+            "ticker": "TATAELXSI"
+          }
+        },
+        "cyient": {
+          "name": "Cyient",
+          "listed": true,
+          "role": "Engineering services for aircraft, rail, communications networks, utilities and medical devices, with a semiconductor-design unit",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Long aerospace relationships (aircraft and engine makers)",
+            "Diversified across industries"
+          ],
+          "risks": [
+            "Leadership changes and uneven growth",
+            "Aerospace programme delays"
+          ],
+          "f": {
+            "ticker": "CYIENT"
+          }
+        },
+        "sasken": {
+          "name": "Sasken Technologies",
+          "listed": true,
+          "role": "Embedded software and product-engineering firm for semiconductor, device, automotive and telecom companies",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Deep embedded-software skills",
+            "Net cash"
+          ],
+          "risks": [
+            "Small scale",
+            "Client concentration"
+          ],
+          "f": {
+            "ticker": "SASKEN"
+          }
+        },
+        "expleo": {
+          "name": "Expleo Solutions",
+          "listed": true,
+          "role": "Indian arm of the French engineering group Expleo, doing software testing and engineering for banks, insurers and carmakers",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Parent's European engineering clients"
+          ],
+          "risks": [
+            "Small, thinly traded",
+            "Depends on parent for clients"
+          ],
+          "f": {
+            "ticker": "EXPLEOSOL"
+          }
+        },
+        "questGlobal": {
+          "name": "QuEST Global",
+          "listed": false,
+          "role": "Large unlisted engineering services firm for aerospace, energy and medical clients, with big Indian delivery centres",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Aerospace engine engineering"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Private company (headquartered in Singapore, delivery in India)",
+            "No listed market data"
+          ]
+        },
+        "ofss": {
+          "name": "Oracle Financial Services Software",
+          "listed": true,
+          "role": "Oracle's majority-owned Indian banking-software company (Flexcube core banking and other banking products) selling to banks worldwide",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Installed base in many global and Indian banks",
+            "Debt-free and pays large dividends"
+          ],
+          "risks": [
+            "Most revenue comes from overseas banks with long, lumpy deals",
+            "Oracle's control limits strategy and free float"
+          ],
+          "f": {
+            "ticker": "OFSS"
+          }
+        },
+        "intellect": {
+          "name": "Intellect Design Arena",
+          "listed": true,
+          "role": "Banking and insurance software maker (core banking, transaction banking, wealth, insurance) with an AI platform",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Modern, modular banking products",
+            "Large wins with global banks"
+          ],
+          "risks": [
+            "Long sales cycles",
+            "Lumpy licence revenue"
+          ],
+          "f": {
+            "ticker": "INTELLECT"
+          }
+        },
+        "nucleus": {
+          "name": "Nucleus Software Exports",
+          "listed": true,
+          "role": "Maker of FinnOne lending and FinnAxia transaction-banking software used by banks and NBFCs in India and Asia",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Long-standing bank and NBFC clients",
+            "Net cash"
+          ],
+          "risks": [
+            "Small company with lumpy deals",
+            "Competition from larger vendors"
+          ],
+          "f": {
+            "ticker": "NUCLEUS"
+          }
+        },
+        "newgen": {
+          "name": "Newgen Software Technologies",
+          "listed": true,
+          "role": "Low-code platform for document, workflow and customer-communication automation, sold mainly to banks, insurers and governments",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Strong in bank loan-origination and onboarding",
+            "Growing subscription revenue"
+          ],
+          "risks": [
+            "Lumpy licence income",
+            "Long collection cycles in emerging markets"
+          ],
+          "f": {
+            "ticker": "NEWGEN"
+          }
+        },
+        "ramco": {
+          "name": "Ramco Systems",
+          "listed": true,
+          "role": "Cloud ERP, global payroll and aviation maintenance software company of the Ramco group",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Niche leadership in aviation maintenance software",
+            "Global payroll product"
+          ],
+          "risks": [
+            "Long history of losses",
+            "Small scale against global ERP vendors"
+          ],
+          "f": {
+            "ticker": "RAMCOSYS"
+          }
+        },
+        "quickHeal": {
+          "name": "Quick Heal Technologies",
+          "listed": true,
+          "role": "Indian cybersecurity software maker (Quick Heal for consumers, Seqrite for enterprises and government)",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Indian brand in consumer antivirus",
+            "Net cash"
+          ],
+          "risks": [
+            "Shrinking consumer antivirus market",
+            "Small enterprise share against global vendors"
+          ],
+          "f": {
+            "ticker": "QUICKHEAL"
+          }
+        },
+        "mapmyindia": {
+          "name": "C. E. Info Systems (MapmyIndia)",
+          "listed": true,
+          "role": "Digital maps, navigation and location software for carmakers, government and enterprises",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "aka": [
+            "MapmyIndia"
+          ],
+          "strengths": [
+            "Embedded in many carmakers' navigation systems",
+            "Government mapping contracts"
+          ],
+          "risks": [
+            "Competition from global map providers",
+            "Auto-sector volume swings"
+          ],
+          "f": {
+            "ticker": "MAPMYINDIA"
+          }
+        },
+        "zoho": {
+          "name": "Zoho",
+          "listed": false,
+          "role": "Chennai-based maker of business software (CRM, finance, HR, office suite) used worldwide, built without outside capital",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "One of India's largest software-product companies"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Private company",
+            "No listed market data"
+          ]
+        },
+        "tally": {
+          "name": "Tally Solutions",
+          "listed": false,
+          "role": "Bengaluru-based accounting and GST software used by a very large number of Indian small businesses",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Dominant in small-business accounting"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Private company",
+            "No listed market data"
+          ]
+        },
+        "freshworks": {
+          "name": "Freshworks",
+          "listed": false,
+          "role": "Customer-service and IT-service-management software company founded in Chennai, with most engineering in India",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Global SaaS built from India"
+          ],
+          "risks": [
+            "No Indian listing"
+          ],
+          "notes": [
+            "Listed on Nasdaq (FRSH), not in India",
+            "No Indian market data"
+          ]
+        },
+        "fsl": {
+          "name": "Firstsource Solutions",
+          "listed": true,
+          "role": "RP-Sanjiv Goenka group BPM firm: US healthcare (payer and provider), UK and US banking and collections, and telecom and media customer service",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large US healthcare and UK financial-services books",
+            "Moving to AI-led, outcome-priced contracts"
+          ],
+          "risks": [
+            "Voice and collections work exposed to AI automation",
+            "UK and US client concentration"
+          ],
+          "f": {
+            "ticker": "FSL"
+          }
+        },
+        "eclerx": {
+          "name": "eClerx Services",
+          "listed": true,
+          "role": "Knowledge-process firm doing trade, data and operations work for global investment banks, telecom and digital clients",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Specialist financial-markets operations with high margins",
+            "Regular buybacks"
+          ],
+          "risks": [
+            "Concentration in a few large banks",
+            "Automation of data-processing work"
+          ],
+          "f": {
+            "ticker": "ECLERX"
+          }
+        },
+        "hgs": {
+          "name": "Hinduja Global Solutions",
+          "listed": true,
+          "role": "Hinduja group customer-experience and BPM firm, which also owns digital media and broadband businesses after selling its healthcare BPM in 2021",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large cash from the healthcare sale",
+            "Customer-experience operations in several countries"
+          ],
+          "risks": [
+            "Mixed portfolio with loss-making media assets",
+            "Seat-based work exposed to AI"
+          ],
+          "f": {
+            "ticker": "HGS"
+          }
+        },
+        "datamatics": {
+          "name": "Datamatics Global Services",
+          "listed": true,
+          "role": "Digital operations and BPM firm with its own automation, document-processing and analytics products",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Own automation products",
+            "Promoter-run with net cash"
+          ],
+          "risks": [
+            "Small scale",
+            "Competition from larger BPM firms"
+          ],
+          "f": {
+            "ticker": "DATAMATICS"
+          }
+        },
+        "digitide": {
+          "name": "Digitide Solutions",
+          "listed": true,
+          "role": "BPM and technology-services company demerged from Quess Corp (listed Jun 2025), holding customer-experience, platform and HR-outsourcing businesses including Alldigi",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Established client base from Quess",
+            "Mix of BPM and product platforms"
+          ],
+          "risks": [
+            "Short listed history",
+            "Seat-based BPM exposed to AI"
+          ],
+          "f": {
+            "ticker": "DIGITIDE"
+          }
+        },
+        "alldigi": {
+          "name": "Alldigi Tech",
+          "listed": true,
+          "role": "Payroll, HR and customer-experience outsourcing firm (formerly Allsec Technologies), majority-held within the Digitide group",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Recurring payroll-processing revenue",
+            "Net cash"
+          ],
+          "risks": [
+            "Small, closely held float",
+            "Customer-experience work exposed to automation"
+          ],
+          "f": {
+            "ticker": "ALLDIGI"
+          }
+        },
+        "teleperformance": {
+          "name": "Teleperformance India",
+          "listed": false,
+          "role": "Indian operations of France's Teleperformance, one of the largest customer-experience employers in India",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Global client base"
+          ],
+          "risks": [
+            "No Indian listing"
+          ],
+          "notes": [
+            "Subsidiary of Teleperformance SE (listed in Paris)",
+            "No Indian market data"
+          ]
+        },
+        "sagility": {
+          "name": "Sagility",
+          "listed": true,
+          "role": "US healthcare operations firm serving mainly health insurers (claims, member services, clinical support) and providers; formerly Hinduja's healthcare BPM, listed Nov 2024",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Long relationships with large US insurers",
+            "Specialised, hard-to-switch claims work"
+          ],
+          "risks": [
+            "Top clients bring a large share of revenue",
+            "Private-equity promoter selling down shares",
+            "US insurer cost cuts and policy changes"
+          ],
+          "f": {
+            "ticker": "SAGILITY"
+          }
+        },
+        "iks": {
+          "name": "Inventurus Knowledge Solutions",
+          "listed": true,
+          "role": "Healthcare operations firm for US physician groups and health systems: revenue-cycle management, medical scribing and clinical support; listed Dec 2024",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "aka": [
+            "IKS"
+          ],
+          "strengths": [
+            "High margins from physician-side work",
+            "Acquisition of Aquity (2024) added scribing and coding scale"
+          ],
+          "risks": [
+            "Concentration among large US health systems",
+            "AI scribing tools could cut billable work"
+          ],
+          "f": {
+            "ticker": "IKS"
+          }
+        },
+        "omega": {
+          "name": "Omega Healthcare Management Services",
+          "listed": false,
+          "role": "Large unlisted revenue-cycle and medical-coding firm with delivery centres in India and the Philippines",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Scale in US revenue-cycle work"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Private-equity backed",
+            "No listed market data"
+          ]
+        },
+        "agsHealth": {
+          "name": "AGS Health",
+          "listed": false,
+          "role": "Revenue-cycle management firm for US hospitals and physician groups, with most staff in India",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Hospital revenue-cycle specialisation"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Bought by Blackstone from EQT in 2025 (PitchBook)",
+            "No listed market data"
+          ]
+        },
+        "jpmorganGcc": {
+          "name": "JPMorgan Chase (India GCC)",
+          "listed": false,
+          "role": "One of the largest bank capability centres in India, running technology, operations and risk work for the US bank",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Scale and parent's technology budget"
+          ],
+          "risks": [
+            "Captive; no Indian listing"
+          ],
+          "notes": [
+            "Owned by JPMorgan Chase & Co (NYSE)",
+            "No Indian market data"
+          ]
+        },
+        "walmartGlobalTech": {
+          "name": "Walmart Global Tech India",
+          "listed": false,
+          "role": "Walmart's technology centre in Bengaluru and Chennai building e-commerce, supply-chain and store software",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Builds core retail technology for the parent"
+          ],
+          "risks": [
+            "Captive; no Indian listing"
+          ],
+          "notes": [
+            "Owned by Walmart Inc (NYSE)",
+            "No Indian market data"
+          ]
+        },
+        "goldmanGcc": {
+          "name": "Goldman Sachs (India GCC)",
+          "listed": false,
+          "role": "Goldman Sachs' Bengaluru and Hyderabad centres for engineering, risk and operations",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "High-skill finance and engineering work"
+          ],
+          "risks": [
+            "Captive; no Indian listing"
+          ],
+          "notes": [
+            "Owned by The Goldman Sachs Group (NYSE)",
+            "No Indian market data"
+          ]
+        },
+        "targetIndia": {
+          "name": "Target in India",
+          "listed": false,
+          "role": "US retailer Target's Bengaluru centre for technology, merchandising and supply-chain work",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Long-running retail GCC"
+          ],
+          "risks": [
+            "Captive; no Indian listing"
+          ],
+          "notes": [
+            "Owned by Target Corporation (NYSE)",
+            "No Indian market data"
+          ]
+        },
+        "boschGlobalSoftware": {
+          "name": "Bosch Global Software Technologies",
+          "listed": false,
+          "role": "Robert Bosch GmbH's engineering and software centre in India for vehicle, industrial and consumer products",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large engineering GCC"
+          ],
+          "risks": [
+            "Not part of listed Bosch Ltd"
+          ],
+          "notes": [
+            "Owned by Robert Bosch GmbH, separate from the listed Bosch Ltd",
+            "No listed market data"
+          ]
+        },
+        "ansr": {
+          "name": "ANSR",
+          "listed": false,
+          "role": "Firm that sets up and runs GCCs in India for global companies opening their first centre",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Set-up partner for new GCCs"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Private company",
+            "No listed market data"
+          ]
+        },
+        "infoEdge": {
+          "name": "Info Edge (India)",
+          "listed": true,
+          "role": "Owns Naukri, the job portal most Indian IT firms and GCCs recruit through, plus 99acres, Jeevansathi and Shiksha",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "aka": [
+            "naukri"
+          ],
+          "strengths": [
+            "Dominant recruitment portal with high margins",
+            "Collects subscriptions upfront"
+          ],
+          "risks": [
+            "IT hiring slowdowns cut Naukri billings first",
+            "AI hiring tools and LinkedIn competition"
+          ],
+          "f": {
+            "ticker": "NAUKRI"
+          }
+        },
+        "teamlease": {
+          "name": "TeamLease Services",
+          "listed": true,
+          "role": "Staffing company placing general and specialist IT contract staff, running apprenticeship programmes and HR services",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large associate base and compliance know-how",
+            "Specialist IT staffing for GCCs and services firms"
+          ],
+          "risks": [
+            "Thin margins on general staffing",
+            "IT hiring cycles"
+          ],
+          "f": {
+            "ticker": "TEAMLEASE"
+          }
+        },
+        "quess": {
+          "name": "Quess Corp",
+          "listed": true,
+          "role": "Staffing company (general and IT staffing) after demerging its BPM/technology and facility-management businesses in 2025",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "One of India's largest staffing firms",
+            "Simpler business after the demerger"
+          ],
+          "risks": [
+            "Thin staffing margins",
+            "Wage-cost pass-through and labour-code compliance costs"
+          ],
+          "f": {
+            "ticker": "QUESS"
+          }
+        },
+        "awfis": {
+          "name": "Awfis Space Solutions",
+          "listed": true,
+          "role": "Flexible-office operator with coworking and managed offices across many cities, plus fit-out and facility services; listed May 2024",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Wide city footprint including tier-2",
+            "Asset-light deals with landlords sharing fit-out cost"
+          ],
+          "risks": [
+            "Occupancy falls if hiring slows",
+            "Lease-accounting makes profits volatile"
+          ],
+          "f": {
+            "ticker": "AWFIS"
+          }
+        },
+        "smartworks": {
+          "name": "Smartworks Coworking Spaces",
+          "listed": true,
+          "role": "Managed-campus operator leasing whole buildings for large enterprises and GCCs; listed Jul 2025",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large campuses suited to GCC teams",
+            "First listed flex operator to pass 10 mn sq ft in operation"
+          ],
+          "risks": [
+            "Long leases against shorter client commitments",
+            "Client concentration in large tenants"
+          ],
+          "f": {
+            "ticker": "SMARTWORKS"
+          }
+        },
+        "indiqube": {
+          "name": "IndiQube Spaces",
+          "listed": true,
+          "role": "Bengaluru-based managed-office operator serving GCCs and tech firms, with fit-out and facility services; listed 2025",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Strong in Bengaluru, India's largest GCC market",
+            "Enterprise-focused client base"
+          ],
+          "risks": [
+            "Concentration in a few cities",
+            "Lease liabilities"
+          ],
+          "f": {
+            "ticker": "INDIQUBE"
+          }
+        },
+        "wework": {
+          "name": "WeWork India Management",
+          "listed": true,
+          "role": "Embassy group-promoted operator of the WeWork brand in India, premium flexible offices; listed 10 Oct 2025",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Premium global brand and Grade A buildings",
+            "Embassy group backing"
+          ],
+          "risks": [
+            "Brand licence depends on WeWork globally",
+            "Higher rents in premium micro-markets"
+          ],
+          "f": {
+            "ticker": "WEWORK"
+          }
+        },
+        "tableSpace": {
+          "name": "Table Space",
+          "listed": false,
+          "role": "Unlisted managed-office operator building large campuses for GCCs and tech companies",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large enterprise campuses"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Private company",
+            "No listed market data"
+          ]
+        },
+        "embassyReit": {
+          "name": "Embassy Office Parks REIT",
+          "listed": true,
+          "role": "Office REIT whose Bengaluru, Pune, Mumbai and Noida parks house many GCCs and IT firms - landlord to the flexible-office operators and their clients",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Grade A parks in the main GCC city"
+          ],
+          "risks": [
+            "A landlord, not an operator: linked here only as an enabler"
+          ],
+          "f": {
+            "ticker": "EMBASSY"
+          }
+        },
+        "knowledgeReit": {
+          "name": "Knowledge Realty Trust",
+          "listed": true,
+          "role": "Office REIT with Grade A offices in Mumbai, Hyderabad, Bengaluru and other cities leased to GCCs and tech firms",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large portfolio in GCC markets"
+          ],
+          "risks": [
+            "A landlord, linked here only as an enabler"
+          ],
+          "f": {
+            "ticker": "KRT"
+          }
+        },
+        "mindspaceReit": {
+          "name": "Mindspace Business Parks REIT",
+          "listed": true,
+          "role": "Office REIT in Mumbai, Hyderabad, Pune and Chennai, with IT parks leased to GCCs and services firms",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Hyderabad and Pune IT parks"
+          ],
+          "risks": [
+            "A landlord, linked here only as an enabler"
+          ],
+          "f": {
+            "ticker": "MINDSPACE"
+          }
+        },
+        "brookfieldReit": {
+          "name": "Brookfield India Real Estate Trust",
+          "listed": true,
+          "role": "Office REIT in Mumbai, Gurugram, Noida and Kolkata with IT and GCC tenants",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "NCR and Mumbai office campuses"
+          ],
+          "risks": [
+            "A landlord, linked here only as an enabler"
+          ],
+          "f": {
+            "ticker": "BIRET"
+          }
+        },
+        "niitMts": {
+          "name": "NIIT Learning Systems",
+          "listed": true,
+          "role": "Runs outsourced corporate training for large global companies (managed training services), demerged from NIIT in 2023",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Multi-year contracts with large global clients",
+            "Net cash"
+          ],
+          "risks": [
+            "Client concentration",
+            "Training budgets cut in downturns"
+          ],
+          "f": {
+            "ticker": "NIITMTS"
+          }
+        },
+        "niitLtd": {
+          "name": "NIIT",
+          "listed": true,
+          "role": "Tech and finance-skills training for students and graduates, after demerging its corporate-training arm in 2023",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Long-known training brand"
+          ],
+          "risks": [
+            "Demand falls when entry-level IT hiring is weak",
+            "Small and loss-prone"
+          ],
+          "f": {
+            "ticker": "NIITLTD"
+          }
+        },
+        "aptech": {
+          "name": "Aptech",
+          "listed": true,
+          "role": "Training institutes for animation, media, aviation and IT courses, mostly through franchise centres",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Wide franchise network"
+          ],
+          "risks": [
+            "Only a small part of courses are IT",
+            "Consumer demand is volatile"
+          ],
+          "f": {
+            "ticker": "APTECHT"
+          }
+        },
+        "upgrad": {
+          "name": "upGrad",
+          "listed": false,
+          "role": "Online education company selling degree, tech and AI courses to working professionals",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large online course catalogue"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Private company",
+            "No listed market data"
+          ]
+        },
+        "simplilearn": {
+          "name": "Simplilearn",
+          "listed": false,
+          "role": "Online bootcamp provider for cloud, data, AI and cybersecurity skills, selling to individuals and companies",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Corporate and individual tech courses"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Owned by Blackstone",
+            "No listed market data"
+          ]
+        }
+      }
+    },
+    {
+      "key": "autos",
+      "suppliers": {
+        "heromotoco": {
+          "name": "Hero MotoCorp",
+          "listed": true,
+          "role": "India's largest motorcycle maker (Splendor, HF Deluxe), with Vida e-scooters, the Harley-Davidson X440 tie-up and a large stake in Ather Energy",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "hero motocorp",
+            "hero honda",
+            "vida"
+          ],
+          "strengths": [
+            "Dominant in entry and commuter motorcycles with the widest rural dealer reach",
+            "Q2 FY27 revenue rose 23% to ₹14,971 Cr; Vida e-scooter volumes nearly doubled and Vida had 13% of e-2W registrations in Oct 2026 (Vahan)",
+            "Debt-free with large cash; owns a big stake in Ather"
+          ],
+          "risks": [
+            "Q2 FY27 consolidated profit (+41%) included a ₹397 Cr one-time gain; standalone profit rose only 4.6%",
+            "Rural and entry-bike demand most exposed to a weak monsoon and the ABS proposal",
+            "Few hits in scooters and premium bikes so far"
+          ],
+          "f": {
+            "ticker": "HEROMOTOCO"
+          }
+        },
+        "bajajauto": {
+          "name": "Bajaj Auto",
+          "listed": true,
+          "role": "Motorcycle and three-wheeler maker with the largest export business among Indian two-wheeler makers, the Chetak e-scooter and control of KTM",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "bajaj auto",
+            "chetak",
+            "ktm"
+          ],
+          "strengths": [
+            "Q2 FY27 standalone revenue hit a record ₹20,003 Cr and profit rose 35% to ₹3,354 Cr; exports rose 41% (Oct 2026)",
+            "Chetak was No. 2 in e-2W registrations with 22% in Oct 2026 (Vahan)",
+            "Leads India's three-wheeler market and exports to Africa and Latin America"
+          ],
+          "risks": [
+            "Rare-earth magnet curbs cut Chetak output in 2025",
+            "KTM's turnaround in Europe adds risk to consolidated results",
+            "Export markets face currency and political shocks (Nigeria, Egypt)"
+          ],
+          "f": {
+            "ticker": "BAJAJ-AUTO"
+          }
+        },
+        "tvs": {
+          "name": "TVS Motor",
+          "listed": true,
+          "role": "Two-wheeler and three-wheeler maker (Jupiter, Apache, Raider), India's largest e-scooter seller with iQube, and owner of Norton",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "tvs motor company",
+            "tvs motor",
+            "iqube",
+            "norton"
+          ],
+          "strengths": [
+            "Led e-2W registrations for months; record 60,429 units and 27% share in Oct 2026 (Vahan)",
+            "Gains share in scooters and premium bikes; strong exports",
+            "Q2 FY27 sales rose 27% on EVs and exports (company, Oct 2026)"
+          ],
+          "risks": [
+            "Rare-earth magnet supply for iQube motors",
+            "Investments in Norton, financing and overseas units weigh on consolidated returns",
+            "Commodity costs in a price-competitive scooter market"
+          ],
+          "f": {
+            "ticker": "TVSMOTOR"
+          }
+        },
+        "eichermot": {
+          "name": "Eicher Motors",
+          "listed": true,
+          "role": "Owner of Royal Enfield, the dominant mid-size (250-750cc) motorcycle brand, and of a majority of VE Commercial Vehicles, its truck and bus joint venture with Volvo",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "royal enfield",
+            "vecv",
+            "eicher trucks"
+          ],
+          "strengths": [
+            "Near-monopoly in Indian mid-size motorcycles with growing exports",
+            "Q2 FY27 revenue rose 20.3% to ₹7,422 Cr and profit 14.9% - its best quarter (Nov 2026)",
+            "VECV adds a profitable light and medium truck and bus business"
+          ],
+          "risks": [
+            "Bikes above 350cc moved to 40% GST in Sep 2025",
+            "New rivals in 350-500cc (Triumph-Bajaj, Harley-Hero, Honda)",
+            "VECV is exposed to the truck cycle"
+          ],
+          "f": {
+            "ticker": "EICHERMOT"
+          }
+        },
+        "ather": {
+          "name": "Ather Energy",
+          "listed": true,
+          "role": "Electric scooter maker (Rizta, 450 series) with its own software, chargers and battery packs; listed 6 May 2025, Hero MotoCorp its largest shareholder",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "ather",
+            "ather energy",
+            "rizta"
+          ],
+          "strengths": [
+            "No. 3 in e-2W registrations with 14% in Oct 2026 (Vahan)",
+            "Family scooter Rizta widened the buyer base beyond enthusiasts",
+            "In-house software and fast-charging network"
+          ],
+          "risks": [
+            "Still loss-making while scaling a second plant",
+            "Price war with TVS, Bajaj and Hero in e-scooters",
+            "Rare-earth magnets and cell costs"
+          ],
+          "f": {
+            "ticker": "ATHERENERG"
+          }
+        },
+        "ola": {
+          "name": "Ola Electric",
+          "listed": true,
+          "role": "E-scooter and e-motorcycle maker with a cell plant in Tamil Nadu, now a much smaller player than at its 2024 peak",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "ola electric mobility",
+            "ola"
+          ],
+          "strengths": [
+            "Own cell (4680) plant and ferrite motors aimed at lower costs",
+            "Large factory capacity already built"
+          ],
+          "risks": [
+            "Share fell to about 5% in Oct 2026, fifth place (Vahan), from the lead in 2024",
+            "Losses, service complaints and regulatory scrutiny",
+            "Cash needed for cells and new models"
+          ],
+          "f": {
+            "ticker": "OLAELEC"
+          }
+        },
+        "hmsi": {
+          "name": "Honda Motorcycle & Scooter India",
+          "listed": false,
+          "role": "Honda's Indian arm - Activa, India's best-selling scooter, and Shine motorcycles - the No. 2 two-wheeler maker",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Activa leads the scooter market; large export base"
+          ],
+          "risks": [
+            "Unlisted; late to electric scooters"
+          ],
+          "notes": [
+            "Wholly owned by Honda Motor Co. (Japan)",
+            "No listed market data"
+          ]
+        },
+        "maruti": {
+          "name": "Maruti Suzuki India",
+          "listed": true,
+          "role": "India's largest carmaker and car exporter (Suzuki subsidiary): small cars, SUVs, CNG and hybrids, plus Toyota-badged models",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "maruti",
+            "maruti suzuki"
+          ],
+          "strengths": [
+            "Highest-ever quarterly sales of 6,96,654 units in Q2 FY27, up 26.5%",
+            "Leads CNG and exports; widest sales and service network",
+            "Small cars benefit most from the 18% GST rate"
+          ],
+          "risks": [
+            "Q2 FY27 standalone profit fell 26.9% to ₹2,415 Cr as material costs rose 48% and treasury income fell (27 Oct 2026)",
+            "CAFE III dropped the small-car relief it sought; needs hybrids and EVs",
+            "Lost share to SUV specialists over the decade"
+          ],
+          "f": {
+            "ticker": "MARUTI"
+          }
+        },
+        "mm": {
+          "name": "Mahindra & Mahindra",
+          "listed": true,
+          "role": "India's leading SUV and tractor maker and the leading pickup maker; controls SML Mahindra (trucks, buses) since Aug 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "mahindra",
+            "m&m",
+            "swaraj tractors"
+          ],
+          "strengths": [
+            "Q2 FY27 consolidated revenue +25% to ₹57,553 Cr and profit +25% to ₹4,588 Cr; SUV volumes +26% (5 Nov 2026)",
+            "Sells about half of India's tractors (Mahindra and Swaraj)",
+            "Leads pickups and small CVs; growing electric SUVs"
+          ],
+          "risks": [
+            "Tractor margin fell to 17.6% from 20.6% and FY27 tractor outlook cut to flat on weak rains",
+            "Auto margins squeezed by commodity costs",
+            "Capacity limits SUV growth near term"
+          ],
+          "f": {
+            "ticker": "M&M"
+          }
+        },
+        "tmpv": {
+          "name": "Tata Motors Passenger Vehicles",
+          "listed": true,
+          "role": "Tata's cars, SUVs and EVs (Nexon, Punch, Curvv) plus Jaguar Land Rover, after the passenger-vehicle business was separated on 1 Oct 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "tata motors pv",
+            "tata motors passenger vehicles",
+            "jaguar land rover",
+            "jlr"
+          ],
+          "strengths": [
+            "Leader in Indian electric cars and five-star safety ratings",
+            "JLR's Range Rover and Defender earn high margins"
+          ],
+          "risks": [
+            "JLR is most of the profit and faces US tariffs and a weak China; a Sep 2025 cyberattack halted its plants for weeks",
+            "Will not fully pass on 2026 commodity costs (management, 2026)",
+            "Domestic share pressure from Mahindra and Hyundai"
+          ],
+          "f": {
+            "ticker": "TMPV"
+          }
+        },
+        "hyundai": {
+          "name": "Hyundai Motor India",
+          "listed": true,
+          "role": "One of India's top carmakers (Creta, Venue) and a large exporter; listed 22 Oct 2024",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "hyundai india",
+            "hyundai motor india"
+          ],
+          "strengths": [
+            "Creta leads mid-size SUVs; strong exports",
+            "New Talegaon (Pune) plant adds capacity",
+            "Net cash"
+          ],
+          "risks": [
+            "EBITDA margin fell to 9.3% in Q1 FY27 from 13.3% (reported); prices raised in Jun and Sep 2026",
+            "Royalty paid to the Korean parent",
+            "Domestic share lost to Mahindra and Tata"
+          ],
+          "f": {
+            "ticker": "HYUNDAI"
+          }
+        },
+        "toyotaKirloskar": {
+          "name": "Toyota Kirloskar Motor",
+          "listed": false,
+          "role": "Toyota's Indian carmaker (Innova, Fortuner, hybrids) that also shares models with Maruti Suzuki",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Strong in hybrids, which CAFE III rewards (1.6x credit)"
+          ],
+          "risks": [
+            "Unlisted; small share in mass segments"
+          ],
+          "notes": [
+            "Owned by Toyota Motor Corp. and the Kirloskar group",
+            "No listed market data"
+          ]
+        },
+        "kia": {
+          "name": "Kia India",
+          "listed": false,
+          "role": "Kia's Indian arm (Seltos, Sonet, Carens) building cars at Anantapur",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Popular SUVs and a growing export base"
+          ],
+          "risks": [
+            "Unlisted; shares platforms and suppliers with Hyundai"
+          ],
+          "notes": [
+            "Subsidiary of Kia Corporation (Korea)",
+            "No listed market data"
+          ]
+        },
+        "jswMg": {
+          "name": "JSW MG Motor India",
+          "listed": false,
+          "role": "MG cars in India (Windsor EV, Hector, Comet), owned by SAIC with the JSW group as partner since 2024",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Strong early share in electric cars"
+          ],
+          "risks": [
+            "Unlisted; Chinese ownership limits investment approvals"
+          ],
+          "notes": [
+            "JSW group holds a large minority stake; SAIC Motor the rest",
+            "No listed market data"
+          ]
+        },
+        "tmcv": {
+          "name": "Tata Motors (commercial vehicles)",
+          "listed": true,
+          "role": "India's largest truck and bus maker, separated from Tata's passenger cars on 1 Oct 2025 and listed 12 Nov 2025; owns about 89% of Europe's Iveco since 30 Oct 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "tata motors cv",
+            "tml commercial vehicles",
+            "tata trucks",
+            "iveco"
+          ],
+          "strengths": [
+            "Leader in heavy and light trucks, buses and small cargo vehicles",
+            "Iveco (settled 30 Oct 2026 at €14.40 a share) adds European trucks, buses and engines",
+            "Strong spares and service income"
+          ],
+          "risks": [
+            "Debt and integration of the €3.8 billion Iveco deal",
+            "Exposed to the Indian freight cycle and European truck demand",
+            "Shares the 'Tata Motors' name with TMPV - news can confuse them"
+          ],
+          "f": {
+            "ticker": "TMCV"
+          }
+        },
+        "ashok": {
+          "name": "Ashok Leyland",
+          "listed": true,
+          "role": "Hinduja group truck and bus maker, India's No. 2 in heavy trucks and a leading bus supplier, also making Army trucks",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "ashok leyland"
+          ],
+          "strengths": [
+            "Strong in buses and heavy trucks; rising light-truck range",
+            "Defence trucks and exports to the Gulf and Africa",
+            "Electric buses through Switch Mobility"
+          ],
+          "risks": [
+            "Highly exposed to the truck cycle",
+            "Switch Mobility (electric buses) is still loss-making",
+            "Price competition with Tata Motors"
+          ],
+          "f": {
+            "ticker": "ASHOKLEY"
+          }
+        },
+        "force": {
+          "name": "Force Motors",
+          "listed": true,
+          "role": "Maker of Traveller vans, Urbania minibuses, Gurkha SUVs and tractors, and engine assembler for Mercedes-Benz and BMW in India",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "force motors",
+            "traveller",
+            "urbania"
+          ],
+          "strengths": [
+            "Leads the van and school/staff minibus niche",
+            "Engine supply to Mercedes-Benz and BMW adds steady income"
+          ],
+          "risks": [
+            "Small scale and a narrow model range",
+            "Depends on luxury carmakers' engine orders"
+          ],
+          "f": {
+            "ticker": "FORCEMOT"
+          }
+        },
+        "smlMahindra": {
+          "name": "SML Mahindra",
+          "listed": true,
+          "role": "Light and medium truck and bus maker (school and staff buses), controlled by Mahindra (58.96%) since Aug 2025; formerly SML Isuzu",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "sml isuzu",
+            "swaraj mazda",
+            "sml mahindra"
+          ],
+          "strengths": [
+            "Strong in school and staff buses",
+            "Mahindra's backing for range and distribution"
+          ],
+          "risks": [
+            "Small scale in a cyclical market",
+            "Integration and possible restructuring under Mahindra"
+          ],
+          "f": {
+            "ticker": "SMLMAH"
+          }
+        },
+        "daimlerTruck": {
+          "name": "Daimler India Commercial Vehicles",
+          "listed": false,
+          "role": "BharatBenz trucks and Mercedes-Benz buses made at Oragadam, Chennai, for India and export",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Premium heavy trucks and export hub for Daimler Truck"
+          ],
+          "risks": [
+            "Unlisted in India"
+          ],
+          "notes": [
+            "Subsidiary of Daimler Truck AG (listed in Germany)",
+            "No listed market data"
+          ]
+        },
+        "atulAuto": {
+          "name": "Atul Auto",
+          "listed": true,
+          "role": "Rajkot-based three-wheeler maker (Gem, Elite) for passenger and cargo use, petrol, CNG and electric",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "atul auto"
+          ],
+          "strengths": [
+            "Niche in small-town three-wheelers and electric cargo models"
+          ],
+          "risks": [
+            "Tiny share against Bajaj, Mahindra and TVS",
+            "Electric three-wheeler price war"
+          ],
+          "f": {
+            "ticker": "ATULAUTO"
+          }
+        },
+        "escorts": {
+          "name": "Escorts Kubota",
+          "listed": true,
+          "role": "Tractor maker (Farmtrac, Powertrac, Kubota) and construction-equipment maker, controlled by Japan's Kubota; sold its railway business to Sona BLW in 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "escorts",
+            "farmtrac",
+            "powertrac"
+          ],
+          "strengths": [
+            "FY26 tractor volumes rose 15.7% to 1,33,670",
+            "Kubota's technology and export channels",
+            "Cash from the railway business sale (₹1,600 Cr)"
+          ],
+          "risks": [
+            "Tractor share about 10.5% in Oct 2026 retail (FADA), behind Mahindra, Sonalika and TAFE",
+            "Monsoon-driven demand",
+            "Construction-equipment cycle"
+          ],
+          "f": {
+            "ticker": "ESCORTS"
+          }
+        },
+        "tafe": {
+          "name": "TAFE (Tractors and Farm Equipment)",
+          "listed": false,
+          "role": "Chennai-based maker of Massey Ferguson and Eicher tractors, India's No. 3 tractor maker",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Sold about 2.15 lakh tractors in FY26 (company)"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Amalgamations group company",
+            "No listed market data"
+          ]
+        },
+        "sonalika": {
+          "name": "International Tractors (Sonalika)",
+          "listed": false,
+          "role": "Punjab-based Sonalika tractor maker and India's largest tractor exporter",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "13% of tractor retail in Oct 2026 (FADA)"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Private, promoter-owned",
+            "No listed market data"
+          ]
+        },
+        "vst": {
+          "name": "VST Tillers Tractors",
+          "listed": true,
+          "role": "Bengaluru-based maker of power tillers, compact tractors and small farm machines",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "vst tillers"
+          ],
+          "strengths": [
+            "Leader in power tillers for small farms",
+            "Debt-free"
+          ],
+          "risks": [
+            "Small and dependent on state farm-mechanisation subsidies",
+            "Weak monsoon years hurt sales"
+          ],
+          "f": {
+            "ticker": "VSTTILLERS"
+          }
+        },
+        "unominda": {
+          "name": "UNO Minda",
+          "listed": true,
+          "role": "India's largest maker of auto switches, lamps, horns, alloy wheels and sensors, plus EV controllers and chargers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "uno minda",
+            "minda industries"
+          ],
+          "strengths": [
+            "Many products per vehicle with technology partners from Japan and Europe",
+            "Gains content as LEDs and electronics spread",
+            "Serves two-wheelers, cars and EVs alike"
+          ],
+          "risks": [
+            "Heavy capex for new plants and joint ventures",
+            "Price pressure from vehicle makers"
+          ],
+          "f": {
+            "ticker": "UNOMINDA"
+          }
+        },
+        "mindaCorp": {
+          "name": "Minda Corporation",
+          "listed": true,
+          "role": "Spark Minda group supplier of wiring harnesses, locks, smart keys, die-cast parts and EV electronics",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "spark minda",
+            "minda corp"
+          ],
+          "strengths": [
+            "Strong in two-wheeler locks and harnesses",
+            "Growing EV and electronics business"
+          ],
+          "risks": [
+            "Two-wheeler concentration",
+            "Copper prices in harnesses"
+          ],
+          "f": {
+            "ticker": "MINDACORP"
+          }
+        },
+        "lumaxind": {
+          "name": "Lumax Industries",
+          "listed": true,
+          "role": "Automotive lighting maker for cars and two-wheelers in partnership with Japan's Stanley Electric",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "lumax industries"
+          ],
+          "strengths": [
+            "Large share of car lighting; shift to LED raises content",
+            "Stanley Electric's technology"
+          ],
+          "risks": [
+            "Customer concentration (Maruti and others)",
+            "Imported LED and chip costs"
+          ],
+          "f": {
+            "ticker": "LUMAXIND"
+          }
+        },
+        "lumaxtech": {
+          "name": "Lumax Auto Technologies",
+          "listed": true,
+          "role": "Gear shifters, intake systems, plastic parts and interiors (through IAC India) for cars and two-wheelers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "lumax auto"
+          ],
+          "strengths": [
+            "Diversified products and customers",
+            "Interiors acquisition adds content per car"
+          ],
+          "risks": [
+            "Debt from acquisitions",
+            "Integration of the interiors business"
+          ],
+          "f": {
+            "ticker": "LUMAXTECH"
+          }
+        },
+        "varroc": {
+          "name": "Varroc Engineering",
+          "listed": true,
+          "role": "Two-wheeler lighting, electronics and polymer and metal parts, mainly for Bajaj and other Indian makers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "varroc"
+          ],
+          "strengths": [
+            "Focused on India after selling its overseas lighting business (2022)",
+            "Rising electronics content"
+          ],
+          "risks": [
+            "Bajaj concentration",
+            "History of losses from the overseas business"
+          ],
+          "f": {
+            "ticker": "VARROC"
+          }
+        },
+        "fiem": {
+          "name": "Fiem Industries",
+          "listed": true,
+          "role": "Two-wheeler lamps, mirrors and plastic parts, with Honda among its largest customers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "fiem"
+          ],
+          "strengths": [
+            "LED lighting for scooters and bikes",
+            "Debt-free"
+          ],
+          "risks": [
+            "Customer concentration in a few two-wheeler makers"
+          ],
+          "f": {
+            "ticker": "FIEMIND"
+          }
+        },
+        "sandhar": {
+          "name": "Sandhar Technologies",
+          "listed": true,
+          "role": "Locks, mirrors, die-cast and sheet-metal parts mostly for two-wheelers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "sandhar"
+          ],
+          "strengths": [
+            "Long relationships with Hero, Honda and TVS"
+          ],
+          "risks": [
+            "Two-wheeler concentration",
+            "Thin margins in die-casting"
+          ],
+          "f": {
+            "ticker": "SANDHAR"
+          }
+        },
+        "zfcv": {
+          "name": "ZF Commercial Vehicle Control Systems India",
+          "listed": true,
+          "role": "Air-brake and braking-control systems for trucks and buses (formerly WABCO India), owned by Germany's ZF",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "wabco india",
+            "zf cv"
+          ],
+          "strengths": [
+            "Dominant in truck air brakes in India",
+            "Exports to ZF's global plants and engineering centre"
+          ],
+          "risks": [
+            "Tied to the truck cycle",
+            "Parent ZF's restructuring and transfer pricing"
+          ],
+          "f": {
+            "ticker": "ZFCVINDIA"
+          }
+        },
+        "endurance": {
+          "name": "Endurance Technologies",
+          "listed": true,
+          "role": "Two-wheeler suspension, brakes, castings and transmissions in India, plus aluminium castings in Europe",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "endurance"
+          ],
+          "strengths": [
+            "Large share of Bajaj and other two-wheeler suspension and brakes",
+            "ABS and disc brakes add content",
+            "European castings diversify income"
+          ],
+          "risks": [
+            "Bajaj concentration",
+            "Aluminium prices"
+          ],
+          "f": {
+            "ticker": "ENDURANCE"
+          }
+        },
+        "gabriel": {
+          "name": "Gabriel India",
+          "listed": true,
+          "role": "Shock absorbers and front forks for two-wheelers, cars and trucks; flagship of the Anand group, which moved its joint-venture stakes into Gabriel in May 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "gabriel",
+            "anand group"
+          ],
+          "strengths": [
+            "Leader in shock absorbers across segments",
+            "Restructuring (NCLT, 11 May 2026) brings driveline and chemicals joint ventures inside"
+          ],
+          "risks": [
+            "Integration of the new joint ventures",
+            "Price pressure from vehicle makers"
+          ],
+          "f": {
+            "ticker": "GABRIEL"
+          }
+        },
+        "rml": {
+          "name": "Rane (Madras)",
+          "listed": true,
+          "role": "Rane group's steering, suspension linkages, brake linings and engine valves, after Rane Brake Lining and Rane Engine Valve merged into it (effective 7 Apr 2025)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "rane",
+            "rane madras",
+            "rane holdings"
+          ],
+          "strengths": [
+            "Steering and linkages for cars, tractors and trucks",
+            "One listed operating company after the merger"
+          ],
+          "risks": [
+            "Losses in its US die-casting unit in recent years",
+            "Price pressure and steel costs"
+          ],
+          "f": {
+            "ticker": "RML"
+          }
+        },
+        "jtekt": {
+          "name": "JTEKT India",
+          "listed": true,
+          "role": "Steering systems for cars (formerly Sona Koyo Steering), part of Japan's JTEKT",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "sona koyo",
+            "jtekt"
+          ],
+          "strengths": [
+            "Long supply to Maruti and Toyota; electric power steering"
+          ],
+          "risks": [
+            "Maruti concentration",
+            "Royalty and parent decisions"
+          ],
+          "f": {
+            "ticker": "JTEKTINDIA"
+          }
+        },
+        "askauto": {
+          "name": "ASK Automotive",
+          "listed": true,
+          "role": "Brake shoes, braking systems, control cables and aluminium die-cast parts for two-wheelers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "ask automotive"
+          ],
+          "strengths": [
+            "Large share in two-wheeler brake shoes and replacement brakes",
+            "Growing aluminium lightweighting parts"
+          ],
+          "risks": [
+            "Two-wheeler concentration (Hero, Honda)",
+            "Aluminium prices"
+          ],
+          "f": {
+            "ticker": "ASKAUTOLTD"
+          }
+        },
+        "jamna": {
+          "name": "Jamna Auto Industries",
+          "listed": true,
+          "role": "India's largest maker of leaf and parabolic springs and lift axles for trucks and buses",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "jamna auto"
+          ],
+          "strengths": [
+            "Leading share of truck springs; replacement sales add stability"
+          ],
+          "risks": [
+            "Fully exposed to the truck cycle",
+            "Steel prices"
+          ],
+          "f": {
+            "ticker": "JAMNAAUTO"
+          }
+        },
+        "suprajit": {
+          "name": "Suprajit Engineering",
+          "listed": true,
+          "role": "One of the world's largest makers of control cables (brake, clutch, throttle) plus brake parts and lamps",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "suprajit"
+          ],
+          "strengths": [
+            "Global customers across two-wheelers and cars",
+            "Acquisitions widened products"
+          ],
+          "risks": [
+            "Overseas units with thin margins",
+            "Tariffs on exports to the US"
+          ],
+          "f": {
+            "ticker": "SUPRAJIT"
+          }
+        },
+        "brakesIndia": {
+          "name": "Brakes India",
+          "listed": false,
+          "role": "TVS group maker of brake systems and iron castings for cars, trucks and tractors",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Major brake supplier across segments"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "TVS group company (private)",
+            "No listed market data"
+          ]
+        },
+        "motherson": {
+          "name": "Samvardhana Motherson International",
+          "listed": true,
+          "role": "Bumpers, mirrors, cockpit modules, wiring and lighting for carmakers worldwide - most revenue earned outside India",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "motherson",
+            "smil"
+          ],
+          "strengths": [
+            "Global scale and plants next to most big carmakers",
+            "Diversifying into aerospace, electronics and healthcare parts"
+          ],
+          "risks": [
+            "Weak European car demand",
+            "Acquisition-led growth and integration"
+          ],
+          "f": {
+            "ticker": "MOTHERSON"
+          }
+        },
+        "asahiGlass": {
+          "name": "Asahi India Glass",
+          "listed": true,
+          "role": "India's largest auto-glass maker (windscreens, windows) plus float and architectural glass",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "ais glass"
+          ],
+          "strengths": [
+            "Supplies most Indian carmakers",
+            "Content rises with sunroofs and larger glass in SUVs"
+          ],
+          "risks": [
+            "Car volumes and energy costs",
+            "Heavy capex for new float lines"
+          ],
+          "f": {
+            "ticker": "ASAHIINDIA"
+          }
+        },
+        "belrise": {
+          "name": "Belrise Industries",
+          "listed": true,
+          "role": "Sheet-metal, chassis and polymer parts mostly for two-wheelers; listed 28 May 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "belrise"
+          ],
+          "strengths": [
+            "Large share of two-wheeler chassis and frames",
+            "Expanding into car and truck parts"
+          ],
+          "risks": [
+            "Customer concentration (Bajaj, Honda, Hero)",
+            "Steel prices"
+          ],
+          "f": {
+            "ticker": "BELRISE"
+          }
+        },
+        "sswl": {
+          "name": "Steel Strips Wheels",
+          "listed": true,
+          "role": "Steel and alloy wheels for cars, two-wheelers, trucks and tractors",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "steel strips wheels"
+          ],
+          "strengths": [
+            "Leading wheel maker with exports to Europe"
+          ],
+          "risks": [
+            "Steel and aluminium prices",
+            "Debt from capacity additions"
+          ],
+          "f": {
+            "ticker": "SSWL"
+          }
+        },
+        "wheels": {
+          "name": "Wheels India",
+          "listed": true,
+          "role": "TVS group maker of steel wheels for trucks, tractors and cars, plus air suspension for buses",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "wheels india"
+          ],
+          "strengths": [
+            "Leader in truck and tractor wheels; exports"
+          ],
+          "risks": [
+            "Truck and tractor cycles",
+            "Thin margins"
+          ],
+          "f": {
+            "ticker": "WHEELS"
+          }
+        },
+        "tataautocomp": {
+          "name": "Tata AutoComp Systems",
+          "listed": false,
+          "role": "Tata group parts maker: interiors, plastics, composites, batteries and EV systems",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Broad range across Tata and other carmakers"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Tata group company (private)",
+            "No listed market data"
+          ]
+        },
+        "shripiston": {
+          "name": "SPR Auto Technologies",
+          "listed": true,
+          "role": "India's largest maker of pistons, rings and pins (Shriram Pistons & Rings until 2 Apr 2026), adding EV and electronics parts",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "shriram pistons",
+            "shriram pistons & rings",
+            "spr auto"
+          ],
+          "strengths": [
+            "Leader in pistons and rings for OEMs and replacement",
+            "Debt-light; buying into EV and electronics parts"
+          ],
+          "risks": [
+            "Core products disappear in battery EVs",
+            "New businesses still small"
+          ],
+          "f": {
+            "ticker": "SHRIPISTON"
+          }
+        },
+        "sansera": {
+          "name": "Sansera Engineering",
+          "listed": true,
+          "role": "Connecting rods, crankshafts and rocker arms for engines, plus aerospace and non-auto precision parts",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "sansera"
+          ],
+          "strengths": [
+            "Big share in two-wheeler and car connecting rods; exports",
+            "Aerospace and non-auto share rising"
+          ],
+          "risks": [
+            "Combustion-engine exposure",
+            "Capex for new businesses"
+          ],
+          "f": {
+            "ticker": "SANSERA"
+          }
+        },
+        "cie": {
+          "name": "CIE Automotive India",
+          "listed": true,
+          "role": "Forgings, castings, stampings and gears in India and Europe, controlled by Spain's CIE Automoción (formerly Mahindra CIE)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "mahindra cie",
+            "cie automotive"
+          ],
+          "strengths": [
+            "Many processes and customers; Mahindra a key buyer",
+            "Steady cash and low debt"
+          ],
+          "risks": [
+            "European truck and car weakness for its German forgings",
+            "Combustion-engine exposure"
+          ],
+          "f": {
+            "ticker": "CIEINDIA"
+          }
+        },
+        "fmgoetze": {
+          "name": "Federal-Mogul Goetze (India)",
+          "listed": true,
+          "role": "Pistons, piston rings and cylinder liners, part of the Tenneco group",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "goetze",
+            "federal mogul"
+          ],
+          "strengths": [
+            "Strong replacement brand (Goetze)"
+          ],
+          "risks": [
+            "Parent's priorities; small free float",
+            "Combustion-engine exposure"
+          ],
+          "f": {
+            "ticker": "FMGOETZE"
+          }
+        },
+        "bharatforge": {
+          "name": "Bharat Forge",
+          "listed": true,
+          "role": "Kalyani group forging major - crankshafts and front axles for trucks and cars worldwide, plus defence, aerospace and EV driveline",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "kalyani",
+            "bharat forge"
+          ],
+          "strengths": [
+            "Global supplier of truck crankshafts and axles",
+            "Defence and aerospace orders diversify income"
+          ],
+          "risks": [
+            "US and European truck cycles and tariffs",
+            "Overseas subsidiaries' losses"
+          ],
+          "f": {
+            "ticker": "BHARATFORG"
+          }
+        },
+        "ramkrishna": {
+          "name": "Ramkrishna Forgings",
+          "listed": true,
+          "role": "Forged and machined truck and tractor parts, including crankshafts, for India and export",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "rkfl"
+          ],
+          "strengths": [
+            "Large forging capacity; exports to US truck makers"
+          ],
+          "risks": [
+            "Truck cycle and US tariffs",
+            "Debt from capacity additions"
+          ],
+          "f": {
+            "ticker": "RKFORGE"
+          }
+        },
+        "bosch": {
+          "name": "Bosch",
+          "listed": true,
+          "role": "Bosch group's Indian arm - fuel injection, engine management and sensors for vehicles, plus power tools and building tech",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "bosch ltd",
+            "bosch india"
+          ],
+          "strengths": [
+            "Technology leader in fuel injection and engine electronics",
+            "Strong aftermarket and spares brand",
+            "Net cash"
+          ],
+          "risks": [
+            "Battery EVs need no fuel injection",
+            "Diesel share falling in cars"
+          ],
+          "f": {
+            "ticker": "BOSCHLTD"
+          }
+        },
+        "tenneco": {
+          "name": "Tenneco Clean Air India",
+          "listed": true,
+          "role": "Exhaust after-treatment (catalytic converters, mufflers) and some powertrain and suspension parts for cars, trucks and tractors; listed 19 Nov 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "tenneco"
+          ],
+          "strengths": [
+            "Leader in clean-air systems for Indian carmakers and truck makers",
+            "Gains content with each emission step"
+          ],
+          "risks": [
+            "Battery EVs need no exhaust",
+            "Precious-metal prices"
+          ],
+          "f": {
+            "ticker": "TENNIND"
+          }
+        },
+        "sharda": {
+          "name": "Sharda Motor Industries",
+          "listed": true,
+          "role": "Exhaust and emission-control systems for cars, tractors and gensets, plus suspension parts",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "sharda motor"
+          ],
+          "strengths": [
+            "Tractor and off-road emission norms add content",
+            "Net cash"
+          ],
+          "risks": [
+            "Customer concentration",
+            "Battery EVs need no exhaust"
+          ],
+          "f": {
+            "ticker": "SHARDAMOTR"
+          }
+        },
+        "delphiTvs": {
+          "name": "Delphi-TVS Technologies",
+          "listed": false,
+          "role": "Diesel fuel-injection systems maker, a joint venture of the TVS group and US-based Phinia",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Supplier to Indian diesel cars, trucks and tractors"
+          ],
+          "risks": [
+            "Unlisted; diesel share in cars falling"
+          ],
+          "notes": [
+            "TVS group joint venture",
+            "No listed market data"
+          ]
+        },
+        "schaefflerindia": {
+          "name": "Schaeffler India",
+          "listed": true,
+          "role": "Bearings (INA, FAG), clutches (LuK) and engine parts for vehicles, plus industrial and railway bearings",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "fag bearings",
+            "schaeffler"
+          ],
+          "strengths": [
+            "Wide product range across autos, industry and rail",
+            "Export hub for the German parent"
+          ],
+          "risks": [
+            "Parent's global restructuring",
+            "Auto cycle and steel costs"
+          ],
+          "f": {
+            "ticker": "SCHAEFFLER"
+          }
+        },
+        "tiindia": {
+          "name": "Tube Investments of India",
+          "listed": true,
+          "role": "Murugappa group company: two-wheeler drive chains (Diamond), precision tubes, car door frames, plus electric vehicles (TI Clean Mobility) and control of CG Power",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "tube investments",
+            "ti india",
+            "diamond chains"
+          ],
+          "strengths": [
+            "Leader in two-wheeler chains and precision tubes",
+            "Strong cash flows and capital allocation"
+          ],
+          "risks": [
+            "EV businesses still losing money",
+            "Consolidated results driven by CG Power"
+          ],
+          "f": {
+            "ticker": "TIINDIA"
+          }
+        },
+        "sonablw": {
+          "name": "Sona BLW Precision Forgings",
+          "listed": true,
+          "role": "Differential gears, motors and driveline parts for cars, tractors and EVs worldwide; bought Escorts Kubota's railway business in 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "sona comstar"
+          ],
+          "strengths": [
+            "Large global share in differential gears",
+            "Products used in both combustion and electric vehicles"
+          ],
+          "risks": [
+            "Customer concentration in US and European makers",
+            "US tariff changes"
+          ],
+          "f": {
+            "ticker": "SONACOMS"
+          }
+        },
+        "timken": {
+          "name": "Timken India",
+          "listed": true,
+          "role": "Tapered roller bearings for trucks, tractors and railways, owned by US-based Timken",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "timken"
+          ],
+          "strengths": [
+            "Strong in truck and rail bearings; exports to the parent"
+          ],
+          "risks": [
+            "Truck and rail order cycles"
+          ],
+          "f": {
+            "ticker": "TIMKEN"
+          }
+        },
+        "skfindia": {
+          "name": "SKF India",
+          "listed": true,
+          "role": "Automotive bearings and parts after its industrial business was demerged into SKF India (Industrial) on 1 Oct 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "skf india"
+          ],
+          "strengths": [
+            "Pure-play auto bearing supplier with a strong replacement brand"
+          ],
+          "risks": [
+            "Smaller after the demerger",
+            "Imports from the parent compete with local output"
+          ],
+          "f": {
+            "ticker": "SKFINDIA"
+          }
+        },
+        "autoaxles": {
+          "name": "Automotive Axles",
+          "listed": true,
+          "role": "Rear drive axles and brakes for trucks and buses, a Kalyani-Meritor joint venture",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "automotive axles"
+          ],
+          "strengths": [
+            "Leading truck axle supplier"
+          ],
+          "risks": [
+            "Fully exposed to the truck cycle"
+          ],
+          "f": {
+            "ticker": "AUTOAXLES"
+          }
+        },
+        "gna": {
+          "name": "GNA Axles",
+          "listed": true,
+          "role": "Rear axle shafts and spindles for trucks and tractors, mostly exported to the US and Europe",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "gna axles"
+          ],
+          "strengths": [
+            "Export customers among global truck and tractor makers"
+          ],
+          "risks": [
+            "US truck cycle and tariffs"
+          ],
+          "f": {
+            "ticker": "GNA"
+          }
+        },
+        "rolexrings": {
+          "name": "Rolex Rings",
+          "listed": true,
+          "role": "Bearing rings and automotive forged parts for global bearing and vehicle makers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "rolex rings"
+          ],
+          "strengths": [
+            "Export-led forged rings business"
+          ],
+          "risks": [
+            "European and US demand",
+            "Customer concentration"
+          ],
+          "f": {
+            "ticker": "ROLEXRINGS"
+          }
+        },
+        "mrf": {
+          "name": "MRF",
+          "listed": true,
+          "role": "India's largest tyre maker across two-wheelers, cars, trucks and tractors, with a strong replacement brand",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "madras rubber factory"
+          ],
+          "strengths": [
+            "Leading brand and dealer network",
+            "Strong balance sheet"
+          ],
+          "risks": [
+            "Rubber and crude prices",
+            "Truck-tyre price competition"
+          ],
+          "f": {
+            "ticker": "MRF"
+          }
+        },
+        "apollo": {
+          "name": "Apollo Tyres",
+          "listed": true,
+          "role": "Car and truck tyres in India and Europe (Apollo, Vredestein)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "apollo",
+            "vredestein"
+          ],
+          "strengths": [
+            "Leader in truck radials in India",
+            "Premium Vredestein brand in Europe"
+          ],
+          "risks": [
+            "Europe restructuring: production at Enschede (Netherlands) to stop by summer 2026",
+            "Rubber and crude prices"
+          ],
+          "f": {
+            "ticker": "APOLLOTYRE"
+          }
+        },
+        "ceat": {
+          "name": "CEAT",
+          "listed": true,
+          "role": "RPG group tyre maker strong in two-wheeler and car replacement and off-highway exports; agreed in 2025 to buy Michelin's Camso compact-line business",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "ceat tyres"
+          ],
+          "strengths": [
+            "Q2 FY27 revenue rose 26% to ₹4,762 Cr",
+            "Strong replacement brand in two-wheelers"
+          ],
+          "risks": [
+            "EBITDA margin fell about 4 points to 9.5% in Q2 FY27; needs a 7-8% price rise",
+            "Acquisition integration"
+          ],
+          "f": {
+            "ticker": "CEATLTD"
+          }
+        },
+        "jktyre": {
+          "name": "JK Tyre & Industries",
+          "listed": true,
+          "role": "Truck, bus and car tyres in India and Mexico; owns Cavendish Industries",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "jk tyre"
+          ],
+          "strengths": [
+            "Pioneer and leader in truck radials"
+          ],
+          "risks": [
+            "Debt",
+            "Rubber and crude prices"
+          ],
+          "f": {
+            "ticker": "JKTYRE"
+          }
+        },
+        "bkt": {
+          "name": "Balkrishna Industries",
+          "listed": true,
+          "role": "Off-highway tyres for farm, construction and mining machines, exported mainly to Europe and the US (BKT)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "bkt",
+            "bkt tyres"
+          ],
+          "strengths": [
+            "Global niche leader with low-cost Indian plants",
+            "Integrated carbon black plant"
+          ],
+          "risks": [
+            "US tariffs and European farm-machinery demand",
+            "Freight and currency swings"
+          ],
+          "f": {
+            "ticker": "BALKRISIND"
+          }
+        },
+        "tvsSrichakra": {
+          "name": "TVS Srichakra",
+          "listed": true,
+          "role": "Two- and three-wheeler tyres (TVS Eurogrip) for OEMs and replacement",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "tvs eurogrip"
+          ],
+          "strengths": [
+            "Strong in two-wheeler OEM fitment"
+          ],
+          "risks": [
+            "Thin margins and rubber prices"
+          ],
+          "f": {
+            "ticker": "TVSSRICHAK"
+          }
+        },
+        "goodyear": {
+          "name": "Goodyear India",
+          "listed": true,
+          "role": "Farm and car tyres, owned by US-based Goodyear",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "goodyear"
+          ],
+          "strengths": [
+            "Strong in farm tyres; parent's brand"
+          ],
+          "risks": [
+            "Small scale; tractor cycle"
+          ],
+          "f": {
+            "ticker": "GOODYEAR"
+          }
+        },
+        "exide": {
+          "name": "Exide Industries",
+          "listed": true,
+          "role": "India's largest lead-acid battery maker for vehicles and inverters, building a lithium-cell plant (Exide Energy Solutions)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "exide"
+          ],
+          "strengths": [
+            "Leading replacement battery brand and distribution",
+            "Funds its lithium plant from the lead-acid business"
+          ],
+          "risks": [
+            "Lithium-cell plant's large capex and ramp-up",
+            "Lead prices"
+          ],
+          "f": {
+            "ticker": "EXIDEIND"
+          }
+        },
+        "amararaja": {
+          "name": "Amara Raja Energy & Mobility",
+          "listed": true,
+          "role": "Amaron and PowerZone lead-acid batteries for vehicles and telecoms, building lithium-cell capacity",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "amaron",
+            "amara raja"
+          ],
+          "strengths": [
+            "No. 2 in vehicle batteries with a strong replacement brand"
+          ],
+          "risks": [
+            "Lithium-cell capex",
+            "Lead prices"
+          ],
+          "f": {
+            "ticker": "ARE&M"
+          }
+        },
+        "castrol": {
+          "name": "Castrol India",
+          "listed": true,
+          "role": "India's leading branded lubricant maker for cars, bikes, trucks and industry; under Stonepeak's control since 30 Oct 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "castrol"
+          ],
+          "strengths": [
+            "Strong brand and mechanic network",
+            "Open offer for 26% at ₹199.45 a share (draft letter, 16 Nov 2026)"
+          ],
+          "risks": [
+            "Less engine oil per vehicle as EVs grow",
+            "New owner's plans after BP's exit",
+            "Base-oil prices"
+          ],
+          "f": {
+            "ticker": "CASTROLIND"
+          }
+        },
+        "gulfoil": {
+          "name": "Gulf Oil Lubricants India",
+          "listed": true,
+          "role": "Hinduja group lubricant maker (Gulf) for two-wheelers, trucks and tractors, adding EV chargers and AdBlue",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "gulf oil"
+          ],
+          "strengths": [
+            "Fast-growing brand in two-wheeler and tractor oils"
+          ],
+          "risks": [
+            "EV transition",
+            "Base-oil prices"
+          ],
+          "f": {
+            "ticker": "GULFOILLUB"
+          }
+        },
+        "landmark": {
+          "name": "Landmark Cars",
+          "listed": true,
+          "role": "Dealer group for Mercedes-Benz, Honda, Jeep, Volkswagen and other brands across several states, with service and used cars",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "landmark cars"
+          ],
+          "strengths": [
+            "Luxury-brand dealerships with high service income"
+          ],
+          "risks": [
+            "Luxury-car slowdown",
+            "Makers' dealer-margin terms"
+          ],
+          "f": {
+            "ticker": "LANDMARK"
+          }
+        },
+        "pvsl": {
+          "name": "Popular Vehicles and Services",
+          "listed": true,
+          "role": "Dealer group for Maruti, Honda, Tata and BharatBenz in Kerala, Karnataka, Tamil Nadu and Maharashtra; listed Mar 2024",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "popular vehicles"
+          ],
+          "strengths": [
+            "Spans cars and trucks with large service operations"
+          ],
+          "risks": [
+            "Thin new-vehicle margins",
+            "Regional concentration"
+          ],
+          "f": {
+            "ticker": "PVSL"
+          }
+        },
+        "cartrade": {
+          "name": "CarTrade Tech",
+          "listed": true,
+          "role": "Auto classifieds and remarketing - CarWale, BikeWale, OLX India and Shriram Automall auctions",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "carwale",
+            "bikewale",
+            "olx india"
+          ],
+          "strengths": [
+            "Earns on new-car research leads and used-vehicle auctions"
+          ],
+          "risks": [
+            "Competition from Cars24, Spinny and dealer apps"
+          ],
+          "f": {
+            "ticker": "CARTRADE"
+          }
+        },
+        "cars24": {
+          "name": "Cars24",
+          "listed": false,
+          "role": "Used-car platform that buys, refurbishes and resells cars and arranges loans",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Largest used-car platform by transactions"
+          ],
+          "risks": [
+            "Unlisted; cash burn"
+          ],
+          "notes": [
+            "Private (VC-backed)",
+            "No listed market data"
+          ]
+        },
+        "spinny": {
+          "name": "Spinny",
+          "listed": false,
+          "role": "Used-car retailer with its own inspection, refurbishment and warranty",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Assured-quality used cars"
+          ],
+          "risks": [
+            "Unlisted; cash burn"
+          ],
+          "notes": [
+            "Private (VC-backed)",
+            "No listed market data"
+          ]
+        }
+      }
+    },
+    {
+      "key": "chemicals",
+      "suppliers": {
+        "upl": {
+          "name": "UPL",
+          "listed": true,
+          "role": "One of the world's largest generic crop-protection companies, selling in 140+ countries, with Advanta seeds and an Indian branded business",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Global registrations and distribution in Latin America, Europe and Africa",
+            "Advanta seeds grew 12% in the Sep 2026 quarter and has filed for an IPO (UPL, Nov 2026)",
+            "FY27 guidance of 7-11% revenue growth kept after Q2"
+          ],
+          "risks": [
+            "Crop-protection revenue fell 8% in the Sep 2026 quarter on weather and markets",
+            "High debt and long receivables in Brazil",
+            "Chinese generic price pressure"
+          ],
+          "f": {
+            "ticker": "UPL"
+          }
+        },
+        "sumitomo": {
+          "name": "Sumitomo Chemical India",
+          "listed": true,
+          "role": "Indian arm of Japan's Sumitomo Chemical: branded insecticides, herbicides and fungicides, plus its parent's new molecules and exports",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Access to the Japanese parent's new molecules",
+            "Debt-free with a wide dealer network"
+          ],
+          "risks": [
+            "Sep 2026 quarter revenue fell 2% and exports 23% after the weak monsoon",
+            "Depends on the parent's pipeline and pricing"
+          ],
+          "f": {
+            "ticker": "SUMICHEM"
+          }
+        },
+        "bayerCrop": {
+          "name": "Bayer CropScience",
+          "listed": true,
+          "role": "Indian arm of Germany's Bayer: crop protection brands and Dekalb hybrid corn seed",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Global molecule pipeline and strong brands",
+            "Leading hybrid corn seed franchise"
+          ],
+          "risks": [
+            "Parent's portfolio decisions decide launches",
+            "Exposure to monsoon and corn prices"
+          ],
+          "f": {
+            "ticker": "BAYERCROP"
+          }
+        },
+        "dhanuka": {
+          "name": "Dhanuka Agritech",
+          "listed": true,
+          "role": "Branded agrochemical seller that in-licenses molecules from Japanese and US companies and now makes technicals at Dahej",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Strong dealer network in north and west India",
+            "In-licensing partnerships bring new products"
+          ],
+          "risks": [
+            "Domestic-only, so fully exposed to the monsoon",
+            "Backward integration capex"
+          ],
+          "f": {
+            "ticker": "DHANUKA"
+          }
+        },
+        "rallis": {
+          "name": "Rallis India",
+          "listed": true,
+          "role": "Tata Chemicals' crop-protection and seeds company, selling brands in India and technicals abroad",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Tata brand and rural reach",
+            "Seeds business alongside crop protection"
+          ],
+          "risks": [
+            "Exports of technicals face Chinese pricing",
+            "Weak monsoon years hit both seeds and chemicals"
+          ],
+          "f": {
+            "ticker": "RALLIS"
+          }
+        },
+        "insecticidesIndia": {
+          "name": "Insecticides (India)",
+          "listed": true,
+          "role": "Delhi-based branded agrochemical maker with Japanese technology partners",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Own technical manufacturing and brands",
+            "Tie-ups with Japanese innovators"
+          ],
+          "risks": [
+            "Domestic monsoon dependence",
+            "Generic price competition"
+          ],
+          "f": {
+            "ticker": "INSECTICID"
+          }
+        },
+        "shardaCrop": {
+          "name": "Sharda Cropchem",
+          "listed": true,
+          "role": "Asset-light generics company that owns thousands of crop-protection registrations in Europe, Latin America and the US and buys product from contract makers",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large registration library is hard to copy",
+            "No plants, so low fixed costs"
+          ],
+          "risks": [
+            "Buys much of its product from China",
+            "Registration costs and EU molecule bans"
+          ],
+          "f": {
+            "ticker": "SHARDACROP"
+          }
+        },
+        "naclInd": {
+          "name": "NACL Industries",
+          "listed": true,
+          "role": "Agrochemical technicals and formulations maker controlled by Coromandel International since 2025",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Coromandel's backing and distribution",
+            "Technical manufacturing in Andhra Pradesh"
+          ],
+          "risks": [
+            "Turnaround after weak years",
+            "Export generic pricing"
+          ],
+          "f": {
+            "ticker": "NACLIND"
+          }
+        },
+        "godrejAgrovet": {
+          "name": "Godrej Agrovet",
+          "listed": true,
+          "role": "Animal feed, oil palm and dairy group with a crop-protection business and a controlling stake in Astec LifeSciences",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Herbicide brands and rural distribution",
+            "Diversified farm businesses"
+          ],
+          "risks": [
+            "Crop protection is a small part of revenue",
+            "Astec's export technicals have been weak"
+          ],
+          "f": {
+            "ticker": "GODREJAGRO"
+          }
+        },
+        "bharatRasayan": {
+          "name": "Bharat Rasayan",
+          "listed": true,
+          "role": "Maker of insecticide and herbicide technicals sold to formulators in India and abroad",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Technical manufacturing for large formulators"
+          ],
+          "risks": [
+            "Small and exposed to Chinese technical prices"
+          ],
+          "f": {
+            "ticker": "BHARATRAS"
+          }
+        },
+        "coromandel": {
+          "name": "Coromandel International",
+          "listed": true,
+          "role": "Murugappa group's farm-input company: India's largest private phosphate fertiliser maker, crop protection (with NACL Industries) and specialty nutrients; also contracts green ammonia",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Phosphatic market share rose to 19% from 17% in the Sep 2026 quarter",
+            "Own phosphoric acid and a growing crop-protection arm"
+          ],
+          "risks": [
+            "Sep 2026 quarter profit fell about a third as raw-material costs outran subsidies",
+            "Imported phosphoric acid, ammonia and sulphur"
+          ],
+          "f": {
+            "ticker": "COROMANDEL"
+          }
+        },
+        "chambal": {
+          "name": "Chambal Fertilisers & Chemicals",
+          "listed": true,
+          "role": "Largest private urea maker (three gas-based plants at Gadepan, Rajasthan) that also trades DAP and sells crop protection",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Energy-efficient urea plants earn a steady regulated return",
+            "Low debt after paying off plant loans"
+          ],
+          "risks": [
+            "Urea output depends on imported LNG, cut in Mar 2026",
+            "Traded DAP margins swing with import prices"
+          ],
+          "f": {
+            "ticker": "CHAMBLFERT"
+          }
+        },
+        "paradeep": {
+          "name": "Paradeep Phosphates",
+          "listed": true,
+          "role": "DAP and NPK fertiliser maker with plants in Odisha and Goa",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large phosphoric acid and DAP capacity on the east coast",
+            "Strong in eastern states"
+          ],
+          "risks": [
+            "Sep 2026 quarter profit fell about two-thirds on raw-material costs",
+            "Imported rock phosphate, ammonia and sulphur"
+          ],
+          "f": {
+            "ticker": "PARADEEP"
+          }
+        },
+        "iffco": {
+          "name": "IFFCO (Indian Farmers Fertiliser Cooperative)",
+          "listed": false,
+          "role": "India's largest fertiliser maker, a farmers' cooperative with urea and DAP plants and nano urea",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Largest urea and DAP producer and seller",
+            "Nano urea and a cooperative network"
+          ],
+          "risks": [
+            "Unlisted cooperative"
+          ],
+          "notes": [
+            "Cooperative owned by member societies",
+            "No listed market data"
+          ]
+        },
+        "fact": {
+          "name": "Fertilisers and Chemicals Travancore",
+          "listed": true,
+          "role": "Kerala-based state fertiliser maker of ammonium phosphate (Factamfos), ammonium sulphate and caprolactam",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Strong in south India",
+            "New capacity at Kochi"
+          ],
+          "risks": [
+            "Government-owned with policy-driven decisions",
+            "Imported ammonia and phosphoric acid"
+          ],
+          "f": {
+            "ticker": "FACT"
+          }
+        },
+        "rcf": {
+          "name": "Rashtriya Chemicals and Fertilizers",
+          "listed": true,
+          "role": "State urea and complex-fertiliser maker at Trombay and Thal (Maharashtra) with an industrial chemicals business",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large gas-based urea plants near Mumbai",
+            "Industrial chemicals (methanol, ammonium bicarbonate, nitric acid)"
+          ],
+          "risks": [
+            "Older plants use more energy than newer ones",
+            "Gas supply and subsidy delays"
+          ],
+          "f": {
+            "ticker": "RCF"
+          }
+        },
+        "nfl": {
+          "name": "National Fertilizers",
+          "listed": true,
+          "role": "State urea maker with plants at Nangal, Bathinda, Panipat and Vijaipur",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large urea capacity in north India"
+          ],
+          "risks": [
+            "Thin regulated margins",
+            "LNG dependence"
+          ],
+          "f": {
+            "ticker": "NFL"
+          }
+        },
+        "gsfc": {
+          "name": "Gujarat State Fertilizers & Chemicals",
+          "listed": true,
+          "role": "Gujarat state company making fertilisers and industrial products (caprolactam, nylon-6, melamine)",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Fertiliser plus chemicals mix",
+            "Large cash and investments"
+          ],
+          "risks": [
+            "Caprolactam and nylon prices follow China",
+            "State ownership"
+          ],
+          "f": {
+            "ticker": "GSFC"
+          }
+        },
+        "gnfc": {
+          "name": "Gujarat Narmada Valley Fertilizers & Chemicals",
+          "listed": true,
+          "role": "Gujarat state company making neem urea plus chemicals (TDI, aniline, acetic acid, ammonium nitrate); also contracting green ammonia for Bharuch",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Chemicals earn more than urea in good years",
+            "Ammonium nitrate for explosives"
+          ],
+          "risks": [
+            "TDI and aniline face Chinese competition",
+            "LNG dependence for ammonia"
+          ],
+          "f": {
+            "ticker": "GNFC"
+          }
+        },
+        "deepakFert": {
+          "name": "Deepak Fertilisers & Petrochemicals",
+          "listed": true,
+          "role": "Largest Indian maker of technical ammonium nitrate for mining explosives, plus nitric acid, isopropyl alcohol and Mahadhan fertilisers",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Own ammonia plant at Taloja cuts import dependence",
+            "Market leader in mining-grade ammonium nitrate"
+          ],
+          "risks": [
+            "Ammonia and gas costs after the LNG shock",
+            "Large new projects (Gopalpur) to execute"
+          ],
+          "f": {
+            "ticker": "DEEPAKFERT"
+          }
+        },
+        "kaveriSeed": {
+          "name": "Kaveri Seed Company",
+          "listed": true,
+          "role": "Hyderabad hybrid seed company (cotton, maize, rice, vegetables) moving away from cotton",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Strong in hybrid maize and rice",
+            "Net cash and regular buybacks"
+          ],
+          "risks": [
+            "Cotton seed price caps",
+            "Weather-driven seed returns"
+          ],
+          "f": {
+            "ticker": "KSCL"
+          }
+        },
+        "mahyco": {
+          "name": "Mahyco (Maharashtra Hybrid Seeds)",
+          "listed": false,
+          "role": "Pioneer of Bt cotton seed in India and a large hybrid seed company; Bayer holds a minority stake",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Brought Bt cotton to India (2002) and runs a large breeding programme"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Privately held by the Barwale family with Bayer as a minority shareholder",
+            "No listed market data"
+          ]
+        },
+        "ariesAgro": {
+          "name": "Aries Agro",
+          "listed": true,
+          "role": "Micronutrient and chelated-nutrient maker selling to farmers",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Specialty nutrition is outside the subsidy, so pricing is free"
+          ],
+          "risks": [
+            "Small company",
+            "Monsoon-driven demand"
+          ],
+          "f": {
+            "ticker": "ARIES"
+          }
+        },
+        "piind": {
+          "name": "PI Industries",
+          "listed": true,
+          "role": "India's largest custom-synthesis maker for global agrochem innovators (mostly Japanese), with a domestic brands business and a pharma arm",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Long contracts and process know-how for patented molecules",
+            "Domestic agri and pharma grew 19-20% in the Sep 2026 quarter"
+          ],
+          "risks": [
+            "Agchem exports fell 18% in the Sep 2026 quarter on lower demand and generics",
+            "Profit fell about 70% that quarter as margins halved"
+          ],
+          "f": {
+            "ticker": "PIIND"
+          }
+        },
+        "aether": {
+          "name": "Aether Industries",
+          "listed": true,
+          "role": "Surat maker of advanced intermediates and specialty chemicals, plus contract manufacturing and research for global life-science and material-science companies",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Complex chemistry on products few others make",
+            "Long-term contract manufacturing deals"
+          ],
+          "risks": [
+            "Customer concentration",
+            "Capacity built ahead of demand"
+          ],
+          "f": {
+            "ticker": "AETHER"
+          }
+        },
+        "anupam": {
+          "name": "Anupam Rasayan India",
+          "listed": true,
+          "role": "Surat custom-synthesis maker for Japanese and European agrochem and specialty innovators, with fluorination through Tanfac",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Multi-year letters of intent with innovators",
+            "Record sales in the Sep 2026 quarter"
+          ],
+          "risks": [
+            "High working capital and debt",
+            "Rich valuation (see the figures)"
+          ],
+          "f": {
+            "ticker": "ANURAS"
+          }
+        },
+        "tatva": {
+          "name": "Tatva Chintan Pharma Chem",
+          "listed": true,
+          "role": "Vadodara maker of phase-transfer catalysts, zeolite templates for emission catalysts, and pharma and agro intermediates",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Niche products with few global makers"
+          ],
+          "risks": [
+            "Small and lumpy demand for zeolite templates",
+            "Margins fell from their peak"
+          ],
+          "f": {
+            "ticker": "TATVA"
+          }
+        },
+        "hikal": {
+          "name": "Hikal",
+          "listed": true,
+          "role": "Contract maker for global crop-protection and pharma innovators",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Long relationships with agrochem innovators"
+          ],
+          "risks": [
+            "Crop-protection orders fell with global destocking",
+            "Low returns on capital"
+          ],
+          "f": {
+            "ticker": "HIKAL"
+          }
+        },
+        "srf": {
+          "name": "SRF",
+          "listed": true,
+          "role": "Integrated fluorine company: refrigerant gases, fluoropolymers, agro and pharma intermediates for innovators, plus packaging films and technical textiles",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Sep 2026 quarter revenue rose about 35% on firm refrigerant prices",
+            "Large specialty chemicals business for global innovators"
+          ],
+          "risks": [
+            "Refrigerant prices could fall if Chinese supply returns",
+            "Packaging films are cyclical"
+          ],
+          "f": {
+            "ticker": "SRF"
+          }
+        },
+        "navinfluor": {
+          "name": "Navin Fluorine International",
+          "listed": true,
+          "role": "Fluorine specialist: refrigerants (HFC-32), specialty fluorochemicals, custom synthesis for innovators and high-purity gases",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Profit rose about 82% in the Sep 2026 quarter on firm HFC prices",
+            "New HFC capacity due in Q3 FY27"
+          ],
+          "risks": [
+            "Refrigerant price cycle",
+            "Rich valuation (see the figures)"
+          ],
+          "f": {
+            "ticker": "NAVINFLUOR"
+          }
+        },
+        "fluorochem": {
+          "name": "Gujarat Fluorochemicals",
+          "listed": true,
+          "role": "India's largest fluoropolymer (PTFE and others) maker, plus refrigerants, chloromethanes and battery chemicals",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Backward integration from fluorspar to polymers",
+            "Battery chemicals (electrolyte salts) as a new leg"
+          ],
+          "risks": [
+            "Fluoropolymer prices and EU PFAS rules",
+            "Heavy capex on battery chemicals"
+          ],
+          "f": {
+            "ticker": "FLUOROCHEM"
+          }
+        },
+        "stallion": {
+          "name": "Stallion India Fluorochemicals",
+          "listed": true,
+          "role": "Refrigerant and industrial gas blender and filler, listed in Jan 2025",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Wide refrigerant range and distribution"
+          ],
+          "risks": [
+            "Buys much of its gas from producers and imports",
+            "Small and trading-like margins"
+          ],
+          "f": {
+            "ticker": "STALLION"
+          }
+        },
+        "aarti": {
+          "name": "Aarti Industries",
+          "listed": true,
+          "role": "India's largest benzene-chain maker: chlorinated and nitrated benzenes and their derivatives for agro, pharma, dyes and polymers",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Volume grew about 30% and profit 59% in the Sep 2026 quarter",
+            "Zone IV Phase I commissioned Sep 2026"
+          ],
+          "risks": [
+            "Spreads swing with Chinese prices",
+            "Heavy capex and debt"
+          ],
+          "f": {
+            "ticker": "AARTIIND"
+          }
+        },
+        "deepakNitrite": {
+          "name": "Deepak Nitrite",
+          "listed": true,
+          "role": "Maker of nitrites, xylidines and other intermediates, and through Deepak Phenolics India's largest phenol, acetone and IPA producer",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Record Sep 2026 quarter, profit up 235% on phenolics",
+            "Import substitution of phenol and acetone"
+          ],
+          "risks": [
+            "Phenol spreads fall when Asian supply returns",
+            "Large new capex programme"
+          ],
+          "f": {
+            "ticker": "DEEPAKNTR"
+          }
+        },
+        "atul": {
+          "name": "Atul",
+          "listed": true,
+          "role": "Valsad-based diversified maker of hundreds of chemicals: crop-protection actives (2,4-D), aromatics, epoxies, colours and pharma intermediates",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Breadth of chemistry and a debt-free balance sheet",
+            "Own utilities and integrated site"
+          ],
+          "risks": [
+            "Many product lines face China",
+            "Agro actives tied to global herbicide prices"
+          ],
+          "f": {
+            "ticker": "ATUL"
+          }
+        },
+        "clean": {
+          "name": "Clean Science and Technology",
+          "listed": true,
+          "role": "Maker of performance and FMCG chemicals (MEHQ, BHA, guaiacol, anisole) by catalytic processes, now adding HALS light stabilisers",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Own catalytic processes give a cost edge",
+            "Highest-ever quarterly revenue in Sep 2026 on HALS and exports"
+          ],
+          "risks": [
+            "Few products, so one price fall matters",
+            "Rich valuation (see the figures)"
+          ],
+          "f": {
+            "ticker": "CLEAN"
+          }
+        },
+        "jubilantIngrevia": {
+          "name": "Jubilant Ingrevia",
+          "listed": true,
+          "role": "Pyridine and picoline chemistry, vitamin B3, acetic anhydride and a contract-manufacturing arm",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "One of the largest pyridine makers in the world",
+            "Record revenue in the Sep 2026 quarter, EBITDA up 51%"
+          ],
+          "risks": [
+            "Acetyls follow commodity prices",
+            "China competition in pyridines"
+          ],
+          "f": {
+            "ticker": "JUBLINGREA"
+          }
+        },
+        "vinati": {
+          "name": "Vinati Organics",
+          "listed": true,
+          "role": "Global leader in IBB (for ibuprofen) and ATBS (for water treatment and oil-field polymers), plus butylphenols and antioxidants",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Dominant world share in IBB and ATBS",
+            "Net cash"
+          ],
+          "risks": [
+            "Customer and product concentration",
+            "Antioxidant ramp-up slower than planned"
+          ],
+          "f": {
+            "ticker": "VINATIORGA"
+          }
+        },
+        "alkylAmines": {
+          "name": "Alkyl Amines Chemicals",
+          "listed": true,
+          "role": "Maker of methylamines, ethylamines and derivatives for pharma and agrochem",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Leading Indian amines maker"
+          ],
+          "risks": [
+            "Chinese dumping hurts spreads",
+            "Volumes stuck after earlier price falls"
+          ],
+          "f": {
+            "ticker": "ALKYLAMINE"
+          }
+        },
+        "balajiAmines": {
+          "name": "Balaji Amines",
+          "listed": true,
+          "role": "Solapur maker of methylamines, ethylamines and specialty amines and solvents",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Wide amine range and low costs"
+          ],
+          "risks": [
+            "Price competition with Alkyl Amines and China"
+          ],
+          "f": {
+            "ticker": "BALAMINES"
+          }
+        },
+        "laxmiOrganic": {
+          "name": "Laxmi Organic Industries",
+          "listed": true,
+          "role": "Largest Indian maker of ethyl acetate and diketene derivatives, building a fluorochemicals plant",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Diketene chain with few rivals"
+          ],
+          "risks": [
+            "Ethyl acetate is a commodity priced off ethanol and acetic acid",
+            "New fluorine plant still to ramp up"
+          ],
+          "f": {
+            "ticker": "LXCHEM"
+          }
+        },
+        "neogen": {
+          "name": "Neogen Chemicals",
+          "listed": true,
+          "role": "Bromine and lithium chemicals maker, building lithium battery salts and electrolytes",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Niche bromine chemistry for pharma and agro"
+          ],
+          "risks": [
+            "Dahej plant fire in Mar 2025",
+            "Heavy battery-chemicals capex for its size"
+          ],
+          "f": {
+            "ticker": "NEOGEN"
+          }
+        },
+        "pidilite": {
+          "name": "Pidilite Industries",
+          "listed": true,
+          "role": "Maker of Fevicol adhesives, Dr Fixit waterproofing, M-Seal and Fevikwik, sold through carpenters, plumbers and hardware shops",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Underlying volumes up 10.7% in the Sep 2026 quarter",
+            "Brands with very high market share and pricing power"
+          ],
+          "risks": [
+            "VAM costs nearly doubled year on year in the Sep 2026 quarter",
+            "Rich valuation (see the figures)"
+          ],
+          "f": {
+            "ticker": "PIDILITIND"
+          }
+        },
+        "privi": {
+          "name": "Privi Speciality Chemicals",
+          "listed": true,
+          "role": "Aroma chemicals made from turpentine and other feedstock, sold to global fragrance houses; JV with Givaudan",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large aroma chemical range and global fragrance customers"
+          ],
+          "risks": [
+            "Turpentine price swings",
+            "Debt from expansion"
+          ],
+          "f": {
+            "ticker": "PRIVISCL"
+          }
+        },
+        "galaxy": {
+          "name": "Galaxy Surfactants",
+          "listed": true,
+          "role": "Surfactants and care ingredients for shampoos, soaps and detergents, sold to global and Indian FMCG makers",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Long FMCG customer relationships",
+            "Plants in India, Egypt and the US"
+          ],
+          "risks": [
+            "Palm-based input costs",
+            "Slow volume growth in some markets"
+          ],
+          "f": {
+            "ticker": "GALAXYSURF"
+          }
+        },
+        "fineOrganic": {
+          "name": "Fine Organic Industries",
+          "listed": true,
+          "role": "Oleochemical-based additives for food, plastics, cosmetics and paints",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Global leader in several plastic and food additives",
+            "Net cash"
+          ],
+          "risks": [
+            "Vegetable oil price swings",
+            "Export demand cycles"
+          ],
+          "f": {
+            "ticker": "FINEORG"
+          }
+        },
+        "shKelkar": {
+          "name": "S H Kelkar and Company",
+          "listed": true,
+          "role": "Fragrance and flavour maker (Keva) for FMCG companies",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Largest Indian fragrance house"
+          ],
+          "risks": [
+            "Competes with global fragrance majors",
+            "European operations add risk"
+          ],
+          "f": {
+            "ticker": "SHK"
+          }
+        },
+        "rossari": {
+          "name": "Rossari Biotech",
+          "listed": true,
+          "role": "Textile, home-care, personal-care and animal-health specialty chemicals",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Wide product range and acquisitions"
+          ],
+          "risks": [
+            "Textile demand cycles",
+            "Integration of acquisitions"
+          ],
+          "f": {
+            "ticker": "ROSSARI"
+          }
+        },
+        "godrejInd": {
+          "name": "Godrej Industries",
+          "listed": true,
+          "role": "Godrej group holding company that runs India's largest oleochemicals business (fatty alcohols, fatty acids, glycerine)",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Scale in oleochemicals and surfactants"
+          ],
+          "risks": [
+            "Group figures are dominated by property, consumer and financial holdings",
+            "Palm oil price swings"
+          ],
+          "f": {
+            "ticker": "GODREJIND"
+          }
+        },
+        "pcbl": {
+          "name": "PCBL Chemical",
+          "listed": true,
+          "role": "India's largest carbon black maker for tyres and rubber goods, adding specialty and battery-grade blacks and water-treatment chemicals (Aquapharm)",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Contracts with Indian and global tyre makers",
+            "Specialty and conductive blacks earn more"
+          ],
+          "risks": [
+            "Feedstock oil spikes",
+            "Debt from the Aquapharm acquisition and new plants"
+          ],
+          "f": {
+            "ticker": "PCBL"
+          }
+        },
+        "himadri": {
+          "name": "Himadri Speciality Chemical",
+          "listed": true,
+          "role": "Kolkata coal-tar pitch, carbon black and specialty oils maker moving into battery materials",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Integrated coal-tar chain",
+            "Net cash for new projects"
+          ],
+          "risks": [
+            "Battery materials still to prove out",
+            "Coal tar supply from steelmakers"
+          ],
+          "f": {
+            "ticker": "HSCL"
+          }
+        },
+        "nocil": {
+          "name": "NOCIL",
+          "listed": true,
+          "role": "India's largest rubber chemicals maker (accelerators, antioxidants) for tyre companies",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Approved with major tyre makers",
+            "Debt-free"
+          ],
+          "risks": [
+            "Chinese and Korean imports keep prices down",
+            "Margins well below earlier peaks"
+          ],
+          "f": {
+            "ticker": "NOCIL"
+          }
+        },
+        "sudarshan": {
+          "name": "Sudarshan Chemical Industries",
+          "listed": true,
+          "role": "Pigment maker that bought Germany's Heubach group in 2025, becoming one of the world's largest pigment companies",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Global customer base and product range after Heubach",
+            "Plants in India, Europe and the Americas"
+          ],
+          "risks": [
+            "Turning around Heubach's loss-making European plants",
+            "Higher debt"
+          ],
+          "f": {
+            "ticker": "SUDARSCHEM"
+          }
+        },
+        "bodal": {
+          "name": "Bodal Chemicals",
+          "listed": true,
+          "role": "Reactive dyes and dye intermediates for textiles, with a chlor-alkali unit",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Integration from intermediates to dyes"
+          ],
+          "risks": [
+            "Textile demand and Chinese dyes",
+            "Weak profits"
+          ],
+          "f": {
+            "ticker": "BODALCHEM"
+          }
+        },
+        "tataChem": {
+          "name": "Tata Chemicals",
+          "listed": true,
+          "role": "Soda ash, bicarbonate and salt maker in India (Mithapur), the US, UK and Kenya; parent of Rallis",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "One of the largest soda ash makers in the world",
+            "Tata Salt brand base in India"
+          ],
+          "risks": [
+            "Consolidated loss in the Sep 2026 quarter on weak overseas soda ash",
+            "Global soda ash oversupply from China"
+          ],
+          "f": {
+            "ticker": "TATACHEM"
+          }
+        },
+        "nirma": {
+          "name": "Nirma",
+          "listed": false,
+          "role": "India's largest soda ash maker (Bhavnagar), also detergents and cement",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Scale and low-cost soda ash"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Privately held (delisted in 2012)",
+            "No listed market data"
+          ]
+        },
+        "ghcl": {
+          "name": "GHCL",
+          "listed": true,
+          "role": "Soda ash and sodium bicarbonate maker in Gujarat (textiles demerged)",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Low-cost soda ash plant near salt and limestone",
+            "Net cash"
+          ],
+          "risks": [
+            "Soda ash prices follow China",
+            "Single-product concentration"
+          ],
+          "f": {
+            "ticker": "GHCL"
+          }
+        },
+        "dcmShriram": {
+          "name": "DCM Shriram",
+          "listed": true,
+          "role": "Chlor-alkali and PVC maker (Bharuch, Kota) that also runs sugar, urea and Bioseed",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Captive power and growing chlorine derivatives",
+            "Diversified businesses"
+          ],
+          "risks": [
+            "Caustic prices swing with Chinese exports",
+            "Several unrelated businesses in one company"
+          ],
+          "f": {
+            "ticker": "DCMSHRIRAM"
+          }
+        },
+        "gujAlkali": {
+          "name": "Gujarat Alkalies and Chemicals",
+          "listed": true,
+          "role": "Gujarat state maker of caustic soda, chlorine derivatives and hydrogen peroxide",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Large chlor-alkali capacity with derivatives"
+          ],
+          "risks": [
+            "Weak profits when caustic falls",
+            "State ownership"
+          ],
+          "f": {
+            "ticker": "GUJALKALI"
+          }
+        },
+        "epigral": {
+          "name": "Epigral",
+          "listed": true,
+          "role": "Dahej chlor-alkali maker moving downstream into epichlorohydrin and CPVC resin",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Derivatives use its chlorine at better margins",
+            "Import substitution of CPVC resin"
+          ],
+          "risks": [
+            "Caustic and derivative prices",
+            "Debt-funded expansion"
+          ],
+          "f": {
+            "ticker": "EPIGRAL"
+          }
+        },
+        "grasim": {
+          "name": "Grasim Industries",
+          "listed": true,
+          "role": "Aditya Birla group company whose chemicals arm is India's largest caustic soda and chlorine derivatives maker; also viscose fibre, Birla Opus paints and parent of UltraTech",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Scale in chlor-alkali and derivatives"
+          ],
+          "risks": [
+            "Chemicals are a small part of a large group"
+          ],
+          "f": {
+            "ticker": "GRASIM"
+          }
+        },
+        "archean": {
+          "name": "Archean Chemical Industries",
+          "listed": true,
+          "role": "Marine chemicals from Rann of Kutch brine: bromine, industrial salt and sulphate of potash",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Largest Indian bromine exporter with low-cost brine"
+          ],
+          "risks": [
+            "Bromine prices fell from their peak",
+            "New ventures (silicon carbide) need capital"
+          ],
+          "f": {
+            "ticker": "ACI"
+          }
+        },
+        "reliance": {
+          "name": "Reliance Industries",
+          "listed": true,
+          "role": "India's largest refiner and petrochemical maker (Jamnagar, Hazira, Dahej): polymers, polyester chain, PVC and aromatics that feed the rest of the chain",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Integrated refining and cracking gives the lowest cost",
+            "Supplies benzene, paraxylene and polymers to Indian makers"
+          ],
+          "risks": [
+            "Petrochemicals are a small part of a group with telecom and retail",
+            "Gulf crude supply disruption"
+          ],
+          "f": {
+            "ticker": "RELIANCE"
+          }
+        },
+        "haldia": {
+          "name": "Haldia Petrochemicals",
+          "listed": false,
+          "role": "Naphtha cracker in West Bengal making polyethylene and polypropylene, adding phenol",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Only large cracker in eastern India"
+          ],
+          "risks": [
+            "Unlisted",
+            "Naphtha costs"
+          ],
+          "notes": [
+            "Controlled by the TCG group",
+            "No listed market data"
+          ]
+        },
+        "chemplast": {
+          "name": "Chemplast Sanmar",
+          "listed": true,
+          "role": "Largest Indian maker of specialty paste PVC, plus suspension PVC, caustic soda and custom manufacturing",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Leader in paste PVC with few local rivals"
+          ],
+          "risks": [
+            "PVC prices follow Chinese and US exports",
+            "Losses in weak years"
+          ],
+          "f": {
+            "ticker": "CHEMPLASTS"
+          }
+        },
+        "supremePetro": {
+          "name": "Supreme Petrochem",
+          "listed": true,
+          "role": "India's largest polystyrene and expandable polystyrene maker, adding ABS",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Import substitution in polystyrene and ABS"
+          ],
+          "risks": [
+            "Styrene feedstock prices"
+          ],
+          "f": {
+            "ticker": "SPLPETRO"
+          }
+        },
+        "igPetro": {
+          "name": "IG Petrochemicals",
+          "listed": true,
+          "role": "India's largest phthalic anhydride maker, feeding plasticisers, paints and resins",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Scale in phthalic anhydride"
+          ],
+          "risks": [
+            "Orthoxylene costs and Asian imports"
+          ],
+          "f": {
+            "ticker": "IGPL"
+          }
+        },
+        "thirumalai": {
+          "name": "Thirumalai Chemicals",
+          "listed": true,
+          "role": "Phthalic and maleic anhydride and food acids maker with a US plant",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Food ingredients add a steadier business"
+          ],
+          "risks": [
+            "Commodity spreads and US project ramp-up"
+          ],
+          "f": {
+            "ticker": "TIRUMALCHM"
+          }
+        },
+        "gail": {
+          "name": "GAIL (India)",
+          "listed": true,
+          "role": "India's largest gas transmission and marketing company, supplying pooled gas to urea plants, plus a polyethylene plant at Pata",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Owns most of India's gas pipelines",
+            "Own petrochemicals at Pata"
+          ],
+          "risks": [
+            "Gulf LNG cuts in 2026 forced supply cuts to customers",
+            "Petrochemical margins weak in oversupply"
+          ],
+          "f": {
+            "ticker": "GAIL"
+          }
+        },
+        "solar": {
+          "name": "Solar Industries India",
+          "listed": true,
+          "role": "India's largest maker of industrial explosives, supplying bulk explosives to Coal India and miners at home and abroad (defence business covered elsewhere)",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Plants close to mines and a leading share of Coal India tenders",
+            "Global mining customers"
+          ],
+          "risks": [
+            "Ammonium nitrate costs",
+            "Rich valuation (see the figures)"
+          ],
+          "f": {
+            "ticker": "SOLARINDS"
+          }
+        },
+        "gocl": {
+          "name": "GOCL Corporation",
+          "listed": true,
+          "role": "Hinduja group company whose IDL Explosives makes industrial explosives and detonators",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Long record supplying mining explosives"
+          ],
+          "risks": [
+            "Small share versus Solar",
+            "Group land and property dealings mix into results"
+          ],
+          "f": {
+            "ticker": "GOCLCORP"
+          }
+        },
+        "premier": {
+          "name": "Premier Explosives",
+          "listed": true,
+          "role": "Explosives, detonators and propellant maker for mining, ISRO and defence",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Qualified with ISRO and DRDO"
+          ],
+          "risks": [
+            "Small; one plant incident moves results"
+          ],
+          "f": {
+            "ticker": "PREMEXPLN"
+          }
+        },
+        "ioc": {
+          "name": "Indian Oil Corporation",
+          "listed": true,
+          "role": "Largest state refiner, with a Panipat naphtha cracker and PX/PTA; supplies gas and petrochemicals to industry",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Largest refining capacity and petrochemical expansion"
+          ],
+          "risks": [
+            "Fuel price controls and under-recoveries in 2026"
+          ],
+          "f": {
+            "ticker": "IOC"
+          }
+        },
+        "bpcl": {
+          "name": "Bharat Petroleum",
+          "listed": true,
+          "role": "State refiner whose Kochi refinery makes propylene derivatives (acrylic acid, oxo-alcohols)",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Petrochemical projects add feedstock for chemicals"
+          ],
+          "risks": [
+            "Fuel under-recoveries",
+            "Gulf crude dependence"
+          ],
+          "f": {
+            "ticker": "BPCL"
+          }
+        },
+        "hpcl": {
+          "name": "Hindustan Petroleum",
+          "listed": true,
+          "role": "State refiner building the Barmer refinery-petrochemical complex; partner in HMEL's Bathinda polymers",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Barmer adds polymers and aromatics"
+          ],
+          "risks": [
+            "Fuel under-recoveries",
+            "Project delays and costs"
+          ],
+          "f": {
+            "ticker": "HINDPETRO"
+          }
+        },
+        "ongc": {
+          "name": "Oil and Natural Gas Corporation",
+          "listed": true,
+          "role": "Largest domestic gas producer; owns OPaL's Dahej cracker",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Domestic gas cuts import dependence"
+          ],
+          "risks": [
+            "Ageing fields",
+            "OPaL losses"
+          ],
+          "f": {
+            "ticker": "ONGC"
+          }
+        },
+        "petronet": {
+          "name": "Petronet LNG",
+          "listed": true,
+          "role": "India's largest LNG importer, running the Dahej and Kochi terminals that feed urea plants and chemical clusters",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Dahej is India's largest LNG terminal",
+            "Long-term contracts and tolling fees"
+          ],
+          "risks": [
+            "Qatar cargoes stopped by the Hormuz closure in 2026",
+            "Volumes depend on LNG prices"
+          ],
+          "f": {
+            "ticker": "PETRONET"
+          }
+        },
+        "aegisLog": {
+          "name": "Aegis Logistics",
+          "listed": true,
+          "role": "LPG and liquid chemical terminal operator and LPG distributor, parent of Aegis Vopak Terminals",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Terminals at major west- and east-coast ports",
+            "Long contracts with oil companies"
+          ],
+          "risks": [
+            "LPG imports hit by the Gulf closure",
+            "Capex for new terminals"
+          ],
+          "f": {
+            "ticker": "AEGISLOG"
+          }
+        },
+        "aegisVopak": {
+          "name": "Aegis Vopak Terminals",
+          "listed": true,
+          "role": "Joint venture of Aegis and Royal Vopak running LPG and liquid tank terminals; listed in Jun 2025",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Largest third-party liquid and LPG tank capacity in India",
+            "Vopak's operating know-how"
+          ],
+          "risks": [
+            "Depends on import volumes",
+            "New capacity still filling"
+          ],
+          "f": {
+            "ticker": "AEGISVOPAK"
+          }
+        },
+        "adaniports": {
+          "name": "Adani Ports and SEZ",
+          "listed": true,
+          "role": "India's largest private port operator, with liquid and chemical berths at Mundra, Dahej and Hazira",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Ports next to Gujarat chemical clusters"
+          ],
+          "risks": [
+            "Chemicals are a small part of its cargo"
+          ],
+          "f": {
+            "ticker": "ADANIPORTS"
+          }
+        },
+        "geShip": {
+          "name": "Great Eastern Shipping",
+          "listed": true,
+          "role": "India's largest private shipping company, owning product tankers and LPG carriers",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Earns more when tankers reroute and freight rises"
+          ],
+          "risks": [
+            "Freight rates are cyclical"
+          ],
+          "f": {
+            "ticker": "GESHIP"
+          }
+        }
+      }
+    },
+    {
       "key": "semicon2",
       "suppliers": {
         "apple": {
