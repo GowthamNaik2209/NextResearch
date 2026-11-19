@@ -175,7 +175,7 @@ const chemicals = {
   keyRisks:["Global overcapacity from China's new crackers", "Feedstock cost spikes", "Margin collapse when supply returns", "Plastics regulations"],
   investorMetrics:["Polymer and PVC spreads over naphtha and ethylene", "Capacity utilisation", "Import share of Indian demand", "New capacity timelines"],
   relatedComponents:["feedstock","chlor_alkali","intermediates","consumer_specialty"],
-  suppliers:[is("reliance"), op("haldia"), op("chemplast"), op("supremePetro"), op("igPetro"), op("thirumalai"), is("gail","medium")]},
+  suppliers:[is("reliance","medium"), op("haldia"), op("chemplast"), op("supremePetro"), op("igPetro"), op("thirumalai"), is("gail","medium")]},
 
  {id:"explosives", color:"#D96C2B", label:"Industrial explosives & nitrates", layer:2, pos:A.explosives.pos, side:A.explosives.side, desc:"Ammonium nitrate and industrial explosives for mining and infrastructure (Deepak Fertilisers, Solar Industries).",
   domainId:"commodity", displayOrder:11, dataStatus:"demo",
@@ -199,7 +199,7 @@ const chemicals = {
   keyRisks:["Hormuz closure lasting into 2027", "Government price controls on fuels", "LNG price spikes", "Delays in new refinery projects"],
   investorMetrics:["Refining and petrochemical margins", "LNG volumes regasified", "Gas transmission volumes", "Under-recoveries on fuels"],
   relatedComponents:["petchem","fertilisers","intermediates","terminals"],
-  suppliers:[is("reliance"), is("ioc"), is("bpcl","medium"), is("hpcl","medium"), is("ongc","medium"), is("gail"), is("petronet")]},
+  suppliers:[is("reliance","medium"), is("ioc","medium"), is("bpcl","medium"), is("hpcl","medium"), is("ongc","medium"), is("gail","medium"), is("petronet","medium")]},
 
  {id:"terminals", color:"#3D5A80", label:"Chemical terminals & logistics", layer:3, pos:A.terminals.pos, side:A.terminals.side, desc:"Port tank terminals and logistics that store and move liquid chemicals and gases.",
   domainId:"feedstock", displayOrder:13, dataStatus:"demo",
