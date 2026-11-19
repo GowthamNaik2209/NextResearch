@@ -14,7 +14,6 @@ const ds = link("direct_supplier");
 
 const itservices = {
  id: "itservices", icon: "IT", name: "IT Services & GCCs",
- muted: true,
  tagline: "IT services, engineering R&D, software products, BPM and the global capability centres, staffing and offices around them",
  headerTitle: "IT SERVICES & GCC ANATOMY",
  headerSub: "How India sells technology work to the world: from the services firms that win the contracts, through engineering, products and operations, to the GCCs, talent and offices that carry the delivery",

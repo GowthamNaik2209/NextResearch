@@ -74,7 +74,7 @@ test("primary industry: a direct industry link over a policy or index home, neve
   const byTicker = new Map(listCompanyPages().map((p) => [p.ticker, p]));
   const of = (t: string) => primaryIndustry(byTicker.get(t)!).sectorSlug;
   assert.equal(of("TATAPOWER"), "energy");
-  assert.equal(of("TMPV"), "ev4w");
+  assert.equal(of("TMPV"), "autos"); // a carmaker's home is Automobiles; its EV link is one of its industries
   assert.equal(of("SBIN"), "banks"); // mapped directly in Banks & NBFCs; its real-estate home-loan link stays a side link
   // Ties go to the industry it has more of: Tata Power's four energy layers beat one transmission layer.
   assert.equal(of("BHARATFORG"), "aerospace");
@@ -90,11 +90,15 @@ test("primary industry: a direct industry link over a policy or index home, neve
 
 // A company that falls back to the Nifty 50 is compared within its bracket of the index.
 test("P/E peers: a Nifty 50 fallback is compared within its bracket", () => {
-  const tcs = pePeers("TCS")!;
-  assert.equal(tcs.name, "Information Technology (Nifty 50)");
-  assert.ok(tcs.peers.some((s) => s.ticker === "INFY"));
-  assert.ok(!tcs.peers.some((s) => s.ticker === "HDFCBANK"));
-  assert.equal(industryPe("TCS")?.name, "Information Technology (Nifty 50)");
+  // (FMCG has no mapped industry yet; Wave 3 maps it and moves this example.)
+  const hul = pePeers("HINDUNILVR")!;
+  assert.equal(hul.name, "Fast Moving Consumer Goods (Nifty 50)");
+  assert.ok(hul.peers.some((s) => s.ticker === "NESTLEIND"));
+  assert.ok(!hul.peers.some((s) => s.ticker === "HDFCBANK"));
+  assert.equal(industryPe("HINDUNILVR")?.name, "Fast Moving Consumer Goods (Nifty 50)");
+  // Once its industry is mapped, a former fallback is compared with that industry instead.
+  assert.equal(pePeers("TCS")!.name, getSector("itservices")!.name);
+  assert.ok(pePeers("TCS")!.peers.some((s) => s.ticker === "INFY"));
   assert.equal(pePeers("TATAPOWER")!.name, getSector("energy")!.name);
 });
 

@@ -6,7 +6,6 @@ import { ASOF, co } from "./shared";
 
 const autos = {
  id: "autos", icon: "AU", name: "Automobiles",
- muted: true,
  tagline: "Two-wheelers, cars, trucks and tractors, and the engine, chassis, electrical and tyre makers behind them",
  headerTitle: "AUTOMOBILE ANATOMY",
  headerSub: "India's vehicle chain as one machine - from the makers that sell scooters, cars, trucks and tractors, through the systems and engine parts inside them, to the tyres, batteries and dealers that keep them running",
