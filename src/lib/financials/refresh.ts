@@ -252,6 +252,17 @@ export function withSnapshot(old: SupplierFinancials, s: Snap, asOf: Date): Supp
   return { ...old, mcap: s.mcap, price: formatPrice(s.price), cagr: s.cagr, range: s.range, kpi, asOf: formatAsOf(asOf) };
 }
 
+/**
+ * A company's note once its FY22-FY26 history is replaced with Screener's (--fix-history): when no
+ * year is blank any more, the "... left blank" clauses no longer hold and are dropped (null if nothing
+ * else is left). Otherwise the note is kept as authored.
+ */
+export function noteAfterHistoryFix(note: string | null | undefined, rev: (number | null)[], np: (number | null)[]): string | null {
+  if (!note) return note ?? null;
+  if (rev.some((v) => v == null) || np.some((v) => v == null)) return note;
+  return note.split("; ").filter((c) => !/left blank/i.test(c)).join("; ") || null;
+}
+
 /** A company new to the table (--add, or an IPO on its listing day): figures and full FY history from Screener. */
 export function newCompanyFigures(ticker: string, s: Snap, asOf: Date): SupplierFinancials | null {
   if (!s.history) return null;

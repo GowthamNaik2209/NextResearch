@@ -34,7 +34,7 @@ import { listIpos } from "../src/lib/ipo-content";
 import { hasQuote } from "../src/lib/financials/no-quote";
 import { formatAsOf } from "../src/lib/financials/rows";
 import { readCompanyTable, readPublishedCutoff } from "../src/lib/financials/query";
-import { claimRun, fetchSnapshot, fiscalColumns, isStandalone, listedIposToAdd, newCompanyFigures, newCompanyWriteOptions, publishRun, releaseRun, ScreenerBlocked, withSnapshot, type Run, type Snap } from "../src/lib/financials/refresh";
+import { claimRun, fetchSnapshot, fiscalColumns, isStandalone, noteAfterHistoryFix, listedIposToAdd, newCompanyFigures, newCompanyWriteOptions, publishRun, releaseRun, ScreenerBlocked, withSnapshot, type Run, type Snap } from "../src/lib/financials/refresh";
 import { istDay } from "../src/lib/financials/trading-day";
 import { writeFinancials } from "../src/lib/financials/write";
 import { databaseLabel, scriptPrisma } from "./db";
@@ -142,6 +142,7 @@ async function main() {
         if (FIX_HISTORY.has(old.ticker)) {
           f.rev = cols.rev;
           f.np = cols.np;
+          f.note = noteAfterHistoryFix(f.note, cols.rev, cols.np);
           fixHistory = true;
         }
       }
