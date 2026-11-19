@@ -59,7 +59,10 @@ export function lenderRows(f: SupplierFinancials): Block {
   // "not reported"; a bank without stored deposits reads "—".
   if (isBank(f.ticker)) rows.push({ label: "Deposit growth", value: signedPct(l?.depositGrowth, 1), period: bsYear });
   rows.push({ label: "Balance-sheet growth", value: signedPct(l?.bsGrowth, 1), period: bsYear });
-  return { rows, missing: !l, ...(unread ? { footnote: LENDER_UNREAD } : {}) };
+  // A stored, read block with one figure missing (HDBFS's gross NPA beside its net NPA): the dash
+  // says why, and no period is shown beside a figure that isn't there.
+  const out = l && !unread ? rows.map((r) => (r.value === NA && !r.note ? { label: r.label, value: r.value, note: NPA_NOT_REPORTED } : r)) : rows;
+  return { rows: out, missing: !l, ...(unread ? { footnote: LENDER_UNREAD } : {}) };
 }
 
 /**

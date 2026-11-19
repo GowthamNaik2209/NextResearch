@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { keyRatios, lenderRatios, lenderRatiosFrom, oneYearTo, withNifty } from "./key-ratios";
+import { keyRatios, lenderRatios, missingRatioReason, lenderRatiosFrom, niftyDayFor, niftyFallbackDays, oneYearTo, withNifty } from "./key-ratios";
 import { ratioTiles } from "@/components/stock/ratio-tiles";
 import type { SupplierFinancials } from "@/lib/sector-content";
 
@@ -41,7 +41,7 @@ test("a note warning about the latest year leaves growth and margin out; a Jan-D
 
 test("missing figures give nulls, not zeros", () => {
   const k = keyRatios({ ticker: "A", price: "Rs 300", kpi: [30, -4, 1, 15, 12, 1], cagr: [25, null, null] });
-  assert.deepEqual(k, { pb: null, fy: null, caution: null, revGrowth: null, profitGrowth: null, profitNote: null, netMargin: null, nifty1y: null, vsNifty: null, notMeaningful: [], notOut: null, noPrior: null });
+  assert.deepEqual(k, { pb: null, fy: null, caution: null, revGrowth: null, profitGrowth: null, profitNote: null, netMargin: null, nifty1y: null, vsNifty: null, vsNiftyDay: null, vsNiftyNote: "Nifty close not stored yet", notMeaningful: [], notOut: null, noPrior: null });
 });
 
 test("a latest year not on Screener yet, or no year before it, is named rather than left a bare dash", () => {
@@ -141,4 +141,54 @@ test("a bank's or an insurer's net margin and ROCE are not meaningful; an operat
   const op = keyRatios({ ticker: "TCS", kind: "operating", ...figs });
   close(op.netMargin!, 10);
   assert.deepEqual(op.notMeaningful, []);
+});
+
+test("a snapshot taken before the day's Nifty close is stored compares both 1Y returns to the last stored close", () => {
+  const nifty = [
+    { t: "2025-11-18", c: 100 },
+    { t: "2026-11-18", c: 105 },
+  ];
+  // The 19 Nov snapshot (an intraday refresh): 19 Nov's index close isn't stored, so 18 Nov is used.
+  assert.equal(niftyDayFor(nifty, "2026-11-19"), "2026-11-18");
+  assert.equal(niftyDayFor(nifty, "2026-11-18"), "2026-11-18");
+  assert.equal(niftyDayFor(nifty, "2026-12-30"), null, "nothing within a week: no day");
+  assert.deepEqual([...niftyFallbackDays(nifty, ["2026-11-19", "2026-11-18"])], [["2026-11-19", "2026-11-18"]]);
+  const stock = [
+    { t: "2025-11-18", c: 200 },
+    { t: "2026-11-18", c: 260 },
+  ];
+  const out = withNifty({ A: { ticker: "A", cagr: [99, null, null] }, B: { ticker: "B", cagr: [10, null, null] } }, new Map([["A", "2026-11-19"], ["B", "2026-11-19"]]), nifty, new Map([["A", stock]]));
+  close(out.A.nifty1y!, 5);
+  assert.equal(out.A.nifty1yDay, "2026-11-18");
+  close(out.A.ret1yMatched!, 30);
+  // The stock's own stored return to 18 Nov, not Screener's figure for 19 Nov.
+  const k = keyRatios(out.A);
+  close(k.vsNifty!, 25);
+  assert.equal(k.vsNiftyDay, "18 Nov");
+  const tile = ratioTiles(out.A, false).find((t) => t.label === "1Y vs Nifty")!;
+  assert.deepEqual([tile.value, tile.sub], ["+25 pts", "Nifty +5.0% · to 18 Nov"]);
+  // C's last stored close is 17 Nov (fetched before the 18th's close): both run to 17 Nov.
+  const nifty3 = [{ t: "2025-11-17", c: 100 }, { t: "2025-11-18", c: 100 }, { t: "2026-11-17", c: 104 }, { t: "2026-11-18", c: 105 }];
+  const c3 = withNifty({ C: { ticker: "C", cagr: [9, null, null] } }, new Map([["C", "2026-11-19"]]), nifty3, new Map([["C", [{ t: "2025-11-17", c: 50 }, { t: "2026-11-17", c: 60 }]]]));
+  assert.equal(c3.C.nifty1yDay, "2026-11-17");
+  close(c3.C.nifty1y!, 4);
+  close(keyRatios(c3.C).vsNifty!, 16);
+  // No stored closes for B on that day: no figure, with its reason.
+  const kb = keyRatios(out.B);
+  assert.equal(kb.vsNifty, null);
+  assert.equal(ratioTiles(out.B, false).find((t) => t.label === "1Y vs Nifty")!.sub, "No stored close for that day");
+  // The snapshot day's close stored: Screener's 1Y return as before, no day named.
+  const same = withNifty({ C: { ticker: "C", cagr: [12, null, null] } }, new Map([["C", "2026-11-18"]]), nifty);
+  assert.equal(same.C.nifty1yDay, undefined);
+  close(keyRatios(same.C).vsNifty!, 7);
+  // Listed under a year: says so.
+  assert.equal(keyRatios({ ticker: "D", nifty1y: 5 }).vsNiftyNote, "Listed under a year");
+});
+
+test("a missing P/E or ROE says why", () => {
+  assert.equal(missingRatioReason({ ticker: "A", np: [1, 2, 3, 4, -5] }, "pe"), "Loss in FY26");
+  assert.equal(missingRatioReason({ ticker: "A", np: [1, 2, 3, 62, null], kpi: [null, -10, null, null, null, 10] }, "roe"), "Negative equity");
+  // SPICEJET's shape: a profit in its latest year but no trailing P/E (a loss over the last four quarters).
+  assert.equal(missingRatioReason({ ticker: "A", np: [1, 2, 3, 62, null], kpi: [null, -10, null, null, null, 10] }, "pe"), "No trailing P/E on Screener");
+  assert.equal(missingRatioReason({ ticker: "A", np: [1, 2, 3, 4, 73] }, "roe"), "None on Screener");
 });

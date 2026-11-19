@@ -126,6 +126,11 @@ export type SupplierFinancials = {
   cagr?: (number | null)[] | null; // stock price CAGR [1y, 3y, 5y], %
   trend?: number | null; // percentile of the 1y return among covered companies, 0-100 (financials/trend.ts)
   nifty1y?: number | null; // the Nifty 50's 1y return to the same snapshot day, % (financials/key-ratios.ts)
+  // Set when the Nifty's close for the snapshot day isn't stored yet (an intraday refresh): the
+  // stored day both 1Y returns run to instead (ISO), and the stock's own 1Y return to that day from
+  // the price store, so "1Y vs Nifty" compares the same two dates (financials/key-ratios.ts withNifty).
+  nifty1yDay?: string | null;
+  ret1yMatched?: number | null;
   range?: (number | null)[] | null; // 52-week [low, high]
   tl?: [number | null, string] | null; // Trendlyne [id, slug]
   kpi?: (number | null)[] | null; // [pe, bookValue, divYield, roce, roe, faceValue]

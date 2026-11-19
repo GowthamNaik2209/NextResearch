@@ -53,7 +53,9 @@ export function ratioTiles(f: SupplierFinancials | undefined, reit: boolean): Ra
       // Whole points: the stock's 1Y return is Screener's whole-number figure.
       value: k.vsNifty != null ? signedPct(Math.round(k.vsNifty), 0).replace(/%$/, " pts") : NA,
       tone: k.vsNifty != null ? Math.round(k.vsNifty) : null,
-      sub: k.vsNifty != null && k.nifty1y != null ? `Nifty ${signedPct(k.nifty1y, 1)}` : undefined,
+      // Run to an earlier stored close (today's not stored yet): the day is named. No figure: why.
+      sub: k.vsNifty != null && k.nifty1y != null ? `Nifty ${signedPct(k.nifty1y, 1)}${k.vsNiftyDay ? ` · to ${k.vsNiftyDay}` : ""}` : (k.vsNiftyNote ?? undefined),
+      title: k.vsNiftyDay ? `Both 1-year returns run to ${k.vsNiftyDay}, the latest Nifty 50 close stored; the snapshot day's close is stored in the evening.` : undefined,
     },
   ];
 }

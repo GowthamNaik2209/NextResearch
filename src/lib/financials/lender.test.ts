@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { EMPTY_LENDER, lenderFromStandalone, parseLenderFigures } from "./lender";
 import { lenderColumns } from "./write";
-import { DEFAULT_GAP_MS, lenderSource, newCompanyWriteOptions } from "./refresh";
+import { DEFAULT_GAP_MS, lenderSource, newCompanyWriteOptions, preferStandalone } from "./refresh";
 
 const fixture = (dir: string, name: string) => fs.readFileSync(path.join(import.meta.dirname, dir, name), "utf8");
 const bank = fixture("__fixtures__", "screener-bank.html");
@@ -97,4 +97,18 @@ test("a company new to the table (--add, a listing-day IPO) is written with its 
   });
   // Not a lender (no lender figures read): nothing extra written.
   assert.deepEqual(newCompanyWriteOptions({}, "Indian Hotels"), { identity: { name: "Indian Hotels", listed: true, role: "" }, lender: null });
+});
+
+test("standalone over consolidated: an empty or stale consolidated page, or one that starts years later (UGRO Capital)", () => {
+  const ys = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => `Mar ${from + i}`);
+  // UGRO: consolidated only for FY26, standalone FY22-FY26.
+  assert.equal(preferStandalone({ usable: true, years: ys(2026, 2026) }, { usable: true, years: ys(2022, 2026) }), true);
+  // A full consolidated history stays consolidated.
+  assert.equal(preferStandalone({ usable: true, years: ys(2022, 2026) }, { usable: true, years: ys(2018, 2026) }), false);
+  // A young company with as few standalone years: consolidated.
+  assert.equal(preferStandalone({ usable: true, years: ys(2025, 2026) }, { usable: true, years: ys(2025, 2026) }), false);
+  // Stale consolidated (RailTel): standalone; empty consolidated: standalone; unusable standalone: never.
+  assert.equal(preferStandalone({ usable: true, years: ys(2018, 2023) }, { usable: true, years: ys(2018, 2026) }), true);
+  assert.equal(preferStandalone({ usable: false, years: [] }, { usable: true, years: ys(2022, 2026) }), true);
+  assert.equal(preferStandalone({ usable: false, years: [] }, { usable: false, years: [] }), false);
 });

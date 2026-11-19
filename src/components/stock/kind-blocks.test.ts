@@ -174,3 +174,13 @@ test("a hand-kept insurer figure the row leaves out reads as a dash with a note;
   assert.deepEqual([noEv["P/EV"].value, noEv["P/EV"].note], ["—", NOT_IN_DISCLOSURE]);
   for (const r of insurerRows(life).rows) assert.equal(r.note, undefined, r.label);
 });
+
+test("a lender block with one figure missing gives that dash its reason and no period (HDBFS's gross NPA)", () => {
+  const f: SupplierFinancials = {
+    ticker: "HDBFS",
+    lender: { roa: 2.1, gnpa: null, nnpa: 1.04, finMargin: 30, depositGrowth: null, bsGrowth: 12, quarter: "Jun 2026", year: "FY26", bsYear: "FY26" },
+  };
+  const rows = new Map(lenderRows(f).rows.map((r) => [r.label, r]));
+  assert.deepEqual(rows.get("Gross NPA"), { label: "Gross NPA", value: "—", note: "Not reported on Screener" });
+  assert.equal(rows.get("Net NPA")!.period, "Jun 2026");
+});

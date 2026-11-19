@@ -157,6 +157,9 @@ export async function lastTradingDay(): Promise<string | null> {
 
 export type IdeasPayload = { asOf: string; ideas: Idea[] };
 
+/** The cache tag on the day's lists and their figures (financials/auto.ts marks it stale on a publish). */
+export const IDEAS_TAG = "basket-ideas";
+
 /** The day's ideas, from the shared cache (rebuilt in the background once a day). */
 export const getIdeas = unstable_cache(
   async (): Promise<IdeasPayload> => {
@@ -164,10 +167,11 @@ export const getIdeas = unstable_cache(
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },
-  // v14: lists built before the lender and insurer figures were stored (v13) left Quality lenders
-  // and Insurer value empty for a day; a new key so those lists aren't served.
-  ["basket-ideas-v14"],
-  { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
+  // v15: lists built before the lenders' figures were backfilled (v14, 19 Nov 2026) held 5 quality
+  // lenders where 15 pass; a new key so those lists aren't served. A publish by the app's own
+  // refresh marks the tag stale as well (financials/auto.ts); a by-hand script publish can't, hence the key.
+  ["basket-ideas-v15"],
+  { revalidate: REVALIDATE_SECONDS, tags: [IDEAS_TAG] },
 );
 
 /** One idea, with its card's figures and order (its page lists the stocks as the card does). */
@@ -203,7 +207,7 @@ const ideaFigure = unstable_cache(
   },
   // v3: backtests end on the stored Nifty 50's last close (run.ts onBenchWindow).
   ["basket-ideas-backtest-v3"],
-  { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
+  { revalidate: REVALIDATE_SECONDS, tags: [IDEAS_TAG] },
 );
 const dailyBacktest = (asOf: string, id: string) => ideaFigure(asOf, id).catch(() => null);
 

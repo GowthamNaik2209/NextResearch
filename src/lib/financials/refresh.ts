@@ -98,10 +98,25 @@ export type Snap = {
 };
 
 const yearOf = (label: string) => Number(label.match(/(\d{4})$/)?.[1] ?? 0);
-const latestYear = (html: string) => {
-  const ys = parseCompanyPage(html).annual?.years.filter((y) => /^[A-Z][a-z]{2} \d{4}$/.test(y)) ?? [];
-  return ys.length ? yearOf(ys[ys.length - 1]) : 0;
-};
+const annualYears = (html: string) => parseCompanyPage(html).annual?.years.filter((y) => /^[A-Z][a-z]{2} \d{4}$/.test(y)) ?? [];
+const latestOf = (ys: string[]) => (ys.length ? yearOf(ys[ys.length - 1]) : 0);
+
+/** Consolidated accounts with fewer full years than this (a group that began consolidating lately) are checked against the standalone page. */
+export const SHORT_CONSOLIDATED_YEARS = 3;
+
+/**
+ * Whether to read a company's standalone page instead of its consolidated one: the consolidated page
+ * is an empty template, its accounts stop years earlier (a stale consolidated filing, e.g. RailTel),
+ * or they start much later - fewer than SHORT_CONSOLIDATED_YEARS years to the same latest year where
+ * the standalone page has more (UGRO Capital: consolidated from FY26 only, standalone back to FY22).
+ */
+export function preferStandalone(cons: { usable: boolean; years: string[] }, sa: { usable: boolean; years: string[] } | null): boolean {
+  if (!sa?.usable) return false;
+  if (!cons.usable) return true;
+  const [lc, ls] = [latestOf(cons.years), latestOf(sa.years)];
+  if (ls > lc) return true;
+  return ls === lc && cons.years.length < SHORT_CONSOLIDATED_YEARS && sa.years.length > cons.years.length;
+}
 
 // Screener addresses a few listings by a code its search doesn't return for the ticker.
 const SCREENER_ID: Record<string, string> = { ALTIUSINVIT: "543225" };
@@ -123,13 +138,15 @@ export async function fetchSnapshot(ticker: string, standalone: boolean, tlSlug:
   let saPage: string | "missing" | null | undefined; // the standalone page when this check fetched it
   if (!standalone) {
     // Consolidated is the default; standalone when it is an empty template or its accounts stop
-    // years earlier than the standalone page's (a stale consolidated filing, e.g. RailTel).
+    // years earlier than the standalone page's (a stale consolidated filing, e.g. RailTel), or start
+    // much later (preferStandalone).
     const usable = isUsablePage(html);
-    if (!usable || latestYear(html) < new Date().getFullYear() - 1) {
+    const consYears = usable ? annualYears(html) : [];
+    if (!usable || latestOf(consYears) < new Date().getFullYear() - 1 || consYears.length < SHORT_CONSOLIDATED_YEARS) {
       const sa = await get(`${base}/`, o);
       saPage = sa;
       if (sa === null) return null;
-      if (sa !== "missing" && isUsablePage(sa) && (!usable || latestYear(sa) > latestYear(html))) {
+      if (sa !== "missing" && preferStandalone({ usable, years: consYears }, { usable: isUsablePage(sa), years: annualYears(sa) })) {
         html = sa;
         basis = "standalone";
       }

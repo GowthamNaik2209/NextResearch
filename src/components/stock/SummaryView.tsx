@@ -7,7 +7,7 @@ import { NewsTime } from "./NewsTime";
 import { quoteTiming } from "@/lib/live/freshness";
 import { InfoTip } from "@/components/InfoTip";
 import { TREND_NOTE, trendLabel } from "@/lib/financials/trend";
-import { KEY_STATS_NOTE } from "@/lib/financials/key-ratios";
+import { KEY_STATS_NOTE, missingRatioReason } from "@/lib/financials/key-ratios";
 import { ratioTiles } from "./ratio-tiles";
 import { PeContextLoader } from "./PeContextLoader";
 import { MethodLink } from "./MethodLink";
@@ -17,6 +17,13 @@ import { InsurerBlock } from "./InsurerBlock";
 
 /** A tile's value that is a short note ("Not meaningful for lenders"): small, soft, wrapping. */
 const NoteValue = ({ children }: { children: string }) => <span className="block font-sans text-[11px] font-normal leading-snug text-ink-soft">{children}</span>;
+// A missing figure: the dash, and why under it (as the ratio tiles' second line).
+const Missing = ({ why }: { why: string }) => (
+  <span>
+    <span className="block">{NA}</span>
+    <span className="block text-[10.5px] font-normal text-ink-soft">{why}</span>
+  </span>
+);
 
 const Label = ({ children }: { children: React.ReactNode }) => (
   <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-soft">{children}</div>
@@ -94,10 +101,10 @@ export function SummaryView({
   // Face value and book value per share gave way to ratios an investor reads (P/B, growth, margin).
   const chips: [string, React.ReactNode, boolean?][] = [
     ["Mkt Cap", croreShort(s.marketCapCr)],
-    ["Stock P/E", nm(s.pe != null ? `${s.pe.toFixed(1)}x` : NA)],
+    ["Stock P/E", s.reit || s.pe != null ? nm(s.pe != null ? `${s.pe.toFixed(1)}x` : NA) : <Missing key="pe" why={missingRatioReason(f, "pe")} />],
     ["Div Yield", nm(fmtYield(s.divYield)), true],
     ["ROCE", kindNote ? <NoteValue key="roce">{kindNote}</NoteValue> : pct(s.roce)],
-    ["ROE", nm(pct(s.roe))],
+    ["ROE", s.reit || s.roe != null ? nm(pct(s.roe)) : <Missing key="roe" why={missingRatioReason(f, "roe")} />],
     ...ratioTiles(f, s.reit).map(({ label, value, tone, sub, title, muted }): [string, React.ReactNode] => [
       label,
       muted ? (

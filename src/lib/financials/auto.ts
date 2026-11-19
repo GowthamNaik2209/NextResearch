@@ -17,6 +17,8 @@ import { isRefreshDue } from "./trading-day";
 
 /** The data-cache tag of the company table (./load.ts). */
 export const FINANCIALS_TAG = "financials";
+/** The basket ideas' cache tag (baskets/ideas-data.ts IDEAS_TAG), written out to keep that module out of this one. */
+const IDEAS_TAG = "basket-ideas";
 
 // A chunk after a page view: about this long fetching companies, then it saves and stops.
 const VISIT_BUDGET_MS = 40_000;
@@ -68,6 +70,9 @@ export function runFinancialsChunk(budgetMs: number): Promise<ChunkResult> {
       try {
         // Expire now (not stale-while-revalidate): the next request reads the newly published table.
         revalidateTag(FINANCIALS_TAG, { expire: 0 });
+        // The rule-based baskets rank on these figures: their lists are marked stale too, served
+        // as they are while the new ones build (stale-while-revalidate), so no visitor waits.
+        revalidateTag(IDEAS_TAG, "max");
       } catch (e) {
         // From inside a prerender Next refuses; the table's 15-minute clock picks the run up instead.
         console.warn("financials refresh: published, cache will refresh on its 15-minute clock", String(e).slice(0, 120));

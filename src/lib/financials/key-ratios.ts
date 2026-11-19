@@ -29,6 +29,10 @@ export type KeyRatios = {
   nifty1y: number | null;
   /** The stock's 1Y price return minus the Nifty 50's, percentage points. */
   vsNifty: number | null;
+  /** The day both 1Y returns run to when it is not the snapshot day ("18 Nov"): the Nifty's close for the snapshot day wasn't stored yet. */
+  vsNiftyDay: string | null;
+  /** Why there is no "1Y vs Nifty" figure, when there isn't. */
+  vsNiftyNote: string | null;
   /** Ratios that mean nothing for this kind of company (net margin and ROCE for lenders and insurers). */
   notMeaningful: NotMeaningful[];
   /** The latest table year ("FY26") when the company's latest reported year (`fy`) is older: its figures are not on Screener yet. */
@@ -119,7 +123,9 @@ export function keyRatios(f: SupplierFinancials | undefined): KeyRatios {
   const p = i >= 0 ? np[i] : null;
   const p0 = i > 0 ? np[i - 1] : null;
   const both = fin(p) && fin(p0);
-  const ret1y = f?.cagr?.[0];
+  // Run to an earlier stored day (nifty1yDay): the stock's return to that same day, from the price store.
+  const matched = !!f?.nifty1yDay;
+  const ret1y = matched ? f?.ret1yMatched : f?.cagr?.[0];
   const nifty = f?.nifty1y;
   const note = f?.note ?? "";
   // A screened-out row's latest year is dominated by a one-off (sector-content core.ts screenOut).
@@ -147,6 +153,15 @@ export function keyRatios(f: SupplierFinancials | undefined): KeyRatios {
     netMargin: !notMeaningful.length && !caution && fin(r) && r > 0 && fin(p) ? (p / r) * 100 : null,
     nifty1y: fin(nifty) ? nifty : null,
     vsNifty: fin(ret1y) && fin(nifty) ? ret1y - nifty : null,
+    vsNiftyDay: matched ? shortDay(f!.nifty1yDay!) : null,
+    vsNiftyNote:
+      fin(ret1y) && fin(nifty)
+        ? null
+        : !fin(f?.cagr?.[0])
+          ? "Listed under a year"
+          : !fin(nifty)
+            ? "Nifty close not stored yet"
+            : "No stored close for that day",
     notMeaningful,
     // A Jan-Dec reporter's latest column is its own; only a March year can be "not out" here.
     notOut: i >= 0 && i < FISCAL_YEARS.length - 1 && !CALENDAR_YEAR.test(note) ? `FY${String(FISCAL_YEARS[FISCAL_YEARS.length - 1]).slice(-2)}` : null,
@@ -154,8 +169,27 @@ export function keyRatios(f: SupplierFinancials | undefined): KeyRatios {
   };
 }
 
+/**
+ * Why a company has no P/E or ROE in the company table, for the dash beside it: a loss in its latest
+ * reported year, negative equity (ROE), or none given by Screener (its trailing P/E is blank after a
+ * loss over the last four quarters, which the yearly figures may not show).
+ */
+export function missingRatioReason(f: SupplierFinancials | undefined, which: "pe" | "roe"): string {
+  const np = f?.np ?? [];
+  let i = np.length - 1;
+  while (i >= 0 && !fin(np[i])) i--;
+  const book = f?.kpi?.[1];
+  if (which === "roe" && fin(book) && book <= 0) return "Negative equity";
+  if (i >= 0 && np[i]! <= 0) return `Loss in FY${String(FISCAL_YEARS[i] ?? FISCAL_YEARS[0] + i).slice(-2)}`;
+  return which === "pe" ? "No trailing P/E on Screener" : "None on Screener";
+}
+
 export const KEY_STATS_NOTE =
   "P/B is price ÷ book value. Growth and net margin are for the latest reported year (where Screener does not have a company's latest year yet, the year before, marked); a growth rate needs the year before it too. 1Y vs Nifty is the 1-year price return minus the Nifty 50's, in points.";
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** "2026-11-18" -> "18 Nov". */
+const shortDay = (iso: string) => `${Number(iso.slice(8, 10))} ${MONTHS[Number(iso.slice(5, 7)) - 1]}`;
 
 const DAY = 86_400_000;
 // The closes at each end must be this close to the dates asked for (a gap in the series gives no figure).
@@ -182,14 +216,60 @@ export function oneYearTo(bars: { t: string; c: number }[], day: string): number
   return end != null && start != null ? (end / start - 1) * 100 : null;
 }
 
-/** Each row gets the Nifty 50's 1Y return to its own snapshot day (`asOfDay`: ISO, by ticker). Rows are copied. */
-export function withNifty(byTicker: Record<string, SupplierFinancials>, asOfDay: Map<string, string>, bars: { t: string; c: number }[]): Record<string, SupplierFinancials> {
-  const byDay = new Map<string, number | null>();
+/**
+ * The day "1Y vs Nifty" runs to for a snapshot taken on `day` (ISO): the snapshot day when the
+ * index's close for it is stored, else the latest stored close before it (within MAX_GAP_DAYS) - a
+ * refresh run during market hours dates its snapshot today, before the evening price run stores
+ * today's close. Null when no close that recent is stored.
+ */
+export function niftyDayFor(bars: { t: string; c: number }[], day: string): string | null {
+  let hit: string | null = null;
+  for (const b of bars) {
+    if (b.t > day) break;
+    hit = b.t;
+  }
+  return hit && Date.parse(day) - Date.parse(hit) <= MAX_GAP_DAYS * DAY ? hit : null;
+}
+
+/** The snapshot days whose Nifty close isn't stored yet, each with the earlier stored day the comparison runs to instead. */
+export function niftyFallbackDays(bars: { t: string; c: number }[], days: Iterable<string>): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const day of new Set(days)) {
+    const end = niftyDayFor(bars, day);
+    if (end && end !== day) out.set(day, end);
+  }
+  return out;
+}
+
+/**
+ * Each row gets the Nifty 50's 1Y return to its own snapshot day (`asOfDay`: ISO, by ticker). When
+ * that day's index close isn't stored yet, both returns run to the latest stored close instead: the
+ * Nifty's from its bars, the stock's from its own stored closes (`stockBars`, by ticker), so the
+ * two always cover the same dates. Rows are copied.
+ */
+export function withNifty(
+  byTicker: Record<string, SupplierFinancials>,
+  asOfDay: Map<string, string>,
+  bars: { t: string; c: number }[],
+  stockBars: Map<string, { t: string; c: number }[]> = new Map(),
+): Record<string, SupplierFinancials> {
+  const byDay = new Map<string, { end: string | null; ret: number | null }>();
   return Object.fromEntries(
     Object.entries(byTicker).map(([k, f]) => {
       const day = asOfDay.get(k);
-      if (day && !byDay.has(day)) byDay.set(day, oneYearTo(bars, day));
-      return [k, { ...f, nifty1y: day ? byDay.get(day) ?? null : null }];
+      if (!day) return [k, { ...f, nifty1y: null }];
+      if (!byDay.has(day)) {
+        const end = niftyDayFor(bars, day);
+        byDay.set(day, { end, ret: end ? oneYearTo(bars, end) : null });
+      }
+      const { end, ret } = byDay.get(day)!;
+      if (!end || end === day) return [k, { ...f, nifty1y: ret }];
+      // The stock's latest stored close on or before that day (its own last bar may be a day older,
+      // fetched before that close): both returns run to the day the two series share.
+      const own = stockBars.get(k) ?? [];
+      const shared = niftyDayFor(own, end);
+      if (!shared) return [k, { ...f, nifty1y: ret, nifty1yDay: end, ret1yMatched: null }];
+      return [k, { ...f, nifty1y: shared === end ? ret : oneYearTo(bars, shared), nifty1yDay: shared, ret1yMatched: oneYearTo(own, shared) }];
     }),
   );
 }

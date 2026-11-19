@@ -9,7 +9,7 @@ import { readInsurerRows, readLenderFigures } from "./blocks";
 import { companyKind } from "./kinds";
 import { publishedCutoff } from "./trading-day";
 import { withTrend } from "./trend";
-import { withNifty } from "./key-ratios";
+import { niftyFallbackDays, withNifty } from "./key-ratios";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 
 let warnedNoRunsTable = false;
@@ -100,7 +100,12 @@ export async function readCompanyTableAt(prisma: PrismaClient, cutoff: Date | nu
     const k = kpis.get(r.id);
     return k && table[r.ticker] ? [[r.ticker, k.asOf.toISOString().slice(0, 10)] as const] : [];
   }));
-  return withNifty(table, asOfDay, await niftyCloses(prisma, [...asOfDay.values()]));
+  const nifty = await niftyCloses(prisma, [...asOfDay.values()]);
+  // A snapshot taken before today's index close is stored runs both 1Y returns to the last stored
+  // close: the stocks' closes for that day and a year before, read for just those companies.
+  const fallback = niftyFallbackDays(nifty, asOfDay.values());
+  const stocks = fallback.size ? await stockCloses(prisma, [...asOfDay].filter(([, d]) => fallback.has(d)).map(([t]) => t), [...new Set(fallback.values())]) : new Map();
+  return withNifty(table, asOfDay, nifty, stocks);
 }
 
 /** The stored Nifty 50 closes from a year (and a week) before the earliest day to the latest; none when the store can't say. */
@@ -121,6 +126,33 @@ async function niftyCloses(prisma: PrismaClient, days: string[]): Promise<{ t: s
     if ((e as { code?: string }).code !== "P2021") console.warn("company table: Nifty closes not read", e);
     return [];
   }
+}
+
+/**
+ * Stored closes for `tickers` in the week up to each `end` day and the fortnight up to the same date
+ * a year before: all withNifty() needs, without reading a year of bars per company.
+ */
+async function stockCloses(prisma: PrismaClient, tickers: string[], ends: string[]): Promise<Map<string, { t: string; c: number }[]>> {
+  const out = new Map<string, { t: string; c: number }[]>();
+  if (!tickers.length || !ends.length) return out;
+  const day = (iso: string) => new Date(`${iso}T00:00:00Z`);
+  const windows = ends.flatMap((e) => {
+    const yearAgo = `${Number(e.slice(0, 4)) - 1}${e.slice(4)}`;
+    // The week up to `e` (a stock's last stored close may be a day or two older) and the fortnight up to a year before.
+    return [{ day: { gte: new Date(Date.parse(e) - 7 * 86_400_000), lte: day(e) } }, { day: { gte: new Date(Date.parse(yearAgo) - 14 * 86_400_000), lte: day(yearAgo) } }];
+  });
+  try {
+    const bars = await prisma.priceBar.findMany({ where: { key: { in: tickers }, OR: windows }, orderBy: { day: "asc" }, select: { key: true, day: true, close: true } });
+    for (const b of bars) {
+      const list = out.get(b.key) ?? [];
+      list.push({ t: b.day.toISOString().slice(0, 10), c: b.close });
+      out.set(b.key, list);
+    }
+  } catch (e) {
+    // One optional tile, as for the Nifty's closes: a failed read leaves it with its reason.
+    if ((e as { code?: string }).code !== "P2021") console.warn("company table: stock closes not read", e);
+  }
+  return out;
 }
 
 /** The table as the site shows it, with the published date it is held to. */
