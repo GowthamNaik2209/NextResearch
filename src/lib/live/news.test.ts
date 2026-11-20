@@ -1380,6 +1380,7 @@ test("isAbout tells the chemical, fertiliser and crop-protection names apart (Wa
     ["Gulf Oil Lubricants Q2 profit rises", "GOCL Corporation", "GOCLCORP", false],
     ["DCM Shriram Q2 profit rises", "DCM Shriram", "DCMSHRIRAM", true],
     ["DCM Shriram Industries Q2 profit rises", "DCM Shriram", "DCMSHRIRAM", false],
+    ["DCM Shriram Fine Chemicals Q2FY27 Results: Consolidated net loss widens to ₹7.65 lakh", "DCM Shriram", "DCMSHRIRAM", false],
     ["Shriram Finance Q2 profit rises", "DCM Shriram", "DCMSHRIRAM", false],
     ["GHCL Q2 profit rises", "GHCL", "GHCL", true],
     ["GHCL Textiles Q2 profit rises", "GHCL", "GHCL", false],

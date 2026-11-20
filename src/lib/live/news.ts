@@ -632,7 +632,7 @@ const OTHER_COMPANIES = [
   "SKF India Industrial", "Hero Motors", "Hero FinCorp", "Hero Electric", "Hero Future Energies", "Bajaj Auto Finance",
   "Ola Krutrim", "ANI Technologies", "Sonata Finance", "Jubilant FoodWorks", "Jubilant Pharmova",
   "Godrej Consumer Products", "Aarti Surfactants", "Great Eastern Life", "Great Eastern Holdings",
-  "DCM Shriram Industries", "GHCL Textiles",
+  "DCM Shriram Industries", "DCM Shriram Fine Chemicals", "GHCL Textiles",
 ].map(normalize);
 
 const nameWords = (name: string) => normalize(name.replace(/\(.*?\)/g, "")).split(" ").filter(Boolean);
