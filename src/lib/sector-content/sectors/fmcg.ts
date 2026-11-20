@@ -79,7 +79,7 @@ const fmcg = {
   keyRisks:["State cane price rising faster than sugar prices", "Distillery capacity idle under diversion curbs", "Imports capping domestic sugar prices", "More borrowing to carry sugar stocks (Crisil sees interest cover falling)"],
   investorMetrics:["Cane crushed and recovery rate", "Sugar realisation per kg vs cane cost", "Ethanol volume and feedstock mix (juice, B-heavy, C-heavy, grain)", "Distillery and cogeneration profit", "Inventory and working-capital debt"],
   relatedComponents:["foods","beverages","staples"],
-  suppliers:[op("balrampur"), op("eidParry"), op("triveni"), op("dhampur"), op("bajajHind","medium"), op("dcmShriram","low")]},
+  suppliers:[op("balrampur"), op("eidParry"), op("triveni"), op("dhampur"), op("bajajHind","medium"), op("dcmShriram","low"), {key:"renuka", exposureType:"operator", exposureStrength:"high"}, {key:"dalmiaSugar", exposureType:"operator", exposureStrength:"medium"}, {key:"praj", exposureType:"enabler", exposureStrength:"medium"}]},
 
  {id:"dairy_protein", color:"#1E9E76", label:"Dairy, poultry & seafood", layer:0, pos:A.dairy_protein.pos, side:A.dairy_protein.side, desc:"Private dairies, the Amul cooperative, and poultry and shrimp-feed makers (Hatsun, Heritage, Parag, Dodla, Avanti Feeds, Venky's, Godrej Agrovet).",
   domainId:"farm", displayOrder:3, dataStatus:"demo",
@@ -103,7 +103,7 @@ const fmcg = {
   keyRisks:["Cocoa and milk inflation (Nestle flagged both in Oct 2026)", "Regional and D2C snack brands taking share", "Discount wars on quick-commerce apps", "Food-safety recalls"],
   investorMetrics:["Volume growth vs price growth", "Gross margin and grammage changes", "Direct-reach rural outlets", "Advertising as a share of sales", "Share of sales outside the home state (regional players)"],
   relatedComponents:["staples","sugar","dairy_protein","packaging","distribution","majors"],
-  suppliers:[op("britannia"), op("nestleind"), op("zydusWellness"), op("bikaji"), op("bectors"), op("kwality","medium"), op("itc","medium"), op("haldiram"), op("mondelez")]},
+  suppliers:[op("britannia"), op("nestleind"), op("zydusWellness"), op("bikaji"), op("bectors"), op("kwality","medium"), op("itc","medium"), op("haldiram"), op("mondelez"), {key:"orkla", exposureType:"operator", exposureStrength:"high"}]},
 
  {id:"beverages", color:"#D96C2B", label:"Soft drinks, tea & coffee", layer:1, pos:A.beverages.pos, side:A.beverages.side, desc:"Cola bottlers, tea packers and instant-coffee makers (Varun Beverages, Tata Consumer, CCL Products, Hindustan Coca-Cola, Campa).",
   domainId:"food", displayOrder:5, dataStatus:"demo",
@@ -163,7 +163,7 @@ const fmcg = {
   keyRisks:["Crude spikes while the Gulf is disrupted", "Unbranded and regional brands in rural markets", "Chinese stationery imports", "Floods or damage at single-site plants (DOMS booked a warehouse flood loss in Q2 FY27)"],
   investorMetrics:["Volume growth by category", "Gross margin vs LAB and crude", "Capacity utilisation", "Export share for stationery"],
   relatedComponents:["majors","ingredients","packaging","distribution"],
-  suppliers:[op("jyothy"), op("doms"), op("flair"), op("reckitt"), op("hindunilvr","medium"), op("godrejcp","medium"), op("pghh","medium")]},
+  suppliers:[op("jyothy"), op("doms"), op("flair"), op("reckitt"), op("hindunilvr","medium"), op("godrejcp","medium"), op("pghh","medium"), {key:"cello", exposureType:"operator", exposureStrength:"medium"}, {key:"eveready", exposureType:"operator", exposureStrength:"medium"}]},
 
  {id:"ingredients", color:"#3D5A80", label:"Flavours, fragrances & contract makers", layer:3, pos:A.ingredients.pos, side:A.ingredients.side, desc:"Fragrance, surfactant and cocoa-fat suppliers and contract manufacturers that make products for the brands (S H Kelkar, Galaxy Surfactants, Manorama, Hindustan Foods).",
   domainId:"shelf", displayOrder:10, dataStatus:"demo",
@@ -297,6 +297,13 @@ const fmcg = {
  udaan: {name:"Udaan", listed:false, role:"B2B app supplying kiranas with FMCG packs on credit", dataStatus:"demo", sourceDate:D, strengths:["Reaches small shops brands don't cover"], risks:["Unlisted"], notes:["Privately held","No listed market data"]},
  jumbotail: {name:"Jumbotail", listed:false, role:"B2B grocery marketplace and wholesaler for kiranas", dataStatus:"demo", sourceDate:D, strengths:["Wholesale and credit for small shops"], risks:["Unlisted"], notes:["Privately held","No listed market data"]},
  vmm: {name:"Vishal Mega Mart", listed:true, role:"Value hypermarket chain in tier-2 to tier-4 towns that sells groceries and FMCG packs next to apparel and home goods, mostly under its own labels", dataStatus:"demo", sourceDate:D, aka:["vishal mega mart","vishal"], strengths:["844 stores in 582 cities (30 Sep 2026) give brands a small-town shelf outside the metros", "Q2 FY27 revenue rose 14% to ₹3,399 Cr"], risks:["Apparel and general merchandise, not FMCG, drive most of its sales", "Own labels compete with the brands on its shelves", "Profit grew only about 4% in Q2 FY27"], f:co("VMM","Exposure here is grocery and FMCG sales; apparel is covered in Retail & Consumer Brands")},
+ // ---- More listed players
+ renuka: {name:"Shree Renuka Sugars", listed:true, role:"Wilmar-controlled sugar refiner and miller: refines imported raw sugar at port refineries and makes ethanol from cane and grain", dataStatus:"demo", sourceDate:D, strengths:["Largest port-based sugar refining capacity in India", "Wilmar's backing and global sourcing"], risks:["Has made losses for years and carries high debt", "Sugar exports and ethanol prices are set by the government"], f:co("RENUKA")},
+ dalmiaSugar: {name:"Dalmia Bharat Sugar", listed:true, role:"Sugar miller in Uttar Pradesh and Maharashtra with distilleries and cogeneration plants", dataStatus:"demo", sourceDate:D, strengths:["Integrated sugar, ethanol and power", "Lower debt than most sugar peers"], risks:["Cane prices and sugar export limits are set by the government", "Ethanol prices are fixed by the oil marketing companies"], f:co("DALMIASUG")},
+ praj: {name:"Praj Industries", listed:true, role:"Engineering firm that designs and builds most of India's grain and cane ethanol distilleries, plus biogas and bio-chemical plants", dataStatus:"demo", sourceDate:D, strengths:["Market leader in ethanol plant technology", "Expanding into sustainable aviation fuel and compressed biogas"], risks:["New distillery orders slowed as ethanol capacity ran ahead of blending demand", "Lumpy project execution"], f:co("PRAJIND")},
+ orkla: {name:"Orkla India", listed:true, role:"Packaged foods maker owning MTR (ready-to-eat, breakfast mixes) and Eastern (spices, masalas); controlled by Norway's Orkla, listed Nov 2025", dataStatus:"demo", sourceDate:D, strengths:["Leading spice brand in Kerala and a strong MTR franchise in Karnataka", "Debt-free with good cash generation"], risks:["Sales concentrated in South India", "Spice and grain raw-material prices"], f:co("ORKLA")},
+ cello: {name:"Cello World", listed:true, role:"Sells houseware (bottles, lunch boxes, steel and glassware), writing instruments (Cello, Unomax) and moulded furniture", dataStatus:"demo", sourceDate:D, strengths:["Strong houseware brand with wide distribution", "Own glassware plant reduces reliance on imports"], risks:["Competition from Milton and unbranded makers", "Slower growth in writing instruments"], f:co("CELLO")},
+ eveready: {name:"Eveready Industries", listed:true, role:"India's largest dry-cell battery and torch maker, also selling LED lighting; now makes alkaline batteries in India", dataStatus:"demo", sourceDate:D, strengths:["Dominant battery brand in general trade", "New Jammu alkaline battery plant cuts reliance on imports"], risks:["Competition from Duracell and Nippo", "Zinc and other metal costs"], f:co("EVEREADY", "FY26 profit includes a one-off gain on the sale of its Noida factory land, so its growth and margin are not meaningful")},
  },
  build: function(ctx: Parameters<typeof buildFmcg>[0]){ return buildFmcg(ctx, this); },
 };

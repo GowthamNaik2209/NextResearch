@@ -175,7 +175,7 @@ const chemicals = {
   keyRisks:["Global overcapacity from China's new crackers", "Feedstock cost spikes", "Margin collapse when supply returns", "Plastics regulations"],
   investorMetrics:["Polymer and PVC spreads over naphtha and ethylene", "Capacity utilisation", "Import share of Indian demand", "New capacity timelines"],
   relatedComponents:["feedstock","chlor_alkali","intermediates","consumer_specialty"],
-  suppliers:[is("reliance","medium"), op("haldia"), op("chemplast"), op("supremePetro"), op("igPetro"), op("thirumalai"), is("gail","medium"), op("ioc","medium")]},
+  suppliers:[is("reliance","medium"), op("haldia"), op("chemplast"), op("supremePetro"), op("igPetro"), op("thirumalai"), is("gail","medium"), op("ioc","medium"), {key:"eil", exposureType:"enabler", exposureStrength:"low"}]},
 
  {id:"explosives", color:"#D96C2B", label:"Industrial explosives & nitrates", layer:2, pos:A.explosives.pos, side:A.explosives.side, desc:"Ammonium nitrate and industrial explosives for mining and infrastructure (Deepak Fertilisers, Solar Industries).",
   domainId:"commodity", displayOrder:11, dataStatus:"demo",
@@ -199,7 +199,7 @@ const chemicals = {
   keyRisks:["Hormuz closure lasting into 2027", "Government price controls on fuels", "LNG price spikes", "Delays in new refinery projects"],
   investorMetrics:["Refining and petrochemical margins", "LNG volumes regasified", "Gas transmission volumes", "Under-recoveries on fuels"],
   relatedComponents:["petchem","fertilisers","intermediates","terminals"],
-  suppliers:[is("reliance","medium"), is("ioc","medium"), is("bpcl","medium"), is("hpcl","medium"), is("ongc","medium"), is("gail","medium"), is("petronet","medium")]},
+  suppliers:[is("reliance","medium"), is("ioc","medium"), is("bpcl","medium"), is("hpcl","medium"), is("ongc","medium"), is("gail","medium"), is("petronet","medium"), {key:"mrpl", exposureType:"indirect_supplier", exposureStrength:"medium"}, {key:"chennaiPetro", exposureType:"indirect_supplier", exposureStrength:"medium"}, {key:"vedantaOilGas", exposureType:"indirect_supplier", exposureStrength:"medium"}, {key:"oilIndia", exposureType:"indirect_supplier", exposureStrength:"low"}]},
 
  {id:"terminals", color:"#3D5A80", label:"Chemical terminals & logistics", layer:3, pos:A.terminals.pos, side:A.terminals.side, desc:"Port tank terminals and logistics that store and move liquid chemicals and gases.",
   domainId:"feedstock", displayOrder:13, dataStatus:"demo",
@@ -211,7 +211,7 @@ const chemicals = {
   keyRisks:["Lower LPG volumes while the Gulf is closed", "Customer concentration", "Accidents at tank farms", "Freight rates falling back"],
   investorMetrics:["Terminal capacity and utilisation", "Throughput volumes", "Contract tenure", "Freight rates for product tankers and gas carriers"],
   relatedComponents:["feedstock","petchem","intermediates"],
-  suppliers:[op("aegisLog"), op("aegisVopak"), en("adaniports","low"), en("geShip","low")]},
+  suppliers:[op("aegisLog"), op("aegisVopak"), en("adaniports","low"), en("geShip","low"), {key:"sci", exposureType:"enabler", exposureStrength:"low"}, {key:"jswInfra", exposureType:"enabler", exposureStrength:"low"}]},
  ],
  suppliers: {
  // --- Crop protection ---
@@ -320,6 +320,14 @@ const chemicals = {
  aegisVopak: {name:"Aegis Vopak Terminals", listed:true, role:"Joint venture of Aegis and Royal Vopak running LPG and liquid tank terminals; listed in Jun 2025", dataStatus:"demo", sourceDate:D, strengths:["Largest third-party liquid and LPG tank capacity in India", "Vopak's operating know-how"], risks:["Depends on import volumes", "New capacity still filling"], f:co("AEGISVOPAK")},
  adaniports: {name:"Adani Ports and SEZ", listed:true, role:"India's largest private port operator, with liquid and chemical berths at Mundra, Dahej and Hazira", dataStatus:"demo", sourceDate:D, strengths:["Ports next to Gujarat chemical clusters"], risks:["Chemicals are a small part of its cargo"], f:co("ADANIPORTS","Liquid chemicals are a small part of cargo")},
  geShip: {name:"Great Eastern Shipping", listed:true, role:"India's largest private shipping company, owning product tankers and LPG carriers", dataStatus:"demo", sourceDate:D, strengths:["Earns more when tankers reroute and freight rises"], risks:["Freight rates are cyclical"], f:co("GESHIP")},
+ // ---- More listed players
+ mrpl: {name:"Mangalore Refinery and Petrochemicals", listed:true, role:"ONGC-group refinery at Mangalore with an aromatics complex (the merged OMPL) making naphtha, paraxylene and benzene for chemical makers", dataStatus:"demo", sourceDate:D, strengths:["Coastal refinery with its own aromatics unit", "ONGC and HPCL parentage"], risks:["Refining margins swing with crude", "Relies on Gulf crude supply"], f:co("MRPL")},
+ chennaiPetro: {name:"Chennai Petroleum", listed:true, role:"IOC-group refinery at Manali, Chennai, supplying naphtha, solvents and propylene to chemical makers", dataStatus:"demo", sourceDate:D, strengths:["IOC parentage and offtake", "Building a new refinery at Nagapattinam"], risks:["Refining margins swing with crude", "Large spending on the Nagapattinam refinery"], f:co("CHENNPETRO")},
+ vedantaOilGas: {name:"Vedanta Oil and Gas", listed:true, role:"Cairn's oil and gas business, demerged from Vedanta in 2026, producing crude and gas from the Barmer fields in Rajasthan", dataStatus:"demo", sourceDate:D, strengths:["India's largest private crude producer", "Rajasthan gas feeds industries and city gas"], risks:["Barmer fields are ageing", "Contract renewals and cost disputes with the government"], f:co("VOGL")},
+ oilIndia: {name:"Oil India", listed:true, role:"Upstream oil and gas PSU producing in Assam and Rajasthan; owns the Numaligarh refinery, which is adding a polypropylene plant", dataStatus:"demo", sourceDate:D, strengths:["Gas from its Assam fields feeds North-East fertiliser and petrochemical plants", "Numaligarh expansion adds polymer output"], risks:["Earnings move with crude prices and government gas pricing", "Ageing fields in Assam"], f:co("OIL")},
+ sci: {name:"Shipping Corporation of India", listed:true, role:"PSU shipping line whose crude and product tankers and gas carriers move refiners' and gas importers' cargo", dataStatus:"demo", sourceDate:D, strengths:["Largest Indian-flagged tanker fleet", "Government push to grow the Indian-flagged fleet"], risks:["Freight-rate cycles", "Ageing ships need replacing"], f:co("SCI")},
+ jswInfra: {name:"JSW Infrastructure", listed:true, role:"Port operator whose terminals include liquid and chemical berths and tank farms, in India and at Fujairah", dataStatus:"demo", sourceDate:D, strengths:["Fast-growing port portfolio", "Adding liquid-storage capacity"], risks:["JSW group cargo is a large share of volumes", "Execution of a large expansion plan"], f:co("JSWINFRA")},
+ eil: {name:"Engineers India", listed:true, role:"PSU engineering consultant that designs and manages refinery and petrochemical projects", dataStatus:"demo", sourceDate:D, strengths:["Consultant on most Indian refinery and petrochemical projects", "Debt-free with large cash reserves"], risks:["Lumpy orders", "Thin margins on turnkey jobs"], f:co("ENGINERSIN")},
  },
  build: function(ctx: Parameters<typeof buildChemicals>[0]){ return buildChemicals(ctx, this); },
 };

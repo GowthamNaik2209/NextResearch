@@ -174,7 +174,7 @@ const banks = {
   keyRisks:["Funding-cost increases after rate hikes", "Legacy real-estate and wholesale exposures", "Holding-company discounts widening", "Execution risk in fast retail expansion"],
   investorMetrics:["Retail share of AUM", "Cost of borrowing and credit rating", "Gross / net stage-3", "Credit cost", "Holding-company discount to look-through value"],
   relatedComponents:["consumer_credit","vehicle_finance","prime_housing","large_banks"],
-  suppliers:[op("tataCapital"), op("ltFinance"), op("abCapital"), op("piramalFinance"), op("sammaan","medium"), op("jioFin","medium"), en("authum","low"), op("bajajfinsv"), ow("bajajHoldings","medium"), ow("cholaHoldings")]},
+  suppliers:[op("tataCapital"), op("ltFinance"), op("abCapital"), op("piramalFinance"), op("sammaan","medium"), op("jioFin","medium"), en("authum","low"), op("bajajfinsv"), ow("bajajHoldings","medium"), ow("cholaHoldings"), {key:"tataInvest", exposureType:"owner", exposureStrength:"low"}]},
 
  {id:"prime_housing", color:"#2E86AB", label:"Prime housing finance", layer:2, pos:A.prime_housing.pos, side:A.prime_housing.side, desc:"Large home lenders to salaried buyers; spreads are thin because they compete directly with banks.",
   domainId:"home_finance", displayOrder:12, dataStatus:"demo",
@@ -358,6 +358,8 @@ const banks = {
  intellect: {name:"Intellect Design Arena", listed:true, role:"Banking software maker (core banking, transaction banking, insurance) selling to Indian and global banks", dataStatus:"demo", sourceDate:D, strengths:["Modern, modular banking products"], risks:["Long sales cycles", "Global clients weigh more than Indian ones"], f:co("INTELLECT")},
  tcs: {name:"Tata Consultancy Services", listed:true, role:"IT services leader whose BaNCS software runs core banking and payments at several banks", dataStatus:"demo", sourceDate:D, strengths:["BaNCS and large bank IT contracts"], risks:["Banking software is a small part of a large IT business"], f:co("TCS","Banking software is a small part of revenue")},
  infy: {name:"Infosys", listed:true, role:"IT services leader whose Finacle core-banking software runs many Indian banks", dataStatus:"demo", sourceDate:D, strengths:["Finacle's installed base in Indian banks"], risks:["Finacle is a small part of a large IT business"], f:co("INFY","Finacle is a small part of revenue")},
+ // ---- More listed players
+ tataInvest: {name:"Tata Investment Corporation", listed:true, role:"RBI-registered investment company that holds stakes in Tata group and other listed companies", dataStatus:"demo", sourceDate:D, strengths:["Tata group backing", "No borrowing"], risks:["Earnings depend on dividends and stake sales", "Trades at a holding-company discount"], f:co("TATAINVEST")},
  },
  build: function(ctx: Parameters<typeof buildBanks>[0]){ return buildBanks(ctx, this); },
 };
