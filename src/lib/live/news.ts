@@ -154,7 +154,12 @@ const GENERIC = new Set(
     // vehicle sales", "tractor sales", "new wheels", "organic farming", "logistics costs", "shipping rates".
     "analytics learning coworking spaces commercial vehicle control automotive automobile automobiles tractor " +
     "tractors wheels strips lubricants lubricant science organic petrochemical petrochemicals petrochem nitrite " +
-    "agritech logistics terminals terminal shipping eastern surfactants surfactant amines amine rasayan").split(" ")
+    "agritech logistics terminals terminal shipping eastern surfactants surfactant amines amine rasayan " +
+    // FMCG and retail & consumer brands (Wave 3): "fashion retail", "lifestyle brands", "consumer sentiment",
+    // "jewellery demand", "spirits and breweries", "living costs", "writing skills", "shoppers", "natural resources".
+    "fashion fashions retail lifestyle brands consumer jewellery jewellers jewelers spirits breweries distilleries " +
+    "distillers blenders beverages cookers writing agro restaurant restaurants living wellness vineyards activewear " +
+    "footwears textiles hygiene foodworks foodworld resources specialities shoppers product").split(" ")
 );
 // "&" and "and" are dropped so "Transformers and Rectifiers" matches "Transformers & Rectifiers".
 const normalize = (s: string) =>
@@ -183,7 +188,11 @@ const GROUP = new Set(
     // "Chambal"), "Rashtriya Swayamsevak Sangh", "Travancore Devaswom", "Samsung Galaxy", "Balaji Telefilms",
     // "Mission Sudarshan Chakra", "chintan shivir", "Landmark Group", and words ("happiest", "popular", "latent").
     "niit quess lumax jubilant deepak sanmar sumitomo kubota suzuki anupam balkrishna kelkar kaveri chambal " +
-    "rashtriya travancore galaxy balaji sudarshan chintan thirumalai landmark happiest popular latent").split(" ")
+    "rashtriya travancore galaxy balaji sudarshan chintan thirumalai landmark happiest popular latent " +
+    // Wave 3 (Nov 2026): Welspun (Living, Corp, Enterprises), Arvind (Ltd, Fashions, SmartSpaces), Raymond (Lifestyle,
+    // Ltd), United (Spirits, Breweries, Nations), Vishal (a first name), Kalyan (the city), Sheela, Khaitan, Heritage
+    // ("heritage site"), Avanti, Balrampur (the district).
+    "welspun arvind raymond united vishal kalyan sheela khaitan heritage avanti balrampur godfrey phillips").split(" ")
 );
 // Short names headlines use, including a group name that alone conventionally means one company
 // here ("Mahindra" = M&M).
@@ -219,7 +228,7 @@ const ALIASES: Record<string, string[]> = {
   ETERNAL: ["zomato", "blinkit"],
   EICHERMOT: ["eicher", "royal enfield", "vecv", "volvo eicher"],
   TITAN: ["titan"],
-  TRENT: ["zudio"],
+  TRENT: ["zudio", "westside stores"],
   ADANIPORTS: ["apsez"],
   MAXHEALTH: ["max healthcare"],
   // Solar and energy listings (Nov 2026).
@@ -418,6 +427,45 @@ const ALIASES: Record<string, string[]> = {
   PCBL: ["phillips carbon"],
   GUJALKALI: ["gacl"],
   GOCLCORP: ["gocl", "idl explosives", "gulf oil corporation"],
+  // FMCG (Wave 3). "Fortune", "Parachute", "Marlboro", "Mamaearth" are brands; bare group names stay unaliased.
+  AWL: ["adani wilmar", "fortune oil", "fortune rice"],
+  PATANJALI: ["ruchi soya", "patanjali foods"],
+  LTFOODS: ["daawat"],
+  KRBL: ["india gate"],
+  VENKEYS: ["venkys"],
+  KWIL: ["kwality walls"],
+  BECTORFOOD: ["bectors"],
+  TATACONSUM: ["tata tea", "tata salt", "tata sampann", "tetley"],
+  NESTLEIND: ["maggi"],
+  GODREJCP: ["gcpl"],
+  MARICO: ["saffola", "parachute oil", "parachute coconut"],
+  HONASA: ["mamaearth", "the derma co", "bblunt"],
+  PGHH: ["p g hygiene", "pg hygiene"],
+  BAJAJCON: ["bajaj almond drops"],
+  PARAGMILK: ["gowardhan"],
+  EPL: ["essel propack"],
+  MOLDTKPAC: ["moldtek", "mold tek"],
+  // Retail and consumer brands (Wave 3). KPR and P N Gadgil open with letters ("k p", "p n") that are initials
+  // elsewhere, so they go by their written-out forms. Never bare "Metro", "Campus", "Hawkins" or "Westside".
+  LGEINDIA: ["lg india"],
+  KPRMILL: ["kpr mill", "kpr"],
+  PAGEIND: ["jockey india"],
+  WELSPUNLIV: ["welspun india"],
+  SFL: ["sleepwell", "kurlon"],
+  PNGJL: ["p n gadgil", "pn gadgil", "png jewellers"],
+  KALYANKJIL: ["kalyan jewelers"],
+  ABLBL: ["louis philippe", "van heusen", "allen solly", "peter england"],
+  ABFRL: ["pantaloons", "tcns"],
+  JUBLFOOD: ["domino s india", "dominos india", "popeyes india"],
+  DEVYANI: ["kfc india", "pizza hut india"],
+  WESTLIFE: ["hardcastle restaurants", "mcdonald s india west south"],
+  RBA: ["burger king india"],
+  UNITDSPR: ["diageo india", "mcdowell s"],
+  UBL: ["kingfisher beer", "kingfisher strong", "kingfisher ultra"],
+  RADICO: ["magic moments"],
+  ABDL: ["officer s choice", "allied blenders"],
+  TI: ["imperial blue", "mansion house brandy", "mansion house whisky"],
+  PVRINOX: ["pvr", "inox leisure"],
 };
 // A broker's research desk or a rating agency quoted on someone else ("Motilal Oswal sees 25% upside
 // in Dixon", "ICRA expects steel demand to grow", "... GDP seen at 6.5%: CRISIL"): the name opens the
@@ -563,6 +611,29 @@ const NOT_ABOUT: Record<string, RegExp> = {
   // Rail Coach Factory, Kapurthala (and Rae Bareli's Modern Coach Factory).
   RCF: /\brail coach factory\b|\bkapurthala\b|\brae ?bareli\b|\bcoach(?:es)?\b/i,
   // American football.
+  // FMCG and retail & consumer brands (Wave 3).
+  // The English Premier League.
+  EPL: /\b(?:premier league|arsenal|chelsea|liverpool|tottenham|man(?:chester)? (?:city|united|utd)|gameweek|fpl|striker|midfielder|fixtures?|relegation)\b/i,
+  // Gillette Stadium (New England Patriots).
+  GILLETTE: /\bgillette stadium\b|\bpatriots\b/i,
+  // Malayala Manorama, Manorama Online and the media group.
+  MANORAMA: /\bmalayala manorama\b|\bmanorama (?:online|news|tv|yearbook|group|max|books|publications)\b/i,
+  // The Finnish parent, LG in Korea and the US appliance maker, Procter & Gamble in Cincinnati, Restaurant Brands
+  // International (Burger King, Tim Hortons, Popeyes) abroad: not the Indian listings.
+  HUHTAMAKI: abroad("huhtamaki", "india|indian|crore|rs|nse|bse|q[1-4]|fy\\d*"),
+  LGEINDIA: abroad("lg electronics|lg energy|lg chem|lg display|lg innotek|lg uplus|lg group|lg corp", "india|indian|crore|rs|nse|bse|noida|pune|lgeindia"),
+  WHIRLPOOL: abroad("whirlpool", "india|indian|crore|rs|nse|bse|advent|stake sale|stake in"),
+  PGHH: abroad("procter|p ?& ?g|\\bpg\\b", "india|indian|hygiene|health care|crore|rs|nse|bse|pghh|vicks|whisper|ariel"),
+  RBA: abroad("restaurant brands international|\\brbi\\b|tim hortons|popeyes", "india|indian|asia|crore|rs|nse|bse"),
+  // Aditya Birla Group, Capital and the rest: only the two retail companies' own names count (the demerged
+  // lifestyle brands, and the old fashion-and-retail company with Pantaloons).
+  ABLBL: only("aditya birla lifestyle|\\bablbl\\b|louis philippe|van heusen|allen solly|peter england"),
+  ABFRL: only("aditya birla fashion|\\babfrl\\b|pantaloons|\\btcns\\b"),
+  // "Arvind Kejriwal", "Arvind Subramanian": the textile maker needs its own business around the name.
+  ARVIND: /^(?!.*\barvind (?:ltd|limited|mills|denim|textiles?|q[1-4]|shares?|stock|results?|profit|net|fy|board|dividend|order|plant|exports?)\b|.*\bdenim maker arvind\b|.*\blalbhai\b|.*\bnse:\s*arvind\b)/i,
+  // K.P.R. Mill and P N Gadgil: "K P Sharma Oli", "P N Rao" open the same way.
+  KPRMILL: only("\\bk\\.? ?p\\.? ?r\\b|\\bkpr\\b"),
+  PNGJL: only("gadgil|\\bpngjl\\b|png jewellers"),
   NFL: /\b(?:playoffs?|super bowl|touchdowns?|quarterbacks?|chiefs|bills|patriots|eagles|cowboys|49ers|packers|steelers|ravens|nfl (?:season|games?|teams?|week|stars?|players?|draft))\b/i,
 };
 // Companies that go by an acronym that is also a short word ("Forest Rec parkrun", "Highlights: Rec"):
@@ -581,7 +652,12 @@ const ACRONYM_NAMES: Record<string, { caps: RegExp; full: RegExp }> = {
 const WORD_TICKERS = new Set(["EMBASSY", "ACI", "OIL", "ROUTE", "MEIL", "ARE&M", "ADVAIT", "CUB", "PSB", "TMB", "SATIN", "FUSION", "CHALET", "SOUTHBANK", "BLS", "POONAWALLA",
   // Wave 2 (Nov 2026): ADSL broadband, the Forensic Science Lab (FSL), Delhi's RML hospital, "wheels", the Landmark
   // Group, "clean", the zodiac sign, "tatva" (Hindi: element), GNA, and companies named by an everyday word.
-  "ADSL", "FSL", "RML", "WHEELS", "LANDMARK", "CLEAN", "ARIES", "TATVA", "GNA", "ATUL", "PERSISTENT", "GABRIEL", "ESCORTS"]);
+  "ADSL", "FSL", "RML", "WHEELS", "LANDMARK", "CLEAN", "ARIES", "TATVA", "GNA", "ATUL", "PERSISTENT", "GABRIEL", "ESCORTS",
+  // Wave 3 (Nov 2026): Cupid, flair, "AGI" (artificial general intelligence), EPL (English Premier League), CCL (Carnival,
+  // CCL Industries), DOMS, TI (Texas Instruments), Symphony, Ethos, Redtape, Trent, Campus, Trident, Sapphire (the card),
+  // Westlife (the band), Manorama, RBA (Reserve Bank of Australia), SFL (SFL Corp), UBL (United Bank Ltd), Arvind (a name).
+  "CUPID", "FLAIR", "AGI", "EPL", "CCL", "DOMS", "TI", "SYMPHONY", "ETHOSLTD", "REDTAPE", "TRENT", "CAMPUS", "TRIDENT",
+  "SAPPHIRE", "WESTLIFE", "MANORAMA", "RBA", "SFL", "UBL", "ARVIND", "HAWKINCOOK"]);
 // Separately listed companies, outside our coverage, whose names contain one of ours. A match
 // that sits inside one of these (or inside another covered company's name) doesn't count.
 const OTHER_COMPANIES = [
@@ -632,7 +708,17 @@ const OTHER_COMPANIES = [
   "SKF India Industrial", "Hero Motors", "Hero FinCorp", "Hero Electric", "Hero Future Energies", "Bajaj Auto Finance",
   "Ola Krutrim", "ANI Technologies", "Sonata Finance", "Jubilant FoodWorks", "Jubilant Pharmova",
   "Godrej Consumer Products", "Aarti Surfactants", "Great Eastern Life", "Great Eastern Holdings",
-  "DCM Shriram Industries", "GHCL Textiles",
+  "DCM Shriram Industries", "DCM Shriram Fine Chemicals", "GHCL Textiles",
+  // Wave 3 (Nov 2026): same-name siblings that are unlisted or not covered. (Bajaj Consumer, Bajaj Electricals, Bajaj
+  // Hindusthan, Zydus Wellness, Jubilant FoodWorks and Godrej Consumer above are covered now: their own names are fine.)
+  "Patanjali Ayurved", "Patanjali Ayurveda", "Patanjali Wellness", "Emami Paper", "Emami Realty", "Emami Infrastructure",
+  "Emami Agrotech", "Emami Frank Ross", "Dhampur Bio Organics", "Dhampur Specialty", "Gokul Refoils", "Triveni Turbine",
+  "Welspun Corp", "Welspun Enterprises", "Welspun One", "Welspun Specialty", "Welspun Global Brands", "Welspun Steel",
+  "Arvind SmartSpaces", "Arvind Envisol", "Arvind Youth Brands", "Arvind Mills", "Raymond Ltd", "Raymond Realty",
+  "Raymond Consumer Care", "Trident Hotel", "Trident Nariman", "Trident Group Hotels", "Trident Techlabs", "Vardhman Special Steels",
+  "Vardhman Acrylics", "Vardhman Holdings", "KPR Sugar", "INOX Wind", "INOX Green", "INOX Clean", "INOX Solar", "Jubilant Ingrevia",
+  "Philip Morris", "Colgate-Palmolive Co", "Colgate-Palmolive Company", "Colgate-Palmolive Pakistan",
+  "Nestle Pakistan", "Unilever plc", "Unilever PLC", "Aditya Birla Capital", "Aditya Birla Group",
 ].map(normalize);
 
 const nameWords = (name: string) => normalize(name.replace(/\(.*?\)/g, "")).split(" ").filter(Boolean);
@@ -743,6 +829,23 @@ const WORD_NAMES: Record<string, string> = {
   ESCORTS: "escorts",
   STALLION: "stallion",
   AETHER: "aether",
+  // Wave 3: Cupid's arrow, "a flair for", the English Premier League, doms, an orchestra's symphony, ethos, red tape,
+  // Campus placements, the trident, a sapphire, the band Westlife, Malayala Manorama, Stranger Things' Hawkins,
+  // "Prestige" (also Prestige Estates), "Arvind" (a first name).
+  CUPID: "cupid",
+  FLAIR: "flair",
+  EPL: "epl",
+  DOMS: "doms",
+  SYMPHONY: "symphony",
+  ETHOSLTD: "ethos",
+  REDTAPE: "redtape",
+  CAMPUS: "campus",
+  TRIDENT: "trident",
+  SAPPHIRE: "sapphire",
+  WESTLIFE: "westlife",
+  MANORAMA: "manorama",
+  HAWKINCOOK: "hawkins",
+  TTKPRESTIG: "prestige",
 };
 // Words that put a headline in a company's business; and contexts that take it out (sport, courts).
 const BUSINESS_CONTEXT =
