@@ -120,6 +120,44 @@ test("weekly checks read the rules only on each week's last close", () => {
   assert.equal(months.t[ends[0]], "2025-01-31");
 });
 
+test("a monthly cross is read from the month before's last close, not the day before", () => {
+  // Fri 31 Jan 2025 is index 19, Fri 28 Feb index 39. The price steps over 105 mid-February and stays.
+  const c = [...new Array(30).fill(100), ...new Array(15).fill(110)];
+  const b = bars(c);
+  assert.equal(b.t[19], "2025-01-31");
+  assert.equal(b.t[39], "2025-02-28");
+  const s = strat({ check: "m", entry: { all: true, conds: [{ m: "close", op: "crossAbove", v: 105 }] } });
+  const r = runSignals(metrics(b), s, 0)!;
+  assert.equal(r.trades.length, 1);
+  assert.equal(r.trades[0].entrySignal?.t, "2025-02-28");
+  assert.equal(r.trades[0].entryT, b.t[40]);
+  // Daily checks still read the cross on the day it happens.
+  const d = runSignals(metrics(b), { ...s, check: "d" }, 0)!;
+  assert.equal(d.trades[0].entrySignal?.t, b.t[30]);
+});
+
+test("a cross that reverses before the month ends is not a monthly cross", () => {
+  const c = [...new Array(30).fill(100), ...new Array(5).fill(110), ...new Array(10).fill(100)];
+  const s = strat({ check: "m", entry: { all: true, conds: [{ m: "close", op: "crossAbove", v: 105 }] } });
+  assert.equal(runSignals(metrics(bars(c)), s, 0)!.trades.length, 0);
+});
+
+test("weekly crosses below are read from the week before's last close, for exits too", () => {
+  // Weeks of 6, 13, 20 and 27 Jan: the price rises mid-week 2 and falls back mid-week 3, so the
+  // crosses are read on Fri 17 Jan (from Fri 10 Jan) and Fri 24 Jan (from Fri 17 Jan).
+  const c = [...new Array(7).fill(100), ...new Array(6).fill(110), ...new Array(7).fill(100)];
+  const s = strat({
+    check: "w",
+    entry: { all: true, conds: [{ m: "close", op: "crossAbove", v: 105 }] },
+    exit: { all: false, conds: [{ m: "close", op: "crossBelow", v: 105 }] },
+  });
+  const r = runSignals(metrics(bars(c)), s, 0)!;
+  assert.equal(r.trades.length, 1);
+  assert.equal(r.trades[0].entrySignal?.t, "2025-01-17");
+  assert.equal(r.trades[0].exitSignal?.t, "2025-01-24");
+  assert.equal(r.trades[0].reason, "rule");
+});
+
 test("an exit with no rules and no controls holds to the end, as an open trade", () => {
   const c = [100, 110, 120, 130];
   const r = runSignals(metrics(bars(c)), strat({ entry: { all: true, conds: [{ m: "close", op: "above", v: 105 }] } }), 0)!;

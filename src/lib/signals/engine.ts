@@ -107,7 +107,12 @@ export function isCheckDay(t: string[], i: number, check: Strategy["check"]): bo
   return week(t[i]) !== week(t[i + 1]);
 }
 
-function condMet(c: Condition, i: number, mx: Metrics): boolean {
+/**
+ * `prev`: the check close before `i` (the day before for daily checks), or -1 when there is none.
+ * A cross is read between the two, so a monthly "crosses above" means below at last month's close
+ * and above at this one, not a cross that must land on the month's last day.
+ */
+function condMet(c: Condition, i: number, prev: number, mx: Metrics): boolean {
   const a = mx.get(c.m);
   const b: Series | number | undefined = c.r ? mx.get(c.r) : c.v;
   const at = (s: Series | number, j: number) => (typeof s === "number" ? s : s[j]);
@@ -120,9 +125,9 @@ function condMet(c: Condition, i: number, mx: Metrics): boolean {
       return c.op === "rising" ? now > then : now < then;
     }
     case "crossAbove":
-      return b != null && crossesAbove(a, b, i);
+      return b != null && crossesAbove(a, b, i, prev);
     case "crossBelow":
-      return b != null && crossesBelow(a, b, i);
+      return b != null && crossesBelow(a, b, i, prev);
     case "within": {
       if (b == null) return false;
       const x = a[i], y = at(b, i);
@@ -137,7 +142,8 @@ function condMet(c: Condition, i: number, mx: Metrics): boolean {
   }
 }
 
-const rulesMet = (r: RuleSet, i: number, mx: Metrics) => (r.conds.length ? (r.all ? r.conds.every((c) => condMet(c, i, mx)) : r.conds.some((c) => condMet(c, i, mx))) : false);
+const rulesMet = (r: RuleSet, i: number, prev: number, mx: Metrics) =>
+  r.conds.length ? (r.all ? r.conds.every((c) => condMet(c, i, prev, mx)) : r.conds.some((c) => condMet(c, i, prev, mx))) : false;
 
 export function figures(values: number[], days: string[], rf: number): Figures {
   if (values.length < 2) return { cagr: null, maxDd: null, sharpe: null, sortino: null };
@@ -212,6 +218,9 @@ export function runSignals(mx: Metrics, s: Strategy, rf: number): SignalResult |
   let daysIn = 0;
   const c0 = c[start] as number;
   const n0 = nifty[start];
+  // The check close before the range's first day, so a cross can be read on the first check in it.
+  let prevCheck = start - 1;
+  while (prevCheck >= 0 && !isCheckDay(t, prevCheck, s.check)) prevCheck--;
 
   for (let i = start; i < n; i++) {
     const px = c[i] as number;
@@ -250,9 +259,10 @@ export function runSignals(mx: Metrics, s: Strategy, rf: number): SignalResult |
       else if (atr && stops.atr && isNum(atr[i]) && px <= peak - stops.atr * (atr[i] as number)) reason = "atr";
       else if (stops.profit && px >= entryPx * (1 + stops.profit / 100)) reason = "profit";
       else if (stops.days && i - entryIdx >= stops.days) reason = "days";
-      else if (check && rulesMet(s.exit, i, mx)) reason = "rule";
+      else if (check && rulesMet(s.exit, i, prevCheck, mx)) reason = "rule";
       if (reason) pending = { kind: "exit", reason, at: i };
-    } else if (check && rulesMet(s.entry, i, mx)) pending = { kind: "entry", reason: "rule", at: i };
+    } else if (check && rulesMet(s.entry, i, prevCheck, mx)) pending = { kind: "entry", reason: "rule", at: i };
+    if (check) prevCheck = i;
   }
 
   const last = n - 1;
