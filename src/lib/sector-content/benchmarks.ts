@@ -22,6 +22,8 @@ export const BENCHMARKS = {
   niftyhealthcare: { id: "niftyhealthcare", name: "Nifty Healthcare", symbol: "HEALTHIETF.NS", via: "ICICI Prudential Nifty Healthcare ETF" },
   niftyinternet: { id: "niftyinternet", name: "Nifty India Internet", symbol: "INTERNET.NS", via: "Mirae Asset Nifty India Internet ETF" },
   niftyit: { id: "niftyit", name: "Nifty IT", symbol: "^CNXIT" },
+  niftyfmcg: { id: "niftyfmcg", name: "Nifty FMCG", symbol: "^CNXFMCG" },
+  niftyconsumption: { id: "niftyconsumption", name: "Nifty India Consumption", symbol: "^CNXCONSUM" },
   niftymetal: { id: "niftymetal", name: "Nifty Metal", symbol: "^CNXMETAL" },
   niftybank: { id: "niftybank", name: "Nifty Bank", symbol: "BANKBEES.NS", via: "Nippon India ETF Nifty Bank BeES" },
   niftypsubank: { id: "niftypsubank", name: "Nifty PSU Bank", symbol: "PSUBNKBEES.NS", via: "Nippon India ETF Nifty PSU Bank BeES" },
@@ -53,6 +55,8 @@ const SECTOR_INDEX: Partial<Record<string, BenchmarkId[]>> = {
   hotels: ["niftytourism"],
   itservices: ["niftyit"],
   autos: ["niftyauto"],
+  fmcg: ["niftyfmcg"],
+  consumerbrands: ["niftyconsumption"],
 };
 
 export function sectorBenchmarks(slug: string): Benchmark[] {
