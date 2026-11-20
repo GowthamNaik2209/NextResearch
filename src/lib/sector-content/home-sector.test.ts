@@ -78,7 +78,9 @@ test("primary industry: a direct industry link over a policy or index home, neve
   assert.equal(of("SBIN"), "banks"); // mapped directly in Banks & NBFCs; its real-estate home-loan link stays a side link
   // Ties go to the industry it has more of: Tata Power's four energy layers beat one transmission layer.
   assert.equal(of("BHARATFORG"), "aerospace");
-  assert.equal(of("LT"), "realestate");
+  // L&T is a medium link in railways, real estate and transmission EPC alike; the tie goes to the
+  // first, so its P/E sits beside railway contractors, not property developers.
+  assert.equal(of("LT"), "railways");
   assert.equal(of("20MICRONS"), "rareearth");
   for (const p of byTicker.values()) {
     const home = primaryAppearance(p);
@@ -90,12 +92,14 @@ test("primary industry: a direct industry link over a policy or index home, neve
 
 // A company that falls back to the Nifty 50 is compared within its bracket of the index.
 test("P/E peers: a Nifty 50 fallback is compared within its bracket", () => {
-  // (FMCG has no mapped industry yet; Wave 3 maps it and moves this example.)
-  const hul = pePeers("HINDUNILVR")!;
-  assert.equal(hul.name, "Fast Moving Consumer Goods (Nifty 50)");
-  assert.ok(hul.peers.some((s) => s.ticker === "NESTLEIND"));
-  assert.ok(!hul.peers.some((s) => s.ticker === "HDFCBANK"));
-  assert.equal(industryPe("HINDUNILVR")?.name, "Fast Moving Consumer Goods (Nifty 50)");
+  // ONGC's industry (oil and gas) isn't mapped as a deep dive, so it keeps its Nifty 50 bracket.
+  const ongc = pePeers("ONGC")!;
+  assert.equal(ongc.name, "Oil Gas & Consumable Fuels (Nifty 50)");
+  assert.ok(ongc.peers.some((s) => s.ticker === "COALINDIA"));
+  assert.ok(!ongc.peers.some((s) => s.ticker === "HDFCBANK"));
+  assert.equal(industryPe("ONGC")?.name, "Oil Gas & Consumable Fuels (Nifty 50)");
+  // Once its industry is mapped (FMCG, Wave 3), a former fallback is compared with that industry.
+  assert.equal(pePeers("HINDUNILVR")!.name, getSector("fmcg")!.name);
   // Once its industry is mapped, a former fallback is compared with that industry instead.
   assert.equal(pePeers("TCS")!.name, getSector("itservices")!.name);
   assert.ok(pePeers("TCS")!.peers.some((s) => s.ticker === "INFY"));
