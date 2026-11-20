@@ -40,7 +40,9 @@ export function industryPools(slug: string): IndustryPools | null {
 
   const companies: (PoolCompany & { strength: string; industries: number })[] = [];
   let asOf = "";
-  for (const s of basket.stocks) {
+  // Every company on the map: the basket's, then (basketCoreOnly) its side links, flagged below.
+  const sideOnly = new Set(basket.sideStocks.map((s) => s.ticker));
+  for (const s of [...basket.stocks, ...basket.sideStocks]) {
     const f = getFinancials(s.ticker);
     if (!f) continue;
     asOf ||= f.asOf ?? "";
@@ -101,7 +103,9 @@ export function industryPools(slug: string): IndustryPools | null {
     // The reason the viewer sees beside it in the add list.
     const why = isIndex
       ? null
-      : strength === "low"
+      : sideOnly.has(c.ticker)
+        ? "Supplies or serves the industry"
+        : strength === "low"
         ? "Small part of its business"
         : conglomerate.has(c.ticker)
           ? `Conglomerate across ${industries} industries`

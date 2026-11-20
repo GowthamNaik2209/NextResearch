@@ -246,7 +246,8 @@ test("search index: one company row opening its page, naming the sector", () => 
 
 test("industry basket and pools", () => {
   check("the industry basket", (p) => !!getIndustryBasket(p.sector.slug)?.stocks.some((s) => s.ticker === p.ticker), [coreOnly]);
-  check("the industry pools", (p) => !!industryPools(p.sector.slug)?.companies.some((c) => c.ticker === p.ticker), [RULES.noFigures, coreOnly]);
+  // Every company on the map is in the pools (a side link of a core-only industry as low exposure).
+  check("the industry pools", (p) => !!industryPools(p.sector.slug)?.companies.some((c) => c.ticker === p.ticker), [RULES.noFigures]);
 });
 
 test("rule-based baskets and stock screens: the universe they rank", () => {
