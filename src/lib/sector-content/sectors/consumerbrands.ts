@@ -1,0 +1,57 @@
+// consumerbrands: zones, suppliers, camera views and the 3D build hook for this sector. Scenarios and
+// the reading list live in ./consumerbrands.extras.ts. Type-checked by inference only (SectorDef in
+// ../core.ts is the shape it follows); npm run validate:content guards the zone/company graph.
+import { CONSUMERBRANDS_ANCHORS as A, CONSUMERBRANDS_VIEWS, buildConsumerbrands } from "../models/consumerbrands";
+
+const consumerbrands = {
+ id: "consumerbrands", icon: "CB", name: "Retail & Consumer Brands",
+ muted: true,
+ basketCoreOnly: true,
+ tagline: "Appliances, apparel, footwear, jewellery, store chains, restaurants, liquor and cinemas",
+ headerTitle: "RETAIL & CONSUMER BRANDS ANATOMY",
+ headerSub: "India's shopping and leisure chain as one high street - from appliances and home goods, through clothes, shoes and jewellery, to store chains, restaurants, liquor and cinemas",
+ whyNow: [] as string[],
+ thesisSummary: [] as string[],
+ featuredSignals: [] as string[],
+ dataStatus: "demo",
+ integratorZoneId: "retail_chains",
+ integratorHeading: "Store chains",
+ integratorBlurb: "Fashion, value and department store chains sit here, selling the brands from the layers around them. Footfall, store additions and sales per square foot are the clearest read on shopping demand.",
+ layerNames: ["Home & Appliances","Wear & Adorn","Stores & Eating Out","Drinks & Leisure"],
+ shellMaxOpacity: 1, exoBaseOpacity: 0.55,
+ defaultView: "overview",
+ views: CONSUMERBRANDS_VIEWS,
+ domains: [
+ {id:"home", title:"Home & appliances", shortTitle:"Home", description:"Air conditioners, refrigerators, fans and home furnishing sold to households.", color:"#2E86AB", relatedDomains:["wear","stores","leisure"]},
+ {id:"wear", title:"Wear & adorn", shortTitle:"Wear", description:"Apparel, yarn, footwear and jewellery brands and their makers.", color:"#B5179E", relatedDomains:["home","stores","leisure"]},
+ {id:"stores", title:"Stores & eating out", shortTitle:"Stores", description:"Fashion and value store chains and restaurant chains.", color:"#D96C2B", relatedDomains:["home","wear","leisure"]},
+ {id:"leisure", title:"Drinks & leisure", shortTitle:"Leisure", description:"Spirits, beer and cinemas that depend on discretionary spending.", color:"#3D5A80", relatedDomains:["home","wear","stores"]},
+ ],
+ zones: [
+ {id:"large_appliances", color:"#2E86AB", label:"ACs, refrigerators & washing machines", layer:0, pos:A.large_appliances.pos, side:A.large_appliances.side, desc:"Placeholder: ACs, refrigerators & washing machines.",
+  domainId:"home", displayOrder:1, dataStatus:"demo", suppliers:[]},
+ {id:"small_appliances", color:"#2E86AB", label:"Fans, lighting & kitchen appliances", layer:0, pos:A.small_appliances.pos, side:A.small_appliances.side, desc:"Placeholder: Fans, lighting & kitchen appliances.",
+  domainId:"home", displayOrder:2, dataStatus:"demo", suppliers:[]},
+ {id:"home_living", color:"#2E86AB", label:"Home textiles, mattresses & furniture", layer:0, pos:A.home_living.pos, side:A.home_living.side, desc:"Placeholder: Home textiles, mattresses & furniture.",
+  domainId:"home", displayOrder:3, dataStatus:"demo", suppliers:[]},
+ {id:"apparel_brands", color:"#B5179E", label:"Apparel & innerwear brands", layer:1, pos:A.apparel_brands.pos, side:A.apparel_brands.side, desc:"Placeholder: Apparel & innerwear brands.",
+  domainId:"wear", displayOrder:4, dataStatus:"demo", suppliers:[]},
+ {id:"textile_makers", color:"#B5179E", label:"Yarn, fabric & garment makers", layer:1, pos:A.textile_makers.pos, side:A.textile_makers.side, desc:"Placeholder: Yarn, fabric & garment makers.",
+  domainId:"wear", displayOrder:5, dataStatus:"demo", suppliers:[]},
+ {id:"footwear", color:"#B5179E", label:"Footwear", layer:1, pos:A.footwear.pos, side:A.footwear.side, desc:"Placeholder: Footwear.",
+  domainId:"wear", displayOrder:6, dataStatus:"demo", suppliers:[]},
+ {id:"jewellery", color:"#B5179E", label:"Jewellery & watches", layer:1, pos:A.jewellery.pos, side:A.jewellery.side, desc:"Placeholder: Jewellery & watches.",
+  domainId:"wear", displayOrder:7, dataStatus:"demo", suppliers:[]},
+ {id:"retail_chains", color:"#D96C2B", label:"Fashion, value & department stores", layer:2, pos:A.retail_chains.pos, side:A.retail_chains.side, desc:"Placeholder: Fashion, value & department stores.",
+  domainId:"stores", displayOrder:8, dataStatus:"demo", suppliers:[]},
+ {id:"qsr", color:"#D96C2B", label:"Restaurants & QSR chains", layer:2, pos:A.qsr.pos, side:A.qsr.side, desc:"Placeholder: Restaurants & QSR chains.",
+  domainId:"stores", displayOrder:9, dataStatus:"demo", suppliers:[]},
+ {id:"alcobev", color:"#3D5A80", label:"Spirits & beer", layer:3, pos:A.alcobev.pos, side:A.alcobev.side, desc:"Placeholder: Spirits & beer.",
+  domainId:"leisure", displayOrder:10, dataStatus:"demo", suppliers:[]},
+ {id:"cinemas", color:"#3D5A80", label:"Cinemas, malls & leisure", layer:3, pos:A.cinemas.pos, side:A.cinemas.side, desc:"Placeholder: Cinemas, malls & leisure.",
+  domainId:"leisure", displayOrder:11, dataStatus:"demo", suppliers:[]},
+ ],
+ suppliers: {},
+ build: function(ctx: Parameters<typeof buildConsumerbrands>[0]){ return buildConsumerbrands(ctx, this); },
+};
+export default consumerbrands;

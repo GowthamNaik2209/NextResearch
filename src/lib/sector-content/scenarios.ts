@@ -23,6 +23,8 @@ import { HOTELS_SCENARIOS } from "./sectors/hotels.extras";
 import { ITSERVICES_SCENARIOS } from "./sectors/itservices.extras";
 import { AUTOS_SCENARIOS } from "./sectors/autos.extras";
 import { CHEMICALS_SCENARIOS } from "./sectors/chemicals.extras";
+import { FMCG_SCENARIOS } from "./sectors/fmcg.extras";
+import { CONSUMERBRANDS_SCENARIOS } from "./sectors/consumerbrands.extras";
 import { NIFTY50_SCENARIOS, NIFTY50_SCENARIO_SECTIONS } from "./indices/nifty50.extras";
 
 export type Severity = 1 | 2 | 3; // 3 = directly hit / directly helped
@@ -630,6 +632,8 @@ export const SCENARIOS: Record<string, Scenario[]> = {
   itservices: ITSERVICES_SCENARIOS,
   autos: AUTOS_SCENARIOS,
   chemicals: CHEMICALS_SCENARIOS,
+  fmcg: FMCG_SCENARIOS,
+  consumerbrands: CONSUMERBRANDS_SCENARIOS,
   semicon2: SEMICON2_SCENARIOS,
   rareearth: RAREEARTH_SCENARIOS,
   defenceproc: DEFENCEPROC_SCENARIOS,

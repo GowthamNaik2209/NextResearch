@@ -30,6 +30,8 @@ import { hotels } from "./hotels";
 import { itservices } from "./itservices";
 import { autos } from "./autos";
 import { chemicals } from "./chemicals";
+import { fmcg } from "./fmcg";
+import { consumerbrands } from "./consumerbrands";
 import { pliacc } from "./pliacc";
 import { greenh2 } from "./greenh2";
 import type { SectorCategory } from "@/lib/sector-content/core";
@@ -59,6 +61,8 @@ const REPORTS: Record<string, SectorReport> = {
   itservices,
   autos,
   chemicals,
+  fmcg,
+  consumerbrands,
   semicon2,
   rareearth,
   defenceproc,

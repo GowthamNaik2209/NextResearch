@@ -31,6 +31,8 @@ export const SECTOR_LOADERS: Record<string, () => Promise<SectorModule>> = {
   itservices: () => import("./itservices"),
   autos: () => import("./autos"),
   chemicals: () => import("./chemicals"),
+  fmcg: () => import("./fmcg"),
+  consumerbrands: () => import("./consumerbrands"),
   semicon2: () => import("./semicon2"),
   rareearth: () => import("./rareearth"),
   defenceproc: () => import("./defenceproc"),

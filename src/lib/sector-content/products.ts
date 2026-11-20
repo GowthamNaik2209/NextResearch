@@ -35,6 +35,8 @@ import hotels from "./sectors/hotels";
 import itservices from "./sectors/itservices";
 import autos from "./sectors/autos";
 import chemicals from "./sectors/chemicals";
+import fmcg from "./sectors/fmcg";
+import consumerbrands from "./sectors/consumerbrands";
 import semicon2 from "./sectors/semicon2";
 import rareearth from "./sectors/rareearth";
 import defenceproc from "./sectors/defenceproc";
@@ -175,7 +177,7 @@ import { ASOF, SRC } from "./sectors/shared";
  // and works for any product that follows this contract. A new sector also needs
  // its loader line in ./sectors/load.ts (validate:content checks the two match).
  // ======================================================================
- var PRODUCTS = { nifty50, ev4w, semiconductors, datacenter, railways, naval, aerospace, telecom5g, solarmodules, energy, realestate, pharma, hospitals, capmarkets, transmission, consumerinternet, banks, insurance, hotels, itservices, autos, chemicals, semicon2, rareearth, defenceproc, ecms, pliacc, greenh2 };
+ var PRODUCTS = { nifty50, ev4w, semiconductors, datacenter, railways, naval, aerospace, telecom5g, solarmodules, energy, realestate, pharma, hospitals, capmarkets, transmission, consumerinternet, banks, insurance, hotels, itservices, autos, chemicals, fmcg, consumerbrands, semicon2, rareearth, defenceproc, ecms, pliacc, greenh2 };
 
 
 export { PRODUCTS, NEWS, ASOF, SRC, NEWS_ASOF };
