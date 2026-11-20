@@ -129,4 +129,8 @@ test("crosses compare yesterday with today", () => {
   assert.equal(I.crossesAbove(a, 1.5, 2), false);
   assert.equal(I.crossesBelow([3, 2, 1], [2, 2, 2], 2), true);
   assert.equal(I.crossesAbove(a, 1.5, 0), false);
+  // From an earlier bar: below on bar 0, above on bar 2, even though bar 1 was already above.
+  assert.equal(I.crossesAbove([1, 2, 3], 1.5, 2, 0), true);
+  assert.equal(I.crossesBelow([3, 1, 1], 2, 2, 0), true);
+  assert.equal(I.crossesAbove([1, 2, 3], 1.5, 2, -1), false);
 });

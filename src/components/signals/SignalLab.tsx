@@ -340,7 +340,8 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
             title="Rules"
             info={
               <>
-                A rule met on a close trades at the next close; exit controls are checked on every close. The picker shows what each indicator measures.{" "}
+                A rule met on a close trades at the next close; exit controls are checked on every close. On weekly or monthly checks, a cross is counted from the
+                previous week&apos;s or month&apos;s last close. The picker shows what each indicator measures.{" "}
                 <Link href="/signals/indicators" className="font-semibold text-accent underline">
                   Indicators guide
                 </Link>
