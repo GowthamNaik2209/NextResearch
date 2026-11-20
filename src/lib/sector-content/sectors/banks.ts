@@ -66,7 +66,7 @@ const banks = {
   keyRisks:["Freight slowdowns or diesel spikes squeeze truck owners' ability to pay", "A weak monsoon hits tractor and rural two-wheeler loans", "Electric-vehicle shift makes used-vehicle values harder to predict", "Rate hikes raise NBFC borrowing costs"],
   investorMetrics:["AUM growth by vehicle type (new / used CV, cars, tractors, 2W)", "Stage-2 and stage-3 assets", "Credit cost", "Cost of borrowing and spread", "Disbursement growth vs vehicle sales (SIAM)"],
   relatedComponents:["msme_lending","diversified_nbfc","large_banks"],
-  suppliers:[op("shriramfin"), op("cholaFin"), op("mahindraFinance"), op("sundaramFinance"), op("tataCapital","medium"), op("hdbFinancial","medium")]},
+  suppliers:[op("shriramfin"), op("cholaFin"), op("mahindraFinance"), op("sundaramFinance"), op("tataCapital","medium"), op("hdbFinancial","medium"), op("indusInd","medium"), op("ltFinance","medium")]},
 
  {id:"gold_loans", color:"#D96C2B", label:"Gold loans", layer:0, pos:A.gold_loans.pos, side:A.gold_loans.side, desc:"Short loans against household gold jewellery; growth tracks the gold price and RBI's loan-to-value rules.",
   domainId:"retail_credit", displayOrder:3, dataStatus:"demo",
@@ -78,7 +78,7 @@ const banks = {
   keyRisks:["A sharp fall in the gold price forces auctions and cuts loan sizes", "Competition from banks with cheaper funds", "Regulatory lapses on valuation or auctions (the IIFL embargo)", "Concentration in southern states"],
   investorMetrics:["Gold AUM growth and tonnage of gold held", "Loan-to-value at disbursal", "Yield and cost of funds", "Auction levels and stage-3", "Branch productivity (AUM per branch)"],
   relatedComponents:["microfinance","midsize_private","msme_lending"],
-  suppliers:[op("muthootFinance"), op("manappuram"), op("iiflFinance"), op("csbBank","medium")]},
+  suppliers:[op("muthootFinance"), op("manappuram"), op("iiflFinance"), op("csbBank","medium"), op("federalBank","low")]},
 
  {id:"microfinance", color:"#D96C2B", label:"Microfinance", layer:0, pos:A.microfinance.pos, side:A.microfinance.side, desc:"Collateral-free group loans to low-income women borrowers, under RBI's household-income and repayment caps.",
   domainId:"retail_credit", displayOrder:4, dataStatus:"demo",
@@ -90,7 +90,7 @@ const banks = {
   keyRisks:["Relapse of over-indebtedness and defaults", "State laws or political pressure on collections", "Funding concentrated in a few banks", "Natural disasters and elections disrupting repayment"],
   investorMetrics:["Portfolio at risk (PAR 30+, 31-90, 91-180)", "Credit cost and write-offs", "Disbursement and AUM growth", "Borrowers with more than three lenders", "Capital adequacy and liquidity"],
   relatedComponents:["sfb","midsize_private","oversight"],
-  suppliers:[op("creditAccess"), op("spandana"), op("fusionFinance","medium"), op("satin","medium"), op("muthootMicrofin","medium"), op("bandhanBank","medium")]},
+  suppliers:[op("creditAccess"), op("spandana"), op("fusionFinance","medium"), op("satin","medium"), op("muthootMicrofin","medium"), op("bandhanBank","medium"), op("ltFinance","medium"), op("ujjivan","medium"), op("utkarsh","medium")]},
 
  {id:"msme_lending", color:"#D96C2B", label:"Small-business & property-backed loans", layer:0, pos:A.msme_lending.pos, side:A.msme_lending.side, desc:"Small-ticket loans to shops and small firms, usually secured by the owner's house (loan against property).",
   domainId:"retail_credit", displayOrder:5, dataStatus:"demo",

@@ -17777,7 +17777,7 @@
           }
         },
         "insecticidesIndia": {
-          "name": "Insecticides (India)",
+          "name": "Insecticides India",
           "listed": true,
           "role": "Delhi-based branded agrochemical maker with Japanese technology partners",
           "dataStatus": "demo",
@@ -19100,6 +19100,2757 @@
           ],
           "f": {
             "ticker": "GESHIP"
+          }
+        }
+      }
+    },
+    {
+      "key": "fmcg",
+      "suppliers": {
+        "awl": {
+          "name": "AWL Agri Business",
+          "listed": true,
+          "role": "India's largest packaged edible-oil seller (Fortune, King's, Raag) that also sells atta, rice, besan, pulses and sugar; formerly Adani Wilmar, renamed after the Adani group sold out to Wilmar",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "aka": [
+            "adani wilmar",
+            "fortune"
+          ],
+          "strengths": [
+            "Port-side refineries and the widest edible-oil distribution",
+            "Revenue rose 24% in the Sep 2026 quarter and its food and FMCG segment crossed ₹2,000 Cr",
+            "Quick commerce was about 65% of its online sales in FY26"
+          ],
+          "risks": [
+            "Oil margins swing with palm prices and duty changes",
+            "Food business still small next to oils"
+          ],
+          "f": {
+            "ticker": "AWL"
+          }
+        },
+        "patanjali": {
+          "name": "Patanjali Foods",
+          "listed": true,
+          "role": "Former Ruchi Soya: edible-oil refiner (Ruchi Gold, Mahakosh, Nutrela soya chunks) that took over Patanjali's packaged foods and its home and personal care brands",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "aka": [
+            "ruchi soya"
+          ],
+          "strengths": [
+            "Record edible-oil revenue in the Sep 2026 quarter on about 5 lakh tonnes of volume",
+            "Patanjali brand pull in rural and small-town kiranas",
+            "Own oil-palm plantations"
+          ],
+          "risks": [
+            "Edible-oil EBITDA margin fell to about 3% in Q2 FY27 as the duty cut lowered prices",
+            "Home and personal care grew about 11% against a 15% target",
+            "Related-party dealings with the Patanjali group"
+          ],
+          "f": {
+            "ticker": "PATANJALI"
+          }
+        },
+        "ltFoods": {
+          "name": "LT Foods",
+          "listed": true,
+          "role": "Basmati and specialty-rice company: Daawat in India, Royal in the US and Golden Star jasmine rice, with ready-to-heat meals and organic foods",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "aka": [
+            "daawat"
+          ],
+          "strengths": [
+            "Royal holds over 60% of US basmati and Golden Star leads US jasmine rice (company)",
+            "Basmati and specialty rice grew 27% in H1 FY27 with 11% higher volume"
+          ],
+          "risks": [
+            "US import tariffs on rice, so far mostly passed on to shoppers",
+            "Paddy prices and inventory carried for a year or more"
+          ],
+          "f": {
+            "ticker": "LTFOODS"
+          }
+        },
+        "krbl": {
+          "name": "KRBL",
+          "listed": true,
+          "role": "Largest basmati miller and exporter (India Gate, Nur Jahan), buying paddy in Punjab and Haryana and ageing it before sale",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "aka": [
+            "india gate"
+          ],
+          "strengths": [
+            "Largest basmati stock and milling capacity",
+            "Long-standing Gulf export franchise"
+          ],
+          "risks": [
+            "Gulf and Iran exports exposed to shipping disruption and sanctions",
+            "Paddy cost and stock carried for over a year"
+          ],
+          "f": {
+            "ticker": "KRBL"
+          }
+        },
+        "gokulAgro": {
+          "name": "Gokul Agro Resources",
+          "listed": true,
+          "role": "Gujarat edible-oil refiner and trader near Kandla port, selling mostly bulk oil and regional brands",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Port-side refining keeps freight low"
+          ],
+          "risks": [
+            "Thin margins and heavy working capital",
+            "Duty and palm price swings"
+          ],
+          "f": {
+            "ticker": "GOKULAGRO"
+          }
+        },
+        "tataconsum": {
+          "name": "Tata Consumer Products",
+          "listed": true,
+          "role": "Tata Salt, Tata Tea, Tetley, Tata Sampann pulses and spices, Ching's and Smith & Jones (Capital Foods), Organic India and NourishCo drinks",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Salt revenue grew 15% on 9% higher volume in the Sep 2026 quarter, with Tata Salt near 40% share",
+            "E-commerce and quick commerce were 24% of domestic sales in Q2 FY27",
+            "Newer brands grew about 40% in Q2 FY27"
+          ],
+          "risks": [
+            "Tea costs forced 8-10% price rises and tea volumes were flat",
+            "Salt and tea price rises test rural shoppers"
+          ],
+          "f": {
+            "ticker": "TATACONSUM"
+          }
+        },
+        "balrampur": {
+          "name": "Balrampur Chini Mills",
+          "listed": true,
+          "role": "Uttar Pradesh's largest sugar miller with ten mills, distilleries, cogeneration and India's first polylactic acid (PLA) bioplastic plant",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Sugar segment profit rose about 166% in the Sep 2026 quarter on higher volume and prices",
+            "The 80,000-tonne PLA plant gives cane a non-fuel outlet"
+          ],
+          "risks": [
+            "Distillery revenue fell about 20% in Q2 FY27 with ethanol prices unrevised",
+            "Uttar Pradesh cane price decisions",
+            "PLA start-up and market-building risk"
+          ],
+          "f": {
+            "ticker": "BALRAMCHIN"
+          }
+        },
+        "eidParry": {
+          "name": "EID Parry (India)",
+          "listed": true,
+          "role": "Murugappa group sugar maker in Tamil Nadu, Karnataka and Andhra Pradesh with distilleries, Parry's consumer sugar and jaggery packs and US-focused spirulina nutraceuticals; it also holds the majority of Coromandel International",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Consumer packs and nutraceuticals add branded earnings",
+            "Coromandel stake is a large, steady asset"
+          ],
+          "risks": [
+            "Consolidated figures are mostly Coromandel's fertilisers",
+            "Consumer products segment lost money in Q2 FY27",
+            "South Indian cane depends on reservoirs"
+          ],
+          "f": {
+            "ticker": "EIDPARRY"
+          }
+        },
+        "triveni": {
+          "name": "Triveni Engineering & Industries",
+          "listed": true,
+          "role": "Uttar Pradesh sugar miller with cane and grain distilleries and an engineering business (power-transmission gears, water treatment)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Grain-based distilling keeps plants running when cane diversion is curbed",
+            "Engineering adds non-sugar earnings"
+          ],
+          "risks": [
+            "Ethanol pricing and diversion curbs",
+            "Uttar Pradesh cane costs"
+          ],
+          "f": {
+            "ticker": "TRIVENI"
+          }
+        },
+        "dhampur": {
+          "name": "Dhampur Sugar Mills",
+          "listed": true,
+          "role": "Western Uttar Pradesh sugar miller with distillery and ethanol capacity (split from Dhampur Bio Organics in 2022)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "High-recovery cane area in western Uttar Pradesh"
+          ],
+          "risks": [
+            "Distillery capacity idle under 2026-27 diversion curbs",
+            "State cane price"
+          ],
+          "f": {
+            "ticker": "DHAMPURSUG"
+          }
+        },
+        "bajajHind": {
+          "name": "Bajaj Hindusthan Sugar",
+          "listed": true,
+          "role": "One of India's largest sugar makers by capacity, with fourteen mills in Uttar Pradesh and distilleries",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Large cane catchment in Uttar Pradesh"
+          ],
+          "risks": [
+            "Long history of heavy debt and restructuring",
+            "Older mills with lower recovery"
+          ],
+          "f": {
+            "ticker": "BAJAJHIND"
+          }
+        },
+        "hatsun": {
+          "name": "Hatsun Agro Product",
+          "listed": true,
+          "role": "India's largest private dairy (Arun ice cream, Arokya and Hatsun milk, Ibaco parlours), buying milk directly from farmers across south India",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Direct farmer procurement without middlemen",
+            "Ice cream and curd lift the value-added share"
+          ],
+          "risks": [
+            "Procurement costs in the lean summer months",
+            "South-only footprint"
+          ],
+          "f": {
+            "ticker": "HATSUN"
+          }
+        },
+        "heritage": {
+          "name": "Heritage Foods",
+          "listed": true,
+          "role": "Hyderabad dairy selling milk, curd, paneer and ghee across Andhra Pradesh, Telangana, Karnataka, Tamil Nadu and Maharashtra",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Growing value-added share"
+          ],
+          "risks": [
+            "Thin margins on pouch milk",
+            "State cooperatives setting prices"
+          ],
+          "f": {
+            "ticker": "HERITGFOOD"
+          }
+        },
+        "paragMilk": {
+          "name": "Parag Milk Foods",
+          "listed": true,
+          "role": "Maharashtra dairy known for cheese and ghee (Gowardhan, Go, Pride of Cows, Avvatar whey protein)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Cheese, ghee and whey are higher-value products"
+          ],
+          "risks": [
+            "Skimmed milk powder price swings",
+            "Working capital in ghee and cheese stocks"
+          ],
+          "f": {
+            "ticker": "PARAGMILK"
+          }
+        },
+        "dodla": {
+          "name": "Dodla Dairy",
+          "listed": true,
+          "role": "Andhra Pradesh dairy with plants in south India and East Africa (Uganda, Kenya)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "African dairy adds growth outside India"
+          ],
+          "risks": [
+            "Liquid milk is low margin",
+            "Procurement cost cycles"
+          ],
+          "f": {
+            "ticker": "DODLA"
+          }
+        },
+        "avanti": {
+          "name": "Avanti Feeds",
+          "listed": true,
+          "role": "India's largest shrimp-feed maker, partnered with Thailand's Thai Union, and a processor exporting frozen shrimp to the US",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Leading shrimp-feed share in Andhra Pradesh and no debt",
+            "Targets about 19,000 tonnes of shrimp exports in FY27"
+          ],
+          "risks": [
+            "Q2 FY27 profit fell about 56%, including a charge for revised US anti-dumping duty",
+            "Shrimp disease and farm-gate prices"
+          ],
+          "f": {
+            "ticker": "AVANTIFEED"
+          }
+        },
+        "venkys": {
+          "name": "Venky's (India)",
+          "listed": true,
+          "role": "Pune poultry group: day-old chicks, poultry feed, processed chicken and animal-health products",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Integrated from breeding to feed"
+          ],
+          "risks": [
+            "Bird flu outbreaks",
+            "Maize and soybean meal costs"
+          ],
+          "f": {
+            "ticker": "VENKEYS"
+          }
+        },
+        "godrejAgrovet": {
+          "name": "Godrej Agrovet",
+          "listed": true,
+          "role": "Godrej group's animal-feed maker (cattle, poultry, shrimp), Creamline Dairy (Jersey milk and curd), Real Good Chicken and oil-palm plantations",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "One of India's largest compound-feed makers",
+            "Dairy and poultry brands in south India"
+          ],
+          "risks": [
+            "Feed margins swing with maize and soybean meal",
+            "Crop-protection and Astec results add unrelated swings"
+          ],
+          "f": {
+            "ticker": "GODREJAGRO"
+          }
+        },
+        "amul": {
+          "name": "Amul (GCMMF)",
+          "listed": false,
+          "role": "India's largest dairy cooperative and the price leader in pouch milk, butter, cheese and ice cream",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Its price moves set the market (₹2-4 a litre rise from 12 Nov 2026)",
+            "National cold chain and brand"
+          ],
+          "risks": [
+            "Unlisted cooperative"
+          ],
+          "notes": [
+            "Gujarat Cooperative Milk Marketing Federation, owned by district milk unions",
+            "No listed market data"
+          ]
+        },
+        "britannia": {
+          "name": "Britannia Industries",
+          "listed": true,
+          "role": "India's largest biscuit maker (Good Day, Marie Gold, NutriChoice, 50-50) with cakes, rusk, bread and a cheese venture with France's Bel",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "About 13% volume growth in the Sep 2026 quarter with a 3.5% price rise",
+            "Direct rural reach built over a decade",
+            "Quick commerce over 70% of its online sales"
+          ],
+          "risks": [
+            "Palm oil, wheat, sugar and milk costs outran the price rise in Q2 FY27",
+            "Parle and regional makers in ₹5 packs"
+          ],
+          "f": {
+            "ticker": "BRITANNIA"
+          }
+        },
+        "nestleind": {
+          "name": "Nestle India",
+          "listed": true,
+          "role": "Maggi noodles, Nescafe, KitKat, Munch, Milkmaid and infant nutrition (Cerelac, Lactogen), buying milk directly from farmers in Punjab and Haryana",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Strong double-digit volume growth across product groups in the Sep 2026 quarter",
+            "Maggi's rural push and premium coffee"
+          ],
+          "risks": [
+            "Cocoa and milk costs (flagged in Oct 2026)",
+            "Royalty to the Swiss parent"
+          ],
+          "f": {
+            "ticker": "NESTLEIND"
+          }
+        },
+        "zydusWellness": {
+          "name": "Zydus Wellness",
+          "listed": true,
+          "role": "Zydus group's consumer arm: Sugar Free, Glucon-D, Complan, Nycil, Everyuth, Nutralite and, since 2025, the UK's Comfort Click online supplements (WeightWorld)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Leads sweeteners and glucose powder",
+            "Comfort Click adds higher-margin online supplements in Europe"
+          ],
+          "risks": [
+            "Glucon-D and Nycil depend on summer heat",
+            "Debt taken for the Comfort Click deal"
+          ],
+          "f": {
+            "ticker": "ZYDUSWELL"
+          }
+        },
+        "bikaji": {
+          "name": "Bikaji Foods International",
+          "listed": true,
+          "role": "Bikaner bhujia, namkeen, papad and sweets maker expanding from Rajasthan into national and export markets",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Low-cost bhujia production and ₹5-10 packs",
+            "Strong in the Hindi belt"
+          ],
+          "risks": [
+            "Edible-oil and gram-flour costs",
+            "Haldiram's and regional namkeen brands"
+          ],
+          "f": {
+            "ticker": "BIKAJI"
+          }
+        },
+        "bectors": {
+          "name": "Mrs. Bectors Food Specialities",
+          "listed": true,
+          "role": "Cremica biscuits and English Oven breads, and the buns supplied to burger chains",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "aka": [
+            "cremica",
+            "english oven"
+          ],
+          "strengths": [
+            "Bun contracts with QSR chains",
+            "Biscuit exports"
+          ],
+          "risks": [
+            "Wheat and palm oil costs",
+            "QSR footfalls"
+          ],
+          "f": {
+            "ticker": "BECTORFOOD"
+          }
+        },
+        "kwality": {
+          "name": "Kwality Wall's (India)",
+          "listed": true,
+          "role": "Ice-cream business (Kwality Wall's, Cornetto, Magnum) demerged from Hindustan Unilever and listed separately",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "National ice-cream brands and freezer network"
+          ],
+          "risks": [
+            "Summer-heavy sales and freezer cold chain costs",
+            "Milk and sugar inflation"
+          ],
+          "f": {
+            "ticker": "KWIL"
+          }
+        },
+        "itc": {
+          "name": "ITC",
+          "listed": true,
+          "role": "India's largest cigarette maker; in foods Aashirvaad atta, Sunfeast biscuits, Bingo snacks and Yippee noodles, in personal care Savlon and Fiama; also paperboard and packaging",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Several food categories grew over 20% in the Sep 2026 quarter",
+            "Cigarette cash pays for brand building and distribution reach"
+          ],
+          "risks": [
+            "Cigarette net revenue fell 21% in Q2 FY27 after the tax rise",
+            "Leaf tobacco hit by weaker domestic demand and Gulf disruption"
+          ],
+          "f": {
+            "ticker": "ITC"
+          }
+        },
+        "haldiram": {
+          "name": "Haldiram's",
+          "listed": false,
+          "role": "India's largest snack and sweets maker (bhujia, namkeen, sweets, ready meals) with its own restaurants; Temasek took a minority stake in 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Largest namkeen brand with national reach"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Owned by the Agarwal family's Haldiram Snacks Food, with Temasek as a minority shareholder",
+            "No listed market data"
+          ]
+        },
+        "mondelez": {
+          "name": "Mondelez India",
+          "listed": false,
+          "role": "Indian arm of Mondelez International: Cadbury Dairy Milk, 5 Star, Gems, Bournvita and Oreo",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Leads Indian chocolate"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Wholly owned by Mondelez International (US)",
+            "No listed market data"
+          ]
+        },
+        "vbl": {
+          "name": "Varun Beverages",
+          "listed": true,
+          "role": "PepsiCo's largest bottler outside the US, making and selling Pepsi, 7Up, Mountain Dew, Sting, Tropicana and Aquafina across most of India and in Africa",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "India volumes rose 22.5% in Jul-Sep 2026",
+            "Makes its own preforms, crowns and shrink film and owns its coolers"
+          ],
+          "risks": [
+            "Gross margin fell in the Sep 2026 quarter on costlier packaging",
+            "Campa Cola's ₹10 packs and Coca-Cola's pricing"
+          ],
+          "f": {
+            "ticker": "VBL"
+          }
+        },
+        "ccl": {
+          "name": "CCL Products (India)",
+          "listed": true,
+          "role": "One of the world's largest private-label instant-coffee makers, with spray-dried and freeze-dried plants in Andhra Pradesh and Vietnam and its own Continental brand",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Profit rose about 29% in the Sep 2026 quarter",
+            "Vietnam plants close to Robusta supply"
+          ],
+          "risks": [
+            "Green coffee prices and the Vietnam crop",
+            "Dependence on global private-label buyers"
+          ],
+          "f": {
+            "ticker": "CCL"
+          }
+        },
+        "hccb": {
+          "name": "Hindustan Coca-Cola Beverages",
+          "listed": false,
+          "role": "Coca-Cola's own Indian bottler (Coke, Thums Up, Sprite, Maaza, Limca, Kinley); Jubilant Bhartia group bought 40% in 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Thums Up and Sprite are among India's largest soft-drink brands"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Coca-Cola system bottler, majority owned by The Coca-Cola Company",
+            "No listed market data"
+          ]
+        },
+        "relConsumer": {
+          "name": "Reliance Consumer Products",
+          "listed": false,
+          "role": "Reliance group's FMCG arm: Campa Cola relaunched at ₹10 with higher retailer margins, plus Independence staples and acquired regional brands",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Reliance Retail's stores and distribution behind it",
+            "Low price points pressure the incumbents"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Wholly owned within Reliance Retail Ventures (Reliance Industries)",
+            "No listed market data"
+          ]
+        },
+        "godfrey": {
+          "name": "Godfrey Phillips India",
+          "listed": true,
+          "role": "KK Modi group cigarette maker (Four Square, Red & White, Cavanders) that makes and sells Marlboro under licence from Philip Morris, a 25% owner; also exports leaf and cigarettes",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Monthly domestic volume recovered to 1,902 million sticks in Q2 FY27",
+            "Marlboro licence and export growth"
+          ],
+          "risks": [
+            "Excise outgo rose about eightfold after the Feb 2026 tax change",
+            "Family dispute among promoters"
+          ],
+          "f": {
+            "ticker": "GODFRYPHLP"
+          }
+        },
+        "vst": {
+          "name": "VST Industries",
+          "listed": true,
+          "role": "Hyderabad cigarette maker (Charms, Total, Editions) strongest in Telangana and Andhra Pradesh; ITC owns about a third",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "No debt and large cash",
+            "Strong value cigarettes in the south"
+          ],
+          "risks": [
+            "Value smokers are the most likely to switch to smuggled packs after tax rises",
+            "Regional concentration"
+          ],
+          "f": {
+            "ticker": "VSTIND"
+          }
+        },
+        "hindunilvr": {
+          "name": "Hindustan Unilever",
+          "listed": true,
+          "role": "India's largest FMCG company: Surf Excel, Rin, Wheel, Vim, Lux, Lifebuoy, Dove, Brooke Bond, Horlicks and Kissan, with the widest distributor and kirana reach (ice cream demerged in 2025)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Underlying volume grew 7% and sales 15% in the Sep 2026 quarter, the fastest in 14 quarters",
+            "Home care grew underlying sales 22% with double-digit volume"
+          ],
+          "risks": [
+            "EBITDA margin narrowed about 140 bps in Q2 FY27 as input costs stayed high",
+            "Personal care volumes were flat in Q2 FY27",
+            "Royalty to Unilever"
+          ],
+          "f": {
+            "ticker": "HINDUNILVR"
+          }
+        },
+        "dabur": {
+          "name": "Dabur India",
+          "listed": true,
+          "role": "Ayurvedic and natural brands: Dabur Red toothpaste, Chyawanprash, Honitus, Vatika, Real juices, Odomos and Odonil, with a large Middle East and Africa business",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "India FMCG grew 10.7% with 5.5% volume in the Sep 2026 quarter",
+            "Quick commerce reached 75% of its online sales in early 2026",
+            "International revenue grew 20%"
+          ],
+          "risks": [
+            "Operating margin fell about 60 bps in Q2 FY27 on input inflation",
+            "Juices face the ₹10 cola war"
+          ],
+          "f": {
+            "ticker": "DABUR"
+          }
+        },
+        "marico": {
+          "name": "Marico",
+          "listed": true,
+          "role": "Parachute coconut oil, Saffola edible oil and oats, Nihar and hair oils, Set Wet and Beardo, plus foods and a Bangladesh and Vietnam business",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "India volume grew 10% in the Sep 2026 quarter",
+            "Copra about 35% below its peak lifted gross margin",
+            "Targets mid-twenties EBITDA growth in FY27"
+          ],
+          "risks": [
+            "Parachute prices were cut to pass on copra savings, so its revenue barely grew",
+            "Copra and vegetable-oil price cycles"
+          ],
+          "f": {
+            "ticker": "MARICO"
+          }
+        },
+        "godrejcp": {
+          "name": "Godrej Consumer Products",
+          "listed": true,
+          "role": "Cinthol and Godrej No.1 soaps, Good Knight and HIT insecticides, hair colour, and businesses in Indonesia, Africa and Latin America",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Consolidated sales grew 19% with 8% underlying volume in the Sep 2026 quarter",
+            "Indonesia grew 20%"
+          ],
+          "risks": [
+            "Renewed inflation in crude-linked inputs and palm oil",
+            "India had a channel inventory correction and a weak monsoon"
+          ],
+          "f": {
+            "ticker": "GODREJCP"
+          }
+        },
+        "colpal": {
+          "name": "Colgate-Palmolive (India)",
+          "listed": true,
+          "role": "India's toothpaste leader (Colgate Strong Teeth, MaxFresh, Visible White) with toothbrushes and Palmolive body care; pays royalty to its US parent",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "High-single-digit toothpaste volume growth in the Sep 2026 quarter",
+            "Gross margin near 70%"
+          ],
+          "risks": [
+            "EBITDA margin fell about 280 bps in Q2 FY27 as advertising rose",
+            "HUL, Dabur and Patanjali competing in natural toothpaste"
+          ],
+          "f": {
+            "ticker": "COLPAL"
+          }
+        },
+        "gillette": {
+          "name": "Gillette India",
+          "listed": true,
+          "role": "P&G subsidiary selling Gillette razors and blades (Guard for first-time shavers) and Oral-B toothbrushes",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Dominant razor brand with low-priced Guard for small towns",
+            "Profit rose about 9% in the Apr-Jun 2026 quarter"
+          ],
+          "risks": [
+            "Royalty and import costs paid to P&G",
+            "Trimmers and electric shavers eating into blades"
+          ],
+          "f": {
+            "ticker": "GILLETTE"
+          }
+        },
+        "emami": {
+          "name": "Emami",
+          "listed": true,
+          "role": "Navratna cooling oil and talc, BoroPlus, Zandu balm, Kesh King and Smart and Handsome, with an international business",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Domestic sales grew 49% in the Sep 2026 quarter off a rain-hit base",
+            "Leads cooling oils and antiseptic cream"
+          ],
+          "risks": [
+            "Raw materials took about 400 of the 520 bps gross-margin fall in Q2 FY27",
+            "Summer portfolio depends on heat"
+          ],
+          "f": {
+            "ticker": "EMAMILTD"
+          }
+        },
+        "honasa": {
+          "name": "Honasa Consumer",
+          "listed": true,
+          "role": "Online-born beauty company (Mamaearth, The Derma Co, Aqualogica, Dr. Sheth's, BBlunt) now selling through offline distributors too",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "aka": [
+            "mamaearth"
+          ],
+          "strengths": [
+            "Volume grew 31% and revenue 36% in the Sep 2026 quarter",
+            "Younger brands grew 45%+"
+          ],
+          "risks": [
+            "Heavy marketing spend for every brand",
+            "Crowded D2C beauty categories"
+          ],
+          "f": {
+            "ticker": "HONASA"
+          }
+        },
+        "cupid": {
+          "name": "Cupid",
+          "listed": true,
+          "role": "Nashik maker of male and female condoms, lubricants and diagnostic kits, selling to government and UN agencies and expanding into retail personal care",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Revenue more than doubled in the Sep 2026 quarter",
+            "One of few WHO-prequalified female-condom makers"
+          ],
+          "risks": [
+            "Tender-driven swings",
+            "New retail categories need advertising"
+          ],
+          "f": {
+            "ticker": "CUPID"
+          }
+        },
+        "pghh": {
+          "name": "Procter & Gamble Hygiene and Health Care",
+          "listed": true,
+          "role": "P&G's listed Indian arm selling Whisper sanitary pads and Vicks",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Whisper leads branded sanitary pads",
+            "Vicks is a household cold remedy"
+          ],
+          "risks": [
+            "Cheaper pad brands and government pad schemes",
+            "Royalty to the parent"
+          ],
+          "f": {
+            "ticker": "PGHH"
+          }
+        },
+        "bajajCon": {
+          "name": "Bajaj Consumer Care",
+          "listed": true,
+          "role": "Bajaj Almond Drops light hair oil plus smaller hair-oil and skin brands",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Leads light hair oil",
+            "Net cash"
+          ],
+          "risks": [
+            "One brand is most of sales",
+            "Light liquid paraffin and vegetable-oil costs"
+          ],
+          "f": {
+            "ticker": "BAJAJCON"
+          }
+        },
+        "loreal": {
+          "name": "L'Oreal India",
+          "listed": false,
+          "role": "Indian arm of L'Oreal: Garnier, L'Oreal Paris, Maybelline and salon brands",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Leads hair colour and mass skin care"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Wholly owned by L'Oreal SA (France)",
+            "No listed market data"
+          ]
+        },
+        "nykaa": {
+          "name": "FSN E-Commerce Ventures (Nykaa)",
+          "listed": true,
+          "role": "Online and store beauty retailer; a key sales and discovery channel for personal-care brands",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "aka": [
+            "nykaa"
+          ],
+          "strengths": [
+            "Beauty discovery and premium shoppers in one place"
+          ],
+          "risks": [
+            "Brands also sell through quick commerce at lower prices"
+          ],
+          "f": {
+            "ticker": "NYKAA"
+          }
+        },
+        "jyothy": {
+          "name": "Jyothy Labs",
+          "listed": true,
+          "role": "Ujala fabric whitener, Exo and Pril dishwash, Henko detergent, Maxo repellent and Margo soap",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Ujala and Exo lead their categories",
+            "Strong in south India"
+          ],
+          "risks": [
+            "Detergent price wars with HUL and regional makers",
+            "Crude-linked LAB and packaging costs"
+          ],
+          "f": {
+            "ticker": "JYOTHYLAB"
+          }
+        },
+        "doms": {
+          "name": "DOMS Industries",
+          "listed": true,
+          "role": "Pencil, crayon, notebook and art-material maker (DOMS, Amariz) with Italy's FILA as a shareholder, sold through stationery shops and kiranas",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Revenue grew about 18% in the Sep 2026 quarter",
+            "New Umbergaon capacity as plants run full"
+          ],
+          "risks": [
+            "Raw-material costs rose about 15% in Q2 FY27",
+            "A warehouse flood loss cut Q2 FY27 profit"
+          ],
+          "f": {
+            "ticker": "DOMS"
+          }
+        },
+        "flair": {
+          "name": "Flair Writing Industries",
+          "listed": true,
+          "role": "Pen maker (Flair, Hauser, Pierre Cardin licence) selling in India and making pens for export customers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Wide pen range and export contracts"
+          ],
+          "risks": [
+            "Chinese pens and refills",
+            "Polymer costs"
+          ],
+          "f": {
+            "ticker": "FLAIR"
+          }
+        },
+        "reckitt": {
+          "name": "Reckitt India",
+          "listed": false,
+          "role": "Indian arm of Reckitt: Dettol, Harpic, Lizol, Mortein, Durex and Veet",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Leads toilet and floor cleaners and antiseptic liquid"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Wholly owned by Reckitt Benckiser (UK)",
+            "No listed market data"
+          ]
+        },
+        "hndfds": {
+          "name": "Hindustan Foods",
+          "listed": true,
+          "role": "India's largest contract manufacturer for FMCG brands: detergents, personal care, ice cream, foods and shoes made in its plants for HUL, Reckitt and others",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Majors outsourcing capacity to it instead of building plants",
+            "Many categories and customers"
+          ],
+          "risks": [
+            "Thin per-unit margins",
+            "A few customers are most of revenue"
+          ],
+          "f": {
+            "ticker": "HNDFDS"
+          }
+        },
+        "shKelkar": {
+          "name": "S H Kelkar and Company",
+          "listed": true,
+          "role": "Largest Indian fragrance and flavour house (Keva) supplying soap, detergent, agarbatti and food makers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Fragrances written into FMCG formulas",
+            "Own aroma-chemical plants"
+          ],
+          "risks": [
+            "Global fragrance houses compete for the same briefs",
+            "European operations add risk"
+          ],
+          "f": {
+            "ticker": "SHK"
+          }
+        },
+        "galaxy": {
+          "name": "Galaxy Surfactants",
+          "listed": true,
+          "role": "Surfactants and care ingredients for shampoos, soaps, body washes and toothpastes, sold to HUL, P&G, Colgate and global FMCG makers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Long-standing FMCG customer approvals",
+            "Plants in India, Egypt and the US"
+          ],
+          "risks": [
+            "Fatty alcohol and ethylene oxide costs",
+            "Customer concentration"
+          ],
+          "f": {
+            "ticker": "GALAXYSURF"
+          }
+        },
+        "manorama": {
+          "name": "Manorama Industries",
+          "listed": true,
+          "role": "Raipur maker of cocoa butter equivalents and specialty fats from sal and shea seeds for chocolate and confectionery makers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Cheaper substitute for cocoa butter while cocoa is costly",
+            "Sal-seed collection network in central India"
+          ],
+          "risks": [
+            "Cocoa prices falling back",
+            "Seed supply depends on forest collection"
+          ],
+          "f": {
+            "ticker": "MANORAMA"
+          }
+        },
+        "epl": {
+          "name": "EPL",
+          "listed": true,
+          "role": "World's largest laminated-tube maker for toothpaste and cosmetics, with plants in India, China, Europe and the Americas",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Long contracts with Colgate, HUL and P&G",
+            "Recyclable Platina tubes"
+          ],
+          "risks": [
+            "Polymer and foil costs",
+            "Few large customers"
+          ],
+          "f": {
+            "ticker": "EPL"
+          }
+        },
+        "uflex": {
+          "name": "UFLEX",
+          "listed": true,
+          "role": "Polyester and polypropylene film maker and converter of printed laminates for sachets, chips bags and pouches, plus Asepto liquid cartons",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Integrated from film to printed pack",
+            "Film plants abroad"
+          ],
+          "risks": [
+            "Global BOPET film oversupply",
+            "Debt from expansions"
+          ],
+          "f": {
+            "ticker": "UFLEX"
+          }
+        },
+        "huhtamaki": {
+          "name": "Huhtamaki India",
+          "listed": true,
+          "role": "Flexible laminates, labels and pouches for food, personal care and pharma brands",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Approved supplier to large FMCG makers"
+          ],
+          "risks": [
+            "Resin pass-through lag",
+            "Price competition from smaller converters"
+          ],
+          "f": {
+            "ticker": "HUHTAMAKI"
+          }
+        },
+        "tcpl": {
+          "name": "TCPL Packaging",
+          "listed": true,
+          "role": "Folding cartons, cigarette shells and flexible packs for cigarette, food and personal-care brands",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Cigarette shells and premium cartons need high print quality"
+          ],
+          "risks": [
+            "Cigarette volumes under tax pressure",
+            "Paperboard costs"
+          ],
+          "f": {
+            "ticker": "TCPLPACK"
+          }
+        },
+        "agi": {
+          "name": "AGI Greenpac",
+          "listed": true,
+          "role": "Glass bottle maker for liquor, beer, food and pharma",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Large furnace capacity in north and south India"
+          ],
+          "risks": [
+            "Gas and soda ash costs",
+            "Liquor and beer are most of its glass demand"
+          ],
+          "f": {
+            "ticker": "AGI"
+          }
+        },
+        "moldtek": {
+          "name": "Mold-Tek Packaging",
+          "listed": true,
+          "role": "Injection-moulded pails and tubs with in-mould labels for paint, lubricant, food and FMCG makers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "In-mould labelling and square pails"
+          ],
+          "risks": [
+            "Paint and lubricant demand is most of sales",
+            "Polypropylene costs"
+          ],
+          "f": {
+            "ticker": "MOLDTKPAC"
+          }
+        },
+        "dmart": {
+          "name": "Avenue Supermarts (DMart)",
+          "listed": true,
+          "role": "Low-price supermarket chain whose shelf prices are the benchmark brands and apps price against",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Buys direct from brands at deep discounts",
+            "Owns most of its stores"
+          ],
+          "risks": [
+            "Quick commerce takes top-up baskets in metros"
+          ],
+          "f": {
+            "ticker": "DMART"
+          }
+        },
+        "relRetail": {
+          "name": "Reliance Retail",
+          "listed": false,
+          "role": "Largest Indian retailer (Smart Bazaar, JioMart, Metro Cash & Carry) and B2B supplier to kiranas through JioMart Partner",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Stores, wholesale and kirana network in one group"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Reliance Retail Ventures, a subsidiary of Reliance Industries",
+            "No listed market data"
+          ]
+        },
+        "eternal": {
+          "name": "Eternal (Zomato, Blinkit)",
+          "listed": true,
+          "role": "Owner of Blinkit, the largest quick-commerce app and a fast-growing FMCG sales channel in big cities",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "aka": [
+            "zomato",
+            "blinkit"
+          ],
+          "strengths": [
+            "Largest dark-store network"
+          ],
+          "risks": [
+            "Discounting that distributors contest"
+          ],
+          "f": {
+            "ticker": "ETERNAL"
+          }
+        },
+        "swiggy": {
+          "name": "Swiggy",
+          "listed": true,
+          "role": "Owner of Instamart, a quick-commerce app selling FMCG packs in 10-30 minutes",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Moving to owned inventory, which gives brands one buyer"
+          ],
+          "risks": [
+            "Still loss-making in quick commerce"
+          ],
+          "f": {
+            "ticker": "SWIGGY"
+          }
+        },
+        "zepto": {
+          "name": "Zepto",
+          "listed": false,
+          "role": "Unlisted quick-commerce app and a growing FMCG sales channel in big cities",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Large dark-store network"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Privately held",
+            "No listed market data"
+          ]
+        },
+        "udaan": {
+          "name": "Udaan",
+          "listed": false,
+          "role": "B2B app supplying kiranas with FMCG packs on credit",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Reaches small shops brands don't cover"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Privately held",
+            "No listed market data"
+          ]
+        },
+        "jumbotail": {
+          "name": "Jumbotail",
+          "listed": false,
+          "role": "B2B grocery marketplace and wholesaler for kiranas",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Wholesale and credit for small shops"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Privately held",
+            "No listed market data"
+          ]
+        }
+      }
+    },
+    {
+      "key": "consumerbrands",
+      "suppliers": {
+        "lgeindia": {
+          "name": "LG Electronics India",
+          "listed": true,
+          "role": "India's leading maker of refrigerators, washing machines, room ACs and TVs, with plants at Noida and Pune and a third at Sri City adding its own compressors; listed 14 Oct 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "lg electronics india",
+            "lg india",
+            "lg electronics"
+          ],
+          "strengths": [
+            "Q2 FY27 revenue rose 19.5% to ₹7,380 Cr and profit 25.7%; home appliances and air solutions up 20.9% (5 Nov 2026)",
+            "Sri City plant to make compressors from Q3 FY27 and ACs from about Jan 2027, cutting reliance on imported compressors",
+            "Leads refrigerators and front-load washers through Croma, Reliance Digital and its own brand shops"
+          ],
+          "risks": [
+            "Pays a royalty to LG Electronics (Korea); the parent decides product and export plans",
+            "Room-AC volumes swing with the summer",
+            "Samsung and Chinese-owned brands compete hard on price"
+          ],
+          "f": {
+            "ticker": "LGEINDIA"
+          }
+        },
+        "whirlpool": {
+          "name": "Whirlpool of India",
+          "listed": true,
+          "role": "Refrigerator (direct-cool and frost-free) and top-load washing-machine brand with plants at Pune, Faridabad and Puducherry; the US parent holds about 40% and is looking to sell more",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "whirlpool india"
+          ],
+          "strengths": [
+            "Strong in direct-cool refrigerators for smaller towns",
+            "Wide dealer and service network"
+          ],
+          "risks": [
+            "Parent's stake sale (Advent, Reliance Retail and Havells reported as bidders) leaves strategy unsettled",
+            "Lost refrigerator share to LG, Samsung and Haier",
+            "Royalty to the US parent"
+          ],
+          "f": {
+            "ticker": "WHIRLPOOL"
+          }
+        },
+        "voltas": {
+          "name": "Voltas",
+          "listed": true,
+          "role": "Tata group's room-AC leader and air-cooler brand, with Voltbek (a JV with Turkey's Arçelik) selling refrigerators and washing machines; its projects arm is covered in Real Estate",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "voltas",
+            "voltbek"
+          ],
+          "strengths": [
+            "Sold 10 lakh room ACs in the first 81 days of FY27; volumes up 45% in Q1 FY27 with about 17% market share",
+            "Tata brand and the widest AC dealer reach"
+          ],
+          "risks": [
+            "Very seasonal: a mild summer leaves channel stock and discounts",
+            "Compressor imports and copper costs",
+            "Voltbek still building scale in fridges and washers"
+          ],
+          "f": {
+            "ticker": "VOLTAS"
+          }
+        },
+        "bluestar": {
+          "name": "Blue Star",
+          "listed": true,
+          "role": "Room-AC and commercial refrigeration brand (deep freezers, water coolers) with its own Sri City and Wada plants; central AC projects are covered in Real Estate",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "blue star"
+          ],
+          "strengths": [
+            "Gained room-AC share with in-house manufacturing",
+            "Commercial refrigeration for food chains and pharmacies"
+          ],
+          "risks": [
+            "Room-AC price war and seasonal inventory",
+            "Compressor sourcing under the BIS import limits"
+          ],
+          "f": {
+            "ticker": "BLUESTARCO"
+          }
+        },
+        "ifb": {
+          "name": "IFB Industries",
+          "listed": true,
+          "role": "Front-load washing-machine pioneer in India (Goa plant) adding ACs, dishwashers and kitchen appliances, plus a fine-blanking auto-parts unit",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "ifb",
+            "ifb industries"
+          ],
+          "strengths": [
+            "Strong in front-load washers and dishwashers in metros"
+          ],
+          "risks": [
+            "Small scale against LG and Samsung",
+            "AC entry has been loss-making"
+          ],
+          "f": {
+            "ticker": "IFBIND"
+          }
+        },
+        "samsung": {
+          "name": "Samsung India Electronics",
+          "listed": false,
+          "role": "Samsung's Indian arm: refrigerators and washing machines from Chennai, ACs and TVs, and a leading appliance brand alongside LG",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Strong in frost-free refrigerators, front-load washers and premium TVs"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Wholly owned by Samsung Electronics (Korea)",
+            "No listed market data"
+          ]
+        },
+        "dixon": {
+          "name": "Dixon Technologies",
+          "listed": true,
+          "role": "Contract maker of semi-automatic and fully automatic washing machines and refrigerators for brands that sell under their own labels; its phone and TV work is covered in the electronics policies",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "dixon"
+          ],
+          "strengths": [
+            "Assembles washing machines for several leading brands at scale"
+          ],
+          "risks": [
+            "Appliances are a small part of its revenue; brands can bring production in-house"
+          ],
+          "f": {
+            "ticker": "DIXON"
+          }
+        },
+        "amber": {
+          "name": "Amber Enterprises India",
+          "listed": true,
+          "role": "Largest contract maker of room ACs and AC sub-assemblies (heat exchangers, motors, PCBs) for most Indian AC brands",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "amber enterprises"
+          ],
+          "strengths": [
+            "Makes a large share of India's branded room ACs and their components"
+          ],
+          "risks": [
+            "Brands taking assembly in-house (LG, Blue Star)",
+            "Very seasonal order flow"
+          ],
+          "f": {
+            "ticker": "AMBER"
+          }
+        },
+        "crompton": {
+          "name": "Crompton Greaves Consumer Electricals",
+          "listed": true,
+          "role": "India's largest ceiling-fan brand and a leading pump maker, owner of Butterfly kitchen appliances (cookers, mixers, cooktops)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "crompton",
+            "crompton greaves consumer",
+            "butterfly gandhimathi"
+          ],
+          "strengths": [
+            "Q2 FY27 revenue rose 18% to ₹2,263 Cr and profit 65%; BLDC fans up about 40% and exports up 70%",
+            "Fan leadership in the BEE-rated BLDC shift",
+            "Butterfly adds a South India kitchen franchise"
+          ],
+          "risks": [
+            "Copper and aluminium costs in motors",
+            "Price competition in fans and lighting",
+            "Butterfly integration still to show margins"
+          ],
+          "f": {
+            "ticker": "CROMPTON"
+          }
+        },
+        "havells": {
+          "name": "Havells India",
+          "listed": true,
+          "role": "Fans, water heaters, kitchen appliances and Lloyd room ACs and TVs sold to households; switchgear and wires are covered in Real Estate",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "havells",
+            "lloyd"
+          ],
+          "strengths": [
+            "Premium fan and appliance brand with its own exclusive Havells Galaxy stores",
+            "Lloyd gives it an AC and refrigerator line"
+          ],
+          "risks": [
+            "Lloyd has been margin-dilutive",
+            "Seasonal AC inventory"
+          ],
+          "f": {
+            "ticker": "HAVELLS"
+          }
+        },
+        "vguard": {
+          "name": "V-Guard Industries",
+          "listed": true,
+          "role": "Kerala-born brand of voltage stabilisers, water heaters, fans, pumps and Sunflame kitchen appliances, strongest in South India",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "v-guard",
+            "vguard",
+            "sunflame"
+          ],
+          "strengths": [
+            "Leading stabiliser and water-heater brand in the South",
+            "Expanding into North and West India"
+          ],
+          "risks": [
+            "Southern concentration",
+            "Wires and electricals also face copper costs"
+          ],
+          "f": {
+            "ticker": "VGUARD"
+          }
+        },
+        "bajajelec": {
+          "name": "Bajaj Electricals",
+          "listed": true,
+          "role": "Fans, water heaters, mixers and cookware under Bajaj, Morphy Richards and Nirlep, plus consumer lighting; its EPC arm was demerged as Bajel Projects",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "bajaj electricals",
+            "morphy richards",
+            "nirlep"
+          ],
+          "strengths": [
+            "Wide rural reach through distributors",
+            "Trusted Bajaj name in fans and kitchen appliances"
+          ],
+          "risks": [
+            "Share loss in fans to Crompton and Havells",
+            "Margin recovery still slow"
+          ],
+          "f": {
+            "ticker": "BAJAJELEC"
+          }
+        },
+        "orientelec": {
+          "name": "Orient Electric",
+          "listed": true,
+          "role": "CK Birla group fan, lighting and small-appliance brand, among the leading ceiling-fan makers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "orient electric"
+          ],
+          "strengths": [
+            "Strong in premium and BLDC fans, plus exports"
+          ],
+          "risks": [
+            "Fans are most of its business, so summer and copper drive results"
+          ],
+          "f": {
+            "ticker": "ORIENTELEC"
+          }
+        },
+        "ttkprestige": {
+          "name": "TTK Prestige",
+          "listed": true,
+          "role": "Prestige pressure cookers, cookware, gas stoves and kitchen appliances sold through its Prestige Xclusive stores and dealers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "prestige cookers",
+            "ttk prestige"
+          ],
+          "strengths": [
+            "Leading pressure-cooker and cookware brand",
+            "Own store chain and net cash"
+          ],
+          "risks": [
+            "Sales have been flat for several years",
+            "Chinese and online brands in small appliances"
+          ],
+          "f": {
+            "ticker": "TTKPRESTIG"
+          }
+        },
+        "hawkins": {
+          "name": "Hawkins Cookers",
+          "listed": true,
+          "role": "Hawkins and Futura pressure cookers and cookware, made in-house and sold through kitchenware dealers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "hawkins"
+          ],
+          "strengths": [
+            "Premium brand in pressure cookers with high returns"
+          ],
+          "risks": [
+            "Narrow product range",
+            "Aluminium and steel prices"
+          ],
+          "f": {
+            "ticker": "HAWKINCOOK"
+          }
+        },
+        "symphony": {
+          "name": "Symphony",
+          "listed": true,
+          "role": "India's leading air-cooler brand, selling in India and through Climate Technologies in Australia",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "symphony coolers"
+          ],
+          "strengths": [
+            "Category leader in branded air coolers",
+            "Asset-light: production is outsourced"
+          ],
+          "risks": [
+            "Almost entirely a summer business",
+            "Room ACs replacing coolers as prices fall"
+          ],
+          "f": {
+            "ticker": "SYMPHONY"
+          }
+        },
+        "welspunliv": {
+          "name": "Welspun Living",
+          "listed": true,
+          "role": "One of the world's largest makers of towels and bed sheets for US and UK retailers (Walmart, Target, Costco), with US pillow plants and flooring",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "welspun india",
+            "welspun living"
+          ],
+          "strengths": [
+            "Q2 FY27 revenue rose about 16% to ₹2,838 Cr and profit about 13-fold; home-textile exports up 18%; net cash (Oct 2026)",
+            "US pillow business grew 2.4 times in Q2 FY27",
+            "Duty-free UK access under the FTA"
+          ],
+          "risks": [
+            "Most sales go to the US: tariff changes hit orders",
+            "Vapi floods disrupted Q2 FY27",
+            "Cotton and freight costs"
+          ],
+          "f": {
+            "ticker": "WELSPUNLIV"
+          }
+        },
+        "trident": {
+          "name": "Trident",
+          "listed": true,
+          "role": "Punjab-based maker of cotton yarn, towels and bed linen for global retailers, plus writing and printing paper",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "trident group"
+          ],
+          "strengths": [
+            "Integrated yarn-to-towel production",
+            "Q2 FY27 profit nearly doubled to about ₹176 Cr on wider margins"
+          ],
+          "risks": [
+            "US retailer concentration in home textiles",
+            "Cotton price swings and paper cycle",
+            "Large planned capex"
+          ],
+          "f": {
+            "ticker": "TRIDENT"
+          }
+        },
+        "sheelafoam": {
+          "name": "Sheela Foam",
+          "listed": true,
+          "role": "Sleepwell mattresses and Kurlon (bought 2023), plus PU foam for furniture and cars and a business in Australia",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "sleepwell",
+            "kurlon",
+            "sheela foam"
+          ],
+          "strengths": [
+            "Largest branded mattress maker with own foam production",
+            "Kurlon adds reach in the South"
+          ],
+          "risks": [
+            "Foam chemicals (polyol, TDI) priced off crude",
+            "Online-first brands (Wakefit) take share"
+          ],
+          "f": {
+            "ticker": "SFL"
+          }
+        },
+        "wakefit": {
+          "name": "Wakefit Innovations",
+          "listed": true,
+          "role": "Online-first mattress, pillow and furniture brand with its own factories and a growing store chain; listed 15 Dec 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "wakefit"
+          ],
+          "strengths": [
+            "Low prices from direct-to-consumer sales and in-house making",
+            "Adding stores to reach offline buyers"
+          ],
+          "risks": [
+            "Store rollout raises fixed costs",
+            "Competition from Sheela Foam and marketplaces"
+          ],
+          "f": {
+            "ticker": "WAKEFIT"
+          }
+        },
+        "nilkamal": {
+          "name": "Nilkamal",
+          "listed": true,
+          "role": "Plastic chairs and furniture, material-handling crates and pallets, Nilkamal mattresses and @home furniture stores",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "nilkamal"
+          ],
+          "strengths": [
+            "Household name in moulded furniture with wide dealer reach"
+          ],
+          "risks": [
+            "Polymer prices",
+            "Retail @home stores have thin margins"
+          ],
+          "f": {
+            "ticker": "NILKAMAL"
+          }
+        },
+        "pageind": {
+          "name": "Page Industries",
+          "listed": true,
+          "role": "Exclusive licensee of Jockey in India and nearby markets (and Speedo in India), making innerwear and athleisure in its own Karnataka factories and paying a royalty to Jockey International",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "jockey india",
+            "page industries"
+          ],
+          "strengths": [
+            "Dominant premium innerwear brand that holds price through cycles",
+            "Own manufacturing and very wide outlet reach"
+          ],
+          "risks": [
+            "Q2 FY27 profit rose only 4% as input costs climbed; volumes grew about 5.5%",
+            "Royalty and licence renewal with Jockey International",
+            "Value innerwear (Zudio, quick commerce) and new D2C brands"
+          ],
+          "f": {
+            "ticker": "PAGEIND"
+          }
+        },
+        "ablbl": {
+          "name": "Aditya Birla Lifestyle Brands",
+          "listed": true,
+          "role": "Louis Philippe, Van Heusen, Allen Solly and Peter England menswear plus American Eagle and Reebok in India; demerged from ABFRL and listed Jun 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "abl brands",
+            "louis philippe",
+            "van heusen",
+            "allen solly",
+            "peter england"
+          ],
+          "strengths": [
+            "Q2 FY27 revenue rose 11% to ₹2,266 Cr and profit more than doubled; 3,434 stores (31 Oct 2026)",
+            "Like-for-like 5.3% despite Diwali moving to Q3"
+          ],
+          "risks": [
+            "Office-wear demand and discounting",
+            "Emerging brands (American Eagle, Reebok) still low-margin"
+          ],
+          "f": {
+            "ticker": "ABLBL"
+          }
+        },
+        "abfrl": {
+          "name": "Aditya Birla Fashion and Retail",
+          "listed": true,
+          "role": "After the 2025 demerger: Pantaloons and Style Up stores, TCNS (W, Aurelia), Tasva and designer labels (Sabyasachi, Tarun Tahiliani, House of Masaba)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "abfrl",
+            "pantaloons",
+            "tcns",
+            "style up"
+          ],
+          "strengths": [
+            "Pantaloons is a large value-fashion chain; ethnic and designer labels add wedding exposure",
+            "Pantaloons grew about 6% in Q2 FY27"
+          ],
+          "risks": [
+            "Revenue grew only 2% and it lost ₹376 Cr in Q2 FY27",
+            "Debt and losses in newer brands",
+            "Value chains (Zudio) compete with Pantaloons"
+          ],
+          "f": {
+            "ticker": "ABFRL"
+          }
+        },
+        "arvindfasn": {
+          "name": "Arvind Fashions",
+          "listed": true,
+          "role": "Licensee and owner of US Polo Assn, Arrow, Flying Machine and Tommy Hilfiger and Calvin Klein in India (through a JV with PVH)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "arvind fashions",
+            "us polo assn"
+          ],
+          "strengths": [
+            "US Polo Assn is one of India's largest casualwear brands",
+            "Shift from wholesale to own stores and online"
+          ],
+          "risks": [
+            "Royalties to licensors and renewal risk",
+            "Discount-heavy categories"
+          ],
+          "f": {
+            "ticker": "ARVINDFASN"
+          }
+        },
+        "raymondlsl": {
+          "name": "Raymond Lifestyle",
+          "listed": true,
+          "role": "Raymond suiting fabric, The Raymond Shop stores and Park Avenue, ColorPlus and Parx brands, plus garment exports; demerged from Raymond in 2024",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "raymond lifestyle",
+            "park avenue",
+            "the raymond shop"
+          ],
+          "strengths": [
+            "Leader in suiting fabric for weddings",
+            "Large franchise store network in small towns"
+          ],
+          "risks": [
+            "Wedding-season dependence",
+            "Fabric demand shifting to ready-made"
+          ],
+          "f": {
+            "ticker": "RAYMONDLSL"
+          }
+        },
+        "gocolors": {
+          "name": "Go Fashion (India)",
+          "listed": true,
+          "role": "Go Colors women's bottom-wear (leggings, palazzos, jeggings) through its own stores and large-format chains",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "go colors",
+            "go fashion"
+          ],
+          "strengths": [
+            "Category creator in branded women's bottoms"
+          ],
+          "risks": [
+            "Narrow category; same-store growth has slowed"
+          ],
+          "f": {
+            "ticker": "GOCOLORS"
+          }
+        },
+        "kprmill": {
+          "name": "K.P.R. Mill",
+          "listed": true,
+          "role": "Tiruppur-region yarn, knitted fabric and garment exporter (also its FASO innerwear brand), with sugar and ethanol plants",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "kpr mill",
+            "faso"
+          ],
+          "strengths": [
+            "Fibre-to-garment integration with one of India's largest garment capacities",
+            "Q2 FY27 profit rose about 58% to ₹345 Cr as margins widened"
+          ],
+          "risks": [
+            "Part of Q2 FY27 margin came from cheap cotton inventory, which won't repeat",
+            "Export customers concentrated in a few global brands",
+            "Sugar and ethanol add policy risk"
+          ],
+          "f": {
+            "ticker": "KPRMILL"
+          }
+        },
+        "vtl": {
+          "name": "Vardhman Textiles",
+          "listed": true,
+          "role": "One of India's largest cotton-yarn spinners, with fabric, sewing thread and acrylic fibre, based in Punjab",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "vardhman"
+          ],
+          "strengths": [
+            "Q2 FY27 profit rose about 91% to ₹359 Cr as low-cost cotton was spun at higher yarn prices",
+            "Net cash and scale in yarn"
+          ],
+          "risks": [
+            "Yarn volumes flat; fabric weaker",
+            "Margins fall when cotton stocks are bought at current prices"
+          ],
+          "f": {
+            "ticker": "VTL"
+          }
+        },
+        "arvind": {
+          "name": "Arvind",
+          "listed": true,
+          "role": "Lalbhai group maker of denim, shirting and knits, garments for global brands and advanced materials (technical textiles)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "arvind ltd",
+            "arvind mills"
+          ],
+          "strengths": [
+            "Large denim and woven fabric capacity with garmenting",
+            "Technical textiles diversify income"
+          ],
+          "risks": [
+            "US tariff and order swings",
+            "Cotton and dye costs"
+          ],
+          "f": {
+            "ticker": "ARVIND"
+          }
+        },
+        "gokex": {
+          "name": "Gokaldas Exports",
+          "listed": true,
+          "role": "Bengaluru-based garment exporter for global brands, with plants in Kenya (Atraco) and India",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "gokaldas"
+          ],
+          "strengths": [
+            "One of India's largest apparel exporters",
+            "Kenya plants give duty-free access to the US under AGOA when in force"
+          ],
+          "risks": [
+            "Most sales go to US brands; tariffs set orders",
+            "Labour costs and productivity"
+          ],
+          "f": {
+            "ticker": "GOKEX"
+          }
+        },
+        "bata": {
+          "name": "Bata India",
+          "listed": true,
+          "role": "India's largest footwear retailer by stores (Bata, Hush Puppies, Power, North Star), selling through company and franchise stores",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "bata"
+          ],
+          "strengths": [
+            "Fourth straight quarter of growth: Q2 FY27 revenue rose 7.5% to ₹862 Cr",
+            "Brand trust and franchise expansion in small towns"
+          ],
+          "risks": [
+            "EBITDA margin fell to 16.7% in Q2 FY27 as the festive season shifted",
+            "Losing younger buyers to sneaker and online brands",
+            "Royalty to the Bata group"
+          ],
+          "f": {
+            "ticker": "BATAINDIA"
+          }
+        },
+        "metrobrand": {
+          "name": "Metro Brands",
+          "listed": true,
+          "role": "Premium footwear chain (Metro, Mochi, Walkway) that also runs Crocs, Fila and Foot Locker stores in India",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "metro shoes",
+            "mochi",
+            "foot locker india"
+          ],
+          "strengths": [
+            "Highest margins in Indian footwear retail",
+            "Foot Locker and Crocs add sneaker exposure"
+          ],
+          "risks": [
+            "Premium rentals in malls",
+            "Foot Locker rollout costs"
+          ],
+          "f": {
+            "ticker": "METROBRAND"
+          }
+        },
+        "relaxo": {
+          "name": "Relaxo Footwears",
+          "listed": true,
+          "role": "Mass-market rubber and EVA slippers and sports shoes (Sparx, Flite, Bahamas) sold through distributors in small towns",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "sparx",
+            "flite",
+            "relaxo"
+          ],
+          "strengths": [
+            "Largest maker by pairs with in-house manufacturing",
+            "Low-price leadership"
+          ],
+          "risks": [
+            "Volumes have stagnated as mass buyers trade down or up",
+            "Rubber and EVA prices"
+          ],
+          "f": {
+            "ticker": "RELAXO"
+          }
+        },
+        "campus": {
+          "name": "Campus Activewear",
+          "listed": true,
+          "role": "Sports and athleisure shoe brand priced mostly under ₹3,000, sold through dealers, its own stores and online",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "campus shoes"
+          ],
+          "strengths": [
+            "Leader in affordable sports shoes in small cities",
+            "Benefits from BIS rules curbing cheap imports"
+          ],
+          "risks": [
+            "Competition from online brands and global sportswear",
+            "Distributor credit"
+          ],
+          "f": {
+            "ticker": "CAMPUS"
+          }
+        },
+        "redtape": {
+          "name": "Redtape",
+          "listed": true,
+          "role": "Sneakers, casual shoes and apparel sold largely online and through its own stores; demerged from Mirza International",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "red tape"
+          ],
+          "strengths": [
+            "Fast-growing value sneaker brand online"
+          ],
+          "risks": [
+            "Heavy reliance on marketplaces",
+            "Fashion risk in sneakers"
+          ],
+          "f": {
+            "ticker": "REDTAPE"
+          }
+        },
+        "titan": {
+          "name": "Titan Company",
+          "listed": true,
+          "role": "Tata group's jewellery (Tanishq, Mia, Zoya, CaratLane), watches (Titan, Fastrack) and eyewear company, India's largest organised jeweller",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "tanishq",
+            "caratlane",
+            "titan"
+          ],
+          "strengths": [
+            "Q2 FY27 income rose 25% to ₹20,533 Cr; jewellery about 21%, watches about 30%; 3,758 stores",
+            "Most-trusted jewellery brand gaining share from family jewellers",
+            "Gold-exchange and saving schemes lock in buyers"
+          ],
+          "risks": [
+            "Q2 FY27 profit includes ₹536 Cr of one-time customs-duty gains; adjusted PBT rose 18%",
+            "High gold prices cut grams bought (buyer growth mid-single digit)",
+            "International expansion costs"
+          ],
+          "f": {
+            "ticker": "TITAN"
+          }
+        },
+        "kalyan": {
+          "name": "Kalyan Jewellers India",
+          "listed": true,
+          "role": "Kerala-born jewellery chain across India and the Gulf, expanding through franchise-owned showrooms, plus Candere online",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "kalyan jewellers",
+            "candere"
+          ],
+          "strengths": [
+            "Q2 FY27 revenue rose 31% to ₹10,323 Cr; India profit up 62%; targets 25% FY27 growth",
+            "Franchise model expands showrooms with partners' capital"
+          ],
+          "risks": [
+            "Q2 FY27 profit includes a ₹73 Cr exceptional gain",
+            "Thinner margins than Titan; unhedged gold exposure",
+            "Middle East business is slower"
+          ],
+          "f": {
+            "ticker": "KALYANKJIL"
+          }
+        },
+        "thangamayil": {
+          "name": "Thangamayil Jewellery",
+          "listed": true,
+          "role": "Madurai-based gold jewellery chain with about 66 showrooms in Tamil Nadu's smaller towns, now entering Chennai",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "thangamayil"
+          ],
+          "strengths": [
+            "Same-store sales rose about 36% in H1 FY27 on gold prices and exchange",
+            "Regional trust in a gold-heavy state"
+          ],
+          "risks": [
+            "Q2 FY27 revenue rose about 40% but profit was flat as margins fell about 1.5 points",
+            "Plain-gold mix gives thin making charges",
+            "Single-state concentration"
+          ],
+          "f": {
+            "ticker": "THANGAMAYL"
+          }
+        },
+        "senco": {
+          "name": "Senco Gold",
+          "listed": true,
+          "role": "Kolkata-based jewellery chain, the leader in East India, with own and franchise showrooms and lightweight Everlite and Gossip lines",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "senco gold",
+            "senco"
+          ],
+          "strengths": [
+            "Strong in East India and in lightweight jewellery for high gold prices"
+          ],
+          "risks": [
+            "Regional concentration",
+            "Gold-loan funding and hedging costs"
+          ],
+          "f": {
+            "ticker": "SENCO"
+          }
+        },
+        "pngjl": {
+          "name": "P N Gadgil Jewellers",
+          "listed": true,
+          "role": "Pune-based jewellery chain across Maharashtra and Goa with a US store; listed Sep 2024",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "png jewellers",
+            "pn gadgil"
+          ],
+          "strengths": [
+            "Strong regional brand with franchise-led growth"
+          ],
+          "risks": [
+            "Bullion-trading revenue inflates sales with little margin",
+            "Maharashtra concentration"
+          ],
+          "f": {
+            "ticker": "PNGJL"
+          }
+        },
+        "bluestone": {
+          "name": "BlueStone Jewellery and Lifestyle",
+          "listed": true,
+          "role": "Online-first diamond and gold jewellery brand with its own manufacturing and a growing store chain; listed Aug 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "bluestone"
+          ],
+          "strengths": [
+            "Design-led studded jewellery with higher making margins"
+          ],
+          "risks": [
+            "Loss-making while adding stores",
+            "Lab-grown diamonds and Titan's CaratLane compete"
+          ],
+          "f": {
+            "ticker": "BLUESTONE"
+          }
+        },
+        "ethos": {
+          "name": "Ethos",
+          "listed": true,
+          "role": "India's largest luxury and premium watch retailer for Swiss brands, with a certified pre-owned business; promoted by KDDL",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "ethos watches"
+          ],
+          "strengths": [
+            "Dealer for most Swiss brands with prime mall stores",
+            "Pre-owned watches add a second revenue stream"
+          ],
+          "risks": [
+            "Brands can move to direct retail",
+            "High inventory per store"
+          ],
+          "f": {
+            "ticker": "ETHOSLTD"
+          }
+        },
+        "trent": {
+          "name": "Trent",
+          "listed": true,
+          "role": "Tata group's fashion retailer - Zudio (value), Westside (own-label department stores) and Star (grocery), plus a Zara JV with Inditex",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "zudio",
+            "westside",
+            "trent"
+          ],
+          "strengths": [
+            "Q2 FY27 standalone revenue rose 22.5% to ₹5,788 Cr; Zudio opened its 1,000th store",
+            "Own labels and weekly drops keep prices low and margins high (operating EBIT margin 11.6% in Q2 FY27)"
+          ],
+          "risks": [
+            "Same-store growth has slowed as Zudio matures",
+            "Value rivals (Vishal, Reliance's Yousta) copy the format"
+          ],
+          "f": {
+            "ticker": "TRENT"
+          }
+        },
+        "vmm": {
+          "name": "Vishal Mega Mart",
+          "listed": true,
+          "role": "Value hypermarket chain for clothes, home goods and groceries in tier-2 to tier-4 towns, mostly under its own labels; listed 18 Dec 2024",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "vishal mega mart",
+            "vishal"
+          ],
+          "strengths": [
+            "844 stores in 582 cities (30 Sep 2026); own brands about 72.5% of product sales",
+            "Q2 FY27 revenue rose 14% to ₹3,399 Cr"
+          ],
+          "risks": [
+            "Reported Q2 FY27 same-store growth slowed to 5.4% (about 9% adjusted for Diwali)",
+            "Profit grew only about 4% in Q2 FY27",
+            "DMart, Reliance and quick commerce compete in groceries"
+          ],
+          "f": {
+            "ticker": "VMM"
+          }
+        },
+        "dmart": {
+          "name": "Avenue Supermarts (DMart)",
+          "listed": true,
+          "role": "Grocery-led hypermarket chain whose general merchandise and apparel aisles compete directly with value fashion and home-goods chains",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "dmart"
+          ],
+          "strengths": [
+            "Lowest-cost store model in Indian retail; owns most of its stores"
+          ],
+          "risks": [
+            "Apparel is a small share of its sales"
+          ],
+          "f": {
+            "ticker": "DMART"
+          }
+        },
+        "vmart": {
+          "name": "V-Mart Retail",
+          "listed": true,
+          "role": "Value fashion chain in tier-2 and tier-3 towns of North and East India, plus Unlimited stores in the South",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "v-mart",
+            "vmart"
+          ],
+          "strengths": [
+            "Deep small-town footprint in UP and Bihar"
+          ],
+          "risks": [
+            "Rural and small-town spending swings",
+            "Competition from Zudio and Vishal"
+          ],
+          "f": {
+            "ticker": "VMART"
+          }
+        },
+        "shoppersstop": {
+          "name": "Shoppers Stop",
+          "listed": true,
+          "role": "K Raheja Corp department-store chain selling third-party and own brands, plus Intune value fashion stores and beauty stores",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "shoppers stop",
+            "intune"
+          ],
+          "strengths": [
+            "Loyalty base among metro department-store shoppers",
+            "Intune targets the value segment"
+          ],
+          "risks": [
+            "Department-store footfalls shifting to value chains and online",
+            "Lease costs"
+          ],
+          "f": {
+            "ticker": "SHOPERSTOP"
+          }
+        },
+        "relianceRetail": {
+          "name": "Reliance Retail",
+          "listed": false,
+          "role": "India's largest retailer: Trends, Yousta and Azorte fashion, Reliance Digital electronics, Smart Bazaar grocery, Ajio and Tira",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Largest store network across fashion, electronics and grocery"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Subsidiary of Reliance Industries (RELIANCE)",
+            "No listed market data"
+          ]
+        },
+        "jubilant": {
+          "name": "Jubilant FoodWorks",
+          "listed": true,
+          "role": "Master franchisee of Domino's Pizza in India, Sri Lanka and Bangladesh and owner of Domino's Turkey, plus Popeyes and Hong's Kitchen",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "domino's india",
+            "jubilant foodworks",
+            "popeyes india"
+          ],
+          "strengths": [
+            "Domino's India like-for-like up 4.1% and delivery up 11.3% in Q2 FY27; 2,601 Domino's stores",
+            "Own app keeps most delivery off aggregator commissions"
+          ],
+          "risks": [
+            "Royalty to Domino's Pizza Inc. and renewal terms",
+            "Cheese and wheat costs",
+            "Turkey's inflation weighs on group results (Eurasia LFL -2.1%)"
+          ],
+          "f": {
+            "ticker": "JUBLFOOD"
+          }
+        },
+        "devyani": {
+          "name": "Devyani International",
+          "listed": true,
+          "role": "Yum's largest franchisee in India - KFC, Pizza Hut and Costa Coffee - plus Biryani By Kilo and stores in Thailand and Nigeria; merging Sapphire Foods into itself",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "devyani",
+            "kfc india",
+            "pizza hut india"
+          ],
+          "strengths": [
+            "Q2 FY27 revenue rose 10.4% to ₹1,519 Cr; added 70 stores",
+            "CCI cleared the Sapphire merger (Nov 2026), creating one operator with nearly 3,000 stores"
+          ],
+          "risks": [
+            "Pizza Hut same-store sales still weak",
+            "Merger integration and Yum's revised franchise terms",
+            "Profit is thin at current same-store growth"
+          ],
+          "f": {
+            "ticker": "DEVYANI"
+          }
+        },
+        "sapphire": {
+          "name": "Sapphire Foods India",
+          "listed": true,
+          "role": "Yum franchisee running KFC and Pizza Hut in South and West India and in Sri Lanka; to merge into Devyani (177 Devyani shares per 100)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "sapphire foods"
+          ],
+          "strengths": [
+            "Strong KFC network in the South and Sri Lanka"
+          ],
+          "risks": [
+            "Stock will be swapped into Devyani once the merger completes",
+            "Pizza Hut losses"
+          ],
+          "f": {
+            "ticker": "SAPPHIRE"
+          }
+        },
+        "westlife": {
+          "name": "Westlife Foodworld",
+          "listed": true,
+          "role": "McDonald's franchisee for West and South India, running restaurants, McCafé and drive-throughs",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "mcdonald's india",
+            "westlife"
+          ],
+          "strengths": [
+            "Same-store sales rose 10.1% in Q2 FY27, the best in 13 quarters, with double-digit guest growth; revenue up 16% to ₹747 Cr"
+          ],
+          "risks": [
+            "Profit thin after expansion and depreciation (small loss reported in Q2 FY27)",
+            "Royalty to McDonald's",
+            "Chicken and dairy costs"
+          ],
+          "f": {
+            "ticker": "WESTLIFE"
+          }
+        },
+        "rba": {
+          "name": "Restaurant Brands Asia",
+          "listed": true,
+          "role": "Burger King franchisee for India, with BK Café, plus a Burger King business in Indonesia",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "burger king india"
+          ],
+          "strengths": [
+            "Value-led burger menu growing in small cities"
+          ],
+          "risks": [
+            "Still loss-making at the group level",
+            "Royalty and development commitments to Burger King"
+          ],
+          "f": {
+            "ticker": "RBA"
+          }
+        },
+        "eternal": {
+          "name": "Eternal (Zomato, Blinkit)",
+          "listed": true,
+          "role": "Food-delivery platform (Zomato) through which restaurant chains reach customers for a commission; District sells cinema tickets",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "zomato",
+            "district"
+          ],
+          "strengths": [
+            "Largest food-delivery reach for QSR chains"
+          ],
+          "risks": [
+            "Commissions squeeze chains' delivery margins"
+          ],
+          "f": {
+            "ticker": "ETERNAL"
+          }
+        },
+        "swiggy": {
+          "name": "Swiggy",
+          "listed": true,
+          "role": "No. 2 food-delivery app used by QSR chains, plus Dineout restaurant bookings",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "swiggy"
+          ],
+          "strengths": [
+            "Second channel for chains' delivery orders"
+          ],
+          "risks": [
+            "Commission rates and discount funding"
+          ],
+          "f": {
+            "ticker": "SWIGGY"
+          }
+        },
+        "unitedspirits": {
+          "name": "United Spirits",
+          "listed": true,
+          "role": "Diageo's Indian arm and the largest spirits maker - McDowell's, Royal Challenge, Signature, Black Dog, Smirnoff and imported Johnnie Walker",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "diageo india",
+            "mcdowell's",
+            "usl"
+          ],
+          "strengths": [
+            "Prestige-and-above now about 94% of sales value; grew about 6% in Q2 FY27",
+            "Imported Scotch (Johnnie Walker) gains from the UK FTA duty cut"
+          ],
+          "risks": [
+            "Mass 'popular' brands fell about 23% in Q2 FY27 on Maharashtra and Karnataka policy",
+            "Standalone profit slipped about 2% in Q2 FY27 on higher advertising",
+            "State pricing approvals"
+          ],
+          "f": {
+            "ticker": "UNITDSPR"
+          }
+        },
+        "ubl": {
+          "name": "United Breweries",
+          "listed": true,
+          "role": "India's largest brewer (Kingfisher, Heineken, Amstel), controlled by Heineken",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "kingfisher beer",
+            "heineken india",
+            "united breweries"
+          ],
+          "strengths": [
+            "Q2 FY27 volumes rose 16%, premium 38%; Heineken Silver up 67%, Kingfisher Ultra 44%",
+            "Profit nearly tripled to about ₹136 Cr on a weak base"
+          ],
+          "risks": [
+            "Beer is weather-sensitive and taxed differently by each state",
+            "Receivable delays from state corporations",
+            "Barley and glass costs"
+          ],
+          "f": {
+            "ticker": "UBL"
+          }
+        },
+        "radico": {
+          "name": "Radico Khaitan",
+          "listed": true,
+          "role": "Maker of Magic Moments vodka (India's largest), 8PM and premium whiskies (Rampur single malt, Royal Ranthambore, Jaisalmer gin), with its own grain distilleries",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "radico",
+            "magic moments",
+            "rampur"
+          ],
+          "strengths": [
+            "Prestige volumes rose 36% to a record 5.28 million cases in Q2 FY27; profit up 66%",
+            "Own malt and grain distilling gives cost control"
+          ],
+          "risks": [
+            "Packaging cost hit of about ₹27 Cr in Q2 FY27",
+            "Maharashtra excise changes",
+            "Grain prices linked to ethanol demand"
+          ],
+          "f": {
+            "ticker": "RADICO"
+          }
+        },
+        "abdl": {
+          "name": "Allied Blenders and Distillers",
+          "listed": true,
+          "role": "Maker of Officer's Choice whisky (mass), Sterling Reserve and ICONiQ White (premium); listed 2 Jul 2024",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "officer's choice",
+            "allied blenders"
+          ],
+          "strengths": [
+            "Record 10 million cases in Q2 FY27; revenue up 15.8%",
+            "ICONiQ White grew 20.6% to 3.2 million cases"
+          ],
+          "risks": [
+            "Officer's Choice Blue only just stopped declining",
+            "Mass whisky most exposed to state excise hikes"
+          ],
+          "f": {
+            "ticker": "ABDL"
+          }
+        },
+        "tilaknagar": {
+          "name": "Tilaknagar Industries",
+          "listed": true,
+          "role": "Mansion House brandy maker that bought Pernod Ricard's Imperial Blue whisky (completed 1 Dec 2025), becoming a national IMFL player",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "tilaknagar",
+            "mansion house",
+            "imperial blue"
+          ],
+          "strengths": [
+            "Leads brandy in the South; Imperial Blue adds one of India's largest whisky brands"
+          ],
+          "risks": [
+            "Debt and integration after the ₹3,442 Cr Imperial Blue deal",
+            "Brandy concentrated in a few southern states"
+          ],
+          "f": {
+            "ticker": "TI"
+          }
+        },
+        "globusspr": {
+          "name": "Globus Spirits",
+          "listed": true,
+          "role": "Grain-based extra-neutral alcohol maker in Rajasthan, Haryana, West Bengal and Bihar, with country liquor and its own IMFL brands",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "globus spirits"
+          ],
+          "strengths": [
+            "Supplies grain spirit to other brands and its own country liquor"
+          ],
+          "risks": [
+            "Grain prices; ethanol demand for fuel competes for supply",
+            "Small brand portfolio"
+          ],
+          "f": {
+            "ticker": "GLOBUSSPR"
+          }
+        },
+        "sdbl": {
+          "name": "Som Distilleries & Breweries",
+          "listed": true,
+          "role": "Madhya Pradesh-based beer (Hunter, Woodpecker, Black Fort) and spirits maker selling mainly in Central and South India",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "som distilleries"
+          ],
+          "strengths": [
+            "Fast-growing strong-beer brands in Karnataka and MP"
+          ],
+          "risks": [
+            "State policy concentration",
+            "Past regulatory issues"
+          ],
+          "f": {
+            "ticker": "SDBL"
+          }
+        },
+        "sula": {
+          "name": "Sula Vineyards",
+          "listed": true,
+          "role": "India's largest winemaker (Nashik), with wine tourism; wine was spared Maharashtra's 2025 excise hike",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "sula"
+          ],
+          "strengths": [
+            "Dominant share of Indian wine and own vineyards"
+          ],
+          "risks": [
+            "Wine is a small, slow-growing category",
+            "Imported wine may get cheaper under trade deals"
+          ],
+          "f": {
+            "ticker": "SULA"
+          }
+        },
+        "pernodIndia": {
+          "name": "Pernod Ricard India",
+          "listed": false,
+          "role": "No. 2 spirits company: Royal Stag, Blenders Pride, 100 Pipers, Chivas Regal and Jameson; sold Imperial Blue to Tilaknagar in 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Royal Stag and Blenders Pride lead in premium whisky"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Subsidiary of Pernod Ricard SA (France)",
+            "No listed market data"
+          ]
+        },
+        "pvrinox": {
+          "name": "PVR INOX",
+          "listed": true,
+          "role": "India's largest multiplex chain after the 2023 PVR-INOX merger, earning on tickets, food and beverages and screen ads",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "pvr",
+            "inox",
+            "pvr inox"
+          ],
+          "strengths": [
+            "Q2 FY27 average ticket price and food spend per head each rose about 14%, footfalls about 4% (reported)",
+            "Asset-light screens with mall developers"
+          ],
+          "risks": [
+            "Depends on a steady film slate",
+            "Streaming windows and rents",
+            "Debt from the merger years"
+          ],
+          "f": {
+            "ticker": "PVRINOX"
+          }
+        },
+        "cinepolis": {
+          "name": "Cinépolis India",
+          "listed": false,
+          "role": "Mexican chain's Indian multiplex arm, India's No. 3 cinema operator",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Premium formats and mall partnerships"
+          ],
+          "risks": [
+            "Unlisted"
+          ],
+          "notes": [
+            "Subsidiary of Cinépolis (Mexico)",
+            "No listed market data"
+          ]
+        },
+        "wonderla": {
+          "name": "Wonderla Holidays",
+          "listed": true,
+          "role": "Amusement and water parks in Kochi, Bengaluru, Hyderabad, Bhubaneswar and Chennai, earning on entry tickets plus food and merchandise",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "wonderla"
+          ],
+          "strengths": [
+            "Owns its parks; high food and merchandise spend per visitor"
+          ],
+          "risks": [
+            "Footfalls fall in heavy-rain quarters",
+            "New parks take years to fill"
+          ],
+          "f": {
+            "ticker": "WONDERLA"
+          }
+        },
+        "imagicaa": {
+          "name": "Imagicaaworld Entertainment",
+          "listed": true,
+          "role": "Imagica theme, water and snow parks at Khopoli near Mumbai plus Wet'n Joy parks in Lonavala and Shirdi",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "imagica",
+            "imagicaa"
+          ],
+          "strengths": [
+            "Largest theme park near Mumbai and Pune"
+          ],
+          "risks": [
+            "Seasonal footfalls",
+            "Expansion funding"
+          ],
+          "f": {
+            "ticker": "IMAGICAA"
+          }
+        },
+        "phoenix": {
+          "name": "The Phoenix Mills",
+          "listed": true,
+          "role": "Mall owner (Palladium, Phoenix Marketcity) whose tenants include PVR INOX screens, food courts and the store chains here",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "phoenix mills",
+            "phoenix marketcity"
+          ],
+          "strengths": [
+            "Retailer sales in its malls are a read on premium spending"
+          ],
+          "risks": [
+            "Earns rent, not retail margin"
+          ],
+          "f": {
+            "ticker": "PHOENIXLTD"
           }
         }
       }

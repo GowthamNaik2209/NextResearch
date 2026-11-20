@@ -175,7 +175,7 @@ const chemicals = {
   keyRisks:["Global overcapacity from China's new crackers", "Feedstock cost spikes", "Margin collapse when supply returns", "Plastics regulations"],
   investorMetrics:["Polymer and PVC spreads over naphtha and ethylene", "Capacity utilisation", "Import share of Indian demand", "New capacity timelines"],
   relatedComponents:["feedstock","chlor_alkali","intermediates","consumer_specialty"],
-  suppliers:[is("reliance","medium"), op("haldia"), op("chemplast"), op("supremePetro"), op("igPetro"), op("thirumalai"), is("gail","medium")]},
+  suppliers:[is("reliance","medium"), op("haldia"), op("chemplast"), op("supremePetro"), op("igPetro"), op("thirumalai"), is("gail","medium"), op("ioc","medium")]},
 
  {id:"explosives", color:"#D96C2B", label:"Industrial explosives & nitrates", layer:2, pos:A.explosives.pos, side:A.explosives.side, desc:"Ammonium nitrate and industrial explosives for mining and infrastructure (Deepak Fertilisers, Solar Industries).",
   domainId:"commodity", displayOrder:11, dataStatus:"demo",

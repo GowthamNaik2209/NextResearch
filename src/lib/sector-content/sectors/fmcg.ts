@@ -18,7 +18,7 @@ const is = link("indirect_supplier");
 
 const fmcg = {
  id: "fmcg", icon: "FM", name: "FMCG",
- muted: true,
+
  basketCoreOnly: true,
  tagline: "Food, drinks, personal and home care, tobacco and the farm-to-kirana chain behind them",
  headerTitle: "FMCG ANATOMY",
@@ -67,7 +67,7 @@ const fmcg = {
   keyRisks:["Inventory losses when a duty cut or palm price fall lowers selling prices before costly stock clears", "US tariffs on rice and Gulf shipping disruption for basmati", "Stock limits or export bans on rice and pulses in inflationary years", "Adulteration cases and food-safety actions on oil and ghee"],
   investorMetrics:["Edible-oil volume and EBITDA per tonne", "Share of food and FMCG (non-oil) revenue", "Basmati realisation per tonne and inventory days", "Landed palm cost vs the domestic refined-oil price", "Working capital days"],
   relatedComponents:["foods","sugar","packaging","distribution"],
-  suppliers:[op("awl"), op("patanjali"), op("ltFoods"), op("krbl"), op("gokulAgro","medium"), op("tataconsum","medium")]},
+  suppliers:[op("awl"), op("patanjali"), op("ltFoods"), op("krbl"), op("gokulAgro","medium"), op("tataconsum","medium"), op("itc","medium"), op("marico","low")]},
 
  {id:"sugar", color:"#1E9E76", label:"Sugar, ethanol & sweeteners", layer:0, pos:A.sugar.pos, side:A.sugar.side, desc:"Cane mills that sell sugar to food and drink makers and turn molasses and juice into ethanol and alcohol (Balrampur Chini, EID Parry, Triveni, Dhampur).",
   domainId:"farm", displayOrder:2, dataStatus:"demo",
@@ -79,7 +79,7 @@ const fmcg = {
   keyRisks:["State cane price rising faster than sugar prices", "Distillery capacity idle under diversion curbs", "Imports capping domestic sugar prices", "More borrowing to carry sugar stocks (Crisil sees interest cover falling)"],
   investorMetrics:["Cane crushed and recovery rate", "Sugar realisation per kg vs cane cost", "Ethanol volume and feedstock mix (juice, B-heavy, C-heavy, grain)", "Distillery and cogeneration profit", "Inventory and working-capital debt"],
   relatedComponents:["foods","beverages","staples"],
-  suppliers:[op("balrampur"), op("eidParry"), op("triveni"), op("dhampur"), op("bajajHind","medium")]},
+  suppliers:[op("balrampur"), op("eidParry"), op("triveni"), op("dhampur"), op("bajajHind","medium"), op("dcmShriram","low")]},
 
  {id:"dairy_protein", color:"#1E9E76", label:"Dairy, poultry & seafood", layer:0, pos:A.dairy_protein.pos, side:A.dairy_protein.side, desc:"Private dairies, the Amul cooperative, and poultry and shrimp-feed makers (Hatsun, Heritage, Parag, Dodla, Avanti Feeds, Venky's, Godrej Agrovet).",
   domainId:"farm", displayOrder:3, dataStatus:"demo",
@@ -115,7 +115,7 @@ const fmcg = {
   keyRisks:["A ₹10 price war led by Campa Cola", "A cool, rainy summer", "Sugar-tax or front-of-pack labelling rules", "Packaging cost spikes from crude"],
   investorMetrics:["Unit-case volume by quarter", "Gross margin per case", "Visi-coolers and outlets served", "Tea and coffee realisation vs leaf and bean cost"],
   relatedComponents:["sugar","dairy_protein","packaging","distribution"],
-  suppliers:[op("vbl"), op("tataconsum"), op("ccl"), op("hccb"), ee("relConsumer")]},
+  suppliers:[op("vbl"), op("tataconsum"), op("ccl"), op("hccb"), ee("relConsumer"), op("hindunilvr","medium"), op("nestleind","medium"), op("dabur","low")]},
 
  {id:"tobacco", color:"#D96C2B", label:"Cigarettes & tobacco", layer:1, pos:A.tobacco.pos, side:A.tobacco.side, desc:"Cigarette makers buying auctioned leaf and selling through paan shops and kiranas (ITC, Godfrey Phillips, VST Industries).",
   domainId:"food", displayOrder:6, dataStatus:"demo",
@@ -151,7 +151,7 @@ const fmcg = {
   keyRisks:["Cheap D2C launches crowding each category", "A cool summer or long monsoon hitting seasonal brands", "Royalty and transfer-pricing changes at MNC subsidiaries", "Tender-driven swings at Cupid"],
   investorMetrics:["Volume growth and offline outlet reach", "Gross margin vs advertising spend", "Online share of sales", "Summer portfolio growth"],
   relatedComponents:["majors","ingredients","packaging","distribution"],
-  suppliers:[op("gillette"), op("emami"), op("honasa"), op("cupid"), op("pghh"), op("bajajCon"), op("loreal"), en("nykaa","low")]},
+  suppliers:[op("gillette"), op("emami"), op("honasa"), op("cupid"), op("pghh"), op("bajajCon"), op("loreal"), en("nykaa","low"), op("hindunilvr","medium"), op("colpal","medium"), op("dabur","medium"), op("marico","medium"), op("godrejcp","medium")]},
 
  {id:"home_care", color:"#2E86AB", label:"Home care, hygiene & stationery", layer:2, pos:A.home_care.pos, side:A.home_care.side, desc:"Detergents, dishwash, cleaners, mosquito repellents, sanitary pads and school stationery (Jyothy Labs, DOMS, Flair, Reckitt, HUL, Godrej Consumer).",
   domainId:"hpc", displayOrder:9, dataStatus:"demo",
@@ -175,7 +175,7 @@ const fmcg = {
   keyRisks:["Loss of one large customer contract", "Global houses undercutting on price", "Raw-material spikes passed through with a lag", "Cocoa prices falling back"],
   investorMetrics:["Revenue from top customers", "New contracts and plant utilisation", "Gross margin per kg", "Volume growth vs FMCG volume growth"],
   relatedComponents:["majors","personal_care","home_care","foods","packaging"],
-  suppliers:[op("hndfds"), ds("shKelkar"), ds("galaxy","medium"), ds("manorama","medium")]},
+  suppliers:[op("hndfds"), ds("shKelkar"), ds("galaxy","medium"), ds("manorama","medium"), ds("fineOrganic","medium"), ds("privi","low")]},
 
  {id:"packaging", color:"#3D5A80", label:"Packs, tubes, bottles & labels", layer:3, pos:A.packaging.pos, side:A.packaging.side, desc:"Laminated tubes, flexible films and sachets, glass bottles, cartons and plastic pails (EPL, UFLEX, Huhtamaki India, AGI Greenpac, TCPL, Mold-Tek).",
   domainId:"shelf", displayOrder:11, dataStatus:"demo",
@@ -199,7 +199,7 @@ const fmcg = {
   keyRisks:["Distributors quitting metro territories", "Deep discounting by apps", "Kirana closures in big cities", "Competition-law action on predatory pricing"],
   investorMetrics:["Channel mix (general trade, modern trade, e-commerce, quick commerce)", "Direct-reach outlets", "Distributor returns and churn", "Trade spend as a share of sales"],
   relatedComponents:["majors","foods","beverages","personal_care","home_care","staples"],
-  suppliers:[en("dmart","medium"), en("relRetail","medium"), en("eternal","low"), en("swiggy","low"), en("zepto","low"), en("udaan","low"), en("jumbotail","low")]},
+  suppliers:[en("dmart","medium"), en("relRetail","medium"), en("eternal","low"), en("swiggy","low"), en("zepto","low"), en("udaan","low"), en("jumbotail","low"), en("vmm","low")]},
  ],
  suppliers: {
  // --- Edible oils, rice & staples ---
@@ -216,6 +216,7 @@ const fmcg = {
  triveni: {name:"Triveni Engineering & Industries", listed:true, role:"Uttar Pradesh sugar miller with cane and grain distilleries and an engineering business (power-transmission gears, water treatment)", dataStatus:"demo", sourceDate:D, strengths:["Grain-based distilling keeps plants running when cane diversion is curbed", "Engineering adds non-sugar earnings"], risks:["Ethanol pricing and diversion curbs", "Uttar Pradesh cane costs"], f:co("TRIVENI","Engineering is a minority of revenue")},
  dhampur: {name:"Dhampur Sugar Mills", listed:true, role:"Western Uttar Pradesh sugar miller with distillery and ethanol capacity (split from Dhampur Bio Organics in 2022)", dataStatus:"demo", sourceDate:D, strengths:["High-recovery cane area in western Uttar Pradesh"], risks:["Distillery capacity idle under 2026-27 diversion curbs", "State cane price"], f:co("DHAMPURSUG")},
  bajajHind: {name:"Bajaj Hindusthan Sugar", listed:true, role:"One of India's largest sugar makers by capacity, with fourteen mills in Uttar Pradesh and distilleries", dataStatus:"demo", sourceDate:D, strengths:["Large cane catchment in Uttar Pradesh"], risks:["Long history of heavy debt and restructuring", "Older mills with lower recovery"], f:co("BAJAJHIND")},
+ dcmShriram: {name:"DCM Shriram", listed:true, role:"Chlor-alkali and PVC maker that also runs a sugar and ethanol division, about a fifth of its sales, selling sugar to food and drink makers", dataStatus:"demo", sourceDate:D, strengths:["Sugar, ethanol and cogeneration add a second earnings stream to the chemical business", "Diversified across chemicals, sugar, fertiliser and seeds"], risks:["Sugar is a minority of sales, so it moves less with cane prices than the pure sugar mills", "Ethanol diversion for 2026-27 is lower, which trims the sugar-ethanol margin"], f:co("DCMSHRIRAM","Sugar and ethanol are about a fifth of sales; chlor-vinyl is the largest segment")},
 
  // --- Dairy, poultry & seafood ---
  hatsun: {name:"Hatsun Agro Product", listed:true, role:"India's largest private dairy (Arun ice cream, Arokya and Hatsun milk, Ibaco parlours), buying milk directly from farmers across south India", dataStatus:"demo", sourceDate:D, strengths:["Direct farmer procurement without middlemen", "Ice cream and curd lift the value-added share"], risks:["Procurement costs in the lean summer months", "South-only footprint"], f:co("HATSUN")},
@@ -276,6 +277,8 @@ const fmcg = {
  shKelkar: {name:"S H Kelkar and Company", listed:true, role:"Largest Indian fragrance and flavour house (Keva) supplying soap, detergent, agarbatti and food makers", dataStatus:"demo", sourceDate:D, strengths:["Fragrances written into FMCG formulas", "Own aroma-chemical plants"], risks:["Global fragrance houses compete for the same briefs", "European operations add risk"], f:co("SHK")},
  galaxy: {name:"Galaxy Surfactants", listed:true, role:"Surfactants and care ingredients for shampoos, soaps, body washes and toothpastes, sold to HUL, P&G, Colgate and global FMCG makers", dataStatus:"demo", sourceDate:D, strengths:["Long-standing FMCG customer approvals", "Plants in India, Egypt and the US"], risks:["Fatty alcohol and ethylene oxide costs", "Customer concentration"], f:co("GALAXYSURF")},
  manorama: {name:"Manorama Industries", listed:true, role:"Raipur maker of cocoa butter equivalents and specialty fats from sal and shea seeds for chocolate and confectionery makers", dataStatus:"demo", sourceDate:D, strengths:["Cheaper substitute for cocoa butter while cocoa is costly", "Sal-seed collection network in central India"], risks:["Cocoa prices falling back", "Seed supply depends on forest collection"], f:co("MANORAMA")},
+ fineOrganic: {name:"Fine Organic Industries", listed:true, role:"Oleochemical maker whose emulsifiers and food additives go into bakery, snack, ice-cream and dairy products made by the brands above", dataStatus:"demo", sourceDate:D, strengths:["Food emulsifiers sit in recipes that makers rarely reformulate", "Net cash"], risks:["Food and cosmetic additives are one segment beside plastics and paints", "Vegetable oil price swings reach its costs"], f:co("FINEORG","Food additives are one segment; plastics and cosmetics are the rest")},
+ privi: {name:"Privi Speciality Chemicals", listed:true, role:"Aroma chemicals made from turpentine feedstock and sold to the fragrance houses that supply soap and detergent makers", dataStatus:"demo", sourceDate:D, strengths:["Large aroma-chemical range with global fragrance-house customers"], risks:["Sells to fragrance houses, not to FMCG brands directly, so the link is two steps removed", "Turpentine price swings and expansion debt"], f:co("PRIVISCL","Indirect: aroma chemicals reach FMCG through fragrance houses")},
 
  // --- Packaging ---
  epl: {name:"EPL", listed:true, role:"World's largest laminated-tube maker for toothpaste and cosmetics, with plants in India, China, Europe and the Americas", dataStatus:"demo", sourceDate:D, strengths:["Long contracts with Colgate, HUL and P&G", "Recyclable Platina tubes"], risks:["Polymer and foil costs", "Few large customers"], f:co("EPL")},
@@ -293,6 +296,7 @@ const fmcg = {
  zepto: {name:"Zepto", listed:false, role:"Unlisted quick-commerce app and a growing FMCG sales channel in big cities", dataStatus:"demo", sourceDate:D, strengths:["Large dark-store network"], risks:["Unlisted"], notes:["Privately held","No listed market data"]},
  udaan: {name:"Udaan", listed:false, role:"B2B app supplying kiranas with FMCG packs on credit", dataStatus:"demo", sourceDate:D, strengths:["Reaches small shops brands don't cover"], risks:["Unlisted"], notes:["Privately held","No listed market data"]},
  jumbotail: {name:"Jumbotail", listed:false, role:"B2B grocery marketplace and wholesaler for kiranas", dataStatus:"demo", sourceDate:D, strengths:["Wholesale and credit for small shops"], risks:["Unlisted"], notes:["Privately held","No listed market data"]},
+ vmm: {name:"Vishal Mega Mart", listed:true, role:"Value hypermarket chain in tier-2 to tier-4 towns that sells groceries and FMCG packs next to apparel and home goods, mostly under its own labels", dataStatus:"demo", sourceDate:D, aka:["vishal mega mart","vishal"], strengths:["844 stores in 582 cities (30 Sep 2026) give brands a small-town shelf outside the metros", "Q2 FY27 revenue rose 14% to ₹3,399 Cr"], risks:["Apparel and general merchandise, not FMCG, drive most of its sales", "Own labels compete with the brands on its shelves", "Profit grew only about 4% in Q2 FY27"], f:co("VMM","Exposure here is grocery and FMCG sales; apparel is covered in Retail & Consumer Brands")},
  },
  build: function(ctx: Parameters<typeof buildFmcg>[0]){ return buildFmcg(ctx, this); },
 };
