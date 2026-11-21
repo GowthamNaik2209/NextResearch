@@ -181,6 +181,7 @@ export function missingRatioReason(f: SupplierFinancials | undefined, which: "pe
   const book = f?.kpi?.[1];
   if (which === "roe" && fin(book) && book <= 0) return "Negative equity";
   if (i >= 0 && np[i]! <= 0) return `Loss in FY${String(FISCAL_YEARS[i] ?? FISCAL_YEARS[0] + i).slice(-2)}`;
+  if (which === "pe" && f?.peNote) return f.peNote;
   return which === "pe" ? "No trailing P/E on Screener" : "None on Screener";
 }
 

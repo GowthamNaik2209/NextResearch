@@ -49,7 +49,9 @@ export async function GET() {
     out.push(
       s.category === "index"
         ? `- [${s.name} basket](${SITE_URL}/baskets/industry/${s.slug}): today's ${s.name} stocks as one basket, held over the period and compared with the index itself.`
-        : `- [${s.name} basket](${SITE_URL}/baskets/industry/${s.slug}): all ${sectorCompanyCounts(s).listed} listed ${s.name} stocks as one basket, backtested against the Nifty 50.`,
+        : s.basketCoreOnly
+          ? `- [${s.name} basket](${SITE_URL}/baskets/industry/${s.slug}): the core listed ${s.name} companies as one basket (side links on the map left out), backtested against the Nifty 50.`
+          : `- [${s.name} basket](${SITE_URL}/baskets/industry/${s.slug}): all ${sectorCompanyCounts(s).listed} listed ${s.name} stocks as one basket, backtested against the Nifty 50.`,
     );
   out.push("", "## Rule-based baskets (re-ranked daily)", "");
   for (const i of ideaCatalog()) out.push(`- [${i.title}](${SITE_URL}/baskets/ideas/${i.id}): ${sentence(i.blurb)}`);

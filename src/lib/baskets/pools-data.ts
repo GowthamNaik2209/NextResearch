@@ -42,6 +42,10 @@ export function industryPools(slug: string): IndustryPools | null {
   let asOf = "";
   // Every company on the map: the basket's, then (basketCoreOnly) its side links, flagged below.
   const sideOnly = new Set(basket.sideStocks.map((s) => s.ticker));
+  // Of those, the ones linked here only as a supplier or enabler (the rest are small operators).
+  const sideOnlyLinks = new Set(
+    basket.sideStocks.filter((s) => (getCompanyPage(companySlug(s.ticker))?.appearances ?? []).filter((a) => a.sectorSlug === slug).every((a) => a.side)).map((s) => s.ticker),
+  );
   for (const s of [...basket.stocks, ...basket.sideStocks]) {
     const f = getFinancials(s.ticker);
     if (!f) continue;
@@ -104,7 +108,9 @@ export function industryPools(slug: string): IndustryPools | null {
     const why = isIndex
       ? null
       : sideOnly.has(c.ticker)
-        ? "Supplies or serves the industry"
+        ? sideOnlyLinks.has(c.ticker)
+          ? "Supplies or serves the industry"
+          : "Small part of its business"
         : strength === "low"
         ? "Small part of its business"
         : conglomerate.has(c.ticker)

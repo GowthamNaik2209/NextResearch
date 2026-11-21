@@ -66,7 +66,9 @@ export default async function IndustryBasketPage({ params }: { params: Promise<{
           name={b.category === "index" ? `${b.name} basket` : `${b.name} ${categoryWord(b.category)} basket`}
           description={b.category === "index"
               ? `All ${b.stocks.length} stocks in the ${b.name} today: ${b.tagline}. Backtested as today's members held over the whole period, so it can beat the index itself, which swapped in these winners along the way.`
-              : `All ${b.stocks.length} listed companies on the ${b.name} map: ${b.tagline}`}
+              : b.sideStocks.length
+                ? `The ${b.stocks.length} core companies on the ${b.name} map (${b.sideStocks.length} that supply or serve it, or earn little from it, are left out): ${b.tagline}`
+                : `All ${b.stocks.length} listed companies on the ${b.name} map: ${b.tagline}`}
           stocks={b.stocks}
           addPrices={{}}
           weighting="equal"

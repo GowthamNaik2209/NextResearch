@@ -28,7 +28,7 @@ export function ratioTiles(f: SupplierFinancials | undefined, reit: boolean): Ra
   const caution = k.caution ? { value: NA, sub: "See note", title: k.caution } : null;
   const kindNote = k.notMeaningful.includes("netMargin") ? notMeaningfulNote(f ? (f.kind ?? companyKind(f.ticker)) : null) : null;
   // The year line: the year the figures are for, and when that isn't the table's latest, that the latest is not out yet.
-  const fyLine = fy && k.notOut ? `${fy} · ${k.notOut} not out yet` : fy;
+  const fyLine = fy && k.notOut ? `${fy} · ${k.notOut} not on Screener yet` : fy;
   const notOutTitle = k.notOut ? `${k.notOut} figures are not on Screener yet; these are for ${fy}, its latest year there.` : undefined;
   // No year before to grow from: a dash with its reason, never a bare one.
   const noGrowth = k.noPrior ? { value: NA, sub: `No ${k.noPrior} figure`, title: `A growth rate needs ${k.noPrior} as well, and the company table has no ${k.noPrior} figure for it.` } : null;

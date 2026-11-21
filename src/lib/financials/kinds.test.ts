@@ -48,3 +48,14 @@ test("every lender and insurer in Banks & NBFCs and Insurance is tagged; fee ear
     assert.equal(companyKind(t), "operating", t);
   }
 });
+
+test("a trailing P/E after a loss year, or over PE_MAX, is left out with its reason", async () => {
+  const { withMeaningfulPe, PE_MAX } = await import("./kinds");
+  const base = { ticker: "X", np: [10, 20, 30, 40, -43], kpi: [1280, 50, 0, 5, -1.6, 1] as (number | null)[] };
+  assert.equal(withMeaningfulPe(base).kpi?.[0], null);
+  assert.equal(withMeaningfulPe(base).peNote, null); // the loss year says it ("Loss in FY26")
+  const thin = withMeaningfulPe({ ...base, np: [10, 20, 30, 40, 2], kpi: [PE_MAX + 1, 50, 0, 5, 1, 1] });
+  assert.equal(thin.kpi?.[0], null);
+  assert.equal(thin.peNote, "Not meaningful on a thin profit");
+  assert.equal(withMeaningfulPe({ ...base, np: [10, 20, 30, 40, 50], kpi: [25, 50, 0, 5, 12, 1] }).kpi?.[0], 25);
+});

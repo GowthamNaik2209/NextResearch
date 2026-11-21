@@ -123,6 +123,8 @@ export type SupplierFinancials = {
   mcap?: string | null; // "Rs 1,74,575 Cr" (the table's own label; shown as ₹ by the UI)
   price?: string | null; // "Rs 166"
   note?: string | null;
+  /** Why the table's trailing P/E is left out as not meaningful (financials/kinds.ts forDisplay). */
+  peNote?: string | null;
   cagr?: (number | null)[] | null; // stock price CAGR [1y, 3y, 5y], %
   trend?: number | null; // percentile of the 1y return among covered companies, 0-100 (financials/trend.ts)
   nifty1y?: number | null; // the Nifty 50's 1y return to the same snapshot day, % (financials/key-ratios.ts)

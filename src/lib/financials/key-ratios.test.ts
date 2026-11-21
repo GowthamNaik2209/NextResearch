@@ -49,7 +49,7 @@ test("a latest year not on Screener yet, or no year before it, is named rather t
   const late: SupplierFinancials = { ticker: "A", rev: [null, 12403, 14173, 16300, null], np: [null, 1959, 2461, 2176, null] };
   assert.deepEqual([keyRatios(late).fy, keyRatios(late).notOut, keyRatios(late).noPrior], ["FY25", "FY26", null]);
   const lateTiles = ratioTiles(late, false);
-  assert.equal(lateTiles.find((t) => t.label === "Revenue growth")!.sub, "FY25 · FY26 not out yet");
+  assert.equal(lateTiles.find((t) => t.label === "Revenue growth")!.sub, "FY25 · FY26 not on Screener yet");
   // UGROCAP's shape: only FY26 in the table, so no growth rate, and the tile says why.
   const lone: SupplierFinancials = { ticker: "A", rev: [null, null, null, null, 1960], np: [null, null, null, null, 175] };
   assert.deepEqual([keyRatios(lone).notOut, keyRatios(lone).noPrior], [null, "FY25"]);

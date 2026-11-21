@@ -73,8 +73,28 @@ export function companyKind(ticker: string): CompanyKind {
  * and the refresh treats a null it reads as a curated "not meaningful" it would keep writing.
  */
 export function forDisplay(f: SupplierFinancials): SupplierFinancials {
-  if ((f.kind ?? companyKind(f.ticker)) === "operating" || !f.kpi || f.kpi[3] == null) return f;
-  return { ...f, kpi: f.kpi.map((v, i) => (i === 3 ? null : v)) };
+  const out = withMeaningfulPe(f);
+  if ((out.kind ?? companyKind(out.ticker)) === "operating" || !out.kpi || out.kpi[3] == null) return out;
+  return { ...out, kpi: out.kpi.map((v, i) => (i === 3 ? null : v)) };
+}
+
+/** Above this a trailing P/E is a tiny profit, not a valuation (Devyani's 1,280x, OneSource's 1,613x). */
+export const PE_MAX = 300;
+
+/**
+ * A trailing P/E is left out (and says why) when the latest reported year is a loss, since a few
+ * profitable quarters after it make a multiple that reads as a valuation, or when it is over PE_MAX.
+ * Done once here, so the tile, P/E in context, the peers' medians and the screens all agree.
+ */
+export function withMeaningfulPe(f: SupplierFinancials): SupplierFinancials {
+  const pe = f.kpi?.[0];
+  if (typeof pe !== "number" || !Number.isFinite(pe) || pe <= 0) return f;
+  const np = f.np ?? [];
+  let i = np.length - 1;
+  while (i >= 0 && !(typeof np[i] === "number" && Number.isFinite(np[i]))) i--;
+  const lossYear = i >= 0 && (np[i] as number) <= 0;
+  if (!lossYear && pe <= PE_MAX) return f;
+  return { ...f, kpi: f.kpi!.map((v, j) => (j === 0 ? null : v)), peNote: lossYear ? null : "Not meaningful on a thin profit" };
 }
 
 /** What a ROCE or net-margin figure reads as for a lender or an insurer; null for an operating company. */
