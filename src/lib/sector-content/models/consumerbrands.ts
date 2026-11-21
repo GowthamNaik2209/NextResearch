@@ -71,7 +71,7 @@ const AP = (phi: number, r: number, y: number): Vec3 => [r2(px(phi, r)), r2(y), 
 export const CONSUMERBRANDS_ANCHORS: Record<string, { pos: Vec3; side: Side }> = {
   // layer 0: first floor
   large_appliances: { pos: AP(-45, 4.12, FL[1] + 0.3), side: "left" }, // fridge with its door open
-  small_appliances: { pos: AP(21.5, 3.95, FL[2] - SLAB - 0.11), side: "right" }, // spinning ceiling fan (middle one)
+  small_appliances: { pos: AP(21.5, 3.9, FL[2] - SLAB - 0.12), side: "right" }, // big spinning ceiling fan
   home_living: { pos: AP(38, 4.12, FL[1] + 0.17), side: "right" }, // bed and mattress
   // layer 1: ground floor + mill
   apparel_brands: { pos: AP(-42, 3.62, FL[0] + 0.3), side: "left" }, // mannequin in a kurta
@@ -82,7 +82,7 @@ export const CONSUMERBRANDS_ANCHORS: Record<string, { pos: Vec3; side: Side }> =
   retail_chains: { pos: AP(6, 2.55, G + 0.34), side: "bottom" }, // giant shopping bag at the store
   qsr: { pos: AP(-28, 4.24, FL[2] + 0.22), side: "top" }, // pizza oven
   // layer 3: drinks and leisure
-  alcobev: { pos: [3.98, r2(G + 0.22), 2.55], side: "right" }, // copper pot still (east one)
+  alcobev: { pos: [4.0, r2(G + 0.25), 2.47], side: "right" }, // copper pot still (east one)
   cinemas: { pos: AP(14, RO - 0.05, FL[2] + 0.48), side: "top" }, // curved cinema screen (west half)
 };
 
@@ -108,8 +108,8 @@ export const CONSUMERBRANDS_VIEWS = [
     id: "wear",
     layer: 1,
     label: "Wear & Adorn",
-    pos: [-2.5, 2.7, 10.4],
-    target: [-1.15, 0.55, 1.35],
+    pos: [-2.9, 2.9, 11.4],
+    target: [-1.35, 0.55, 1.35],
     narration:
       "Street level dresses people. Mannequins and racks for apparel and innerwear brands like Page Industries, a shoe wall for footwear like Bata, and a jewellery showroom of gold display cases and a watch counter like Titan's and Kalyan's. In the corner, a mill spins yarn and weaves fabric, the kind KPR Mill, Trident and Vardhman run.",
   },
@@ -493,18 +493,22 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
     for (const f of [-12, 12]) cols.push(cyl(0.045, FL[2] - SLAB - FL[0], px(f, RI - 0.02), FL[0], pz(f, RI - 0.02), 14));
     for (const f of [-8]) cols.push(cyl(0.03, ROOF - FL[2], px(f, RI + 0.03), FL[2], pz(f, RI + 0.03), 12));
     put(baseG, mall.gold, ...cols);
-    // Sunburst crown over the department store.
+    // Shopfront banners on the arcade's two end walls, one per floor (plain words).
     {
-      const crown = new THREE.CircleGeometry(0.46, 28, 0, Math.PI);
-      const inner = new THREE.CircleGeometry(0.3, 24, 0, Math.PI).translate(0, 0, 0.006);
-      put(baseG, mall.gold, at(crown, 0, RI - 0.03, ROOF + 0.13));
-      put(baseG, mall.ivory, at(inner, 0, RI - 0.03, ROOF + 0.13));
-      const rays: T.BufferGeometry[] = [];
-      for (let i = 1; i < 8; i++) {
-        const a = (i / 8) * Math.PI;
-        rays.push(at(bar(THREE, [Math.cos(a) * 0.3, Math.sin(a) * 0.3, 0.008], [Math.cos(a) * 0.45, Math.sin(a) * 0.45, 0.008], 0.008, 4), 0, RI - 0.03, ROOF + 0.13));
-      }
-      put(baseG, mall.gold, ...rays);
+      const banner = (text: string, bg: string, fg: string, f: number, k: number, west: boolean) => {
+        const y0 = k === 2 ? FL[2] : FL[k],
+          y1 = k === 2 ? ROOF : FL[k + 1] - SLAB;
+        const m = L.add("mall", std(0xffffff, 0.05, 0.55, { map: sign(text, bg, fg, 512, 192, 64), emissive: 0xffffff, emissiveMap: sign(text, bg, fg, 512, 192, 64), emissiveIntensity: 0.35 }));
+        const g = new THREE.PlaneGeometry(1.0, (y1 - y0) * 0.78).rotateY(west ? -Math.PI / 2 : Math.PI / 2).translate(west ? -0.012 : 0.012, (y1 - y0) / 2, 0);
+        put(baseG, m, at(g, f, (RI + RO) / 2 + 0.02, y0));
+        put(baseG, mall.gold, at(new THREE.BoxGeometry(0.01, (y1 - y0) * 0.84, 1.06).translate(west ? -0.006 : 0.006, (y1 - y0) / 2, 0), f, (RI + RO) / 2 + 0.02, y0));
+      };
+      banner("FASHION · SHOES", "#93127f", "#ffffff", -52.5, 0, true);
+      banner("APPLIANCES", "#1e5f86", "#ffffff", -52.5, 1, true);
+      banner("FOOD COURT", "#d96c2b", "#ffffff", -52.5, 2, true);
+      banner("GOLD · WATCHES", "#1d2440", "#e8c56a", 52.5, 0, false);
+      banner("HOME & SLEEP", "#2a7f7a", "#ffffff", 52.5, 1, false);
+      banner("NOW SHOWING", "#9c1f2e", "#ffe6a8", 52.5, 2, false);
     }
 
     // Plaza: fountain, trees in round planters, lamps, benches.
@@ -514,8 +518,7 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
     for (const [x, z] of [
       [-1.75, 2.75],
       [1.75, 2.75],
-      [-2.75, 1.85],
-      [2.7, 1.85],
+      [2.55, 2.45],
     ]) {
       put(baseG, mall.stone, cyl(0.13, 0.07, x, G, z, 20));
       put(baseG, mall.trunk, cyl(0.016, 0.18, x, G + 0.07, z, 6));
@@ -582,10 +585,10 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
     inside: glow("home", 0xf4fbff, 0xdff2ff, 0.7),
     shelf: glass("home", 0xdfefff, 0.5),
     wood: M("home", 0xa57a4f, 0.05, 0.55),
-    blade: M("home", 0x7a5232, 0.1, 0.5),
-    bulb: glow("home", 0xfff4d8, 0xffd98a, 1.6),
+    blade: M("home", 0x4a2e1a, 0.1, 0.45),
+    bulb: glow("home", 0xfff4d8, 0xffc560, 2.4),
     teal: M("home", 0x2a7f7a, 0.05, 0.7),
-    mustard: M("home", 0xd9a22b, 0.05, 0.8),
+    mustard: M("home", 0xd9a22b, 0.05, 0.8, { side: DS }),
     linen: M("home", 0xfbf8f2, 0.02, 0.85),
     blueMat: M("home", 0x5a83b8, 0.02, 0.85),
     sofa: M("home", 0xc8643b, 0.05, 0.8),
@@ -644,25 +647,31 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
   const fans: T.Group[] = [];
   {
     const ceil = FL[2] - SLAB;
-    for (const f of [15.5, 21.5, 27.5]) {
-      const [x, , z] = wpt(f, 3.95, 0);
+    for (const f of [21.5]) {
+      const [x, , z] = wpt(f, 3.9, 0);
       put(homeG, H.white, bar(THREE, [x, ceil, z], [x, ceil - 0.09, z], 0.006, 6));
       const fan = new THREE.Group();
       fan.position.set(x, ceil - 0.11, z);
-      fan.add(new THREE.Mesh(cyl(0.028, 0.025, 0, 0, 0, 16), H.white));
+      fan.add(new THREE.Mesh(cyl(0.04, 0.035, 0, -0.01, 0, 18), H.white));
       for (let i = 0; i < 3; i++) {
-        const b = new THREE.Mesh(rb(0.15, 0.006, 0.042, 0.003, 0.1, 0.01, 0), H.blade);
+        const b = new THREE.Mesh(rb(0.3, 0.012, 0.08, 0.006, 0.19, 0.006, 0), H.blade);
         b.rotation.y = (i * 2 * Math.PI) / 3;
         fan.add(b);
       }
       homeG.add(fan);
       fans.push(fan);
     }
-    // Pendant bulbs and a lit wall of lamps at the back.
+    // Pendant lamps with glowing shades along the front, bulbs and a lit wall of lamps at the back.
+    for (const f of [17.5, 25]) {
+      const [x, , z] = wpt(f, 3.6, 0);
+      put(homeG, H.dark, bar(THREE, [x, ceil, z], [x, ceil - 0.16, z], 0.003, 4));
+      put(homeG, H.mustard, new THREE.ConeGeometry(0.06, 0.06, 18, 1, true).translate(x, ceil - 0.19, z));
+      put(homeG, H.bulb, new THREE.SphereGeometry(0.03, 12, 10).translate(x, ceil - 0.22, z));
+    }
     for (const f of [14, 18.5, 23, 27.5]) {
       const [x, , z] = wpt(f, 4.28, 0);
       put(homeG, H.dark, bar(THREE, [x, ceil, z], [x, ceil - 0.14, z], 0.003, 4));
-      put(homeG, H.bulb, new THREE.SphereGeometry(0.022, 10, 8).translate(x, ceil - 0.16, z));
+      put(homeG, H.bulb, new THREE.SphereGeometry(0.028, 10, 8).translate(x, ceil - 0.16, z));
     }
     const lampWall = tex(256, 64, (g, w, h) => {
       g.fillStyle = "#3a3632";
@@ -696,13 +705,23 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
       put(homeG, H.jar, at(cyl(0.024, 0.075, 0, 0.055, 0, 14, 0.03), f, 3.69, fy + 0.15));
       put(homeG, H.dark, at(cyl(0.031, 0.012, 0, 0.13, 0, 14), f, 3.69, fy + 0.15));
     }
-    // Pedestal fan.
-    {
-      const f = 29.5,
-        r = 3.92;
-      put(homeG, H.white, at(cyl(0.05, 0.01, 0, 0, 0, 16), f, r, fy), at(bar(THREE, [0, 0, 0], [0, 0.26, 0], 0.007, 6), f, r, fy));
-      put(homeG, H.grey, at(new THREE.TorusGeometry(0.065, 0.005, 6, 24).translate(0, 0.3, 0.02), f, r, fy, 0.5));
-      put(homeG, H.blueMat, at(disc(0.055, 0, 0.3, 0.018), f, r, fy, 0.5));
+    // Two big pedestal fans at the front of the floor, caged faces to the plaza.
+    for (const [f, ry] of [
+      [13.9, 0.45],
+      [29.4, -0.45],
+    ]) {
+      const r = 3.52;
+      put(homeG, H.white, at(cyl(0.06, 0.012, 0, 0, 0, 18), f, r, fy), at(bar(THREE, [0, 0, 0], [0, 0.3, 0], 0.008, 6), f, r, fy), at(cyl(0.035, 0.05, 0, 0.32, -0.035, 12).rotateX(Math.PI / 2).translate(0, 0.0, 0), f, r, fy, ry));
+      put(homeG, H.grey, at(new THREE.TorusGeometry(0.095, 0.006, 6, 28).translate(0, 0.36, 0.02), f, r, fy, ry));
+      const spokes: T.BufferGeometry[] = [];
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        spokes.push(at(bar(THREE, [0, 0.36, 0.022], [Math.cos(a) * 0.095, 0.36 + Math.sin(a) * 0.095, 0.022], 0.0025, 3), f, r, fy, ry));
+      }
+      put(homeG, H.grey, ...spokes);
+      const blades: T.BufferGeometry[] = [];
+      for (let i = 0; i < 3; i++) blades.push(at(new THREE.CircleGeometry(0.075, 12, (i * 2 * Math.PI) / 3, 1.2).translate(0, 0.36, 0.012), f, r, fy, ry));
+      put(homeG, H.blueMat, ...blades);
     }
     people(homeG, "home", [wpt(19, 3.55, fy), wpt(25, 4.05, fy)]);
   }
@@ -880,8 +899,8 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
     }
     // Watch counter: a round glass drum with watches on a stand.
     {
-      const f = 45,
-        r = 3.82;
+      const f = 43.5,
+        r = 3.98;
       put(wearG, W.darkWood, at(cyl(0.12, 0.13, 0, 0, 0, 24), f, r, gy));
       put(wearG, W.caseGlow, at(cyl(0.11, 0.07, 0, 0.13, 0, 24), f, r, gy));
       put(wearG, W.gold, at(cyl(0.122, 0.006, 0, 0.2, 0, 24), f, r, gy));
@@ -896,6 +915,22 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
       }
       put(wearG, W.face, ...faces);
       put(wearG, W.dark, ...straps);
+    }
+    // Giant wristwatch standing at the showroom front, face to the plaza.
+    {
+      const f = 47.5,
+        r = 3.6;
+      put(wearG, W.darkWood, at(cyl(0.1, 0.04, 0, 0, 0, 24), f, r, gy));
+      put(wearG, W.walnut, at(rb(0.08, 0.4, 0.025, 0.01, 0, 0.04, 0), f, r, gy, -0.35));
+      put(wearG, W.gold, at(cyl(0.1, 0.035, 0, 0, 0, 32).rotateX(Math.PI / 2).translate(0, 0.24, 0.025), f, r, gy, -0.35), at(cyl(0.015, 0.03, 0, 0, 0, 10).rotateZ(Math.PI / 2).translate(0.115, 0.24, 0.025), f, r, gy, -0.35));
+      put(wearG, W.face, at(disc(0.085, 0, 0.24, 0.044, 32), f, r, gy, -0.35));
+      put(wearG, W.dark, at(bx(-0.005, 0.005, 0.24, 0.31, 0.046, 0.05), f, r, gy, -0.35), at(bx(0, 0.055, 0.236, 0.244, 0.046, 0.05), f, r, gy, -0.35));
+      const ticks: T.BufferGeometry[] = [];
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2;
+        ticks.push(at(bx(-0.004, 0.004, -0.01, 0.01, 0.045, 0.048).rotateZ(-a).translate(Math.sin(a) * 0.072, 0.24 + Math.cos(a) * 0.072, 0), f, r, gy, -0.35));
+      }
+      put(wearG, W.gold, ...ticks);
     }
     // Giant watch on the back wall.
     {
@@ -924,6 +959,7 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
   }
   // --- Textile mill (front-west corner): twin barrel vaults, chimney, spinning frame, loom, yarn.
   let shuttle: T.Mesh | null = null;
+  let convoy: T.Group | null = null;
   {
     const z0 = 1.45,
       z1 = 2.45,
@@ -947,13 +983,13 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
     put(wearG, W.brick, lathe(THREE, [[0.11, 0], [0.09, 0.9], [0.075, 1.5], [0.09, 1.52], [0.09, 1.58], [0.07, 1.58]], 16).translate(-4.55, G, 1.3));
     put(wearG, W.dark, cyl(0.072, 0.02, -4.55, G + 1.56, 1.3, 16));
     // Ring-spinning frame in the west vault: a long frame with rows of spindles and white bobbins.
-    put(wearG, W.machine, bx(-4.45, -4.29, G + 0.02, G + 0.12, 1.6, 2.35));
-    put(wearG, W.chrome, bx(-4.47, -4.27, G + 0.12, G + 0.13, 1.6, 2.35));
+    put(wearG, W.machine, bx(-4.47, -4.27, G + 0.02, G + 0.13, 1.6, 2.38));
+    put(wearG, W.chrome, bx(-4.5, -4.24, G + 0.13, G + 0.14, 1.6, 2.38), bx(-4.5, -4.24, G + 0.29, G + 0.3, 1.6, 2.38));
     const bob: T.BufferGeometry[] = [];
     for (let i = 0; i < 11; i++)
-      for (const sx of [-4.44, -4.3]) {
-        const z = 1.64 + i * 0.065;
-        bob.push(lathe(THREE, [[0.004, 0], [0.014, 0.01], [0.016, 0.05], [0.006, 0.07], [0.003, 0.08]], 8).translate(sx, G + 0.13, z));
+      for (const sx of [-4.46, -4.28]) {
+        const z = 1.64 + i * 0.07;
+        bob.push(lathe(THREE, [[0.004, 0], [0.02, 0.012], [0.024, 0.08], [0.009, 0.115], [0.004, 0.13]], 10).translate(sx, G + 0.14, z));
       }
     put(wearG, W.bobbin, ...bob);
     // Loom in the east vault: warp beam, the warp shed opening in a V, cloth roll, a shuttle.
@@ -968,7 +1004,7 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
         for (const z of [zb - 0.04, zf + 0.04]) frame.push(bx(x - 0.012, x + 0.012, G + 0.02, G + 0.3, z - 0.012, z + 0.012));
       frame.push(bx(x0 - 0.035, x1 + 0.035, G + 0.28, G + 0.31, zb + 0.18, zb + 0.22)); // heddle beam
       put(wearG, W.walnut, ...frame);
-      put(wearG, W.chrome, hcyl(0.035, x1 - x0 + 0.04, (x0 + x1) / 2, yb, zb, "x", 14));
+      put(wearG, W.chrome, hcyl(0.045, x1 - x0 + 0.04, (x0 + x1) / 2, yb, zb, "x", 14));
       const cloth = tex(64, 64, (g, w, h) => {
         const cs = ["#b5179e", "#2d3f8c", "#e8902a", "#f6f4ef"];
         for (let i = 0; i < 16; i++) {
@@ -978,7 +1014,7 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
         g.fillStyle = "rgba(255,255,255,0.25)";
         for (let i = 0; i < 8; i++) g.fillRect((i * w) / 8, 0, 2, h);
       });
-      put(wearG, L.add("wear", std(0xffffff, 0.02, 0.85, { map: cloth })), hcyl(0.05, x1 - x0, (x0 + x1) / 2, yb - 0.02, zf, "x", 18));
+      put(wearG, L.add("wear", std(0xffffff, 0.02, 0.85, { map: cloth })), hcyl(0.07, x1 - x0, (x0 + x1) / 2, yb - 0.02, zf + 0.02, "x", 18));
       // Warp threads: upper and lower sheds meet at the cloth (fell) and part at the heddles.
       const warp: T.BufferGeometry[] = [];
       const warpB: T.BufferGeometry[] = [];
@@ -992,7 +1028,7 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
           [x, yb + 0.03, zf - 0.08],
           [x, yb + 0.03, zf - 0.04],
         ];
-        (up ? warp : warpB).push(tube(THREE, pts, 0.0028, 4, false, 12));
+        (up ? warp : warpB).push(tube(THREE, pts, 0.004, 4, false, 12));
       }
       put(wearG, W.magenta, ...warp);
       put(wearG, W.bobbin, ...warpB);
@@ -1025,6 +1061,28 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
     ]) {
       put(wearG, W.cotton, rb(0.2, 0.15, 0.14, 0.02).rotateY(ry).translate(x, G, z));
       put(wearG, W.strap, ...[-0.06, 0, 0.06].map((d) => bx(-0.005, 0.005, 0, 0.152, -0.072, 0.072).translate(d, 0, 0).rotateY(ry).translate(x, G, z)));
+    }
+    // Fabric on its way to the arcade: a cart of fabric bolts and a wheeled garment rack (animated).
+    {
+      const g = new THREE.Group();
+      const deck = [rb(0.34, 0.025, 0.18, 0.006, 0, 0.035, 0), bar(THREE, [-0.17, 0.06, -0.09], [-0.17, 0.2, -0.09], 0.006, 4), bar(THREE, [-0.17, 0.06, 0.09], [-0.17, 0.2, 0.09], 0.006, 4), bar(THREE, [-0.17, 0.2, -0.09], [-0.17, 0.2, 0.09], 0.006, 4)];
+      g.add(new THREE.Mesh(mergeInto(THREE, deck), W.walnut));
+      const wheels: T.BufferGeometry[] = [];
+      for (const [wx, wz] of [[0.12, 0.08], [0.12, -0.08], [-0.12, 0.08], [-0.12, -0.08], [-0.42, 0.07], [-0.42, -0.07], [-0.62, 0.07], [-0.62, -0.07]]) wheels.push(hcyl(0.02, 0.012, wx, 0.02, wz, "z", 10));
+      g.add(new THREE.Mesh(mergeInto(THREE, wheels), W.dark));
+      const bolts: Item[] = [];
+      const BOLT = [0xb5179e, 0xe8b02a, 0x2a9d8f, 0xd1343a, 0x2d3f8c];
+      for (let i = 0; i < 5; i++) bolts.push({ p: [-0.11 + (i % 3) * 0.075 + (i > 2 ? 0.037 : 0), 0.08 + (i > 2 ? 0.065 : 0), 0], c: BOLT[i] });
+      inst(g, hcyl(0.035, 0.17, 0, 0, 0, "z", 14), M("wear", 0xffffff, 0.02, 0.8), bolts);
+      // Rack behind the cart.
+      g.add(new THREE.Mesh(mergeInto(THREE, [bar(THREE, [-0.68, 0.04, 0], [-0.68, 0.3, 0], 0.006, 4), bar(THREE, [-0.36, 0.04, 0], [-0.36, 0.3, 0], 0.006, 4), bar(THREE, [-0.68, 0.3, 0], [-0.36, 0.3, 0], 0.006, 4), bar(THREE, [-0.68, 0.04, -0.07], [-0.68, 0.04, 0.07], 0.006, 4), bar(THREE, [-0.36, 0.04, -0.07], [-0.36, 0.04, 0.07], 0.006, 4)]), W.chrome));
+      const hung: Item[] = [];
+      for (let i = 0; i < 7; i++) hung.push({ p: [-0.65 + i * 0.045, 0.295, 0], ry: Math.PI / 2, c: GARMENT[i % GARMENT.length] });
+      inst(g, bx(-0.004, 0.004, -0.17, 0, -0.05, 0.05), M("wear", 0xffffff, 0.02, 0.8), hung);
+      g.position.set(-2.85, G, 2.25);
+      g.rotation.y = 0.75;
+      wearG.add(g);
+      convoy = g;
     }
     put(wearG, signMat("wear", sign("TEXTILE MILL", "#7a2f1f", "#ffffff", 256, 48, 30)), vPlane(0.6, 0.11, -4.0, G + 0.45, z0 - 0.055));
     people(wearG, "wear", [[-4.2, G, 2.0], [-3.5, G, 2.55], [-3.95, G, 2.65]]);
@@ -1357,64 +1415,72 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
   }
   people(leisG, "leisure", [wpt(-5.5, 3.7, ty), wpt(-1.5, 3.85, ty)]);
   // --- Distillery & brewery (front-east corner).
+  // Built in its own group, scaled up 15% about the yard and pulled in from the plaza edge.
+  const distG = new THREE.Group();
+  {
+    const sc = 1.15;
+    distG.scale.setScalar(sc);
+    distG.position.set(3.85 - 3.95 * sc, G - G * sc, 1.95 - 1.95 * sc);
+    leisG.add(distG);
+  }
   {
     // Still house: brick, open front, with a pagoda-roofed kiln tower and a back-lit bar shelf.
     const x0 = 3.35,
-      x1 = 4.75,
-      z0 = 1.3,
+      x1 = 4.45,
+      z0 = 1.4,
       z1 = 1.95,
       h = 0.42;
-    put(leisG, C.stone, bx(x0, x1, G, G + 0.02, z0, z1));
-    put(leisG, C.brick, bx(x0, x1, G, G + h, z0, z0 + 0.05), bx(x0, x0 + 0.05, G, G + h, z0, z1), bx(x1 - 0.05, x1, G, G + h, z0, z1));
-    put(leisG, C.slate, bx(x0 - 0.03, x1 + 0.03, G + h, G + h + 0.03, z0 - 0.03, z1 + 0.03));
-    put(leisG, C.brick, bx(4.2, 4.62, G + h, G + h + 0.28, z0 + 0.06, z0 + 0.48));
-    put(leisG, C.slate, lathe(THREE, [[0.34, 0], [0.22, 0.07], [0.13, 0.17], [0.07, 0.27], [0, 0.29]], 4).rotateY(Math.PI / 4).translate(4.41, G + h + 0.28, z0 + 0.27));
-    put(leisG, C.slate, lathe(THREE, [[0.09, 0], [0.05, 0.04], [0, 0.07]], 4).rotateY(Math.PI / 4).translate(4.41, G + h + 0.6, z0 + 0.27), cyl(0.04, 0.05, 4.41, G + h + 0.55, z0 + 0.27, 4));
+    put(distG, C.stone, bx(x0, x1, G, G + 0.02, z0, z1));
+    put(distG, C.brick, bx(x0, x1, G, G + h, z0, z0 + 0.05), bx(x0, x0 + 0.05, G, G + h, z0, z1), bx(x1 - 0.05, x1, G, G + h, z0, z1));
+    put(distG, C.slate, bx(x0 - 0.03, x1 + 0.03, G + h, G + h + 0.03, z0 - 0.03, z1 + 0.03));
+    put(distG, C.brick, bx(4.0, 4.4, G + h, G + h + 0.28, z0 + 0.04, z0 + 0.44));
+    put(distG, C.slate, lathe(THREE, [[0.34, 0], [0.22, 0.07], [0.13, 0.17], [0.07, 0.27], [0, 0.29]], 4).rotateY(Math.PI / 4).translate(4.2, G + h + 0.28, z0 + 0.24));
+    put(distG, C.slate, lathe(THREE, [[0.09, 0], [0.05, 0.04], [0, 0.07]], 4).rotateY(Math.PI / 4).translate(4.2, G + h + 0.6, z0 + 0.24), cyl(0.04, 0.05, 4.2, G + h + 0.55, z0 + 0.24, 4));
     // Bar: counter and a glowing shelf of bottles on the back wall.
-    put(leisG, C.timber, bx(3.95, 4.65, G, G + 0.13, 1.68, 1.78));
-    put(leisG, C.barBack, bx(3.95, 4.65, G + 0.12, G + 0.38, z0 + 0.05, z0 + 0.07));
-    put(leisG, C.timber, ...[0.18, 0.27, 0.36].map((y) => bx(3.95, 4.65, G + y, G + y + 0.008, z0 + 0.05, z0 + 0.12)));
+    put(distG, C.timber, bx(3.85, 4.4, G, G + 0.13, 1.72, 1.82));
+    put(distG, C.barBack, bx(3.85, 4.4, G + 0.12, G + 0.38, z0 + 0.05, z0 + 0.07));
+    put(distG, C.timber, ...[0.18, 0.27, 0.36].map((y) => bx(3.85, 4.4, G + y, G + y + 0.008, z0 + 0.05, z0 + 0.12)));
     const bottles: Item[] = [];
     const bottleGeo = lathe(THREE, [[0, 0], [0.013, 0], [0.013, 0.04], [0.005, 0.055], [0.005, 0.07], [0, 0.07]], 8);
-    for (const y of [0.188, 0.278]) for (let i = 0; i < 14; i++) bottles.push({ p: [3.99 + i * 0.047, G + y, z0 + 0.09], c: [0xb5651d, 0x2f6b3a, 0xe8e0c8, 0x7a2f1f, 0xd9a22b][(i + Math.round(y * 100)) % 5] });
-    inst(leisG, bottleGeo, M("leisure", 0xffffff, 0.2, 0.15), bottles);
+    for (const y of [0.188, 0.278]) for (let i = 0; i < 12; i++) bottles.push({ p: [3.89 + i * 0.043, G + y, z0 + 0.09], c: [0xb5651d, 0x2f6b3a, 0xe8e0c8, 0x7a2f1f, 0xd9a22b][(i + Math.round(y * 100)) % 5] });
+    inst(distG, bottleGeo, M("leisure", 0xffffff, 0.2, 0.15), bottles);
     // Copper pot stills in front: onion pot, neck, lyne arm into a condenser.
     for (const [x, s] of [
-      [3.62, 1],
-      [3.98, 0.85],
+      [3.7, 1],
+      [4.08, 0.85],
     ]) {
-      const z = 2.55;
-      put(leisG, C.brick, cyl(0.16 * s, 0.05, x, G, z, 16));
-      put(leisG, C.copper, lathe(THREE, [[0, 0], [0.12, 0], [0.155, 0.07], [0.15, 0.15], [0.1, 0.21], [0.05, 0.25], [0.035, 0.34], [0.045, 0.36], [0, 0.37]], 24).scale(s, s, s).translate(x, G + 0.05, z));
-      put(leisG, C.copper, tube(THREE, [[x, G + 0.05 + 0.36 * s, z], [x + 0.02, G + 0.05 + 0.4 * s, z - 0.06], [x + 0.08, G + 0.38 * s, z - 0.22], [x + 0.12, G + 0.3, z - 0.3]], 0.012, 8, false, 24));
-      put(leisG, C.copperDark, cyl(0.045, 0.3, x + 0.13, G, z - 0.33, 14));
+      const z = 2.4;
+      put(distG, C.brick, cyl(0.16 * s, 0.05, x, G, z, 16));
+      put(distG, C.copper, lathe(THREE, [[0, 0], [0.12, 0], [0.155, 0.07], [0.15, 0.15], [0.1, 0.21], [0.05, 0.25], [0.035, 0.34], [0.045, 0.36], [0, 0.37]], 24).scale(s, s, s).translate(x, G + 0.05, z));
+      put(distG, C.copper, tube(THREE, [[x, G + 0.05 + 0.36 * s, z], [x + 0.02, G + 0.05 + 0.4 * s, z - 0.06], [x + 0.08, G + 0.38 * s, z - 0.22], [x + 0.12, G + 0.3, z - 0.3]], 0.012, 8, false, 24));
+      put(distG, C.copperDark, cyl(0.045, 0.3, x + 0.13, G, z - 0.33, 14));
     }
     // Steel beer fermenters: conical bottom, legs, domed top.
     for (const [x, z, hh] of [
       [3.12, 1.62, 0.5],
       [3.12, 2.02, 0.42],
     ]) {
-      put(leisG, C.steel, lathe(THREE, [[0, 0], [0.1, 0.08], [0.1, hh], [0.07, hh + 0.04], [0, hh + 0.05]], 20).translate(x, G + 0.08, z));
-      put(leisG, C.steel, ...[0, 1, 2].map((i) => bar(THREE, [x + Math.cos(i * 2.1) * 0.08, G, z + Math.sin(i * 2.1) * 0.08], [x + Math.cos(i * 2.1) * 0.08, G + 0.13, z + Math.sin(i * 2.1) * 0.08], 0.006, 4)));
+      put(distG, C.steel, lathe(THREE, [[0, 0], [0.1, 0.08], [0.1, hh], [0.07, hh + 0.04], [0, hh + 0.05]], 20).translate(x, G + 0.08, z));
+      put(distG, C.steel, ...[0, 1, 2].map((i) => bar(THREE, [x + Math.cos(i * 2.1) * 0.08, G, z + Math.sin(i * 2.1) * 0.08], [x + Math.cos(i * 2.1) * 0.08, G + 0.13, z + Math.sin(i * 2.1) * 0.08], 0.006, 4)));
     }
     // Oak casks in a pyramid on a rack, ends to the front.
     const caskGeo = lathe(THREE, [[0, -0.07], [0.048, -0.07], [0.057, 0], [0.048, 0.07], [0, 0.07]], 16).rotateX(Math.PI / 2);
     const hoopGeo = mergeInto(THREE, [-0.05, 0, 0.05].map((zz) => new THREE.TorusGeometry(zz ? 0.054 : 0.058, 0.004, 4, 18).translate(0, 0, zz)));
     const casks: Item[] = [];
-    for (let row = 0; row < 3; row++) for (let i = 0; i < 4 - row; i++) casks.push({ p: [4.12 + row * 0.058 + i * 0.116, G + 0.06 + row * 0.1, 2.6] });
-    casks.push({ p: [4.2, G + 0.06, 2.8] }, { p: [4.32, G + 0.06, 2.8] });
-    inst(leisG, caskGeo, C.oak, casks);
-    inst(leisG, hoopGeo, C.hoop, casks);
-    put(leisG, C.timber, bx(4.04, 4.6, G, G + 0.012, 2.52, 2.68));
+    for (let row = 0; row < 3; row++) for (let i = 0; i < 4 - row; i++) casks.push({ p: [4.12 + row * 0.058 + i * 0.116, G + 0.06 + row * 0.1, 2.48] });
+    casks.push({ p: [4.62, G + 0.06, 2.12] }, { p: [4.62, G + 0.06, 2.26] });
+    inst(distG, caskGeo, C.oak, casks);
+    inst(distG, hoopGeo, C.hoop, casks);
+    put(distG, C.timber, bx(4.04, 4.6, G, G + 0.012, 2.4, 2.56));
     // Beer crates with bottle tops.
     for (const [x, z, k] of [
-      [3.22, 2.78, 2],
-      [3.36, 2.86, 1],
+      [3.25, 2.58, 2],
+      [3.4, 2.64, 1],
     ]) {
-      for (let j = 0; j < k; j++) put(leisG, C.crate, rb(0.13, 0.06, 0.09, 0.006, x, G + j * 0.062, z));
+      for (let j = 0; j < k; j++) put(distG, C.crate, rb(0.13, 0.06, 0.09, 0.006, x, G + j * 0.062, z));
     }
-    put(leisG, signMat("leisure", sign("DISTILLERY & BREWERY", "#5a3d28", "#ffe6a8", 384, 48, 28), 0.6), vPlane(0.7, 0.09, 4.05, G + h - 0.06, z1 + 0.035));
-    people(leisG, "leisure", [[4.3, G, 1.85], [3.78, G, 2.22], [4.0, G, 1.88]]);
+    put(distG, signMat("leisure", sign("DISTILLERY & BREWERY", "#5a3d28", "#ffe6a8", 384, 48, 28), 0.6), vPlane(0.7, 0.09, 3.9, G + h - 0.06, z1 + 0.035));
+    people(distG, "leisure", [[4.1, G, 1.62], [3.5, G, 2.12], [3.95, G, 1.92]]);
   }
 
   flushPeople();
@@ -1436,6 +1502,11 @@ export function buildConsumerbrands(ctx: Ctx, _def?: unknown) {
     const t = performance.now() / 1000;
     fans.forEach((f, i) => (f.rotation.y = t * (5 + i * 0.4)));
     if (shuttle) shuttle.position.x = -3.63 + Math.sin(t * 2.2) * 0.2;
+    if (convoy) {
+      // Rolls from the mill yard toward the arcade's west end and back, slowly.
+      const k = 0.5 - 0.5 * Math.cos(t * 0.35);
+      convoy.position.set(lerp(-2.85, -2.45, k), G, lerp(2.25, 1.95, k));
+    }
     jet.scale.set(1, 0.85 + Math.sin(t * 3.1) * 0.15, 1);
     screenMat.emissiveIntensity = 1.05 + Math.sin(t * 7.3) * 0.04 + Math.sin(t * 2.1) * 0.05;
     const [x, z, a] = streetAt(((t * 0.03) % 1 + 1) % 1);
