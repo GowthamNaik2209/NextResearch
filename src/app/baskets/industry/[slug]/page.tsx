@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!b) return NOT_FOUND_METADATA;
   return {
     title: `${b.name} stock basket: ${b.stocks.length} listed stocks backtested`,
-    description: `${b.category === "index" ? `All ${b.stocks.length} ${b.name} stocks` : `All ${b.stocks.length} listed ${b.name} stocks NextResearch maps`}, as one basket backtested against the Nifty 50${b.indices[0] ? ` and the ${b.indices[0].name}` : ""}, with each stock's return and contribution.`,
+    description: `${b.category === "index" ? `All ${b.stocks.length} ${b.name} stocks` : b.sideStocks.length ? `The ${b.stocks.length} core listed ${b.name} companies NextResearch maps` : `All ${b.stocks.length} listed ${b.name} stocks NextResearch maps`}, as one basket backtested against the Nifty 50${b.indices[0] ? ` and the ${b.indices[0].name}` : ""}, with each stock's return and contribution.`,
     alternates: { canonical: `/baskets/industry/${b.slug}` },
     ...shareMeta({ title: `${b.name} stock basket`, line: `${b.stocks.length} stocks, backtested against the Nifty 50.`, path: `/baskets/industry/${b.slug}`, image: `/sector/${b.slug}/opengraph-image` }),
   };

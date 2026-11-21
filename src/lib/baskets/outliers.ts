@@ -43,8 +43,12 @@ export const SWING_MIN_REVERSAL = 0.5;
 /** Both rules: the swing against the company's usual profit (median |profit| of its other years). */
 export const SWING_MIN_TYPICAL = 1.25;
 
-/** A note that names the latest year a one-off ("FY26 profit includes a one-off gain on ..."). */
-const ONE_OFF_IN_NOTE = /\bone-off\b/i;
+/**
+ * A note that calls the latest year a one-off ("FY26 profit includes a one-off gain on ..."): the year
+ * named before the word in the same clause. A one-off in an earlier year ("FY25 profit includes a
+ * one-off gain, so FY26 growth ...") leaves the latest year's own figures clean.
+ */
+const LATEST_ONE_OFF_IN_NOTE = /\bFY26\b[^;.]*\bone-off\b/i;
 
 /** The few words every list's "i" adds about the exclusion. */
 export const ONE_OFF_NOTE = "One-off years left out.";
@@ -69,7 +73,7 @@ function noteReason(note: string | null | undefined): string {
 export function detectOutlier(f: OutlierInput | null | undefined): Outlier | null {
   if (!f) return null;
   // Marked by hand: the table's screenOut, or a note (the company's or a sector's) calling the latest year a one-off.
-  if (f.screenOut || ONE_OFF_IN_NOTE.test(f.note ?? "")) return { year: FY(4), reason: noteReason(f.note) };
+  if (f.screenOut || LATEST_ONE_OFF_IN_NOTE.test(f.note ?? "")) return { year: FY(4), reason: noteReason(f.note) };
   const rev = f.rev ?? [];
   const np = f.np ?? [];
   // Latest year first: the reason names the most recent one.

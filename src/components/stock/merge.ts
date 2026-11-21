@@ -34,9 +34,10 @@ export type Stats = {
 };
 
 // Indian REITs we cover. Screener's industry string catches any added later.
-const REIT_TICKERS = new Set(["EMBASSY", "MINDSPACE", "BIRET", "NXST", "KRT", "BAGMANE"]);
+// InvITs (infrastructure trusts) pay out the same way, so the same ratios are left out for them.
+const REIT_TICKERS = new Set(["EMBASSY", "MINDSPACE", "BIRET", "NXST", "KRT", "BAGMANE", "PGINVIT", "INDIGRID", "ALTIUSINVIT", "DIGIFIBRE"]);
 export function isReit(ticker: string | undefined, api?: StockApi | null): boolean {
-  return (!!ticker && REIT_TICKERS.has(ticker)) || /\bREIT|Real Estate Investment Trust/i.test(api?.fundamentals?.classification?.industry ?? "");
+  return (!!ticker && REIT_TICKERS.has(ticker)) || /\bREIT|\bInvIT|Real Estate Investment Trust|Infrastructure Investment Trust/i.test(api?.fundamentals?.classification?.industry ?? "");
 }
 export const REIT_NOTE =
   "REITs pass at least 90% of their distributable cash flow to unitholders as distributions, mostly as interest and repayment of debt from their property companies rather than dividends. Screener's dividend yield counts only the dividend part, and heavy depreciation on the buildings depresses reported profit, so P/E, ROE and dividend yield are not meaningful here. Use the trust's distribution per unit (in its quarterly results) for yield.";

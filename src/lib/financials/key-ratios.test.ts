@@ -34,7 +34,11 @@ test("a note warning about the latest year leaves growth and margin out; a Jan-D
   assert.deepEqual([odd.revGrowth, odd.profitGrowth, odd.netMargin], [null, null, null]);
   assert.equal(keyRatios({ ticker: "A", rev, np, screenOut: true }).revGrowth, null);
   // A note about an older year doesn't count.
-  close(keyRatios({ ticker: "A", rev, np, note: "FY22 profit is depressed by a one-off settlement" }).revGrowth!, 30);
+  close(keyRatios({ ticker: "A", rev, np: [5, 6, 8, 10, 13], note: "FY22 profit is depressed by a one-off settlement" }).revGrowth!, 30);
+  // With no note, a latest year the one-off detector flags (profit up by more rupees than sales) reads the same way.
+  const flagged = keyRatios({ ticker: "A", rev, np });
+  assert.match(flagged.caution ?? "", /^FY26 looks like a one-off year/);
+  assert.deepEqual([flagged.revGrowth, flagged.profitGrowth, flagged.netMargin], [null, null, null]);
   assert.equal(keyRatios({ ticker: "A", rev, np, note: "Reports Jan-Dec fiscal year: the FY22-FY26 columns hold CY2021-CY2025" }).fy, "CY25");
   assert.equal(keyRatios({ ticker: "A", rev, np }).fy, "FY26");
 });

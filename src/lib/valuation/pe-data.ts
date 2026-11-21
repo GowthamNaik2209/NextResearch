@@ -64,7 +64,8 @@ export function pePeers(ticker: string): { slug: string; name: string; bracket: 
 export function industryPe(ticker: string): PeIndustry | null {
   const home = pePeers(ticker);
   if (!home) return null;
-  const pes = home.peers.map((s) => s.pe).filter((v): v is number => v != null);
+  // A REIT's or InvIT's P/E isn't a valuation (REIT_NOTE), so it stays out of the median too.
+  const pes = home.peers.filter((s) => !isReit(s.ticker)).map((s) => s.pe).filter((v): v is number => v != null);
   const median = medianOf(pes);
   return median != null && pes.length >= home.min ? { slug: home.slug, name: home.name, median, n: pes.length, ...(home.group ? { group: home.group } : {}) } : null;
 }

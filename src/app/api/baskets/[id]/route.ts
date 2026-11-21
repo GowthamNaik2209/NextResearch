@@ -15,9 +15,15 @@ export async function GET(_req: Request, { params }: Ctx) {
   await ensureFinancials();
   await ensureRiskStats();
   const { id } = await params;
-  const user = await getCurrentUser();
-  const b = await getVisibleBasket(id, user?.id ?? null);
-  return b ? NextResponse.json(b) : NextResponse.json({ error: "not found" }, { status: 404 });
+  try {
+    const user = await getCurrentUser();
+    const b = await getVisibleBasket(id, user?.id ?? null);
+    return b ? NextResponse.json(b) : NextResponse.json({ error: "not found" }, { status: 404 });
+  } catch (e) {
+    // A database read that timed out: say so, rather than an empty 500.
+    console.error(`[baskets] reading basket ${id} failed`, e);
+    return NextResponse.json({ error: "unavailable" }, { status: 503 });
+  }
 }
 
 // PATCH { name?, description?, weighting?, weights?, isPublic?, add?: string[], pickedFrom?: { ticker: slug }, remove?: string[] } - owner only.

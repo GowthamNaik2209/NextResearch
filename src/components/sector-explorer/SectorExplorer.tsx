@@ -117,6 +117,7 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
   // False until the engine has drawn its first frames (model built, labels placed). Building a
   // model can take seconds on a phone, and the stage was a blank canvas meanwhile.
   const [isSceneReady, setIsSceneReady] = useState(false);
+  const [noWebGL, setNoWebGL] = useState(false);
   const zoneListRef = useRef<HTMLDivElement>(null);
   // Phone/tablet controls overlay: a tap anywhere outside it closes it (not just its own
   // button). When that tap lands on the 3D stage or the bottom sheet it is used up by the
@@ -301,11 +302,31 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
         slider: sliderRef.current,
         sheet: sheetRef.current,
       };
-      controller = mountExplorer(dom, sector, {
-        onZoneChange,
-        onDeepDiveStageChange: setDeepStage,
-        onReady: () => setIsSceneReady(true),
-      });
+      try {
+        controller = mountExplorer(dom, sector, {
+          onZoneChange,
+          onDeepDiveStageChange: setDeepStage,
+          onReady: () => setIsSceneReady(true),
+        });
+      } catch (e) {
+        // No WebGL (iOS Lockdown Mode, a blocked or lost GPU): no 3D model, but the systems list and
+        // its panels still work, so the page says so instead of crashing.
+        console.error("[explorer] 3D model unavailable", e);
+        queueMicrotask(() => setNoWebGL(true));
+        const noop = () => {};
+        controller = {
+          selectZone: (id) => onZoneChange(id, !id),
+          setHover: setHoverZoneId,
+          setImpact: noop,
+          flyTo: noop,
+          setTargetLevel: noop,
+          setLevelImmediate: noop,
+          enterDeepDive: noop,
+          exitDeepDive: noop,
+          cycleDeepStage: noop,
+          dispose: noop,
+        };
+      }
     }
     controllerRef.current = controller;
     setDeepStage(null);
@@ -924,10 +945,15 @@ export function SectorExplorer({ slug, figures, userEmail = null, displayName = 
               </button>
             )}
             <div className="stage-grid-overlay" />
-            {!isSceneReady && (
+            {!isSceneReady && !noWebGL && (
               <div className="stage-loading" role="status">
                 <span className="spinner" aria-hidden />
                 Loading the 3D model…
+              </div>
+            )}
+            {noWebGL && (
+              <div className="stage-loading" role="status">
+                This device can&rsquo;t show the 3D model (WebGL is off or unavailable). Pick a system from the list to see what it does and who supplies it.
               </div>
             )}
             <svg className="leader-svg" ref={leaderSvgRef} />

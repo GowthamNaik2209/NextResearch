@@ -37,6 +37,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   await ensureFinancials();
   await ensureRiskStats();
   const { id } = await params;
+  // An id that isn't a rule is a 404 straight away, without waiting on the day's lists.
+  if (!ideaCatalog().some((i) => i.id === id)) return NOT_FOUND_METADATA;
   const got = await loadIdea(id);
   if (got === "unavailable") return { title: "Rule-based basket", robots: { index: false } };
   if (!got) {
@@ -64,6 +66,7 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
   // Read now: the load can finish during the awaits below, after the stocks were built on stand-ins.
   const statsLoading = riskStatsLoading();
   const { id } = await params;
+  if (!ideaCatalog().some((i) => i.id === id)) notFound();
   const [got, user] = await Promise.all([loadIdea(id), getCurrentUser()]);
   if (got === "unavailable") return <Updating />;
   if (!got) {

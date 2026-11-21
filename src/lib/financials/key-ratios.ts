@@ -8,6 +8,7 @@ import type { SupplierFinancials } from "@/lib/sector-content";
 import { companyKind } from "./kinds";
 import type { LenderFigures } from "./lender";
 import { FISCAL_YEARS } from "./rows";
+import { detectOutlier } from "@/lib/baskets/outliers";
 
 export type KeyRatios = {
   /** Snapshot price ÷ book value per share; null without a positive book value. */
@@ -129,7 +130,16 @@ export function keyRatios(f: SupplierFinancials | undefined): KeyRatios {
   const nifty = f?.nifty1y;
   const note = f?.note ?? "";
   // A screened-out row's latest year is dominated by a one-off (sector-content core.ts screenOut).
-  const caution = f?.screenOut || CAUTION.test(note) ? note || "The latest year is dominated by a one-off." : null;
+  // The same one-off detector the screens and pools use: a latest year it flags (JSW Steel's FY26 other
+  // income) reads "See note" here too, never a +600% growth as a plain figure.
+  const out = f ? detectOutlier(f) : null;
+  const latestFlagged = !!out && i === (f?.rev?.length ?? 0) - 1 && out.year === `FY${String(FISCAL_YEARS[i] ?? "").slice(-2)}`;
+  const caution =
+    f?.screenOut || CAUTION.test(note)
+      ? note || "The latest year is dominated by a one-off."
+      : latestFlagged
+        ? `${out!.year} looks like a one-off year: ${out!.reason.replace(/\.$/, "")}.`
+        : null;
   const year = i >= 0 ? (FISCAL_YEARS[i] ?? FISCAL_YEARS[0] + i) : null;
   const profitNote: ProfitNote | null = !both
     ? null
