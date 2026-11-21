@@ -12,7 +12,8 @@
 //     paddle-wheel aerators (dairy, poultry, seafood).
 //   · Middle, west: a biscuit line (tunnel oven, conveyor of biscuits, a giant cream biscuit, a
 //     chips pillow pack); then a beauty and grooming yard (giant shampoo bottle, lipstick, razor,
-//     soap bars); then flavour and fragrance kettles in copper with a still.
+//     soap bars); then flavours and fragrances (stainless mixing vessels, baskets of rose and
+//     jasmine, a rack of essence vials, a giant dropper bottle) and a contract-packing shed.
 //   · Middle, east: a bottling hall with a rotary filler, crates of bottles, a contour bottle,
 //     tea bushes and a steaming cup of chai; then home care (a detergent spray-drying tower, a
 //     detergent carton, giant pencils, a mosquito coil); then packaging (laminate film rolls on a
@@ -39,17 +40,17 @@ type Side = "left" | "right" | "top" | "bottom";
 // ------------------------------------------------------------------ key dims
 const S = 0.3; // lower ground (factory belt + bazaar)
 const ST = 0.46; // farm terrace top
-const KX = -0.05,
-  KZ = 1.8,
+const KX = -0.15,
+  KZ = 1.95,
   KR = -0.2,
-  KS = 1.3; // kirana position, yaw (turned to face the default camera) and scale (the hero)
+  KS = 1.15; // kirana position, yaw (turned to face the default camera) and scale (the hero)
 /** Kirana local -> world (x, z). */
 const kw = (lx: number, lz: number): [number, number] => [KX + KS * (lx * Math.cos(KR) + lz * Math.sin(KR)), KZ + KS * (-lx * Math.sin(KR) + lz * Math.cos(KR))];
 const KA = kw(0.05, -0.15);
 
 // zone id -> 3D marker position + which rail its callout sits on.
 // Rails stack in the zones' array order (sectors/fmcg.ts): the top rail runs west -> east along
-// the farm terrace, the left rail back -> front down the west side (biscuits, beauty, kettles),
+// the farm terrace, the left rail back -> front down the west side (biscuits, beauty, fragrance),
 // the right rail back -> front down the east side (bottling, home care, packaging) and the bottom
 // rail west -> east along the bazaar street (kiosk, kirana, distributor), so markers keep each
 // rail's order from the overview, the layer views and the top (scripts/check-crossings.mjs).
@@ -61,13 +62,13 @@ export const FMCG_ANCHORS: Record<string, { pos: Vec3; side: Side }> = {
   // layer 1: food and drink
   foods: { pos: [-3.0, S + 0.3, -0.85], side: "left" }, // giant cream biscuit at the end of the line
   beverages: { pos: [3.0, S + 0.3, -1.1], side: "right" }, // rotary filler in the bottling hall
-  tobacco: { pos: [-2.6, S + 0.78, 2.75], side: "bottom" }, // giant cigarette pack on the kiosk
+  tobacco: { pos: [-2.6, S + 1.12, 2.75], side: "bottom" }, // giant cigarette pack on the kiosk
   // layer 2: home and personal care
   majors: { pos: [KA[0], S + 0.66 * KS, KA[1]], side: "bottom" }, // inside the kirana, before its packed shelves
   personal_care: { pos: [-3.15, S + 0.52, 0.55], side: "left" }, // giant shampoo bottle
   home_care: { pos: [3.05, S + 0.95, 0.55], side: "right" }, // detergent spray-drying tower
   // layer 3: packs and shelf
-  ingredients: { pos: [-3.45, S + 0.36, 1.85], side: "left" }, // copper flavour kettles
+  ingredients: { pos: [-3.2, S + 0.45, 1.85], side: "left" }, // giant fragrance dropper bottle
   packaging: { pos: [3.45, S + 0.34, 1.75], side: "right" }, // laminate film roll on the press
   distribution: { pos: [2.6, S + 0.3, 2.75], side: "bottom" }, // distributor's mini-truck
 };
@@ -103,8 +104,8 @@ export const FMCG_VIEWS = [
     id: "hpc",
     layer: 2,
     label: "Home & Personal Care",
-    pos: [-1.3, 4.8, 9.4],
-    target: [0.0, 0.6, 0.9],
+    pos: [-0.8, 4.8, 9.4],
+    target: [0.5, 0.6, 0.9],
     narration:
       "Home and personal care, and the kirana that sells it all. The FMCG majors, Hindustan Unilever, Dabur, Marico, Godrej Consumer and Colgate, fill its shelves and sachet garlands. On the west, shampoo, lipstick and razors for Emami, Honasa and Gillette; on the east, a detergent tower and pencils for home care and stationery makers like DOMS.",
   },
@@ -115,7 +116,7 @@ export const FMCG_VIEWS = [
     pos: [0.4, 9.2, 7.2],
     target: [0.1, 0.3, 0.6],
     narration:
-      "Packs and shelf. On the west, copper kettles blend flavours and fragrances and contract makers fill packs for the brands. On the east, laminate film, tubes, glass and PET bottles and labels from packaging makers. In front, a distributor's mini-truck loads at a cash-and-carry, a supermarket and a delivery rider reach the buyer too.",
+      "Packs and shelf. On the west, vessels blend flavours and fragrances from rose and jasmine into essence oils, and contract makers fill packs for the brands. On the east, laminate film, tubes, glass and PET bottles and labels from packaging makers. In front, a distributor's mini-truck loads at a cash-and-carry, a supermarket and a delivery rider reach the buyer too.",
   },
   {
     id: "top",
@@ -832,10 +833,10 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
 
     // ---- beverages: bottling canopy, rotary filler, bottle conveyor, crates, contour bottle, tea + chai
     const posts: T.BufferGeometry[] = [];
-    for (const x of [2.55, 3.15, 3.75]) for (const z of [-1.62, -0.72]) posts.push(cyl(0.015, 0.32, x, S, z, 8));
+    for (const x of [2.55, 3.15, 3.75]) for (const z of [-1.62, -1.32]) posts.push(cyl(0.015, 0.32, x, S, z, 8));
     put(foodG, M(F, 0x59626c, 0.6, 0.4), ...posts);
-    put(foodG, M(F, 0xd8352a, 0.1, 0.55, { side: DS }), barrel(2.5, 3.8, -1.68, -0.66, S + 0.32, 0.35));
-    put(foodG, M(F, 0xc9ced3, 0.6, 0.35), bx(2.5, 3.8, S + 0.3, S + 0.32, -1.68, -0.66).translate(0, 0, 0));
+    put(foodG, M(F, 0xd8352a, 0.1, 0.55, { side: DS }), barrel(2.5, 3.8, -1.68, -1.26, S + 0.32, 0.6));
+    put(foodG, M(F, 0xc9ced3, 0.6, 0.35), bx(2.5, 3.8, S + 0.3, S + 0.32, -1.68, -1.26));
     // Rotary filler: a turret with bottles round its rim; the group turns.
     put(foodG, M(F, 0xc9ced3, 0.85, 0.25), cyl(0.16, 0.1, 3.0, S, -1.1, 28), cyl(0.05, 0.12, 3.0, S + 0.1, -1.1, 16), cyl(0.13, 0.03, 3.0, S + 0.22, -1.1, 24));
     const filler = group(foodG, 3.0, S + 0.1, -1.1);
@@ -847,11 +848,17 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
     inst(filler, bottleGeo, glassMat, ring);
     inst(filler, capGeo, M(F, 0xd8352a, 0.3, 0.4), ring.map((r) => ({ p: r.p })));
     // Conveyor of filled bottles out to the crate stacks.
-    put(foodG, M(F, 0x8d97a1, 0.6, 0.4), bx(3.12, 3.95, S, S + 0.07, -1.13, -1.07));
+    // An L-shaped belt on legs: east from the filler, then south towards the street, two lanes of
+    // bottles riding it (out in the open so the line reads from the overview).
+    const beltMat = M(F, 0x8d97a1, 0.6, 0.4);
+    put(foodG, beltMat, bx(3.12, 4.0, S + 0.08, S + 0.1, -1.16, -1.04), bx(3.88, 4.0, S + 0.08, S + 0.1, -1.04, -0.5));
+    put(foodG, M(F, 0x2f6fc0, 0.4, 0.4), bx(3.12, 4.0, S + 0.1, S + 0.115, -1.165, -1.155), bx(3.12, 4.0, S + 0.1, S + 0.115, -1.045, -1.035), bx(3.875, 3.885, S + 0.1, S + 0.115, -1.04, -0.5), bx(3.995, 4.005, S + 0.1, S + 0.115, -1.16, -0.5));
+    put(foodG, M(F, 0x59626c, 0.6, 0.4), ...[3.2, 3.5, 3.8].flatMap((x) => [cyl(0.008, 0.08, x, S, -1.15, 6), cyl(0.008, 0.08, x, S, -1.05, 6)]), ...[-0.85, -0.55].flatMap((z) => [cyl(0.008, 0.08, 3.89, S, z, 6), cyl(0.008, 0.08, 3.99, S, z, 6)]));
     const line: Item[] = [];
-    for (let k = 0; k < 18; k++) line.push({ p: [3.15 + k * 0.045, S + 0.07, -1.1], c: k % 2 ? 0x3a1c10 : 0xe07a1f });
+    for (let k = 0; k < 17; k++) for (const lz of [-1.13, -1.07]) line.push({ p: [3.17 + k * 0.048, S + 0.1, lz], s: [1.3, 1.3, 1.3], c: k % 2 ? 0x3a1c10 : 0xe07a1f });
+    for (let k = 0; k < 11; k++) for (const lx of [3.913, 3.973]) line.push({ p: [lx, S + 0.1, -1.0 + k * 0.048], s: [1.3, 1.3, 1.3], c: k % 2 ? 0x3a1c10 : 0xe07a1f });
     inst(foodG, bottleGeo, glassMat, line);
-    inst(foodG, capGeo, M(F, 0xd8352a, 0.3, 0.4), line.map((r) => ({ p: r.p })));
+    inst(foodG, capGeo, M(F, 0xd8352a, 0.3, 0.4), line.map((r) => ({ p: r.p, s: r.s })));
     // Plastic crates of bottles, stacked.
     const crateGeo = mergeInto(THREE, [bx(-0.06, 0.06, 0, 0.012, -0.045, 0.045), bx(-0.06, 0.06, 0.012, 0.07, 0.04, 0.045), bx(-0.06, 0.06, 0.012, 0.07, -0.045, -0.04), bx(0.055, 0.06, 0.012, 0.07, -0.045, 0.045), bx(-0.06, -0.055, 0.012, 0.07, -0.045, 0.045)]);
     const crates: Item[] = [],
@@ -862,11 +869,14 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
         if (k === n - 1) for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) crateTops.push({ p: [x - 0.04 + i * 0.027, S + k * 0.07 + 0.012, z - 0.027 + j * 0.027], c: 0x3a1c10, s: [0.9, 0.8, 0.9] });
       }
     };
-    crateAt(3.95, -1.35, 4, 0xd8352a);
-    crateAt(4.08, -1.35, 3, 0xd8352a);
-    crateAt(3.95, -1.45, 3, 0xf2c230);
-    crateAt(4.08, -1.45, 2, 0xd8352a);
-    crateAt(4.2, -1.4, 3, 0x2f9c95);
+    // Crate stacks at the end of the belt, by the street, and more under the canopy.
+    crateAt(3.8, -0.38, 4, 0xd8352a);
+    crateAt(3.93, -0.38, 3, 0xf2c230);
+    crateAt(3.8, -0.28, 3, 0xd8352a);
+    crateAt(3.93, -0.28, 4, 0xd8352a);
+    crateAt(4.06, -0.33, 2, 0x2f9c95);
+    crateAt(3.4, -1.45, 3, 0xd8352a);
+    crateAt(3.53, -1.45, 2, 0xf2c230);
     inst(foodG, crateGeo, M(F, 0xffffff, 0.1, 0.5, {}, "crate"), crates);
     inst(foodG, bottleGeo, glassMat, crateTops);
     // A giant contour-style soft-drink bottle with a red label band.
@@ -888,6 +898,7 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
     const kx = -2.6,
       kz = 2.75;
     const kiosk = group(foodG, kx, S, kz, 0.2);
+    kiosk.scale.setScalar(1.5); // reads at overview size
     put(kiosk, M(F, 0x7a4a2a, 0, 0.7), ...[[-0.2, -0.13], [0.2, -0.13], [-0.2, 0.13], [0.2, 0.13]].map(([x, z]) => cyl(0.012, 0.16, x, 0, z, 6)));
     put(kiosk, M(F, 0x2f9c95, 0.05, 0.6), bx(-0.23, 0.23, 0.16, 0.2, -0.15, 0.15), bx(-0.23, 0.23, 0.2, 0.5, -0.15, -0.12), bx(-0.23, -0.2, 0.2, 0.5, -0.15, 0.15), bx(0.2, 0.23, 0.2, 0.5, -0.15, 0.15));
     const cigShelf = texMat(F, tex(128, 96, (g, w, h) => {
@@ -932,7 +943,7 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
       put(kiosk, M(F, 0xd98a3a, 0, 0.7), cyl(0.0132, 0.025, x, top - 0.025, 0.0, 10));
     }
     put(kiosk, M(F, 0x7a4a2a, 0, 0.7), bx(-0.03, 0.03, 0.52, 0.6, -0.02, 0.02));
-    people(foodG, F, [[kx + 0.05, S, kz + 0.35], [kx - 0.25, S, kz + 0.3]]);
+    people(foodG, F, [[kx + 0.15, S, kz + 0.45], [kx - 0.3, S, kz + 0.42]]);
     animFood = { belt: beltTex, filler, steam };
   }
 
@@ -1000,8 +1011,15 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
         g.fill();
       }
     }), 0.12);
-    put(hpcG, det, bx(3.35, 3.6, S, S + 0.32, 0.72, 0.84));
-    put(hpcG, M(F, 0x2f6fc0, 0.2, 0.5), new THREE.TorusGeometry(0.05, 0.008, 6, 14, Math.PI).translate(3.475, S + 0.32, 0.78));
+    put(hpcG, det, bx(3.28, 3.64, S, S + 0.46, 0.62, 0.8));
+    put(hpcG, M(F, 0x2f6fc0, 0.2, 0.5), new THREE.TorusGeometry(0.07, 0.011, 6, 14, Math.PI).translate(3.46, S + 0.46, 0.71));
+    // A big liquid-detergent bottle (handle, measuring cap) and a blue detergent bar.
+    put(hpcG, M(F, 0x3aa86a, 0.15, 0.3), roundedBox(THREE, 0.2, 0.34, 0.13, 0.045).translate(3.86, S + 0.17, 0.58));
+    put(hpcG, M(F, 0x3aa86a, 0.15, 0.3), new THREE.TorusGeometry(0.05, 0.016, 8, 14, Math.PI).rotateZ(Math.PI / 2).translate(3.94, S + 0.3, 0.58));
+    put(hpcG, M(F, 0xf2c230, 0.2, 0.4), cyl(0.04, 0.06, 3.8, S + 0.34, 0.58, 14));
+    put(hpcG, M(F, 0xf4f1ea, 0.05, 0.4), vPlane(0.13, 0.12, 3.86, S + 0.16, 0.6451));
+    put(hpcG, M(F, 0x5aa0e0, 0.05, 0.4), rb(0.26, 0.09, 0.15, 0.03, 3.5, S, 0.3));
+    put(hpcG, M(F, 0x2f6fc0, 0.05, 0.5), bx(3.38, 3.62, S + 0.088, S + 0.092, 0.27, 0.33));
     // Giant pencils: hexagonal yellow barrels, sharpened tips, pink erasers, in a fan.
     for (const [x, z, a] of [
       [2.65, 0.85, 0.0],
@@ -1021,11 +1039,11 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
     for (let k = 0; k <= 80; k++) {
       const a = k * 0.2,
         r = 0.02 + k * 0.0012;
-      coil.push([3.45 + Math.cos(a) * r, S + 0.012, 0.25 + Math.sin(a) * r]);
+      coil.push([2.62 + Math.cos(a) * r, S + 0.012, 0.3 + Math.sin(a) * r]);
     }
     put(hpcG, M(F, 0x2f7a3a, 0, 0.8), tube(THREE, coil, 0.006, 5, false, 160));
-    put(hpcG, M(F, 0xc9ced3, 0.7, 0.3), cyl(0.012, 0.012, 3.45, S, 0.25, 8));
-    people(hpcG, F, [[3.2, S, 0.3], [2.75, S, 0.15]]);
+    put(hpcG, M(F, 0xc9ced3, 0.7, 0.3), cyl(0.012, 0.012, 2.62, S, 0.3, 8));
+    people(hpcG, F, [[3.2, S, 0.25], [2.9, S, 0.1]]);
 
     // ---- THE KIRANA (FMCG majors): shutter rolled up, shelves packed to the ceiling
     const K2 = "kirana";
@@ -1041,7 +1059,7 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
     put(kg, wallOut, bx(-W, W, 0.06, H, -D, -D + 0.05), bx(-W, -W + 0.06, 0.06, H, -D, D), bx(W - 0.06, W, 0.06, H, -D, D));
     put(kg, M(K2, 0xf3e3b0, 0, 0.75), vPlane(2 * W - 0.12, H - 0.06, 0, (H + 0.06) / 2, -D + 0.051), vPlane(2 * D - 0.05, H - 0.06, -W + 0.061, (H + 0.06) / 2, 0.025, Math.PI / 2), vPlane(2 * D - 0.05, H - 0.06, W - 0.061, (H + 0.06) / 2, 0.025, -Math.PI / 2));
     put(kg, M(K2, 0xb8382e, 0.05, 0.6), bx(-W - 0.005, -W + 0.065, 0.06, 0.22, D - 0.005, D + 0.005), bx(W - 0.065, W + 0.005, 0.06, 0.22, D - 0.005, D + 0.005));
-    // Signboard band and roof slab, a water tank and a dish on the roof.
+    // Signboard band and roof slab, a dish on the roof.
     const board = texMat(K2, tex(512, 96, (g, w, h) => {
       g.fillStyle = "#f2c230";
       g.fillRect(0, 0, w, h);
@@ -1070,7 +1088,6 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
     put(kg, M(K2, 0xc49a6c, 0, 0.8), bx(0.95, 1.15, RY, RY + 0.08, -0.5, -0.3), bx(0.98, 1.12, RY + 0.08, RY + 0.15, -0.48, -0.33));
     put(kg, M(K2, 0xa04a32, 0, 0.85), ...[[-1.1, 0.55], [-0.95, 0.6]].map(([x, z]) => cyl(0.04, 0.06, x, RY, z, 10, 0.05)));
     put(kg, M(K2, 0x4f8a3a, 0, 0.85), ...[[-1.1, 0.55], [-0.95, 0.6]].map(([x, z]) => sph(0.05, x, RY + 0.1, z)));
-    put(kg, M(K2, 0x1c1d20, 0.1, 0.6), ...[0, 1, 2, 3, 4].map((i) => cyl(0.13 + (i % 2) * 0.005, 0.06, -0.85, H + 0.31 + i * 0.06, -0.3, 24)), cyl(0.07, 0.03, -0.85, H + 0.61, -0.3, 20));
     put(kg, M(K2, 0xd8dde2, 0.5, 0.4), sph(0.07, 0.75, H + 0.42, -0.3, 1, 1, 0.35).rotateX(0.6), bar(THREE, [0.75, H + 0.31, -0.33], [0.75, H + 0.4, -0.3], 0.008, 6));
     // The rolled-up shutter under the board, and its guide rails down the pillars.
     const shutter = texMat(K2, repeat(corrugated("#a9adb1", "#7f8489")), 0.02, { metalness: 0.6, roughness: 0.4 });
@@ -1198,28 +1215,47 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
   // ================================================================ LAYER 3: PACKS & SHELF
   {
     const F = "shelf";
-    // ---- ingredients: copper flavour/fragrance kettles on a deck, a swan-neck still, drums, a contract-maker shed
+    // ---- ingredients: stainless flavour/fragrance mixing vessels on a deck, baskets of rose and
+    // jasmine, a rack of essence vials, a giant dropper bottle of fragrance oil, a contract-maker shed
     put(shelfG, M(F, 0x8d97a1, 0.6, 0.4), bx(-4.05, -2.95, S + 0.12, S + 0.14, 1.6, 2.1));
     put(shelfG, M(F, 0x59626c, 0.6, 0.4), ...[[-4.0, 1.65], [-3.0, 1.65], [-4.0, 2.05], [-3.0, 2.05]].map(([x, z]) => cyl(0.012, 0.12, x, S, z, 6)));
     put(shelfG, M(F, 0xf2c230, 0.2, 0.5), railing_(-4.05, -2.95, 2.1, S + 0.14));
-    const copper = M(F, 0xc0703a, 0.85, 0.3);
-    for (const x of [-3.8, -3.45, -3.1]) {
-      put(shelfG, copper, lathe(THREE, [[0, 0], [0.11, 0.01], [0.14, 0.08], [0.14, 0.16], [0.1, 0.2], [0.03, 0.22], [0, 0.22]], 26).translate(x, S + 0.14, 1.85));
-      put(shelfG, M(F, 0x59626c, 0.6, 0.4), cyl(0.025, 0.05, x, S + 0.36, 1.85, 10), cyl(0.04, 0.035, x, S + 0.41, 1.85, 12));
+    const steelV = M(F, 0xdfe3e6, 0.85, 0.22);
+    for (const x of [-3.85, -3.55]) {
+      put(shelfG, steelV, cyl(0.11, 0.24, x, S + 0.14, 1.78, 24), sph(0.11, x, S + 0.38, 1.78, 1, 0.4, 1, 24));
+      put(shelfG, M(F, 0x2f6fc0, 0.3, 0.45), cyl(0.04, 0.07, x, S + 0.42, 1.78, 12));
+      put(shelfG, M(F, 0xd04f7a, 0.2, 0.5), cyl(0.112, 0.03, x, S + 0.3, 1.78, 24));
     }
-    put(shelfG, copper, hcyl(0.015, 0.7, -3.45, S + 0.3, 1.72, "x", 8));
-    // Swan-neck still (fragrance distillation) with a coil condenser.
-    put(shelfG, copper, lathe(THREE, [[0, 0], [0.09, 0], [0.11, 0.08], [0.08, 0.16], [0.03, 0.2], [0.03, 0.26], [0, 0.26]], 22).translate(-4.2, S, 2.35));
-    put(shelfG, copper, tube(THREE, [[-4.2, S + 0.26, 2.35], [-4.15, S + 0.34, 2.3], [-4.0, S + 0.33, 2.28], [-3.88, S + 0.22, 2.3]], 0.012, 8));
-    const cl: Vec3[] = [];
-    for (let k = 0; k <= 40; k++) cl.push([-3.85 + Math.cos(k * 0.6) * 0.05, S + 0.2 - k * 0.0042, 2.32 + Math.sin(k * 0.6) * 0.05]);
-    put(shelfG, copper, tube(THREE, cl, 0.008, 6, false, 120));
-    put(shelfG, M(F, 0xcfe6f2, 0.1, 0.1, { opacity: 0.5, depthWrite: false }), cyl(0.07, 0.22, -3.85, S, 2.32, 16));
-    // Amber essence bottles and blue drums.
-    const amber: Item[] = [];
-    for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) amber.push({ p: [-3.55 + i * 0.05, S, 2.3 + j * 0.05] });
-    inst(shelfG, lathe(THREE, [[0, 0], [0.018, 0], [0.018, 0.05], [0.007, 0.07], [0, 0.07]], 10), M(F, 0xa8601a, 0.2, 0.15, { opacity: 0.9 }), amber);
-    put(shelfG, M(F, 0x2f5d9a, 0.3, 0.45), ...[[-3.2, 2.32], [-3.1, 2.38], [-3.05, 2.27]].map(([x, z]) => cyl(0.04, 0.12, x, S, z, 14)));
+    put(shelfG, steelV, hcyl(0.012, 0.3, -3.7, S + 0.2, 1.9, "x", 8));
+    // The giant dropper bottle: amber glass, a gold collar, a black rubber bulb, the glass dropper inside.
+    const dx = -3.2,
+      dz = 1.85;
+    put(shelfG, M(F, 0xb8661a, 0.2, 0.1, { opacity: 0.82, emissive: 0x4a2400, emissiveIntensity: 0.3 }), lathe(THREE, [[0, 0], [0.1, 0], [0.11, 0.02], [0.11, 0.2], [0.09, 0.25], [0.04, 0.27], [0.035, 0.3], [0, 0.3]], 28).translate(dx, S + 0.14, dz));
+    put(shelfG, M(F, 0xd4a843, 0.9, 0.25), cyl(0.045, 0.04, dx, S + 0.43, dz, 18));
+    put(shelfG, M(F, 0x1c1d20, 0.1, 0.6), lathe(THREE, [[0.03, 0], [0.04, 0.03], [0.04, 0.08], [0.025, 0.11], [0, 0.115]], 16).translate(dx, S + 0.47, dz));
+    put(shelfG, M(F, 0xe6f2f7, 0.1, 0.05, { opacity: 0.6 }), cyl(0.008, 0.26, dx, S + 0.2, dz, 8));
+    put(shelfG, M(F, 0xf4f1ea, 0.05, 0.5), cyl(0.1115, 0.08, dx, S + 0.2, dz, 28));
+    // Flower baskets: wicker bowls heaped with rose and jasmine.
+    const blooms: Item[] = [];
+    for (const [bxp, col] of [
+      [-3.95, 0xd8355a],
+      [-3.65, 0xfaf6ec],
+      [-3.35, 0xe8647a],
+    ] as [number, number][]) {
+      put(shelfG, M(F, 0x9a6a3a, 0, 0.9), lathe(THREE, [[0, 0], [0.07, 0], [0.11, 0.07], [0.105, 0.075], [0, 0.03]], 18).translate(bxp, S, 2.38));
+      for (let k = 0; k < 14; k++) {
+        const a = R() * 6.28,
+          rr = R() * 0.08;
+        blooms.push({ p: [bxp + Math.cos(a) * rr, S + 0.075 + R() * 0.025, 2.38 + Math.sin(a) * rr], c: col });
+      }
+    }
+    inst(shelfG, new THREE.IcosahedronGeometry(0.022, 0), M(F, 0xffffff, 0, 0.7, {}, "bloom"), blooms);
+    // A rack of small essence vials in many colours.
+    put(shelfG, M(F, 0x8a5a34, 0.05, 0.6), bx(-3.15, -2.9, S, S + 0.03, 2.28, 2.46));
+    const vials: Item[] = [];
+    const VC = [0xe07a1f, 0xd04f7a, 0x7b3fa0, 0x3a9a4a, 0xf2c230, 0x2fa7c9];
+    for (let i = 0; i < 6; i++) for (let k = 0; k < 4; k++) vials.push({ p: [-3.12 + i * 0.038, S + 0.03, 2.31 + k * 0.042], c: VC[(i + k) % VC.length] });
+    inst(shelfG, lathe(THREE, [[0, 0], [0.012, 0], [0.012, 0.05], [0.006, 0.06], [0.006, 0.07], [0, 0.07]], 8), M(F, 0xffffff, 0.2, 0.15, { opacity: 0.9 }, "vial"), vials);
     // Contract-maker shed: filling line for the brands, mixed cartons on a pallet.
     put(shelfG, M(F, 0xe8e2d4), ...walls(-4.35, -3.75, 1.05, 1.4, S, S + 0.2));
     put(shelfG, M(F, 0x3d5a80, 0.2, 0.6), gable(-4.35, -3.75, 1.05, 1.4, S + 0.2, 0.08));
@@ -1229,7 +1265,7 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
     const cart: Item[] = [];
     for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) cart.push({ p: [-3.565 + i * 0.065, S + 0.02 + j * 0.055, 1.28], c: COLS2[(i + j * 3) % COLS2.length] });
     inst(shelfG, new THREE.BoxGeometry(0.06, 0.05, 0.14).translate(0, 0.025, 0), texMat(F, packTex, 0.1), cart);
-    people(shelfG, F, [[-3.3, S + 0.14, 1.95], [-3.9, S, 1.55]]);
+    people(shelfG, F, [[-3.7, S + 0.14, 2.0], [-3.9, S, 1.55]]);
 
     // ---- packaging: a printing press with laminate rolls and a film web, tubes, bottles, labels
     const film = repeat(tex(128, 64, (g, w, h) => {
@@ -1308,7 +1344,9 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
       cz1 = 3.2;
     put(shelfG, M(F, 0xe6dccb, 0.05, 0.7), vPlane(cx1 - cx0, 0.28, (cx0 + cx1) / 2, S + 0.14, cz0, Math.PI), vPlane(cz1 - cz0, 0.28, cx1, S + 0.14, (cz0 + cz1) / 2, Math.PI / 2), vPlane(cz1 - cz0, 0.28, cx0, S + 0.14, (cz0 + cz1) / 2, -Math.PI / 2));
     put(shelfG, M(F, 0x3d5a80, 0.4, 0.4, { side: DS }), barrel(cx0 - 0.02, cx1 + 0.02, cz0 - 0.02, cz1 + 0.02, S + 0.28, 0.4));
-    put(shelfG, texMat(F, sign("CASH & CARRY", "#3d5a80", "#f2c230", 256, 48, 30), 0.3), vPlane(0.7, 0.11, (cx0 + cx1) / 2, S + 0.33, cz1 + 0.01));
+    // A big rooftop board on two posts, so the name reads from the overview.
+    put(shelfG, texMat(F, sign("CASH & CARRY", "#f2c230", "#1f3a66", 512, 112, 58, undefined, "#1f3a66"), 0.35), vPlane(1.15, 0.25, (cx0 + cx1) / 2, S + 0.66, cz1 - 0.12));
+    put(shelfG, M(F, 0x59626c, 0.6, 0.4), ...[-0.45, 0.45].map((o) => bx((cx0 + cx1) / 2 + o - 0.015, (cx0 + cx1) / 2 + o + 0.015, S + 0.4, S + 0.55, cz1 - 0.135, cz1 - 0.105)));
     put(shelfG, M(F, 0xe07a1f, 0.4, 0.4), ...[3.3, 3.75, 4.2].flatMap((x) => [bx(x - 0.01, x + 0.01, S, S + 0.26, 2.55, 2.57), bx(x - 0.01, x + 0.01, S, S + 0.26, 2.75, 2.77)]));
     put(shelfG, M(F, 0x2f6fc0, 0.4, 0.4), ...[0.09, 0.18].map((y) => bx(3.28, 4.22, S + y, S + y + 0.012, 2.55, 2.77)));
     const ctn: Item[] = [];
@@ -1341,7 +1379,7 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
     put(mart, M(F, 0xc9ced3, 0.8, 0.3), ...[-0.15, -0.08].map((x) => bx(x - 0.025, x + 0.025, 0.03, 0.07, 0.2, 0.26)));
   }
 
-  // ================================================================ STATIC: STREET LIFE, TREES, POLES
+  // ================================================================ STATIC: STREET LIFE, TREES
   // The delivery rider runs the bazaar street (scooter + rider + insulated box).
   const rider = new THREE.Group();
   baseG.add(rider);
@@ -1369,22 +1407,6 @@ export function buildFmcg(ctx: Ctx, _def?: unknown) {
     for (const [x, z, s] of tr) tree(x, z, s, z < -1.95 && x > -4.3 && x < 4.4 ? ST : S);
     inst(baseG, trunkGeo, M(B, 0x5a4632, 0, 0.9), trunkItems);
     inst(baseG, crown, M(B, 0xffffff, 0, 0.85, {}, "crown"), treeItems);
-    // Electric poles with sagging wires along the road.
-    const poles: [number, number][] = [
-      [2.65, -0.35],
-      [2.75, 1.35],
-      [2.62, 2.35],
-      [1.15, 3.05],
-    ];
-    put(baseG, M(B, 0xbfb7a8, 0, 0.8), ...poles.map(([x, z]) => cyl(0.014, 0.62, x, S, z, 6, 0.009)));
-    put(baseG, M(B, 0x59626c, 0.5, 0.5), ...poles.map(([x, z]) => bx(x - 0.07, x + 0.07, S + 0.57, S + 0.585, z - 0.008, z + 0.008)));
-    const wireMat = M(B, 0x2a2a2a, 0.2, 0.7);
-    for (let i = 0; i < poles.length - 1; i++)
-      for (const off of [-0.06, 0.06]) {
-        const [ax, az] = poles[i],
-          [bx2, bz] = poles[i + 1];
-        put(baseG, wireMat, tube(THREE, [[ax + off, S + 0.585, az], [(ax + bx2) / 2 + off, S + 0.5, (az + bz) / 2], [bx2 + off, S + 0.585, bz]], 0.003, 4, false, 16));
-      }
     // A goods lorry on the road to the bazaar and a cow resting on the street.
     const gl = lorry(baseG, B, 1.35, S, -0.45, -0.85, 0xe08a2e, 0.6);
     put(gl, M(B, 0x2f6fc0, 0.2, 0.5), rb(0.36, 0.16, 0.18, 0.02, -0.08, 0.07, 0));
