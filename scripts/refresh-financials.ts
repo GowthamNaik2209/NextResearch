@@ -142,7 +142,7 @@ async function main() {
         if (FIX_HISTORY.has(old.ticker)) {
           f.rev = cols.rev;
           f.np = cols.np;
-          f.note = noteAfterHistoryFix(f.note, cols.rev, cols.np);
+          f.note = noteAfterHistoryFix(f.note, cols.rev, cols.np, s.basis);
           fixHistory = true;
         }
       }

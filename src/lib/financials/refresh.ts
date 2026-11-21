@@ -105,6 +105,16 @@ const latestOf = (ys: string[]) => (ys.length ? yearOf(ys[ys.length - 1]) : 0);
 export const SHORT_CONSOLIDATED_YEARS = 3;
 
 /**
+ * The latest March fiscal year whose annual results should be out by `now`: listed companies file
+ * within 60 days of 31 March, so from July the year just ended (FY26 from July 2026), before that the
+ * one before. A consolidated page whose accounts stop earlier is checked against the standalone page
+ * (Screener's consolidated view lagged a year for HATSUN, JYOTHYLAB, UCOBANK, FACT and others in 2026).
+ */
+export function latestFiscalYearDue(now: Date): number {
+  return now.getUTCMonth() >= 6 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+}
+
+/**
  * Whether to read a company's standalone page instead of its consolidated one: the consolidated page
  * is an empty template, its accounts stop years earlier (a stale consolidated filing, e.g. RailTel),
  * or they start much later - fewer than SHORT_CONSOLIDATED_YEARS years to the same latest year where
@@ -142,7 +152,7 @@ export async function fetchSnapshot(ticker: string, standalone: boolean, tlSlug:
     // much later (preferStandalone).
     const usable = isUsablePage(html);
     const consYears = usable ? annualYears(html) : [];
-    if (!usable || latestOf(consYears) < new Date().getFullYear() - 1 || consYears.length < SHORT_CONSOLIDATED_YEARS) {
+    if (!usable || latestOf(consYears) < latestFiscalYearDue(new Date()) || consYears.length < SHORT_CONSOLIDATED_YEARS) {
       const sa = await get(`${base}/`, o);
       saPage = sa;
       if (sa === null) return null;
@@ -255,12 +265,15 @@ export function withSnapshot(old: SupplierFinancials, s: Snap, asOf: Date): Supp
 /**
  * A company's note once its FY22-FY26 history is replaced with Screener's (--fix-history): when no
  * year is blank any more, the "... left blank" clauses no longer hold and are dropped (null if nothing
- * else is left). Otherwise the note is kept as authored.
+ * else is left). Otherwise the note is kept as authored. A history read from the standalone page
+ * adds "standalone figures" when the note does not say so yet.
  */
-export function noteAfterHistoryFix(note: string | null | undefined, rev: (number | null)[], np: (number | null)[]): string | null {
-  if (!note) return note ?? null;
-  if (rev.some((v) => v == null) || np.some((v) => v == null)) return note;
-  return note.split("; ").filter((c) => !/left blank/i.test(c)).join("; ") || null;
+export function noteAfterHistoryFix(note: string | null | undefined, rev: (number | null)[], np: (number | null)[], basis: Snap["basis"] = "consolidated"): string | null {
+  // History now read from the standalone page: say so, so later refreshes read that page too (isStandalone).
+  const clauses = note ? note.split("; ") : [];
+  if (basis === "standalone" && !/standalone figures/i.test(note ?? "")) clauses.push("standalone figures");
+  if (rev.some((v) => v == null) || np.some((v) => v == null)) return clauses.join("; ") || null;
+  return clauses.filter((c) => !/left blank/i.test(c)).join("; ") || null;
 }
 
 /** A company new to the table (--add, or an IPO on its listing day): figures and full FY history from Screener. */
