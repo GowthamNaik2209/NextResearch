@@ -13,6 +13,11 @@ test("rules read as one plain sentence each", () => {
   assert.equal(d.exit, "Get out when the price crosses below SMA 200; or it falls 15% from its highest close since entry.");
   const m = describeStrategy(PRESETS.find((p) => p.id === "trend-top-fifth")!.strategy);
   assert.match(m.entry, /checked on a month's last close/);
+  assert.doesNotMatch(m.entry, /a cross is counted/);
+  const sq = PRESETS.find((p) => p.id === "bb-squeeze")!.strategy;
+  assert.doesNotMatch(describeStrategy(sq).entry, /a cross is counted/);
+  assert.match(describeStrategy({ ...sq, check: "m" }).entry, /checked on a month's last close \(a cross is counted from the month before's last close\)\.$/);
+  assert.match(describeTrigger({ ...sq, check: "w" }, "exit", "rule"), /checked on a week's last close \(a cross is counted from the week before's last close\)\.$/);
 });
 
 test("every preset describes without leftovers, and never says buy or sell", () => {

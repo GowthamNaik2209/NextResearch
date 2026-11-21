@@ -52,7 +52,9 @@ is false. Catalogue: `src/lib/signals/metrics.ts`.
   stop loss (% below entry), ATR stop (Chandelier: highest close since entry less k × ATR 22), take
   profit (% above entry), time stop (trading days).
 - **When rules are checked:** every close, the last close of each week, or the last of each month.
-  Exit controls are checked every close whatever the rule check.
+  Exit controls are checked every close whatever the rule check. A cross is read between one check
+  and the one before: on monthly checks, "crosses above" means at or below at the month before's
+  last close and above at this month's (on daily checks, the day before and the day).
 - **Execution:** a signal on a close trades at the **next** close, so a backtest never uses a price
   it could not have known. Costs (0.2% round trip by default) are taken half on entry, half on exit.
 - Validation (`src/lib/signals/strategy.ts`): 1-8 entry conditions, 0-8 exit conditions, numbers
