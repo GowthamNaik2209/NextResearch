@@ -97,8 +97,18 @@ export type Snap = {
   lender?: LenderFigures;
 };
 
-const yearOf = (label: string) => Number(label.match(/(\d{4})$/)?.[1] ?? 0);
-const annualYears = (html: string) => parseCompanyPage(html).annual?.years.filter((y) => /^[A-Z][a-z]{2} \d{4}$/.test(y)) ?? [];
+// A full year's column: "Mar 2026", or "Mar 2022 (S)", a year Screener's consolidated view fills from
+// the standalone accounts (before the company had subsidiaries). Not "Mar 2023 15m" or "TTM".
+const FULL_YEAR = /^[A-Z][a-z]{2} \d{4}(?: \(S\))?$/;
+const yearLabel = (label: string) => label.replace(/ \(S\)$/, "");
+const yearOf = (label: string) => Number(yearLabel(label).match(/(\d{4})$/)?.[1] ?? 0);
+const annualYears = (html: string) => parseCompanyPage(html).annual?.years.filter((y) => FULL_YEAR.test(y)).map(yearLabel) ?? [];
+const latestRevenueOf = (html: string) => {
+  const a = parseCompanyPage(html).annual;
+  const sales = a?.series.find((x) => x.label === "Sales");
+  const i = a ? a.years.findLastIndex((y) => FULL_YEAR.test(y)) : -1;
+  return i >= 0 ? (sales?.values[i] ?? null) : null;
+};
 const latestOf = (ys: string[]) => (ys.length ? yearOf(ys[ys.length - 1]) : 0);
 
 /** Consolidated accounts with fewer full years than this (a group that began consolidating lately) are checked against the standalone page. */
@@ -120,12 +130,25 @@ export function latestFiscalYearDue(now: Date): number {
  * or they start much later - fewer than SHORT_CONSOLIDATED_YEARS years to the same latest year where
  * the standalone page has more (UGRO Capital: consolidated from FY26 only, standalone back to FY22).
  */
-export function preferStandalone(cons: { usable: boolean; years: string[] }, sa: { usable: boolean; years: string[] } | null): boolean {
+export function preferStandalone(
+  cons: { usable: boolean; years: string[]; latestRev?: number | null },
+  sa: { usable: boolean; years: string[]; latestRev?: number | null } | null,
+): boolean {
   if (!sa?.usable) return false;
   if (!cons.usable) return true;
   const [lc, ls] = [latestOf(cons.years), latestOf(sa.years)];
   if (ls > lc) return true;
-  return ls === lc && cons.years.length < SHORT_CONSOLIDATED_YEARS && sa.years.length > cons.years.length;
+  if (ls === lc && cons.years.length < SHORT_CONSOLIDATED_YEARS && sa.years.length > cons.years.length) return true;
+  // The consolidated view skips years the standalone page has (AGI: Mar 2019 then Mar 2025) and the two
+  // agree on the latest revenue (within 5%), so the subsidiaries are small: standalone, with every year.
+  const close = cons.latestRev != null && sa.latestRev != null && Math.abs(cons.latestRev - sa.latestRev) <= 0.05 * Math.max(1, Math.abs(sa.latestRev));
+  return ls === lc && close && hasYearGap(cons.years) && !hasYearGap(sa.years);
+}
+
+/** Whether a page's last five full years skip one (Mar 2019, Mar 2025: four years missing). */
+export function hasYearGap(years: string[]): boolean {
+  const ys = years.slice(-5).map(yearOf);
+  return ys.some((y, i) => i > 0 && y - ys[i - 1] > 1);
 }
 
 // Screener addresses a few listings by a code its search doesn't return for the ticker.
@@ -152,11 +175,12 @@ export async function fetchSnapshot(ticker: string, standalone: boolean, tlSlug:
     // much later (preferStandalone).
     const usable = isUsablePage(html);
     const consYears = usable ? annualYears(html) : [];
-    if (!usable || latestOf(consYears) < latestFiscalYearDue(new Date()) || consYears.length < SHORT_CONSOLIDATED_YEARS) {
+    if (!usable || latestOf(consYears) < latestFiscalYearDue(new Date()) || consYears.length < SHORT_CONSOLIDATED_YEARS || hasYearGap(consYears)) {
       const sa = await get(`${base}/`, o);
       saPage = sa;
       if (sa === null) return null;
-      if (sa !== "missing" && preferStandalone({ usable, years: consYears }, { usable: isUsablePage(sa), years: annualYears(sa) })) {
+      const consSide = { usable, years: consYears, latestRev: usable ? latestRevenueOf(html) : null };
+      if (sa !== "missing" && preferStandalone(consSide, { usable: isUsablePage(sa), years: annualYears(sa), latestRev: latestRevenueOf(sa) })) {
         html = sa;
         basis = "standalone";
       }
@@ -178,12 +202,12 @@ export async function fetchSnapshot(ticker: string, standalone: boolean, tlSlug:
   let latestRev: Snap["latestRev"] = null;
   let history: Snap["history"] = null;
   if (page.annual && sales) {
-    const idxs = page.annual.years.map((y, i) => (/^[A-Z][a-z]{2} \d{4}$/.test(y) ? i : -1)).filter((i) => i >= 0);
+    const idxs = page.annual.years.map((y, i) => (FULL_YEAR.test(y) ? i : -1)).filter((i) => i >= 0);
     const idx = idxs.at(-1);
-    if (idx != null) latestRev = { year: page.annual.years[idx], value: sales.values[idx] };
+    if (idx != null) latestRev = { year: yearLabel(page.annual.years[idx]), value: sales.values[idx] };
     // every full year on the page (about five); aligned by year in fiscalColumns()
     history = {
-      years: idxs.map((i) => page.annual!.years[i]),
+      years: idxs.map((i) => yearLabel(page.annual!.years[i])),
       rev: idxs.map((i) => sales.values[i] ?? null),
       np: idxs.map((i) => profit?.values[i] ?? null),
     };
@@ -263,28 +287,83 @@ export function withSnapshot(old: SupplierFinancials, s: Snap, asOf: Date): Supp
 }
 
 /**
- * A company's note once its FY22-FY26 history is replaced with Screener's (--fix-history): when no
- * year is blank any more, the "... left blank" clauses no longer hold and are dropped (null if nothing
- * else is left). Otherwise the note is kept as authored. A history read from the standalone page
+ * When a company listed, as far as we can tell (only years that ended before it count as "before
+ * its listing"): the price store's first day (it holds five years, so a long-listed company's first
+ * day is just the store's start), pulled earlier by Screener's price CAGRs (a 5-year CAGR means listed
+ * at least five years ago). With no price day and no CAGR at all it listed within the year, so a
+ * year before asOf minus one year is safely before it. Null when nothing is known.
+ */
+export function listingBound(cagr: (number | null)[] | null | undefined, firstPriceDay: Date | null, asOf: Date): Date | null {
+  const back = (n: number) => new Date(Date.UTC(asOf.getUTCFullYear() - n, asOf.getUTCMonth(), asOf.getUTCDate()));
+  const yearsBack = cagr?.[2] != null ? 5 : cagr?.[1] != null ? 3 : cagr?.[0] != null ? 1 : null;
+  const atLeast = yearsBack == null ? null : back(yearsBack);
+  if (firstPriceDay) return atLeast && atLeast < firstPriceDay ? atLeast : firstPriceDay;
+  if (atLeast) return atLeast;
+  return cagr && cagr.length ? back(1) : null;
+}
+
+// The generic clause older adds wrote, and the ones blankYearsNote writes.
+const BLANK_CLAUSE = /^(?:years before its listing or not on Screener left blank|(?:FY|CY)\d\d.*(?:before its listing|not on Screener)[^;]*left blank)$/i;
+
+const yearsLabel = (idx: number[], dec: boolean) => {
+  const name = (i: number) => (dec ? `CY${FISCAL_YEARS[i] - 1}` : `FY${String(FISCAL_YEARS[i]).slice(2)}`);
+  const runs: number[][] = [];
+  for (const i of idx) (runs.length && runs.at(-1)!.at(-1) === i - 1 ? runs.at(-1)!.push(i) : runs.push([i]));
+  return runs.map((r) => (r.length > 1 ? `${name(r[0])}-${name(r.at(-1)!)}` : name(r[0]))).join(", ");
+};
+
+/**
+ * Why a company's blank FY22-FY26 columns are blank, from the year each one ended and when the
+ * company listed: "FY22-FY23 before its listing, left blank" only for years that ended before it
+ * listed, "FY22 not on Screener, left blank" otherwise (ACC, PGHH: listed for decades). With no
+ * listing date known every blank year is "not on Screener". Null when no year is blank.
+ */
+export function blankYearsNote(rev: (number | null)[], np: (number | null)[], o: { listedOn: Date | null; dec: boolean }): string | null {
+  const blank = FISCAL_YEARS.map((_, i) => i).filter((i) => rev[i] == null || np[i] == null);
+  if (!blank.length) return null;
+  const ended = (i: number) => (o.dec ? Date.UTC(FISCAL_YEARS[i] - 1, 11, 31) : Date.UTC(FISCAL_YEARS[i], 2, 31));
+  const pre = blank.filter((i) => o.listedOn != null && ended(i) < o.listedOn.getTime());
+  const other = blank.filter((i) => !pre.includes(i));
+  return [pre.length ? `${yearsLabel(pre, o.dec)} before its listing, left blank` : null, other.length ? `${yearsLabel(other, o.dec)} not on Screener, left blank` : null]
+    .filter(Boolean)
+    .join("; ");
+}
+
+/**
+ * A company's note with its blank-years clause rewritten for the history it now has (after
+ * --fix-history, or to correct the reason): the generic or earlier clause is replaced by
+ * blankYearsNote's; when no year is blank any more every "... left blank" clause is dropped (null if
+ * nothing else is left). Other clauses stay as authored. A history read from the standalone page
  * adds "standalone figures" when the note does not say so yet.
  */
-export function noteAfterHistoryFix(note: string | null | undefined, rev: (number | null)[], np: (number | null)[], basis: Snap["basis"] = "consolidated"): string | null {
+export function noteAfterHistoryFix(
+  note: string | null | undefined,
+  rev: (number | null)[],
+  np: (number | null)[],
+  basis: Snap["basis"] = "consolidated",
+  o: { listedOn: Date | null; dec: boolean } = { listedOn: null, dec: /jan-dec/i.test(note ?? "") && !/moved from/i.test(note ?? "") },
+): string | null {
   // History now read from the standalone page: say so, so later refreshes read that page too (isStandalone).
-  const clauses = note ? note.split("; ") : [];
+  let clauses = note ? note.split("; ") : [];
   if (basis === "standalone" && !/standalone figures/i.test(note ?? "")) clauses.push("standalone figures");
-  if (rev.some((v) => v == null) || np.some((v) => v == null)) return clauses.join("; ") || null;
-  return clauses.filter((c) => !/left blank/i.test(c)).join("; ") || null;
+  const full = !rev.some((v) => v == null) && !np.some((v) => v == null);
+  if (full) return clauses.filter((c) => !/left blank/i.test(c)).join("; ") || null;
+  const hadGeneric = clauses.some((c) => BLANK_CLAUSE.test(c));
+  clauses = clauses.filter((c) => !BLANK_CLAUSE.test(c));
+  // A curated reason for the blanks (NESTLEIND's change of year) is kept, and no generic clause added.
+  if (hadGeneric || !clauses.some((c) => /left blank/i.test(c))) clauses.push(blankYearsNote(rev, np, o)!);
+  return clauses.join("; ") || null;
 }
 
 /** A company new to the table (--add, or an IPO on its listing day): figures and full FY history from Screener. */
-export function newCompanyFigures(ticker: string, s: Snap, asOf: Date): SupplierFinancials | null {
+export function newCompanyFigures(ticker: string, s: Snap, asOf: Date, firstPriceDay: Date | null = null): SupplierFinancials | null {
   if (!s.history) return null;
   const cols = fiscalColumns(s.history);
   const note =
     [
       s.basis === "standalone" ? "standalone figures" : null,
       cols.dec ? "Reports Jan-Dec fiscal year: the FY22-FY26 columns hold CY2021-CY2025" : null,
-      cols.rev.some((v) => v == null) ? "years before its listing or not on Screener left blank" : null,
+      blankYearsNote(cols.rev, cols.np, { listedOn: listingBound(s.cagr, firstPriceDay, asOf), dec: cols.dec }),
     ]
       .filter(Boolean)
       .join("; ") || null;
@@ -465,7 +544,7 @@ export async function runChunk(prisma: PrismaClient, opts: ChunkOptions): Promis
           return;
         }
         const name = newNames.get(old.ticker);
-        const fresh = s && name ? newCompanyFigures(old.ticker, s, target) : null;
+        const fresh = s && name ? newCompanyFigures(old.ticker, s, target, target) : null; // listing today
         if (s && name && fresh) {
           await writeFinancials(prisma, fresh, target, newCompanyWriteOptions(s, name));
           await saveShareholding(old.ticker, s.shareholding);

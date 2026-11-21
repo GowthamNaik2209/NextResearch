@@ -34,7 +34,7 @@ import { listIpos } from "../src/lib/ipo-content";
 import { hasQuote } from "../src/lib/financials/no-quote";
 import { formatAsOf } from "../src/lib/financials/rows";
 import { readCompanyTable, readPublishedCutoff } from "../src/lib/financials/query";
-import { claimRun, fetchSnapshot, fiscalColumns, isStandalone, noteAfterHistoryFix, listedIposToAdd, newCompanyFigures, newCompanyWriteOptions, publishRun, releaseRun, ScreenerBlocked, withSnapshot, type Run, type Snap } from "../src/lib/financials/refresh";
+import { claimRun, fetchSnapshot, fiscalColumns, isStandalone, listingBound, noteAfterHistoryFix, listedIposToAdd, newCompanyFigures, newCompanyWriteOptions, publishRun, releaseRun, ScreenerBlocked, withSnapshot, type Run, type Snap } from "../src/lib/financials/refresh";
 import { istDay } from "../src/lib/financials/trading-day";
 import { writeFinancials } from "../src/lib/financials/write";
 import { databaseLabel, scriptPrisma } from "./db";
@@ -111,6 +111,7 @@ async function main() {
       results.set(f.ticker, await read(f));
     }
 
+    const firstDay = new Map((await prisma.priceSeries.findMany({ select: { key: true, firstDay: true } })).map((p) => [p.key, p.firstDay]));
     const failed: string[] = [];
     const revFlags: string[] = [];
     const history: Record<string, unknown> = {};
@@ -118,7 +119,7 @@ async function main() {
     for (const old of todo) {
       const s = results.get(old.ticker);
       const ipoName = newNames.get(old.ticker);
-      const fresh = s && ipoName ? newCompanyFigures(old.ticker, s, SNAPSHOT_DATE) : null;
+      const fresh = s && ipoName ? newCompanyFigures(old.ticker, s, SNAPSHOT_DATE, SNAPSHOT_DATE) : null; // listing today
       if (!s || (ipoName && !fresh)) {
         failed.push(old.ticker);
         continue;
@@ -142,7 +143,7 @@ async function main() {
         if (FIX_HISTORY.has(old.ticker)) {
           f.rev = cols.rev;
           f.np = cols.np;
-          f.note = noteAfterHistoryFix(f.note, cols.rev, cols.np, s.basis);
+          f.note = noteAfterHistoryFix(f.note, cols.rev, cols.np, s.basis, { listedOn: listingBound(s.cagr, firstDay.get(old.ticker) ?? null, SNAPSHOT_DATE), dec: cols.dec });
           fixHistory = true;
         }
       }
@@ -186,7 +187,8 @@ async function addEntries(table: Map<string, SupplierFinancials>) {
       continue;
     }
     const s = await snapshot({ ticker: t, standalone: false, tlSlug: null });
-    const f = s ? newCompanyFigures(t, s, asOf) : null;
+    const first = (await prisma.priceSeries.findUnique({ where: { key: t }, select: { firstDay: true } }))?.firstDay ?? null;
+    const f = s ? newCompanyFigures(t, s, asOf, first) : null;
     if (!s || !f) {
       console.log(`${t}: FAILED`);
       continue;
