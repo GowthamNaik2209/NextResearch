@@ -911,6 +911,42 @@
     {
       "key": "ev4w",
       "suppliers": {
+        "ashok": {
+          "name": "Ashok Leyland",
+          "listed": true,
+          "role": "Truck and bus maker that owns Switch Mobility, builder of electric buses and light commercial vehicles",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Switch gives it electric buses and e-LCVs",
+            "Large dealer and service network"
+          ],
+          "risks": [
+            "Electric units are small beside its diesel trucks",
+            "Bus orders come from lumpy state tenders"
+          ],
+          "f": {
+            "ticker": "ASHOKLEY"
+          }
+        },
+        "hyundai": {
+          "name": "Hyundai Motor India",
+          "listed": true,
+          "role": "Carmaker that builds the Creta Electric at its Chennai plant beside a large petrol and diesel range",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Brings an electric version to its existing mass-market SUV buyers",
+            "Chennai plant assembles the Creta Electric locally"
+          ],
+          "risks": [
+            "Electric cars are a small part of its volumes",
+            "Tata and Mahindra lead electric-car sales in India"
+          ],
+          "f": {
+            "ticker": "HYUNDAI"
+          }
+        },
         "motherson": {
           "name": "Samvardhana Motherson International",
           "listed": true,
@@ -1405,6 +1441,24 @@
     {
       "key": "semiconductors",
       "suppliers": {
+        "ltts": {
+          "name": "L&T Technology Services",
+          "listed": true,
+          "role": "Engineering R&D firm with a semiconductor design and verification practice for chipmakers and electronics clients",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Broad engineering design portfolio with L&T group backing",
+            "Chip design and verification expertise to cross-sell"
+          ],
+          "risks": [
+            "Semiconductor design is a small practice in a broad R&D firm",
+            "Client R&D budgets are cut in downturns"
+          ],
+          "f": {
+            "ticker": "LTTS"
+          }
+        },
         "tataelectronics": {
           "name": "Tata Electronics",
           "listed": false,
@@ -1713,6 +1767,150 @@
     {
       "key": "datacenter",
       "suppliers": {
+        "tatacomm_op": {
+          "name": "Tata Communications",
+          "listed": true,
+          "role": "Provides subsea cable landings, data-centre interconnect and cloud on-ramps that link campuses to networks and customers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Global network that data centres plug into for traffic and cloud access",
+            "Enterprise customer relationships bring data-centre tenants and traffic"
+          ],
+          "risks": [
+            "Mostly a connectivity and enterprise-services business, so data-centre demand is a minor driver",
+            "Profit swings from data-centre divestment and accounting effects"
+          ],
+          "f": {
+            "ticker": "TATACOMM"
+          }
+        },
+        "gevtd": {
+          "name": "GE Vernova T&D India",
+          "listed": true,
+          "role": "Indian arm of GE Vernova's grid business; its transformers and substations connect large data-centre campuses to the power grid",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Transformer and GIS plants sized for large substations",
+            "Utility-grade grid track record"
+          ],
+          "risks": [
+            "Data centres are a small part of an order book led by utilities",
+            "Order timing is lumpy"
+          ],
+          "f": {
+            "ticker": "GVT&D"
+          }
+        },
+        "siemens": {
+          "name": "Siemens Ltd",
+          "listed": true,
+          "role": "Smart-infrastructure arm that sells low- and medium-voltage switchgear, busways and power distribution for data-centre electrical rooms",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Switchgear and building automation used in data-centre power rooms",
+            "Parent brings global data-centre reference designs"
+          ],
+          "risks": [
+            "Data centres are a small part of a diversified company",
+            "Strong rivals in electrical distribution (ABB, Schneider)"
+          ],
+          "f": {
+            "ticker": "SIEMENS"
+          }
+        },
+        "lt": {
+          "name": "Larsen & Toubro",
+          "listed": true,
+          "role": "Operates data centres through L&T-Vyoma (Panvel, Kancheepuram) and also builds data-centre campuses for others as a contractor",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Builds data centres for others, so it sees designs and costs across the market",
+            "Strong balance sheet and execution record"
+          ],
+          "risks": [
+            "Own data-centre operations are new and small next to the group",
+            "Data-centre building depends on a few large clients"
+          ],
+          "f": {
+            "ticker": "LT"
+          }
+        },
+        "reliance": {
+          "name": "Reliance Industries",
+          "listed": true,
+          "role": "Runs Digital Connexion (a joint venture with Brookfield and Digital Realty) and is building an AI data centre at Jamnagar",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Group power, fibre and cloud capabilities (Jio) feed demand",
+            "Group AI plans can act as an anchor tenant"
+          ],
+          "risks": [
+            "Data centres are a small part of a large conglomerate",
+            "The AI campus is early and unproven"
+          ],
+          "f": {
+            "ticker": "RELIANCE"
+          }
+        },
+        "technoE": {
+          "name": "Techno Electric & Engineering",
+          "listed": true,
+          "role": "Substation EPC company that is building data centres; its Chennai site is live and more sites are planned",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Substation and power-EPC skills carry over to data-centre electrical work",
+            "Net-cash balance sheet helps fund the build-out"
+          ],
+          "risks": [
+            "Data centres are new to it and tenant leasing is still to be proven",
+            "Moving into data centres spreads management focus"
+          ],
+          "f": {
+            "ticker": "TECHNOE"
+          }
+        },
+        "adanient": {
+          "name": "Adani Enterprises",
+          "listed": true,
+          "role": "Holds the Adani half of AdaniConneX, a joint venture with EdgeConneX that runs data centres in Chennai, Noida and Hyderabad",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Group power, renewables and land can be bundled into campus builds",
+            "Partner EdgeConneX brings global data-centre operating experience"
+          ],
+          "risks": [
+            "Data centres are one of several incubating businesses in a diversified group",
+            "Group financing and governance scrutiny"
+          ],
+          "f": {
+            "ticker": "ADANIENT"
+          }
+        },
+        "anantRaj": {
+          "name": "Anant Raj",
+          "listed": true,
+          "role": "Delhi-NCR land owner building data-centre campuses at Manesar and Panchkula on its own land, alongside housing",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Low-cost land already owned near the Delhi-NCR power and fibre grid",
+            "Data-centre rent adds a steady income stream to a developer's sales"
+          ],
+          "risks": [
+            "Data-centre plans need heavy capex and anchor tenants",
+            "Concentrated in Delhi-NCR"
+          ],
+          "f": {
+            "ticker": "ANANTRAJ"
+          }
+        },
         "netweb": {
           "name": "Netweb Technologies India",
           "listed": true,
@@ -2129,6 +2327,24 @@
     {
       "key": "railways",
       "suppliers": {
+        "lt": {
+          "name": "Larsen & Toubro",
+          "listed": true,
+          "role": "Builds the Mumbai-Ahmedabad bullet-train civil works and track, plus freight-corridor and metro packages",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Executes large multi-package civil and track contracts",
+            "Strongest balance sheet and record in Indian infrastructure"
+          ],
+          "risks": [
+            "Rail is a small part of a much larger group",
+            "Packages depend on funding and land-clearance timing"
+          ],
+          "f": {
+            "ticker": "LT"
+          }
+        },
         "titagarh": {
           "name": "Titagarh Rail Systems",
           "listed": true,
@@ -3232,6 +3448,42 @@
     {
       "key": "aerospace",
       "suppliers": {
+        "sansera": {
+          "name": "Sansera Engineering",
+          "listed": true,
+          "role": "Precision forgings and machined parts, with aerospace and defence a growing segment beside autos",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Precision machining skills carry over from engines to aerospace",
+            "Aerospace work widens its customer base beyond vehicle makers"
+          ],
+          "risks": [
+            "Automotive is still the larger part of its business",
+            "Aerospace approvals are slow and orders lumpy"
+          ],
+          "f": {
+            "ticker": "SANSERA"
+          }
+        },
+        "gmrairport": {
+          "name": "GMR Airports",
+          "listed": true,
+          "role": "Airport operator whose subsidiary GMR Aero Technic runs the Hyderabad aircraft repair and overhaul base",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Airport owner gives its MRO arm land, airline traffic and a hub",
+            "Hyderabad is an established maintenance location"
+          ],
+          "risks": [
+            "MRO is a small part of an airport group",
+            "Heavy debt from terminal expansions"
+          ],
+          "f": {
+            "ticker": "GMRAIRPORT"
+          }
+        },
         "bharatforge_aero": {
           "name": "Bharat Forge",
           "listed": true,
@@ -3874,12 +4126,48 @@
           "f": {
             "ticker": "SIGMAADV"
           }
+        },
+        "raymond": {
+          "name": "Raymond",
+          "listed": true,
+          "role": "After demerging its lifestyle and realty arms, Raymond Ltd is an engineering company: JK Maini Precision makes aerospace parts, beside auto components and tools",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Aerospace parts supplied to global aircraft and engine makers",
+            "Precision machining base from its auto business"
+          ],
+          "risks": [
+            "Aerospace is a small part of its engineering sales",
+            "A new shape after the demergers, with a short record"
+          ],
+          "f": {
+            "ticker": "RAYMOND"
+          }
         }
       }
     },
     {
       "key": "telecom5g",
       "suppliers": {
+        "polycab": {
+          "name": "Polycab India",
+          "listed": true,
+          "role": "Wire and cable maker that also produces optical fibre and optical-fibre cable",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Wire and cable distribution reaches telecom and broadband networks",
+            "Adds fibre to a broad cables range"
+          ],
+          "risks": [
+            "Optical fibre is a small part of a wire and cable business",
+            "Fibre prices swing with imports"
+          ],
+          "f": {
+            "ticker": "POLYCAB"
+          }
+        },
         "industowers": {
           "name": "Indus Towers",
           "listed": true,
@@ -4594,6 +4882,42 @@
     {
       "key": "solarmodules",
       "suppliers": {
+        "aplApollo": {
+          "name": "APL Apollo Tubes",
+          "listed": true,
+          "role": "Structural steel tube maker whose tubes and torque tubes go into solar mounting structures",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Largest structural-tube maker, with dealer reach",
+            "Steel tubes are a common mounting material"
+          ],
+          "risks": [
+            "Solar is one of many end-uses for its tubes",
+            "Steel price swings affect volumes and inventory"
+          ],
+          "f": {
+            "ticker": "APLAPOLLO"
+          }
+        },
+        "lt": {
+          "name": "Larsen & Toubro",
+          "listed": true,
+          "role": "Engineering group whose renewables arm builds utility-scale solar plants as an EPC contractor",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Among the largest utility-scale solar EPC contractors",
+            "Balance sheet and execution record to run big projects"
+          ],
+          "risks": [
+            "Solar is a small part of a very large group",
+            "Fixed-price contracts expose it to module price swings"
+          ],
+          "f": {
+            "ticker": "LT"
+          }
+        },
         "relNewEnergy": {
           "name": "Reliance Industries (Reliance New Energy)",
           "listed": true,
@@ -5080,6 +5404,23 @@
     {
       "key": "energy",
       "suppliers": {
+        "kpiGreen": {
+          "name": "KPI Green Energy",
+          "listed": true,
+          "role": "Gujarat solar EPC contractor and independent power producer that builds and owns solar and hybrid wind-solar plants",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Owns operating plants while building new ones, so it earns recurring power-sale income as well as construction revenue"
+          ],
+          "risks": [
+            "Concentrated in Gujarat",
+            "Construction revenue is lumpy from quarter to quarter"
+          ],
+          "f": {
+            "ticker": "KPIGREEN"
+          }
+        },
         "bhel": {
           "name": "Bharat Heavy Electricals",
           "listed": true,
@@ -5532,12 +5873,395 @@
           "f": {
             "ticker": "TATAPOWER"
           }
+        },
+        "nlcIndia": {
+          "name": "NLC India",
+          "listed": true,
+          "role": "PSU that mines lignite at Neyveli and runs lignite and coal power plants, and is adding solar through NLC India Renewables",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Captive lignite mines feed its own plants",
+            "Regulated returns on most of its capacity"
+          ],
+          "risks": [
+            "Lignite plants are high-emission",
+            "Delays in new thermal and mining projects"
+          ],
+          "f": {
+            "ticker": "NLCINDIA"
+          }
+        },
+        "torrentPower": {
+          "name": "Torrent Power",
+          "listed": true,
+          "role": "Integrated utility with coal and gas plants in Gujarat, a growing solar and wind fleet, and city discoms in Ahmedabad, Surat and nearby areas",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Profitable licensed city discoms give steady cash",
+            "Building renewables and pumped storage"
+          ],
+          "risks": [
+            "Gas plants depend on costly LNG",
+            "Large spending plan for renewables and pumped hydro"
+          ],
+          "f": {
+            "ticker": "TORNTPOWER"
+          }
+        },
+        "vedantaPower": {
+          "name": "Vedanta Power",
+          "listed": true,
+          "role": "Thermal generator demerged from Vedanta in 2026 (formerly Talwandi Sabo Power), running the Talwandi Sabo plant in Punjab and other thermal units",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large operating thermal fleet",
+            "Long-term power purchase agreement with Punjab"
+          ],
+          "risks": [
+            "A short record as a separate listed company",
+            "Tariff and payment disputes with state discoms"
+          ],
+          "f": {
+            "ticker": "VEDPOWER"
+          }
+        },
+        "reliancePower": {
+          "name": "Reliance Power",
+          "listed": true,
+          "role": "Runs the Sasan ultra mega coal plant and the Rosa plant, and is planning solar-plus-storage projects",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Sasan is a low-cost plant with captive coal",
+            "Has cut debt in recent years"
+          ],
+          "risks": [
+            "Group legal and lender issues",
+            "Debt still high against its earnings"
+          ],
+          "f": {
+            "ticker": "RPOWER"
+          }
+        },
+        "cesc": {
+          "name": "CESC",
+          "listed": true,
+          "role": "RP-Sanjiv Goenka group utility: Kolkata's licensed discom fed by its own Budge Budge and Haldia coal plants, plus distribution in Noida and franchises elsewhere",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Regulated returns from an integrated Kolkata business",
+            "Expanding into renewables"
+          ],
+          "risks": [
+            "Regulatory dues and tariff orders",
+            "Coal costs"
+          ],
+          "f": {
+            "ticker": "CESC"
+          }
+        },
+        "jpPower": {
+          "name": "Jaiprakash Power Ventures",
+          "listed": true,
+          "role": "Runs the Vishnuprayag run-of-river hydro plant in Uttarakhand and the Bina and Nigrie coal plants in Madhya Pradesh",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Hydro plant with low running costs",
+            "Nigrie has its own coal mine"
+          ],
+          "risks": [
+            "Uncertainty from the insolvency of its former parent, Jaiprakash Associates",
+            "Thermal tariffs depend on Madhya Pradesh"
+          ],
+          "f": {
+            "ticker": "JPPOWER"
+          }
+        },
+        "nava": {
+          "name": "Nava",
+          "listed": true,
+          "role": "Runs the Maamba coal power plant in Zambia, plus ferro alloys and captive power in India",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Maamba sells under a long-term power purchase agreement",
+            "Cash from collecting Zambian receivables"
+          ],
+          "risks": [
+            "Zambian currency and payment risk",
+            "Indian power is a small part of it"
+          ],
+          "f": {
+            "ticker": "NAVA"
+          }
+        },
+        "triveniTurbine": {
+          "name": "Triveni Turbine",
+          "listed": true,
+          "role": "Makes steam turbines for captive, waste-heat and biomass power plants, sold in India and abroad",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "A global leader in small steam turbines",
+            "Debt-free with a large aftermarket business"
+          ],
+          "risks": [
+            "Industrial capex cycles",
+            "Export competition from Chinese makers"
+          ],
+          "f": {
+            "ticker": "TRITURBINE"
+          }
+        },
+        "tdPower": {
+          "name": "TD Power Systems",
+          "listed": true,
+          "role": "Makes generators for steam, gas and hydro turbines, and traction motors",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Supplies global turbine makers",
+            "Orders rising with gas and backup power demand"
+          ],
+          "risks": [
+            "Depends on a few large equipment-maker customers",
+            "Copper and steel costs"
+          ],
+          "f": {
+            "ticker": "TDPOWERSYS"
+          }
+        },
+        "patelEng": {
+          "name": "Patel Engineering",
+          "listed": true,
+          "role": "Civil contractor specialising in dams, tunnels and underground works for hydro projects",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Long record in hydro tunnels and dams",
+            "Order book from NHPC and state hydro projects"
+          ],
+          "risks": [
+            "Stretched working capital",
+            "Geological surprises delay projects"
+          ],
+          "f": {
+            "ticker": "PATELENG"
+          }
+        },
+        "hcc": {
+          "name": "Hindustan Construction Company",
+          "listed": true,
+          "role": "Builds hydro dams and tunnels, nuclear plants and transport infrastructure",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Has built a large share of India's hydro capacity",
+            "Cut debt after selling assets"
+          ],
+          "risks": [
+            "Legacy debt and claims",
+            "Execution risk on large projects"
+          ],
+          "f": {
+            "ticker": "HCC"
+          }
         }
       }
     },
     {
       "key": "realestate",
       "suppliers": {
+        "kec": {
+          "name": "KEC International",
+          "listed": true,
+          "role": "RPG group EPC major whose civil business builds residential, commercial and factory buildings, a small share next to power T&D",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Civil arm builds housing, factories and data-centre buildings for private clients",
+            "Experienced EPC execution across segments"
+          ],
+          "risks": [
+            "Civil is a small slice of a power-led order book",
+            "Fixed-price contracts exposed to cement and steel costs"
+          ],
+          "f": {
+            "ticker": "KEC"
+          }
+        },
+        "kpil": {
+          "name": "Kalpataru Projects International",
+          "listed": true,
+          "role": "EPC group whose buildings and factories business builds residential towers, offices and industrial projects; power T&D is its largest business",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large order book across several business lines",
+            "Execution record on towers and big complexes"
+          ],
+          "risks": [
+            "Buildings is a small segment next to power T&D",
+            "Fixed-price contracts expose it to steel and labour costs"
+          ],
+          "f": {
+            "ticker": "KPIL"
+          }
+        },
+        "aptus": {
+          "name": "Aptus Value Housing Finance",
+          "listed": true,
+          "role": "Home loans to self-employed families in South India, many in smaller towns where banks lend less",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Focus on households that banks often skip",
+            "Strong in Tamil Nadu and Andhra Pradesh"
+          ],
+          "risks": [
+            "Southern concentration",
+            "Growth into new states is less proven"
+          ],
+          "f": {
+            "ticker": "APTUS"
+          }
+        },
+        "canFinHomes": {
+          "name": "Can Fin Homes",
+          "listed": true,
+          "role": "Canara Bank-promoted home-loan company for salaried buyers, strongest in South India",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Canara Bank parentage lowers its cost of funds",
+            "Salaried-borrower focus keeps credit quality steady"
+          ],
+          "risks": [
+            "Southern concentration",
+            "Thin spreads when rates move"
+          ],
+          "f": {
+            "ticker": "CANFINHOME"
+          }
+        },
+        "piramalFinance": {
+          "name": "Piramal Finance",
+          "listed": true,
+          "role": "Retail NBFC that lends for home purchase and affordable housing, with a shrinking legacy builder-loan book",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Growing home-loan book built through its own branches",
+            "Years of experience financing developers"
+          ],
+          "risks": [
+            "Legacy real-estate wholesale loans still being run down",
+            "Retail growth must outpace the run-off"
+          ],
+          "f": {
+            "ticker": "PIRAMALFIN"
+          }
+        },
+        "icicibank": {
+          "name": "ICICI Bank",
+          "listed": true,
+          "role": "Second-largest private bank and one of the largest home-loan lenders, funding home buyers and builders",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large retail mortgage book across metros and smaller cities",
+            "Low-cost deposits fund long-tenor housing loans"
+          ],
+          "risks": [
+            "Housing loans are one part of a broad bank portfolio",
+            "Slower home sales or rate moves squeeze mortgage growth and spreads"
+          ],
+          "f": {
+            "ticker": "ICICIBANK"
+          }
+        },
+        "vguard": {
+          "name": "V-Guard Industries",
+          "listed": true,
+          "role": "Sells house wires, cables, switchgear and MCBs, plus stabilisers, fans and water heaters, through electricians and dealers, strongest in South India",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "v-guard",
+            "vguard",
+            "sunflame"
+          ],
+          "strengths": [
+            "Wires and switchgear reach homes through electrician-led dealer networks",
+            "Strong brand in South Indian housing"
+          ],
+          "risks": [
+            "Copper costs squeeze wire margins",
+            "Larger wire makers compete for the same dealer shelf"
+          ],
+          "f": {
+            "ticker": "VGUARD"
+          }
+        },
+        "sail": {
+          "name": "Steel Authority of India (SAIL)",
+          "listed": true,
+          "role": "Largest state-owned steel maker; sells TMT rebar and structural sections for buildings alongside rails and plates",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Government-owned scale and long supply history to big infrastructure and construction projects",
+            "Own iron-ore mines give it control of its main input"
+          ],
+          "risks": [
+            "Building steel is one slice of a commodity steel business, so earnings follow the steel cycle",
+            "Private makers and imports compete hard for rebar demand"
+          ],
+          "f": {
+            "ticker": "SAIL"
+          }
+        },
+        "pidilite": {
+          "name": "Pidilite Industries",
+          "listed": true,
+          "role": "Maker of Fevicol carpentry adhesives and Dr Fixit waterproofing, sold through carpenters, plumbers and hardware shops into every new home",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Fevicol and Dr Fixit are the default choice for carpenters and waterproofing contractors",
+            "Dealer and contractor reach follows every home that gets built or renovated"
+          ],
+          "risks": [
+            "Demand follows housing and renovation activity",
+            "Raw-material costs move margins"
+          ],
+          "f": {
+            "ticker": "PIDILITIND"
+          }
+        },
+        "grasim": {
+          "name": "Grasim Industries",
+          "listed": true,
+          "role": "Aditya Birla group company whose Birla Opus is a large new decorative-paint brand sold to home owners and painters; also parent of UltraTech cement",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Birla Opus built large paint capacity quickly and sells through a wide dealer network",
+            "Group ties to cement (UltraTech) put it across the housing build chain"
+          ],
+          "risks": [
+            "Paints are one segment of a holding company, so housing demand is diluted",
+            "Entering against entrenched paint leaders invites price competition"
+          ],
+          "f": {
+            "ticker": "GRASIM"
+          }
+        },
         "godrejProp": {
           "name": "Godrej Properties",
           "listed": true,
@@ -6743,12 +7467,444 @@
           "f": {
             "ticker": "HOMEFIRST"
           }
+        },
+        "acc": {
+          "name": "ACC",
+          "listed": true,
+          "role": "Adani group cement maker selling bagged cement through dealers and ready-mix concrete to building sites across India; shareholders have approved its merger into Ambuja Cements",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Plants spread across India and one of the oldest cement brands",
+            "Ready-mix concrete arm sells straight to developers and contractors"
+          ],
+          "risks": [
+            "The pending merger into Ambuja Cements will end it as a separate listed company",
+            "Cement prices and fuel costs swing its margins"
+          ],
+          "f": {
+            "ticker": "ACC"
+          }
+        },
+        "ramcoCement": {
+          "name": "Ramco Cements",
+          "listed": true,
+          "role": "South India's leading cement maker, also selling dry-mix mortar, ready-mix and construction chemicals to builders",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Strong brand and dealer network across Tamil Nadu, Kerala, Karnataka and Andhra Pradesh",
+            "Own limestone and captive power keep costs low"
+          ],
+          "risks": [
+            "Southern cement prices are among the most volatile in India",
+            "Debt from its capacity build-out, which it is cutting by selling surplus land"
+          ],
+          "f": {
+            "ticker": "RAMCOCEM"
+          }
+        },
+        "jswCement": {
+          "name": "JSW Cement",
+          "listed": true,
+          "role": "JSW group cement maker built around slag cement from JSW Steel's blast furnaces, with plants in the South, West and East; listed Aug 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Cheap slag from group steel plants gives it a cost and low-carbon edge",
+            "Group backing for a large capacity expansion"
+          ],
+          "risks": [
+            "A younger and smaller brand than the market leaders",
+            "Expansion spending ahead of demand in its regions"
+          ],
+          "f": {
+            "ticker": "JSWCEMENT"
+          }
+        },
+        "nuvoco": {
+          "name": "Nuvoco Vistas",
+          "listed": true,
+          "role": "Nirma group cement maker (Concreto, Duraguard), a leader in East India, with a large ready-mix concrete business; bought Vadraj Cement in 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Leading brands in East India, the fastest-growing cement region",
+            "Ready-mix and building-materials arm sells straight to sites"
+          ],
+          "risks": [
+            "Debt from acquisitions, including Vadraj Cement",
+            "Price competition in the East as rivals add capacity"
+          ],
+          "f": {
+            "ticker": "NUVOCO"
+          }
+        },
+        "indiaCements": {
+          "name": "India Cements",
+          "listed": true,
+          "role": "Southern cement maker controlled by UltraTech since Dec 2024, whose plants are being upgraded and run within UltraTech's network",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "UltraTech's ownership brings cost, fuel and distribution support",
+            "Limestone reserves and plants across the South"
+          ],
+          "risks": [
+            "Has posted losses while its older plants are upgraded",
+            "Minority shareholders depend on how UltraTech integrates it"
+          ],
+          "f": {
+            "ticker": "INDIACEM"
+          }
+        },
+        "abrel": {
+          "name": "Aditya Birla Real Estate",
+          "listed": true,
+          "role": "Formerly Century Textiles: through Birla Estates it develops premium homes in Mumbai (Worli), NCR, Pune and Bengaluru, after selling its pulp and paper business to ITC",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Aditya Birla group brand and owned land, including Worli in Mumbai",
+            "Growing launch pipeline through joint-development deals"
+          ],
+          "risks": [
+            "Has reported losses while its projects are being built",
+            "Profit is booked only on handover, so results lag bookings"
+          ],
+          "f": {
+            "ticker": "ABREL"
+          }
+        },
+        "sunteck": {
+          "name": "Sunteck Realty",
+          "listed": true,
+          "role": "Mumbai developer of luxury and mid-income homes in BKC, Oshiwara, Naigaon and Vasind, plus a few commercial projects",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Low-debt balance sheet",
+            "Asset-light joint-development deals across the Mumbai region"
+          ],
+          "risks": [
+            "Concentrated in the Mumbai region",
+            "Revenue is lumpy because it is booked on project completion"
+          ],
+          "f": {
+            "ticker": "SUNTECK"
+          }
+        },
+        "puravankara": {
+          "name": "Puravankara",
+          "listed": true,
+          "role": "Bengaluru developer selling homes under the Purva and Provident brands in Bengaluru, Pune, Mumbai and Chennai",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Long record in Bengaluru, one of India's strongest housing markets",
+            "Land bank across southern and western cities"
+          ],
+          "risks": [
+            "Higher debt than most listed developers",
+            "Profit recognition lags bookings, so results swing"
+          ],
+          "f": {
+            "ticker": "PURVA"
+          }
+        },
+        "raymondRealty": {
+          "name": "Raymond Realty",
+          "listed": true,
+          "role": "Real estate arm demerged from Raymond in 2025: builds homes on Raymond's own land in Thane and runs joint-development projects in Mumbai",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large owned land parcel in Thane at low land cost",
+            "Adding asset-light joint-development projects in Mumbai suburbs"
+          ],
+          "risks": [
+            "Most of its pipeline sits in one Thane location",
+            "A short record as a separate listed company"
+          ],
+          "f": {
+            "ticker": "RAYMONDREL"
+          }
+        },
+        "nbcc": {
+          "name": "NBCC (India)",
+          "listed": true,
+          "role": "PSU project manager and builder that redevelops government colonies in Delhi (East Kidwai Nagar, Sarojini Nagar) and sells the commercial and housing space it builds",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large order book from central ministries, PSUs and state governments",
+            "Asset-light project-management model with little debt"
+          ],
+          "risks": [
+            "Depends on government orders and approvals to sell redeveloped land",
+            "Slow sales of redevelopment space hold back cash"
+          ],
+          "f": {
+            "ticker": "NBCC"
+          }
+        },
+        "jindalSteel": {
+          "name": "Jindal Steel",
+          "listed": true,
+          "role": "Integrated steelmaker (formerly Jindal Steel & Power) selling TMT rebar, structural sections and plates from Angul and Raigarh to construction",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "One of India's largest makers of rebar and heavy structurals",
+            "The Angul expansion adds flat steel and lowers costs"
+          ],
+          "risks": [
+            "Steel price cycles and cheap imports",
+            "Coking-coal costs and a heavy expansion bill"
+          ],
+          "f": {
+            "ticker": "JINDALSTEL"
+          }
+        },
+        "shyamMetalics": {
+          "name": "Shyam Metalics",
+          "listed": true,
+          "role": "Eastern India maker of pellets, sponge iron, ferro alloys and TMT and structural steel, also adding aluminium foil and battery materials",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Integrated low-cost plants with captive power",
+            "Spread across steel, alloys and new materials"
+          ],
+          "risks": [
+            "Construction steel is only part of its sales",
+            "Steel and ferro-alloy price cycles"
+          ],
+          "f": {
+            "ticker": "SHYAMMETL"
+          }
+        },
+        "gallantt": {
+          "name": "Gallantt Ispat",
+          "listed": true,
+          "role": "Steel maker in Uttar Pradesh and Gujarat selling Gallantt TMT bars, backed by its own sponge iron and power plants",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Integrated from sponge iron to TMT with captive power",
+            "Strong regional rebar brand in Uttar Pradesh"
+          ],
+          "risks": [
+            "A small regional player beside the integrated majors",
+            "Steel price cycles"
+          ],
+          "f": {
+            "ticker": "GALLANTT"
+          }
+        },
+        "vedantaIronSteel": {
+          "name": "Vedanta Iron and Steel",
+          "listed": true,
+          "role": "Iron and steel business demerged from Vedanta in 2026: ESL Steel at Bokaro makes TMT bars, wire rods and pig iron, beside iron-ore mines",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Iron ore from group mines feeds the steel plant",
+            "Bokaro plant sells long products into eastern India"
+          ],
+          "risks": [
+            "A short record as a separate listed company",
+            "Steel price cycles and iron-ore costs"
+          ],
+          "f": {
+            "ticker": "VISL"
+          }
+        },
+        "rrKabel": {
+          "name": "RR Kabel",
+          "listed": true,
+          "role": "House-wire and cable maker (RR Kabel) that also sells fans, lights and switches",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Strong retail house-wire brand with electrician loyalty programmes",
+            "Growing cables and export business"
+          ],
+          "risks": [
+            "Copper price swings",
+            "Competition from Polycab, Havells and new entrants such as UltraTech"
+          ],
+          "f": {
+            "ticker": "RRKABEL"
+          }
+        },
+        "kansaiNerolac": {
+          "name": "Kansai Nerolac",
+          "listed": true,
+          "role": "Decorative and industrial paint maker controlled by Japan's Kansai Paint; the leader in automotive coatings",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Market leader in automotive and industrial coatings",
+            "Long-established decorative brand and dealer reach"
+          ],
+          "risks": [
+            "Price war in decorative paints since Birla Opus entered",
+            "Crude-linked raw-material costs"
+          ],
+          "f": {
+            "ticker": "KANSAINER"
+          }
+        },
+        "jswDulux": {
+          "name": "JSW Dulux",
+          "listed": true,
+          "role": "Dulux decorative paint maker, formerly Akzo Nobel India, bought by JSW Paints in 2025 and renamed",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Dulux is one of India's best-known premium paint brands",
+            "JSW group scale and distribution behind it"
+          ],
+          "risks": [
+            "Merging with JSW Paints while the decorative price war runs",
+            "Lost its powder coatings arm to AkzoNobel in the sale"
+          ],
+          "f": {
+            "ticker": "JSWDULUX"
+          }
+        },
+        "indigoPaints": {
+          "name": "Indigo Paints",
+          "listed": true,
+          "role": "Decorative paint maker that built its brand on niche products (metallic emulsions, floor coats) and small-town dealers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Distinctive products and strong reach in smaller towns",
+            "Little debt"
+          ],
+          "risks": [
+            "Small scale against Asian Paints, Birla Opus and JSW",
+            "Margin pressure from price cuts"
+          ],
+          "f": {
+            "ticker": "INDIGOPNTS"
+          }
+        },
+        "greenply": {
+          "name": "Greenply Industries",
+          "listed": true,
+          "role": "Plywood and decorative veneer maker that has added MDF boards",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Leading national plywood brand",
+            "MDF plant widens its range beyond plywood"
+          ],
+          "risks": [
+            "Timber cost swings",
+            "Competition from unorganised plywood makers"
+          ],
+          "f": {
+            "ticker": "GREENPLY"
+          }
+        },
+        "honeywellAuto": {
+          "name": "Honeywell Automation India",
+          "listed": true,
+          "role": "Supplies building management, fire alarm and security systems for offices, airports and hospitals, beside its larger industrial automation business",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Honeywell's global technology and brand",
+            "Debt-free with large cash reserves"
+          ],
+          "risks": [
+            "Buildings are one segment beside industrial automation",
+            "The parent's break-up into separate companies may reshape its product lines"
+          ],
+          "f": {
+            "ticker": "HONAUT"
+          }
         }
       }
     },
     {
       "key": "pharma",
       "suppliers": {
+        "piind": {
+          "name": "PI Industries",
+          "listed": true,
+          "role": "Agrochemical custom-synthesis leader whose pharma arm (PI Health Sciences) offers contract development and manufacturing to drug companies",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Process chemistry and long-contract habits carried over from agrochemicals",
+            "Plants and teams added to build a pharma arm"
+          ],
+          "risks": [
+            "Pharma is a small, newer arm next to agrochemicals",
+            "Winning trust with pharma innovators takes years"
+          ],
+          "f": {
+            "ticker": "PIIND"
+          }
+        },
+        "jubilantIngrevia": {
+          "name": "Jubilant Ingrevia",
+          "listed": true,
+          "role": "Pyridine and picoline maker whose intermediates and vitamin B3 are sold to API and drug makers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "One of the largest pyridine makers in the world",
+            "Integrated chemistry from basic feedstocks"
+          ],
+          "risks": [
+            "Pharma is only part of a business that also sells acetyls and other chemicals",
+            "China competition in pyridines"
+          ],
+          "f": {
+            "ticker": "JUBLINGREA"
+          }
+        },
+        "navinfluor": {
+          "name": "Navin Fluorine International",
+          "listed": true,
+          "role": "Fluorine specialist whose contract-manufacturing arm makes fluorinated intermediates and APIs for pharma innovators",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Fluorine chemistry know-how that few Indian CDMOs match",
+            "Multi-year contracts with innovator companies"
+          ],
+          "risks": [
+            "CDMO is a smaller part next to refrigerants and specialty chemicals",
+            "Innovator drug-launch timing sets demand"
+          ],
+          "f": {
+            "ticker": "NAVINFLUOR"
+          }
+        },
+        "acutaas": {
+          "name": "Acutaas Chemicals",
+          "listed": true,
+          "role": "Gujarat specialty chemicals maker whose main business is pharma intermediates and APIs for regulated-market drug makers, plus CDMO work",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Pharma intermediates are most of its sales",
+            "Contract work with innovator companies keeps orders repeating"
+          ],
+          "risks": [
+            "Concentrated in a few products and customers",
+            "Customer qualification cycles delay new orders"
+          ],
+          "f": {
+            "ticker": "ACUTAAS"
+          }
+        },
         "sunPharma": {
           "name": "Sun Pharmaceutical Industries",
           "listed": true,
@@ -7758,6 +8914,186 @@
           "f": {
             "ticker": "AKUMS"
           }
+        },
+        "glaxo": {
+          "name": "GSK Pharmaceuticals",
+          "listed": true,
+          "role": "GSK's Indian arm selling branded medicines (Augmentin, Calpol, T-Bact) and vaccines, now adding specialty and oncology drugs",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Market-leading anti-infective and pain brands",
+            "Debt-free with high return on capital"
+          ],
+          "risks": [
+            "Price controls on essential medicines cap many of its brands",
+            "Narrow portfolio after years of pruning"
+          ],
+          "f": {
+            "ticker": "GLAXO"
+          }
+        },
+        "pfizerIndia": {
+          "name": "Pfizer India",
+          "listed": true,
+          "role": "Indian arm of Pfizer selling long-standing branded medicines (Becosules, Gelusil, Dolonex) and hospital products",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Old, trusted brands with strong doctor recall",
+            "Debt-free with large cash reserves"
+          ],
+          "risks": [
+            "The parent's global priorities limit new launches in India",
+            "Price controls and slow growth in older brands"
+          ],
+          "f": {
+            "ticker": "PFIZER"
+          }
+        },
+        "emcure": {
+          "name": "Emcure Pharmaceuticals",
+          "listed": true,
+          "role": "Pune drugmaker selling branded medicines in India (gynaecology, cardiac, anti-infectives) and a wide injectables range (iron, oncology), with generics in Europe and Canada",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Strong positions in women's health and injectables",
+            "Mix of Indian brands and regulated-market exports"
+          ],
+          "risks": [
+            "Part of its Indian range is in-licensed from other drugmakers",
+            "Price controls on essential medicines"
+          ],
+          "f": {
+            "ticker": "EMCURE"
+          }
+        },
+        "rubicon": {
+          "name": "Rubicon Research",
+          "listed": true,
+          "role": "Develops and makes niche generic formulations (oral solids, liquids, nasal sprays) for the US; listed Oct 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large pipeline of US approvals in limited-competition products",
+            "Fast growth from new launches"
+          ],
+          "risks": [
+            "Almost all sales are in the US, where generic prices fall over time",
+            "US FDA inspection outcomes at its plants"
+          ],
+          "f": {
+            "ticker": "RUBICON"
+          }
+        },
+        "strides": {
+          "name": "Strides Pharma Science",
+          "listed": true,
+          "role": "Makes oral generics for the US and other regulated markets from plants in Bengaluru and Chennai",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Broad US portfolio with regular new approvals",
+            "Leaner after demerging its CDMO arm into OneSource"
+          ],
+          "risks": [
+            "US generic price erosion",
+            "Regulatory inspection risk"
+          ],
+          "f": {
+            "ticker": "STAR"
+          }
+        },
+        "marksans": {
+          "name": "Marksans Pharma",
+          "listed": true,
+          "role": "Makes over-the-counter and generic oral medicines for the US, UK and Australia, selling largely to retail chains",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "OTC focus with steady retail demand",
+            "Own front-end companies in the UK and Australia"
+          ],
+          "risks": [
+            "Depends on a few large retail customers",
+            "Price pressure in US generics"
+          ],
+          "f": {
+            "ticker": "MARKSANS"
+          }
+        },
+        "onesource": {
+          "name": "OneSource Specialty Pharma",
+          "listed": true,
+          "role": "Bengaluru CDMO making biologics, drug-device combinations (GLP-1 pens and cartridges) and soft-gels for global drugmakers; demerged from Strides",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Early capacity for GLP-1 cartridges as semaglutide patents expire",
+            "Rare mix of biologics, sterile fill-finish and soft-gel"
+          ],
+          "risks": [
+            "Still loss-making while new capacity fills",
+            "A few large contracts drive results"
+          ],
+          "f": {
+            "ticker": "ONESOURCE"
+          }
+        },
+        "jubilantPharmova": {
+          "name": "Jubilant Pharmova",
+          "listed": true,
+          "role": "Runs a sterile injectables CDMO with plants in the US and Canada, plus API and radiopharmaceutical businesses",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "One of few listed Indian sterile fill-finish CDMOs with North American plants",
+            "Strong US positions in radiopharma"
+          ],
+          "risks": [
+            "US FDA inspections at its sterile plants",
+            "Several businesses competing for capital"
+          ],
+          "f": {
+            "ticker": "JUBLPHARMA"
+          }
+        },
+        "alivus": {
+          "name": "Alivus Life Sciences",
+          "listed": true,
+          "role": "Makes active pharmaceutical ingredients for chronic therapies (cardiac, diabetes, CNS); formerly Glenmark Life Sciences, now owned by Nirma",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large API portfolio with regulated-market approvals",
+            "High margins and little debt"
+          ],
+          "risks": [
+            "Glenmark is still a large customer",
+            "Price pressure from Chinese API makers"
+          ],
+          "f": {
+            "ticker": "ALIVUS"
+          }
+        },
+        "blueJet": {
+          "name": "Blue Jet Healthcare",
+          "listed": true,
+          "role": "Makes intermediates for iodinated contrast media, sold to global imaging majors, plus high-intensity sweeteners such as saccharin",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Long ties with the few global contrast-media makers",
+            "Deep chemistry in a niche few can supply"
+          ],
+          "risks": [
+            "Heavy dependence on a handful of customers",
+            "Plants concentrated in Maharashtra"
+          ],
+          "f": {
+            "ticker": "BLUEJET"
+          }
         }
       }
     },
@@ -8650,6 +9986,42 @@
     {
       "key": "capmarkets",
       "suppliers": {
+        "edelweiss": {
+          "name": "Edelweiss Financial Services",
+          "listed": true,
+          "role": "Owns Edelweiss AMC, a mid-sized fund house, alongside its asset-reconstruction, credit and insurance businesses",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "AMC fees are capital-light and recur on assets managed",
+            "Alternatives and equity funds add variety to its fee income"
+          ],
+          "risks": [
+            "The AMC is one part of a mixed group",
+            "Mid-sized fund house facing price pressure from larger rivals"
+          ],
+          "f": {
+            "ticker": "EDELWEISS"
+          }
+        },
+        "icicibank": {
+          "name": "ICICI Bank",
+          "listed": true,
+          "role": "Private bank that owns ICICI Securities, a top-five retail broker, alongside lending and a fund-house stake",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "ICICI Securities links bank, demat and trading accounts for existing bank customers",
+            "Very large customer base to cross-sell to"
+          ],
+          "risks": [
+            "Broking is a small part of a bank group - lending drives the figures",
+            "Order volumes fall if F&O curbs tighten"
+          ],
+          "f": {
+            "ticker": "ICICIBANK"
+          }
+        },
         "sbiFunds": {
           "name": "SBI Funds Management (SBI Mutual Fund)",
           "listed": true,
@@ -9289,12 +10661,66 @@
           "f": {
             "ticker": "KFINTECH"
           }
+        },
+        "choice": {
+          "name": "Choice International",
+          "listed": true,
+          "role": "Jaipur-rooted retail broker with NBFC, insurance distribution and government advisory businesses",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Fast-growing client base in smaller cities",
+            "Income spread beyond broking"
+          ],
+          "risks": [
+            "SEBI's F&O rules cut trading volumes",
+            "Government advisory income is lumpy"
+          ],
+          "f": {
+            "ticker": "CHOICEIN"
+          }
         }
       }
     },
     {
       "key": "transmission",
       "suppliers": {
+        "hindzinc": {
+          "name": "Hindustan Zinc",
+          "listed": true,
+          "role": "Vedanta's zinc, lead and silver miner; its zinc is used to galvanise lattice towers and steel structures",
+          "dataStatus": "demo",
+          "sourceDate": "3 Nov 2026",
+          "strengths": [
+            "One of the largest zinc producers in India",
+            "Own mines secure the supply"
+          ],
+          "risks": [
+            "Zinc and silver prices, not grid demand, drive earnings",
+            "Galvanising for towers is a small share of zinc demand"
+          ],
+          "f": {
+            "ticker": "HINDZINC"
+          }
+        },
+        "salasar": {
+          "name": "Salasar Techno Engineering",
+          "listed": true,
+          "role": "Makes galvanised transmission-line towers and steel structures, and railway electrification masts",
+          "dataStatus": "demo",
+          "sourceDate": "3 Nov 2026",
+          "strengths": [
+            "Own galvanising and fabrication plants",
+            "Orders from both power-line and railway EPC firms"
+          ],
+          "risks": [
+            "Small-cap with a few large EPC customers",
+            "Fixed-price orders exposed to steel and zinc costs"
+          ],
+          "f": {
+            "ticker": "SALASAR"
+          }
+        },
         "kec": {
           "name": "KEC International",
           "listed": true,
@@ -10199,12 +11625,84 @@
             "Government-owned; formerly POSOCO",
             "No listed market data"
           ]
+        },
+        "torrentPower": {
+          "name": "Torrent Power",
+          "listed": true,
+          "role": "Licensed distributor in Ahmedabad, Gandhinagar, Surat and Dahej and distribution franchisee in Agra and Bhiwandi, rolling out smart meters on its network; has also won ISTS transmission projects",
+          "dataStatus": "demo",
+          "sourceDate": "3 Nov 2026",
+          "strengths": [
+            "Low distribution losses in its licensed cities",
+            "Steady regulated returns from its discoms"
+          ],
+          "risks": [
+            "Franchise areas carry higher losses and theft",
+            "Transmission is a small, new business"
+          ],
+          "f": {
+            "ticker": "TORNTPOWER"
+          }
+        },
+        "cesc": {
+          "name": "CESC",
+          "listed": true,
+          "role": "Licensed discom for Kolkata, plus Noida Power and distribution franchises in other states",
+          "dataStatus": "demo",
+          "sourceDate": "3 Nov 2026",
+          "strengths": [
+            "Integrated Kolkata business with regulated returns",
+            "Experience turning around franchise areas"
+          ],
+          "risks": [
+            "Regulatory dues and tariff orders",
+            "Franchise areas carry higher losses"
+          ],
+          "f": {
+            "ticker": "CESC"
+          }
         }
       }
     },
     {
       "key": "consumerinternet",
       "suppliers": {
+        "wakefit": {
+          "name": "Wakefit Innovations",
+          "listed": true,
+          "role": "Online-first mattress and furniture brand selling through its website and marketplaces, now adding stores",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Direct-to-consumer model captures online demand at lower cost",
+            "Makes most products in its own factories"
+          ],
+          "risks": [
+            "Store roll-out adds fixed costs",
+            "Marketplace dependence for reach"
+          ],
+          "f": {
+            "ticker": "WAKEFIT"
+          }
+        },
+        "honasa": {
+          "name": "Honasa Consumer",
+          "listed": true,
+          "role": "Online-born beauty brand owner (Mamaearth, The Derma Co) that still sells a large share through its own site and online marketplaces",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Started online, so it owns performance-marketing skill and customer data",
+            "Marketplaces and quick commerce are major channels for its brands"
+          ],
+          "risks": [
+            "Relies on heavy paid online marketing",
+            "Crowded D2C beauty field; offline expansion changes the channel mix"
+          ],
+          "f": {
+            "ticker": "HONASA"
+          }
+        },
         "eternal": {
           "name": "Eternal (Zomato, Blinkit)",
           "listed": true,
@@ -10951,6 +12449,78 @@
           ],
           "f": {
             "ticker": "UNIECOM"
+          }
+        },
+        "saregama": {
+          "name": "Saregama India",
+          "listed": true,
+          "role": "Owns one of India's largest music catalogues, licensed to YouTube, Spotify and other streaming apps, plus films and live events",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Old and new songs earn every time they stream",
+            "Buys new film music to keep the catalogue fresh"
+          ],
+          "risks": [
+            "Streaming platforms' payout terms",
+            "Rising cost of new music rights"
+          ],
+          "f": {
+            "ticker": "SAREGAMA"
+          }
+        },
+        "tipsMusic": {
+          "name": "Tips Music",
+          "listed": true,
+          "role": "Bollywood music label that earns mostly from licensing its catalogue to streaming platforms",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Asset-light with very high margins",
+            "Large Hindi film catalogue"
+          ],
+          "risks": [
+            "Depends on a few large platforms",
+            "Competition for new film music rights"
+          ],
+          "f": {
+            "ticker": "TIPSMUSIC"
+          }
+        },
+        "zee": {
+          "name": "Zee Entertainment",
+          "listed": true,
+          "role": "TV broadcaster whose ZEE5 streaming app is a growing share of revenue",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large Hindi and regional content library",
+            "ZEE5 losses are narrowing"
+          ],
+          "risks": [
+            "TV advertising is shrinking",
+            "Competition from global and JioHotstar streaming apps"
+          ],
+          "f": {
+            "ticker": "ZEEL"
+          }
+        },
+        "sunTv": {
+          "name": "Sun TV Network",
+          "listed": true,
+          "role": "South Indian TV broadcaster that also runs the Sun NXT streaming app",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Leading Tamil and Telugu channels",
+            "Debt-free with large cash reserves"
+          ],
+          "risks": [
+            "TV advertising is shrinking",
+            "Sun NXT is small against bigger streaming apps"
+          ],
+          "f": {
+            "ticker": "SUNTV"
           }
         }
       }
@@ -12851,12 +14421,156 @@
           "f": {
             "ticker": "INFY"
           }
+        },
+        "tataInvest": {
+          "name": "Tata Investment Corporation",
+          "listed": true,
+          "role": "RBI-registered investment company that holds stakes in Tata group and other listed companies",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Tata group backing",
+            "No borrowing"
+          ],
+          "risks": [
+            "Earnings depend on dividends and stake sales",
+            "Trades at a holding-company discount"
+          ],
+          "f": {
+            "ticker": "TATAINVEST"
+          }
         }
       }
     },
     {
       "key": "insurance",
       "suppliers": {
+        "federalBank": {
+          "name": "Federal Bank",
+          "listed": true,
+          "role": "Kerala-based private bank that co-owns Ageas Federal Life and sells its policies to depositors and NRI customers",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Kerala branch and NRI customer base feeds the insurer's bank sales",
+            "Holds a stake in a life insurer partnered with Ageas of Belgium"
+          ],
+          "risks": [
+            "Minority holding: Ageas leads the insurer",
+            "Customers are concentrated in Kerala"
+          ],
+          "f": {
+            "ticker": "FEDERALBNK"
+          }
+        },
+        "pnb": {
+          "name": "Punjab National Bank",
+          "listed": true,
+          "role": "Co-owner of PNB MetLife and one of its main sellers through a large north-India branch network",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Branch reach in north India supports PNB MetLife's bank sales",
+            "Holds a stake in a life insurer"
+          ],
+          "risks": [
+            "Minority holding: MetLife leads the insurer",
+            "Insurance is a small part of a large bank"
+          ],
+          "f": {
+            "ticker": "PNB"
+          }
+        },
+        "bankOfIndia": {
+          "name": "Bank of India",
+          "listed": true,
+          "role": "Co-promoter of Star Union Dai-ichi Life with Union Bank of India and Dai-ichi Life, selling its policies through branches",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Branch and overseas customer base feeds the insurer's bank sales",
+            "Holds a stake in a life insurer"
+          ],
+          "risks": [
+            "Minority holding: Dai-ichi Life leads the insurer",
+            "Insurance is a small part of a large bank"
+          ],
+          "f": {
+            "ticker": "BANKINDIA"
+          }
+        },
+        "unionBank": {
+          "name": "Union Bank of India",
+          "listed": true,
+          "role": "Co-promoter of Star Union Dai-ichi Life with Bank of India and Dai-ichi Life, and a seller of its policies through branches",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "National branch network feeds the insurer's bank sales",
+            "Holds a stake in a life insurer"
+          ],
+          "risks": [
+            "Minority holding: Dai-ichi Life leads the insurer",
+            "Insurance is a small part of a large bank"
+          ],
+          "f": {
+            "ticker": "UNIONBANK"
+          }
+        },
+        "bankOfBaroda": {
+          "name": "Bank of Baroda",
+          "listed": true,
+          "role": "Public-sector bank that owns a controlling stake in IndiaFirst Life and sells its policies through its branches",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Wide branch network is IndiaFirst Life's main sales channel",
+            "Holds control of a life insurer"
+          ],
+          "risks": [
+            "Insurance is a small part of a large bank",
+            "Public-sector cross-sell is slower than at private banks"
+          ],
+          "f": {
+            "ticker": "BANKBARODA"
+          }
+        },
+        "edelweiss": {
+          "name": "Edelweiss Financial Services",
+          "listed": true,
+          "role": "Parent of Edelweiss Life and Zuno General, two insurers inside a group better known for credit, wealth and asset reconstruction",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Owns both a life and a general insurer",
+            "Wealth and credit clients are a ready customer base for cross-sell"
+          ],
+          "risks": [
+            "Both insurers are small beside the private-sector leaders and may need more capital",
+            "Insurance is a minor part of group figures that mix credit, alternatives and asset reconstruction"
+          ],
+          "f": {
+            "ticker": "EDELWEISS"
+          }
+        },
+        "cholaHoldings": {
+          "name": "Cholamandalam Financial Holdings",
+          "listed": true,
+          "role": "Murugappa group holding company that owns the group's stake in Cholamandalam MS General Insurance beside its lending arm",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "strengths": [
+            "Look-through exposure to a general insurer run with Mitsui Sumitomo",
+            "Group lending customers are a ready base for motor and property cover"
+          ],
+          "risks": [
+            "Holding-company discount; the lending arm dominates group value",
+            "The insurer's profit reaches it only as dividends or growth in value"
+          ],
+          "f": {
+            "ticker": "CHOLAHLDNG"
+          }
+        },
         "sbi": {
           "name": "State Bank of India",
           "listed": true,
@@ -13693,6 +15407,60 @@
     {
       "key": "hotels",
       "suppliers": {
+        "phoenix": {
+          "name": "The Phoenix Mills",
+          "listed": true,
+          "role": "Mall owner that also owns the St. Regis Mumbai and Courtyard Agra hotels",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Hotels sit beside its malls and offices, sharing footfall",
+            "Luxury Mumbai hotel under a global chain brand"
+          ],
+          "risks": [
+            "Hotels are a small part of a mall-led group",
+            "Hotel earnings swing with business and leisure travel"
+          ],
+          "f": {
+            "ticker": "PHOENIXLTD"
+          }
+        },
+        "oberoi": {
+          "name": "Oberoi Realty",
+          "listed": true,
+          "role": "Mumbai developer that owns the Westin Mumbai Garden City beside its Goregaon projects",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Owns a large branded hotel inside its own township",
+            "Low-debt owner with long-held Mumbai land"
+          ],
+          "risks": [
+            "Hospitality is a small part of a residential-led developer's figures",
+            "Entirely Mumbai-focused"
+          ],
+          "f": {
+            "ticker": "OBEROIRLTY"
+          }
+        },
+        "prestige": {
+          "name": "Prestige Estates Projects",
+          "listed": true,
+          "role": "Bengaluru developer whose hospitality arm owns the JW Marriott, Conrad and Sheraton hotels in the city",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Owns large branded hotels on its own sites, run under global chain brands",
+            "Hotels sit beside its offices and malls"
+          ],
+          "risks": [
+            "Hospitality is a small part of a developer's figures",
+            "Hotels are capital-heavy and concentrated in Bengaluru"
+          ],
+          "f": {
+            "ticker": "PRESTIGE"
+          }
+        },
         "indhotel": {
           "name": "Indian Hotels Company (IHCL)",
           "listed": true,
@@ -14585,6 +16353,60 @@
     {
       "key": "itservices",
       "suppliers": {
+        "unicommerce": {
+          "name": "Unicommerce eSolutions",
+          "listed": true,
+          "role": "E-commerce operations software for online sellers and brands: orders, warehouses and multi-channel listings",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Used by many sellers across marketplaces and quick commerce, so it grows with order volume",
+            "Profitable software business with no debt"
+          ],
+          "risks": [
+            "Small scale; large brands may build their own tools",
+            "Pricing pressure from rival seller-software firms"
+          ],
+          "f": {
+            "ticker": "UNIECOM"
+          }
+        },
+        "rategain": {
+          "name": "RateGain Travel Technologies",
+          "listed": true,
+          "role": "Travel and hospitality software: rate intelligence, channel management and marketing for hotels, airlines and car rentals",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Recurring software revenue from global travel customers",
+            "Grows with travel bookings without carrying inventory"
+          ],
+          "risks": [
+            "Most revenue is from the US and Europe, not India",
+            "Acquisition integration"
+          ],
+          "f": {
+            "ticker": "RATEGAIN"
+          }
+        },
+        "axiscades": {
+          "name": "AXISCADES Technologies",
+          "listed": true,
+          "role": "Engineering design services for aerospace, heavy engineering and automotive clients",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Design and avionics-software work for global aerospace makers",
+            "Spread across aerospace, heavy engineering and auto"
+          ],
+          "risks": [
+            "Client R&D budgets are cut in downturns",
+            "Smaller than the large engineering R&D firms"
+          ],
+          "f": {
+            "ticker": "AXISCADES"
+          }
+        },
         "tcs": {
           "name": "Tata Consultancy Services",
           "listed": true,
@@ -15997,6 +17819,150 @@
     {
       "key": "autos",
       "suppliers": {
+        "rico": {
+          "name": "Rico Auto Industries",
+          "listed": true,
+          "role": "Aluminium die-cast engine and transmission parts for two-wheelers and cars",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Long supply record to large two-wheeler and car makers",
+            "Die-casting and machining under one roof"
+          ],
+          "risks": [
+            "Customer concentration among a few makers",
+            "Engine-linked parts lose demand as vehicles electrify"
+          ],
+          "f": {
+            "ticker": "RICOAUTO"
+          }
+        },
+        "jbmAuto": {
+          "name": "JBM Auto",
+          "listed": true,
+          "role": "Electric and diesel buses; it also makes sheet-metal and other parts for vehicle makers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Electric-bus orders from city transport undertakings",
+            "Component arm supplies sheet-metal parts to car and commercial-vehicle makers"
+          ],
+          "risks": [
+            "Bus orders depend on tender wins and state payment timing",
+            "Component arm follows vehicle production volumes"
+          ],
+          "f": {
+            "ticker": "JBMA"
+          }
+        },
+        "subros": {
+          "name": "Subros",
+          "listed": true,
+          "role": "Air-conditioning and thermal modules for cars and commercial vehicles, mainly for Maruti Suzuki",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Long-standing AC partner of the largest carmaker",
+            "AC is now standard on more cars, lifting fitment"
+          ],
+          "risks": [
+            "Dependence on one carmaker's volumes",
+            "Aluminium and compressor costs"
+          ],
+          "f": {
+            "ticker": "SUBROS"
+          }
+        },
+        "olectra": {
+          "name": "Olectra Greentech",
+          "listed": true,
+          "role": "Electric-bus and e-tipper maker (MEIL group) selling to state transport undertakings",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "One of the largest electric-bus suppliers to state transport undertakings",
+            "Adds electric tippers to its bus orders"
+          ],
+          "risks": [
+            "Earnings depend on lumpy state bus tenders and on timely payment",
+            "Diesel buses and trucks still dominate this chain, so it serves a small slice"
+          ],
+          "f": {
+            "ticker": "OLECTRA"
+          }
+        },
+        "craftsman": {
+          "name": "Craftsman Automation",
+          "listed": true,
+          "role": "Aluminium castings and machined powertrain parts for commercial vehicles, cars and two-wheelers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Strong in commercial-vehicle powertrain parts and aluminium castings",
+            "Industrial and aluminium-products customers diversify it beyond autos"
+          ],
+          "risks": [
+            "The commercial-vehicle cycle swings its volumes",
+            "Capital-heavy machining capacity needs steady orders to pay back"
+          ],
+          "f": {
+            "ticker": "CRAFTSMAN"
+          }
+        },
+        "sundram": {
+          "name": "Sundram Fasteners",
+          "listed": true,
+          "role": "Fasteners and machined powertrain parts used across two-wheelers, cars and trucks",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Fasteners go into every vehicle, with a wide customer base",
+            "Machined powertrain parts raise its content per vehicle"
+          ],
+          "risks": [
+            "Volumes follow vehicle production cycles",
+            "Steel costs squeeze margins when prices rise"
+          ],
+          "f": {
+            "ticker": "SUNDRMFAST"
+          }
+        },
+        "pricol": {
+          "name": "Pricol",
+          "listed": true,
+          "role": "Instrument clusters, fuel pumps and sensors for two-wheelers, cars and commercial vehicles",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Content per vehicle rises as clusters turn digital",
+            "Customers span vehicle types and both combustion and electric models"
+          ],
+          "risks": [
+            "Electronic parts depend on imported chips and displays",
+            "Price pressure from large two-wheeler customers"
+          ],
+          "f": {
+            "ticker": "PRICOLLTD"
+          }
+        },
+        "msumi": {
+          "name": "Motherson Sumi Wiring India",
+          "listed": true,
+          "role": "Wiring harnesses for cars, SUVs and two-wheelers; the main harness supplier to Maruti Suzuki and other carmakers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "A harness goes into every petrol, diesel, CNG and electric vehicle, so volumes follow the whole market",
+            "Motherson group backing and a long relationship with the largest carmaker"
+          ],
+          "risks": [
+            "Customer concentration in a few carmakers",
+            "Copper and wire costs are passed on to carmakers with a lag"
+          ],
+          "f": {
+            "ticker": "MSUMI"
+          }
+        },
         "heromotoco": {
           "name": "Hero MotoCorp",
           "listed": true,
@@ -19101,6 +21067,132 @@
           "f": {
             "ticker": "GESHIP"
           }
+        },
+        "mrpl": {
+          "name": "Mangalore Refinery and Petrochemicals",
+          "listed": true,
+          "role": "ONGC-group refinery at Mangalore with an aromatics complex (the merged OMPL) making naphtha, paraxylene and benzene for chemical makers",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Coastal refinery with its own aromatics unit",
+            "ONGC and HPCL parentage"
+          ],
+          "risks": [
+            "Refining margins swing with crude",
+            "Relies on Gulf crude supply"
+          ],
+          "f": {
+            "ticker": "MRPL"
+          }
+        },
+        "chennaiPetro": {
+          "name": "Chennai Petroleum",
+          "listed": true,
+          "role": "IOC-group refinery at Manali, Chennai, supplying naphtha, solvents and propylene to chemical makers",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "IOC parentage and offtake",
+            "Building a new refinery at Nagapattinam"
+          ],
+          "risks": [
+            "Refining margins swing with crude",
+            "Large spending on the Nagapattinam refinery"
+          ],
+          "f": {
+            "ticker": "CHENNPETRO"
+          }
+        },
+        "vedantaOilGas": {
+          "name": "Vedanta Oil and Gas",
+          "listed": true,
+          "role": "Cairn's oil and gas business, demerged from Vedanta in 2026, producing crude and gas from the Barmer fields in Rajasthan",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "India's largest private crude producer",
+            "Rajasthan gas feeds industries and city gas"
+          ],
+          "risks": [
+            "Barmer fields are ageing",
+            "Contract renewals and cost disputes with the government"
+          ],
+          "f": {
+            "ticker": "VOGL"
+          }
+        },
+        "oilIndia": {
+          "name": "Oil India",
+          "listed": true,
+          "role": "Upstream oil and gas PSU producing in Assam and Rajasthan; owns the Numaligarh refinery, which is adding a polypropylene plant",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Gas from its Assam fields feeds North-East fertiliser and petrochemical plants",
+            "Numaligarh expansion adds polymer output"
+          ],
+          "risks": [
+            "Earnings move with crude prices and government gas pricing",
+            "Ageing fields in Assam"
+          ],
+          "f": {
+            "ticker": "OIL"
+          }
+        },
+        "sci": {
+          "name": "Shipping Corporation of India",
+          "listed": true,
+          "role": "PSU shipping line whose crude and product tankers and gas carriers move refiners' and gas importers' cargo",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Largest Indian-flagged tanker fleet",
+            "Government push to grow the Indian-flagged fleet"
+          ],
+          "risks": [
+            "Freight-rate cycles",
+            "Ageing ships need replacing"
+          ],
+          "f": {
+            "ticker": "SCI"
+          }
+        },
+        "jswInfra": {
+          "name": "JSW Infrastructure",
+          "listed": true,
+          "role": "Port operator whose terminals include liquid and chemical berths and tank farms, in India and at Fujairah",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Fast-growing port portfolio",
+            "Adding liquid-storage capacity"
+          ],
+          "risks": [
+            "JSW group cargo is a large share of volumes",
+            "Execution of a large expansion plan"
+          ],
+          "f": {
+            "ticker": "JSWINFRA"
+          }
+        },
+        "eil": {
+          "name": "Engineers India",
+          "listed": true,
+          "role": "PSU engineering consultant that designs and manages refinery and petrochemical projects",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "Consultant on most Indian refinery and petrochemical projects",
+            "Debt-free with large cash reserves"
+          ],
+          "risks": [
+            "Lumpy orders",
+            "Thin margins on turnkey jobs"
+          ],
+          "f": {
+            "ticker": "ENGINERSIN"
+          }
         }
       }
     },
@@ -19319,6 +21411,24 @@
           ],
           "f": {
             "ticker": "BAJAJHIND"
+          }
+        },
+        "dcmShriram": {
+          "name": "DCM Shriram",
+          "listed": true,
+          "role": "Chlor-alkali and PVC maker that also runs a sugar and ethanol division, about a fifth of its sales, selling sugar to food and drink makers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Sugar, ethanol and cogeneration add a second earnings stream to the chemical business",
+            "Diversified across chemicals, sugar, fertiliser and seeds"
+          ],
+          "risks": [
+            "Sugar is a minority of sales, so it moves less with cane prices than the pure sugar mills",
+            "Ethanol diversion for 2026-27 is lower, which trims the sugar-ethanol margin"
+          ],
+          "f": {
+            "ticker": "DCMSHRIRAM"
           }
         },
         "hatsun": {
@@ -20114,6 +22224,41 @@
             "ticker": "MANORAMA"
           }
         },
+        "fineOrganic": {
+          "name": "Fine Organic Industries",
+          "listed": true,
+          "role": "Oleochemical maker whose emulsifiers and food additives go into bakery, snack, ice-cream and dairy products made by the brands above",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Food emulsifiers sit in recipes that makers rarely reformulate",
+            "Net cash"
+          ],
+          "risks": [
+            "Food and cosmetic additives are one segment beside plastics and paints",
+            "Vegetable oil price swings reach its costs"
+          ],
+          "f": {
+            "ticker": "FINEORG"
+          }
+        },
+        "privi": {
+          "name": "Privi Speciality Chemicals",
+          "listed": true,
+          "role": "Aroma chemicals made from turpentine feedstock and sold to the fragrance houses that supply soap and detergent makers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Large aroma-chemical range with global fragrance-house customers"
+          ],
+          "risks": [
+            "Sells to fragrance houses, not to FMCG brands directly, so the link is two steps removed",
+            "Turpentine price swings and expansion debt"
+          ],
+          "f": {
+            "ticker": "PRIVISCL"
+          }
+        },
         "epl": {
           "name": "EPL",
           "listed": true,
@@ -20338,6 +22483,137 @@
             "Privately held",
             "No listed market data"
           ]
+        },
+        "vmm": {
+          "name": "Vishal Mega Mart",
+          "listed": true,
+          "role": "Value hypermarket chain in tier-2 to tier-4 towns that sells groceries and FMCG packs next to apparel and home goods, mostly under its own labels",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "aka": [
+            "vishal mega mart",
+            "vishal"
+          ],
+          "strengths": [
+            "844 stores in 582 cities (30 Sep 2026) give brands a small-town shelf outside the metros",
+            "Q2 FY27 revenue rose 14% to ₹3,399 Cr"
+          ],
+          "risks": [
+            "Apparel and general merchandise, not FMCG, drive most of its sales",
+            "Own labels compete with the brands on its shelves",
+            "Profit grew only about 4% in Q2 FY27"
+          ],
+          "f": {
+            "ticker": "VMM"
+          }
+        },
+        "renuka": {
+          "name": "Shree Renuka Sugars",
+          "listed": true,
+          "role": "Wilmar-controlled sugar refiner and miller: refines imported raw sugar at port refineries and makes ethanol from cane and grain",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Largest port-based sugar refining capacity in India",
+            "Wilmar's backing and global sourcing"
+          ],
+          "risks": [
+            "Has made losses for years and carries high debt",
+            "Sugar exports and ethanol prices are set by the government"
+          ],
+          "f": {
+            "ticker": "RENUKA"
+          }
+        },
+        "dalmiaSugar": {
+          "name": "Dalmia Bharat Sugar",
+          "listed": true,
+          "role": "Sugar miller in Uttar Pradesh and Maharashtra with distilleries and cogeneration plants",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Integrated sugar, ethanol and power",
+            "Lower debt than most sugar peers"
+          ],
+          "risks": [
+            "Cane prices and sugar export limits are set by the government",
+            "Ethanol prices are fixed by the oil marketing companies"
+          ],
+          "f": {
+            "ticker": "DALMIASUG"
+          }
+        },
+        "praj": {
+          "name": "Praj Industries",
+          "listed": true,
+          "role": "Engineering firm that designs and builds most of India's grain and cane ethanol distilleries, plus biogas and bio-chemical plants",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Market leader in ethanol plant technology",
+            "Expanding into sustainable aviation fuel and compressed biogas"
+          ],
+          "risks": [
+            "New distillery orders slowed as ethanol capacity ran ahead of blending demand",
+            "Lumpy project execution"
+          ],
+          "f": {
+            "ticker": "PRAJIND"
+          }
+        },
+        "orkla": {
+          "name": "Orkla India",
+          "listed": true,
+          "role": "Packaged foods maker owning MTR (ready-to-eat, breakfast mixes) and Eastern (spices, masalas); controlled by Norway's Orkla, listed Nov 2025",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Leading spice brand in Kerala and a strong MTR franchise in Karnataka",
+            "Debt-free with good cash generation"
+          ],
+          "risks": [
+            "Sales concentrated in South India",
+            "Spice and grain raw-material prices"
+          ],
+          "f": {
+            "ticker": "ORKLA"
+          }
+        },
+        "cello": {
+          "name": "Cello World",
+          "listed": true,
+          "role": "Sells houseware (bottles, lunch boxes, steel and glassware), writing instruments (Cello, Unomax) and moulded furniture",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Strong houseware brand with wide distribution",
+            "Own glassware plant reduces reliance on imports"
+          ],
+          "risks": [
+            "Competition from Milton and unbranded makers",
+            "Slower growth in writing instruments"
+          ],
+          "f": {
+            "ticker": "CELLO"
+          }
+        },
+        "eveready": {
+          "name": "Eveready Industries",
+          "listed": true,
+          "role": "India's largest dry-cell battery and torch maker, also selling LED lighting; now makes alkaline batteries in India",
+          "dataStatus": "demo",
+          "sourceDate": "20 Nov 2026",
+          "strengths": [
+            "Dominant battery brand in general trade",
+            "New Jammu alkaline battery plant cuts reliance on imports"
+          ],
+          "risks": [
+            "Competition from Duracell and Nippo",
+            "Zinc and other metal costs"
+          ],
+          "f": {
+            "ticker": "EVEREADY"
+          }
         }
       }
     },
@@ -20582,6 +22858,24 @@
             "ticker": "VGUARD"
           }
         },
+        "polycab": {
+          "name": "Polycab India",
+          "listed": true,
+          "role": "Wires and cables maker whose fast-moving electrical goods arm sells fans, lights, switches and appliances to households",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Wire and cable dealer network gives its fans, lights and switches ready shelf space"
+          ],
+          "risks": [
+            "Fans, lights and switches are a small share of sales; cables drive results",
+            "Crowded against Havells, Crompton and Orient",
+            "Copper price swings"
+          ],
+          "f": {
+            "ticker": "POLYCAB"
+          }
+        },
         "bajajelec": {
           "name": "Bajaj Electricals",
           "listed": true,
@@ -20795,6 +23089,46 @@
           ],
           "f": {
             "ticker": "NILKAMAL"
+          }
+        },
+        "boschHomeComfort": {
+          "name": "Bosch Home Comfort India",
+          "listed": true,
+          "role": "Sells Hitachi-brand room ACs (formerly Johnson Controls-Hitachi Air Conditioning India) through dealers and appliance chains",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "hitachi"
+          ],
+          "strengths": [
+            "Bosch ownership brings global cooling technology and capital"
+          ],
+          "risks": [
+            "Small share against LG, Voltas, Daikin and Blue Star",
+            "Loss-making or near break-even in most recent years",
+            "Room-AC sales swing with summer heat"
+          ],
+          "f": {
+            "ticker": "BOSCH-HCIL"
+          }
+        },
+        "pgel": {
+          "name": "PG Electroplast",
+          "listed": true,
+          "role": "Contract maker that assembles room ACs and washing machines for appliance brands, plus plastic mouldings",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Room ACs and washing machines are most of its sales, made for brands that do not own plants",
+            "Moulding and electronics capacity under one roof"
+          ],
+          "risks": [
+            "A few brand customers account for most orders",
+            "Summer weather swings AC orders",
+            "FY26 profit fell to ₹197 Cr despite higher revenue"
+          ],
+          "f": {
+            "ticker": "PGEL"
           }
         },
         "pageind": {
@@ -21284,6 +23618,24 @@
             "ticker": "ETHOSLTD"
           }
         },
+        "rajeshexpo": {
+          "name": "Rajesh Exports",
+          "listed": true,
+          "role": "Bengaluru gold refiner and jewellery manufacturer (owns Swiss refiner Valcambi) supplying gold and finished jewellery to retailers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Refining and jewellery manufacturing at large scale give jewellers a supply source"
+          ],
+          "risks": [
+            "SEBI interim order (3 Jun 2026) alleges overstated subsidiary revenue and fund diversion; the company denies it",
+            "Sells to the trade, so its link to jewellery chains is indirect",
+            "Gold price swings"
+          ],
+          "f": {
+            "ticker": "RAJESHEXPO"
+          }
+        },
         "trent": {
           "name": "Trent",
           "listed": true,
@@ -21409,6 +23761,25 @@
             "No listed market data"
           ]
         },
+        "lenskart": {
+          "name": "Lenskart Solutions",
+          "listed": true,
+          "role": "Eyewear chain with about 2,700 stores in India that makes its own frames and lenses; also sells online",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Own factory lifts margins above those of multi-brand optical shops",
+            "Q1 FY27 revenue rose about 43%"
+          ],
+          "risks": [
+            "Store growth needs steady capex",
+            "Rich valuation since its Nov 2025 listing",
+            "Online and store sales are reported together"
+          ],
+          "f": {
+            "ticker": "LENSKART"
+          }
+        },
         "jubilant": {
           "name": "Jubilant FoodWorks",
           "listed": true,
@@ -21517,6 +23888,24 @@
           ],
           "f": {
             "ticker": "RBA"
+          }
+        },
+        "travelfood": {
+          "name": "Travel Food Services",
+          "listed": true,
+          "role": "Runs quick-service restaurants and food courts at airports, including KFC and Subway franchises, besides its lounges",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Long concessions at major Indian airports"
+          ],
+          "risks": [
+            "Concession fees take a large share of sales",
+            "Concentration in a few airport groups and their re-tenders",
+            "Airport footfall, not city demand, sets its sales"
+          ],
+          "f": {
+            "ticker": "TRAVELFOOD"
           }
         },
         "eternal": {
@@ -21851,6 +24240,384 @@
           ],
           "f": {
             "ticker": "PHOENIXLTD"
+          }
+        },
+        "nexusReit": {
+          "name": "Nexus Select Trust",
+          "listed": true,
+          "role": "India's only listed retail REIT: owns 17 malls that host multiplexes, food courts and fashion stores",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Revenue-share leases let rent grow with tenant sales",
+            "Grade A malls in many cities"
+          ],
+          "risks": [
+            "Rent, not ticket sales, is its income, so the link to cinemas is indirect",
+            "Discretionary slowdown and online competition"
+          ],
+          "f": {
+            "ticker": "NXST"
+          }
+        },
+        "igi": {
+          "name": "International Gemological Institute",
+          "listed": true,
+          "role": "Grades and certifies lab-grown and natural diamonds and jewellery for jewellers and retailers; Blackstone-controlled, listed Dec 2024",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Market leader in lab-grown diamond certification",
+            "High margins with little capital needed"
+          ],
+          "risks": [
+            "Lab-grown diamond prices keep falling",
+            "Competition from GIA and other labs"
+          ],
+          "f": {
+            "ticker": "IGIL"
+          }
+        },
+        "skyGold": {
+          "name": "Sky Gold and Diamonds",
+          "listed": true,
+          "role": "B2B jewellery maker supplying lightweight gold jewellery to chains such as Malabar, Kalyan and Joyalukkas",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Grows with the big jewellery chains' store expansion",
+            "Own manufacturing in Navi Mumbai"
+          ],
+          "risks": [
+            "A few large customers buy most of its output",
+            "Gold prices drive working capital"
+          ],
+          "f": {
+            "ticker": "SKYGOLD"
+          }
+        },
+        "vedantFashions": {
+          "name": "Vedant Fashions",
+          "listed": true,
+          "role": "Owns Manyavar, Mohey and Twamev, India's largest ethnic and wedding-wear brand, sold through franchised stores",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Dominant brand in men's wedding wear",
+            "Asset-light franchise model with high margins"
+          ],
+          "risks": [
+            "Sales have slowed with softer wedding demand",
+            "Women's wear (Mohey) is still small"
+          ],
+          "f": {
+            "ticker": "MANYAVAR"
+          }
+        },
+        "kewalKiran": {
+          "name": "Kewal Kiran Clothing",
+          "listed": true,
+          "role": "Owns the Killer jeans, Integriti, Easies and Lawman menswear brands, sold through own stores and multi-brand outlets",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Debt-free with its own manufacturing",
+            "Long-running youth denim brand"
+          ],
+          "risks": [
+            "Small beside the large apparel retailers",
+            "Fashion and inventory risk"
+          ],
+          "f": {
+            "ticker": "KKCL"
+          }
+        },
+        "dollar": {
+          "name": "Dollar Industries",
+          "listed": true,
+          "role": "Innerwear and athleisure maker (Dollar Bigboss, Missy, Force NXT) selling through dealers and modern trade",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Strong value-innerwear brand in North and East India",
+            "Integrated knitting and processing"
+          ],
+          "risks": [
+            "Cotton yarn price swings",
+            "Crowded mass innerwear market"
+          ],
+          "f": {
+            "ticker": "DOLLAR"
+          }
+        },
+        "luxInd": {
+          "name": "Lux Industries",
+          "listed": true,
+          "role": "Kolkata innerwear maker (Lux Cozi, ONN, GenX) selling mostly through dealers",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "One of India's largest innerwear brands by volume",
+            "Wide dealer network"
+          ],
+          "risks": [
+            "Margins squeezed by yarn costs and competition",
+            "Mass segment with little pricing power"
+          ],
+          "f": {
+            "ticker": "LUXIND"
+          }
+        },
+        "rupa": {
+          "name": "Rupa & Company",
+          "listed": true,
+          "role": "Kolkata innerwear maker (Rupa Frontline, Euro, Macroman) selling through dealers and modern trade",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Long-established innerwear brands",
+            "Low debt"
+          ],
+          "risks": [
+            "Slow growth in its core mass segment",
+            "Yarn price swings"
+          ],
+          "f": {
+            "ticker": "RUPA"
+          }
+        },
+        "indoCount": {
+          "name": "Indo Count Industries",
+          "listed": true,
+          "role": "One of the world's largest bed-linen makers, supplying US retailers and building its own brands in the US",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Scale and long ties with big US retailers",
+            "US brands and a US plant to sell closer to customers"
+          ],
+          "risks": [
+            "US tariffs on Indian textiles",
+            "Cotton price swings"
+          ],
+          "f": {
+            "ticker": "ICIL"
+          }
+        },
+        "himatsingka": {
+          "name": "Himatsingka Seide",
+          "listed": true,
+          "role": "Bed-linen, towel and drapery maker exporting to US retailers, under its own and licensed brands",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Integrated from yarn to finished bedding",
+            "Brand licences sold through US retailers"
+          ],
+          "risks": [
+            "High debt",
+            "US tariffs and retailer destocking"
+          ],
+          "f": {
+            "ticker": "HIMATSEIDE"
+          }
+        },
+        "cello": {
+          "name": "Cello World",
+          "listed": true,
+          "role": "Houseware and moulded furniture maker (Cello) selling bottles, kitchenware, glassware and plastic furniture to homes",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Strong houseware brand with wide distribution",
+            "Own glassware plant reduces reliance on imports"
+          ],
+          "risks": [
+            "Competition from Milton and unbranded makers",
+            "Plastic raw-material costs"
+          ],
+          "f": {
+            "ticker": "CELLO"
+          }
+        },
+        "barbeque": {
+          "name": "Barbeque-Nation Hospitality",
+          "listed": true,
+          "role": "Runs Barbeque Nation buffet restaurants in India and abroad, plus Toscano and Salt",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Well-known casual-dining brand",
+            "Expanding into smaller cities"
+          ],
+          "risks": [
+            "Has made losses as same-store sales fell",
+            "Competition from cheaper dining and delivery"
+          ],
+          "f": {
+            "ticker": "BARBEQUE"
+          }
+        },
+        "electronicsMart": {
+          "name": "Electronics Mart India",
+          "listed": true,
+          "role": "Runs Bajaj Electronics, a consumer-electronics and appliance chain in Telangana and Andhra Pradesh, now expanding into NCR",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Strong regional brand and store economics",
+            "Grows with appliance and phone demand"
+          ],
+          "risks": [
+            "Thin retail margins",
+            "Competition from online, Croma and Reliance Digital"
+          ],
+          "f": {
+            "ticker": "EMIL"
+          }
+        },
+        "v2Retail": {
+          "name": "V2 Retail",
+          "listed": true,
+          "role": "Value-fashion chain in tier-2 and tier-3 towns of North and East India",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Fast store expansion",
+            "Low price points that suit small-town shoppers"
+          ],
+          "risks": [
+            "Competition from V-Mart, Zudio and Reliance Trends",
+            "Inventory and store rents"
+          ],
+          "f": {
+            "ticker": "V2RETAIL"
+          }
+        },
+        "rrKabel": {
+          "name": "RR Kabel",
+          "listed": true,
+          "role": "Wire and cable maker whose consumer arm sells fans, lights, switches and appliances (Luminous fans and lights, bought in 2022)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Shares distribution with its large house-wire business",
+            "Luminous brand recognition"
+          ],
+          "risks": [
+            "Consumer electricals have made losses",
+            "Fan and lighting competition from Crompton, Havells and Orient"
+          ],
+          "f": {
+            "ticker": "RRKABEL"
+          }
+        },
+        "stoveKraft": {
+          "name": "Stove Kraft",
+          "listed": true,
+          "role": "Kitchen-appliance and cookware maker selling Pigeon and Gilma, and Black+Decker home appliances under licence",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Pigeon is a strong value brand, especially in South India",
+            "Own manufacturing keeps costs low"
+          ],
+          "risks": [
+            "Low-price segment with thin margins",
+            "Competition from TTK Prestige and Hawkins"
+          ],
+          "f": {
+            "ticker": "STOVEKRAFT"
+          }
+        },
+        "suryaRoshni": {
+          "name": "Surya Roshni",
+          "listed": true,
+          "role": "Steel pipe maker whose consumer arm sells LED lighting, fans and appliances",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large lighting brand in small towns and rural India",
+            "Steel pipes give it scale"
+          ],
+          "risks": [
+            "Consumer products are the smaller part of its sales",
+            "LED price deflation"
+          ],
+          "f": {
+            "ticker": "SURYAROSNI"
+          }
+        },
+        "epack": {
+          "name": "EPACK Durable",
+          "listed": true,
+          "role": "Contract maker of room ACs, AC components and small appliances for consumer brands",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "One of India's largest contract makers of room ACs",
+            "Adding new brand customers and component plants"
+          ],
+          "risks": [
+            "Sales tied to the AC season and a few brand customers",
+            "Thin margins typical of contract manufacturing"
+          ],
+          "f": {
+            "ticker": "EPACK"
+          }
+        },
+        "siyaram": {
+          "name": "Siyaram Silk Mills",
+          "listed": true,
+          "role": "Makes suiting and shirting fabrics (Siyaram's, Mistair) and readymade garments (Oxemberg, J Hampstead)",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Strong fabric brand in small towns",
+            "Growing garment exports"
+          ],
+          "risks": [
+            "Shift from tailored to readymade clothing",
+            "Depends on wedding and festive seasons"
+          ],
+          "f": {
+            "ticker": "SIYSIL"
+          }
+        },
+        "pearlGlobal": {
+          "name": "Pearl Global Industries",
+          "listed": true,
+          "role": "Garment exporter making apparel for US and European brands from plants in India, Bangladesh, Vietnam and Indonesia",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Plants in several countries let buyers spread tariff and supply risk",
+            "Long ties with large US brands"
+          ],
+          "risks": [
+            "US tariff changes",
+            "Depends on a few large brand customers"
+          ],
+          "f": {
+            "ticker": "PGIL"
+          }
+        },
+        "piccadily": {
+          "name": "Piccadily Agro Industries",
+          "listed": true,
+          "role": "Makes Indri single-malt whisky and other premium spirits, alongside a sugar mill",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Indri has won global awards and sells in many countries",
+            "Own distillery and maturing stock"
+          ],
+          "risks": [
+            "Malt whisky ties up years of stock and cash",
+            "State excise and pricing rules"
+          ],
+          "f": {
+            "ticker": "PICCADIL"
           }
         }
       }
@@ -22549,6 +25316,24 @@
     {
       "key": "rareearth",
       "suppliers": {
+        "ather": {
+          "name": "Ather Energy",
+          "listed": true,
+          "role": "Electric-scooter maker whose motors use rare-earth magnets, exposed to the 2025 Chinese export curbs",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Own motor and powertrain design could switch magnet type or supplier",
+            "Growing volumes help it secure scarce magnets"
+          ],
+          "risks": [
+            "A magnet shortage can halt scooter output",
+            "Ferrite alternatives may cost range or weight"
+          ],
+          "f": {
+            "ticker": "ATHERENERG"
+          }
+        },
         "lt": {
           "name": "Larsen & Toubro",
           "listed": true,
@@ -23218,12 +26003,66 @@
           "f": {
             "ticker": "HAL"
           }
+        },
+        "jainRecycling": {
+          "name": "Jain Resource Recycling",
+          "listed": true,
+          "role": "Recycles lead from used batteries and copper and aluminium scrap into metal for battery and cable makers",
+          "dataStatus": "demo",
+          "sourceDate": "3 Nov 2026",
+          "strengths": [
+            "Large scale in lead recycling with export reach",
+            "Battery recycling rules push volumes to formal recyclers"
+          ],
+          "risks": [
+            "Lithium-ion recycling is still a plan, not a business",
+            "Metal price swings"
+          ],
+          "f": {
+            "ticker": "JAINREC"
+          }
+        },
+        "cmpdi": {
+          "name": "Central Mine Planning & Design Institute",
+          "listed": true,
+          "role": "Coal India subsidiary that explores and drills mineral blocks, including critical minerals, for government auctions",
+          "dataStatus": "demo",
+          "sourceDate": "3 Nov 2026",
+          "strengths": [
+            "Main government agency for drilling and mine planning",
+            "Coal India parentage"
+          ],
+          "risks": [
+            "Critical-mineral work is a small part beside coal",
+            "Depends on government exploration budgets"
+          ],
+          "f": {
+            "ticker": "CMPDI"
+          }
         }
       }
     },
     {
       "key": "defenceproc",
       "suppliers": {
+        "hblEngineering": {
+          "name": "HBL Engineering",
+          "listed": true,
+          "role": "Maker of electronic fuzes for artillery ammunition, alongside batteries, defence electronics and rail signalling",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Fuzes are the electronics-heavy part of every artillery shell",
+            "Defence electronics and battery experience"
+          ],
+          "risks": [
+            "Fuzes are a small part of its mix",
+            "Order timing depends on ministry contracts"
+          ],
+          "f": {
+            "ticker": "HBLENGINE"
+          }
+        },
         "hal": {
           "name": "Hindustan Aeronautics",
           "listed": true,
@@ -24255,6 +27094,42 @@
     {
       "key": "pliacc",
       "suppliers": {
+        "olectra": {
+          "name": "Olectra Greentech",
+          "listed": true,
+          "role": "Electric-bus maker whose buses each carry a large battery pack",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Large pack demand per bus from state transport orders",
+            "Repeat tenders give visible demand"
+          ],
+          "risks": [
+            "Lumpy tender orders and payment timing",
+            "Qualifying a local cell supplier takes time"
+          ],
+          "f": {
+            "ticker": "OLECTRA"
+          }
+        },
+        "ather": {
+          "name": "Ather Energy",
+          "listed": true,
+          "role": "Electric-scooter maker (Rizta, 450 series) that buys the cells and packs for its scooters",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Its scooter volumes give local cell makers a buyer to qualify with",
+            "Own software and charging network"
+          ],
+          "risks": [
+            "Cells are mostly imported until local supply qualifies",
+            "Price war in electric two-wheelers"
+          ],
+          "f": {
+            "ticker": "ATHERENERG"
+          }
+        },
         "ola": {
           "name": "Ola Electric Mobility",
           "listed": true,
