@@ -5,6 +5,7 @@
 import { listSectors, findSupplierByTicker, parseCrore, type SectorCategory } from "@/lib/sector-content";
 import { getCompanyPage, companySlug, listCompanyPages, primaryAppearance } from "@/lib/sector-content/companies";
 import { getCompanyFootprint } from "@/lib/sector-content/exposure";
+import { CORE_CENTRALITY, sectorCompanyMetrics } from "@/lib/sector-content/insights";
 import { sectorBenchmarks, type Benchmark } from "@/lib/sector-content/benchmarks";
 import { memoByFinancials } from "@/lib/financials/store";
 import { oneOffReason } from "./outliers";
@@ -44,6 +45,11 @@ export type IndustryBasket = {
   tagline: string;
   category: SectorCategory;
   stocks: BasketStock[];
+  /**
+   * Where basketCoreOnly: the side links left out of `stocks` (still on the map). The pools list them
+   * as low exposure, so every company on the map is in the pools, one tap from being counted.
+   */
+  sideStocks: BasketStock[];
   indices: Benchmark[];
 };
 
@@ -92,13 +98,19 @@ export function basketStock(ticker: string): BasketStock | null {
   return out;
 }
 
-/** One basket per live industry/policy: all its listed stocks, biggest first. */
+/** One basket per live industry/policy: all its listed stocks (core ones only where basketCoreOnly), biggest first. */
 export const listIndustryBaskets = memoByFinancials((): IndustryBasket[] =>
   listSectors()
     .filter((s) => !s.muted)
     .map((s) => {
       const seen = new Set<string>();
       const stocks: BasketStock[] = [];
+      const sideStocks: BasketStock[] = [];
+      // An industry marked basketCoreOnly (sector-content/core.ts) leaves out its side links rated
+      // medium or low: still mapped there, but not counted in its basket or pools.
+      const side = s.basketCoreOnly
+        ? new Set(sectorCompanyMetrics(s.slug).filter((c) => c.centrality < CORE_CENTRALITY).map((c) => c.ticker))
+        : null;
       for (const sup of Object.values(s.suppliers)) {
         const t = sup.f?.ticker;
         if (!sup.listed || !t || seen.has(t)) continue;
@@ -109,9 +121,10 @@ export const listIndustryBaskets = memoByFinancials((): IndustryBasket[] =>
         // railway part, not its EV one), the strongest if it has several there.
         const here = getCompanyPage(companySlug(t))?.appearances.filter((a) => a.sectorSlug === s.slug) ?? [];
         const a = here.reduce<(typeof here)[number] | null>((best, x) => (!best || x.weight > best.weight ? x : best), null);
-        stocks.push(a ? { ...st, role: a.role, layer: a.zoneLabel } : st);
+        (side?.has(t) ? sideStocks : stocks).push(a ? { ...st, role: a.role, layer: a.zoneLabel } : st);
       }
       stocks.sort((a, b) => (b.mcapCr ?? -1) - (a.mcapCr ?? -1));
+      sideStocks.sort((a, b) => (b.mcapCr ?? -1) - (a.mcapCr ?? -1));
       return {
         slug: s.slug,
         name: s.name,
@@ -119,6 +132,7 @@ export const listIndustryBaskets = memoByFinancials((): IndustryBasket[] =>
         tagline: s.tagline,
         category: s.category ?? "sector",
         stocks,
+        sideStocks,
         indices: sectorBenchmarks(s.slug),
       };
     }),

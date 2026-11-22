@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildIdeas, ideaCatalog, priceStat, sinceRange, themeFootprint, withBacktestReturns, type IdeaStockInfo, type PriceSnapshot } from "./ideas";
+import { buildIdeas, ideaCatalog, priceStat, sinceRange, themeFootprint, withAwaitingFigures, withBacktestReturns, type IdeaStockInfo, type PriceSnapshot } from "./ideas";
 import { runBacktest } from "./backtest";
 import { onBenchWindow } from "./run";
 
@@ -214,6 +214,16 @@ test("companies with a one-off year are in no rule-based basket, and each rule s
   assert.deepEqual(ideas.find((i) => i.id === "top-1y")!.stocks.map((s) => s.ticker), ["PLAIN"]);
 });
 
+test("Highest ROCE leaves out lenders and insurers: ROCE means nothing for them", () => {
+  const ideas = buildIdeas(
+    [info("OPCO", { roce: 30, pe: 20 }), info("BANKX", { roce: 40, pe: 10, kind: "lender" }), info("LIFEX", { roce: 50, pe: 60, kind: "insurer" })],
+    snap({}),
+    NOW,
+    true,
+  );
+  assert.deepEqual(ideas.find((i) => i.id === "quality")!.stocks.map((s) => s.ticker), ["OPCO"]);
+});
+
 test("themeFootprint counts industries and policies as /connections does, leaving out the index", () => {
   const cat = { a: "sector", b: "sector", c: "policy", nifty50: "index" } as const;
   const f = themeFootprint(["a", "b", "c", "nifty50", "unknown"], (s) => cat[s as keyof typeof cat]);
@@ -224,7 +234,24 @@ test("themeFootprint counts industries and policies as /connections does, leavin
 
 test("ideaCatalog lists every rule, with no prices needed", () => {
   const ids = ideaCatalog().map((i) => i.id);
-  for (const id of ["top-6m", "top-5y", "quality", "bottlenecks", "cross-industry", "recent-ipos", "compounders", "garp", "turnarounds", "margins"]) assert.ok(ids.includes(id), id);
+  for (const id of ["top-6m", "top-5y", "quality", "bottlenecks", "cross-industry", "recent-ipos", "compounders", "garp", "turnarounds", "margins", "quality-lenders", "insurer-value"]) assert.ok(ids.includes(id), id);
   assert.equal(new Set(ids).size, ids.length);
   assert.ok(ideaCatalog().every((i) => i.title && i.blurb));
+});
+
+test("ideaCatalog carries each rule's line, for a page with no stocks today", () => {
+  assert.match(ideaCatalog().find((i) => i.id === "quality-lenders")!.rule, /net NPA 1% or less/);
+});
+
+test("withAwaitingFigures: a screen waiting on figures is listed, in the catalog's order, with its note and no stocks", () => {
+  const today = buildIdeas([], { asOf: "", stats: {} }, 0, true).filter((i) => i.id === "quality" || i.id === "margins").map((i) => ({ ...i, stocks: [{ ticker: "X", stat: "s" }] }));
+  const out = withAwaitingFigures(today, { "quality-lenders": "Net NPA figures are not yet added." });
+  assert.deepEqual(out.map((i) => i.id), ["quality", "margins", "quality-lenders"]);
+  const ql = out[2];
+  assert.equal(ql.awaiting, "Net NPA figures are not yet added.");
+  assert.deepEqual(ql.stocks, []);
+  assert.equal(ql.ret, null);
+  // A screen that has stocks today is never marked waiting.
+  assert.equal(withAwaitingFigures(today, { margins: "x" }).filter((i) => i.id === "margins").length, 1);
+  assert.equal(withAwaitingFigures(today, { margins: "x" }).find((i) => i.id === "margins")!.awaiting, undefined);
 });

@@ -5,9 +5,11 @@
 import type { PrismaClient } from "@/generated/prisma/client";
 import type { SupplierFinancials } from "@/lib/sector-content";
 import { FISCAL_YEARS, rowToFinancials, type CompanyFinRow } from "./rows";
+import { readInsurerRows, readLenderFigures } from "./blocks";
+import { companyKind } from "./kinds";
 import { publishedCutoff } from "./trading-day";
 import { withTrend } from "./trend";
-import { withNifty } from "./key-ratios";
+import { niftyFallbackDays, withNifty } from "./key-ratios";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 
 let warnedNoRunsTable = false;
@@ -45,7 +47,12 @@ async function latestKpis(prisma: PrismaClient, cutoff: Date | null) {
   if (!byDay.size) return new Map<string, CompanyFinRow["kpis"][number] & { companyId: string }>();
   const kpis = await prisma.kpiSnapshot.findMany({
     where: { OR: [...byDay].map(([t, ids]) => ({ asOf: new Date(t), companyId: { in: ids } })) },
-    omit: { id: true },
+    // The columns the table reads, named: a whole row would also ask for columns a database that
+    // is behind the schema does not have yet (the lender figures before migration 20261118120000).
+    select: {
+      companyId: true, asOf: true, price: true, marketCap: true, pe: true, bookValue: true, divYield: true, roce: true, roe: true,
+      faceValue: true, low52w: true, high52w: true, cagr1y: true, cagr3y: true, cagr5y: true,
+    },
   });
   return new Map(kpis.map((k) => [k.companyId, k]));
 }
@@ -68,6 +75,16 @@ export async function readCompanyTableAt(prisma: PrismaClient, cutoff: Date | nu
     }),
     latestKpis(prisma, cutoff),
   ]);
+  // The lender and insurer blocks (./blocks.ts): read on their own, so a database without their
+  // columns or table yet still gives the rest of the table.
+  const ofKind = (kind: "lender" | "insurer") => rows.filter((r) => companyKind(r.ticker) === kind);
+  const [lenders, insurers] = await Promise.all([
+    readLenderFigures(prisma, ofKind("lender").flatMap((r) => {
+      const k = kpis.get(r.id);
+      return k ? [{ companyId: r.id, asOf: k.asOf }] : [];
+    })),
+    readInsurerRows(prisma, ofKind("insurer").map((r) => r.id)),
+  ]);
   // Each company's Trend percentile is ranked over this same table, so it moves with the published date.
   const table = withTrend(Object.fromEntries(
     rows.flatMap(({ id, ...r }) => {
@@ -75,7 +92,7 @@ export async function readCompanyTableAt(prisma: PrismaClient, cutoff: Date | nu
       // Held to a published date, a company whose first snapshot is newer (an IPO a run is adding)
       // joins the table when that run publishes, with everyone else.
       if (!k && r._count.kpis > 0) return [];
-      return [[r.ticker, rowToFinancials({ ...r, kpis: k ? [k] : [] })]];
+      return [[r.ticker, rowToFinancials({ ...r, kpis: k ? [k] : [] }, { lender: lenders.get(id), insurer: insurers.get(id) })]];
     }),
   ));
   // The Nifty 50's 1Y return to each company's snapshot day (nearly all share one), for "1Y vs Nifty".
@@ -83,7 +100,12 @@ export async function readCompanyTableAt(prisma: PrismaClient, cutoff: Date | nu
     const k = kpis.get(r.id);
     return k && table[r.ticker] ? [[r.ticker, k.asOf.toISOString().slice(0, 10)] as const] : [];
   }));
-  return withNifty(table, asOfDay, await niftyCloses(prisma, [...asOfDay.values()]));
+  const nifty = await niftyCloses(prisma, [...asOfDay.values()]);
+  // A snapshot taken before today's index close is stored runs both 1Y returns to the last stored
+  // close: the stocks' closes for that day and a year before, read for just those companies.
+  const fallback = niftyFallbackDays(nifty, asOfDay.values());
+  const stocks = fallback.size ? await stockCloses(prisma, [...asOfDay].filter(([, d]) => fallback.has(d)).map(([t]) => t), [...new Set(fallback.values())]) : new Map();
+  return withNifty(table, asOfDay, nifty, stocks);
 }
 
 /** The stored Nifty 50 closes from a year (and a week) before the earliest day to the latest; none when the store can't say. */
@@ -104,6 +126,33 @@ async function niftyCloses(prisma: PrismaClient, days: string[]): Promise<{ t: s
     if ((e as { code?: string }).code !== "P2021") console.warn("company table: Nifty closes not read", e);
     return [];
   }
+}
+
+/**
+ * Stored closes for `tickers` in the week up to each `end` day and the fortnight up to the same date
+ * a year before: all withNifty() needs, without reading a year of bars per company.
+ */
+async function stockCloses(prisma: PrismaClient, tickers: string[], ends: string[]): Promise<Map<string, { t: string; c: number }[]>> {
+  const out = new Map<string, { t: string; c: number }[]>();
+  if (!tickers.length || !ends.length) return out;
+  const day = (iso: string) => new Date(`${iso}T00:00:00Z`);
+  const windows = ends.flatMap((e) => {
+    const yearAgo = `${Number(e.slice(0, 4)) - 1}${e.slice(4)}`;
+    // The week up to `e` (a stock's last stored close may be a day or two older) and the fortnight up to a year before.
+    return [{ day: { gte: new Date(Date.parse(e) - 7 * 86_400_000), lte: day(e) } }, { day: { gte: new Date(Date.parse(yearAgo) - 14 * 86_400_000), lte: day(yearAgo) } }];
+  });
+  try {
+    const bars = await prisma.priceBar.findMany({ where: { key: { in: tickers }, OR: windows }, orderBy: { day: "asc" }, select: { key: true, day: true, close: true } });
+    for (const b of bars) {
+      const list = out.get(b.key) ?? [];
+      list.push({ t: b.day.toISOString().slice(0, 10), c: b.close });
+      out.set(b.key, list);
+    }
+  } catch (e) {
+    // One optional tile, as for the Nifty's closes: a failed read leaves it with its reason.
+    if ((e as { code?: string }).code !== "P2021") console.warn("company table: stock closes not read", e);
+  }
+  return out;
 }
 
 /** The table as the site shows it, with the published date it is held to. */

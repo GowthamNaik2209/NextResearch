@@ -91,7 +91,8 @@ const contentIndex = memoByFinancials((): SearchEntry[] => {
       }
   for (const c of companies.values()) {
     const where = c.sectors.length === 1 ? `${c.zone} · ${c.sectors[0]}` : `${c.sectors.length} themes: ${c.sectors.join(", ")}`;
-    const aliases = [initials(c.name), c.listed ? c.ticker.toLowerCase() : null, ...c.aka].filter((a): a is string => !!a);
+    // Lower case, as search compares them with the typed term ("LTIMindtree" finds LTM).
+    const aliases = [initials(c.name), c.listed ? c.ticker.toLowerCase() : null, ...c.aka.map((a) => a.toLowerCase())].filter((a): a is string => !!a);
     out.push({
       kind: "company",
       label: c.name,

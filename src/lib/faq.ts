@@ -3,7 +3,7 @@
 // FAQPage structured data. Every answer is built from the page's own content and the company table,
 // never hand-written, so it always matches what the page shows. Questions whose answer would repeat
 // a box on the same page word for word (a sector's "Why now", a company's risks) are left out.
-import { companyLinkKey, linkWeight, type ExposureStrength, type ExposureType, type SectorWithSlug } from "@/lib/sector-content";
+import { companyLinkKey, integratorLinks, integratorZones, linkWeight, type ExposureStrength, type ExposureType, type SectorWithSlug } from "@/lib/sector-content";
 import { isUnlisted, sectorCompanies, sectorCompanyCounts, type CompanyPage, type CompanyAppearance } from "@/lib/sector-content/companies";
 import { croreFromLabel } from "@/components/stock/merge";
 import { croreShort } from "@/lib/format";
@@ -64,13 +64,16 @@ export function sectorFaq(sector: SectorWithSlug): Faq[] {
       a: `NextResearch maps ${listed} listed companies across ${zones.length} layers of the ${sector.name} supply chain.${largest.length ? ` ${largestLabel} as of ${dataAsOf()}: ${listJoin(largest)}.` : ""}`,
     });
     faqs.push({ q: `What are the layers of the ${sector.name} supply chain?`, a: `${zones.length} layers: ${listJoin(zones)}.` });
-    const integrator = sector.integratorZoneId ? sector.zones.find((z) => z.id === sector.integratorZoneId) : undefined;
+    // The integrator zone and any extra ones the page's section shows (Insurance: LIC's beside the bank-promoted insurers).
+    const izones = integratorZones(sector);
+    const integrator = izones[0];
+    const where = izones.length > 1 ? `${izones.map((z) => z.label).join(" and ")} layers` : layerName(integrator?.label ?? "");
     // Main end players (high or medium exposure), largest first; low-exposure entrants (L&T and
     // Titagarh among the naval shipyards) are named apart rather than as peers of the majors.
     const capOf = new Map(ranked.map((x) => [x.c.supplier.name, x.cap]));
     const ends = [
       ...new Map(
-        (integrator?.suppliers ?? []).flatMap((l) => {
+        integratorLinks(sector).flatMap(({ link: l }) => {
           const sup = sector.suppliers[companyLinkKey(l)];
           return sup ? [[unlistedTag(sup.name, isUnlisted(sup)), linkWeight(l)] as const] : [];
         }),
@@ -82,8 +85,8 @@ export function sectorFaq(sector: SectorWithSlug): Faq[] {
       faqs.push({
         q: `Who are the end players in ${sector.name}?`,
         a: main.length
-          ? `In the ${layerName(integrator.label)}: ${listJoin(main, 8)}.${minor.length ? ` Also there, with low exposure: ${listJoin(minor, 4)}.` : ""}`
-          : `In the ${layerName(integrator.label)}: ${listJoin(minor, 8)}.`,
+          ? `In the ${where}: ${listJoin(main, 8)}.${minor.length ? ` Also there, with low exposure: ${listJoin(minor, 4)}.` : ""}`
+          : `In the ${where}: ${listJoin(minor, 8)}.`,
       });
   }
   // One bottleneck from each layer that has them, tagged with its layer as the page tags them: the

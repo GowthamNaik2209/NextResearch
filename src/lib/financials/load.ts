@@ -20,6 +20,7 @@ import { prisma } from "@/lib/prisma";
 import type { SupplierFinancials } from "@/lib/sector-content";
 import { FINANCIALS_TAG, maybeScheduleRefresh } from "./auto";
 import { readPublishedTable } from "./query";
+import { forDisplay } from "./kinds";
 import { installFinancials, missingTickers } from "./store";
 
 export const FINANCIALS_REVALIDATE_SECONDS = 900;
@@ -33,7 +34,7 @@ const loadTable = unstable_cache(
     if (!Object.keys(byTicker).length) throw new Error("The company table is empty - run scripts/refresh-financials.ts against this database");
     return { loadedAt: Date.now(), published: published?.toISOString() ?? null, byTicker };
   },
-  ["company-financials-v6"],
+  ["company-financials-v7"],
   { revalidate: FINANCIALS_REVALIDATE_SECONDS, tags: [FINANCIALS_TAG] },
 );
 
@@ -76,6 +77,6 @@ export async function ensureFinancials(): Promise<void> {
 export async function financialsFor(tickers: Iterable<string>): Promise<Record<string, SupplierFinancials>> {
   const { byTicker } = await loadTable();
   const out: Record<string, SupplierFinancials> = {};
-  for (const t of tickers) if (Object.hasOwn(byTicker, t)) out[t] = byTicker[t];
+  for (const t of tickers) if (Object.hasOwn(byTicker, t)) out[t] = forDisplay(byTicker[t]);
   return out;
 }

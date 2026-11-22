@@ -4,7 +4,9 @@
 // that tracks the index (`via`), which follows it to within its small fee drag.
 // Industries with no matching index (semiconductors, data centres, telecom, solar) get
 // none rather than a loose stand-in. Capital markets has an index, but its ETF (GROWWCAPM.NS)
-// only reaches a year of history in Dec 2026; add it then. Symbols checked against Yahoo, Nov 2026.
+// only reaches a year of history in Dec 2026; add it then. Insurance has one too, but its only
+// ETF (INSUREIETF.NS) listed Aug 2026; add it from Aug 2027. Chemicals likewise: its ETFs (GROWWCHEM.NS from Jan 2026,
+// CHEMICAL.NS from Jul 2026) have under a year, and Yahoo returns one day for the index; add it from Jan 2027. Symbols checked against Yahoo, Nov 2026.
 export type Benchmark = { id: string; name: string; symbol: string; via?: string };
 
 export const BENCHMARKS = {
@@ -19,7 +21,13 @@ export const BENCHMARKS = {
   niftyenergy: { id: "niftyenergy", name: "Nifty Energy", symbol: "MOENERGY.NS", via: "Motilal Oswal Nifty Energy ETF" },
   niftyhealthcare: { id: "niftyhealthcare", name: "Nifty Healthcare", symbol: "HEALTHIETF.NS", via: "ICICI Prudential Nifty Healthcare ETF" },
   niftyinternet: { id: "niftyinternet", name: "Nifty India Internet", symbol: "INTERNET.NS", via: "Mirae Asset Nifty India Internet ETF" },
+  niftyit: { id: "niftyit", name: "Nifty IT", symbol: "^CNXIT" },
+  niftyfmcg: { id: "niftyfmcg", name: "Nifty FMCG", symbol: "^CNXFMCG" },
+  niftyconsumption: { id: "niftyconsumption", name: "Nifty India Consumption", symbol: "^CNXCONSUM" },
   niftymetal: { id: "niftymetal", name: "Nifty Metal", symbol: "^CNXMETAL" },
+  niftybank: { id: "niftybank", name: "Nifty Bank", symbol: "BANKBEES.NS", via: "Nippon India ETF Nifty Bank BeES" },
+  niftypsubank: { id: "niftypsubank", name: "Nifty PSU Bank", symbol: "PSUBNKBEES.NS", via: "Nippon India ETF Nifty PSU Bank BeES" },
+  niftytourism: { id: "niftytourism", name: "Nifty India Tourism", symbol: "MOTOUR.NS", via: "Motilal Oswal Nifty India Tourism ETF" },
 } satisfies Record<string, Benchmark>;
 
 export type BenchmarkId = keyof typeof BENCHMARKS;
@@ -43,6 +51,12 @@ const SECTOR_INDEX: Partial<Record<string, BenchmarkId[]>> = {
   rareearth: ["niftymetal"],
   pliacc: ["niftyev", "niftyenergy"],
   greenh2: ["niftyenergy"],
+  banks: ["niftybank", "niftypsubank"],
+  hotels: ["niftytourism"],
+  itservices: ["niftyit"],
+  autos: ["niftyauto"],
+  fmcg: ["niftyfmcg"],
+  consumerbrands: ["niftyconsumption"],
 };
 
 export function sectorBenchmarks(slug: string): Benchmark[] {

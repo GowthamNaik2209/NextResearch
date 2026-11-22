@@ -1,12 +1,16 @@
 // Rule-based baskets screened on the company table's figures (supplier.f): five fiscal years of
 // revenue and net profit (FY22..FY26), P/E and ROCE. Each rule is fixed and stated in one line, uses
 // only the latest snapshot, keeps out small companies, those with a one-off year (./outliers.ts)
-// and REITs/InvITs, and ranks by one number shown beside each stock. They deliberately differ from the
+// and REITs/InvITs, and ranks by one number shown beside each stock. The ROCE and margin rules
+// (compounders, GARP, widening margins) also keep out lenders and insurers (financials/kinds.ts),
+// whose ROCE and net margin mean nothing; they have rules of their own (quality lenders, insurer value). They deliberately differ from the
 // other rule-based baskets (past price, ROCE alone, our maps) and from the landing page's "Stock
 // screens" (src/lib/sector-content/insights.ts: highest ROCE, latest-year revenue growth, lowest
 // P/E with ROCE above 15%, furthest below the 52-week high, highest dividend yield).
 // Pure, so each rule is unit-tested on fixture data (kpi-screens.test.ts).
 import { croreShort } from "@/lib/format";
+import type { CompanyKind } from "@/lib/financials/kinds";
+import { STALE_AFTER_DAYS, type InsurerFigures } from "@/lib/financials/insurer";
 import { ONE_OFF_NOTE } from "./outliers";
 
 /** What a screen needs about one company (from the company table; null when not reported). */
@@ -19,8 +23,16 @@ export type KpiStock = {
   /** A REIT or InvIT: it passes its income through, so its P/E, margins and "losses" (fair-value
    * marks) don't compare with a company's. Kept out of these screens. */
   trust?: boolean;
+  /** Lender, insurer or operating company (financials/kinds.ts); missing reads as operating. */
+  kind?: CompanyKind;
   pe?: number | null;
   roce?: number | null;
+  /** Return on equity, % (the company table's kpi[4]). */
+  roe?: number | null;
+  /** A lender's net NPA, % of advances, latest quarter (its lender block). */
+  nnpa?: number | null;
+  /** An insurer's figures (its insurer block): VNB margin, P/EV and whether the quarter is fresh. */
+  insurer?: Pick<InsurerFigures, "vnbMargin" | "pev" | "fresh"> | null;
   /** Revenue and net profit, ₹ Cr, FY22..FY26 (index 4 is the latest year). */
   rev?: (number | null)[];
   np?: (number | null)[];
@@ -49,6 +61,8 @@ const ok = (v: number | null | undefined): v is number => typeof v === "number" 
 const cagr = (from: number, to: number, years: number) => ((to / from) ** (1 / years) - 1) * 100;
 const pct0 = (v: number) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(0)}%`;
 const eligible = (s: KpiStock) => !s.outlier && !s.trust && (s.mcapCr ?? 0) >= KPI_MIN_MCAP_CR;
+/** The ROCE and margin rules also need an operating company: a lender's or insurer's ROCE and net margin mean nothing. */
+const operating = (s: KpiStock) => eligible(s) && (s.kind ?? "operating") === "operating";
 /** Ties break on market cap (bigger first), then name, so the order is fully determined. */
 const tie = (a: KpiStock, b: KpiStock) => (b.mcapCr ?? -1) - (a.mcapCr ?? -1) || a.name.localeCompare(b.name);
 
@@ -67,7 +81,7 @@ export function compounders(stocks: KpiStock[]): KpiScreen["stocks"] {
   const rows = stocks.flatMap((s) => {
     const rev = s.rev ?? [];
     const np = s.np ?? [];
-    if (!eligible(s) || !ok(s.roce) || s.roce < COMPOUNDER_MIN_ROCE) return [];
+    if (!operating(s) || !ok(s.roce) || s.roce < COMPOUNDER_MIN_ROCE) return [];
     if (rev.length < 5 || np.length < 5 || ![...rev, ...np].every(ok)) return [];
     const r = rev as number[];
     const p = np as number[];
@@ -85,7 +99,7 @@ export function garp(stocks: KpiStock[]): KpiScreen["stocks"] {
   const rows = stocks.flatMap((s) => {
     const rev = s.rev ?? [];
     const np = s.np ?? [];
-    if (!eligible(s) || !ok(s.pe) || s.pe <= 0 || !ok(s.roce) || s.roce < GARP.minRoce) return [];
+    if (!operating(s) || !ok(s.pe) || s.pe <= 0 || !ok(s.roce) || s.roce < GARP.minRoce) return [];
     if (!ok(np[1]) || !ok(np[4]) || np[1] < KPI_MIN_BASE_PROFIT_CR || !ok(rev[1]) || !ok(rev[4]) || rev[1] <= 0) return [];
     // Profitable every year FY22-FY26: growth rebounding from a loss is the Turnarounds list, and it
     // would flatter the PEG here.
@@ -120,7 +134,7 @@ export function wideningMargins(stocks: KpiStock[]): KpiScreen["stocks"] {
   const rows = stocks.flatMap((s) => {
     const rev = s.rev ?? [];
     const np = s.np ?? [];
-    if (!eligible(s)) return [];
+    if (!operating(s)) return [];
     if (![rev[1], rev[4], np[1], np[2], np[3], np[4]].every(ok)) return [];
     const r1 = rev[1]!;
     const r4 = rev[4]!;
@@ -133,6 +147,50 @@ export function wideningMargins(stocks: KpiStock[]): KpiScreen["stocks"] {
     return [{ s, key: m4 - m1, stat: `margin ${m1.toFixed(0)}% → ${m4.toFixed(0)}%` }];
   });
   return rank(rows, "desc");
+}
+
+/** Quality lenders: banks and NBFCs earning ROE 15%+ with net NPA 1% or less; highest ROE first. */
+export const QUALITY_LENDER = { minRoe: 15, maxNnpa: 1 };
+export function qualityLenders(stocks: KpiStock[]): KpiScreen["stocks"] {
+  const rows = stocks.flatMap((s) => {
+    if (!eligible(s) || s.kind !== "lender" || !ok(s.roe) || !ok(s.nnpa)) return [];
+    if (s.roe < QUALITY_LENDER.minRoe || s.nnpa > QUALITY_LENDER.maxNnpa) return [];
+    return [{ s, key: s.roe, stat: `ROE ${s.roe.toFixed(0)}% · Net NPA ${s.nnpa.toFixed(2)}%` }];
+  });
+  return rank(rows, "desc");
+}
+
+/**
+ * Insurer value: life insurers with VNB margin 20%+ on a fresh quarter, cheapest price to embedded
+ * value (P/EV) first. A life insurer is an insurer with a VNB margin: only life insurers report value
+ * of new business (general and health insurers report a combined ratio instead). A stale quarter
+ * (financials/insurer.ts STALE_AFTER_DAYS) is left out: ranking on it would rank an old quarter.
+ */
+export const INSURER_VALUE = { minVnb: 20 };
+export function insurerValue(stocks: KpiStock[]): KpiScreen["stocks"] {
+  const rows = stocks.flatMap((s) => {
+    const i = s.insurer;
+    if (!eligible(s) || s.kind !== "insurer" || !i || i.fresh !== "fresh" || !ok(i.vnbMargin) || !ok(i.pev) || i.pev <= 0) return [];
+    if (i.vnbMargin < INSURER_VALUE.minVnb) return [];
+    return [{ s, key: i.pev, stat: `P/EV ${i.pev.toFixed(2)}x · VNB ${i.vnbMargin.toFixed(0)}%` }];
+  });
+  return rank(rows, "asc");
+}
+
+/**
+ * The screens still waiting on figures, each with the line its page and card show: Quality lenders
+ * while no covered lender has a net NPA, Insurer value while no covered insurer has a VNB margin and
+ * a P/EV. An empty list then means the figures aren't in yet, not that no company passes the rule.
+ */
+export function screensAwaitingFigures(stocks: KpiStock[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  const lenders = stocks.filter((s) => s.kind === "lender");
+  const insurers = stocks.filter((s) => s.kind === "insurer");
+  if (lenders.length && !lenders.some((s) => ok(s.nnpa)))
+    out["quality-lenders"] = "Net NPA figures are not yet added for covered lenders, so the list is empty until they are. It is not that no lender passes the rule.";
+  if (insurers.length && !insurers.some((s) => ok(s.insurer?.vnbMargin) && ok(s.insurer?.pev)))
+    out["insurer-value"] = "VNB margin and embedded value figures are not yet added for covered insurers, so the list is empty until they are. It is not that no insurer passes the rule.";
+  return out;
 }
 
 const cr = `₹${KPI_MIN_MCAP_CR.toLocaleString("en-IN")} Cr`;
@@ -167,6 +225,20 @@ export function kpiScreens(stocks: KpiStock[]): KpiScreen[] {
       blurb: "Net margin up most over three years, profitable each year on growing revenue.",
       rule: `Net margin (profit ÷ revenue) up most from FY23 to FY26, profitable every year, revenue growing and ₹${MARGIN_MIN_REV_CR} Cr+, worth ${cr}+. ${ONE_OFF_NOTE}`,
       stocks: wideningMargins(stocks),
+    },
+    {
+      id: "quality-lenders",
+      title: "Quality lenders",
+      blurb: "Banks and NBFCs earning a high return on equity with few bad loans.",
+      rule: `Banks and NBFCs with ROE ${QUALITY_LENDER.minRoe}%+ and net NPA ${QUALITY_LENDER.maxNnpa}% or less (latest quarter), worth ${cr}+; highest ROE first. ${ONE_OFF_NOTE}`,
+      stocks: qualityLenders(stocks),
+    },
+    {
+      id: "insurer-value",
+      title: "Insurer value",
+      blurb: "Life insurers writing profitable new business, cheapest against their embedded value first.",
+      rule: `Life insurers with VNB margin ${INSURER_VALUE.minVnb}%+ in a quarter ended within ${STALE_AFTER_DAYS} days, worth ${cr}+; lowest price to embedded value (P/EV) first. ${ONE_OFF_NOTE}`,
+      stocks: insurerValue(stocks),
     },
   ];
 }

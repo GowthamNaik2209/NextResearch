@@ -4,6 +4,7 @@ import { findSupplierByTicker, getSector, isSideLink, linkWeight, listSectors, p
 import { listCompanyPages, primaryAppearance, primaryIndustry } from "./companies";
 import { listCompanyMetrics } from "./insights";
 import { installFinancialsFromDatabase } from "@/lib/financials/test-db";
+import { companyKind } from "@/lib/financials/kinds";
 import { industryPe, pePeers } from "@/lib/valuation/pe-data";
 
 before(installFinancialsFromDatabase);
@@ -67,17 +68,19 @@ test("the Nifty 50 is a company's home only where no industry or policy maps it 
 
 // P/E in context compares a stock with its primary industry: an industry it is mapped in directly
 // beats a policy or index home (Tata Power under the ALMM solar policy is compared with energy), a
-// side link never does (SBI stays with the Nifty 50, not real estate as a home-loan lender), and a
+// side link never does (SBI's home-loan link in real estate never makes it a real-estate stock), and a
 // company with no direct industry keeps its home.
 test("primary industry: a direct industry link over a policy or index home, never a side link", () => {
   const byTicker = new Map(listCompanyPages().map((p) => [p.ticker, p]));
   const of = (t: string) => primaryIndustry(byTicker.get(t)!).sectorSlug;
   assert.equal(of("TATAPOWER"), "energy");
-  assert.equal(of("TMPV"), "ev4w");
-  assert.equal(of("SBIN"), "nifty50");
+  assert.equal(of("TMPV"), "autos"); // a carmaker's home is Automobiles; its EV link is one of its industries
+  assert.equal(of("SBIN"), "banks"); // mapped directly in Banks & NBFCs; its real-estate home-loan link stays a side link
   // Ties go to the industry it has more of: Tata Power's four energy layers beat one transmission layer.
   assert.equal(of("BHARATFORG"), "aerospace");
-  assert.equal(of("LT"), "realestate");
+  // L&T is a medium link in railways, real estate and transmission EPC alike; the tie goes to the
+  // first, so its P/E sits beside railway contractors, not property developers.
+  assert.equal(of("LT"), "railways");
   assert.equal(of("20MICRONS"), "rareearth");
   for (const p of byTicker.values()) {
     const home = primaryAppearance(p);
@@ -89,10 +92,31 @@ test("primary industry: a direct industry link over a policy or index home, neve
 
 // A company that falls back to the Nifty 50 is compared within its bracket of the index.
 test("P/E peers: a Nifty 50 fallback is compared within its bracket", () => {
-  const sbi = pePeers("SBIN")!;
-  assert.equal(sbi.name, "Financial Services (Nifty 50)");
-  assert.ok(sbi.peers.some((s) => s.ticker === "HDFCBANK"));
-  assert.ok(!sbi.peers.some((s) => s.ticker === "TCS"));
-  assert.equal(industryPe("SBIN")?.name, "Financial Services (Nifty 50)");
+  // ONGC's industry (oil and gas) isn't mapped as a deep dive, so it keeps its Nifty 50 bracket.
+  const ongc = pePeers("ONGC")!;
+  assert.equal(ongc.name, "Oil Gas & Consumable Fuels (Nifty 50)");
+  assert.ok(ongc.peers.some((s) => s.ticker === "COALINDIA"));
+  assert.ok(!ongc.peers.some((s) => s.ticker === "HDFCBANK"));
+  assert.equal(industryPe("ONGC")?.name, "Oil Gas & Consumable Fuels (Nifty 50)");
+  // Once its industry is mapped (FMCG, Wave 3), a former fallback is compared with that industry.
+  assert.equal(pePeers("HINDUNILVR")!.name, getSector("fmcg")!.name);
+  // Once its industry is mapped, a former fallback is compared with that industry instead.
+  assert.equal(pePeers("TCS")!.name, getSector("itservices")!.name);
+  assert.ok(pePeers("TCS")!.peers.some((s) => s.ticker === "INFY"));
   assert.equal(pePeers("TATAPOWER")!.name, getSector("energy")!.name);
+});
+
+// A lender or an insurer is compared with covered companies of its own kind, not its industry.
+test("P/E peers: lenders against covered lenders, insurers against covered insurers", () => {
+  const sbi = pePeers("SBIN")!;
+  assert.equal(sbi.group, "lender");
+  assert.ok(sbi.peers.some((s) => s.ticker === "RECLTD") && sbi.peers.some((s) => s.ticker === "HDFCBANK"));
+  assert.ok(!sbi.peers.some((s) => s.ticker === "TCS" || s.ticker === "HDFCLIFE"));
+  const rec = pePeers("RECLTD")!;
+  assert.ok(rec.peers.every((s) => s.ticker !== "KEI" && s.ticker !== "POLYCAB"), "no cable makers");
+  const life = pePeers("HDFCLIFE")!;
+  assert.equal(life.group, "insurer");
+  assert.ok(life.peers.length > 5 && life.peers.every((s) => companyKind(s.ticker) === "insurer"), "insurers only");
+  assert.ok(life.peers.some((s) => s.ticker === "LICI") && life.peers.some((s) => s.ticker === "GODIGIT"));
+  assert.equal(industryPe("SBIN")?.group, "lender");
 });

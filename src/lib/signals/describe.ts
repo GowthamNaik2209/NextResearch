@@ -55,10 +55,15 @@ export function describeStops(s: Stops): string[] {
 }
 
 const CHECK_WORD: Record<Strategy["check"], string> = { d: "on any close", w: "on a week's last close", m: "on a month's last close" };
+const PREV_CHECK: Record<Strategy["check"], string> = { d: "the day before", w: "the week before's last close", m: "the month before's last close" };
+
+/** On weekly or monthly checks, how a cross is read: " (a cross is counted from the month before's last close)". */
+const crossNote = (s: Strategy, ...sets: RuleSet[]) =>
+  s.check !== "d" && sets.some((r) => r.conds.some((c) => c.op === "crossAbove" || c.op === "crossBelow")) ? ` (a cross is counted from ${PREV_CHECK[s.check]})` : "";
 
 /** "Get in when … Get out when …, or …" */
 export function describeStrategy(s: Strategy): { entry: string; exit: string } {
-  const entry = `Get in when ${joinConds(s.entry)}${s.check === "d" ? "" : `, checked ${CHECK_WORD[s.check]}`}.`;
+  const entry = `Get in when ${joinConds(s.entry)}${s.check === "d" ? "" : `, checked ${CHECK_WORD[s.check]}${crossNote(s, s.entry, s.exit)}`}.`;
   const outs = [s.exit.conds.length ? joinConds(s.exit) : "", ...describeStops(s.stops)].filter(Boolean);
   const exit = outs.length ? `Get out when ${outs.length === 1 ? outs[0] : `${outs.slice(0, -1).join("; ")}; or ${outs[outs.length - 1]}`}.` : "Stay in once in: no exit rule or control is set.";
   return { entry: capital(entry), exit: capital(exit) };
@@ -79,7 +84,7 @@ export function describeTrigger(s: Strategy, kind: "entry" | "exit", reason: Exi
     case "days":
       return `Time stop: ${s.stops.days ?? 0} trading days held.`;
     default:
-      return s.exit.conds.length ? capital(`${joinConds(s.exit)}.`) : "Exit rule met.";
+      return s.exit.conds.length ? capital(`${joinConds(s.exit)}${s.check === "d" ? "" : `, checked ${CHECK_WORD[s.check]}${crossNote(s, s.exit)}`}.`) : "Exit rule met.";
   }
 }
 

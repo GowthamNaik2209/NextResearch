@@ -4,6 +4,9 @@
 // lookups (getSector, listSectors, findSupplierByTicker...) live in ./index.ts, which re-exports
 // all of this, so server code can keep importing "@/lib/sector-content".
 import { syntheticTicker } from "@/lib/slugify";
+import type { CompanyKind } from "@/lib/financials/kinds";
+import type { LenderRatios } from "@/lib/financials/key-ratios";
+import type { InsurerFigures } from "@/lib/financials/insurer";
 
 export type SectorCategory = "sector" | "policy" | "index";
 
@@ -120,9 +123,16 @@ export type SupplierFinancials = {
   mcap?: string | null; // "Rs 1,74,575 Cr" (the table's own label; shown as ₹ by the UI)
   price?: string | null; // "Rs 166"
   note?: string | null;
+  /** Why the table's trailing P/E is left out as not meaningful (financials/kinds.ts forDisplay). */
+  peNote?: string | null;
   cagr?: (number | null)[] | null; // stock price CAGR [1y, 3y, 5y], %
   trend?: number | null; // percentile of the 1y return among covered companies, 0-100 (financials/trend.ts)
   nifty1y?: number | null; // the Nifty 50's 1y return to the same snapshot day, % (financials/key-ratios.ts)
+  // Set when the Nifty's close for the snapshot day isn't stored yet (an intraday refresh): the
+  // stored day both 1Y returns run to instead (ISO), and the stock's own 1Y return to that day from
+  // the price store, so "1Y vs Nifty" compares the same two dates (financials/key-ratios.ts withNifty).
+  nifty1yDay?: string | null;
+  ret1yMatched?: number | null;
   range?: (number | null)[] | null; // 52-week [low, high]
   tl?: [number | null, string] | null; // Trendlyne [id, slug]
   kpi?: (number | null)[] | null; // [pe, bookValue, divYield, roce, roe, faceValue]
@@ -130,6 +140,12 @@ export type SupplierFinancials = {
   // Latest-year profit/revenue dominated by a one-off (e.g. SPARC's FY26 priority-review
   // voucher sale): kept out of the landing page's rule-based idea screens.
   screenOut?: boolean;
+  // Lender, insurer or operating company (financials/kinds.ts), set on every row of the company table.
+  kind?: CompanyKind;
+  // A lender's own ratios (financials/key-ratios.ts lenderRatiosFrom): only on lenders, null when none
+  // are stored yet. An insurer's hand-kept figures (financials/insurer.ts): only on insurers, likewise.
+  lender?: LenderRatios | null;
+  insurer?: InsurerFigures | null;
 };
 
 export type SectorSupplier = {
@@ -214,11 +230,33 @@ export type SectorDef = {
   // the sector (e.g. power generation, where the end players are plant operators).
   integratorHeading?: string;
   integratorBlurb?: string;
+  // Further zones whose companies the integrator section shows as well, after the integrator zone's
+  // (Insurance: LIC and the group-owned life insurers beside the bank-promoted ones). Side links in
+  // them (a holding company) are left out.
+  integratorExtraZoneIds?: string[];
   // Phone/tablet overview framing: tilt, turn (up to 30 degrees) and re-centre a flat campus so it
   // fills the portrait stage (engine.ts portraitFit). On by default (QA: the authored low, wide
   // shots left the model a thin band across the middle third of a phone); `false` opts a sector out.
   portraitFit?: boolean;
+  // True: the industry's basket and pools (src/lib/baskets/industry.ts, pools-data.ts) hold only the
+  // companies central to it - centrality at or above CORE_CENTRALITY (./insights.ts), the line its
+  // combined revenue, news feed and stake changes already use. A side link rated medium or low (a
+  // bank that sells its group's policies, a holding company) stays mapped - explorer, company page,
+  // footprint - but its figures, mostly another industry's, are not counted in the industry's money.
+  basketCoreOnly?: boolean;
 };
+
+/** The integrator section's zones: the integrator zone, then any extra ones (integratorExtraZoneIds). */
+export function integratorZones(sector: Pick<SectorDef, "zones" | "integratorZoneId" | "integratorExtraZoneIds">): SectorZone[] {
+  if (!sector.integratorZoneId) return [];
+  const ids = [sector.integratorZoneId, ...(sector.integratorExtraZoneIds ?? [])];
+  return ids.flatMap((id) => sector.zones.filter((z) => z.id === id));
+}
+
+/** The integrator section's company links, each with its zone: the integrator zone's all, the extra zones' without side links. */
+export function integratorLinks(sector: Pick<SectorDef, "zones" | "integratorZoneId" | "integratorExtraZoneIds">): { zone: SectorZone; link: SectorCompanyLink }[] {
+  return integratorZones(sector).flatMap((zone, i) => zone.suppliers.filter((l) => i === 0 || !isSideLink(l)).map((link) => ({ zone, link })));
+}
 
 // A sector plus the registry key it is addressed by in URLs.
 export type SectorWithSlug = SectorDef & { slug: string };

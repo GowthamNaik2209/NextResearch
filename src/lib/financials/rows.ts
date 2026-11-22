@@ -1,6 +1,10 @@
 // Database rows <-> the SupplierFinancials shape the app reads (supplier.f). Pure: shared by the
 // server loader (./load.ts) and the scripts that write the table (scripts/refresh-financials.ts).
 import type { SupplierFinancials } from "@/lib/sector-content";
+import { insurerFiguresFrom, type InsurerMetricRow } from "./blocks";
+import { lenderRatiosFrom } from "./key-ratios";
+import { companyKind } from "./kinds";
+import type { LenderFigures } from "./lender";
 import { withNoQuoteNote, withoutNoQuoteNote } from "./no-quote";
 
 // The five fiscal years every figure set carries, FY22..FY26 (rev[i] / np[i] is FISCAL_YEARS[i]).
@@ -80,8 +84,12 @@ const num = (v: Num): number | null => (v == null ? null : Number(v.toString()))
 // A tuple with no values at all reads as "none" (consumers index it with ?.[i] ?? null either way).
 const tuple = (vs: (number | null)[]) => (vs.some((v) => v != null) ? vs : null);
 
-export function rowToFinancials(r: CompanyFinRow): SupplierFinancials {
+/** A lender's stored figures and an insurer's latest InsurerMetric row (./blocks.ts), when read. */
+export type KindBlocks = { lender?: LenderFigures | null; insurer?: InsurerMetricRow | null };
+
+export function rowToFinancials(r: CompanyFinRow, blocks: KindBlocks = {}): SupplierFinancials {
   const k = r.kpis[0];
+  const kind = companyKind(r.ticker);
   const year = (y: number) => r.financials.find((f) => f.year === y);
   const price = k ? num(k.price) : null;
   const f: SupplierFinancials = {
@@ -96,8 +104,13 @@ export function rowToFinancials(r: CompanyFinRow): SupplierFinancials {
     tl: r.screenerSlug ? [r.externalId == null ? null : Number(r.externalId), r.screenerSlug] : null,
     kpi: k ? tuple([num(k.pe), num(k.bookValue), num(k.divYield), num(k.roce), num(k.roe), num(k.faceValue)]) : null,
     asOf: k ? formatAsOf(k.asOf) : undefined,
+    kind,
   };
   if (r.screenOut) f.screenOut = true;
+  // Each block only on its own kind; none stored yet reads as null.
+  if (kind === "lender") f.lender = blocks.lender ? lenderRatiosFrom(blocks.lender) : null;
+  // Freshness against the snapshot day, so the whole table is judged on one date.
+  if (kind === "insurer") f.insurer = blocks.insurer ? insurerFiguresFrom(blocks.insurer, f.mcap, k?.asOf ?? new Date()) : null;
   return f;
 }
 

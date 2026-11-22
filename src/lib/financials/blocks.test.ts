@@ -1,0 +1,169 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import type { PrismaClient } from "@/generated/prisma/client";
+import { insurerFiguresFrom, latestLenderFigures, LENDER_LOOKBACK_DAYS, lenderFromColumns, readInsurerRows, readLenderFigures } from "./blocks";
+import { rowToFinancials, type CompanyFinRow } from "./rows";
+import { withSnapshot, type Snap } from "./refresh";
+import { forDisplay } from "./kinds";
+import { getFinancials, installFinancials } from "./store";
+
+const day = (s: string) => new Date(`${s}T00:00:00Z`);
+const AS_OF = day("2026-11-17");
+
+const cols = {
+  companyId: "c1", gnpa: 1.2, nnpa: 0.3, finMargin: 12, totalAssets: 1100, totalAssetsPrev: 900, deposits: 880, depositsPrev: 800,
+  npaQuarter: "Sep 2026", lenderNetProfit: 100, bsYear: "Mar 2026", finMarginYear: "Mar 2026",
+};
+
+// A stand-in for the Prisma client: only the two reads the blocks make.
+function fakePrisma(kpi: () => Promise<unknown[]>, insurer: () => Promise<unknown[]> = async () => []) {
+  const calls: unknown[] = [];
+  const prisma = {
+    kpiSnapshot: { findMany: (a: unknown) => (calls.push(a), kpi()) },
+    insurerMetric: { findMany: (a: unknown) => (calls.push(a), insurer()) },
+  } as unknown as PrismaClient;
+  return { prisma, calls };
+}
+
+test("lender columns read back into the lender block", () => {
+  assert.deepEqual(lenderFromColumns(cols), {
+    gnpa: 1.2, nnpa: 0.3, finMargin: 12, finMarginYear: "Mar 2026", netProfit: 100,
+    totalAssets: [1100, 900], deposits: [880, 800], bsYear: "Mar 2026", quarter: "Sep 2026",
+  });
+  assert.equal(lenderFromColumns({ ...cols, deposits: null, depositsPrev: null }).deposits, null);
+});
+
+test("lender figures are read for the lenders' own snapshots", async () => {
+  const { prisma, calls } = fakePrisma(async () => [{ ...cols, asOf: AS_OF }]);
+  const got = await readLenderFigures(prisma, [{ companyId: "c1", asOf: AS_OF }]);
+  assert.equal(got.get("c1")?.netProfit, 100);
+  assert.equal(calls.length, 1);
+  assert.equal((await readLenderFigures(prisma, [])).size, 0);
+  assert.equal(calls.length, 1, "no lenders, no query");
+});
+
+test("before the migration (no lender columns) the read gives no lender figures instead of failing", async () => {
+  for (const e of [
+    Object.assign(new Error("The column `KpiSnapshot.gnpa` does not exist in the current database."), { code: "P2022" }),
+    new Error('column "gnpa" does not exist'),
+  ]) {
+    const { prisma } = fakePrisma(async () => { throw e; });
+    assert.equal((await readLenderFigures(prisma, [{ companyId: "c1", asOf: AS_OF }])).size, 0);
+  }
+  // Any other failure still fails the table (it is retried; the installed copy is kept).
+  const { prisma } = fakePrisma(async () => { throw Object.assign(new Error("Timed out"), { code: "P1008" }); });
+  await assert.rejects(readLenderFigures(prisma, [{ companyId: "c1", asOf: AS_OF }]), /Timed out/);
+});
+
+test("a day whose standalone page failed (an all-null block) shows the latest earlier day's figures, in one query", async () => {
+  const before = day("2026-11-14");
+  // What the database holds on or before the published day, filtered as the where clause asks (rows
+  // with any lender period); the all-null row of the 17th is not one of them.
+  const stored = [
+    { ...cols, companyId: "c1", asOf: day("2026-11-13"), gnpa: 1.5 },
+    { ...cols, companyId: "c1", asOf: before, gnpa: 1.3 },
+    { ...cols, companyId: "c2", asOf: AS_OF, gnpa: 2.1 },
+    { ...cols, companyId: "c2", asOf: before, gnpa: 2.4 },
+  ];
+  const { prisma, calls } = fakePrisma(async () => stored);
+  const got = await readLenderFigures(prisma, [{ companyId: "c1", asOf: AS_OF }, { companyId: "c2", asOf: AS_OF }]);
+  assert.equal(calls.length, 1, "one query for every lender");
+  assert.equal(got.get("c1")?.gnpa, 1.3, "the latest day with figures, not the blank one");
+  assert.equal(got.get("c2")?.gnpa, 2.1, "the published day's own figures when they were read");
+  // The query: each lender up to its own snapshot day (and no further back than the lookback), and only rows with figures.
+  const where = (calls[0] as { where: { OR: { companyId: { in: string[] }; asOf: { lte: Date; gte: Date } }[]; AND: unknown[] } }).where;
+  assert.deepEqual(where.OR, [{ companyId: { in: ["c1", "c2"] }, asOf: { lte: AS_OF, gte: new Date(AS_OF.getTime() - LENDER_LOOKBACK_DAYS * 86_400_000) } }]);
+  assert.deepEqual(where.AND, [{ OR: [{ npaQuarter: { not: null } }, { finMarginYear: { not: null } }, { bsYear: { not: null } }] }]);
+  // A lender with no figures on any day in range gets none (the block then says it is not added yet).
+  const none = fakePrisma(async () => []);
+  assert.equal((await readLenderFigures(none.prisma, [{ companyId: "c3", asOf: AS_OF }])).size, 0);
+});
+
+test("the latest row per company wins whatever order the rows come in", () => {
+  const rows = [
+    { ...cols, companyId: "c1", asOf: day("2026-11-17"), gnpa: 1 },
+    { ...cols, companyId: "c1", asOf: day("2026-11-18"), gnpa: 2 },
+    { ...cols, companyId: "c1", asOf: day("2026-11-16"), gnpa: 3 },
+  ];
+  assert.equal(latestLenderFigures(rows).get("c1")?.gnpa, 2);
+});
+
+const insurerRow = (periodEnd: string, period: string) => ({
+  companyId: "i1", periodEnd: day(periodEnd), period, vnbMargin: 25.5, embeddedValueCr: 50000, combinedRatio: null, solvencyRatio: 1.9,
+  sourceUrl: "https://example.com/q.pdf",
+});
+
+test("each insurer's latest quarter is kept; no InsurerMetric table yet gives none", async () => {
+  const { prisma } = fakePrisma(async () => [], async () => [insurerRow("2026-06-30", "Q1 FY27"), insurerRow("2026-09-30", "Q2 FY27")]);
+  assert.equal((await readInsurerRows(prisma, ["i1"])).get("i1")?.period, "Q2 FY27");
+  const missing = fakePrisma(async () => [], async () => { throw Object.assign(new Error("The table `public.InsurerMetric` does not exist in the current database."), { code: "P2021" }); });
+  assert.equal((await readInsurerRows(missing.prisma, ["i1"])).size, 0);
+  const down = fakePrisma(async () => [], async () => { throw new Error("Connection terminated"); });
+  await assert.rejects(readInsurerRows(down.prisma, ["i1"]), /Connection terminated/);
+});
+
+test("insurer figures carry P/EV from the market cap and freshness against the snapshot day", () => {
+  const f = insurerFiguresFrom(insurerRow("2026-09-30", "Q2 FY27"), "Rs 1,00,000 Cr", AS_OF);
+  assert.deepEqual(f, {
+    period: "Q2 FY27", periodEnd: "2026-09-30", vnbMargin: 25.5, pev: 2, combinedRatio: null, solvency: 1.9,
+    sourceUrl: "https://example.com/q.pdf", fresh: "fresh",
+  });
+  assert.equal(insurerFiguresFrom(insurerRow("2026-03-31", "Q4 FY26"), null, AS_OF).fresh, "stale");
+});
+
+const row = (ticker: string): CompanyFinRow => ({
+  ticker, screenerSlug: null, externalId: null, financialsNote: null, screenOut: false, financials: [],
+  kpis: [{ asOf: AS_OF, price: 100, marketCap: "Rs 1,00,000 Cr", pe: null, bookValue: null, divYield: null, roce: null, roe: null, faceValue: null, low52w: null, high52w: null, cagr1y: null, cagr3y: null, cagr5y: null }],
+});
+
+test("every row carries its kind; the lender block only on lenders, the insurer block only on insurers", () => {
+  const op = rowToFinancials(row("TCS"), { lender: lenderFromColumns(cols), insurer: insurerRow("2026-09-30", "Q2 FY27") });
+  assert.equal(op.kind, "operating");
+  assert.ok(!("lender" in op) && !("insurer" in op));
+
+  const bank = rowToFinancials(row("HDFCBANK"), { lender: lenderFromColumns(cols) });
+  assert.equal(bank.kind, "lender");
+  assert.equal(bank.lender?.roa, 10);
+  assert.ok(!("insurer" in bank));
+  // A lender with no block read (columns not there yet, or not refreshed) shows none.
+  assert.equal(rowToFinancials(row("HDFCBANK")).lender, null);
+
+  const life = rowToFinancials(row("HDFCLIFE"), { insurer: insurerRow("2026-09-30", "Q2 FY27") });
+  assert.equal(life.kind, "insurer");
+  assert.equal(life.insurer?.pev, 2);
+  assert.ok(!("lender" in life));
+  assert.equal(rowToFinancials(row("HDFCLIFE")).insurer, null);
+});
+
+test("the stored ROCE stays raw: the refresh reads a lender's ROCE back and keeps writing Screener's", () => {
+  const withKpis = (ticker: string): CompanyFinRow => {
+    const r = row(ticker);
+    return { ...r, kpis: [{ ...r.kpis[0], pe: 18, bookValue: 600, roce: 7.5, roe: 16.4 }] };
+  };
+  // What refresh.ts / scripts read (readCompanyTable -> rowToFinancials): Screener's figure, as stored.
+  for (const t of ["HDFCBANK", "RECLTD", "HDFCLIFE", "ICICIGI", "TCS"]) assert.equal(rowToFinancials(withKpis(t)).kpi?.[3], 7.5, t);
+  // withSnapshot keeps a null it reads as curated "not meaningful": a raw read means it writes today's ROCE.
+  const snap = { mcap: "Rs 1,00,000 Cr", price: 1000, cagr: [10, 12, 14], range: [800, 1100], kpi: [19, 610, 1.1, 7, 16.9, 1] } as unknown as Snap;
+  assert.equal(withSnapshot(rowToFinancials(withKpis("HDFCBANK")), snap, AS_OF).kpi?.[3], 7);
+  assert.equal(withSnapshot(rowToFinancials(withKpis("HDFCLIFE")), snap, AS_OF).kpi?.[3], 7);
+});
+
+test("as the app shows them, a lender's or insurer's ROCE is not a number; other figures stay", () => {
+  const withKpis = (ticker: string): CompanyFinRow => {
+    const r = row(ticker);
+    return { ...r, kpis: [{ ...r.kpis[0], pe: 18, bookValue: 600, roce: 7.5, roe: 16.4 }] };
+  };
+  const tickers = ["HDFCBANK", "RECLTD", "HDFCLIFE", "ICICIGI", "TCS"];
+  const raw = Object.fromEntries(tickers.map((t) => [t, rowToFinancials(withKpis(t))]));
+  // The app-facing install (load.ts ensureFinancials -> store.installFinancials; financialsFor uses forDisplay too).
+  installFinancials(raw);
+  for (const t of tickers.slice(0, 4)) {
+    assert.equal(getFinancials(t)?.kpi?.[3], null, t);
+    assert.equal(forDisplay(raw[t]).kpi?.[3], null, t);
+    assert.equal(getFinancials(t)?.kpi?.[0], 18, `${t} P/E`);
+    assert.equal(getFinancials(t)?.kpi?.[4], 16.4, `${t} ROE`);
+  }
+  assert.equal(getFinancials("TCS")?.kpi?.[3], 7.5);
+  // The raw rows handed in are not changed.
+  assert.equal(raw.HDFCBANK.kpi?.[3], 7.5);
+});

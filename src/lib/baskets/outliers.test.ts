@@ -56,3 +56,15 @@ test("ordinary companies are not flagged", () => {
   for (const [name, f] of Object.entries(ordinary)) assert.equal(detectOutlier(f), null, name);
   assert.equal(detectOutlier(null), null);
 });
+
+test("a note calling the latest year a one-off flags it, with the note's clause as the reason", () => {
+  const o = detectOutlier({ rev: [1, 2, 3, 4, 5], np: [1, 1, 1, 1, 1], note: "FY26 profit includes a one-off gain on a business sale" });
+  assert.deepEqual(o, { year: "FY26", reason: "FY26 profit includes a one-off gain on a business sale" });
+  assert.equal(detectOutlier({ rev: [1, 2, 3, 4, 5], np: [1, 1, 1, 1, 1], note: "Name changed from LTIMindtree on 17 Apr 2026" }), null);
+});
+
+test("a note's one-off counts only when it names the latest year", () => {
+  const flat = { rev: [1, 2, 3, 4, 5], np: [1, 1, 1, 1, 1] };
+  assert.equal(detectOutlier({ ...flat, note: "FY25 profit includes a one-off gain, so FY26 growth is not meaningful" }), null);
+  assert.equal(detectOutlier({ ...flat, note: "FY26 profit includes a one-off gain on a land sale" })?.year, "FY26");
+});

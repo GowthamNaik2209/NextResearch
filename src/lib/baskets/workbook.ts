@@ -3,6 +3,7 @@
 // Nifty 50 rebased beside it, and the projections with every stock's assumptions), never raw vendor
 // prices. Pure, so it is unit-tested; the page gathers the inputs and saves the file.
 import { trendLabel } from "../financials/trend";
+import { notMeaningfulNote } from "../financials/kinds";
 import type { BacktestExcluded, BacktestHolding, PricePoint } from "./backtest";
 import type { BasketStock } from "./industry";
 import type { Rebalance } from "./rebalance";
@@ -165,8 +166,9 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
           pct(p.divYield),
           pct(p.market),
           pct(p.growth),
-          pct(p.marginNow),
-          pct(p.marginThen),
+          // A lender's or an insurer's margin is not meaningful: the note, not a number or a blank.
+          p.kind ? notMeaningfulNote(p.kind) : pct(p.marginNow),
+          p.kind ? notMeaningfulNote(p.kind) : pct(p.marginThen),
           pct(p.score),
           r2(p.z),
           pct(p.tilt),

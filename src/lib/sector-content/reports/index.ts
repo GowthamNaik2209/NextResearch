@@ -24,9 +24,18 @@ import { hospitals } from "./hospitals";
 import { capmarkets } from "./capmarkets";
 import { transmission } from "./transmission";
 import { consumerinternet } from "./consumerinternet";
+import { banks } from "./banks";
+import { insurance } from "./insurance";
+import { hotels } from "./hotels";
+import { itservices } from "./itservices";
+import { autos } from "./autos";
+import { chemicals } from "./chemicals";
+import { fmcg } from "./fmcg";
+import { consumerbrands } from "./consumerbrands";
 import { pliacc } from "./pliacc";
 import { greenh2 } from "./greenh2";
 import type { SectorCategory } from "@/lib/sector-content/core";
+import { companyKind, type CompanyKind } from "@/lib/financials/kinds";
 
 export type { SectorReport, Tone } from "./types";
 
@@ -46,6 +55,14 @@ const REPORTS: Record<string, SectorReport> = {
   capmarkets,
   transmission,
   consumerinternet,
+  banks,
+  insurance,
+  hotels,
+  itservices,
+  autos,
+  chemicals,
+  fmcg,
+  consumerbrands,
   semicon2,
   rareearth,
   defenceproc,
@@ -74,8 +91,9 @@ export type DeckCompany = {
   revStart: number | null; // revenue in the CAGR's first year (flags small-base effects)
   cagrSpan: string | null; // e.g. "FY22-26"
   cagrNote: string | null; // why revCagr is missing despite reported revenue (history under 3 years)
-  npMargin: number | null; // %, latest year
+  npMargin: number | null; // %, latest year; null for a lender or an insurer (not meaningful, see kind)
   pe: number | null;
+  kind: CompanyKind;
   roce: number | null;
 };
 
@@ -97,8 +115,9 @@ const FIRST_FY = 22;
 const MIN_CAGR_YEARS = 3;
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
 
-function toCompany(key: string, sup: SectorSupplier): DeckCompany {
+export function toCompany(key: string, sup: SectorSupplier): DeckCompany {
   const f = sup.f;
+  const kind = f ? (f.kind ?? companyKind(f.ticker)) : "operating";
   const rev = (f?.rev ?? []).map(num);
   const np = (f?.np ?? []).map(num);
   const reported = rev.map((v, i) => (v != null && v > 0 ? i : -1)).filter((i) => i >= 0);
@@ -124,8 +143,9 @@ function toCompany(key: string, sup: SectorSupplier): DeckCompany {
     revStart: cagrOk ? rev[first]! : null,
     cagrSpan: span > 0 ? `FY${FIRST_FY + first}-${FIRST_FY + last}` : null,
     cagrNote: span > 0 && !cagrOk ? `only ${span + 1} years reported` : null,
-    npMargin: revLast && npLast != null ? (npLast / revLast) * 100 : null,
+    npMargin: kind === "operating" && revLast && npLast != null ? (npLast / revLast) * 100 : null,
     pe: num(f?.kpi?.[0]),
+    kind,
     roce: num(f?.kpi?.[3]),
   };
 }

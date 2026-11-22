@@ -18,6 +18,13 @@ export function signedPct(v: number | null | undefined, dp?: number): string {
   return `${r > 0 ? "+" : r < 0 ? MINUS : ""}${Math.abs(r).toFixed(places)}%`;
 }
 
+/** A signed plain number (a z-score), e.g. +0.3 / −1.3; like signedPct the sign follows the rounded figure, so −0.04 reads "0.0". */
+export function signedNum(v: number | null | undefined, dp = 1): string {
+  if (v == null || !Number.isFinite(v)) return NA;
+  const r = Number(v.toFixed(dp));
+  return `${r > 0 ? "+" : r < 0 ? MINUS : ""}${Math.abs(r).toFixed(dp)}`;
+}
+
 /** Unsigned percent with a typographic minus for negatives, e.g. 18.4% / −2.1%. */
 export function pct(v: number | null | undefined, dp = 1): string {
   if (v == null || !Number.isFinite(v)) return NA;

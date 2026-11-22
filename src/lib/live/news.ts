@@ -143,7 +143,23 @@ const GENERIC = new Set(
     "commodity central depository depositories securities computer ratings lighting universal infrastructures electrical " +
     "electricals aluminium aluminum metal metals copper investment investments online commerce ecommerce ventures planners " +
     "express mobile travel exports export chemical speciality specialty packaging petroleum phosphates fertilizers " +
-    "fertilisers valley transition transitions mineral minerals mining development").split(" ")
+    "fertilisers valley transition transitions mineral minerals mining development " +
+    // Banks, insurers, hotels and travel (Nov 2026): "Indian banks", "Karnataka polls", "US Federal Reserve",
+    // "Aadhar card", "Oracle Corp", "five-star hotels", "Jammu and Kashmir", "small savings", "payments".
+    "bank banks banking credit lending loans small payment payments fincorp microfin grameen network agency " +
+    "union city south federal overseas mercantile punjab karnataka jammu kashmir maharashtra baroda " +
+    "aadhar shelter oracle consultancy software design hotel hotels resorts palaces holidays hospitality " +
+    "associated entertainment airports orchid " +
+    // IT services, autos and chemicals (Nov 2026, Wave 2): "machine learning", "coworking demand", "commercial
+    // vehicle sales", "tractor sales", "new wheels", "organic farming", "logistics costs", "shipping rates".
+    "analytics learning coworking spaces commercial vehicle control automotive automobile automobiles tractor " +
+    "tractors wheels strips lubricants lubricant science organic petrochemical petrochemicals petrochem nitrite " +
+    "agritech logistics terminals terminal shipping eastern surfactants surfactant amines amine rasayan " +
+    // FMCG and retail & consumer brands (Wave 3): "fashion retail", "lifestyle brands", "consumer sentiment",
+    // "jewellery demand", "spirits and breweries", "living costs", "writing skills", "shoppers", "natural resources".
+    "fashion fashions retail lifestyle brands consumer jewellery jewellers jewelers spirits breweries distilleries " +
+    "distillers blenders beverages cookers writing agro restaurant restaurants living wellness vineyards activewear " +
+    "footwears textiles hygiene foodworks foodworld resources specialities shoppers product").split(" ")
 );
 // "&" and "and" are dropped so "Transformers and Rectifiers" matches "Transformers & Rectifiers".
 const normalize = (s: string) =>
@@ -162,7 +178,21 @@ const GROUP = new Set(
     // Not families, but names that alone say nothing about one company: people ("Narayana Murthy",
     // "Anil Agarwal"), places and rivers ("Atlanta Fed", "Krishna", "Narmada", "Fifth Avenue"), words
     // ("diamond prices", "Mangal" = Mars).
-    "narayana krishna agarwal rajesh advait atlanta diamond mangal narmada avenue").split(" ")
+    "narayana krishna agarwal rajesh advait atlanta diamond mangal narmada avenue " +
+    // Nov 2026 lenders and hotels: Shriram Properties/Pistons/Life, Muthoot Fincorp/Capital, Sundaram-Clayton,
+    // Cholamandalam MS, Adar Poonawalla (Serum), Juniper Green Energy, Brigade Enterprises; people named
+    // Thomas or Utkarsh; the PM Suryoday rooftop-solar scheme.
+    "shriram muthoot sundaram cholamandalam poonawalla juniper brigade thomas utkarsh suryoday " +
+    // Wave 2 (Nov 2026): groups with several companies (NIIT, Quess, Lumax, Jubilant, Deepak, Sanmar, Sumitomo,
+    // Kubota, Suzuki), people ("Anupam Kher", "Acharya Balkrishna", "Vijay Kelkar"), rivers ("Kaveri",
+    // "Chambal"), "Rashtriya Swayamsevak Sangh", "Travancore Devaswom", "Samsung Galaxy", "Balaji Telefilms",
+    // "Mission Sudarshan Chakra", "chintan shivir", "Landmark Group", and words ("happiest", "popular", "latent").
+    "niit quess lumax jubilant deepak sanmar sumitomo kubota suzuki anupam balkrishna kelkar kaveri chambal " +
+    "rashtriya travancore galaxy balaji sudarshan chintan thirumalai landmark happiest popular latent " +
+    // Wave 3 (Nov 2026): Welspun (Living, Corp, Enterprises), Arvind (Ltd, Fashions, SmartSpaces), Raymond (Lifestyle,
+    // Ltd), United (Spirits, Breweries, Nations), Vishal (a first name), Kalyan (the city), Sheela, Khaitan, Heritage
+    // ("heritage site"), Avanti, Balrampur (the district).
+    "welspun arvind raymond united vishal kalyan sheela khaitan heritage avanti balrampur godfrey phillips").split(" ")
 );
 // Short names headlines use, including a group name that alone conventionally means one company
 // here ("Mahindra" = M&M).
@@ -172,7 +202,6 @@ const ALIASES: Record<string, string[]> = {
   CYIENT: ["cyient"],
   WAAREEENER: ["waaree"],
   STLTECH: ["sterlite tech"],
-  FLUOROCHEM: ["gujarat fluoro"],
   SUNPHARMA: ["sun pharma"],
   TORNTPHARM: ["torrent pharma"],
   ZYDUSLIFE: ["zydus"],
@@ -184,7 +213,7 @@ const ALIASES: Record<string, string[]> = {
   EMBASSY: ["embassy reit"],
   BIRET: ["brookfield reit", "brookfield india reit"],
   PHOENIXLTD: ["phoenix mills"],
-  SBIN: ["sbi"],
+  SBIN: ["sbi", "state bank"],
   AAVAS: ["aavas"],
   GMDCLTD: ["gmdc", "gujarat mineral development"],
   MINDACORP: ["minda corp", "spark minda"],
@@ -197,9 +226,9 @@ const ALIASES: Record<string, string[]> = {
   HCLTECH: ["hcl tech", "hcltech"],
   INDIGO: ["indigo"],
   ETERNAL: ["zomato", "blinkit"],
-  EICHERMOT: ["eicher", "royal enfield"],
+  EICHERMOT: ["eicher", "royal enfield", "vecv", "volvo eicher"],
   TITAN: ["titan"],
-  TRENT: ["zudio"],
+  TRENT: ["zudio", "westside stores"],
   ADANIPORTS: ["apsez"],
   MAXHEALTH: ["max healthcare"],
   // Solar and energy listings (Nov 2026).
@@ -260,7 +289,7 @@ const ALIASES: Record<string, string[]> = {
   EASEMYTRIP: ["ease my trip"],
   IRCTC: ["indian railway catering"],
   NAUKRI: ["naukri"],
-  CARTRADE: ["carwale", "bikewale"],
+  CARTRADE: ["carwale", "bikewale", "olx india"],
   PWL: ["physics wallah"],
   PAYTM: ["one 97"],
   // Batteries, hydrogen, critical minerals.
@@ -272,10 +301,171 @@ const ALIASES: Record<string, string[]> = {
   HINDPETRO: ["hpcl"],
   ADVAIT: ["advait infratech"],
   INOXINDIA: ["inoxcva"],
-  ADANIENT: ["adani new industries", "kutch copper"],
+  ADANIENT: ["adani new industries", "kutch copper", "adani airport holdings", "adani airports"],
   NTPCGREEN: ["ngel"],
   HINDZINC: ["hzl"],
   VEDL: ["vedanta ltd", "vedanta limited"],
+  // Banks and lenders (Nov 2026). Group names alone ("HDFC", "ICICI", "Bajaj", "Muthoot", "Shriram") stay
+  // unaliased: each has several listed companies.
+  "M&MFIN": ["mahindra finance", "mahindra mahindra financial", "m m financial", "m m finance", "mmfsl"],
+  LTF: ["l t finance", "lt finance", "ltfh"],
+  ABCAPITAL: ["aditya birla capital", "abcl", "ab capital", "aditya birla finance", "aditya birla housing finance",
+    "aditya birla sun life insurance", "absli", "aditya birla health insurance", "aditya birla health"],
+  TATACAP: ["tata capital"],
+  PIRAMALFIN: ["piramal finance"],
+  SAMMAANCAP: ["sammaan", "indiabulls housing"],
+  HDBFS: ["hdb financial"],
+  SBICARD: ["sbi card", "sbi cards"],
+  KISSHT: ["kissht", "onemi"],
+  CHOLAFIN: ["cholamandalam", "chola finance", "chola investment", "cholamandalam investment"],
+  CHOLAHLDNG: ["chola holdings", "cholamandalam financial holdings"],
+  IIFL: ["iifl finance"],
+  FUSION: ["fusion finance", "fusion micro"],
+  FIVESTAR: ["five star business", "five star finance"],
+  HOMEFIRST: ["home first finance", "homefirst"],
+  APTUS: ["aptus"],
+  REPCOHOME: ["repco home"],
+  UGROCAP: ["ugro"],
+  CGCL: ["capri global"],
+  JIOFIN: ["jio financial", "jio finance"],
+  FINOPB: ["fino payments", "fino bank"],
+  PNB: ["punjab national bank"],
+  PSB: ["punjab sind bank"],
+  BANKBARODA: ["bank of baroda"],
+  UNIONBANK: ["union bank"],
+  INDIANB: ["indian bank"],
+  IOB: ["indian overseas bank"],
+  CUB: ["city union bank"],
+  SOUTHBANK: ["south indian bank"],
+  KARURVYSYA: ["kvb", "karur vysya"],
+  "J&KBANK": ["j k bank", "jk bank", "jammu kashmir bank"],
+  RBLBANK: ["rbl"],
+  IDBI: ["industrial development bank of india"],
+  AUBANK: ["au bank", "au small finance", "au sfb"],
+  EQUITASBNK: ["equitas sfb"],
+  UJJIVANSFB: ["ujjivan sfb"],
+  JSFB: ["jana small finance", "jana sfb"],
+  UTKARSHBNK: ["utkarsh sfb", "utkarsh small finance"],
+  SURYODAY: ["suryoday sfb", "suryoday small finance"],
+  ESAFSFB: ["esaf sfb", "esaf small finance"],
+  CAPITALSFB: ["capital sfb"],
+  PFC: ["power finance corp"],
+  OFSS: ["oracle financial services", "oracle financial"],
+  IREDA: ["indian renewable energy development"],
+  // Insurers (Nov 2026). The old names stay as aliases: "ICICI Prudential Life", "Max Life", "Max Bupa",
+  // "Bajaj Allianz" (Bajaj Finserv's insurers, renamed Bajaj Life / Bajaj General in Oct 2025).
+  ICICILIFE: ["icici prudential life", "icici pru life", "icici prulife"],
+  MFSL: ["axis max life", "max life", "max financial"],
+  NIVABUPA: ["max bupa"],
+  BAJAJFINSV: ["bajaj life", "bajaj general", "bajaj allianz"],
+  LICI: ["lic"],
+  GICRE: ["gic re", "general insurance corporation"],
+  GODIGIT: ["digit insurance"],
+  CANHLIFE: ["canara hsbc life"],
+  RELIGARE: ["care health insurance", "care health"],
+  // Hotels and travel (Nov 2026). Never bare "Taj", "Leela", "Sterling" or "Park".
+  INDHOTEL: ["ihcl", "indian hotels", "taj hotels"],
+  EIHOTEL: ["eih ltd", "eih limited", "oberoi hotels"],
+  THELEELA: ["the leela", "leela palaces", "leela hotels", "schloss bangalore"],
+  LEMONTREE: ["fleur hotels"],
+  PARKHOTELS: ["park hotels", "the park hotels"],
+  THOMASCOOK: ["thomas cook india", "sotc", "sterling holiday", "sterling holidays"],
+  MHRIL: ["club mahindra"],
+  TRAVELFOOD: ["travel food services"],
+  VENTIVE: ["ventive hospitality"],
+  // IT services and GCCs (Wave 2, Nov 2026). LTIMindtree trades as LTM; NIIT Technologies is Coforge's old name.
+  LTM: ["ltimindtree", "lti mindtree", "mindtree"],
+  LTTS: ["l t tech", "l t technology"],
+  TATATECH: ["tata tech"],
+  KPITTECH: ["kpit"],
+  COFORGE: ["niit technologies", "niit tech"],
+  MAPMYINDIA: ["mapmyindia", "map my india", "ce info systems", "c e info systems"],
+  ADSL: ["allied digital"],
+  // Automobiles (Wave 2). TMCV took the "Tata Motors Ltd" name and owns Iveco (since 30 Oct 2026); TMPV is the
+  // car and JLR company. Never bare "Apollo", "Hero", "Bajaj", "TVS", "Vida", "Norton" or "Traveller".
+  TMPV: ["tata motors pv", "tata motors passenger", "jaguar land rover", "jlr"],
+  TMCV: ["tata motors cv", "tata motors commercial", "tml commercial vehicles", "tata trucks", "iveco"],
+  HEROMOTOCO: ["hero honda", "hero vida"],
+  "BAJAJ-AUTO": ["chetak", "ktm"],
+  TVSMOTOR: ["tvs motors", "iqube", "norton motorcycles"],
+  ATHERENERG: ["ather", "rizta"],
+  OLAELEC: ["ola"],
+  FORCEMOT: ["force traveller", "urbania"],
+  SMLMAH: ["sml isuzu", "swaraj mazda"],
+  ESCORTS: ["farmtrac", "powertrac"],
+  UNOMINDA: ["minda industries"],
+  FIEMIND: ["fiem"],
+  ZFCVINDIA: ["zf cv", "wabco india", "zf commercial vehicle"],
+  RML: ["rane madras", "rane brake", "rane engine valve"],
+  JTEKTINDIA: ["jtekt", "sona koyo"],
+  ASAHIINDIA: ["ais glass"],
+  SHRIPISTON: ["shriram pistons", "spr auto"],
+  CIEINDIA: ["mahindra cie"],
+  RKFORGE: ["rkfl"],
+  SCHAEFFLER: ["fag bearings"],
+  TIINDIA: ["ti india"],
+  SONACOMS: ["sona comstar"],
+  MRF: ["madras rubber factory", "mrf tyres"],
+  APOLLOTYRE: ["apollo tyre", "vredestein"],
+  BALKRISIND: ["bkt"],
+  TVSSRICHAK: ["eurogrip", "tvs eurogrip"],
+  "ARE&M": ["amaron"],
+  // Chemicals and fertilisers (Wave 2). No bare "GFL": GFL Ltd (ex-parent) and GFL Environmental are others.
+  UPL: ["advanta"],
+  INSECTICID: ["insecticides india"],
+  NACLIND: ["nagarjuna agrichem"],
+  CHAMBLFERT: ["chambal fertilizers", "chambal fert"],
+  FACT: ["fact", "fertilizers chemicals travancore"],
+  NFL: ["national fertilisers"],
+  KSCL: ["kaveri seeds"],
+  PIIND: ["pi inds"],
+  NAVINFLUOR: ["nfil"],
+  FLUOROCHEM: ["gujarat fluoro", "gfcl"],
+  DEEPAKNTR: ["deepak phenolics"],
+  PIDILITIND: ["fevicol", "fevikwik"],
+  SHK: ["s h kelkar", "sh kelkar", "keva"],
+  PCBL: ["phillips carbon"],
+  GUJALKALI: ["gacl"],
+  GOCLCORP: ["gocl", "idl explosives", "gulf oil corporation"],
+  // FMCG (Wave 3). "Fortune", "Parachute", "Marlboro", "Mamaearth" are brands; bare group names stay unaliased.
+  AWL: ["adani wilmar", "fortune oil", "fortune rice"],
+  PATANJALI: ["ruchi soya", "patanjali foods"],
+  LTFOODS: ["daawat"],
+  KRBL: ["india gate"],
+  VENKEYS: ["venkys"],
+  KWIL: ["kwality walls"],
+  BECTORFOOD: ["bectors"],
+  TATACONSUM: ["tata tea", "tata salt", "tata sampann", "tetley"],
+  NESTLEIND: ["maggi"],
+  GODREJCP: ["gcpl"],
+  MARICO: ["saffola", "parachute oil", "parachute coconut"],
+  HONASA: ["mamaearth", "the derma co", "bblunt"],
+  PGHH: ["p g hygiene", "pg hygiene"],
+  BAJAJCON: ["bajaj almond drops"],
+  PARAGMILK: ["gowardhan"],
+  EPL: ["essel propack"],
+  MOLDTKPAC: ["moldtek", "mold tek"],
+  // Retail and consumer brands (Wave 3). KPR and P N Gadgil open with letters ("k p", "p n") that are initials
+  // elsewhere, so they go by their written-out forms. Never bare "Metro", "Campus", "Hawkins" or "Westside".
+  LGEINDIA: ["lg india"],
+  KPRMILL: ["kpr mill", "kpr"],
+  PAGEIND: ["jockey india"],
+  WELSPUNLIV: ["welspun india"],
+  SFL: ["sleepwell", "kurlon"],
+  PNGJL: ["p n gadgil", "pn gadgil", "png jewellers"],
+  KALYANKJIL: ["kalyan jewelers"],
+  ABLBL: ["louis philippe", "van heusen", "allen solly", "peter england"],
+  ABFRL: ["pantaloons", "tcns"],
+  JUBLFOOD: ["domino s india", "dominos india", "popeyes india"],
+  DEVYANI: ["kfc india", "pizza hut india"],
+  WESTLIFE: ["hardcastle restaurants", "mcdonald s india west south"],
+  RBA: ["burger king india"],
+  UNITDSPR: ["diageo india", "mcdowell s"],
+  UBL: ["kingfisher beer", "kingfisher strong", "kingfisher ultra"],
+  RADICO: ["magic moments"],
+  ABDL: ["officer s choice", "allied blenders"],
+  TI: ["imperial blue", "mansion house brandy", "mansion house whisky"],
+  PVRINOX: ["pvr", "inox leisure"],
 };
 // A broker's research desk or a rating agency quoted on someone else ("Motilal Oswal sees 25% upside
 // in Dixon", "ICRA expects steel demand to grow", "... GDP seen at 6.5%: CRISIL"): the name opens the
@@ -295,11 +485,16 @@ const RATING_VERBS =
   "ratings? (?:on|for|of|action|upgrade|downgrade)";
 // The parent abroad, not its Indian listing: a headline that names it with nothing Indian about it.
 const abroad = (parent: string, indian: string) => new RegExp(`^(?!.*(?:\\b(?:${indian})\\b|₹)).*\\b(?:${parent})\\b`, "i");
+// Only headlines that carry one of these names: the company's opening words alone are its parent's or
+// an everyday phrase ("L&T bags order", "Mahindra & Mahindra Q2", "Aditya Birla Group", "a five-star hotel").
+const only = (names: string) => new RegExp(`^(?!.*(?:${names}))`, "i");
 // Headlines that name the company but are about a sibling it no longer owns. Tata Motors
 // demerged in Oct 2025: the commercial-vehicle business kept the "Tata Motors Ltd" name (TMCV),
 // so "Tata Motors" + CV/truck wording is TMCV's news, not TMPV's.
 const NOT_ABOUT: Record<string, RegExp> = {
-  TMPV: /\b(tmcv|commercial vehicles?|cvs?|trucks?|buses|iveco|tata motors (ltd|limited) \(tmcv)/i,
+  TMPV: /\b(tmcv|commercial vehicles?|cvs?|trucks?|buses|iveco|tata motors (ltd|limited)\b)/i,
+  // And the other way: car, SUV and JLR news is TMPV's unless the headline is also about trucks.
+  TMCV: /^(?!.*\b(?:tmcv|cvs?|commercial vehicles?|trucks?|buses|iveco|tata motors (?:ltd|limited))\b).*\b(?:tmpv|pvs?|passenger vehicles?|cars?|suvs?|evs?|jlr|jaguar|land rover|nexon|punch|harrier|safari|sierra|curvv|tiago|tigor|altroz|avinya)\b/i,
   // The word, not the company: weather alerts, traffic lights.
   AMBER: /\bamber (alert|warning|light|signal|zone)/i,
   // "Below poverty line" ration cards and households.
@@ -341,7 +536,8 @@ const NOT_ABOUT: Record<string, RegExp> = {
   IOC: /\bolympics?\b|\bioc (president|member|members|session|executive|chief|ban|bans|athletes?)\b/i,
   SAIL: /\b(set|sets|setting|to|will|ships?|vessels?|yachts?) sail\b/i,
   // Renewable energy certificates traded on the exchanges ("REC trade volumes"), not REC Ltd.
-  RECLTD: /\brecs\b|\brenewable energy certificates?\b|\brec (trad\w*|market|segment|volumes?|prices?)\b/i,
+  // Also Recursion Pharmaceuticals' drug codes ("REC-617", "REC-4881").
+  RECLTD: /\brecursion\b|\brec-\d|\brecs\b|\brenewable energy certificates?\b|\brec (trad\w*|market|segment|volumes?|prices?)\b/i,
   // The pregnancy hormone hCG.
   HCG: /\bhcg (levels?|hormone|injections?|tests?|diet|drops)\b|\bpregnan/i,
   // Pilgrimages and political marches ("Amarnath Yatra", "Bharat Jodo Yatra"), not Yatra Online.
@@ -356,40 +552,173 @@ const NOT_ABOUT: Record<string, RegExp> = {
   HINDUNILVR: /\bunilever (plc|ceo|global|group)\b/i,
   // The word and the moon of Saturn, not the jeweller; the lost submersible.
   TITAN: /\btitan (submersible|sub|moon)\b|\boceangate\b/i,
+  // Banks and lenders (Nov 2026).
+  "M&MFIN": only("mahindra (?:&|and)? ?mahindra financ|mahindra financ|\\bm ?& ?m financ|\\bmmfsl\\b|\\bm&mfin"),
+  LTF: only("\\bl ?& ?t financ|\\blt finance|\\bltfh?\\b"),
+  ABCAPITAL: only("aditya birla (?:capital|finance|housing|sun life insurance|health)|\\babcl\\b|\\bab capital\\b|\\babsli\\b|\\babcapital\\b"),
+  FIVESTAR: only("five[- ]?star (?:business|finance)|\\bfivestar\\b"),
+  HOMEFIRST: only("home ?first (?:finance|fin)\\b|\\bhomefirst\\b"),
+  // A broker's research desk quoted on other companies (see IIFLCAPS).
+  IIFL: quoted("iifl(?: capital| securities)?", BROKER_VERBS),
+  // "an Indian bank", the Indian Banks' Association.
+  INDIANB: /\b(?:an|any|one|another|every|no) indian bank\b|\bindian banks?['’]? association\b/i,
+  // US federal bank regulators.
+  FEDERALBNK: /\b(?:us|u\.s\.|american) federal bank|\bfederal bank(?:ing)? (?:regulators?|regulation|agencies|supervisors?)\b/i,
+  // The festival.
+  BANDHANBNK: /\braksha ?bandhan\b/i,
+  // LIC as a shareholder in someone else ("LIC raises stake in ..."): the target's news.
+  LICI: /\blic (?:raises|ups|hikes|increases|cuts|trims|reduces|lowers|sells|offloads|buys|picks up|acquires|adds) (?:its )?(?:stake|holding|shareholding|shares)\b|\blic(?:['’]s)? (?:stake|holding|shareholding) in\b/i,
+  // Thomas Cook plc (UK, collapsed 2019; brand now Fosun's), not Thomas Cook (India).
+  THOMASCOOK: abroad("thomas cook", "india|indian|sotc|sterling|crore|rs|shares?|stocks?|q[1-4]|nse|bse|fy\\d*"),
+  TRAVELFOOD: only("travel food services|\\btravelfood\\b"),
+  // "Indian hotels" as an industry, not IHCL.
+  INDHOTEL: /\bindian hotels? (?:industry|sector|association|market)\b|\bhotel association of india\b/i,
+  // IT services (Wave 2). "LTM" is also finance shorthand for the last twelve months ("18x LTM EBITDA").
+  LTM: /\bltm (?:ebitda|ebit|eps|p\/?e|multiples?|basis|period)\b|\b\d+(?:\.\d+)?x ltm\b|\bon an? ltm\b/i,
+  LTTS: only("\\bl ?(?:&|and) ?t tech|\\bltts\\b"),
+  PERSISTENT: /\bpersistent (?:inflation|selling|buying|fii|dii|foreign|outflows?|inflows?|weakness|strength|pressure|demand|rains?|concerns?|worries|volatility|deficits?|heat|fog|smog|pollution|threats?|risks?|losses|delays?|shortages?|uncertainty|headwinds|rally|decline)\b/i,
+  SONATSOFTW: /\bsonata (?:watch|watches)\b|\bhyundai sonata\b/i,
+  // The aircraft flight recorder.
+  BBOX: only("\\bbbox\\b|black box (?:ltd|limited|shares?|stock|q[1-4]|results?|profit|revenue|orders?|bags|wins|secures|board|net|ipo)"),
+  // The government's Indian Knowledge Systems (IKS) programme.
+  IKS: /\bindian knowledge systems?\b/i,
+  MAPMYINDIA: only("mapmyindia|map my india|\\bc\\.? ?e\\.? info|\\bce info"),
+  WEWORK: abroad("wework", "india|indian|embassy|crore|rs|nse|bse"),
+  // Automobiles (Wave 2): Robert Bosch, Tenneco, Schaeffler, Timken, Goodyear and BP's Castrol abroad.
+  BOSCHLTD: abroad("bosch", "india|indian|bosch ltd|crore|rs|nse|bse|q[1-4]|fy\\d*"),
+  TENNIND: abroad("tenneco", "india|indian|crore|rs|nse|bse"),
+  SCHAEFFLER: abroad("schaeffler", "india|indian|crore|rs|nse|bse"),
+  TIMKEN: abroad("timken", "india|indian|crore|rs|nse|bse"),
+  GOODYEAR: abroad("goodyear", "india|indian|crore|rs|nse|bse"),
+  CASTROLIND: abroad("castrol", "india|indian|crore|rs|nse|bse"),
+  // Gulf (the region) oil and Gulf Oil Corporation (now GOCL).
+  GULFOILLUB: /\bgulf oil (?:corporation|corp|producers?|exports?|exporters?|supplies|supply|prices?|output|states?|countries|nations|majors?|fields?|imports?|shipments?|flows?|giants?)\b|\bgocl\b/i,
+  // Ola the ride-hailing app (ANI Technologies) and Krutrim, not Ola Electric.
+  OLAELEC: /\bola (?:cabs?|rides?|drivers?|consumer|krutrim|maps|money)\b|\bkrutrim\b|\b(?:uber|rapido)\b/i,
+  // Fortis Escorts Heart Institute.
+  ESCORTS: /\bfortis escorts\b|\bescorts heart\b/i,
+  // Maharashtra's Rane politicians.
+  RML: /\b(?:nitesh|narayan|nilesh) rane\b/i,
+  // Waste "material recovery facilities" (MRFs).
+  MRF: /\bmaterial recovery facilit|\bmrfs\b/i,
+  // Chemicals (Wave 2).
+  GNFC: only("gujarat narmada valley|\\bgnfc\\b"),
+  GSFC: only("gujarat state fertili[sz]ers|\\bgsfc\\b"),
+  SUMICHEM: abroad("sumitomo chemical", "india|indian|crore|rs|nse|bse"),
+  INSECTICID: only("insecticides \\(?india|\\binsecticid\\b"),
+  SHK: only("\\bs\\.? ?h\\.? kelkar|\\bshk\\b|\\bkeva\\b"),
+  FACT: /\bfact[- ]?check|\bfact ?sheet|\btravancore devaswom\b/i,
+  // Rail Coach Factory, Kapurthala (and Rae Bareli's Modern Coach Factory).
+  RCF: /\brail coach factory\b|\bkapurthala\b|\brae ?bareli\b|\bcoach(?:es)?\b/i,
+  // American football.
+  // FMCG and retail & consumer brands (Wave 3).
+  // The English Premier League.
+  EPL: /\b(?:premier league|arsenal|chelsea|liverpool|tottenham|man(?:chester)? (?:city|united|utd)|gameweek|fpl|striker|midfielder|fixtures?|relegation)\b/i,
+  // Gillette Stadium (New England Patriots).
+  GILLETTE: /\bgillette stadium\b|\bpatriots\b/i,
+  // Malayala Manorama, Manorama Online and the media group.
+  MANORAMA: /\bmalayala manorama\b|\bmanorama (?:online|news|tv|yearbook|group|max|books|publications)\b/i,
+  // The Finnish parent, LG in Korea and the US appliance maker, Procter & Gamble in Cincinnati, Restaurant Brands
+  // International (Burger King, Tim Hortons, Popeyes) abroad: not the Indian listings.
+  HUHTAMAKI: abroad("huhtamaki", "india|indian|crore|rs|nse|bse|q[1-4]|fy\\d*"),
+  LGEINDIA: abroad("lg electronics|lg energy|lg chem|lg display|lg innotek|lg uplus|lg group|lg corp", "india|indian|crore|rs|nse|bse|noida|pune|lgeindia"),
+  WHIRLPOOL: abroad("whirlpool", "india|indian|crore|rs|nse|bse|advent|stake sale|stake in"),
+  PGHH: abroad("procter|p ?& ?g|\\bpg\\b", "india|indian|hygiene|health care|crore|rs|nse|bse|pghh|vicks|whisper|ariel"),
+  RBA: abroad("restaurant brands international|\\brbi\\b|tim hortons|popeyes", "india|indian|asia|crore|rs|nse|bse"),
+  // Aditya Birla Group, Capital and the rest: only the two retail companies' own names count (the demerged
+  // lifestyle brands, and the old fashion-and-retail company with Pantaloons).
+  ABLBL: only("aditya birla lifestyle|\\bablbl\\b|louis philippe|van heusen|allen solly|peter england"),
+  ABFRL: only("aditya birla fashion|\\babfrl\\b|pantaloons|\\btcns\\b"),
+  // "Arvind Kejriwal", "Arvind Subramanian": the textile maker needs its own business around the name.
+  ARVIND: /^(?!.*\barvind (?:ltd|limited|mills|denim|textiles?|q[1-4]|shares?|stock|results?|profit|net|fy|board|dividend|order|plant|exports?)\b|.*\bdenim maker arvind\b|.*\blalbhai\b|.*\bnse:\s*arvind\b)/i,
+  // K.P.R. Mill and P N Gadgil: "K P Sharma Oli", "P N Rao" open the same way.
+  KPRMILL: only("\\bk\\.? ?p\\.? ?r\\b|\\bkpr\\b"),
+  PNGJL: only("gadgil|\\bpngjl\\b|png jewellers"),
+  NFL: /\b(?:playoffs?|super bowl|touchdowns?|quarterbacks?|chiefs|bills|patriots|eagles|cowboys|49ers|packers|steelers|ravens|nfl (?:season|games?|teams?|week|stars?|players?|draft))\b/i,
 };
+// Companies that go by an acronym that is also a short word ("Forest Rec parkrun", "Highlights: Rec"):
+// a headline must carry the acronym in capitals (case-sensitive) or one of the fuller names.
+const ACRONYM_NAMES: Record<string, { caps: RegExp; full: RegExp }> = {
+  RECLTD: { caps: /\bREC\b/, full: /\brec (?:ltd|limited)\b|\brural electrification\b/i },
+  // "in fact", "fact check".
+  FACT: { caps: /\bFACT\b/, full: /\bfertili[sz]ers (?:and|&) chemicals,? travancore\b/i },
+};
+
 // Tickers that are ordinary words ("US Embassy ..."), so they don't identify the company on their own.
 // OIL and ROUTE are words; MEIL is also Megha Engineering's initials; "ARE&M" reads as "are m"
 // ("These are M&M's..."); ADVAIT is a first name.
-const WORD_TICKERS = new Set(["EMBASSY", "ACI", "OIL", "ROUTE", "MEIL", "ARE&M", "ADVAIT"]);
+// Nov 2026: CUB, PSB ("PSB merger" = public-sector banks), TMB, SATIN, FUSION, CHALET, SOUTHBANK (London's
+// Southbank Centre), BLS (the US Bureau of Labor Statistics jobs report) and POONAWALLA (Adar Poonawalla).
+const WORD_TICKERS = new Set(["EMBASSY", "ACI", "OIL", "ROUTE", "MEIL", "ARE&M", "ADVAIT", "CUB", "PSB", "TMB", "SATIN", "FUSION", "CHALET", "SOUTHBANK", "BLS", "POONAWALLA",
+  // Wave 2 (Nov 2026): ADSL broadband, the Forensic Science Lab (FSL), Delhi's RML hospital, "wheels", the Landmark
+  // Group, "clean", the zodiac sign, "tatva" (Hindi: element), GNA, and companies named by an everyday word.
+  "ADSL", "FSL", "RML", "WHEELS", "LANDMARK", "CLEAN", "ARIES", "TATVA", "GNA", "ATUL", "PERSISTENT", "GABRIEL", "ESCORTS",
+  // Wave 3 (Nov 2026): Cupid, flair, "AGI" (artificial general intelligence), EPL (English Premier League), CCL (Carnival,
+  // CCL Industries), DOMS, TI (Texas Instruments), Symphony, Ethos, Redtape, Trent, Campus, Trident, Sapphire (the card),
+  // Westlife (the band), Manorama, RBA (Reserve Bank of Australia), SFL (SFL Corp), UBL (United Bank Ltd), Arvind (a name).
+  "CUPID", "FLAIR", "AGI", "EPL", "CCL", "DOMS", "TI", "SYMPHONY", "ETHOSLTD", "REDTAPE", "TRENT", "CAMPUS", "TRIDENT",
+  "SAPPHIRE", "WESTLIFE", "MANORAMA", "RBA", "SFL", "UBL", "ARVIND", "HAWKINCOOK"]);
 // Separately listed companies, outside our coverage, whose names contain one of ours. A match
 // that sits inside one of these (or inside another covered company's name) doesn't count.
 const OTHER_COMPANIES = [
-  "Tech Mahindra", "Mahindra Holidays", "Club Mahindra", "Mahindra Lifespace", "Mahindra Logistics", "Mahindra Finance",
-  "Mahindra & Mahindra Financial", "M&M Financial", "M&M Finance", "Mahindra Susten", "Mahindra CIE", "Mahindra EPC",
-  "Tata Motors Commercial", "Tata Motors CV", "Siemens Energy", "Borosil Ltd", "Kirloskar Ferrous",
+  "Mahindra Lifespace", "Mahindra Logistics", "Mahindra Susten", "Mahindra EPC", "Siemens Energy", "Borosil Ltd", "Kirloskar Ferrous",
   "Kirloskar Industries", "Motherson Sumi Systems", "Indian Railway Catering", "Mahanagar Gas",
-  "Sun Pharma Advanced Research", "Torrent Power", "Zydus Wellness", "Apollo Tyres", "Piramal Enterprises", "Piramal Finance",
-  "Aarti Industries", "Abbott Laboratories", "Embassy Developments", "Bosch Ltd", "SBI Cards", "SBI Card",
+  "Sun Pharma Advanced Research", "Torrent Power", "Zydus Wellness", "Piramal Enterprises",
+  "Abbott Laboratories", "Embassy Developments",
   "SBI General", "HDFC Securities", "HDFC Ergo",
-  "ICICI Prudential Life", "ICICI Pru Life", "ICICI Securities", "Axis Mutual Fund", "Axis Securities", "Axis Finance",
-  "Axis Max Life", "Kotak Mahindra AMC", "Kotak Securities", "Kotak Mutual Fund", "Bajaj Housing Finance", "Bajaj Allianz",
+  "ICICI Securities", "Axis Mutual Fund", "Axis Securities", "Axis Finance",
+  "Kotak Mahindra AMC", "Kotak Securities", "Kotak Mutual Fund",
   "Bajaj Electricals", "Bajaj Consumer", "Bajaj Hindusthan", "Reliance Power", "Reliance Infrastructure", "Reliance Infra",
   "Reliance Capital", "Reliance Communications", "Reliance Home Finance", "Reliance Nippon", "Reliance General Insurance",
-  "Jio BlackRock", "ITC Hotels", "HCL Infosystems", "Indigo Paints", "Max Financial", "Max Life", "Max Estates",
-  "Shriram Properties", "Shriram Pistons", "Power Grid InvIT", "PowerGrid InvIT", "Tata Investment", "Nestle SA",
+  "Jio BlackRock", "HCL Infosystems", "Indigo Paints", "Max Estates",
+  "Shriram Properties", "Power Grid InvIT", "PowerGrid InvIT", "Tata Investment", "Nestle SA",
   "Brookfield Asset Management", "Waaree RTL", "Juniper Networks", "Jio Hotstar",
   "Midwest Energy", "Midwest Advanced Materials", "Bajaj Auto Credit", "Hinduja Leyland Finance", "ACI Worldwide",
   "Jyoti Structures", "Kalyani Steels", "Ola Cabs", "ASM International", "Bharat FIH", "Indian Rare Earths",
-  "NMDC Steel", "TVS Supply Chain", "TVS Srichakra", "TVS Holdings",
+  "NMDC Steel", "TVS Supply Chain", "TVS Holdings",
   // Nov 2026 sectors. (SBI Funds, HDFC AMC, ICICI Prudential AMC and ICICI Lombard are covered now, so
   // their names and aliases come in through rivals().)
-  "L&T Finance", "L&T Technology Services", "L&T Tech", "L&T Realty",
-  "Dr Agarwal's Eye Hospital", "Nippon Life Insurance", "Canara Bank", "Canara HSBC", "Aditya Birla Capital",
-  "Aditya Birla Sun Life Insurance", "Aditya Birla Fashion", "Anand Rathi Share", "PTC India Financial",
+  "L&T Realty",
+  "Dr Agarwal's Eye Hospital", "Nippon Life Insurance",
+  "Aditya Birla Fashion", "Anand Rathi Share", "PTC India Financial",
   "REC Power Development", "Vedanta Resources", "Vedanta Oil", "Vedanta Power", "Vedanta Iron", "Yatra Online Inc",
   "Hyundai Motor Company", "Hyundai Motor Co", "Hyundai Motor Group", "Hyundai Mobis", "Hyundai Rotem", "Hyundai Heavy",
   "Hyundai Steel", "Hyundai Glovis", "Hyundai Engineering", "Hyundai Capital", "Neogen Corporation", "Neogen Corp",
   "Exide Life", "Indian Oil Adani", "IndianOil Adani", "Bharat Petroleum Resources", "HPCL Mittal", "Coromandel Engineering",
+  // Nov 2026 banks, insurers and hotels: same-name siblings that are unlisted or not covered. (Mahindra
+  // Finance, L&T Finance, SBI Card, Canara Bank, Aditya Birla Capital, ICICI Life, Max Life, Bajaj Allianz,
+  // ITC Hotels, Mahindra Holidays and the like are covered now: their names come in through rivals().)
+  "Reserve Bank of India", "Small Industries Development Bank of India", "Export-Import Bank of India",
+  "Exim Bank of India", "Bank of India Mutual Fund", "State Bank of Pakistan", "Union Bank of Switzerland",
+  "Union Bank of the Philippines", "SBI Pension Funds", "SBI Capital Markets", "SBI Caps", "HDFC Credila",
+  "HDFC Capital", "HDFC Sales", "HDFC Pension", "ICICI Home Finance", "ICICI Venture", "Kotak Mahindra Life",
+  "Kotak Life", "Kotak General", "Kotak Mahindra Prime", "Kotak Mahindra Investments", "Shriram Life",
+  "Shriram General", "Shriram Asset Management", "Shriram AMC", "Muthoot Fincorp", "Muthoot Capital",
+  "Cholamandalam MS", "Chola MS", "IIFL Home Finance", "IIFL Samasta", "PNB MetLife", "PNB Gilts", "IDBI Capital",
+  "IDBI Trusteeship", "Edelweiss Mutual Fund", "Edelweiss MF", "Edelweiss AMC", "Edelweiss Tokio", "Edelweiss Life",
+  "Edelweiss Asset Management", "Bandhan Mutual Fund", "Bandhan MF", "Bandhan AMC", "Bandhan Financial Holdings",
+  "IndusInd International", "Jana Holdings", "Tata AIA", "Tata AIG", "Mahindra Rural Housing", "LIC Mutual Fund",
+  "LIC MF", "GIC Housing Finance", "Max India", "Max Ventures", "Baroda BNP Paribas",
+  "InterGlobe Hotels", "InterGlobe Enterprises", "InterGlobe Technology", "Park Hotels & Resorts",
+  "Thomas Cook Group", "BLS E-Services",
+  // Wave 2 (Nov 2026): unlisted or uncovered namesakes. (Tech Mahindra, L&T Technology Services, Tata Motors CV,
+  // Apollo Tyres, Bosch, Shriram Pistons, TVS Srichakra, Mahindra CIE and Aarti Industries are covered now.)
+  "Wipro Consumer Care", "Wipro Consumer", "Wipro Enterprises", "NIIT University", "NIIT Foundation",
+  "Bosch Global Software", "Robert Bosch", "Rane Holdings", "Fortis Escorts", "Escorts Heart Institute",
+  "SKF India Industrial", "Hero Motors", "Hero FinCorp", "Hero Electric", "Hero Future Energies", "Bajaj Auto Finance",
+  "Ola Krutrim", "ANI Technologies", "Sonata Finance", "Jubilant FoodWorks", "Jubilant Pharmova",
+  "Godrej Consumer Products", "Aarti Surfactants", "Great Eastern Life", "Great Eastern Holdings",
+  "DCM Shriram Industries", "DCM Shriram Fine Chemicals", "GHCL Textiles",
+  // Wave 3 (Nov 2026): same-name siblings that are unlisted or not covered. (Bajaj Consumer, Bajaj Electricals, Bajaj
+  // Hindusthan, Zydus Wellness, Jubilant FoodWorks and Godrej Consumer above are covered now: their own names are fine.)
+  "Patanjali Ayurved", "Patanjali Ayurveda", "Patanjali Wellness", "Emami Paper", "Emami Realty", "Emami Infrastructure",
+  "Emami Agrotech", "Emami Frank Ross", "Dhampur Bio Organics", "Dhampur Specialty", "Gokul Refoils", "Triveni Turbine",
+  "Welspun Corp", "Welspun Enterprises", "Welspun One", "Welspun Specialty", "Welspun Global Brands", "Welspun Steel",
+  "Arvind SmartSpaces", "Arvind Envisol", "Arvind Youth Brands", "Arvind Mills", "Raymond Ltd", "Raymond Realty",
+  "Raymond Consumer Care", "Trident Hotel", "Trident Nariman", "Trident Group Hotels", "Trident Techlabs", "Vardhman Special Steels",
+  "Vardhman Acrylics", "Vardhman Holdings", "KPR Sugar", "INOX Wind", "INOX Green", "INOX Clean", "INOX Solar", "Jubilant Ingrevia",
+  "Philip Morris", "Colgate-Palmolive Co", "Colgate-Palmolive Company", "Colgate-Palmolive Pakistan",
+  "Nestle Pakistan", "Unilever plc", "Unilever PLC", "Aditya Birla Capital", "Aditya Birla Group",
 ].map(normalize);
 
 const nameWords = (name: string) => normalize(name.replace(/\(.*?\)/g, "")).split(" ").filter(Boolean);
@@ -434,6 +763,8 @@ function spans(h: string, phrase: string): [number, number][] {
  */
 export function isAbout(headline: string, company: { name: string; ticker: string }): boolean {
   if (NOT_ABOUT[company.ticker]?.test(headline)) return false;
+  const acronym = ACRONYM_NAMES[company.ticker];
+  if (acronym && !acronym.caps.test(headline) && !acronym.full.test(headline)) return false;
   const h = ` ${normalize(headline)} `;
   const words = nameWords(company.name);
   const own = words.join(" ");
@@ -482,6 +813,39 @@ const WORD_NAMES: Record<string, string> = {
   PRUDENT: "prudent",
   YATRA: "yatra",
   IONEXCHANG: "ion exchange",
+  // Nov 2026: "nuclear fusion", "the nucleus of", "artificial intellect", a ski chalet.
+  FUSION: "fusion",
+  NUCLEUS: "nucleus",
+  INTELLECT: "intellect",
+  CHALET: "chalet",
+  // Wave 2: "persistent inflation", "fractal patterns", "a Sonata watch", people named Atul, Gabriel or Rane,
+  // "police escorts", "a stallion", "the aether".
+  PERSISTENT: "persistent",
+  FRACTAL: "fractal",
+  SONATSOFTW: "sonata",
+  ATUL: "atul",
+  GABRIEL: "gabriel",
+  RML: "rane",
+  ESCORTS: "escorts",
+  STALLION: "stallion",
+  AETHER: "aether",
+  // Wave 3: Cupid's arrow, "a flair for", the English Premier League, doms, an orchestra's symphony, ethos, red tape,
+  // Campus placements, the trident, a sapphire, the band Westlife, Malayala Manorama, Stranger Things' Hawkins,
+  // "Prestige" (also Prestige Estates), "Arvind" (a first name).
+  CUPID: "cupid",
+  FLAIR: "flair",
+  EPL: "epl",
+  DOMS: "doms",
+  SYMPHONY: "symphony",
+  ETHOSLTD: "ethos",
+  REDTAPE: "redtape",
+  CAMPUS: "campus",
+  TRIDENT: "trident",
+  SAPPHIRE: "sapphire",
+  WESTLIFE: "westlife",
+  MANORAMA: "manorama",
+  HAWKINCOOK: "hawkins",
+  TTKPRESTIG: "prestige",
 };
 // Words that put a headline in a company's business; and contexts that take it out (sport, courts).
 const BUSINESS_CONTEXT =

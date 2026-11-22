@@ -8,6 +8,14 @@ import { HOSPITALS_DOCS } from "./sectors/hospitals.extras";
 import { CAPMARKETS_DOCS } from "./sectors/capmarkets.extras";
 import { TRANSMISSION_DOCS } from "./sectors/transmission.extras";
 import { CONSUMERINTERNET_DOCS } from "./sectors/consumerinternet.extras";
+import { BANKS_DOCS } from "./sectors/banks.extras";
+import { INSURANCE_DOCS } from "./sectors/insurance.extras";
+import { HOTELS_DOCS } from "./sectors/hotels.extras";
+import { ITSERVICES_DOCS } from "./sectors/itservices.extras";
+import { AUTOS_DOCS } from "./sectors/autos.extras";
+import { CHEMICALS_DOCS } from "./sectors/chemicals.extras";
+import { FMCG_DOCS } from "./sectors/fmcg.extras";
+import { CONSUMERBRANDS_DOCS } from "./sectors/consumerbrands.extras";
 import { NIFTY50_DOCS } from "./indices/nifty50.extras";
 
 // Curated external reading list per sector — first-class industry/research
@@ -77,6 +85,14 @@ export const SECTOR_DOCS: Record<string, ResearchLink[]> = {
   capmarkets: CAPMARKETS_DOCS,
   transmission: TRANSMISSION_DOCS,
   consumerinternet: CONSUMERINTERNET_DOCS,
+  banks: BANKS_DOCS,
+  insurance: INSURANCE_DOCS,
+  hotels: HOTELS_DOCS,
+  itservices: ITSERVICES_DOCS,
+  autos: AUTOS_DOCS,
+  chemicals: CHEMICALS_DOCS,
+  fmcg: FMCG_DOCS,
+  consumerbrands: CONSUMERBRANDS_DOCS,
   semicon2: SEMICON2_DOCS,
   rareearth: RAREEARTH_DOCS,
   defenceproc: DEFENCEPROC_DOCS,

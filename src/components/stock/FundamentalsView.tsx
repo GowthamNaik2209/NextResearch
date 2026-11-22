@@ -4,9 +4,12 @@ import { useSegmentTip } from "@/components/charts/SegmentTip";
 import type { StockApi } from "./types";
 import { fmtNum, fmtSigned, fmtYield, mergeStats, REIT_NOTE } from "./merge";
 import { croreShort, NA, pct, sep } from "@/lib/format";
+import { companyKind, notMeaningfulNote } from "@/lib/financials/kinds";
 
-// `text` replaces the company's number where a rate would mislead (profit growth off a loss).
-type Row = { label: string; company: number | null; industry: number | null; unit: string; better: "low" | "high" | null; digits?: number; text?: string };
+// `text` replaces the company's number where a rate would mislead (profit growth off a loss); `muted`
+// marks it as a note ("Not meaningful for lenders") rather than a figure.
+// `peer` marks an industry figure that is the median of covered companies of the same kind (a lender's P/B and ROE).
+type Row = { label: string; company: number | null; industry: number | null; unit: string; better: "low" | "high" | null; digits?: number; text?: string; muted?: boolean; peer?: boolean };
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <section>
@@ -41,6 +44,13 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
   // Snapshot price over snapshot book value: the same dated figures as the company page.
   const pb = s.snapshotPrice != null && s.bookValue ? s.snapshotPrice / s.bookValue : null;
   const asOf = s.asOf ? `as of ${s.asOf}` : "snapshot";
+  // A lender's or an insurer's ROCE means nothing: the row reads as a note, with no industry median.
+  const kindNote = notMeaningfulNote(f ? (f.kind ?? companyKind(f.ticker)) : null);
+  // Its P/B and ROE against covered lenders (insurers): Screener's industry table has no median for them.
+  const kp = api?.kindPeers ?? null;
+  const peerPe = kp?.pe ?? null;
+  const peerPb = kp?.pb ?? null;
+  const peerRoe = kp?.roe ?? null;
 
   // A growth rate is only a growth rate between two profits: Screener still prints one when the
   // latest quarter is a loss (Swiggy "15.6%" on two losses) or the year-ago one was (a rate below
@@ -49,10 +59,13 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
   const qtrVar = self?.qtrProfitVarPct ?? null;
   const qtrProfitText = qtrVar == null || npQtr == null ? undefined : npQtr < 0 ? "loss" : qtrVar <= -100 ? "—" : undefined;
   const rows: Row[] = [
-    { label: "P/E (TTM)", company: s.pe, industry: med?.pe ?? null, unit: "x", better: "low", digits: 1 },
-    { label: "P/B", company: pb, industry: null, unit: "x", better: "low", digits: 2 },
-    { label: "ROE", company: s.roe, industry: null, unit: "%", better: "high", digits: 1 },
-    { label: "ROCE", company: s.roce, industry: med?.roce ?? null, unit: "%", better: "high", digits: 1 },
+    { label: "P/E (TTM)", company: s.pe, industry: kp ? peerPe : med?.pe ?? null, unit: "x", better: "low", digits: 1, peer: peerPe != null },
+    // One decimal, as the Key stats tile reads it.
+    { label: "P/B", company: pb, industry: peerPb, unit: "x", better: "low", digits: 1, peer: peerPb != null },
+    { label: "ROE", company: s.roe, industry: peerRoe, unit: "%", better: "high", digits: 1, peer: peerRoe != null },
+    kindNote
+      ? { label: "ROCE", company: null, industry: null, unit: "%", better: null, text: kindNote, muted: true }
+      : { label: "ROCE", company: s.roce, industry: med?.roce ?? null, unit: "%", better: "high", digits: 1 },
     { label: "Dividend yield", company: s.divYield, industry: med?.divYield ?? null, unit: "%", better: "high", digits: 2 },
     // Not in the company table: these two come from Screener live (the footnote says so).
     { label: "Qtr sales growth (YoY)*", company: self?.qtrSalesVarPct ?? null, industry: med?.qtrSalesVarPct ?? null, unit: "%", better: "high", digits: 1 },
@@ -63,7 +76,7 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
   // REIT_NOTE) - drop them rather than print a "0.05% yield" or a 168x P/E.
   const REIT_HIDDEN = new Set(["P/E (TTM)", "ROE", "Dividend yield"]);
   const hasLiveRows = rows.some((r) => r.label.endsWith("*") && r.company != null);
-  const shown = rows.filter((r) => (r.company != null || r.industry != null) && !(s.reit && REIT_HIDDEN.has(r.label)));
+  const shown = rows.filter((r) => (r.company != null || r.industry != null || r.muted) && !(s.reit && REIT_HIDDEN.has(r.label)));
   const hasIndustry = shown.some((r) => r.industry != null);
   // Belt and braces over the parser: never render a growth row without a number ("10 Years: %"),
   // a growth card with no rows, or an annual table with no years / all-blank rows.
@@ -145,14 +158,15 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
                   <tr key={r.label}>
                     <td className="px-3 py-3 text-ink">{r.label}</td>
                     <td className="px-3 py-3 text-right font-mono">
-                      <span className={v === "better" ? "text-pos" : v === "worse" ? "text-danger" : "text-ink"}>
+                      <span className={r.muted ? "font-sans text-[12px] text-ink-soft" : v === "better" ? "text-pos" : v === "worse" ? "text-danger" : "text-ink"}>
                         {r.text ?? fmtRow(r.company, r)}
                       </span>
                       {v && <span className={"ml-1.5 text-[10px] " + (v === "better" ? "text-pos" : "text-danger")}>{v === "better" ? "▲" : "▼"}</span>}
                     </td>
                     {hasIndustry && (
-                      <td className="px-3 py-3 text-right font-mono text-ink-soft" title={r.industry == null ? "No industry median available" : undefined}>
-                        {r.industry == null ? "n/a" : fmtRow(r.industry, r)}
+                      <td className="px-3 py-3 text-right font-mono text-ink-soft" title={r.industry == null && !r.muted ? "No industry median available" : undefined}>
+                        {r.muted ? "" : r.industry == null ? "n/a" : fmtRow(r.industry, r)}
+                        {r.peer && <span className="ml-0.5 font-sans">†</span>}
                       </td>
                     )}
                   </tr>
@@ -166,6 +180,11 @@ export function FundamentalsView({ supplier, api, loading }: { supplier: SectorS
             <span><span className="text-pos">▲</span> better than industry median</span>
             <span><span className="text-danger">▼</span> worse than industry median</span>
             <span>Lower is better for P/E and P/B. n/a = no industry median.</span>
+            {kp && (peerPe != null || peerPb != null || peerRoe != null) && (
+              <span>
+                † P/E, P/B and ROE: the median of {kp.n} covered {kp.kind === "lender" ? "banks and NBFCs" : "life and general insurers"} with a P/E (company snapshot), the same peers as P/E in context, as {kp.kind === "lender" ? "a lender" : "an insurer"} is set against its own kind.
+              </span>
+            )}
           </p>
         ) : (
           fund && <p className="mt-2 text-[11px] text-ink-soft">Industry medians aren&rsquo;t available for this company right now.</p>

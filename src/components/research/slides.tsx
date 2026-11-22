@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { croreShort } from "@/lib/format";
 import { ScrollX } from "@/components/ScrollX";
+import { notMeaningfulNote } from "@/lib/financials/kinds";
 import { useSegmentTip } from "@/components/charts/SegmentTip";
 import type { Deck, DeckCompany, Tone } from "@/lib/sector-content/reports";
 import { chartKind, type PestleKey, type SeriesPoint } from "@/lib/sector-content/reports/types";
@@ -704,6 +705,11 @@ function snapshotDate(deck: Deck): string | null {
 
 const ttmMismatch = (c: DeckCompany) => (c.npMargin ?? 0) < 0 && (c.pe ?? 0) > 0;
 
+/** A lender's or an insurer's net margin and ROCE read as a short note, never a number or a bare dash. */
+const NotMeaningful = ({ c }: { c: DeckCompany }) => <span className="whitespace-normal font-sans text-[10.5px] leading-snug text-ink-soft">{notMeaningfulNote(c.kind)}</span>;
+const marginCell = (c: DeckCompany, max: number) => (notMeaningfulNote(c.kind) ? <NotMeaningful c={c} /> : <MiniBar value={c.npMargin} max={max} tone="amber" />);
+const roceCell = (c: DeckCompany) => (notMeaningfulNote(c.kind) ? <NotMeaningful c={c} /> : fmtPct(c.roce));
+
 function ScorecardSlide({ deck, openCompany }: SlideProps) {
   const rows = [...deck.companies].sort((a, b) => (b.revCagr ?? -999) - (a.revCagr ?? -999));
   // Bars are capped so one small-base outlier (e.g. 7 -> 430 Cr) does not flatten the rest.
@@ -728,7 +734,7 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
               </div>
               <div className="col-span-2">
                 <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">Net margin {c.revYear ?? ""}</dt>
-                <dd className="mt-0.5"><MiniBar value={c.npMargin} max={maxMargin} tone="amber" /></dd>
+                <dd className="mt-0.5">{marginCell(c, maxMargin)}</dd>
               </div>
               <div>
                 <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">Revenue {c.revYear ?? ""}</dt>
@@ -736,7 +742,7 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
               </div>
               <div>
                 <dt className="text-[9.5px] uppercase tracking-wide text-ink-soft">P/E (TTM) · ROCE</dt>
-                <dd className="font-mono text-ink">{c.pe != null ? `${c.pe.toFixed(1)}x` : "—"}{ttmMismatch(c) ? "*" : ""} · {fmtPct(c.roce)}</dd>
+                <dd className="font-mono text-ink">{c.pe != null ? `${c.pe.toFixed(1)}x` : "—"}{ttmMismatch(c) ? "*" : ""} · {roceCell(c)}</dd>
               </div>
             </dl>
           </li>
@@ -778,14 +784,12 @@ function ScorecardSlide({ deck, openCompany }: SlideProps) {
                     </span>
                   )}
                 </td>
-                <td className="px-3 py-2">
-                  <MiniBar value={c.npMargin} max={maxMargin} tone="amber" />
-                </td>
+                <td className="px-3 py-2">{marginCell(c, maxMargin)}</td>
                 <td className="px-3 py-2 text-right font-mono tabular-nums text-ink">
                   {c.pe != null ? `${c.pe.toFixed(1)}x` : "—"}
                   {ttmMismatch(c) ? "*" : ""}
                 </td>
-                <td className="px-4 py-2 text-right font-mono tabular-nums text-ink">{fmtPct(c.roce)}</td>
+                <td className="px-4 py-2 text-right font-mono tabular-nums text-ink">{roceCell(c)}</td>
               </tr>
             ))}
           </tbody>

@@ -133,11 +133,12 @@ export const SINCE_LISTING_NOTE =
  * ROCE means something only for a company that earns a profit on positive equity: on negative or
  * near-zero equity (a loss-making company that owes more than it owns) the ratio can read as 50%+
  * while the business loses money. So Highest ROCE needs a positive P/E, a profit in the latest year
- * and a book value that isn't negative.
+ * and a book value that isn't negative. And an operating company: a lender's or an insurer's ROCE
+ * means nothing (financials/kinds.ts; the company table empties it for them anyway).
  */
-export function roceMeaningful(s: Pick<IdeaStockInfo, "roce" | "pe" | "np" | "book">): boolean {
+export function roceMeaningful(s: Pick<IdeaStockInfo, "roce" | "pe" | "np" | "book" | "kind">): boolean {
   const np = s.np?.[4];
-  return s.roce != null && s.pe != null && s.pe > 0 && (np == null || np > 0) && !(s.book != null && s.book <= 0);
+  return (s.kind ?? "operating") === "operating" && s.roce != null && s.pe != null && s.pe > 0 && (np == null || np > 0) && !(s.book != null && s.book <= 0);
 }
 
 const pctTxt = (v: number) => signedPct(v);
@@ -179,8 +180,8 @@ export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: numbe
   ideas.push({
     id: "quality",
     title: "Highest ROCE",
-    blurb: "The highest return on capital employed across every mapped industry.",
-    rule: `Highest ROCE among covered companies, among profitable companies (a P/E and a profit in the latest year) with positive book value, worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more: ROCE on a loss or negative equity isn't meaningful. ${ONE_OFF_NOTE}`,
+    blurb: "The highest return on capital employed, lenders and insurers aside: Quality lenders and Insurer value rank them.",
+    rule: `Highest ROCE among covered companies, among profitable companies (a P/E and a profit in the latest year) with positive book value, worth ₹${QUALITY_MIN_MCAP_CR.toLocaleString("en-IN")} Cr or more: ROCE on a loss or negative equity isn't meaningful. Lenders and insurers are left out, as ROCE means nothing for them: Quality lenders and Insurer value rank them. ${ONE_OFF_NOTE}`,
     range: "1Y",
     stocks: quality.map((s) => ({ ticker: s.ticker, stat: `ROCE ${s.roce!.toFixed(0)}%` })),
     ret: ret1y(quality.map((s) => s.ticker)),
@@ -249,8 +250,23 @@ export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: numbe
  * Every rule-based basket's id, name and one line, without prices: what the sitemap and llms.txt
  * list. The same rules run on no stocks, so a new rule shows up there with nothing else to edit.
  */
-export function ideaCatalog(): Pick<Idea, "id" | "title" | "blurb">[] {
-  return buildIdeas([], { asOf: "", stats: {} }, 0, true).map(({ id, title, blurb }) => ({ id, title, blurb }));
+export function ideaCatalog(): Pick<Idea, "id" | "title" | "blurb" | "rule">[] {
+  return buildIdeas([], { asOf: "", stats: {} }, 0, true).map(({ id, title, blurb, rule }) => ({ id, title, blurb, rule }));
+}
+
+/** A rule-based basket with no stocks today because its figures aren't added yet (kpi-screens.ts screensAwaitingFigures). */
+export type AwaitingIdea = Idea & { awaiting?: string };
+
+/**
+ * The day's ideas plus each screen still waiting on figures, as an empty idea carrying the line
+ * that says so: the Baskets page lists it (so it isn't reachable by URL only) without reading as
+ * "no company passes". In the catalog's order after the day's ideas; a screen with stocks today is
+ * never marked.
+ */
+export function withAwaitingFigures(ideas: Idea[], awaiting: Record<string, string>): AwaitingIdea[] {
+  const have = new Set(ideas.map((i) => i.id));
+  const empty = buildIdeas([], { asOf: "", stats: {} }, 0, true).filter((i) => awaiting[i.id] && !have.has(i.id));
+  return [...ideas, ...empty.map((i) => ({ ...i, stocks: [], ret: null, awaiting: awaiting[i.id] }))];
 }
 
 /** What a card needs from the idea's own backtest: the basket's return and each held stock's. */

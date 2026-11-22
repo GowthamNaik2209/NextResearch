@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { findSupplierByTicker } from "@/lib/sector-content";
+import { companyFinancials, findSupplierByTicker } from "@/lib/sector-content";
 import { getFundamentals } from "@/lib/live/screener-company";
 import { getQuote, getYahooFundamentals } from "@/lib/live/yahoo";
 import { getCompanyNews } from "@/lib/live/news";
@@ -8,6 +8,9 @@ import { isListedTicker } from "@/lib/news-listed";
 import { getCompanyFootprint } from "@/lib/sector-content/exposure";
 import { dataAsOf } from "@/lib/sector-content/insights";
 import { ensureFinancials } from "@/lib/financials/load";
+import { companyKind, fundamentalsForKind } from "@/lib/financials/kinds";
+import { industryPe, pePeers } from "@/lib/valuation/pe-data";
+import { kindMedians } from "@/lib/financials/kind-medians";
 
 // One slow upstream must not hold the whole response (an Apollo pop-up once sat on "fetching" for
 // a minute): each part gets this long, then counts as unreachable and the client uses cached figures.
@@ -34,13 +37,22 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
     within(getQuote(ticker), null),
     within(getCompanyNews(ticker, 8), { items: [], live: false }),
   ]);
-  const fundamentals = screener ?? (await within(getYahooFundamentals(ticker), null));
+  // A lender's or an insurer's ROCE and operating margin mean nothing: left out here, so the pop-up
+  // never gets them as a number (financials/kinds.ts).
+  const kind = companyKind(ticker.toUpperCase());
+  const fundamentals = fundamentalsForKind(screener ?? (await within(getYahooFundamentals(ticker), null)), kind);
+  // A lender's or an insurer's P/E, P/B and ROE are set against one set of peers: the covered companies
+  // of its own kind with a P/E, the same ones "P/E in context" counts, so both say the same number.
+  const T = ticker.toUpperCase();
+  const peerSet = kind === "operating" ? [] : (pePeers(T)?.peers ?? []).filter((p) => p.pe != null).map((p) => p.ticker);
+  const kindPeers =
+    kind === "operating" ? null : { ...kindMedians(peerSet.flatMap((t) => companyFinancials(t) ?? []), kind), n: peerSet.length, pe: industryPe(T)?.median ?? null };
   // `ts` lets the browser render "3h ago" against its own clock (this response is CDN-cached).
   // Grey-market and stale IPO run-up stories left out, cut-off headlines marked with an ellipsis.
   const news = presentableNews(newsResult.items, isListedTicker).map(({ headline, source, url, date, ts }) => ({ headline, source, url, date, ts }));
 
   return NextResponse.json(
-    { ticker, quote, fundamentals, news, newsLive: newsResult.live, footprint: getCompanyFootprint(ticker), seedAsOf: findSupplierByTicker(ticker)?.f?.asOf ?? dataAsOf() },
+    { ticker, quote, fundamentals, kindPeers, news, newsLive: newsResult.live, footprint: getCompanyFootprint(ticker), seedAsOf: findSupplierByTicker(ticker)?.f?.asOf ?? dataAsOf() },
     { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=900" } }
   );
 }

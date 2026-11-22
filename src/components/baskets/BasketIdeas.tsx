@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { Idea } from "@/lib/baskets/ideas";
+import type { AwaitingIdea } from "@/lib/baskets/ideas";
 import { fmtDay, signedPct } from "@/lib/format";
 import { InfoTip } from "@/components/InfoTip";
 import { MINI_SEG, miniSegBtn, PANEL } from "./Panel";
@@ -10,12 +10,13 @@ import { MINI_SEG, miniSegBtn, PANEL } from "./Panel";
 // The Baskets page's ideas: today's lists, fetched after the page shows (the first build of the
 // day reads every stock's prices). "Biggest gainers" is one card with a switch for its period.
 // Each figure is the idea's own backtest, formatted as its page's return card formats it.
-type CardIdea = Omit<Idea, "stocks"> & { stocks: { ticker: string; name: string; stat: string }[] };
+type CardIdea = Omit<AwaitingIdea, "stocks"> & { stocks: { ticker: string; name: string; stat: string }[] };
 type State = { status: "loading"; slow?: boolean } | { status: "error" } | { status: "ok"; asOf: string; ideas: CardIdea[] };
 
 // The cards the page shows on a normal day: Biggest gainers, Highest ROCE, Scarce suppliers, In 3+
-// industries, Recent listings and the four screens on company figures (lib/baskets/kpi-screens.ts).
-const SKELETON_CARDS = 9;
+// industries, Recent listings and the six screens on company figures (lib/baskets/kpi-screens.ts;
+// Quality lenders and Insurer value show even before their figures are added, saying so).
+const SKELETON_CARDS = 11;
 // A card's usual height (title, blurb, three stocks, count), and Biggest gainers' with its period
 // switch: the outlines are drawn at these and every card is at least this tall, so the section
 // keeps its height when the lists arrive.
@@ -197,6 +198,9 @@ function IdeaCard({ idea, title, switcher }: { idea: CardIdea; title?: string; s
       </div>
       {switcher && <div className="relative z-10 self-start">{switcher}</div>}
       <p className="text-[11px] leading-snug text-ink-soft">{idea.blurb}</p>
+      {idea.awaiting ? (
+        <p className="mt-auto border-t border-line pt-1.5 text-[11px] leading-snug text-ink-soft">{idea.awaiting}</p>
+      ) : (
       <ul className="mt-auto flex flex-col border-t border-line pt-1">
         {idea.stocks.slice(0, 3).map((s) => (
           <li key={s.ticker} className="flex items-baseline justify-between gap-2 py-0.5 text-xs">
@@ -205,8 +209,9 @@ function IdeaCard({ idea, title, switcher }: { idea: CardIdea; title?: string; s
           </li>
         ))}
       </ul>
+      )}
       <span className="text-[10px] text-ink-soft">
-        {idea.stocks.length} stocks{idea.stocks.length > 3 ? ` · ${idea.stocks.length - 3} more inside` : ""}
+        {idea.awaiting ? "Figures not yet added" : `${idea.stocks.length} stocks${idea.stocks.length > 3 ? ` · ${idea.stocks.length - 3} more inside` : ""}`}
       </span>
     </div>
   );

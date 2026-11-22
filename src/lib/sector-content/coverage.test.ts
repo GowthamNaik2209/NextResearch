@@ -18,6 +18,7 @@ import { listScenarios } from "./scenarios";
 import { getResearchForSector } from "./docs";
 import { basketStock, getIndustryBasket, listBasketUniverse, listIndustryBaskets } from "@/lib/baskets/industry";
 import { industryPools } from "@/lib/baskets/pools-data";
+import { companyValue, type IndustryPools } from "@/lib/baskets/pools";
 import { ideaStockInfo } from "@/lib/baskets/ideas-data";
 import { cleanPickedFrom } from "@/lib/baskets/picked-from";
 import { compareProps } from "@/lib/baskets/page-props";
@@ -29,6 +30,9 @@ import { analysisChartIndustries, analysisProps } from "@/lib/analysis-props";
 import { midSentence, themeNames } from "@/lib/site";
 import { getFinancials } from "@/lib/financials/store";
 import { hasQuote } from "@/lib/financials/no-quote";
+import { companyKind, fundamentalsForKind } from "@/lib/financials/kinds";
+import type { Fundamentals } from "@/lib/live/screener-company";
+import { keyRatios } from "@/lib/financials/key-ratios";
 import { industryPe, pePeers } from "@/lib/valuation/pe-data";
 import { MIN_INDEX_PEERS, MIN_PEERS } from "@/lib/valuation/pe-context";
 import { isReit } from "@/components/stock/merge";
@@ -72,11 +76,12 @@ const RULES = {
   oneOff: {
     id: "one-off-year",
     reason: "a one-off year (Company.screenOut or the detector in baskets/outliers.ts): kept out of rule-based screens, users may add it by hand with a note",
-    applies: (p) => !!detectOutlier(getFinancials(p.ticker)),
+    // The supplier's own figures carry a sector note too ("a one-off gain on ..."), as the screens read them.
+    applies: (p) => !!detectOutlier(p.sup.f ?? getFinancials(p.ticker)),
   },
   sideExposure: {
     id: "side-exposure",
-    reason: `its strongest link here is low strength or an enabler/lender (centrality < ${CORE_CENTRALITY}): sector news feeds and the per-industry stake changes leave it out (insights.ts CORE_CENTRALITY)`,
+    reason: `its strongest link here is low strength or an enabler/lender (centrality < ${CORE_CENTRALITY}): sector news feeds and the per-industry stake changes leave it out (insights.ts CORE_CENTRALITY), and so do the basket and pools of an industry marked basketCoreOnly`,
     applies: (p) => (metricsIn(p)?.centrality ?? 1) < CORE_CENTRALITY,
   },
   noOneYear: {
@@ -107,12 +112,34 @@ const RULES = {
     reason: "no traded price from any source (financials/no-quote.ts NO_QUOTE): the price store skips it and it keeps its stored figures with a note",
     applies: (p) => !hasQuote(p.ticker),
   },
+  financialKind: {
+    id: "lender-or-insurer",
+    reason: "a lender or an insurer (financials/kinds.ts): ROCE and net margin mean nothing for it, so the ROCE and margin screens (compounders, GARP, widening margins, Highest ROCE) leave it out; Quality lenders / Insurer value and the price-based screens rank it instead",
+    applies: (p) => companyKind(p.ticker) !== "operating",
+  },
   deckCurated: {
     id: "deck-curated",
     reason: "a research deck's company table is its authored beneficiaries (6-10, reports/<slug>.ts), not every listed company",
     applies: () => true,
   },
 } satisfies Record<string, Rule>;
+
+/** Side exposure, only where the industry is marked basketCoreOnly (core.ts): its basket, pools and chart picker. */
+const coreOnly: Rule = { ...RULES.sideExposure, applies: (p) => !!p.sector.basketCoreOnly && RULES.sideExposure.applies(p) };
+
+// Companies whose names read like a bank, NBFC or insurer (FINANCIAL_NAME) but that earn fees, not
+// interest or premiums, so they stay "operating" (financials/kinds.ts): brokers, asset managers,
+// exchanges, depositories, registrars, rating agencies, insurance brokers. Each with why.
+const OPERATING_FINANCIALS: Record<string, string> = {
+  MOTILALOFS: "a broker and asset manager: fee income, its lending book is a side business",
+  JMFINANCIL: "an investment bank and broker: advisory and broking fees lead its income",
+  FINOPB: "a payments bank: payments banks may not lend, its income is transaction fees",
+  OFSS: "a banking-software maker: licence and services revenue",
+  EDELWEISS: "a diversified holding company: its standalone figures are a holdco's, not a lender's book",
+};
+// The name test for the drift check: kept to plain words, so a new bank, NBFC, housing financier or
+// insurer is caught by its name ("… Bank", "… Finance", "… Financiers", "… Insurance", "… Assurance").
+const FINANCIAL_NAME = /\b(bank|banking|finance|financial|financiers?|finserv|fincorp|credit|insurance|assurance|lending|microfinance)\b/i;
 
 // Projections leave a stock out with a reason (projection.ts gate); these are the legitimate ones.
 const PROJECTION_REASONS: { id: string; reason: string; match: RegExp }[] = [
@@ -134,6 +161,8 @@ const NO_BENCHMARK: Record<string, string> = {
   semicon2: "no semiconductor index (policy)",
   ecms: "no electronics-components index (policy)",
   capmarkets: "Nifty Capital Markets has no Yahoo symbol/ETF with a year of history mapped yet",
+  insurance: "Only insurance ETF (INSUREIETF) listed Aug 2026: under a year of history; revisit Aug 2027",
+  chemicals: "No Nifty Chemicals history on Yahoo (index returns one day); ETFs GROWWCHEM (Jan 2026) and CHEMICAL (Jul 2026) are under a year: revisit Jan 2027",
 };
 
 // Live sectors with no research deck: only a market index.
@@ -216,7 +245,8 @@ test("search index: one company row opening its page, naming the sector", () => 
 });
 
 test("industry basket and pools", () => {
-  check("the industry basket", (p) => !!getIndustryBasket(p.sector.slug)?.stocks.some((s) => s.ticker === p.ticker));
+  check("the industry basket", (p) => !!getIndustryBasket(p.sector.slug)?.stocks.some((s) => s.ticker === p.ticker), [coreOnly]);
+  // Every company on the map is in the pools (a side link of a core-only industry as low exposure).
   check("the industry pools", (p) => !!industryPools(p.sector.slug)?.companies.some((c) => c.ticker === p.ticker), [RULES.noFigures]);
 });
 
@@ -227,6 +257,85 @@ test("rule-based baskets and stock screens: the universe they rank", () => {
   const metrics = new Map(listCompanyMetrics().map((c) => [c.ticker, c]));
   check("the landing stock screens (listCompanyMetrics)", (p) => metrics.has(p.ticker), [RULES.noFigures]);
   check("the sector's own metrics (sectorCompanyMetrics)", (p) => !!metricsIn(p));
+});
+
+test("lenders and insurers: no ROCE or net margin as a number, on any figure surface", () => {
+  const poolsOf = new Map<string, IndustryPools | null>();
+  const gaps: string[] = [];
+  for (const p of pairs()) {
+    const kind = companyKind(p.ticker);
+    if (kind === "operating") continue;
+    const f = getFinancials(p.ticker);
+    const where = `${p.sector.slug} / ${p.ticker} (${kind})`;
+    if (f) {
+      if (f.kpi?.[3] != null) gaps.push(`${where}: the company table's ROCE is ${f.kpi[3]}`);
+      const k = keyRatios(f);
+      if (k.netMargin != null) gaps.push(`${where}: keyRatios net margin is ${k.netMargin}`);
+      if (!k.notMeaningful.includes("roce") || !k.notMeaningful.includes("netMargin")) gaps.push(`${where}: keyRatios doesn't mark ROCE and net margin not meaningful`);
+    }
+    if (!poolsOf.has(p.sector.slug)) poolsOf.set(p.sector.slug, industryPools(p.sector.slug));
+    const c = poolsOf.get(p.sector.slug)?.companies.find((x) => x.ticker === p.ticker);
+    if (c) {
+      if (c.kind !== kind) gaps.push(`${where}: the pools read it as ${c.kind ?? "operating"}`);
+      for (const id of ["margin", "roce"] as const) if (companyValue(c, id) != null) gaps.push(`${where}: the pools' ${id} is ${companyValue(c, id)}`);
+    }
+    // The research deck's company table (its authored beneficiaries only).
+    const d = buildDeck(p.sector.slug)?.companies.find((x) => x.ticker === p.ticker);
+    if (d) {
+      if (d.kind !== kind) gaps.push(`${where}: the deck reads it as ${d.kind}`);
+      if (d.npMargin != null) gaps.push(`${where}: the deck's net margin is ${d.npMargin}`);
+      if (d.roce != null) gaps.push(`${where}: the deck's ROCE is ${d.roce}`);
+    }
+    // The projection (baskets, the projections page and the workbook read its margins).
+    const proj = basketStock(p.ticker)?.proj;
+    if (proj?.ok) {
+      if (proj.kind !== kind) gaps.push(`${where}: the projection reads it as ${proj.kind ?? "operating"}`);
+      if (proj.marginNow != null || proj.marginThen != null) gaps.push(`${where}: the projection's margins are ${proj.marginNow} -> ${proj.marginThen}`);
+    }
+  }
+  // The live pop-up's fundamentals (Screener's ROCE, industry medians and OPM rows) for each kind.
+  const m = { pe: 20, marketCapCr: 100, divYield: 1, qtrProfitVarPct: 5, qtrSalesVarPct: 6, roce: 7.1 };
+  const fund = {
+    kpi: { roce: 7.1, roe: 16 },
+    industry: { peerCount: 10, median: { ...m }, self: { ...m } },
+    annual: { years: ["Mar 2026"], series: [{ label: "Sales", values: [2] }, { label: "Operating Profit", values: [1] }, { label: "OPM %", values: [31] }, { label: "Net Profit", values: [1] }] },
+  } as unknown as Fundamentals;
+  for (const kind of new Set(pairs().map((p) => companyKind(p.ticker)).filter((k) => k !== "operating"))) {
+    const b = fundamentalsForKind(fund, kind);
+    if (b?.kpi?.roce != null || b?.industry?.median.roce != null || b?.industry?.self?.roce != null) gaps.push(`fundamentalsForKind(${kind}): ROCE kept`);
+    if (b?.annual?.series.some((x) => /OPM|Operating Profit/.test(x.label))) gaps.push(`fundamentalsForKind(${kind}): operating margin rows kept`);
+  }
+  assert.deepEqual(gaps, []);
+});
+
+test("lenders and insurers: ranked by their own screens or the price-based ones, never the ROCE or margin ones", () => {
+  const info = new Map(ideaStockInfo().map((s) => [s.ticker, s]));
+  check("the rule-based basket universe's kind (ideaStockInfo kind = financials/kinds.ts)", (p) => info.get(p.ticker)?.kind === companyKind(p.ticker));
+  // "On a screen" means in the universe a screen ranks (as above), not listed today: a lender is in
+  // Quality lenders' and the price-based screens' universe, an insurer in Insurer value's (a life
+  // insurer) and the price-based screens'.
+  check(
+    "the Quality lenders / Insurer value / price-based screens' universe",
+    (p) => companyKind(p.ticker) === "operating" || info.get(p.ticker)?.outlier === false,
+    [RULES.oneOff],
+  );
+  check(
+    "the ROCE and margin screens' universe (compounders, GARP, widening margins, Highest ROCE)",
+    (p) => info.get(p.ticker)?.outlier === false && info.get(p.ticker)?.kind === "operating",
+    [RULES.oneOff, RULES.financialKind],
+  );
+});
+
+test("every covered company named like a bank, NBFC or insurer is a lender or insurer, or a named operating financial", () => {
+  const named = new Map<string, string>();
+  for (const p of pairs()) if (FINANCIAL_NAME.test(p.sup.name)) named.set(p.ticker, p.sup.name);
+  const drift = [...named]
+    .filter(([t]) => companyKind(t) === "operating" && !(t in OPERATING_FINANCIALS))
+    .map(([t, name]) => `${t} (${name}): add it to LENDERS or INSURERS (financials/kinds.ts), or to OPERATING_FINANCIALS here with why`);
+  assert.deepEqual(drift, []);
+  // The allow-list doesn't rot: each entry is still covered, named so, and not tagged.
+  const stale = Object.keys(OPERATING_FINANCIALS).filter((t) => !named.has(t) || companyKind(t) !== "operating");
+  assert.deepEqual(stale, [], "OPERATING_FINANCIALS names a company no longer covered, no longer named like a lender, or now tagged: remove it");
 });
 
 test("basket picker and projections", () => {
@@ -292,7 +401,7 @@ test("/updates offers every live sector in its industry dropdown", () => {
 test("Analysis: the deck's company table and the chart picker", () => {
   check("the research deck's company table", (p) => !!buildDeck(p.sector.slug)?.companies.some((c) => c.ticker === p.ticker), [RULES.deckCurated]);
   const charts = new Map(analysisChartIndustries().map((i) => [i.slug, new Set(i.stocks.map((s) => s.ticker))]));
-  check("the Analysis chart picker", (p) => !!charts.get(p.sector.slug)?.has(p.ticker));
+  check("the Analysis chart picker", (p) => !!charts.get(p.sector.slug)?.has(p.ticker), [coreOnly]);
 });
 
 // ---- Per live sector ----

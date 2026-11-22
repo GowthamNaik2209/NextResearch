@@ -1,0 +1,145 @@
+[
+  {
+    "ticker": "LICI",
+    "period": "H1 FY27",
+    "periodEnd": "2026-09-30",
+    "vnbMargin": 22.3,
+    "embeddedValueCr": 797378,
+    "combinedRatio": null,
+    "solvencyRatio": 2.35,
+    "sourceUrl": "https://licindia.in/documents/d/guest/final-press-release-h1-fy27-eng-05112026-1-",
+    "readOn": "2026-11-18"
+  },
+  {
+    "ticker": "HDFCLIFE",
+    "period": "H1 FY27",
+    "periodEnd": "2026-09-30",
+    "vnbMargin": 24.7,
+    "embeddedValueCr": 66461,
+    "combinedRatio": null,
+    "solvencyRatio": 1.8,
+    "sourceUrl": "https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/investor-presentation/HDFC-Life-H1-FY2027-Investor-Presentation.pdf",
+    "readOn": "2026-11-18"
+  },
+  {
+    "ticker": "SBILIFE",
+    "period": "H1 FY27",
+    "periodEnd": "2026-09-30",
+    "vnbMargin": 27.9,
+    "embeddedValueCr": 87350,
+    "combinedRatio": null,
+    "solvencyRatio": 1.97,
+    "sourceUrl": "https://nsearchives.nseindia.com/corporate/SBILIFE_27102026185900_SEPR271026signed.pdf",
+    "readOn": "2026-11-18"
+  },
+  {
+    "ticker": "ICICILIFE",
+    "period": "H1 FY27",
+    "periodEnd": "2026-09-30",
+    "vnbMargin": 26.0,
+    "embeddedValueCr": 56669,
+    "combinedRatio": null,
+    "solvencyRatio": 2.299,
+    "sourceUrl": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/life-performance-review-for-quarter-ended-sep-30-2026.pdf",
+    "readOn": "2026-11-18"
+  },
+  {
+    "ticker": "MFSL",
+    "period": "H1 FY27",
+    "periodEnd": "2026-09-30",
+    "vnbMargin": 25.4,
+    "embeddedValueCr": 31437,
+    "combinedRatio": null,
+    "solvencyRatio": 1.97,
+    "sourceUrl": "https://www.maxfinancialservices.com/static/uploads/financials/investorpresentationh1fy27.pdf",
+    "readOn": "2026-11-18"
+  },
+  {
+    "ticker": "CANHLIFE",
+    "period": "H1 FY27",
+    "periodEnd": "2026-09-30",
+    "vnbMargin": 21.3,
+    "embeddedValueCr": 7622,
+    "combinedRatio": null,
+    "solvencyRatio": 1.8,
+    "sourceUrl": "https://www.canarahsbclife.com/content/dam/chli/pdfs/investor-relations/financials/transcripts-of-audio-recording/5/fy-2026-27-call-recording-transcript-sep.pdf",
+    "readOn": "2026-11-18"
+  },
+  {
+    "ticker": "ICICIGI",
+    "period": "Q2 FY27",
+    "periodEnd": "2026-09-30",
+    "vnbMargin": null,
+    "embeddedValueCr": null,
+    "combinedRatio": 104.5,
+    "solvencyRatio": 2.74,
+    "sourceUrl": "https://nsearchives.nseindia.com/corporate/ICICIGI_14102026192138_Press_Release_and_Investor_Presentation.pdf",
+    "readOn": "2026-11-18"
+  },
+  {
+    "ticker": "GODIGIT",
+    "period": "Q2 FY27",
+    "periodEnd": "2026-09-30",
+    "vnbMargin": null,
+    "embeddedValueCr": null,
+    "combinedRatio": 99.8,
+    "solvencyRatio": 2.4,
+    "sourceUrl": "https://www.godigit.com/content/dam/godigit/general/investor-relations/stock-exchange-disclosures/investor-presentation-for-q2-fy-2026-27.pdf",
+    "readOn": "2026-11-18"
+  },
+  {
+    "ticker": "STARHEALTH",
+    "period": "Q2 FY27",
+    "periodEnd": "2026-09-30",
+    "vnbMargin": null,
+    "embeddedValueCr": null,
+    "combinedRatio": 98.0,
+    "solvencyRatio": null,
+    "sourceUrl": "https://www.uniindia.com/prnewswire/star-health-reports-normalised-pat-of-390-crores-in-q2-fy27-up-70-yoy-fifth-successive-quarter-of-un/230074",
+    "readOn": "2026-11-18"
+  },
+  {
+    "ticker": "NIVABUPA",
+    "period": "H1 FY27",
+    "periodEnd": "2026-09-30",
+    "vnbMargin": null,
+    "embeddedValueCr": null,
+    "combinedRatio": 99.5,
+    "solvencyRatio": 2.03,
+    "sourceUrl": "https://nsearchives.nseindia.com/corporate/MAXBUPA_10112026170703_Intimation-Transcript_Q2FY27final.pdf",
+    "readOn": "2026-11-19"
+  },
+  {
+    "ticker": "NIACL",
+    "period": "Q1 FY27",
+    "periodEnd": "2026-06-30",
+    "vnbMargin": null,
+    "embeddedValueCr": null,
+    "combinedRatio": 121.44,
+    "solvencyRatio": 1.8,
+    "sourceUrl": "https://www.newindia.co.in/company-financials",
+    "readOn": "2026-11-18"
+  },
+  {
+    "ticker": "GICRE",
+    "period": "Q1 FY27",
+    "periodEnd": "2026-06-30",
+    "vnbMargin": null,
+    "embeddedValueCr": null,
+    "combinedRatio": 104.88,
+    "solvencyRatio": 4.32,
+    "sourceUrl": "https://www.gicre.in/images/2026/PressRelease13thAugust2026.pdf",
+    "readOn": "2026-11-18"
+  },
+  {
+    "ticker": "RELIGARE",
+    "period": "H1 FY27",
+    "periodEnd": "2026-09-30",
+    "vnbMargin": null,
+    "embeddedValueCr": null,
+    "combinedRatio": 100.5,
+    "solvencyRatio": 1.55,
+    "sourceUrl": "https://docs.religare.com/pdf/REL-IR-Presentation-Q2FY27.pdf",
+    "readOn": "2026-11-19"
+  }
+]

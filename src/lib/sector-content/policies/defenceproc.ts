@@ -187,7 +187,7 @@ export function defineDefenceproc(h) {
         keyRisks: ["Plant accidents and licence suspensions", "Export approvals and geopolitics", "Concentration on a few programmes (Pinaka)"],
         investorMetrics: ["Defence revenue and its share of sales", "Defence order book", "Export orders", "Capacity commissioning"],
         relatedComponents: ["missiles", "artillery", "materials"],
-        suppliers: [{ key: "solar", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "premier", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "munitions", exposureType: "operator", exposureStrength: "high" }, { key: "bharatforge", exposureType: "direct_supplier", exposureStrength: "medium" }] },
+        suppliers: [{ key: "solar", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "premier", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "munitions", exposureType: "operator", exposureStrength: "high" }, { key: "bharatforge", exposureType: "direct_supplier", exposureStrength: "medium" }, { key: "hblEngineering", exposureType: "direct_supplier", exposureStrength: "low" }] },
 
       { id: "materials", color: "#C99A2E", label: "Special alloys, forgings & castings", layer: 3, ...z("materials"),
         desc: "Superalloys, titanium, armour steel, forgings and castings - the bar stock, ingots and forging press in the materials shop.",
@@ -203,6 +203,7 @@ export function defineDefenceproc(h) {
         suppliers: [{ key: "midhani", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "ptc", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "bharatforge", exposureType: "direct_supplier", exposureStrength: "medium" }] },
     ],
     suppliers: {
+      hblEngineering: {name:"HBL Engineering", listed:true, role:"Maker of electronic fuzes for artillery ammunition, alongside batteries, defence electronics and rail signalling", dataStatus:"demo", sourceDate:SD, strengths:["Fuzes are the electronics-heavy part of every artillery shell", "Defence electronics and battery experience"], risks:["Fuzes are a small part of its mix", "Order timing depends on ministry contracts"], f:co("HBLENGINE","Also has rail-signalling and defence-electronics segments beyond fuzes")},
       hal: { name: "Hindustan Aeronautics", listed: true, role: "India's main aircraft and helicopter maker and the default production agency for DAC-approved aircraft (Tejas, Su-30, ALH, Prachand)", dataStatus: "demo", sourceDate: SD,
         strengths: ["Order book of ₹2.54L Cr at 31 Mar 2026 - about 7-8 years of revenue", "7 Sep 2026 DAC approved more Advanced Light Helicopters, its own product", "Repair and overhaul of a large fleet gives steady revenue"],
         risks: ["Engine supply limits deliveries: GE sent 6 of 11 promised F404 engines in FY26", "FY27 revenue growth guided at only ~10-12% despite the orders", "Fighter work-share on the 114-jet MRFA deal is not yet settled"], f: co("HAL", "Order book from HAL FY26 annual report") },

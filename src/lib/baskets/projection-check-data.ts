@@ -10,6 +10,7 @@ import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { companyFinancials, listSectors, tickerForSupplier } from "@/lib/sector-content";
 import { listCompanyPages } from "@/lib/sector-content/companies";
 import { memoByFinancials } from "@/lib/financials/store";
+import { companyKind } from "@/lib/financials/kinds";
 import { FISCAL_YEARS } from "@/lib/financials/rows";
 import { addDays, checkCase, closeOn, figuresTo, fyIndexOn, inputOn, summarise, type Check, type CheckSummary } from "./projection-check";
 import { explainStock, fundamentalScore, median, scoreScale, type Horizon, type ProjectionContext, type ScoreScale } from "./projection";
@@ -21,7 +22,7 @@ const CONCURRENCY = 8;
 /** How far back the store keeps prices (bars.ts STORE_DAYS for 5Y). */
 const STORE_SPAN_DAYS = 1830;
 
-/** Each industry's median net margin in fiscal year `fyIdx`, over every listed company it maps. */
+/** Each industry's median net margin in fiscal year `fyIdx`, over every listed operating company it maps (a lender's or an insurer's margin means nothing). */
 const marginsAt = memoByFinancials(() => {
   const byYear = new Map<number, Map<string, number | null>>();
   return (fyIdx: number) => {
@@ -34,7 +35,7 @@ const marginsAt = memoByFinancials(() => {
       for (const sup of Object.values(s.suppliers)) {
         if (!sup.listed || !sup.f) continue;
         const t = tickerForSupplier(sup);
-        if (seen.has(t)) continue;
+        if (seen.has(t) || (sup.f.kind ?? companyKind(t)) !== "operating") continue;
         seen.add(t);
         const r = sup.f.rev?.[fyIdx],
           n = sup.f.np?.[fyIdx];
@@ -72,6 +73,7 @@ const scaleAt = memoByFinancials(() => {
         // at least 3 years of trading on either day (stocks listed 4-5 years ago are left out of the scale).
         cagr: [null, typeof f.cagr?.[2] === "number" ? 0 : null, null],
         industry: { margin: home ? (margins.get(home) ?? null) : null },
+        kind: f.kind ?? companyKind(p.ticker),
       });
       if (s != null && Number.isFinite(s)) scores.push(s);
     }

@@ -34,7 +34,7 @@ import { listIpos } from "../src/lib/ipo-content";
 import { hasQuote } from "../src/lib/financials/no-quote";
 import { formatAsOf } from "../src/lib/financials/rows";
 import { readCompanyTable, readPublishedCutoff } from "../src/lib/financials/query";
-import { claimRun, fetchSnapshot, fiscalColumns, isStandalone, listedIposToAdd, newCompanyFigures, publishRun, releaseRun, ScreenerBlocked, withSnapshot, type Run, type Snap } from "../src/lib/financials/refresh";
+import { claimRun, fetchSnapshot, fiscalColumns, isStandalone, listingBound, noteAfterHistoryFix, listedIposToAdd, newCompanyFigures, newCompanyWriteOptions, publishRun, releaseRun, ScreenerBlocked, withSnapshot, type Run, type Snap } from "../src/lib/financials/refresh";
 import { istDay } from "../src/lib/financials/trading-day";
 import { writeFinancials } from "../src/lib/financials/write";
 import { databaseLabel, scriptPrisma } from "./db";
@@ -111,21 +111,22 @@ async function main() {
       results.set(f.ticker, await read(f));
     }
 
+    const firstDay = new Map((await prisma.priceSeries.findMany({ select: { key: true, firstDay: true } })).map((p) => [p.key, p.firstDay]));
     const failed: string[] = [];
     const revFlags: string[] = [];
     const history: Record<string, unknown> = {};
-    const updates: { f: SupplierFinancials; history: boolean; name?: string }[] = [];
+    const updates: { f: SupplierFinancials; history: boolean; name?: string; lender?: Snap["lender"] }[] = [];
     for (const old of todo) {
       const s = results.get(old.ticker);
       const ipoName = newNames.get(old.ticker);
-      const fresh = s && ipoName ? newCompanyFigures(old.ticker, s, SNAPSHOT_DATE) : null;
+      const fresh = s && ipoName ? newCompanyFigures(old.ticker, s, SNAPSHOT_DATE, SNAPSHOT_DATE) : null; // listing today
       if (!s || (ipoName && !fresh)) {
         failed.push(old.ticker);
         continue;
       }
       if (fresh) {
         console.log(`${old.ticker} (${ipoName}, newly listed): ${lit(fresh)}`);
-        updates.push({ f: fresh, history: true, name: ipoName });
+        updates.push({ f: fresh, history: true, name: ipoName, lender: s.lender });
         continue;
       }
       const f = withSnapshot(old, s, SNAPSHOT_DATE);
@@ -142,6 +143,7 @@ async function main() {
         if (FIX_HISTORY.has(old.ticker)) {
           f.rev = cols.rev;
           f.np = cols.np;
+          f.note = noteAfterHistoryFix(f.note, cols.rev, cols.np, s.basis, { listedOn: listingBound(s.cagr, firstDay.get(old.ticker) ?? null, SNAPSHOT_DATE), dec: cols.dec });
           fixHistory = true;
         }
       }
@@ -149,7 +151,7 @@ async function main() {
         const show = (x: SupplierFinancials) => [x.mcap, x.price, x.note, x.cagr, x.range, x.kpi].map(lit).join(" | ");
         console.log(`${old.ticker} [${s.basis}]\n  was ${show(old)} (${old.asOf})\n  now ${show(f)}`);
       }
-      updates.push({ f, history: fixHistory });
+      updates.push({ f, history: fixHistory, lender: s.lender });
     }
 
     console.log(`updated ${updates.length}, failed ${failed.length}${failed.length ? ": " + failed.join(", ") : ""}`);
@@ -159,7 +161,7 @@ async function main() {
     }
 
     if (!run) return;
-    for (const u of updates) await writeFinancials(prisma, u.f, SNAPSHOT_DATE, { identity: { name: u.name ?? u.f.ticker, listed: true, role: "" }, history: u.history });
+    for (const u of updates) await writeFinancials(prisma, u.f, SNAPSHOT_DATE, { identity: { name: u.name ?? u.f.ticker, listed: true, role: "" }, history: u.history, lender: u.lender });
     Object.assign(run, { done: updates.length, total: todo.length, failed });
     await publishRun(prisma, run);
     console.log(`wrote ${updates.length} snapshots dated ${SNAPSHOT} and published them`);
@@ -185,7 +187,8 @@ async function addEntries(table: Map<string, SupplierFinancials>) {
       continue;
     }
     const s = await snapshot({ ticker: t, standalone: false, tlSlug: null });
-    const f = s ? newCompanyFigures(t, s, asOf) : null;
+    const first = (await prisma.priceSeries.findUnique({ where: { key: t }, select: { firstDay: true } }))?.firstDay ?? null;
+    const f = s ? newCompanyFigures(t, s, asOf, first) : null;
     if (!s || !f) {
       console.log(`${t}: FAILED`);
       continue;
@@ -194,7 +197,7 @@ async function addEntries(table: Map<string, SupplierFinancials>) {
     const name = sup?.name ?? peerName.get(t) ?? s.name ?? t;
     console.log(`${t} (${name}): ${lit(f)}`);
     if (APPLY) {
-      await writeFinancials(prisma, f, asOf, { identity: { name, listed: true, role: sup?.role ?? "" } });
+      await writeFinancials(prisma, f, asOf, newCompanyWriteOptions(s, name, sup?.role ?? ""));
       added++;
     }
   }

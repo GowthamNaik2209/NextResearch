@@ -10,6 +10,7 @@ import { basketChart, basketSymbolChart } from "@/lib/prices/store";
 import { BENCHMARKS } from "@/lib/sector-content/benchmarks";
 import { listBasketUniverse } from "./industry";
 import { ensureFinancials } from "@/lib/financials/load";
+import { companyKind } from "@/lib/financials/kinds";
 import { backtestBasket, byDeadline, pricesPending } from "./run";
 import { heldStrategy } from "./strategy";
 import { detectOutlier } from "./outliers";
@@ -75,6 +76,11 @@ export function ideaStockInfo(): IdeaStockInfo[] {
       roce: num(f?.kpi?.[3]),
       pe: num(f?.kpi?.[0]),
       book: num(f?.kpi?.[1]),
+      roe: num(f?.kpi?.[4]),
+      // Lender or insurer: the ROCE and margin screens skip it; its own screens read its block.
+      kind: f?.kind ?? companyKind(st.ticker),
+      nnpa: num(f?.lender?.nnpa),
+      insurer: f?.insurer ? { vnbMargin: num(f.insurer.vnbMargin), pev: num(f.insurer.pev), fresh: f.insurer.fresh } : null,
       rev: f?.rev ?? undefined,
       np: f?.np ?? undefined,
       outlier: !!detectOutlier(f),
@@ -141,6 +147,26 @@ async function priceSnapshot(): Promise<PriceSnapshot> {
 }
 
 /**
+ * Fills the day's price histories ahead of the first visitor (the evening cron, after the price
+ * store's top-up), then builds the lists. With ~700 covered stocks a cold day's histories take
+ * minutes to read, longer than one visit's budget, so without this the first visits of a day
+ * would each be cut short (and serve yesterday's lists) until enough of them had filled the cache.
+ */
+export async function warmIdeas(deadline: number): Promise<{ histories: number; of: number; built: boolean }> {
+  const tickers = listBasketUniverse().map((s) => s.ticker);
+  const day = ((await lastTradingDay()) ?? new Date().toISOString()).slice(0, 10);
+  let done = 0;
+  await mapLimit(tickers, CONCURRENCY, async (t) => {
+    if (Date.now() >= deadline) return;
+    await dayHistory(t, day).catch(() => null);
+    done++;
+  });
+  if (done < tickers.length || Date.now() >= deadline) return { histories: done, of: tickers.length, built: false };
+  const built = await getIdeas().then(() => true, () => false);
+  return { histories: done, of: tickers.length, built };
+}
+
+/**
  * The day of the latest close the lists were ranked on (the Nifty 50's last daily bar), not the
  * hour the lists were built: a rebuild after midnight on yesterday's closes still says yesterday.
  */
@@ -151,6 +177,9 @@ export async function lastTradingDay(): Promise<string | null> {
 
 export type IdeasPayload = { asOf: string; ideas: Idea[] };
 
+/** The cache tag on the day's lists and their figures (financials/auto.ts marks it stale on a publish). */
+export const IDEAS_TAG = "basket-ideas";
+
 /** The day's ideas, from the shared cache (rebuilt in the background once a day). */
 export const getIdeas = unstable_cache(
   async (): Promise<IdeasPayload> => {
@@ -158,10 +187,11 @@ export const getIdeas = unstable_cache(
     const snap = await priceSnapshot();
     return { asOf: snap.asOf, ideas: buildIdeas(ideaStockInfo(), snap, Date.parse(snap.asOf)) };
   },
-  // v12: Recent listings lists every listing of the past two years (no cap of 15), so cached v11
-  // lists aren't served.
-  ["basket-ideas-v12"],
-  { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
+  // v15: lists built before the lenders' figures were backfilled (v14, 19 Nov 2026) held 5 quality
+  // lenders where 15 pass; a new key so those lists aren't served. A publish by the app's own
+  // refresh marks the tag stale as well (financials/auto.ts); a by-hand script publish can't, hence the key.
+  ["basket-ideas-v15"],
+  { revalidate: REVALIDATE_SECONDS, tags: [IDEAS_TAG] },
 );
 
 /** One idea, with its card's figures and order (its page lists the stocks as the card does). */
@@ -197,7 +227,7 @@ const ideaFigure = unstable_cache(
   },
   // v3: backtests end on the stored Nifty 50's last close (run.ts onBenchWindow).
   ["basket-ideas-backtest-v3"],
-  { revalidate: REVALIDATE_SECONDS, tags: ["basket-ideas"] },
+  { revalidate: REVALIDATE_SECONDS, tags: [IDEAS_TAG] },
 );
 const dailyBacktest = (asOf: string, id: string) => ideaFigure(asOf, id).catch(() => null);
 

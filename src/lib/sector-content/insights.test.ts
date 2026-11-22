@@ -55,6 +55,8 @@ test("the search index has one row per company, with short-name aliases", () => 
   assert.equal(new Set(hrefs).size, hrefs.length);
   const lt = rows.find((r) => r.label === "Larsen & Toubro");
   assert.ok(lt?.aliases?.includes("l&t"));
+  // An old name finds the company, typed in any case (search lower-cases the term).
+  assert.ok(rows.find((r) => r.label === "LTM")?.aliases?.includes("ltimindtree"));
 });
 
 test("findSupplierByTicker is the allowlist for the live API: known listed tickers only", () => {

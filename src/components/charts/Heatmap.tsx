@@ -28,8 +28,8 @@ export type HeatCell = {
   onClick?: () => void;
 };
 
-/** A module tile's name: the part before any bracket, slash or "&" ("Data Center / AI Infrastructure" is "Data Center"). */
-export const shortName = (name: string) => name.split(/ \(| \/ | & | \+ /)[0];
+/** A module tile's name: the part before any bracket or slash ("Data Center / AI Infrastructure" is "Data Center"). An "&" stays: "Hotels & Travel", not "Hotels". */
+export const shortName = (name: string) => name.split(/ \(| \/ /)[0];
 
 /** The move that takes most of the colour range: most of the grid's moves, at least 5%. */
 export function heatScale(values: (number | null)[]): number {

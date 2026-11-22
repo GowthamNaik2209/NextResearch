@@ -6,6 +6,7 @@
 import { companyFinancials, getSector, listSectors, parseCrore, tickerForSupplier } from "@/lib/sector-content";
 import { companySlug, getCompanyPage, listCompanyPages, primaryAppearance } from "@/lib/sector-content/companies";
 import { memoByFinancials } from "@/lib/financials/store";
+import { companyKind } from "@/lib/financials/kinds";
 import { detectOutlier } from "./outliers";
 import { compactProjection, fundamentalScore, median, projectStock, scoreScale, SCENARIOS, type CaseReturns, type ProjectionInput, type ScoreScale, type StockProjection } from "./projection";
 import { riskStatsFor } from "./projection-risk-data";
@@ -14,7 +15,7 @@ import { basketWeights } from "./backtest";
 
 const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 
-/** An industry's median net margin in the latest reported year, over every listed company it maps. */
+/** An industry's median net margin in the latest reported year, over every listed operating company it maps. */
 const industryMargins = memoByFinancials(() => {
   const out = new Map<string, number | null>();
   for (const s of listSectors()) {
@@ -24,7 +25,8 @@ const industryMargins = memoByFinancials(() => {
       const f = sup.f;
       if (!sup.listed || !f) continue;
       const t = tickerForSupplier(sup);
-      if (seen.has(t)) continue;
+      // A lender's or an insurer's net margin means nothing: left out of the industry's median.
+      if (seen.has(t) || (f.kind ?? companyKind(t)) !== "operating") continue;
       seen.add(t);
       // The latest year with both figures.
       const rev = f.rev ?? [];
@@ -80,6 +82,7 @@ export function projectionInputFor(ticker: string, homeSlug: string | null): Pro
     asOf: f.asOf,
     oneOffIndex: m ? Number(m[1]) - 22 : null,
     industry: { margin: homeSlug && getSector(homeSlug) ? (industryMargins().get(homeSlug) ?? null) : null },
+    kind: f.kind ?? companyKind(ticker),
     risk: risk ? { beta: risk.beta, vol: risk.vol } : null,
   };
 }

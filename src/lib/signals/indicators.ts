@@ -380,14 +380,19 @@ export function beta(c: Series, bench: Series, n = 252): Series {
 }
 
 /** True when `a` crosses above `b` on day `i` (at or below the day before, above now). */
-export function crossesAbove(a: Series, b: Series | number, i: number): boolean {
+/**
+ * True when `a` was at or below `b` on bar `p` and is above it on bar `i`. `p` is the bar the cross is
+ * measured from: the day before for daily checks, the previous week's or month's last close otherwise.
+ */
+export function crossesAbove(a: Series, b: Series | number, i: number, p = i - 1): boolean {
   const at = (s: Series | number, j: number) => (typeof s === "number" ? s : s[j]);
-  const a0 = a[i - 1], a1 = a[i], b0 = at(b, i - 1), b1 = at(b, i);
-  return i > 0 && isNum(a0) && isNum(a1) && isNum(b0) && isNum(b1) && a0 <= b0 && a1 > b1;
+  const a0 = a[p], a1 = a[i], b0 = at(b, p), b1 = at(b, i);
+  return p >= 0 && p < i && isNum(a0) && isNum(a1) && isNum(b0) && isNum(b1) && a0 <= b0 && a1 > b1;
 }
 
-export function crossesBelow(a: Series, b: Series | number, i: number): boolean {
+/** True when `a` was at or above `b` on bar `p` and is below it on bar `i` (see crossesAbove). */
+export function crossesBelow(a: Series, b: Series | number, i: number, p = i - 1): boolean {
   const at = (s: Series | number, j: number) => (typeof s === "number" ? s : s[j]);
-  const a0 = a[i - 1], a1 = a[i], b0 = at(b, i - 1), b1 = at(b, i);
-  return i > 0 && isNum(a0) && isNum(a1) && isNum(b0) && isNum(b1) && a0 >= b0 && a1 < b1;
+  const a0 = a[p], a1 = a[i], b0 = at(b, p), b1 = at(b, i);
+  return p >= 0 && p < i && isNum(a0) && isNum(a1) && isNum(b0) && isNum(b1) && a0 >= b0 && a1 < b1;
 }

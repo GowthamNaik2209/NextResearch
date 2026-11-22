@@ -8,6 +8,7 @@ import type { OpenableStock } from "@/components/research/Presentation";
 import { BarChart, Chip, MixChart, Panel, SlideHead, TONE_LABEL, TONE_TEXT, ToneBadge, ToneIcon, ToneValueCell } from "@/components/research/slides";
 import { NA, croreShort, inr, signedPct } from "@/lib/format";
 import { StageChip } from "./StageChip";
+import { companyKind, notMeaningfulNote } from "@/lib/financials/kinds";
 import { businessTitle, financialsTitle, fmtCr, industryTitle, issueTitle, kpiTitle, peersTitle, proceedsTitle, revenueGrowth, risksTitle } from "./headlines";
 
 // The ten slides of an IPO deck: a DRHP read the way an analyst would brief it - the issue,
@@ -689,7 +690,13 @@ function PeersSlide({ deck, openStock }: SlideProps) {
   const lastRev = deck.financials.years.filter((y) => !y.partial).at(-1);
   const rows = [...deck.peers].sort((a, b) => (b.mcapCr ?? -1) - (a.mcapCr ?? -1));
   // Market cap over latest-year revenue, worked out from the same figures shown in the row.
-  const ps = (p: IpoPeer) => (p.mcapCr != null && p.revenueCr ? `${(p.mcapCr / p.revenueCr).toFixed(1)}x` : "—");
+  // A lender's or an insurer's revenue is interest or premium, not sales: its market cap over it reads
+  // as a note, like its net margin everywhere else.
+  const ps = (p: IpoPeer): ReactNode => {
+    const note = p.ticker ? notMeaningfulNote(p.supplier?.f?.kind ?? companyKind(p.ticker)) : null;
+    if (note) return <span className="whitespace-normal font-sans text-[10.5px] leading-snug text-ink-soft">{note}</span>;
+    return p.mcapCr != null && p.revenueCr ? `${(p.mcapCr / p.revenueCr).toFixed(1)}x` : "—";
+  };
   const dates = [...new Set(rows.filter((p) => p.ticker).map((p) => p.asOf))];
   const max = Math.max(v ?? 0, ...rows.map((r) => r.mcapCr ?? 0), 1);
   const bar = (n: number | null, self = false) =>

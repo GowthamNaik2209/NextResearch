@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { getIdeasWithReturns } from "@/lib/baskets/ideas-data";
+import { getIdeasWithReturns, ideaStockInfo } from "@/lib/baskets/ideas-data";
+import { withAwaitingFigures } from "@/lib/baskets/ideas";
+import { screensAwaitingFigures } from "@/lib/baskets/kpi-screens";
 import { basketStock } from "@/lib/baskets/industry";
 import { ensureFinancials } from "@/lib/financials/load";
 import { ensureRiskStats } from "@/lib/baskets/projection-risk-data";
@@ -15,7 +17,9 @@ export async function GET() {
   await ensureFinancials();
   await ensureRiskStats();
   try {
-    const { asOf, ideas, complete } = await getIdeasWithReturns();
+    const { asOf, ideas: today, complete } = await getIdeasWithReturns();
+    // Screens with no stocks only because their figures aren't added yet are listed too, saying so.
+    const ideas = withAwaitingFigures(today, screensAwaitingFigures(ideaStockInfo()));
     return NextResponse.json(
       { asOf, ideas: ideas.map((i) => ({ ...i, stocks: i.stocks.map((s) => ({ ...s, name: basketStock(s.ticker)?.name ?? s.ticker })) })) },
       // Some cards still without a figure (the server is working them out): the CDN keeps it a minute only.

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { LOOKALIKE_DIST, companyValue, countedCompanies, distinctLayerColors, groupValue, layerPools, layerShares, poolTakeaway, shares, type IndustryPools, type PoolCompany } from "./pools";
+import { LOOKALIKE_DIST, LOWER_IS_BETTER, POOL_METRICS, RANKED_MIN_REVENUE, companyValue, countedCompanies, distinctLayerColors, figuresPending, groupValue, layerPools, layerShares, metricApplies, metricAppliesTo, metricKind, poolMetric, poolMetricsFor, poolTakeaway, shares, type IndustryPools, type PoolCompany } from "./pools";
 
 // Fixtures shaped like the solar modules industry's FY26 figures (₹ Cr: [FY25, FY26]).
 const co = (ticker: string, layer: string, rev: [number, number], np: [number, number], mcapCr: number, extra: Partial<PoolCompany> = {}): PoolCompany => ({
@@ -166,4 +166,119 @@ test("look-alike layer colours get distinct shades; the rest keep theirs", () =>
   const blues = out.slice(0, 3).map((l) => lum(l.color)).sort((a, b) => a - b);
   assert.ok(blues[1] - blues[0] > 60 && blues[2] - blues[1] > 60, `blues ${blues}`);
   assert.ok(LOOKALIKE_DIST > 0);
+});
+
+// ---- Lenders and insurers ----
+
+// An energy pool with an enabler lender in it (RECLTD's shape: a big profit on its interest income).
+const rec = co("RECLTD", "Finance", [50000, 56000], [14000, 16000], 110000, { kind: "lender", roce: 9.5, pb: 1.6, roe: 21, roa: 2.6, gnpa: 1.4, nnpa: 0.4 });
+const gen = co("GENCO", "Finance", [10000, 11000], [500, 550], 20000, { roce: 12, pb: 2.0, roe: 14 });
+
+test("a lender's margin and ROCE are not numbers: the layer's margin and ROCE are its operating companies' (Review Focus 4)", () => {
+  assert.equal(companyValue(rec, "margin"), null);
+  assert.equal(companyValue(rec, "roce"), null);
+  assert.equal(groupValue([rec, gen], "margin"), 550 / 11000);
+  assert.equal(groupValue([rec, gen], "roce"), 12);
+  assert.equal(groupValue([rec], "margin"), null);
+  // Pools still add up: its revenue, profit and market cap are real.
+  assert.equal(groupValue([rec, gen], "np"), 16000 + 550);
+  const life = co("HDFCLIFE", "Insurers", [1, 2], [1, 1], 1, { kind: "insurer", roce: 30 });
+  assert.equal(companyValue(life, "margin"), null);
+  assert.equal(companyValue(life, "roce"), null);
+});
+
+test("lender and insurer metrics: the company's own figure, the layer's median", () => {
+  const rec2 = { ...rec, ticker: "PFC", roe: 19, nnpa: 0.8 };
+  assert.equal(companyValue(rec, "nnpa"), 0.4);
+  assert.equal(groupValue([rec, rec2, gen], "nnpa"), (0.4 + 0.8) / 2);
+  assert.equal(groupValue([rec, rec2, gen], "roe"), 19);
+  assert.equal(groupValue([rec, gen], "pb"), 1.8);
+  assert.equal(companyValue(gen, "gnpa"), null);
+  const life = co("HDFCLIFE", "Insurers", [1, 2], [1, 1], 1, { kind: "insurer", vnb: 26, combined: null, solvency: 1.9, insurerFresh: "stale" });
+  // A stale quarter is still shown here (the panel marks it); only the Insurer value screen needs fresh figures.
+  assert.equal(companyValue(life, "vnb"), 26);
+  assert.equal(companyValue(life, "solvency"), 1.9);
+  assert.equal(companyValue(life, "combined"), null);
+  for (const id of ["pb", "roe", "roa", "gnpa", "nnpa", "vnb", "combined", "solvency"] as const) assert.equal(poolMetric(id).kind, "rate", id);
+});
+
+test("poolMetricsFor: the standard metrics, plus the lender set or the insurer set when the pools hold one", () => {
+  const ids = (p: IndustryPools) => poolMetricsFor(p).map((m) => m.id);
+  const std = POOL_METRICS.map((m) => m.id);
+  assert.deepEqual(ids(pools), std);
+  assert.deepEqual(ids({ ...pools, companies: [...pools.companies, rec] }), [...std, "pb", "roe", "roa", "gnpa", "nnpa"]);
+  const ins = co("ICICIGI", "Insurers", [1, 2], [1, 1], 1, { kind: "insurer" });
+  assert.deepEqual(ids({ ...pools, companies: [...pools.companies, ins] }), [...std, "pb", "roe", "vnb", "combined", "solvency"]);
+  // Both: pb and roe once.
+  assert.deepEqual(ids({ ...pools, companies: [rec, ins] }), [...std, "pb", "roe", "roa", "gnpa", "nnpa", "vnb", "combined", "solvency"]);
+});
+
+test("lender metrics apply only to lenders, insurer metrics only to insurers; P/B and ROE to every company", () => {
+  for (const id of ["roa", "gnpa", "nnpa"] as const) assert.equal(metricKind(id), "lender", id);
+  for (const id of ["vnb", "combined", "solvency"] as const) assert.equal(metricKind(id), "insurer", id);
+  for (const id of ["rev", "np", "pb", "roe", "margin"] as const) assert.equal(metricKind(id), null, id);
+  assert.equal(metricApplies(rec, "nnpa"), true);
+  assert.equal(metricApplies(gen, "nnpa"), false);
+  assert.equal(metricApplies(gen, "pb"), true);
+  assert.equal(metricApplies(rec, "vnb"), false);
+  // A stray figure on a non-lender is not read as one.
+  assert.equal(companyValue({ ...gen, nnpa: 0.3 }, "nnpa"), null);
+  assert.equal(groupValue([{ ...gen, nnpa: 0.3 }, rec], "nnpa"), 0.4);
+});
+
+test("figuresPending: a lender metric with no lender holding the figure reads as not yet added", () => {
+  const bare = { ...rec, roa: null, gnpa: null, nnpa: null };
+  assert.equal(figuresPending([bare, gen], "roa"), "lender");
+  assert.equal(figuresPending([rec, gen], "roa"), null, "one lender has it");
+  assert.equal(figuresPending([gen], "roa"), null, "no lender at all: not offered, not pending");
+  assert.equal(figuresPending([bare, gen], "pb"), null, "P/B is every company's");
+  const life = co("HDFCLIFE", "Insurers", [1, 2], [1, 1], 1, { kind: "insurer" });
+  assert.equal(figuresPending([life, gen], "vnb"), "insurer");
+});
+
+test("the margin headline leaves out a layer that is mostly lenders or insurers, and names it", () => {
+  // RECLTD dominates Finance: its profit-to-income would top the ranking as a "margin". (Scaled down
+  // so the other layers still hold most of the revenue: see the next-but-one test for when they don't.)
+  const small = { ...rec, rev: [900, 1000] as [number, number], np: [250, 300] as [number, number] };
+  const smallGen = { ...gen, rev: [1800, 2000] as [number, number], np: [90, 100] as [number, number] };
+  const p: IndustryPools = { ...pools, layers: [...pools.layers, { name: "Finance", color: "#123456" }], companies: [...pools.companies, small, smallGen] };
+  const t = poolTakeaway(layerPools(p, none))!;
+  assert.ok([t.more, t.less].every((r) => r.layer !== "Finance"));
+  assert.deepEqual(t.financial, ["Finance"]);
+  // A layer of lenders only: no margin claim at all.
+  const lendersOnly: IndustryPools = { ...pools, layers: [{ name: "Finance", color: "#123456" }, { name: "Housing", color: "#654321" }], companies: [rec, { ...rec, ticker: "HUDCO", layer: "Housing" }] };
+  assert.equal(poolTakeaway(layerPools(lendersOnly, none)), null);
+  // Without lenders nothing is named.
+  assert.deepEqual(poolTakeaway(layerPools(pools, none))!.financial, []);
+});
+
+test("VNB margin is a life insurer's figure, a combined ratio a general or health insurer's: not applicable to the other kind", () => {
+  const life = co("HDFCLIFE", "Life", [1, 2], [1, 1], 1, { kind: "insurer", vnb: 25, combined: null, solvency: 1.8 });
+  const general = co("ICICIGI", "General", [1, 2], [1, 1], 1, { kind: "insurer", vnb: null, combined: 102, solvency: 2.6 });
+  assert.equal(metricApplies(life, "vnb"), true);
+  assert.equal(metricApplies(general, "vnb"), false);
+  assert.equal(metricApplies(life, "combined"), false);
+  assert.equal(metricApplies(general, "combined"), true);
+  for (const c of [life, general]) assert.equal(metricApplies(c, "solvency"), true);
+  // A general insurer without a VNB margin is not "pending": it has none to add.
+  assert.equal(figuresPending([general, life], "vnb"), null);
+  assert.equal(figuresPending([{ ...life, vnb: null }, general], "vnb"), "insurer");
+  assert.deepEqual(
+    (["vnb", "combined", "solvency", "nnpa", "pb"] as const).map(metricAppliesTo),
+    ["life insurers", "general and health insurers", "insurers", "lenders", null],
+  );
+});
+
+test("bad-loan ratios and the combined ratio rank lowest first", () => {
+  assert.deepEqual([...LOWER_IS_BETTER].sort(), ["combined", "gnpa", "nnpa"]);
+});
+
+test("no margin headline when lender and insurer layers leave under half the revenue ranked", () => {
+  // Finance (lenders) holds most of the revenue: the two small layers left would be crowned on trivia.
+  const big = { ...rec, rev: [500000, 560000] as [number, number] };
+  const p: IndustryPools = { ...pools, layers: [...pools.layers, { name: "Finance", color: "#123456" }], companies: [...pools.companies, big] };
+  const layers = layerPools(p, none);
+  const fin = layers.findIndex((l) => l.name === "Finance");
+  assert.ok(layerShares(layers, "rev")[fin].share! > 1 - RANKED_MIN_REVENUE);
+  assert.equal(poolTakeaway(layers), null);
 });

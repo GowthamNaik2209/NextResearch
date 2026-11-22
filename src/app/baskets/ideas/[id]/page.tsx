@@ -4,7 +4,8 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { BasketDetail } from "@/components/baskets/BasketDetail";
 import { getCurrentUser } from "@/lib/auth";
-import { getIdea } from "@/lib/baskets/ideas-data";
+import { getIdea, ideaStockInfo } from "@/lib/baskets/ideas-data";
+import { screensAwaitingFigures } from "@/lib/baskets/kpi-screens";
 import { ideaCatalog } from "@/lib/baskets/ideas";
 import { basketStock, dominantIndustry } from "@/lib/baskets/industry";
 import { compareProps } from "@/lib/baskets/page-props";
@@ -36,6 +37,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   await ensureFinancials();
   await ensureRiskStats();
   const { id } = await params;
+  // An id that isn't a rule is a 404 straight away, without waiting on the day's lists.
+  if (!ideaCatalog().some((i) => i.id === id)) return NOT_FOUND_METADATA;
   const got = await loadIdea(id);
   if (got === "unavailable") return { title: "Rule-based basket", robots: { index: false } };
   if (!got) {
@@ -63,12 +66,13 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
   // Read now: the load can finish during the awaits below, after the stocks were built on stand-ins.
   const statsLoading = riskStatsLoading();
   const { id } = await params;
+  if (!ideaCatalog().some((i) => i.id === id)) notFound();
   const [got, user] = await Promise.all([loadIdea(id), getCurrentUser()]);
   if (got === "unavailable") return <Updating />;
   if (!got) {
     const rule = ideaCatalog().find((i) => i.id === id);
     if (!rule) notFound();
-    return <EmptyToday title={rule.title} blurb={rule.blurb} />;
+    return <EmptyToday title={rule.title} blurb={rule.blurb} rule={rule.rule} awaiting={screensAwaitingFigures(ideaStockInfo())[id]} />;
   }
   const { idea, asOf } = got;
   const stocks = idea.stocks.map((s) => basketStock(s.ticker)).filter((s) => s !== null);
@@ -115,7 +119,9 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
   );
 }
 
-function EmptyToday({ title, blurb }: { title: string; blurb: string }) {
+// A rule with no stocks today: its rule in full, and why the list is empty (its figures not yet
+// added, or no covered company passing it today).
+function EmptyToday({ title, blurb, rule, awaiting }: { title: string; blurb: string; rule: string; awaiting?: string }) {
   return (
     <>
       <SiteHeader />
@@ -125,7 +131,13 @@ function EmptyToday({ title, blurb }: { title: string; blurb: string }) {
         </Link>
         <h1 className="font-display text-2xl font-bold text-ink">{title}</h1>
         <p className="max-w-xl text-sm leading-relaxed text-ink-soft">{blurb}</p>
-        <p className="max-w-xl text-sm leading-relaxed text-ink-soft">No covered company meets this rule today. The list is re-ranked after each trading day.</p>
+        <div className="flex max-w-xl flex-col gap-1 rounded-lg border border-line px-3 py-2.5">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">The rule</h2>
+          <p className="text-sm leading-relaxed text-ink">{rule}</p>
+        </div>
+        <p className="max-w-xl text-sm leading-relaxed text-ink-soft">
+          {awaiting ?? "No covered company meets this rule today."} The list is re-ranked after each trading day.
+        </p>
       </main>
       <SiteFooter />
     </>
