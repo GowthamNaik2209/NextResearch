@@ -87,11 +87,27 @@ export function ideaStockInfo(): IdeaStockInfo[] {
       trust: /\b(REIT|InvIT)\b|Trust\b/i.test(st.name),
       industries: footprint.industries,
       policies: footprint.policies,
-      notIpo: /\b(REIT|InvIT)\b|Trust\b/i.test(st.name) || st.ticker in HISTORY_FROM,
+      notIpo: /\b(REIT|InvIT)\b|Trust\b/i.test(st.name) || st.ticker in HISTORY_FROM || DEMERGED_LISTINGS.has(st.ticker),
       scarce: scarce.get(st.ticker) ?? null,
     };
   });
 }
+
+/**
+ * Covered companies that listed through a demerger in the past two years, not an IPO: Recent listings
+ * ("demergers left out") skips them. Their shares went to the parent's holders, so a return "since
+ * listing" is not an IPO investor's.
+ */
+export const DEMERGED_LISTINGS: ReadonlySet<string> = new Set([
+  "ITCHOTELS", // from ITC, Jan 2025
+  "RAYMONDLSL", // Raymond Lifestyle, from Raymond, Sep 2024
+  "RAYMONDREL", // Raymond Realty, from Raymond, 2025
+  "ABLBL", // Aditya Birla Lifestyle Brands, from ABFRL, Jun 2025
+  "ENRIN", // Siemens Energy India, from Siemens, Jun 2025
+  "TMCV", // Tata Motors' commercial vehicles, Nov 2025
+  "KWIL", // Kwality Wall's, from Hindustan Unilever
+  "VAML", "VOGL", "VISL", "VEDPOWER", // the Vedanta demerger, 2026
+]);
 
 // How long one build spends fetching histories. All ~260 at once can outlast the function's 60s
 // (Yahoo slow or rate-limiting, Screener fallbacks), and a build cut off by the limit used to lose
@@ -190,7 +206,8 @@ export const getIdeas = unstable_cache(
   // v15: lists built before the lenders' figures were backfilled (v14, 19 Nov 2026) held 5 quality
   // lenders where 15 pass; a new key so those lists aren't served. A publish by the app's own
   // refresh marks the tag stale as well (financials/auto.ts); a by-hand script publish can't, hence the key.
-  ["basket-ideas-v15"],
+  // v16: demerged listings left out of Recent listings, and the figure screens need the latest year.
+  ["basket-ideas-v16"],
   { revalidate: REVALIDATE_SECONDS, tags: [IDEAS_TAG] },
 );
 

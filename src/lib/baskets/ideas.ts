@@ -138,7 +138,8 @@ export const SINCE_LISTING_NOTE =
  */
 export function roceMeaningful(s: Pick<IdeaStockInfo, "roce" | "pe" | "np" | "book" | "kind">): boolean {
   const np = s.np?.[4];
-  return (s.kind ?? "operating") === "operating" && s.roce != null && s.pe != null && s.pe > 0 && (np == null || np > 0) && !(s.book != null && s.book <= 0);
+  // The latest year must be there too: a company with no FY26 figures (a new listing, a year-end change) can't show its profit is real.
+  return (s.kind ?? "operating") === "operating" && s.roce != null && s.pe != null && s.pe > 0 && np != null && np > 0 && !(s.book != null && s.book <= 0);
 }
 
 const pctTxt = (v: number) => signedPct(v);

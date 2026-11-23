@@ -56,7 +56,7 @@ export function ThemeToggle({ variant = "switch" }: { variant?: "switch" | "icon
         onClick={toggle}
         aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
         title={actionLabel}
-        className="tap-target flex h-8 w-8 flex-none items-center justify-center rounded-full border border-line bg-panel-2 text-ink-soft hover:border-accent hover:text-ink sm:h-9 sm:w-9"
+        className="tap-target flex h-8 w-8 flex-none items-center justify-center rounded-full border border-btn bg-panel-2 text-ink-soft hover:border-accent hover:text-ink sm:h-9 sm:w-9"
       >
         {/* Before hydration the theme is unknown (null): show the sun, the dark default's action. */}
         {theme === "light" ? <MoonIcon className="h-3.5 w-3.5" /> : <SunIcon className="h-4 w-4" />}
@@ -71,7 +71,7 @@ export function ThemeToggle({ variant = "switch" }: { variant?: "switch" | "icon
       aria-checked={isLight}
       aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
       title={actionLabel}
-      className="tap-y relative flex h-7 w-14 flex-none items-center rounded-full border border-line bg-panel-2 px-1 transition-colors"
+      className="tap-y relative flex h-7 w-14 flex-none items-center rounded-full border border-btn bg-panel-2 px-1 transition-colors"
     >
       <MoonIcon className="absolute left-1.5 h-3.5 w-3.5 text-ink-soft" />
       <SunIcon className="absolute right-1.5 h-3.5 w-3.5 text-ink-soft" />

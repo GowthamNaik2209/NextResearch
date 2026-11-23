@@ -241,6 +241,16 @@ export const counts = (c: PoolCompany, added: ReadonlySet<string>) => !c.lowExpo
 /** The companies that count, given the low-exposure ones the viewer added. */
 export const countedCompanies = (p: IndustryPools, added: ReadonlySet<string>) => p.companies.filter((c) => counts(c, added));
 
+/** Above this share of the revenue pool one added company is most of the pool: the picker says so. */
+export const SWAMP_SHARE = 0.5;
+
+/** "Would be 90% of the revenue pool" / "Now 57% of the revenue pool" when one company is over SWAMP_SHARE of it, else null. */
+export function swampLine(rev: number | null, countedRev: number, added: boolean): string | null {
+  if (rev == null || rev <= 0) return null;
+  const share = added ? rev / Math.max(countedRev, rev) : rev / (countedRev + rev);
+  return share > SWAMP_SHARE ? `${added ? "Now" : "Would be"} ${Math.round(share * 100)}% of the revenue pool` : null;
+}
+
 export type LayerPool = PoolLayer & {
   /** Every company in the layer, counted or not. */
   all: PoolCompany[];

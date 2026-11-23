@@ -59,6 +59,18 @@ const INSURER_SET = new Set(INSURERS);
 
 export const isBank = (ticker: string) => BANK_SET.has(ticker);
 
+/**
+ * Holding and investment companies: their profit is dividends, investment gains and their subsidiaries'
+ * (Bajaj Finserv's is Bajaj Finance's and the Bajaj Allianz insurers'), so a net margin on their own
+ * revenue means nothing, and the lending figures, where they have a lending kind, are the subsidiaries'
+ * to report. They keep their kind for P/E peers; only these two readings change.
+ */
+export const HOLDING_COMPANIES: readonly string[] = ["BAJAJFINSV", "BAJAJHLDNG", "JIOFIN", "TATAINVEST", "AIIL"];
+const HOLDING_SET = new Set(HOLDING_COMPANIES);
+export const isHoldingCompany = (ticker: string) => HOLDING_SET.has(ticker);
+/** What a holding company's net margin reads as. */
+export const HOLDING_MARGIN_NOTE = "Not meaningful for holding companies";
+
 export function companyKind(ticker: string): CompanyKind {
   if (LENDER_SET.has(ticker)) return "lender";
   if (INSURER_SET.has(ticker)) return "insurer";

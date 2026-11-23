@@ -13,6 +13,7 @@ import {
   POOL_METRICS,
   companyValue,
   countedCompanies,
+  swampLine,
   distinctLayerColors,
   figuresPending,
   groupValue,
@@ -191,7 +192,7 @@ export function IndustryPools({
           </div>
           {lowCos.length > 0 && (
             <span className="flex items-center gap-2">
-              <LowExposurePicker companies={lowCos} added={added} onChange={setAdded} />
+              <LowExposurePicker companies={lowCos} added={added} onChange={setAdded} countedRev={counted.reduce((t, c) => t + Math.max(0, c.rev[1] ?? 0), 0)} />
               <InfoTip label="About low-exposure companies">
                 The figures are company-wide. Companies whose link to this industry the map rates low, and large groups that earn most of their money elsewhere, are left out unless you add them.
               </InfoTip>
@@ -707,7 +708,18 @@ function Tag({ title, children }: { title: string; children: string }) {
  * layer, revenue and why it is left out by default; ticking one counts it in the pools. Closes on a
  * tap outside or Escape.
  */
-function LowExposurePicker({ companies, added, onChange }: { companies: PoolCompany[]; added: ReadonlySet<string>; onChange: (s: ReadonlySet<string>) => void }) {
+function LowExposurePicker({
+  companies,
+  added,
+  onChange,
+  countedRev,
+}: {
+  companies: PoolCompany[];
+  added: ReadonlySet<string>;
+  onChange: (s: ReadonlySet<string>) => void;
+  /** The latest year's revenue of the companies counted now (added ones included), ₹ Cr. */
+  countedRev: number;
+}) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -791,6 +803,10 @@ function LowExposurePicker({ companies, added, onChange }: { companies: PoolComp
                     <span className="block text-[11px] leading-snug text-ink-soft">
                       {c.layer} · {c.lowExposure}
                     </span>
+                    {/* One giant (a refiner in solar modules) would turn the pools into that company: say so before the tick. */}
+                    {swampLine(c.rev[1], countedRev, added.has(c.ticker)) && (
+                      <span className="block text-[11px] font-semibold leading-snug text-amber-ink">{swampLine(c.rev[1], countedRev, added.has(c.ticker))}</span>
+                    )}
                   </span>
                 </label>
               </li>

@@ -24,6 +24,7 @@ test("the no-traded-price note is shown with the figures but never stored", () =
   assert.equal(rowToFinancials(row("DIGIFIBRE", null)).note, note);
   assert.equal(rowToFinancials(row("DIGIFIBRE", "Calendar-year figures.")).note, `Calendar-year figures. ${note}`);
   assert.equal(withNoQuoteNote("DIGIFIBRE", note), note, "added once");
+  assert.equal(withNoQuoteNote("DIGIFIBRE", "Rarely traded, so no market cap"), `Rarely traded, so no market cap. ${note}`, "a full stop between the two");
   assert.equal(rowToFinancials(row("LT", "Own note.")).note, "Own note.");
 
   assert.equal(financialsToRows(rowToFinancials(row("DIGIFIBRE", null)), new Date()).company.financialsNote, null);

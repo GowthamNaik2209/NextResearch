@@ -34,6 +34,8 @@ test("priceStat needs two closes", () => {
   assert.equal(priceStat([{ t: ago(1), c: 10 }], NOW), null);
 });
 
+/** A profit in every year, the latest included. */
+const P = [10, 11, 12, 13, 14];
 const info = (ticker: string, o: Partial<IdeaStockInfo> = {}): IdeaStockInfo => ({ ticker, name: ticker, mcapCr: 5000, roce: null, industries: 1, scarce: null, ...o });
 const snap = (stats: PriceSnapshot["stats"]): PriceSnapshot => ({ asOf: new Date(NOW).toISOString(), stats });
 const st = (ret1y: number | undefined, firstDaysAgo = 2000) => ({ first: ago(firstDaysAgo), ret: ret1y == null ? {} : { "1Y": ret1y }, sinceFirst: 0 });
@@ -51,10 +53,12 @@ test("top performers rank by the period's return and average it", () => {
 test("quality skips small and one-off companies, and those where ROCE isn't meaningful", () => {
   const ideas = buildIdeas(
     [
-      info("BIG", { roce: 30, pe: 20 }),
-      info("SMALL", { roce: 90, pe: 20, mcapCr: 200 }),
+      info("BIG", { roce: 30, pe: 20, np: P }),
+      info("SMALL", { roce: 90, pe: 20, mcapCr: 200, np: P }),
       info("ONEOFF", { roce: 80, pe: 20, outlier: true }),
-      info("BEST", { roce: 50, pe: 20, book: 120 }),
+      info("BEST", { roce: 50, pe: 20, book: 120, np: P }),
+      // No latest year in the table (a new listing, a year-end change): its profit can't be shown to be real.
+      info("NOFY26", { roce: 95, pe: 25, np: [null, 10, 12, 14, null] }),
       // Loss-making on negative equity: a high ROCE that means nothing.
       info("NOPE", { roce: 56, pe: null, book: -40, np: [-900, -800, -700, -600, -500] }),
       info("NEGBOOK", { roce: 70, pe: 12, book: -5 }),
@@ -201,7 +205,7 @@ test("companies with a one-off year are in no rule-based basket, and each rule s
   const ideas = buildIdeas(
     [
       info("ONEOFF", { outlier: true, roce: 99, industries: 5, scarce: sc, rev: [1000, 1100, 1200, 1300, 1400], np: [100, -50, 60, 80, 120] }),
-      info("PLAIN", { roce: 20, pe: 15, industries: 3, scarce: sc }),
+      info("PLAIN", { roce: 20, pe: 15, industries: 3, scarce: sc, np: P }),
     ],
     snap({ ONEOFF: st(300, 200), PLAIN: st(10, 200) }),
     NOW,
@@ -216,7 +220,7 @@ test("companies with a one-off year are in no rule-based basket, and each rule s
 
 test("Highest ROCE leaves out lenders and insurers: ROCE means nothing for them", () => {
   const ideas = buildIdeas(
-    [info("OPCO", { roce: 30, pe: 20 }), info("BANKX", { roce: 40, pe: 10, kind: "lender" }), info("LIFEX", { roce: 50, pe: 60, kind: "insurer" })],
+    [info("OPCO", { roce: 30, pe: 20, np: P }), info("BANKX", { roce: 40, pe: 10, kind: "lender", np: P }), info("LIFEX", { roce: 50, pe: 60, kind: "insurer", np: P })],
     snap({}),
     NOW,
     true,

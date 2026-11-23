@@ -31,6 +31,7 @@ export function BlockCard({
         <h3 className="text-[10px] font-semibold uppercase tracking-wider text-ink-soft">{title}</h3>
         <InfoTip label={`About ${title.toLowerCase()}`}>{info}</InfoTip>
       </div>
+      {rows.length > 0 && (
       <dl className={"mt-2 grid grid-cols-1 gap-x-5 rounded-lg border border-line bg-panel-2 px-3 py-0.5" + (compact ? "" : " sm:grid-cols-2")}>
         {rows.map((r, i) => (
           <div
@@ -58,6 +59,7 @@ export function BlockCard({
           </div>
         ))}
       </dl>
+      )}
       {children}
     </section>
   );

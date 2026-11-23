@@ -20,10 +20,9 @@
      so neither series reads as the red/green of a loss or gain. */
   --fii: #3987e5;
   --dii: #9085e9;
-  /* Outline of a clickable button: the accent toned down toward the plain border, so buttons read
-     as clickable without shouting. Worked out here from the theme's own accent and line, so it
-     follows light and dark (both are set on this same element). */
-  --btn-line: color-mix(in srgb, var(--accent) 55%, var(--line));
+  /* Outline of a clickable button: the theme's full accent (yellow in dark, green in light), the same
+     on every button so they read as one set. Set from --accent, so it follows light and dark. */
+  --btn-line: var(--accent);
   color-scheme: dark;
 }
 

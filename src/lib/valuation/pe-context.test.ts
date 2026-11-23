@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { peerClause, bandOf, MIN_MONTHS, peHistory, peerLine, peMedianLabel, peNote, versus } from "./pe-context";
+import { fewPeersLine, peerClause, bandOf, MIN_MONTHS, peHistory, peerLine, peMedianLabel, peNote, versus } from "./pe-context";
 
 // Month-end closes from Jun 2022 for `months` months, at a constant price unless `price` says otherwise.
 function closes(months: number, price: (i: number) => number = () => 100) {
@@ -63,4 +63,10 @@ test("peerClause: one clause with no second bracket", () => {
   assert.equal(peerClause({ ...base, slug: "lender", n: 22, group: "lender" }, "15.5x"), "the median of 22 covered banks and NBFCs across industries: 15.5x");
   assert.equal(peerClause({ ...base, slug: "insurer", n: 8, group: "insurer" }, "39.6x"), "the median of 8 covered life and general insurers across industries: 39.6x");
   assert.ok(!/\)\s*[:(]/.test(peerClause({ ...base, group: "lender" }, "1x")));
+});
+
+test("too few peers with a P/E says how many and how many are needed", () => {
+  assert.equal(fewPeersLine({ name: "Services (Nifty 50)", n: 1, min: 3 }), "Only 1 covered Services (Nifty 50) stock has a P/E (3 needed), so there is no industry median.");
+  assert.equal(fewPeersLine({ name: "Power", n: 0, min: 5 }), "No covered Power stocks have a P/E (5 needed), so there is no industry median.");
+  assert.equal(fewPeersLine({ name: "Covered lenders", n: 2, min: 5, group: "lender" }), "Only 2 covered lenders have a P/E (5 needed), so there is no peer median.");
 });

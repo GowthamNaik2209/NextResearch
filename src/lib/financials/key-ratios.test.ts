@@ -45,7 +45,7 @@ test("a note warning about the latest year leaves growth and margin out; a Jan-D
 
 test("missing figures give nulls, not zeros", () => {
   const k = keyRatios({ ticker: "A", price: "Rs 300", kpi: [30, -4, 1, 15, 12, 1], cagr: [25, null, null] });
-  assert.deepEqual(k, { pb: null, fy: null, caution: null, revGrowth: null, profitGrowth: null, profitNote: null, netMargin: null, nifty1y: null, vsNifty: null, vsNiftyDay: null, vsNiftyNote: "Nifty close not stored yet", notMeaningful: [], notOut: null, noPrior: null });
+  assert.deepEqual(k, { pb: null, fy: null, caution: null, revGrowth: null, profitGrowth: null, profitNote: null, netMargin: null, nifty1y: null, vsNifty: null, vsNiftyDay: null, vsNiftyNote: "Nifty close not stored yet", notMeaningful: [], notOut: null, notOutWhy: "not on Screener yet", noPrior: null, noFigures: "No annual figures yet", pbNote: null, marginNote: null });
 });
 
 test("a latest year not on Screener yet, or no year before it, is named rather than left a bare dash", () => {
@@ -195,4 +195,59 @@ test("a missing P/E or ROE says why", () => {
   // SPICEJET's shape: a profit in its latest year but no trailing P/E (a loss over the last four quarters).
   assert.equal(missingRatioReason({ ticker: "A", np: [1, 2, 3, 62, null], kpi: [null, -10, null, null, null, 10] }, "pe"), "No trailing P/E on Screener");
   assert.equal(missingRatioReason({ ticker: "A", np: [1, 2, 3, 4, 73] }, "roe"), "None on Screener");
+});
+
+test("a calendar-year reporter's years read CY, and one that moved to March years reads FY", () => {
+  const rows = { rev: [50, 60, 80, 100, 120], np: [5, 6, 8, 10, 12] };
+  assert.equal(keyRatios({ ticker: "A", ...rows, note: "Calendar-year (Dec) reporting" }).fy, "CY25");
+  assert.equal(keyRatios({ ticker: "A", ...rows, note: "Reports Jan-Dec fiscal year" }).fy, "CY25");
+  assert.equal(keyRatios({ ticker: "A", ...rows, note: "Ambuja moved from a Jan-Dec to an Apr-Mar year: the FY22 column holds CY2021" }).fy, "FY26");
+});
+
+test("a calendar reporter's missing latest year is named, with the note's own reason when it says the year is left blank", () => {
+  const rows = { rev: [null, 50, 60, 80, null], np: [null, 5, 6, 8, null] };
+  const plain = keyRatios({ ticker: "A", ...rows, note: "Jan-Dec reporting" });
+  assert.equal(plain.fy, "CY24");
+  assert.equal(plain.notOut, "CY25");
+  assert.equal(plain.notOutWhy, "not on Screener yet");
+  const blank = keyRatios({ ticker: "A", ...rows, note: "Reports Jan-Dec fiscal year; a 15-month period, so CY2025 is left blank" });
+  assert.equal(blank.notOutWhy, "left blank, see note");
+  assert.match(ratioTiles({ ticker: "A", ...rows, note: "Reports Jan-Dec fiscal year; a 15-month period, so CY2025 is left blank" }, false)[1].sub!, /^CY24 · CY25 left blank, see note$/);
+});
+
+test("absurd ratios read n/m with their reason: P/B on a near-zero book, a margin beyond ±100%", () => {
+  const f: SupplierFinancials = { ticker: "A", price: "Rs 77", kpi: [null, 0.2, 0, 0.06, -64.5, 10], rev: [9, 11, 12, 8, 6], np: [-13, -3, -17, -21, -24] };
+  const k = keyRatios(f);
+  assert.equal(k.pb, null);
+  assert.equal(k.pbNote, "Book value near zero");
+  assert.equal(k.netMargin, null);
+  assert.equal(k.marginNote, "Loss bigger than revenue");
+  const tiles = ratioTiles(f, false);
+  assert.equal(tiles[0].value, "n/m");
+  assert.equal(tiles[3].value, "n/m");
+  assert.equal(tiles[3].sub, "FY26 · Loss bigger than revenue");
+  // An ordinary margin is untouched.
+  assert.ok(Math.abs(keyRatios({ ticker: "A", rev: [100, 100, 100, 100, 100], np: [10, 10, 10, 10, 12] }).netMargin! - 12) < 1e-9);
+});
+
+test("a holding company's net margin reads as not meaningful, whatever its kind", () => {
+  const tiles = ratioTiles({ ticker: "TATAINVEST", rev: [254, 277, 385, 306, 403], np: [214, 252, 385, 312, 434] }, false);
+  assert.equal(tiles[3].value, "Not meaningful for holding companies");
+  assert.equal(tiles[3].muted, true);
+  assert.equal(ratioTiles({ ticker: "BAJAJFINSV", rev: [1, 2, 3, 4, 5], np: [1, 1, 1, 1, 1] }, false)[3].value, "Not meaningful for holding companies");
+});
+
+test("no annual figures, or no revenue, is said under the dashes", () => {
+  const none = ratioTiles({ ticker: "A", rev: [null, null, null, null, null], np: [null, null, null, null, null] }, false);
+  for (const t of none.slice(1, 4)) assert.equal(t.sub, "No annual figures yet", t.label);
+  const zero = ratioTiles({ ticker: "A", rev: [null, null, null, 0, 0], np: [null, null, null, -0.03, -0.04] }, false);
+  assert.equal(zero[1].sub, "FY26 · No revenue reported");
+  assert.equal(zero[3].sub, "FY26 · No revenue reported");
+});
+
+test("ROCE and a missing price have reasons; 1Y vs Nifty says no traded price", () => {
+  assert.equal(missingRatioReason({ ticker: "A" }, "roce"), "None on Screener");
+  assert.equal(missingRatioReason({ ticker: "A" }, "price"), "No traded price");
+  assert.equal(keyRatios({ ticker: "DIGIFIBRE", price: null, cagr: [null, null, null], nifty1y: 3 }).vsNiftyNote, "No traded price");
+  assert.equal(keyRatios({ ticker: "A", price: "Rs 100", cagr: [null, null, null], nifty1y: 3 }).vsNiftyNote, "Listed under a year");
 });

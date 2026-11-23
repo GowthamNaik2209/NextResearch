@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { LOOKALIKE_DIST, LOWER_IS_BETTER, POOL_METRICS, RANKED_MIN_REVENUE, companyValue, countedCompanies, distinctLayerColors, figuresPending, groupValue, layerPools, layerShares, metricApplies, metricAppliesTo, metricKind, poolMetric, poolMetricsFor, poolTakeaway, shares, type IndustryPools, type PoolCompany } from "./pools";
+import { LOOKALIKE_DIST, LOWER_IS_BETTER, POOL_METRICS, RANKED_MIN_REVENUE, companyValue, countedCompanies, distinctLayerColors, figuresPending, groupValue, layerPools, layerShares, metricApplies, metricAppliesTo, metricKind, poolMetric, poolMetricsFor, poolTakeaway, shares, swampLine, type IndustryPools, type PoolCompany } from "./pools";
 
 // Fixtures shaped like the solar modules industry's FY26 figures (₹ Cr: [FY25, FY26]).
 const co = (ticker: string, layer: string, rev: [number, number], np: [number, number], mcapCr: number, extra: Partial<PoolCompany> = {}): PoolCompany => ({
@@ -281,4 +281,14 @@ test("no margin headline when lender and insurer layers leave under half the rev
   const fin = layers.findIndex((l) => l.name === "Finance");
   assert.ok(layerShares(layers, "rev")[fin].share! > 1 - RANKED_MIN_REVENUE);
   assert.equal(poolTakeaway(layers), null);
+});
+
+test("one low-exposure giant that would be most of the pool says so before and after it is added", () => {
+  // Reliance's ₹9L Cr against a ₹1L Cr solar-module pool.
+  assert.equal(swampLine(900_000, 100_000, false), "Would be 90% of the revenue pool");
+  // Once added, its share of the pool that now includes it.
+  assert.equal(swampLine(900_000, 1_000_000, true), "Now 90% of the revenue pool");
+  // Half or less: no line.
+  assert.equal(swampLine(100_000, 100_000, false), null);
+  assert.equal(swampLine(null, 100_000, false), null);
 });

@@ -103,7 +103,7 @@ export function SummaryView({
     ["Mkt Cap", croreShort(s.marketCapCr)],
     ["Stock P/E", s.reit || s.pe != null ? nm(s.pe != null ? `${s.pe.toFixed(1)}x` : NA) : <Missing key="pe" why={missingRatioReason(f, "pe")} />],
     ["Div Yield", nm(fmtYield(s.divYield)), true],
-    ["ROCE", kindNote ? <NoteValue key="roce">{kindNote}</NoteValue> : pct(s.roce)],
+    ["ROCE", kindNote ? <NoteValue key="roce">{kindNote}</NoteValue> : s.roce != null ? pct(s.roce) : <Missing key="roce" why={missingRatioReason(f, "roce")} />],
     ["ROE", s.reit || s.roe != null ? nm(pct(s.roe)) : <Missing key="roe" why={missingRatioReason(f, "roe")} />],
     ...ratioTiles(f, s.reit).map(({ label, value, tone, sub, title, muted }): [string, React.ReactNode] => [
       label,

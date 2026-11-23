@@ -50,7 +50,15 @@ export type PeContext = {
   pe: number | null;
   history: PeHistory | null;
   industry: PeIndustry | null;
+  /** No industry median because too few peers have a P/E: who they are and how many there are against the fewest needed. */
+  fewPeers?: { name: string; n: number; min: number; group?: "lender" | "insurer" } | null;
 };
+
+/** "Only 1 covered Services (Nifty 50) stock has a P/E (3 needed), so there is no industry median." */
+export function fewPeersLine(p: NonNullable<PeContext["fewPeers"]>): string {
+  const who = p.group ? `covered ${p.group === "lender" ? "lender" : "insurer"}` : `covered ${p.name} stock`;
+  return `${p.n === 0 ? "No" : `Only ${p.n}`} ${who}${p.n === 1 ? " has" : "s have"} a P/E (${p.min} needed), so there is no ${p.group ? "peer" : "industry"} median.`;
+}
 
 /** Fewest month-ends with a P/E before a history is shown (two years). */
 export const MIN_MONTHS = 24;
