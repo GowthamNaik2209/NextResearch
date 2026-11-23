@@ -12,7 +12,8 @@ export const hasQuote = (ticker: string) => !(ticker in NO_QUOTE);
 export function withNoQuoteNote(ticker: string, note: string | null): string | null {
   const extra = NO_QUOTE[ticker];
   if (!extra || note?.includes(extra)) return note;
-  return note ? `${note} ${extra}` : extra;
+  // A note without a closing full stop ("…no market price or market cap") gets one, so the two don't run together.
+  return note ? `${/[.!?]\s*$/.test(note) ? note.trim() : `${note.trim()}.`} ${extra}` : extra;
 }
 
 /** The note as stored: without the no-traded-price note, which comes from this file, not the table. */

@@ -17,7 +17,7 @@ import { ensureFinancials } from "@/lib/financials/load";
 import { FISCAL_YEARS } from "@/lib/financials/rows";
 import { croreShort, inr, NA, pct } from "@/lib/format";
 import { fmtPrice, fmtYield, mergeStats, pctTone, REIT_NOTE } from "@/components/stock/merge";
-import { KEY_STATS_NOTE, missingRatioReason } from "@/lib/financials/key-ratios";
+import { KEY_STATS_NOTE, isCalendarReporter, missingRatioReason } from "@/lib/financials/key-ratios";
 import { ratioTiles } from "@/components/stock/ratio-tiles";
 import { InfoTip } from "@/components/InfoTip";
 import { TREND_NOTE, trendLabel } from "@/lib/financials/trend";
@@ -110,7 +110,16 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   ];
   // Every tile shows (a missing figure as "—", as in the pop-up) so the grid keeps whole rows; the FAQ gets only real figures.
   // A missing P/E or ROE says why under its dash (a loss, negative equity, none on Screener).
-  const why = (label: string) => (label === "P/E" ? missingRatioReason(f, "pe") : label === "ROE" ? missingRatioReason(f, "roe") : undefined);
+  const why = (label: string) =>
+    label === "P/E"
+      ? missingRatioReason(f, "pe")
+      : label === "ROE"
+        ? missingRatioReason(f, "roe")
+        : label === "ROCE"
+          ? missingRatioReason(f, "roce")
+          : s0.snapshotPrice == null && (label === "Market cap" || label === "Price" || label === "Dividend yield")
+            ? missingRatioReason(f, "price")
+            : undefined;
   const tiles = stats.map((s) =>
     kindNote && s.label === "ROCE" ? { label: s.label, value: kindNote, muted: true } : { label: s.label, value: s.value ?? NA, muted: false, sub: s.value ? undefined : why(s.label) },
   );
@@ -119,6 +128,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
 
   const faqs = companyFaq(c, primary, { asOf, stats: stats.filter((s): s is { label: string; value: string } => !!s.value && s.value !== "n/m") }, inIndex);
   const rev = f?.rev ?? [];
+  // A Jan-Dec reporter's FY22-FY26 columns hold calendar 2021-2025: the table says so, as the tiles do.
+  const yearLabels = isCalendarReporter(f?.note) ? FISCAL_YEARS.map((y) => `CY${String(y - 1).slice(-2)}`) : FY_LABELS;
   const np = f?.np ?? [];
 
   return (
@@ -285,7 +296,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                     <thead className="bg-panel-2 text-[10px] uppercase tracking-widest text-ink-soft">
                       <tr>
                         <th className="sticky left-0 z-[1] w-[6.75rem] min-w-[6.75rem] bg-panel-2 px-3 py-2 text-left after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-line sm:static sm:after:hidden sm:w-auto sm:min-w-0 sm:px-4">₹ Cr</th>
-                        {FY_LABELS.map((y) => (
+                        {yearLabels.map((y) => (
                           <th key={y} className="whitespace-nowrap px-3 py-2 text-right sm:px-4">
                             {y}
                           </th>
@@ -299,7 +310,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                       ].map((row) => (
                         <tr key={row.label} className="border-t border-line">
                           <td className="sticky left-0 z-[1] whitespace-nowrap bg-bg px-3 py-2 font-sans text-ink-soft after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-line sm:static sm:after:hidden sm:px-4">{row.label}</td>
-                          {FY_LABELS.map((y, i) => (
+                          {yearLabels.map((y, i) => (
                             <td key={y} className="whitespace-nowrap px-3 py-2 text-right text-ink sm:px-4">
                               {crCell(row.vals[i])}
                             </td>
@@ -312,7 +323,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                 </div>
                 {rev[rev.length - 1] != null && (
                   <p className="mt-2 text-xs text-ink-soft">
-                    Latest-year revenue {croreShort(rev[rev.length - 1])} ({FY_LABELS[FY_LABELS.length - 1]}, company-wide).
+                    Latest-year revenue {croreShort(rev[rev.length - 1])} ({yearLabels[yearLabels.length - 1]}, company-wide).
                   </p>
                 )}
                 {f?.note && <p className="mt-1 text-xs text-ink-soft">Note: {f.note.replace(/\.$/, "")}.</p>}

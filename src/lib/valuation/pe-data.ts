@@ -60,14 +60,24 @@ export function pePeers(ticker: string): { slug: string; name: string; bracket: 
   return { slug: basket.slug, name: `${a.zoneLabel} (${basket.name})`, bracket: true, peers: all.filter((s) => inBracket(s.ticker)), min: MIN_INDEX_PEERS };
 }
 
+// A REIT's or InvIT's P/E isn't a valuation (REIT_NOTE), so it stays out of the median too.
+const peerPes = (home: NonNullable<ReturnType<typeof pePeers>>) => home.peers.filter((s) => !isReit(s.ticker)).map((s) => s.pe).filter((v): v is number => v != null);
+
 /** The median P/E of those covered stocks that have one (pePeers' minimum needed). */
 export function industryPe(ticker: string): PeIndustry | null {
   const home = pePeers(ticker);
   if (!home) return null;
-  // A REIT's or InvIT's P/E isn't a valuation (REIT_NOTE), so it stays out of the median too.
-  const pes = home.peers.filter((s) => !isReit(s.ticker)).map((s) => s.pe).filter((v): v is number => v != null);
+  const pes = peerPes(home);
   const median = medianOf(pes);
   return median != null && pes.length >= home.min ? { slug: home.slug, name: home.name, median, n: pes.length, ...(home.group ? { group: home.group } : {}) } : null;
+}
+
+/** When there is no median for want of peers with a P/E (Adani Ports' two-stock Nifty 50 bracket): how many there are. */
+export function fewPeers(ticker: string): PeContext["fewPeers"] {
+  const home = pePeers(ticker);
+  if (!home) return null;
+  const n = peerPes(home).length;
+  return n < home.min ? { name: home.name, n, min: home.min, ...(home.group ? { group: home.group } : {}) } : null;
 }
 
 /** Everything the method page's worked example shows for one stock: each month-end sample and each peer. */
@@ -125,5 +135,6 @@ export async function peContext(ticker: string): Promise<PeContext | null> {
   const mcap = parseCrore(f.mcap);
   const history = mcap && f.np?.length ? await cachedHistory(ticker, mcap, f.np, tablePrice(f.price)).catch(() => null) : null;
   const kind = companyKind(ticker);
-  return { ...(kind !== "operating" ? { group: kind } : {}), pe: stock.pe, history, industry: industryPe(ticker) };
+  const industry = industryPe(ticker);
+  return { ...(kind !== "operating" ? { group: kind } : {}), pe: stock.pe, history, industry, fewPeers: industry ? null : fewPeers(ticker) };
 }

@@ -161,6 +161,8 @@ export function mountExplorer(
   };
   const onGestureStart = (e: TouchEvent) => startLabelGesture(e);
   const onGestureMove = (e: TouchEvent) => {
+    // A pinch that started on the canvas can end with a finger lifting on a label: not a tap on it.
+    if (e.touches.length >= 2) suppressLabelClickUntil = performance.now() + 400;
     if (!labelGesture) return;
     const ts = e.touches;
     const m = touchMid(ts);
@@ -187,6 +189,8 @@ export function mountExplorer(
     invalidate();
   };
   const onGestureEnd = (e: TouchEvent) => {
+    // The last finger of a pinch lifts after the move events: keep label taps off a moment longer.
+    if (e.touches.length >= 1 || e.changedTouches.length >= 2) suppressLabelClickUntil = Math.max(suppressLabelClickUntil, performance.now() + 400);
     if (!labelGesture) return;
     if (labelGesture.moved) suppressLabelClickUntil = performance.now() + 400;
     if (e.touches.length === 0) {
@@ -746,6 +750,15 @@ export function mountExplorer(
     }
     return { pos: target.clone().addScaledVector(dir, dist), target };
   }
+  // The closest a pinch or scroll can bring the camera: a little nearer than the sector's closest
+  // authored view. At OrbitControls' bare 1.2 one hard pinch on a phone put the camera inside a
+  // building, every label off screen and nothing to tap. Sectors whose views go inside (an EV's
+  // interior, a cockpit) keep those close-ups, since the limit follows their own views.
+  const viewDistances = sector.views
+    .filter((v) => v.pos && v.target)
+    .map((v) => Math.hypot(v.pos[0] - v.target[0], v.pos[1] - v.target[1], v.pos[2] - v.target[2]));
+  const ZOOM_MIN = viewDistances.length ? Math.max(1.2, Math.min(...viewDistances) * 0.6) : 1.2;
+  controls.minDistance = ZOOM_MIN;
   const markerPoints = sector.zones.map((z) => new THREE.Vector3(z.pos[0], z.pos[1], z.pos[2]));
   const defaultViewId = sector.defaultView || sector.views[0]?.id;
   const isFitView = (id: string) => id === defaultViewId || id === "top";
@@ -802,6 +815,8 @@ export function mountExplorer(
     invalidate();
     if (!deepDiveDef) return;
     deepDiveActive = true;
+    // A deep dive's own close-ups are authored apart from the views: no zoom floor inside it.
+    controls.minDistance = 1.2;
     deepStage = 0;
     targetLevel = sector.layerNames.length - 1;
     currentLevel = targetLevel;
@@ -826,6 +841,7 @@ export function mountExplorer(
     invalidate();
     if (!deepDiveActive || !deepDiveDef) return;
     deepDiveActive = false;
+    controls.minDistance = ZOOM_MIN;
     deepDiveDef.exit(productState.deep);
     updateBreadcrumb();
     callbacks.onDeepDiveStageChange(null);
@@ -842,7 +858,12 @@ export function mountExplorer(
   // ---- raycasting ----
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
-  let downPos: { x: number; y: number } | null = null;
+  // Every finger or pointer down on the canvas, by pointer id. A pinch puts two down; when they lift,
+  // the one that barely moved used to read as a tap on whatever marker sat under it, which opened
+  // that system and peeled the model to its layer, labels gone. So a tap counts only when it was the
+  // only pointer down from start to end.
+  const downs = new Map<number, { x: number; y: number }>();
+  let multiTouch = false;
 
   function setPointer(e: PointerEvent) {
     const r = renderer.domElement.getBoundingClientRect();
@@ -851,13 +872,21 @@ export function mountExplorer(
     return { x: e.clientX, y: e.clientY };
   }
   const onPointerDown = (e: PointerEvent) => {
-    downPos = setPointer(e);
+    downs.set(e.pointerId, setPointer(e));
+    if (downs.size > 1) multiTouch = true;
+  };
+  const onPointerCancel = (e: PointerEvent) => {
+    downs.delete(e.pointerId);
+    if (!downs.size) multiTouch = false;
   };
   const onPointerUp = (e: PointerEvent) => {
     const p = setPointer(e);
-    if (!downPos) return;
+    const downPos = downs.get(e.pointerId);
+    downs.delete(e.pointerId);
+    const wasMulti = multiTouch;
+    if (!downs.size) multiTouch = false;
+    if (!downPos || wasMulti) return;
     const dist = Math.hypot(p.x - downPos.x, p.y - downPos.y);
-    downPos = null;
     if (dist > 6) return;
     raycaster.setFromCamera(pointer, camera);
     const hits = raycaster.intersectObjects(markerMeshes);
@@ -877,6 +906,7 @@ export function mountExplorer(
   };
   renderer.domElement.addEventListener("pointerdown", onPointerDown);
   renderer.domElement.addEventListener("pointerup", onPointerUp);
+  renderer.domElement.addEventListener("pointercancel", onPointerCancel);
   renderer.domElement.addEventListener("pointermove", onPointerMove);
 
   // ---- callout positioning (every frame) ----
@@ -1238,6 +1268,7 @@ export function mountExplorer(
     stageObserver.disconnect();
     renderer.domElement.removeEventListener("pointerdown", onPointerDown);
     renderer.domElement.removeEventListener("pointerup", onPointerUp);
+    renderer.domElement.removeEventListener("pointercancel", onPointerCancel);
     renderer.domElement.removeEventListener("pointermove", onPointerMove);
     controls.dispose();
     // Materials don't free their textures (the models' canvas textures: signs, screens, the

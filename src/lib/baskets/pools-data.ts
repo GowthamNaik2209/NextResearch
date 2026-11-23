@@ -105,14 +105,17 @@ export function industryPools(slug: string): IndustryPools | null {
   }
   const out: PoolCompany[] = companies.map(({ strength, industries, ...c }) => {
     // The reason the viewer sees beside it in the add list.
+    // A low link means a small part of a company's business, unless this is the only industry it is
+    // mapped in (SpiceJet, all airline): then it is a small player here, not a sideline.
+    const small = industries <= 1 ? "Small player in the industry" : "Small part of its business";
     const why = isIndex
       ? null
       : sideOnly.has(c.ticker)
         ? sideOnlyLinks.has(c.ticker)
           ? "Supplies or serves the industry"
-          : "Small part of its business"
+          : small
         : strength === "low"
-        ? "Small part of its business"
+        ? small
         : conglomerate.has(c.ticker)
           ? `Conglomerate across ${industries} industries`
           : largeGroup.has(c.ticker) || extra.has(c.ticker)

@@ -4,7 +4,7 @@ import type { SupplierFinancials } from "@/lib/sector-content";
 import { lenderRatiosFrom } from "@/lib/financials/key-ratios";
 import { fundamentalsForKind, notMeaningfulNote } from "@/lib/financials/kinds";
 import type { Fundamentals } from "@/lib/live/screener-company";
-import { insurerRows, lenderRows, LENDER_UNREAD, NOT_IN_DISCLOSURE, NPA_NOT_REPORTED } from "./kind-blocks";
+import { HOLDING_LENDER, insurerRows, lenderRows, LENDER_UNREAD, NOT_IN_DISCLOSURE, NPA_NOT_REPORTED } from "./kind-blocks";
 import { EMPTY_LENDER } from "@/lib/financials/lender";
 import { ratioTiles } from "./ratio-tiles";
 
@@ -183,4 +183,11 @@ test("a lender block with one figure missing gives that dash its reason and no p
   const rows = new Map(lenderRows(f).rows.map((r) => [r.label, r]));
   assert.deepEqual(rows.get("Gross NPA"), { label: "Gross NPA", value: "—", note: "Not reported on Screener" });
   assert.equal(rows.get("Net NPA")!.period, "Jun 2026");
+});
+
+test("a holding company with a lending kind shows one line, not a block of dashes", () => {
+  const b = lenderRows({ ticker: "BAJAJFINSV", kind: "lender", lender: null } as SupplierFinancials);
+  assert.deepEqual(b.rows, []);
+  assert.equal(b.missing, false);
+  assert.equal(b.footnote, HOLDING_LENDER);
 });

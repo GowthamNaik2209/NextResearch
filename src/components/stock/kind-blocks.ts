@@ -3,7 +3,7 @@
 // components only lay these out. A figure that is not known reads "—", never 0, with the reason
 // beside it where one is known (a row's note, or the block's footnote). P/B, ROE and revenue growth
 // are left to the Key stats tiles right above the block, so no figure is shown twice.
-import { isBank, isLifeInsurer } from "@/lib/financials/kinds";
+import { isBank, isHoldingCompany, isLifeInsurer } from "@/lib/financials/kinds";
 import type { SupplierFinancials } from "@/lib/sector-content";
 import { NA, pct, signedPct } from "@/lib/format";
 
@@ -32,6 +32,8 @@ export type Block = {
 export const NPA_NOT_REPORTED = "Not reported on Screener";
 /** The footnote when a lender's block is stored but no lending figure could be read. */
 export const LENDER_UNREAD = "The lending figures couldn't be read from the company's standalone page on Screener.in.";
+/** The footnote for a holding company with a lending kind (Bajaj Finserv): the lending is its subsidiaries'. */
+export const HOLDING_LENDER = "A holding company: the lending is done by its subsidiaries, whose own pages carry the lending figures.";
 /** A hand-kept insurer row that leaves a figure out. */
 export const NOT_IN_DISCLOSURE = "Not in the disclosure";
 
@@ -41,6 +43,8 @@ const opt = (s: string | null | undefined) => s ?? undefined;
 
 /** A lender's block: ROA, gross and net NPA (of `quarter`), financing profit over revenue (Screener's "financing margin", not NIM), deposit growth (banks only) and balance-sheet growth. */
 export function lenderRows(f: SupplierFinancials): Block {
+  // A holding company's own accounts hold no loan book to read: no rows of dashes, one line saying why.
+  if (isHoldingCompany(f.ticker) && !f.lender) return { rows: [], missing: false, footnote: HOLDING_LENDER };
   const l = f.lender ?? null;
   const year = opt(l?.year);
   const bsYear = opt(l?.bsYear);

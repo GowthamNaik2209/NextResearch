@@ -5,9 +5,10 @@
 // an insurer's net margin and ROCE mean nothing (./kinds.ts), so they are marked not meaningful;
 // a lender gets its own ratios instead (lenderRatios). Pure: no server-only imports.
 import type { SupplierFinancials } from "@/lib/sector-content";
-import { companyKind } from "./kinds";
+import { HOLDING_MARGIN_NOTE, companyKind, isHoldingCompany } from "./kinds";
 import type { LenderFigures } from "./lender";
 import { FISCAL_YEARS } from "./rows";
+import { hasQuote } from "./no-quote";
 import { detectOutlier } from "@/lib/baskets/outliers";
 
 export type KeyRatios = {
@@ -38,8 +39,16 @@ export type KeyRatios = {
   notMeaningful: NotMeaningful[];
   /** The latest table year ("FY26") when the company's latest reported year (`fy`) is older: its figures are not on Screener yet. */
   notOut: string | null;
+  /** What follows `notOut` on the year line: "not on Screener yet", or for a year the note says is left blank, "left blank, see note". */
+  notOutWhy: string;
   /** The year before `fy` ("FY25") when the table has none for it: why there is no growth rate. */
   noPrior: string | null;
+  /** Why growth and margin have no figure when no year does ("No annual figures yet") or the latest revenue is nil ("No revenue reported"). */
+  noFigures: string | null;
+  /** Why P/B is left out though there is a book value: a book value so near zero the multiple means nothing. */
+  pbNote: string | null;
+  /** Why net margin is left out though both figures are there: a holding company, or a profit or loss bigger than the revenue. */
+  marginNote: string | null;
 };
 
 export type NotMeaningful = "netMargin" | "roce";
@@ -69,7 +78,15 @@ export const PROFIT_NOTE_LABEL: Record<ProfitNote, string> = { "from a loss": "B
 // Notes that say the latest year's growth or margin would mislead. A note about an older year
 // (a one-off in FY22) leaves the latest figures alone.
 const CAUTION = /misleading|cautious|dominated|not meaningful|reverse merger|fiscal year ends september|exceptional gains|one-offs/i;
-const CALENDAR_YEAR = /jan-dec|calendar year|\bCY20\d\d/i;
+const CALENDAR_YEAR = /jan-dec|calendar[- ]year|\bCY20\d\d/i;
+// A company that left the calendar year ("moved from a Jan-Dec to an Apr-Mar year") reports March years now.
+const LEFT_CALENDAR = /moved from an? jan-dec to an? apr(il)?-mar/i;
+/** The note says the company reports Jan-Dec years, so the table's FY26 column holds calendar 2025. */
+export const isCalendarReporter = (note: string | null | undefined) => CALENDAR_YEAR.test(note ?? "") && !LEFT_CALENDAR.test(note ?? "");
+/** Above this P/B the book value is close to nothing (SPELS: ₹0.2 a share), not a valuation. */
+export const PB_MAX = 200;
+/** Net margin beyond ±this %: the profit or loss is bigger than the revenue, so a margin reads as nonsense. */
+export const MARGIN_MAX = 100;
 
 const fin = (v: number | null | undefined): v is number => typeof v === "number" && Number.isFinite(v);
 const rs = (s?: string | null) => {
@@ -141,6 +158,17 @@ export function keyRatios(f: SupplierFinancials | undefined): KeyRatios {
         ? `${out!.year} looks like a one-off year: ${out!.reason.replace(/\.$/, "")}.`
         : null;
   const year = i >= 0 ? (FISCAL_YEARS[i] ?? FISCAL_YEARS[0] + i) : null;
+  const cal = isCalendarReporter(note);
+  const label = (y: number) => (cal ? `CY${String(y - 1).slice(-2)}` : `FY${String(y).slice(-2)}`);
+  const lastYear = FISCAL_YEARS[FISCAL_YEARS.length - 1];
+  const notOut = i >= 0 && i < FISCAL_YEARS.length - 1 ? label(lastYear) : null;
+  // A note that names the missing year as left blank (IGIL's 15-month period) explains it better than "not out yet".
+  const blankYear = cal ? `CY${lastYear - 1}` : `FY${String(lastYear).slice(-2)}`;
+  const leftBlank = !!notOut && new RegExp(`${blankYear}[^;]*left blank`, "i").test(note) && cal;
+  const pb = price && fin(book) && book > 0 ? price / book : null;
+  const holding = !!f && isHoldingCompany(f.ticker);
+  const margin = !notMeaningful.length && !caution && fin(r) && r > 0 && fin(p) ? (p / r) * 100 : null;
+  const marginNote = holding && !notMeaningful.length ? HOLDING_MARGIN_NOTE : margin != null && Math.abs(margin) > MARGIN_MAX ? (margin < 0 ? "Loss bigger than revenue" : "Profit bigger than revenue") : null;
   const profitNote: ProfitNote | null = !both
     ? null
     : p0 <= 0 && p > 0
@@ -153,14 +181,14 @@ export function keyRatios(f: SupplierFinancials | undefined): KeyRatios {
             : "loss widened"
           : null;
   return {
-    pb: price && fin(book) && book > 0 ? price / book : null,
+    pb: pb != null && pb > PB_MAX ? null : pb,
     // A Jan-Dec reporter's FY26 column holds calendar 2025.
-    fy: year == null ? null : CALENDAR_YEAR.test(note) ? `CY${String(year - 1).slice(-2)}` : `FY${String(year).slice(-2)}`,
+    fy: year == null ? null : label(year),
     caution,
     revGrowth: !caution && fin(r) && fin(r0) && r0 > 0 ? (r / r0 - 1) * 100 : null,
     profitGrowth: !caution && both && p0 > 0 && p > 0 ? (p / p0 - 1) * 100 : null,
     profitNote: caution ? null : profitNote,
-    netMargin: !notMeaningful.length && !caution && fin(r) && r > 0 && fin(p) ? (p / r) * 100 : null,
+    netMargin: marginNote ? null : margin,
     nifty1y: fin(nifty) ? nifty : null,
     vsNifty: fin(ret1y) && fin(nifty) ? ret1y - nifty : null,
     vsNiftyDay: matched ? shortDay(f!.nifty1yDay!) : null,
@@ -168,14 +196,20 @@ export function keyRatios(f: SupplierFinancials | undefined): KeyRatios {
       fin(ret1y) && fin(nifty)
         ? null
         : !fin(f?.cagr?.[0])
-          ? "Listed under a year"
+          ? f && !hasQuote(f.ticker)
+            ? "No traded price"
+            : "Listed under a year"
           : !fin(nifty)
             ? "Nifty close not stored yet"
             : "No stored close for that day",
     notMeaningful,
-    // A Jan-Dec reporter's latest column is its own; only a March year can be "not out" here.
-    notOut: i >= 0 && i < FISCAL_YEARS.length - 1 && !CALENDAR_YEAR.test(note) ? `FY${String(FISCAL_YEARS[FISCAL_YEARS.length - 1]).slice(-2)}` : null,
-    noPrior: year != null && fin(r) && !fin(r0) ? (CALENDAR_YEAR.test(note) ? `CY${String(year - 2).slice(-2)}` : `FY${String(year - 1).slice(-2)}`) : null,
+    // The latest column is due for both: a March year by mid-year, a Jan-Dec reporter's (CY25) by March.
+    notOut,
+    notOutWhy: leftBlank ? "left blank, see note" : "not on Screener yet",
+    noPrior: year != null && fin(r) && !fin(r0) ? label(year - 1) : null,
+    noFigures: year == null ? "No annual figures yet" : fin(r) && r === 0 ? "No revenue reported" : null,
+    pbNote: pb != null && pb > PB_MAX ? "Book value near zero" : null,
+    marginNote,
   };
 }
 
@@ -184,7 +218,10 @@ export function keyRatios(f: SupplierFinancials | undefined): KeyRatios {
  * reported year, negative equity (ROE), or none given by Screener (its trailing P/E is blank after a
  * loss over the last four quarters, which the yearly figures may not show).
  */
-export function missingRatioReason(f: SupplierFinancials | undefined, which: "pe" | "roe"): string {
+export function missingRatioReason(f: SupplierFinancials | undefined, which: "pe" | "roe" | "roce" | "price"): string {
+  // No traded price (an InvIT whose units rarely trade): market cap, price and yield have none either.
+  if (which === "price") return "No traded price";
+  if (which === "roce") return "None on Screener";
   const np = f?.np ?? [];
   let i = np.length - 1;
   while (i >= 0 && !fin(np[i])) i--;
