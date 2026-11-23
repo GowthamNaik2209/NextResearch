@@ -33,11 +33,11 @@ export function Hero({ featured, searchIndex, themeRows }: Props) {
         <div className="mt-5">
           <HeroSearch index={searchIndex} />
         </div>
-        {/* Quick access to each way into the research: one filled (the 3D maps, opened on the map
-            switcher), the rest outlined. On phones the 3D maps button spans the row and the other four sit
-            2x2 below; one row from 640px up. */}
+        {/* Quick access to each way into the research, all outlined alike (the 3D maps open on the map
+            switcher). On phones the 3D maps button spans the row and the other four sit 2x2 below; one
+            row from 640px up. */}
         <nav aria-label="Quick access" className="mt-4 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center">
-          <Link href={`/sector/${slug}/explore?maps=1`} className={`${QUICK} col-span-2 inline-flex border-accent bg-accent text-bg hover:opacity-90`}>
+          <Link href={`/sector/${slug}/explore?maps=1`} className={`${QUICK} col-span-2 inline-flex border-btn text-ink hover:bg-accent/10`}>
             3D maps
           </Link>
           <Link href={`/sector/${slug}?view=heatmap&pick=1`} className={`${QUICK} inline-flex border-btn text-ink hover:bg-accent/10`}>
