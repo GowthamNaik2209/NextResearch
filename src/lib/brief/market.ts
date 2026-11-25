@@ -30,16 +30,15 @@ async function indexClose(name: string, key: string, day: string): Promise<Index
   return { name, close: now.close, change: now.close - before.close, pct: ((now.close - before.close) / before.close) * 100 };
 }
 
-/** The latest day's FII and DII net, how long FIIs have been on the same side, and DII's month so far. */
+/** The latest day's FII and DII net, and each one's month so far (to and including that day). */
 export function briefFlows(days: CashDay[]): BriefFlows | null {
   const last = days[days.length - 1];
   if (!last) return null;
-  const sign = Math.sign(last.fiiNetCr);
-  let fiiStreak = 0;
-  for (let i = days.length - 1; i >= 0 && Math.sign(days[i].fiiNetCr) === sign; i--) fiiStreak++;
   const month = isoDay(last.day).slice(0, 7);
-  const diiMonthCr = days.filter((d) => isoDay(d.day).slice(0, 7) === month).reduce((s, d) => s + d.diiNetCr, 0);
-  return { day: isoDay(last.day), fiiNetCr: last.fiiNetCr, diiNetCr: last.diiNetCr, fiiStreak, diiMonthCr };
+  const inMonth = days.filter((d) => isoDay(d.day).slice(0, 7) === month);
+  const fiiMonthCr = inMonth.reduce((s, d) => s + d.fiiNetCr, 0);
+  const diiMonthCr = inMonth.reduce((s, d) => s + d.diiNetCr, 0);
+  return { day: isoDay(last.day), fiiNetCr: last.fiiNetCr, diiNetCr: last.diiNetCr, fiiMonthCr, diiMonthCr };
 }
 
 /** The industry and policy baskets that did best over 1D, best first (only ones that rose). */
