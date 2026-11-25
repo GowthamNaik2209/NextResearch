@@ -159,7 +159,7 @@ holds the lease). The site shows it within about half an hour, no deploy:
    `null`. Cross-check issue size and financials in two sources; never include grey-market premium.
 3. `status.stage` drives the order and chip: `open` / `upcoming` (dates fixed) / `approved`
    (SEBI observation received) / `filed`. Update `status`, `timeline` and `issue` as the IPO moves;
-   once it lists, remove it from `IPOS` (its company can then join a sector).
+   once bidding closes the card moves to "Recently closed" on `/ipos`; once it lists, set `ticker` and `issue.issuePrice`, add the ticker with `refresh-financials.ts --add=` (ask first: live DB) and put the company in its sector zone, so the card shows its price against the issue, its industries and its company page. Drop the deck from `IPOS` a few weeks after listing.
 4. Peers use NSE tickers and carry only `name`, `ticker` and `note`: their market cap, FY26 revenue
    and P/E come from the company table (add a new one with `scripts/refresh-financials.ts --add=TICKER`). A peer
    we cover opens the stock pop-up from the deck. Only a peer with no NSE listing carries figures.

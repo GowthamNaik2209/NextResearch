@@ -10,7 +10,7 @@ import { JsonLd, itemListLd, webPageLd } from "@/components/JsonLd";
 export const metadata: Metadata = {
   title: "Upcoming IPOs in India: prospectus summaries",
   description:
-    "Ten-slide summaries of the biggest upcoming Indian IPOs - issue structure, business model, DRHP financials, use of proceeds, shareholding, peer valuation and risk factors.",
+    "Ten-slide summaries of upcoming Indian mainboard IPOs - issue structure, business model, DRHP financials, use of proceeds, shareholding, peer valuation and risk factors.",
   alternates: { canonical: "/ipos" },
   ...shareMeta({ title: "Upcoming IPOs in India", line: "Each prospectus in ten slides.", path: "/ipos", image: null }),
 };
@@ -28,7 +28,7 @@ export default async function IposPage({ searchParams }: { searchParams: Promise
         <div>
           <h1 className="font-display text-3xl font-bold text-ink">IPOs</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            Big issues in the pipeline and recent listings, each prospectus read for you.
+            Mainboard issues in the pipeline and recent listings, each prospectus read for you.
           </p>
         </div>
         <IpoGrid ipos={ipos} initial={ipo} initialDeck={initialDeck} />
