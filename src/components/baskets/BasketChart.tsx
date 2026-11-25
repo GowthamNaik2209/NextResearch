@@ -594,7 +594,7 @@ export function BasketChart({
               : anyLoading
                 ? single
                   ? "Loading prices…"
-                  : "Backtesting the basket…"
+                  : "Loading past performance…"
                 : "Couldn’t load price history right now."}
           </div>
         )}

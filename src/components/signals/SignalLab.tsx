@@ -391,7 +391,7 @@ export function SignalLab({ choices, initial, initialStrategy, initialSaved, not
         Past prices only: no taxes, dividends not added, costs as set above. Rules describe what prices did; they are not buy or sell calls. A research tool, not investment advice.
       </p>
 
-      <ConfirmDialog open={!!deleting} title="Delete saved signal?" confirmLabel="Delete" danger onConfirm={() => void remove()} onCancel={() => setDeleting(null)}>
+      <ConfirmDialog open={!!deleting} title="Delete saved strategy?" confirmLabel="Delete" danger onConfirm={() => void remove()} onCancel={() => setDeleting(null)}>
         The saved rules for {deleting?.name} and their email alert are removed. This can&rsquo;t be undone.
       </ConfirmDialog>
     </div>

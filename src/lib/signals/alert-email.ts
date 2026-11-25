@@ -27,7 +27,7 @@ const verb = (k: AlertItem["kind"]) => (k === "entry" ? "Entry rules met" : "Exi
 export function alertSubject(items: AlertItem[], day: string): string {
   const d = fmtDay(day).replace(/ \d{4}$/, "");
   if (items.length === 1) return `${items[0].ticker}: ${verb(items[0].kind).toLowerCase()} on the ${d} close`;
-  return `${items.length} of your signals triggered on the ${d} close`;
+  return `${items.length} of your saved strategies triggered on the ${d} close`;
 }
 
 function link(site: string, it: AlertItem) {
@@ -42,14 +42,14 @@ export function renderAlertEmail(items: AlertItem[], day: string, links: { site:
 <div style="font-size:14px;font-weight:600;color:${C.ink};">${esc(it.ticker)}${it.scope === "basket" ? ` <span style="font-weight:400;color:${C.soft};">in ${esc(it.name)}</span>` : ""}</div>
 <div style="font-size:13px;color:${it.kind === "entry" ? C.pos : C.neg};margin-top:2px;">${verb(it.kind)} at ${esc(price(it.price))}</div>
 <div style="font-size:12px;color:${C.soft};margin-top:2px;line-height:1.45;">${esc(it.why)}</div>
-<div style="margin-top:6px;"><a href="${esc(link(links.site, it))}" style="font-size:12px;color:${C.accent};">Open the backtest</a></div>
+<div style="margin-top:6px;"><a href="${esc(link(links.site, it))}" style="font-size:12px;color:${C.accent};">Open in the strategy tester</a></div>
 </td></tr>`,
     )
     .join("");
   const html = `<!doctype html><html><body style="margin:0;padding:0;background:${C.bg};font-family:${FONT};">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.bg};"><tr><td align="center" style="padding:16px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:${C.panel};border:1px solid ${C.line};border-radius:8px;">
-<tr><td style="padding:20px 24px 8px;"><div style="font-size:12px;color:${C.soft};">${esc(SITE_NAME)} · Signals · ${esc(fmtDay(day))} close</div>
+<tr><td style="padding:20px 24px 8px;"><div style="font-size:12px;color:${C.soft};">${esc(SITE_NAME)} · Strategy alerts · ${esc(fmtDay(day))} close</div>
 <div style="font-size:18px;font-weight:600;color:${C.ink};margin-top:4px;">${esc(subject)}</div>
 <div style="font-size:13px;color:${C.soft};margin-top:6px;line-height:1.5;">Your saved rules were met on the last close. In the backtest they trade at the next close.</div></td></tr>
 <tr><td style="padding:4px 24px 12px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table></td></tr>
@@ -60,7 +60,7 @@ export function renderAlertEmail(items: AlertItem[], day: string, links: { site:
     "",
     ...items.flatMap((it) => [`${it.ticker}${it.scope === "basket" ? ` (in ${it.name})` : ""}: ${verb(it.kind)} at ${price(it.price)}`, `  ${it.why}`, `  ${link(links.site, it)}`, ""]),
     "Rules describe what prices did; they are not buy or sell calls. Past prices only, not investment advice.",
-    `Stop signal alerts: ${links.unsubscribe}`,
+    `Stop strategy alerts: ${links.unsubscribe}`,
   ].join("\n");
   return { subject, html, text };
 }

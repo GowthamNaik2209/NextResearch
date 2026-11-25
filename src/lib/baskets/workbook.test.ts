@@ -81,7 +81,7 @@ test("workbook: every sheet, projections with picks and the left-out stock", () 
     projection: { settings: { h: 1, scenario: "base" }, on: true, sim: null, vol: 0.2, dates: ["2026-10-23", "2026-10-30"], path: [0, 1] },
     disclaimer: "Not advice.",
   });
-  assert.deepEqual(sheets.map((s) => s.name), ["Overview", "Stocks", "Backtest stats", "Backtest series", "Projection", "Projection path", "Method"]);
+  assert.deepEqual(sheets.map((s) => s.name), ["Overview", "Stocks", "Performance stats", "Performance series", "Projection", "Projection path", "Method"]);
   const stocksSheet = sheets[1].rows;
   const head = stocksSheet[0];
   const col = (name: string) => head.indexOf(name);

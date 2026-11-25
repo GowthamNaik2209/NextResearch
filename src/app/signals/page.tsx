@@ -19,7 +19,7 @@ import { safeNext } from "@/lib/safe-next";
 // `?from=` (a same-site path, the stock pop-up's or basket page's) means it was opened for that one
 // stock or basket: no Stock/Basket switch or picker, and Back returns there. A basket runs at its
 // saved weighting (lib/signals/targets.ts).
-export const metadata = { title: "Signal backtest", robots: { index: false, follow: false } };
+export const metadata = { title: "Strategy tester", robots: { index: false, follow: false } };
 
 const DEFAULT_TICKER = "BEL";
 
@@ -55,7 +55,7 @@ export default async function SignalsPage({ searchParams }: { searchParams: Prom
           </Link>
         </nav>
         <header className="flex flex-col gap-1">
-          <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Signal backtest</h1>
+          <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">Strategy tester</h1>
           <p className="max-w-3xl text-sm text-ink-soft">Test entry and exit rules on a stock, or on a basket you created, at the weighting you saved for it.</p>
         </header>
         <SignalsGate>

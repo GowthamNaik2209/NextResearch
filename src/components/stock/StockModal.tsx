@@ -23,7 +23,7 @@ const ChartView = dynamic(() => import("./ChartView").then((m) => m.ChartView), 
 // The full-screen Backtest view (basket panels and charts) loads only when it is opened.
 const StockBacktest = dynamic(() => import("./StockBacktest").then((m) => m.StockBacktest), {
   ssr: false,
-  loading: () => <p className="p-6 text-sm text-ink-soft">Loading backtest…</p>,
+  loading: () => <p className="p-6 text-sm text-ink-soft">Loading past performance…</p>,
 });
 
 const TABS: { id: StockTab; label: string }[] = [
@@ -57,7 +57,7 @@ export function StockModal({ ticker, supplier, api, apiLoading, initialTab, onCl
   const full = fv.full && supplier.listed;
 
   return (
-    <ModalShell label={full ? `${supplier.name} backtest` : `${supplier.name} details`} onClose={fv.close} full={full}>
+    <ModalShell label={full ? `${supplier.name} past performance` : `${supplier.name} details`} onClose={fv.close} full={full}>
       {(closeRef) => (
       <>
         <div className={"flex flex-none items-start gap-3 border-b border-line bg-panel px-4 pt-4 sm:px-6 sm:pt-5 " + (full ? "pb-3 sm:pb-4" : "pb-0")}>

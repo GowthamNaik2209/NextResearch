@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     day = d.lastDay;
     items.push({ name: target.name, scope: target.scope, target: target.target, ticker, kind: exited ? "exit" : "entry", why: describeTrigger(p.strategy, exited ? "exit" : "entry", exited ? t.reason : null), price: exited ? t.exitPx : t.entryPx });
   }
-  if (!items.length) return Response.json({ error: "none of your saved signals has a trade to preview" }, { status: 400 });
+  if (!items.length) return Response.json({ error: "none of your saved strategies has a trade to preview" }, { status: 400 });
   const token = profile.signals[0].token;
   const e = renderAlertEmail(items, day, { site: LIVE_SITE, unsubscribe: `${LIVE_SITE}/signals/unsubscribe?t=${encodeURIComponent(token)}` });
   const stamp = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata" });

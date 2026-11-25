@@ -79,7 +79,7 @@ export function BasketAnalysis({
       heading={heading}
       title={
         <>
-          Backtest analysis{scope ? ` · ${scope}` : ""} ·{" "}
+          Performance analysis{scope ? ` · ${scope}` : ""} ·{" "}
           {period ?? (
             <>
               <span className="sm:hidden">{range}</span>
@@ -88,8 +88,8 @@ export function BasketAnalysis({
           )}
         </>
       }
-      label={`Backtest analysis${scope ? `, ${scope}` : ""}, ${period ?? pastPeriod(range)}`}
-      infoLabel="About the backtest analysis"
+      label={`Performance analysis${scope ? `, ${scope}` : ""}, ${period ?? pastPeriod(range)}`}
+      infoLabel="About the performance analysis"
       info={
         <ul className="flex flex-col gap-1">
           <li><b>Drawdown</b>: how far below its last high the {it} was, and its 5 worst falls.</li>
@@ -118,7 +118,7 @@ export function BasketAnalysis({
             "Add stocks to see how the basket fell and recovered, month by month."
           ) : (
             <span>
-              Couldn&rsquo;t load the backtest analysis right now.
+              Couldn&rsquo;t load the performance analysis right now.
               {!single && (
                 <>
                   {" "}

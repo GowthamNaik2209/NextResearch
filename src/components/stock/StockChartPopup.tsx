@@ -20,7 +20,7 @@ const ChartView = dynamic(() => import("./ChartView").then((m) => m.ChartView), 
 // The full-screen Backtest view loads only when it is opened.
 const StockBacktest = dynamic(() => import("./StockBacktest").then((m) => m.StockBacktest), {
   ssr: false,
-  loading: () => <p className="p-6 text-sm text-ink-soft">Loading backtest…</p>,
+  loading: () => <p className="p-6 text-sm text-ink-soft">Loading past performance…</p>,
 });
 
 /** One industry or policy in the picker: its layers (in the map's order) and listed stocks, biggest first. */
@@ -96,7 +96,7 @@ export function StockChartPopup({
   const fv = useFullView(onClose);
 
   return (
-    <ModalShell label={fv.full ? "Stock backtest" : "Stock charts"} onClose={fv.close} full={fv.full}>
+    <ModalShell label={fv.full ? "Stock past performance" : "Stock charts"} onClose={fv.close} full={fv.full}>
       {(closeRef) =>
         industries?.length ? (
           <Picker industries={sorted(industries, order)} initialSlug={initialSlug} onSlug={onSlug} closeRef={closeRef} onClose={fv.close} fv={fv} />
@@ -312,7 +312,7 @@ function Picker({
         )}
         <Link
           href={`/baskets/industry/${ind.slug}`}
-          title={`${ind.name} basket: backtest and projections`}
+          title={`${ind.name} basket: past performance and projections`}
           className="text-right text-ink-soft hover:text-accent hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-9 pointer-coarse:items-center"
         >
           Industry basket analysis &rarr;

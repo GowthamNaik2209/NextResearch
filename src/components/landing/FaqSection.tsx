@@ -18,7 +18,7 @@ const FAQ = [
   },
   {
     q: "Do I need an account?",
-    a: "You can browse every industry, report, chart, basket and company without one. An account is only needed to save companies to a watchlist, keep your own baskets, and run and save signal backtests with email alerts.",
+    a: "You can browse every industry, report, chart, basket and company without one. An account is only needed to save companies to a watchlist, keep your own baskets, and test and save trading strategies in the strategy tester, with email alerts.",
   },
 ];
 

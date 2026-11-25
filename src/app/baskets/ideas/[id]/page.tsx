@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
   return {
     title: `${got.idea.title}: a rule-based stock basket`,
-    description: `${got.idea.blurb} Re-ranked daily and backtested against the Nifty 50 on NextResearch.`,
+    description: `${got.idea.blurb} Re-ranked daily, with past performance against the Nifty 50 on NextResearch.`,
     alternates: { canonical: `/baskets/ideas/${id}` },
     ...shareMeta({ title: got.idea.title, line: "A rule-based stock basket, re-ranked daily.", path: `/baskets/ideas/${id}` }),
   };

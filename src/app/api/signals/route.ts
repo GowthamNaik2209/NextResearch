@@ -27,7 +27,7 @@ const fail = (status: number, error: string) => NextResponse.json({ error }, { s
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
-  if (!user) return fail(401, "Sign in to run signal backtests");
+  if (!user) return fail(401, "Sign in to use the strategy tester");
   const body = (await req.json().catch(() => null)) as { scope?: unknown; target?: unknown; ticker?: unknown; strategy?: unknown } | null;
   await ensureFinancials();
   const scope = isScope(body?.scope) ? body.scope : "stock";

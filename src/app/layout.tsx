@@ -72,10 +72,11 @@ export const metadata: Metadata = {
     "hospital stocks India",
     "capital market stocks India",
     "NSE BSE company research",
-    "stock basket backtest India",
+    "stock basket past performance India",
     "rule-based stock screens India",
     "FII DII flows today",
     "technical indicators backtest NSE",
+    "trading strategy tester NSE",
     "stock heatmap India",
   ],
   // No canonical here: every segment inherits this object, so a "/" here pointed 404s and pages
