@@ -151,9 +151,9 @@ function StockLinks({ stock }: { stock: IpoCardStock }) {
                 <Link
                   href={x.href}
                   title={`${x.name}: ${x.zone}`}
-                  className="tap-y flex max-w-full min-w-0 items-center rounded-2xl border border-accent px-2.5 py-1 text-[11.5px] font-medium leading-snug text-ink transition-colors hover:bg-accent/10"
+                  className="tap-y flex max-w-full min-w-0 items-center whitespace-nowrap rounded-full border border-accent px-2.5 py-1 text-[11.5px] font-medium text-ink transition-colors hover:bg-accent/10"
                 >
-                  <span className="line-clamp-2 break-words">
+                  <span className="min-w-0 truncate">
                     {x.name} <span className="text-ink-soft">· {x.zone}</span>
                   </span>
                 </Link>
