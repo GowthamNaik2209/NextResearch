@@ -1623,3 +1623,39 @@ test("isAbout tells the FMCG, retail and consumer-brand names apart from group s
     ["Radico Khaitan Q2 profit rises", "United Spirits", "UNITDSPR", false],
   ]);
 });
+
+test("isAbout: recent listings (Nov 2026) match their own headlines, not look-alikes or everyday words", () => {
+  const co = (name: string, ticker: string) => ({ name, ticker });
+  const cases: [string, { name: string; ticker: string }, boolean][] = [
+    ["Orient Cables shares jump after order win", co("Orient Cables (India)", "ORIENTCABL"), true],
+    ["Orient Electric Q2 results: profit rises", co("Orient Cables (India)", "ORIENTCABL"), false],
+    ["Bonfiglioli Transmissions Q3 profit up", co("Bonfiglioli Transmissions (India)", "BONFIG"), true],
+    ["Power transmissions capex set to rise", co("Bonfiglioli Transmissions (India)", "BONFIG"), false],
+    ["Snapdeal sales jump in festive season", co("AceVector (Snapdeal)", "ACEVECTOR"), true],
+    ["Whizdm Finance raises debt", co("Moneyview", "MONEYVIEW"), true],
+    ["EAAA shares rise on fund-raising news", co("EAAA India Alternatives (Edelweiss Alternatives)", "EDELALTS"), true],
+    ["Investors seek alternatives to fixed deposits", co("EAAA India Alternatives (Edelweiss Alternatives)", "EDELALTS"), false],
+    ["Aadhaar-based digital identity push gathers pace", co("Manipal Payment & Identity Solutions", "MPIMANIPAL"), false],
+    ["Fusion CX bags US contract", co("Fusion CX", "FUSIONCX"), true],
+    ["Fusion Finance Q2 loss narrows", co("Fusion CX", "FUSIONCX"), false],
+    ["Breakthrough in nuclear fusion research", co("Fusion CX", "FUSIONCX"), false],
+    ["Sahajanand Medical Technologies shares rally", co("Sahajanand Medical Technologies", "SMT"), true],
+    ["Dixon adds new SMT lines at Noida plant", co("Sahajanand Medical Technologies", "SMT"), false],
+    ["Hero Motors Q2 profit rises", co("Hero Motors", "HEROMOTORS"), true],
+    ["Hero Motors Q2 profit rises", co("Hero MotoCorp", "HEROMOTOCO"), false],
+    ["Tonbo shares jump after listing", co("Tonbo Imaging India", "TONBO"), true],
+    ["Thermal imaging demand rises in defence", co("Tonbo Imaging India", "TONBO"), false],
+    ["Elevate Campuses shares slip below IPO price", co("Elevate Campuses", "ELEVATE"), true],
+    ["Banks look to elevate digital lending", co("Elevate Campuses", "ELEVATE"), false],
+    ["Elevate Campuses shares slip below IPO price", co("Campus Activewear", "CAMPUS"), false],
+    ["Glass Wall Systems wins facade order", co("Glass Wall Systems (India)", "GLASSWALL"), true],
+    ["Wall Street rallies on rate-cut hopes", co("Glass Wall Systems (India)", "GLASSWALL"), false],
+    ["Glass wall collapses at Mumbai mall", co("Glass Wall Systems (India)", "GLASSWALL"), false],
+    ["Smart money view: banks look cheap", co("Moneyview", "MONEYVIEW"), false],
+    ["Moneyview shares rise after Q2", co("Moneyview", "MONEYVIEW"), true],
+    ["Kwality Wall's ice cream sales rise", co("Kwality Wall's (India)", "KWIL"), true],
+    ["HD Fire Protect shares gain", co("HD Fire Protect", "HDFIRE"), true],
+    ["Fire at factory protect workers", co("HD Fire Protect", "HDFIRE"), false],
+  ];
+  for (const [h, c, want] of cases) assert.equal(isAbout(h, c), want, `${c.ticker}: ${h}`);
+});

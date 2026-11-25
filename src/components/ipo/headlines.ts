@@ -25,7 +25,7 @@ export function issueTitle(d: IpoDeck) {
   if (freshCr && !ofsCr && !ofsShares) return `An all-fresh issue: every rupee raised goes into ${d.name}, none to selling shareholders`;
   if (!freshCr && (ofsCr || ofsShares)) return `A pure offer for sale: existing shareholders sell, and ${d.name} raises no new money`;
   if (freshCr && ofsCr && totalCr) return `${Math.round((freshCr / totalCr) * 100)}% of the ${fmtCr(totalCr)} issue is fresh capital; the rest lets existing investors sell down`;
-  if (freshCr) return `A ${fmtCr(freshCr)} fresh issue for growth, alongside an offer for sale by existing investors`;
+  if (freshCr) return `A ${fmtCr(freshCr)} fresh issue alongside an offer for sale by existing investors`;
   return `How the ${d.name} issue is structured and where it stands`;
 }
 
@@ -35,13 +35,16 @@ export function businessTitle(d: IpoDeck) {
   return `${+top.value.toFixed(1)}% of revenue comes from ${lcFirst(top.label)}`;
 }
 
+/** "grew 12% a year" / "fell 2% a year" / "held flat"; a rate that rounds to 0 reads as flat. */
+const moved = (cagr: number) => (Math.round(cagr) === 0 ? "held flat" : cagr > 0 ? `grew ${cagr.toFixed(0)}% a year` : `fell ${Math.abs(cagr).toFixed(0)}% a year`);
+
 export function financialsTitle(d: IpoDeck) {
   const g = revenueGrowth(d);
   const ys = fullYears(d);
   const last = ys[ys.length - 1];
   const first = ys[0];
   if (!g || !last) return `${d.name}'s reported financials`;
-  const growth = `Revenue grew ${g.cagr.toFixed(0)}% a year from ${g.a.label} to ${g.b.label}`;
+  const growth = `Revenue ${moved(g.cagr)} from ${g.a.label} to ${g.b.label}`;
   if (last.pat == null) return `${growth}; profit is not disclosed for every year`;
   if (last.pat > 0 && first.pat != null && first.pat <= 0) return `${growth} and the company turned profitable`;
   if (last.pat > 0) return `${growth}, with ${fmtCr(last.pat)} of profit in ${last.label}`;
@@ -81,13 +84,20 @@ export function risksTitle(d: IpoDeck) {
     : `${strengths} strengths; the risks are real but none is rated high`;
 }
 
+/** A part-year period label: "Q1 FY27", "H1 FY27", "9M FY26". */
+const STUB = /^(Q[1-4]|H[12]|[369]M)\b/i;
+
 // The operating KPI's move over the chart: a share or rate in percentage points, a count as a
 // multiple or a percentage change.
 export function kpiTitle(d: IpoDeck) {
-  const pts = d.kpi.points.filter((p) => !p.projected);
+  const all = d.kpi.points.filter((p) => !p.projected);
+  const full = all.filter((p) => !STUB.test(p.label));
+  const pts = full.length >= 2 ? full : all;
   const a = pts[0];
   const b = pts[pts.length - 1];
-  const name = capFirst(lcFirst(d.kpi.title));
+  // "US drug approvals (ANDAs), cumulative" reads as "Cumulative US drug approvals (ANDAs)".
+  const title = d.kpi.title.replace(/^(.*),\s*cumulative$/i, "cumulative $1");
+  const name = capFirst(lcFirst(title));
   if (!a || !b || a === b || a.value <= 0) return `${d.kpi.title}: the operating metric to watch`;
   const fmt = (v: number) => (+v.toFixed(1)).toLocaleString("en-IN");
   if (d.kpi.unit.includes("%")) return `${name} went from ${fmt(a.value)}% in ${a.label} to ${fmt(b.value)}% in ${b.label}`;
@@ -102,10 +112,15 @@ export function industryTitle(d: IpoDeck) {
   const g = growthLine(c.points);
   if (!g) return c.title;
   const fmt = (v: number) => (+v.toFixed(v < 100 ? 1 : 0)).toLocaleString("en-IN");
-  const year = (l: string) => l.replace(/(\d)[PE]$/, "$1");
-  const head = `${c.title} grew ${g.cagr.toFixed(0)}% a year from ${g.a.label} to ${year(g.b.label)}`;
+  // "FY30P", "FY31F", "FY30 goal" -> "FY30".
+  const year = (l: string) => l.replace(/(\d)\s*[PEF]$/, "$1").replace(/\s+(goal|target|est\.?)$/i, "");
+  const head = `${c.title} ${moved(g.cagr)} from ${g.a.label} to ${year(g.b.label)}`;
   // "Rs trillion" / "US$ bn" read as "₹62 trillion" / "US$80 bn"; other units follow the number.
   const m = c.unit.match(/^(Rs|₹|US\$)\s*(.*)$/);
-  const amount = m ? `${m[1] === "US$" ? "US$" : "₹"}${fmt(g.end?.value ?? 0)} ${m[2]}` : `${fmt(g.end?.value ?? 0)} ${c.unit}`;
-  return g.end ? `${head}, and is projected at ${amount} by ${year(g.end.label)}` : head;
+  // A word unit reads in lower case mid-sentence ("Million tonnes" -> "million tonnes"); "MW", "GW" stay.
+  const unit = c.unit.replace(/^[A-Z][a-z]/, (s) => s.toLowerCase());
+  const amount = m ? `${m[1] === "US$" ? "US$" : "₹"}${fmt(g.end?.value ?? 0)} ${m[2]}` : `${fmt(g.end?.value ?? 0)} ${unit}`;
+  // A goal is not a projection: "the goal is 1,500 million tonnes by FY30".
+  const goal = g.end && /\b(goal|target)\b/i.test(g.end.label);
+  return g.end ? `${head}, and ${goal ? "the goal is" : "is projected at"} ${amount} by ${year(g.end.label)}` : head;
 }

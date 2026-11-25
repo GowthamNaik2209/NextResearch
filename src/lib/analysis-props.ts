@@ -10,7 +10,9 @@ import { listIndustryBaskets } from "@/lib/baskets/industry";
 import { listSectors, companyLinkKey, companyLinkExposure, isSideLink, linkStrength, type SectorCompanyLink } from "@/lib/sector-content";
 import { buildSectorCards } from "@/lib/sector-content/stats";
 import { buildDeck, type Deck } from "@/lib/sector-content/reports";
-import { listIpoDecks, type IpoDeck } from "@/lib/ipo-content";
+import { listIpoDecks, type IpoDeck, type IpoNow } from "@/lib/ipo-content";
+import { parseDay } from "@/lib/ipo-content/status";
+import { companySlug, getCompanyPage, type CompanyAppearance } from "@/lib/sector-content/companies";
 import { memoByFinancials } from "@/lib/financials/store";
 import type { ChartPickerIndustry } from "@/components/stock/StockChartPopup";
 
@@ -31,7 +33,49 @@ export type DeckCard = Pick<Deck, "slug" | "name" | "icon" | "category"> & {
 /** What an IPO card shows; the deck itself loads when the card is opened. */
 export type IpoCard = Pick<IpoDeck, "slug" | "name" | "icon" | "sectorLabel" | "tagline" | "status"> & {
   issue: Pick<IpoDeck["issue"], "totalCr" | "freshCr" | "ofsCr" | "valuationCr">;
+  /** Bidding is over: closed and awaiting listing, or listed. Such cards sit under "Recently closed". */
+  closed: boolean;
+  /** When a closed issue lists (or listed), else when it closed: newest first under "Recently closed". */
+  closedAt: number | null;
+  /** A listed deck's company as a stock: today's figures from the company table and where it sits on the platform. */
+  stock: IpoCardStock | null;
 };
+
+export type IpoCardStock = Pick<IpoNow, "ticker" | "price" | "mcapCr" | "pe" | "asOf" | "vsIssuePct" | "vsBasis"> & {
+  /** Latest full year a loss: P/E reads "n/m (loss)" rather than a bare dash. */
+  lossMaking: boolean;
+  /** /company/<slug>, null while the company is in no industry yet. */
+  companySlug: string | null;
+  /** Each industry or policy it appears in, with its strongest layer there, linking into that map. */
+  industries: { slug: string; name: string; zone: string; href: string }[];
+};
+
+// Closed but not yet listed: the timeline's "Issue closes" date has passed (liveIpoStatus labels it "Closed").
+const isClosed = (d: IpoDeck) => d.status.stage === "listed" || /^closed\b/i.test(d.status.label);
+const eventDay = (d: IpoDeck, re: RegExp) => d.timeline.map((t) => (re.test(t.event) ? parseDay(t.date) : null)).find((t) => t != null) ?? null;
+const closedAt = (d: IpoDeck) => (isClosed(d) ? (eventDay(d, /^(listing|listed)\b/i) ?? eventDay(d, /^issue closes/i)) : null);
+
+function cardStock(d: IpoDeck): IpoCardStock | null {
+  const n = d.now;
+  if (!n) return null;
+  const page = getCompanyPage(companySlug(n.ticker));
+  // One row per industry, at the company's strongest (then first) layer there; side links (lenders beside a chain) last.
+  const best = new Map<string, CompanyAppearance>();
+  for (const a of page?.appearances ?? []) {
+    const cur = best.get(a.sectorSlug);
+    if (!cur || (cur.side && !a.side) || (cur.side === a.side && a.weight > cur.weight)) best.set(a.sectorSlug, a);
+  }
+  const industries = [...best.values()]
+    .sort((a, b) => Number(a.side) - Number(b.side) || b.weight - a.weight)
+    .map((a) => ({
+      slug: a.sectorSlug,
+      name: a.sectorName,
+      zone: a.zoneLabel,
+      href: `/sector/${a.sectorSlug}/explore?zone=${encodeURIComponent(a.zoneId)}&company=${encodeURIComponent(a.companyKey)}`,
+    }));
+  const np = n.supplier?.f?.np?.filter((v): v is number => v != null).at(-1);
+  return { ticker: n.ticker, price: n.price, mcapCr: n.mcapCr, pe: n.pe, asOf: n.asOf, vsIssuePct: n.vsIssuePct, vsBasis: n.vsBasis, lossMaking: np != null && np < 0, companySlug: page?.slug ?? null, industries };
+}
 
 const deckCards = memoByFinancials((): DeckCard[] =>
   listSectors()
@@ -49,14 +93,17 @@ const deckCards = memoByFinancials((): DeckCard[] =>
 );
 
 export function ipoCards(): IpoCard[] {
-  return listIpoDecks().map(({ slug, name, icon, sectorLabel, tagline, status, issue }) => ({
-    slug,
-    name,
-    icon,
-    sectorLabel,
-    tagline,
-    status,
-    issue: { totalCr: issue.totalCr, freshCr: issue.freshCr, ofsCr: issue.ofsCr, valuationCr: issue.valuationCr },
+  return listIpoDecks().map((d) => ({
+    slug: d.slug,
+    name: d.name,
+    icon: d.icon,
+    sectorLabel: d.sectorLabel,
+    tagline: d.tagline,
+    status: d.status,
+    issue: { totalCr: d.issue.totalCr, freshCr: d.issue.freshCr, ofsCr: d.issue.ofsCr, valuationCr: d.issue.valuationCr },
+    closed: isClosed(d),
+    closedAt: closedAt(d),
+    stock: cardStock(d),
   }));
 }
 

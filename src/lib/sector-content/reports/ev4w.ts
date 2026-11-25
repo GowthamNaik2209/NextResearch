@@ -4,7 +4,7 @@ export const ev4w: SectorReport = {
   slug: "ev4w",
   title: "India Electric Passenger Vehicles",
   subtitle: "From import-heavy assembly to a localised EV component stack",
-  asOf: "Oct 2026",
+  asOf: "Nov 2026",
 
   stance: {
     label: "Structural tailwind",
@@ -13,7 +13,7 @@ export const ev4w: SectorReport = {
   },
   keyStats: [
     { label: "e-PV sales, FY26", value: "~2.0 lakh", sub: "units, approx. (Vahan)" },
-    { label: "EV share of car sales", value: "~4.5%", sub: "up from ~1% in FY23" },
+    { label: "EV share of car sales, FY26", value: "~4.3%", sub: "up from 2.7% in FY25 and ~1% in FY23" },
     { label: "Battery share of EV cost", value: "35-40%", sub: "largest single BOM item" },
     { label: "Cells imported", value: ">90%", sub: "domestic giga-plants ramping" },
   ],
@@ -98,7 +98,7 @@ export const ev4w: SectorReport = {
       ],
     },
     snapshot: [
-      { label: "e-PV volume growth, FY26", value: "~85%", tone: "pos" },
+      { label: "e-PV volume growth, FY26", value: "~84%", tone: "pos" },
       { label: "Public charging points", value: "~30,000", tone: "neutral" },
       { label: "Li-ion pack cost fall, 2020-25", value: "~40%", tone: "pos" },
       { label: "GST on EVs vs small ICE", value: "5% vs 18%", tone: "neutral" },
@@ -112,7 +112,7 @@ export const ev4w: SectorReport = {
     { stage: "Cells & battery packs", zoneIds: ["battery", "bms"], margin: "8-12% EBITDA", moat: "high", note: "Largest cost pool; scale and chemistry know-how decide winners." },
     { stage: "Drivetrain & electronics", zoneIds: ["motor", "power_elec", "thermal"], margin: "15-25% EBITDA", moat: "medium", note: "Motors, inverters, e-axles - where listed suppliers already earn the best margins." },
     { stage: "Body, harness & precision parts", zoneIds: ["harness", "chassis", "cluster"], margin: "10-15% EBITDA", moat: "medium", note: "Incumbents retool existing lines; higher content per EV." },
-    { stage: "Vehicle OEMs", zoneIds: ["oem"], margin: "Low/negative on EVs", moat: "medium", note: "EV programmes still sub-scale; profitability tied to localisation." },
+    { stage: "Vehicle OEMs", zoneIds: ["oem"], margin: "Low/negative on EVs", moat: "medium", note: "Passenger-EV programmes are still sub-scale; e-bus makers (Olectra, JBM) earn on contracted state fleet orders. Profitability is tied to localisation." },
     { stage: "Charging & energy", zoneIds: ["charging"], margin: "Early, utilisation-led", moat: "low", note: "Asset-heavy; returns depend on fleet growth and site utilisation." },
   ],
 
@@ -123,13 +123,13 @@ export const ev4w: SectorReport = {
     { title: "Production-linked incentives", metric: "₹44,000 Cr+", body: "PLI-Auto (₹25,938 Cr) and PLI-ACC (₹18,100 Cr) reward domestic value addition rather than vehicle sales." },
   ],
   mix: {
-    title: "e-PV market share by OEM, FY26 (approx.)",
-    source: "Vahan registrations",
+    title: "e-PV market share by OEM, FY26 (198,224 units)",
+    source: "Autocar Professional, FY26 electric car sales; Others derived as the remainder",
     slices: [
-      { label: "Tata Motors", value: 40 },
-      { label: "JSW MG", value: 29 },
-      { label: "Mahindra", value: 19 },
-      { label: "Others", value: 12 },
+      { label: "Tata Motors", value: 39.2 },
+      { label: "JSW MG", value: 26.4 },
+      { label: "Mahindra", value: 21.2 },
+      { label: "Others", value: 13.2 },
     ],
   },
 
@@ -198,5 +198,6 @@ export const ev4w: SectorReport = {
     { title: "Automotive & Assembly insights", source: "McKinsey & Company", url: "https://www.mckinsey.com/industries/automotive-and-assembly/our-insights" },
     { title: "PM E-DRIVE scheme", source: "Ministry of Heavy Industries", url: "https://heavyindustries.gov.in/" },
     { title: "Electric vehicles topic hub", source: "International Energy Agency", url: "https://www.iea.org/topics/electric-vehicles" },
+    { title: "Electric car sales jump 84% in FY26; Tata, MG maintain lead", source: "Autocar Professional", url: "https://www.autocarpro.in/news/electric-car-sales-jump-84-in-fy26-tata-mg-maintain-lead-131930", year: "2026" },
   ],
 };

@@ -7,24 +7,24 @@ export const nse: IpoReport = {
   icon: "NSE",
   sectorLabel: "Stock exchange & market infrastructure",
   tagline: "India's dominant exchange, now listed on BSE after a ₹22,563 Cr pure OFS",
-  asOf: "Oct 2026",
+  asOf: "Nov 2026",
   ticker: "NSE",
 
   status: {
     stage: "listed",
     label: "Listed 24 Sep",
     detail:
-      "The IPO is complete: priced at ₹1,785 (top of the ₹1,700-1,785 band), subscribed 5.71x, and listed on BSE on 24 Sep 2026 at ₹1,800; the size was cut from ~14.89 crore shares in the DRHP (reported as ~₹30,000 Cr) to 12.64 crore shares (₹22,563 Cr) in the RHP. Next watch-points are the anchor lock-in expiries on 21 Oct and 20 Dec 2026.",
+      "The IPO is complete: priced at ₹1,785 (top of the ₹1,700-1,785 band), subscribed 5.71x, and listed on BSE on 24 Sep 2026 at ₹1,800; the size was cut from ~14.89 crore shares in the DRHP (reported as ~₹30,000 Cr) to 12.64 crore shares (₹22,563 Cr) in the RHP. The lock-in on half the anchor shares ended on 21 Oct 2026; the next watch-point is the release of the rest on 20 Dec 2026.",
   },
   timeline: [
     { date: "30 Jan 2026", event: "SEBI no-objection for the IPO", done: true },
     { date: "17 Jun 2026", event: "DRHP filed: OFS of up to 14.89 crore shares", done: true },
-    { date: "4 Sep 2026", event: "SEBI observation letter reported (one report says 21 Aug)", done: true },
     { date: "11 Sep 2026", event: "RHP on SEBI site; 12.64 crore shares, band ₹1,700-1,785", done: true },
     { date: "16 Sep 2026", event: "Anchor book: ₹6,746 Cr", done: true },
     { date: "17-21 Sep 2026", event: "Subscription: 5.71x overall, QIB 12.68x", done: true },
     { date: "24 Sep 2026", event: "Listed on BSE at ₹1,800 (+0.8%)", done: true },
-    { date: "21 Oct 2026", event: "Lock-in ends for 50% of anchor shares", done: false },
+    { date: "21 Oct 2026", event: "Lock-in ends for 50% of anchor shares", done: true },
+    { date: "20 Dec 2026", event: "Lock-in ends for the remaining anchor shares", done: false },
   ],
 
   issue: {
@@ -214,7 +214,7 @@ export const nse: IpoReport = {
     { risk: "Loss of options share to BSE (96.9% in FY24 to 68.5% in Q1 FY27)", mitigant: "NSE still holds over two-thirds of premium and near-total futures share", severity: "high" },
     { risk: "Unresolved co-location and dark-fibre cases; proposed settlement of ~₹1,491 Cr and pending Supreme Court appeals", mitigant: "₹1,391 Cr already provided in FY26; settlement reportedly approved internally by SEBI", severity: "medium" },
     { risk: "Technology outages or cyber incidents at a systemically important exchange", mitigant: "Large tech spend and regulator-mandated resilience standards", severity: "medium" },
-    { risk: "Share supply: anchor lock-ins end 21 Oct and 20 Dec 2026, and pre-IPO holders' 6-month lock-in ends in Mar 2027", mitigant: "Many large holders (e.g. LIC) are long-term institutions", severity: "low" },
+    { risk: "Share supply: the remaining anchor lock-in ends 20 Dec 2026 (half was released on 21 Oct), and pre-IPO holders' 6-month lock-in ends in Mar 2027", mitigant: "Many large holders (e.g. LIC) are long-term institutions", severity: "low" },
   ],
 
   outlook: {

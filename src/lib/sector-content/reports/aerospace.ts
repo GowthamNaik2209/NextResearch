@@ -4,7 +4,7 @@ export const aerospace: SectorReport = {
   slug: "aerospace",
   title: "India Aerospace Components & MRO",
   subtitle: "From build-to-print subcontracting to qualified engine, structures and MRO capacity",
-  asOf: "Oct 2026",
+  asOf: "Nov 2026",
 
   stance: {
     label: "Structural tailwind",
@@ -34,6 +34,13 @@ export const aerospace: SectorReport = {
 
   developments: [
     {
+      date: "Nov 2026",
+      title: "First Tejas Mk1A squadron due by Mar 2027",
+      body: "Late GE F404 engine deliveries pushed Tejas Mk1A well past its original Feb 2024 delivery deadline. The first jets are expected to be handed over in early 2027, and on 16 Nov 2026 the IAF chief said the first Mk1A squadron will be formed by end-March 2027 (ThePrint).",
+      impact: "neutral",
+      tag: "Defence",
+    },
+    {
       date: "Nov 2025",
       title: "Safran opens LEAP engine MRO in Hyderabad",
       body: "Safran's large LEAP engine shop, inaugurated by the PM, is the first OEM-owned engine MRO in India and targets IndiGo and Air India's A320neo/737 MAX fleets.",
@@ -53,13 +60,6 @@ export const aerospace: SectorReport = {
       body: "The fifth-generation fighter programme opened to private-sector bids, alone or with partners, signalling a larger role for private primes beyond HAL.",
       impact: "pos",
       tag: "Policy",
-    },
-    {
-      date: "2025",
-      title: "GE F404 engine deliveries lag",
-      body: "Supply-chain delays at GE slowed engine deliveries for Tejas Mk1A, pushing HAL's induction schedule out by over a year.",
-      impact: "neg",
-      tag: "Supply chain",
     },
     {
       date: "Oct 2024",
@@ -93,7 +93,7 @@ export const aerospace: SectorReport = {
     },
     snapshot: [
       { label: "Defence production CAGR, FY20-25", value: "~14%", tone: "pos" },
-      { label: "Private share of defence output", value: "~23%", tone: "neutral" },
+      { label: "Private share of defence output", value: "~24% (FY26)", tone: "neutral" },
       { label: "Indian MRO market", value: "~$2-2.5bn", tone: "neutral" },
       { label: "GST on MRO services", value: "5%", tone: "pos" },
       { label: "Aero-engine localisation", value: "Low", tone: "neg" },
@@ -193,5 +193,6 @@ export const aerospace: SectorReport = {
     { title: "Aerospace & defense industry insights", source: "Deloitte Insights", url: "https://www2.deloitte.com/us/en/insights/industry/aerospace-defense.html" },
     { title: "Industry reports and policy", source: "Society of Indian Defence Manufacturers", url: "https://www.sidm.in/" },
     { title: "Airline industry economics", source: "IATA", url: "https://www.iata.org/en/publications/economics/" },
+    { title: "First Tejas Mk1A squadron to be formed by end of March 2027, says IAF chief", source: "ThePrint", url: "https://theprint.in/defence/first-tejas-mk1a-squadron-to-be-formed-by-end-of-march-2027-says-iaf-chief-dixit/3099856/", year: "2026" },
   ],
 };

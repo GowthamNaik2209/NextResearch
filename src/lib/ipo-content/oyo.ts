@@ -1,7 +1,9 @@
 import type { IpoReport } from "./types";
 
 // PRISM (formerly Oravel Stays, OYO's parent): confidential pre-filing Dec 2025, SEBI observations
-// Jun 2026, UDRHP-I filed 30 Jun 2026. No RHP, price band or dates as of mid-Oct 2026.
+// Jun 2026, UDRHP-I filed 30 Jun 2026; an addendum dated 21 Oct 2026 halved the fresh issue to
+// ₹3,350 Cr and dropped the pre-IPO placement. No RHP, price band or dates as of late Nov 2026;
+// ET (23 Nov 2026) reports a Jan-Mar 2027 launch at ₹20,000-22,000 Cr, not a company figure.
 // FY23-FY25 and 9M FY26 figures are from the UDRHP-I (as reported); FY26 is from the company's
 // annual report as reported by Inc42 (Aug 2026), not yet from an offer document.
 export const oyo: IpoReport = {
@@ -10,14 +12,14 @@ export const oyo: IpoReport = {
   legalName: "PRISM Limited (formerly Oravel Stays Limited)",
   icon: "OYO",
   sectorLabel: "Travel tech & hospitality platforms",
-  tagline: "Asset-light hotel and homes platform, now profitable, raising ₹6,650 Cr to cut debt",
-  asOf: "Oct 2026",
+  tagline: "Asset-light hotel and homes platform, now profitable, raising ₹3,350 Cr to cut debt",
+  asOf: "Nov 2026",
 
   status: {
     stage: "approved",
     label: "SEBI approved",
     detail:
-      "SEBI cleared the confidential filing in early June 2026 (reported 2 Jun; one report cites a 5 Jun observation letter) and the UDRHP-I was filed on 30 Jun; no RHP, price band or issue dates had been announced by mid-Oct 2026, after an August-September window floated in some reports passed.",
+      "SEBI cleared the confidential filing in early June 2026 (reported 2 Jun; one report cites a 5 Jun observation letter) and the UDRHP-I was filed on 30 Jun. A 21 Oct 2026 addendum halved the fresh issue to ₹3,350 Cr and dropped the pre-IPO placement. No RHP, price band or issue dates have been announced; The Economic Times reported on 23 Nov 2026 that the issue may launch in Jan-Mar 2027 at a ₹20,000-22,000 Cr valuation, which the company has not confirmed.",
   },
   timeline: [
     { date: "20 Dec 2025", event: "Shareholders approve ₹6,650 Cr fresh issue", done: true },
@@ -26,18 +28,19 @@ export const oyo: IpoReport = {
     { date: "30 Jun 2026", event: "UDRHP-I filed publicly; 21-day comment period", done: true },
     { date: "Jul 2026", event: "Institutional roadshow begins", done: true },
     { date: "Aug 2026", event: "FY26 results: PAT ₹994 Cr in annual report", done: true },
-    { date: "Pending", event: "RHP, price band and issue dates", done: false },
+    { date: "21 Oct 2026", event: "Addendum: fresh issue halved to ₹3,350 Cr; pre-IPO placement dropped", done: true },
+    { date: "Jan-Mar 2027", event: "RHP, price band and issue dates (launch window reported by ET, unconfirmed)", done: false },
   ],
 
   issue: {
-    size: "Up to ₹6,650 Cr (fresh issue)",
-    totalCr: 6650,
-    freshCr: 6650,
+    size: "Up to ₹3,350 Cr (fresh issue; cut from ₹6,650 Cr)",
+    totalCr: 3350,
+    freshCr: 3350,
     ofsCr: 0,
     priceBand: null,
     lotSize: null,
     faceValue: null,
-    valuation: "Reported US$7-8bn expected valuation (sources cited by Business Standard and Entrackr), ~₹66,500-76,000 Cr at ~₹95/US$; not a company figure",
+    valuation: "Reported ₹20,000-22,000 Cr (~US$2.1-2.3bn) expected valuation, roughly flat on its last private round (The Economic Times, 23 Nov 2026); not a company figure. Earlier reports of US$7-8bn (Dec 2025) are no longer current",
     valuationCr: null,
     reservation: null,
     exchanges: "NSE, BSE",
@@ -60,7 +63,7 @@ export const oyo: IpoReport = {
     line: "The business is now profitable and far more global, but profit quality (tax credits), US concentration and legal overhangs need weighing once a price band is set.",
   },
   keyStats: [
-    { label: "Fresh issue", value: "₹6,650 Cr", sub: "no OFS; up to ₹1,330 Cr pre-IPO placement" },
+    { label: "Fresh issue", value: "₹3,350 Cr", sub: "halved in Oct 2026; no OFS, no pre-IPO placement" },
     { label: "Revenue, FY26", value: "₹9,358 Cr", sub: "+50% YoY (annual report, via Inc42)" },
     { label: "Gross booking value, FY26", value: "₹30,683 Cr", sub: "+88.5%, G6 full year" },
     { label: "Global storefronts", value: "2.94 lakh", sub: "Dec 2025 (UDRHP-I)" },
@@ -76,7 +79,7 @@ export const oyo: IpoReport = {
     },
     {
       title: "IPO money goes mainly to debt",
-      body: "₹4,987.5 Cr of the ₹6,650 Cr is earmarked to repay borrowings at Oravel Stays Singapore. Lower interest (FY25 finance cost ~₹959 Cr) is the most direct route to higher reported profit.",
+      body: "₹2,512.5 Cr of the ₹3,350 Cr (75%) is earmarked to repay borrowings at Oravel Stays Singapore, about half the ₹4,987.5 Cr planned before the Oct 2026 cut. Lower interest (FY25 finance cost ~₹959 Cr) is the most direct route to higher reported profit.",
     },
   ],
 
@@ -160,11 +163,11 @@ export const oyo: IpoReport = {
   ],
 
   useOfProceeds: [
-    { label: "Repay or prepay borrowings of Oravel Stays Singapore", valueCr: 4987.5 },
-    { label: "General corporate purposes (balance)", valueCr: 1662.5 },
+    { label: "Repay or prepay borrowings of Oravel Stays Singapore", valueCr: 2512.5 },
+    { label: "General corporate purposes (balance)", valueCr: 837.5 },
   ],
   proceedsNote:
-    "The issue is entirely fresh, so all money goes to the company. A pre-IPO placement of up to ₹1,330 Cr, if done, would reduce the fresh issue by the same amount. General corporate purposes are shown as the balance; the UDRHP-I mentions R&D, possible acquisitions and working capital.",
+    "The issue is entirely fresh, so all money goes to the company. The 21 Oct 2026 addendum cut it from ₹6,650 Cr to ₹3,350 Cr, cut debt repayment from ₹4,987.5 Cr to ₹2,512.5 Cr (still 75% of the issue) and dropped the planned pre-IPO placement of up to ₹1,330 Cr. General corporate purposes are shown as the balance; the UDRHP-I mentions R&D, possible acquisitions and working capital.",
   shareholding: [
     { holder: "SoftBank (SVF India Holdings)", pct: 40.04 },
     { holder: "Ritesh Agarwal (direct + RA Hospitality)", pct: 26.71 },
@@ -182,7 +185,7 @@ export const oyo: IpoReport = {
     { name: "Yatra Online", ticker: "YATRA", note: "Online travel agency; closest listed platform peer in India" },
   ],
   valuationNote:
-    "At the reported US$7-8bn (~₹66,500-76,000 Cr at ~₹95/US$; the rupee closed at 94.92 on 16 Oct 2026), PRISM would be priced at roughly 7-8x FY26 revenue and ~67-76x FY26 reported PAT (higher excluding the tax credit): below Indian Hotels on sales but above every listed hotel owner on P/E (see the table). Peers are asset-heavy hotel owners, so they are only a partial comparison.",
+    "At the reported ₹20,000-22,000 Cr (ET, 23 Nov 2026; not a company figure, and not stated as pre- or post-issue), PRISM would be priced at about 2.1-2.4x FY26 revenue of ₹9,358 Cr and ~20-22x FY26 reported PAT of ₹994 Cr. Excluding the ₹595-678 Cr deferred-tax credit, the multiple of profit (P/E) would be ~50-70x. Compare these multiples with the listed hotel owners in the peer table below; they own their hotels, so they are only a partial comparison.",
 
   strengths: [
     { title: "Global scale with an asset-light model", body: "About 2.94 lakh storefronts in 35+ countries without owning real estate, so growth needs little capital beyond technology and sales." },
@@ -191,7 +194,7 @@ export const oyo: IpoReport = {
     { title: "India cost base, Western prices", body: "About 76% of employees are in India while most revenue is earned in the US and Europe, which supports operating leverage." },
   ],
   risks: [
-    { risk: "Profit quality: FY25 and FY26 PAT were lifted by large deferred-tax credits, and interest costs remain heavy.", mitigant: "IPO proceeds repay ~₹4,988 Cr of debt; EBITDA more than doubled in FY26.", severity: "high" },
+    { risk: "Profit quality: FY25 and FY26 PAT were lifted by large deferred-tax credits, and interest costs remain heavy.", mitigant: "IPO proceeds repay ~₹2,513 Cr of debt (halved with the Oct 2026 issue cut); EBITDA more than doubled in FY26.", severity: "high" },
     { risk: "US concentration through G6, including human-trafficking lawsuits against motel operators.", mitigant: "G6 is franchise-led; homes and India hotels diversify bookings.", severity: "medium" },
     { risk: "Zostel dispute could force PRISM to transfer up to ~7% of its shares.", mitigant: "Matter is still in courts; disclosed as a contingent risk.", severity: "medium" },
     { risk: "Possible CCI antitrust penalty in India and a tax dispute involving SoftBank.", mitigant: "Disclosed in the offer document; outcomes not yet determined.", severity: "medium" },
@@ -199,9 +202,9 @@ export const oyo: IpoReport = {
   ],
 
   outlook: {
-    bull: "Debt repayment and G6 margin gains push FY27 operating profit well above FY26, premium India hotels keep growing 30%+, and the market values PRISM as a global hospitality platform.",
-    base: "The IPO prices near the reported US$7-8bn, GBV growth slows to ~20% as G6 laps its first full year, and reported profit rises mainly from lower interest.",
-    bear: "US travel softens, litigation or the Zostel matter dents equity, and without tax credits earnings look thin for the valuation, delaying the issue again or forcing a lower price.",
+    bull: "Debt repayment and G6 margin gains push FY27 operating profit well above FY26, premium India hotels keep growing 30%+, and the market re-rates PRISM above the reported ₹20,000-22,000 Cr as a global hospitality platform.",
+    base: "The IPO launches in Jan-Mar 2027 near the reported ₹20,000-22,000 Cr, GBV growth slows to ~20% as G6 laps its first full year, and reported profit rises mainly from lower interest, though the smaller issue retires less debt.",
+    bear: "US travel softens, litigation or the Zostel matter dents equity, and without tax credits earnings look thin even at ₹20,000-22,000 Cr, delaying the issue again or forcing a price below the reported range.",
   },
 
   sources: [
@@ -211,7 +214,7 @@ export const oyo: IpoReport = {
     { title: "OYO parent PRISM receives SEBI approval for IPO", source: "Entrackr", url: "https://entrackr.com/news/oyo-parent-prism-receives-sebi-approval-for-ipo-11900579", year: "2026" },
     { title: "OYO parent PRISM's FY26 profit rises 4x to Rs 994 Cr", source: "Inc42", url: "https://inc42.com/buzz/oyo-parent-prisms-fy26-profit-skyrockets-4x-yoy-to-%e2%82%b9994-cr/", year: "2026" },
     { title: "OYO's third stab at IPO", source: "Inc42", url: "https://inc42.com/buzz/oyos-third-stab-at-ipo-funding-slips-in-h1-2026-more/", year: "2026" },
-    { title: "OYO parent Prism IPO gets SEBI nod; valuation cut", source: "NiftyTrader", url: "https://www.niftytrader.in/markets/oyo-parent-prism-ipo-gets-sebi-nod-6650-cr/", year: "2026" },
-    { title: "Indian Hotels share price and ratios", source: "Screener.in", url: "https://www.screener.in/company/INDHOTEL/consolidated/", year: "2026" },
+    { title: "PRISM (OYO) IPO: Oct 2026 addendum, issue size, share count and valuation", source: "Priveq (reading the 21 Oct 2026 addendum)", url: "https://priveq.in/blog/prism-oyo-ipo-drhp-decode-issue-share-count-and-valuation", year: "2026" },
+    { title: "OYO may launch IPO in Jan-Mar quarter at flat valuation: report", source: "Inshorts (The Economic Times report, 23 Nov 2026)", url: "https://inshorts.com/en/news/oyo-may-launch-ipo-in-jan-mar-quarter-at-flat-valuation--report-1795433494782", year: "2026" },
   ],
 };

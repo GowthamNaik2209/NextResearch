@@ -81,7 +81,7 @@ test("workbook: every sheet, projections with picks and the left-out stock", () 
     projection: { settings: { h: 1, scenario: "base" }, on: true, sim: null, vol: 0.2, dates: ["2026-10-23", "2026-10-30"], path: [0, 1] },
     disclaimer: "Not advice.",
   });
-  assert.deepEqual(sheets.map((s) => s.name), ["Overview", "Stocks", "Backtest stats", "Backtest series", "Projection", "Projection path", "Method"]);
+  assert.deepEqual(sheets.map((s) => s.name), ["Overview", "Stocks", "Performance stats", "Performance series", "Projection", "Projection path", "Method"]);
   const stocksSheet = sheets[1].rows;
   const head = stocksSheet[0];
   const col = (name: string) => head.indexOf(name);
@@ -102,7 +102,7 @@ test("workbook: every sheet, projections with picks and the left-out stock", () 
   // The method sheet carries the market inputs and their dates.
   const method = sheets[6].rows.map((r) => r[0]).join("\n");
   assert.match(method, /RBI policy repo rate, 5\.50% \(7 Oct 2026\)/);
-  assert.match(method, /7\.08% \(Jan 2026\)/);
+  assert.match(method, /6\.92% \(Jul 2026\)/);
   // Your picks: A and C, C left out, so A alone: 20%.
   const picksAt = sheets[4].rows.findIndex((r) => r[0] === "Your 2 picks");
   assert.equal(sheets[4].rows[picksAt + 1][2], 20);

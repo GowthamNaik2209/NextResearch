@@ -12,7 +12,7 @@ import { ASOF, co } from "./shared";
  headerSub: "India's medicine value chain as one pharma campus - from key starting materials and APIs through plant lines and sterile suites to the branded medicines, US generics and pharmacies that sell them",
  whyNow: [
   "US generics profits are past their peak, as the one-off gains from generic Revlimid fade.",
-  "US tariffs on generics are 0% until Aug 2028, then 100%, then 200% for companies without US plants.",
+  "Announced US tariffs on generics are 0% through Jul 2028, then 100% from Aug 2028 and 200% from Aug 2029 for companies without US plants.",
   "India's branded market grows ~10% a year; semaglutide went generic here in March 2026.",
   "The BIOSECURE Act (Dec 2025) is moving Western biotech work away from Chinese CDMOs.",
   "Sun Pharma's US$11.75bn Organon deal shows leaders buying into innovative medicines.",
@@ -80,7 +80,7 @@ import { ASOF, co } from "./shared";
  {id:"generics", color:"#3D5A80", label:"Generics (US & export)", layer:1, pos:PHARMA_ANCHORS.generics.pos, side:PHARMA_ANCHORS.generics.side, desc:"Off-patent oral solids and complex generics (inhalers, long-acting, peptides) made in USFDA-approved plants and sold into the US, Europe and emerging markets.",
  domainId:"global_generics", displayOrder:4, dataStatus:"demo",
  roleInSystem:"Files ANDAs, challenges patents (Para IV) and manufactures generic tablets, capsules and complex dosage forms at scale in USFDA-inspected plants, selling to US wholesalers and pharmacy chains and to European and emerging-market buyers.",
- whyItMatters:"India supplies roughly four in ten generic prescriptions filled in the US, and the US is about a third of India's ~US$30bn pharma exports. US generics earnings drive sentiment for the large caps - and are now exposed to two shocks at once: the gRevlimid exclusivity tail ended in Jan 2026, and the US has set a generic-tariff timeline (0% to Jul 2028, 100% then 200%) for companies that do not build US capacity.",
+ whyItMatters:"India supplies roughly four in ten generic prescriptions filled in the US, and the US is about a third of India's ~US$30bn pharma exports. US generics earnings drive sentiment for the large caps - and are now exposed to two shocks at once: the gRevlimid exclusivity tail ended in Jan 2026, and the US has announced a generic-tariff timeline (0% through Jul 2028, then 100% from Aug 2028 and 200% from Aug 2029) for companies that do not build US capacity.",
  valuePoolDescription:"Plain oral-solid generics face 5-10% annual US price erosion and are low-margin; profit concentrates in limited-competition products - first-to-file 180-day exclusivities, complex generics (inhalers, injectables, peptides like gLiraglutide/gSemaglutide) and drug-shortage opportunities. When one big product ages out (gRevlimid, gSpiriva, gMyrbetriq), earnings can drop sharply.",
  bottlenecks:["USFDA facility status gates approvals: an OAI or warning letter freezes new launches from that plant", "Consolidated US buyers (three purchasing groups buy most generics) hold pricing power", "Complex generics need device, clinical-endpoint and bioequivalence capabilities few companies have"],
  keyDrivers:["Complex-generic and first-to-file launch pipeline", "US drug shortages favouring reliable Indian suppliers", "GLP-1 / semaglutide patent expiries in Canada, Brazil, India and other markets from 2026", "Emerging-market and European expansion to diversify from the US"],

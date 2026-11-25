@@ -99,7 +99,7 @@ export function ProjectionStats({
     }]),
     { label: "Chance of loss", ...pLoss, sub: "at the end, simulated", help: "Share of the simulated paths (around the Base case, whichever case is chosen) that end below today's value." },
     { label: "10% fall", ...pFall, sub: "chance, at some point", help: "Share of the simulated paths (around the Base case) that fall 10% or more from a high at some point." },
-    { label: "Volatility", ...volCell, sub: "past year, annualised", help: `How much the ${it} swung over the past year${single ? "" : " (its 1-year backtest)"}, scaled to a year. The simulated paths swing by this much.` },
+    { label: "Volatility", ...volCell, sub: "past year, annualised", help: `How much the ${it} swung over the past year${single ? "" : " (its past year's performance)"}, scaled to a year. The simulated paths swing by this much.` },
     { label: "Max drawdown", ...ddT, sub: "typical path", cls: sim && sim.maxDdTypical < 0 ? "text-danger" : "text-ink-soft", help: "Deepest fall from a high on the typical simulated path (the median of the paths' worst falls), around the Base case." },
     { label: "Bad drawdown", ...ddB, sub: "1 in 10 paths", cls: sim && sim.maxDdBad < 0 ? "text-danger" : "text-ink-soft", help: "Deepest fall from a high that 1 in 10 simulated paths reach or pass." },
     { label: "Return / risk", ...rr, sub: "a year ÷ volatility", help: "Projected return a year divided by the past year's volatility. Higher is better." },

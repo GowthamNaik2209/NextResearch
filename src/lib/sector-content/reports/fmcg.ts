@@ -24,7 +24,7 @@ export const fmcg: SectorReport = {
     },
     {
       title: "Costs come from crude, palm, tea and milk",
-      body: "With the Gulf shut since Mar 2026, crude-linked packaging (PET, laminates) and LAB for detergents cost more, palm oil is firm, tea needed 8-10% price rises and milk rose ₹2-4 a litre in Nov 2026. Brands selling ₹5-10 packs pass costs through grammage and calibrated price rises with a lag, so EBITDA margins narrowed at HUL, Dabur, Colgate and Britannia even as sales grew. Marico, buying copra far below its peak, was the exception.",
+      body: "With Gulf shipping severely disrupted since Mar 2026, crude-linked packaging (PET, laminates) and LAB for detergents cost more, palm oil is firm, tea needed 8-10% price rises and milk rose ₹2-4 a litre in Nov 2026. Brands selling ₹5-10 packs pass costs through grammage and calibrated price rises with a lag, so EBITDA margins narrowed at HUL, Dabur, Colgate and Britannia even as sales grew. Marico, buying copra far below its peak, was the exception.",
     },
     {
       title: "Policy runs the farm and tobacco ends",
@@ -82,7 +82,7 @@ export const fmcg: SectorReport = {
     narrative: [
       "India's FMCG chain has four layers: farm and commodity makers of edible oil, rice, sugar, milk and feed; food, drink and tobacco brands; the home and personal care majors that sell soap, shampoo, toothpaste and detergent; and the ingredient makers, packaging converters, distributors, supermarkets and quick-commerce apps that make and move the pack.",
       "Most volume still moves in ₹1-10 sachets and small packs through distributors to India's kiranas, so brands absorb cost changes by changing grams or taking small price rises. The GST cut to 5% on most packs (22 Sep 2025) disrupted the Sep 2025 quarter and set up the 2026 rebound.",
-      "Two forces shape 2026: costs from the Gulf closure (crude-linked packs, detergent chemicals, palm oil) and the shift of metro shopping to quick commerce, which now sells a large share of brands' online volume and is squeezing distributors.",
+      "Two forces shape 2026: costs from the Gulf shipping disruption (crude-linked packs, detergent chemicals, palm oil) and the shift of metro shopping to quick commerce, which now sells a large share of brands' online volume and is squeezing distributors.",
     ],
     chart: {
       title: "Volume growth in the Sep 2026 quarter, by company (underlying or reported volume)",
@@ -119,7 +119,7 @@ export const fmcg: SectorReport = {
 
   drivers: [
     { title: "Rural recovery", metric: "Rural volume down 5% in Apr-Jun 2026 (NIQ)", body: "A weak 2026 monsoon and costly fertiliser hit farm incomes; the Sep-quarter rebound came on a low GST-switch base, so the 2027 monsoon decides whether it lasts." },
-    { title: "Input costs", metric: "Gulf shut since Mar 2026", body: "Crude-linked packaging and detergent chemicals, palm oil, tea and milk rose; brands pass costs through grammage and calibrated price rises with a lag." },
+    { title: "Input costs", metric: "Gulf disrupted since Mar 2026", body: "Crude-linked packaging and detergent chemicals, palm oil, tea and milk rose; brands pass costs through grammage and calibrated price rises with a lag." },
     { title: "Quick commerce", metric: "About 21% of FMCG sales online in the top 8 metros", body: "Apps sell more premium packs and give brands data, but squeeze distributors and add trade spend; tier-2 cities are next." },
     { title: "Tax and duties", metric: "GST 5% on most packs since Sep 2025", body: "The GST cut lowered pack prices; the 40% rate on sugary drinks, new cigarette excise and edible-oil duty cuts move margins in their categories." },
   ],
@@ -140,7 +140,7 @@ export const fmcg: SectorReport = {
     ],
     economic: [
       { point: "Volumes rebounded in the Sep 2026 quarter on a low base, with urban premium packs growing fastest.", impact: "pos" },
-      { point: "The Gulf closure keeps crude-linked packs, LAB and palm oil costly, narrowing margins.", impact: "neg" },
+      { point: "The Gulf shipping disruption keeps crude-linked packs, LAB and palm oil costly, narrowing margins.", impact: "neg" },
     ],
     social: [
       { point: "Metro shoppers move top-up buying to 10-minute apps and premium formats.", impact: "pos" },
@@ -183,13 +183,13 @@ export const fmcg: SectorReport = {
   ],
 
   risks: [
-    { risk: "The Gulf closure lasts into 2027, keeping crude-linked packs, detergent chemicals and palm oil costly", mitigant: "Grammage cuts, calibrated price rises and duty cuts on edible oil", severity: "high" },
+    { risk: "The Gulf disruption lasts into 2027, keeping crude-linked packs, detergent chemicals and palm oil costly", mitigant: "Grammage cuts, calibrated price rises and duty cuts on edible oil", severity: "high" },
     { risk: "A second weak monsoon in 2027 pushes rural shoppers back to smaller packs and loose staples", mitigant: "Low unit price packs and welfare transfers; urban premium growth", severity: "medium" },
     { risk: "Quick-commerce discounting breaks the distributor model in metros faster than brands can rework it", mitigant: "New distributor terms, app-specific packs and direct-to-kirana ordering apps", severity: "medium" },
     { risk: "Another cigarette excise rise in the Feb 2027 Budget pushes smokers to smuggled brands", mitigant: "Stepped price rises, new variants and enforcement against smuggling", severity: "medium" },
   ],
   outlook: {
-    bull: "Crude eases as the Gulf reopens, a normal 2027 monsoon lifts rural incomes and volume growth holds high single digits while margins recover.",
+    bull: "Crude eases as Gulf shipping normalises, a normal 2027 monsoon lifts rural incomes and volume growth holds high single digits while margins recover.",
     base: "Volumes grow mid-single digits as the base normalises, calibrated price rises restore margins over FY27-28, and quick commerce keeps gaining metro share.",
     bear: "Costs stay high through 2027, a second weak monsoon hits rural demand, and channel conflict and another tobacco tax rise squeeze margins.",
   },

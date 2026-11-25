@@ -9,13 +9,13 @@ export const consumerinternet: SectorReport = {
   stance: {
     label: "Constructive, pick by margin",
     tone: "neutral",
-    line: "Order volumes are compounding and the leaders now make money, but quick commerce is a funded price war and payments earn little until UPI's new merchant fee on larger payments starts after Diwali.",
+    line: "Order volumes are compounding and the leaders now make money, but quick commerce is a funded price war and payments earn little until UPI's new merchant fee on larger payments starts - deferred on 13 Oct, with no start date notified yet.",
   },
   keyStats: [
     { label: "E-retail GMV, 2025", value: "US$65-66bn", sub: "+19-21% (Bain & Flipkart, Apr 2026)" },
     { label: "Online shoppers, 2025", value: "290-300 mn", sub: "~30% of internet users (Bain)" },
     { label: "Quick-commerce GMV, 2025", value: "US$10-11bn", sub: "~16-17% of e-retail (Bain & Flipkart)" },
-    { label: "UPI payments, Sep 2026", value: "24.07 bn", sub: "+23% YoY (NPCI)" },
+    { label: "UPI payments, Oct 2026", value: "25.47 bn", sub: "record; worth ₹31.53L Cr; transactions up 23% YoY, value up 16% (NPCI)" },
   ],
   thesis: [
     {
@@ -34,6 +34,20 @@ export const consumerinternet: SectorReport = {
 
   developments: [
     {
+      date: "Nov 2026",
+      title: "UPI merchant fee deferred, no start date yet",
+      body: "On 15 Sep the Finance Ministry and NPCI announced a 0.4% MDR on person-to-merchant UPI payments above ₹2,000, capped at ₹300 and paid by merchants; consumers and small merchants stay exempt. After traders pushed back, NPCI on 13 Oct deferred the 15 Oct start to after Diwali, on a date to be notified; none had been notified by late Nov, and reports say a 1 Jan 2027 start has been considered (Inc42).",
+      impact: "neutral",
+      tag: "Policy",
+    },
+    {
+      date: "Nov 2026",
+      title: "UPI hits a record 25.5 billion payments a month",
+      body: "NPCI data showed a record 25.47 billion UPI transactions worth ₹31.53L Cr in October 2026, up 23% YoY by count, after 24.07 billion in September and ~140.5 billion in H1 FY27 (+23%). Most payments stay free even once the new fee starts, as it covers only larger merchant payments.",
+      impact: "pos",
+      tag: "Payments",
+    },
+    {
       date: "Oct 2026",
       title: "Blinkit profitable, Instamart's losses peak",
       body: "Eternal's Q2 FY27 letter showed Blinkit's net order value up ~79% with positive adjusted EBITDA, now bigger than food delivery. Swiggy's Instamart loss widened but management says it peaked, with an owned-inventory model starting mid-Q3.",
@@ -41,23 +55,9 @@ export const consumerinternet: SectorReport = {
       tag: "Quick commerce",
     },
     {
-      date: "Oct 2026",
-      title: "UPI merchant fee announced, start pushed to after Diwali",
-      body: "On 15 Sep the Finance Ministry and NPCI announced a 0.4% MDR on person-to-merchant UPI payments above ₹2,000, capped at ₹300 and paid by merchants; consumers and small merchants stay exempt. On 13 Oct NPCI deferred the 15 Oct start to after Diwali, on a date to be notified.",
-      impact: "pos",
-      tag: "Policy",
-    },
-    {
-      date: "Oct 2026",
-      title: "UPI hits 24 billion payments a month",
-      body: "NPCI data showed 24.07 billion UPI transactions in September 2026, up 23% YoY, and ~140.5 billion in H1 FY27 (+23%). Most payments stay free even after the new fee, which covers only larger merchant payments.",
-      impact: "pos",
-      tag: "Payments",
-    },
-    {
       date: "Aug 2026",
       title: "Zepto defers its IPO; Shiprocket lists",
-      body: "Zepto put its IPO on hold in late July, turning to a ~₹1,000 Cr pre-IPO round and a listing up to three quarters later; Shiprocket listed on 19 Aug at a premium. Earlier 2026 listings included Shadowfax (Jan); PhonePe's IPO paused in March.",
+      body: "Zepto put its IPO on hold in late July, turning to a ~₹1,000 Cr pre-IPO round and a listing up to three quarters later; Shiprocket listed on 19 Aug at a premium. Earlier 2026 listings included Shadowfax (Jan); PhonePe's IPO, paused in March, was reported restarting in late November.",
       impact: "neutral",
       tag: "Capital markets",
     },
@@ -80,7 +80,7 @@ export const consumerinternet: SectorReport = {
   overview: {
     narrative: [
       "India has ~290-300 million online shoppers, but they are only about 30% of internet users, so growth still comes mostly from new buyers in smaller cities. E-retail grows ~20% a year; quick commerce more than doubled in 2025.",
-      "Profits sit unevenly: classifieds (Naukri, IndiaMART) and vertical brands (Lenskart) earn high margins; food delivery is a thin-margin profitable duopoly; quick commerce and horizontal e-commerce are still in a funded land grab; payments carry huge volume at almost no fee until UPI's new charge on larger merchant payments starts.",
+      "Profits sit unevenly: classifieds (Naukri, IndiaMART) and vertical brands (Lenskart) earn high margins; food delivery is a thin-margin profitable duopoly; quick commerce and horizontal e-commerce are still in a funded land grab; payments carry huge volume at almost no fee until UPI's new charge on larger merchant payments starts (deferred; no date notified yet).",
       "Swiggy's Nov 2024 listing and the 2025-26 IPO wave (Lenskart, Meesho, Urban Company, Pine Labs, PhysicsWallah, Shadowfax, Shiprocket) gave investors a wide listed menu; Zepto, PhonePe and Flipkart are the big names still to come.",
     ],
     chart: {
@@ -100,7 +100,7 @@ export const consumerinternet: SectorReport = {
       { label: "E-retail GMV, 2030 projection (Bain)", value: "US$170-180bn", tone: "pos" },
       { label: "Quick-commerce order share, FY26 (Zepto UDRHP)", value: "Blinkit ~47% · Zepto ~33% · Instamart ~21%" },
       { label: "UPI volume, H1 FY27 (NPCI)", value: "~140.5 bn, +23%", tone: "pos" },
-      { label: "UPI merchant fee (announced 15 Sep 2026)", value: "0.4% above ₹2,000, cap ₹300; starts after Diwali", tone: "pos" },
+      { label: "UPI merchant fee (announced 15 Sep 2026)", value: "0.4% above ₹2,000, cap ₹300; deferred, start date not yet notified", tone: "neutral" },
       { label: "Gig-worker levy (Code on Social Security)", value: "1-2% of turnover; rate not yet notified", tone: "neg" },
       { label: "Real-money gaming", value: "Banned; Act in force from 1 May 2026", tone: "neg" },
     ],
@@ -119,7 +119,7 @@ export const consumerinternet: SectorReport = {
     { title: "New online shoppers", metric: "290-300 mn, ~30% of users", body: "Most growth is still first-time buyers in tier-2/3 India on cheap phones - Meesho's and ixigo's core users." },
     { title: "Quick commerce", metric: "US$10-11bn GMV, 2025", body: "Groceries, then beauty, electronics and pharmacy move to 10-minute delivery; Bain projects US$65-70bn by 2030." },
     { title: "Ads on every app", metric: "Up to ~8% of order value", body: "Brands pay for shelf space inside apps; ad income is the highest-margin line for marketplaces and quick commerce." },
-    { title: "UPI everywhere", metric: "~24 bn payments a month", body: "Payments under ₹2,000 stay free and instant, widening the market for small-ticket orders; credit on UPI is the next money-maker for fintechs." },
+    { title: "UPI everywhere", metric: "~25 bn payments a month", body: "Payments under ₹2,000 stay free and instant, widening the market for small-ticket orders; credit on UPI is the next money-maker for fintechs." },
   ],
   mix: {
     title: "Quick-commerce orders by platform, FY26",
@@ -187,7 +187,7 @@ export const consumerinternet: SectorReport = {
     { risk: "Regulatory action on dark stores, discounting or data use", mitigant: "Compliance programmes and engagement through industry bodies; CCI processes take years", severity: "medium" },
   ],
   outlook: {
-    bull: "Blinkit's margins keep rising, Instamart breaks even in FY28, discounting eases once Flipkart lists, and the 0.4% UPI fee on larger merchant payments starts soon after Diwali and lifts payment margins.",
+    bull: "Blinkit's margins keep rising, Instamart breaks even in FY28, discounting eases once Flipkart lists, and the deferred 0.4% UPI fee on larger merchant payments starts in early 2027 and lifts payment margins.",
     base: "Order volumes grow 20%+ a year; food delivery and classifieds compound profits while quick commerce stays near breakeven at the leaders and loss-making for the rest.",
     bear: "Flipkart and Amazon outspend everyone for years, a 2% gig levy and state fees cut margins, and regulators restrict dark stores and deep discounts.",
   },
@@ -196,5 +196,6 @@ export const consumerinternet: SectorReport = {
     { title: "UPI product statistics", source: "National Payments Corporation of India", url: "https://www.npci.org.in/what-we-do/upi/product-statistics" },
     { title: "Promotion and Regulation of Online Gaming Rules, 2026", source: "National e-Governance Division (MeitY)", url: "https://negd.gov.in/press_release/promotion-and-regulation-of-online-gaming-rules-2026/", year: "2026" },
     { title: "Indian listed new-age tech company tracker", source: "Inc42", url: "https://inc42.com/features/indian-listed-new-age-tech-company-tracker-market-cap-revenue-more/" },
+    { title: "UPI MDR rollout may be deferred to January 2027 amid pushback by retailers", source: "Inc42", url: "https://inc42.com/buzz/upi-mdr-rollout-may-be-deferred-to-january-2027-amid-pushback-by-retailers/", year: "2026" },
   ],
 };

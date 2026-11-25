@@ -34,6 +34,13 @@ export const greenh2: SectorReport = {
 
   developments: [
     {
+      date: "Nov 2026",
+      title: "Electrolyser factories pushed to Aug 2027",
+      body: "Tranche I electrolyser makers Reliance, Adani New Industries, Homi Hydrogen and John Cockerill Greenko have reportedly had commissioning deferred to Aug 2027 with MNRE's approval, citing slow orders (Chemindigest, 14 Nov 2026). Reliance expects first green hydrogen output at Jamnagar in 2027, ramping up by 2028 (S&P Global, 28 Sep 2026). Advait's 30 MW first-phase assembly line opened in Mar 2026.",
+      impact: "neg",
+      tag: "Execution",
+    },
+    {
       date: "29 Oct 2026",
       title: "Offtake commitments pass 5.5 lakh tonnes",
       body: "MNRE put signed green hydrogen offtake at 5,55,610 tonnes a year (about 11% of the 2030 goal), with 18 new agreements in 2026 and over 70% of volume for export. Expected investment: over ₹90,000 Cr.",
@@ -67,13 +74,6 @@ export const greenh2: SectorReport = {
       body: "Reliance signed a binding 15-year, US$3bn+ green ammonia supply deal with Samsung C&T from Jamnagar (16 Mar). MECON invited bids for a new round of green-steel pilots, after the first three (SAIL, Matrix Gas, Simplex Castings) were approved in Oct 2024 with ₹347 Cr.",
       impact: "pos",
       tag: "Offtake",
-    },
-    {
-      date: "Feb 2026",
-      title: "Numaligarh sets a ₹279/kg record",
-      body: "BPCL-Sembcorp JV NeuEN Green Energy won Numaligarh Refinery's 10,000-tonne-a-year green hydrogen tender at ₹279/kg, against ₹397/kg (incl. GST) at IOCL Panipat nine months earlier. Nine bidders took part.",
-      impact: "pos",
-      tag: "Tenders",
     },
   ],
 
@@ -181,7 +181,7 @@ export const greenh2: SectorReport = {
   ],
 
   risks: [
-    { risk: "Awards don't turn into plants (no SIGHT plant fully running as of Jul 2026)", mitigant: "Incentives are paid only on output; binding export contracts now back the largest projects", severity: "high" },
+    { risk: "Awards don't turn into plants (no SIGHT plant fully running as of Jul 2026; several electrolyser factories reportedly deferred to Aug 2027)", mitigant: "Incentives are paid only on output; binding export contracts now back the largest projects", severity: "high" },
     { risk: "Green hydrogen stays far costlier than grey, with no mandate to buy it", mitigant: "Falling auction prices; carbon market from FY26; EU CBAM", severity: "high" },
     { risk: "Chinese electrolysers undercut Indian factories", mitigant: "Manufacturing incentive and likely local-content preference in PSU tenders", severity: "medium" },
     { risk: "Licensed technology fails or licensors exit (McPhy, 2025)", mitigant: "Several technology routes (alkaline, PEM) and partners; buyers like John Cockerill take over IP", severity: "medium" },

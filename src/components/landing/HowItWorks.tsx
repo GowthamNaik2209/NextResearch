@@ -76,7 +76,7 @@ export function HowItWorks() {
           <summary className="grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-5 py-4">
             <span className="font-display text-base font-semibold text-ink">How the numbers are made</span>
             <span aria-hidden className="row-span-2 grid size-7 place-items-center rounded-full border border-ink-soft font-mono text-ink-soft transition group-open:rotate-45">+</span>
-            <span className="text-sm text-ink-soft">Data, the one-off filter, backtests, projections and how our model has done when tested.</span>
+            <span className="text-sm text-ink-soft">Data, the one-off filter, past performance, projections and how our model has done when tested.</span>
           </summary>
           <div className="flex flex-col gap-2.5 px-5 pb-5">
             <Topic title="Data" line="One snapshot of results, 5 years of daily prices">
@@ -97,7 +97,7 @@ export function HowItWorks() {
                 <li>You can still add it to your own basket. It carries a &ldquo;one-off&rdquo; note with the reason.</li>
               </ul>
             </Topic>
-            <Topic title="Backtests" line="Bought once, held, price change only">
+            <Topic title="Past performance" line="Bought once, held, price change only">
               <Formula>
                 value(t) = &Sigma; w<sub>i</sub> &times; P<sub>i</sub>(t) / P<sub>i</sub>(0) <span className="text-ink-soft">&nbsp;// bought at target weights, then held</span>
               </Formula>

@@ -125,7 +125,7 @@ export function ReturnCards({
   const count = 1 + (picks || picksSlot ? 1 : 0) + benches.length;
   const cols = count >= 4 ? "grid-cols-2 sm:grid-cols-4" : count === 3 ? "grid-cols-3" : "grid-cols-2";
   return (
-    <section aria-label="Backtest summary" className={(dense ? "grid gap-2 " : "grid max-w-3xl gap-2 sm:gap-3 ") + cols}>
+    <section aria-label="Performance summary" className={(dense ? "grid gap-2 " : "grid max-w-3xl gap-2 sm:gap-3 ") + cols}>
       <Stat label={basket.label} value={b.value} loading={b.loading} failed={b.failed} onRetry={b.onRetry} note={b.note} strong dense={dense} />
       {picks && p && (
         <Stat

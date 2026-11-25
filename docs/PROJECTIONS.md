@@ -86,7 +86,7 @@ median net margin; and two market inputs set by hand in `MARKET`:
 | Input | Value | Source |
 |---|---|---|
 | rf, RBI policy repo rate | 5.50% (from 7 Oct 2026) | RBI, policy rates (rbi.org.in, checked 6 Nov 2026) |
-| ERP, India's equity risk premium | 7.08% (Jan 2026) | Damodaran, country default spreads and risk premiums (Jan 2026 update): mature market 4.23% + India's country premium 2.85% (Moody's Baa3). His July 2026 India row wasn't retrievable without downloading the spreadsheet; his July mature premium was 4.20%, so the total is very likely within a few tenths |
+| ERP, India's equity risk premium | 6.92% (Jul 2026) | Damodaran, country default spreads and risk premiums (July 2026 update, ctrypremJuly26.xlsx): mature market 4.20% + India's country premium 2.72% (Moody's Baa3) |
 
 Update both by hand (a code change): rf after each RBI policy change, ERP after each of Damodaran's January and July updates.
 Damodaran's ERP holds India's country risk (its default spread scaled up), so rf is a rate without

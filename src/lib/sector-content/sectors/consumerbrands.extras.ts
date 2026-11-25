@@ -51,7 +51,7 @@ export const CONSUMERBRANDS_SCENARIOS: Scenario[] = [
     title: "US and UK deals reopen textile orders",
     blurb: "Lower US tariffs and duty-free UK access bring garment and towel orders back to India",
     story:
-      "The US cut its tariff on Indian goods from 25% to 18% in Feb 2026 and later moved to a 15% all-country rate, and the India-UK FTA (15 Jul 2026) removed UK duties of about 12% on textiles and up to 16% on leather shoes. If the US rate is locked in a final deal, global retailers move more towel, sheet and garment programmes from China and Bangladesh to India's integrated mills. The same FTA halves the duty on Scotch, helping Diageo's imported brands and making bottled Scotch a tougher rival for Indian premium whisky.",
+      "US duties on Indian textiles and most other goods fell from 2025's 50% to 18% under the Feb 2026 interim framework and, after the US Supreme Court struck down those tariffs and a temporary 10% surcharge lapsed, to a 10% US duty under a trade-investigation law (Section 301) from 24 Jul 2026, which covers about 55% of India's US exports (textiles got no exemption), and the India-UK FTA (15 Jul 2026) removed UK duties of about 12% on textiles and up to 16% on leather shoes. If the US rate is locked in a final deal, global retailers move more towel, sheet and garment programmes from China and Bangladesh to India's integrated mills. The same FTA halves the duty on Scotch, helping Diageo's imported brands and making bottled Scotch a tougher rival for Indian premium whisky.",
     effect: "tailwind",
     impacts: [
       S("textile_makers", 3, "Garment exporters and spinners gain US and UK orders"),
@@ -67,4 +67,5 @@ export const CONSUMERBRANDS_DOCS: ResearchLink[] = [
   { title: "India gold market update: Gold demand gets festive boost", source: "World Gold Council (17 Nov 2026)", url: "https://www.gold.org/goldhub/gold-focus/2026/11/india-gold-market-update-gold-demand-gets-festive-boost" },
   { title: "The India Box Office Report: Jan-Jun 2026", source: "Ormax Media (17 Jul 2026)", url: "https://www.ormaxmedia.com/stories/the-india-box-office-report-jan-jun-2026.html" },
   { title: "UK-India FTA goes live today: From whisky to premium cars, what gets cheaper and which Indian sectors gain", source: "Business Today (15 Jul 2026)", url: "https://www.businesstoday.in/latest/economy/story/uk-india-fta-goes-live-today-from-whisky-to-premium-cars-what-gets-cheaper-and-which-indian-sectors-gain-542803-2026-07-15" },
+  { title: "Here's breaking down the Section 301 tariffs", source: "Business Today (24 Jul 2026)", url: "https://www.businesstoday.in/india/story/heres-breaking-down-the-section-301-tariffs-545110-2026-07-24" },
 ];

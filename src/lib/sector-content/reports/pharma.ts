@@ -13,7 +13,7 @@ export const pharma: SectorReport = {
   },
   keyStats: [
     { label: "Indian pharma market, CY2025", value: "~₹2.4L Cr", sub: "+8.1% (Pharmarack)" },
-    { label: "Pharma exports, FY25", value: "US$30.5bn", sub: "+9.4%; FY26 ~flat (Pharmexcil)" },
+    { label: "Pharma exports, FY26", value: "~US$31bn", sub: "provisional, ~2% above FY25's US$30.5bn (Pharmexcil / ET)" },
     { label: "US share of exports", value: "~34%", sub: "largest market (Pharmexcil)" },
     { label: "IPM growth, Aug 2026", value: "+10.7%", sub: "value; units flat (Pharmarack)" },
   ],
@@ -24,7 +24,7 @@ export const pharma: SectorReport = {
     },
     {
       title: "US generics: past the peak, on a tariff clock",
-      body: "gRevlimid has ended and plain generics keep eroding. Generics are tariff-free until Jul 2028, then face 100%-200% unless made in the US, so complex products and US plants decide who keeps US profits.",
+      body: "gRevlimid has ended and plain generics keep eroding. Generics are tariff-free through Jul 2028, then face 100%-200% unless made in the US, so complex products and US plants decide who keeps US profits.",
     },
     {
       title: "Chemistry and outsourcing are re-rating",
@@ -86,7 +86,7 @@ export const pharma: SectorReport = {
     chart: {
       title: "India pharmaceutical exports",
       unit: "US$ bn",
-      source: "Pharmexcil / DGCI&S; FY26 provisional (secondary reports of official data)",
+      source: "Pharmexcil / DGCI&S; FY26 (~US$31bn, ₹2.86L Cr) is provisional, per secondary reports of official data (IBEF / Economic Times, May 2026)",
       points: [
         { label: "FY20", value: 20.6 },
         { label: "FY21", value: 24.4 },
@@ -94,7 +94,7 @@ export const pharma: SectorReport = {
         { label: "FY23", value: 25.4 },
         { label: "FY24", value: 27.9 },
         { label: "FY25", value: 30.5 },
-        { label: "FY26P", value: 31, projected: true },
+        { label: "FY26", value: 31 },
       ],
     },
     snapshot: [
@@ -102,7 +102,7 @@ export const pharma: SectorReport = {
       { label: "IPM growth, Aug 2026 (Pharmarack)", value: "+10.7% value, units flat", tone: "neutral" },
       { label: "China share of imports, many critical APIs", value: "70%+ (PIB, FY25)", tone: "neg" },
       { label: "PLI bulk-drug scheme outlay", value: "₹6,940 Cr; 48 projects", tone: "pos" },
-      { label: "US tariff on generics", value: "0% to Jul 2028, then 100%", tone: "neg" },
+      { label: "US tariff on generics", value: "0% through Jul 2028, then 100%", tone: "neg" },
       { label: "Indian pharma US investment pledges", value: "~US$19bn (May 2026)", tone: "neutral" },
     ],
   },

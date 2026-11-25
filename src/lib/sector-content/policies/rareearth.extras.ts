@@ -7,9 +7,9 @@ export const RAREEARTH_SCENARIOS: Scenario[] = [
   {
     id: "china-curbs-return",
     title: "China's curbs come back",
-    blurb: "China paused its Oct 2025 export controls for one year only, to 10 Nov 2026",
+    blurb: "China's pause on its Oct 2025 export controls now runs only to 10 Jan 2027",
     story:
-      "China paused its tougher October 2025 rare-earth, magnet and battery-material controls for a year, to 10 November 2026; the April 2025 licensing regime is still in force. If the pause lapses, Indian magnet buyers face licence delays again before any Indian plant can produce (scheme plants need about two years from award), and battery-material supply chains get tighter too. Motor and e-scooter makers are hit first, as in mid-2025. The upside goes to anyone who can make magnets, oxide or battery salts outside China - recyclers included - which strengthens the case for faster awards and for the Critical Mineral Mission's overseas push.",
+      "China paused its tougher October 2025 rare-earth, magnet and battery-material controls for a year to 10 November 2026, then on 9 November extended the pause by just two months, to 10 January 2027; the April 2025 licensing regime is still in force. If the pause lapses, Indian magnet buyers face licence delays again before any Indian plant can produce (scheme plants need about two years from award), and battery-material supply chains get tighter too. Motor and e-scooter makers are hit first, as in mid-2025. The upside goes to anyone who can make magnets, oxide or battery salts outside China - recyclers included - which strengthens the case for faster awards and for the Critical Mineral Mission's overseas push.",
     effect: "headwind",
     impacts: [
       { zone: "ev_2w", severity: 3, why: "E-scooter output fell by about half at Bajaj in July 2025 the last time" },
@@ -56,7 +56,7 @@ export const RAREEARTH_SCENARIOS: Scenario[] = [
     title: "Mission supply starts to land",
     blurb: "Auctioned blocks, Ambadungar and overseas lithium move from paper to production",
     story:
-      "GMDC's Ambadungar deposit (BARC technology, Jan 2026) proves its process at scale, the first auctioned critical-mineral blocks (56 by June 2026) clear exploration and permits, and KABIL's Argentine lithium blocks find a resource worth developing. India gets oxide and battery minerals from sources beyond IREL's beach-sand monazite and Chinese refiners, which eases the magnet scheme's biggest constraint. Listed miners - GMDC, Coal India, Hindustan Zinc, Vedanta - finally have critical-mineral revenue to show.",
+      "GMDC's Ambadungar deposit (BARC technology, Jan 2026) proves its process at scale, the first auctioned critical-mineral blocks (64 across eight tranches by Nov 2026) clear exploration and permits, and KABIL's Argentine lithium blocks find a resource worth developing. India gets oxide and battery minerals from sources beyond IREL's beach-sand monazite and Chinese refiners, which eases the magnet scheme's biggest constraint. Listed miners - GMDC, Coal India, Hindustan Zinc, Vedanta - finally have critical-mineral revenue to show.",
     effect: "tailwind",
     impacts: [
       { zone: "hardrock", severity: 3, why: "Pilot-to-commercial step turns an option into a business" },
@@ -69,10 +69,12 @@ export const RAREEARTH_SCENARIOS: Scenario[] = [
   },
 ];
 
-// Each URL loaded on 3 Nov 2026.
+// Each URL loaded on 3 Nov 2026; the last two on 25 Nov 2026.
 export const RAREEARTH_DOCS: ResearchLink[] = [
   { title: "Cabinet approves National Critical Mineral Mission", source: "PIB / PM India, 29 Jan 2025", url: "https://www.pmindia.gov.in/en/news_updates/cabinet-approves-national-critical-mineral-mission-to-build-a-resilient-value-chain-for-critical-mineral-resources-vital-to-green-technologies-with-an-outlay-of-rs-34300-crore-over-seven-years" },
   { title: "Cabinet approves Rs 7,280 crore scheme for sintered rare-earth permanent magnets", source: "PIB, 26 Nov 2025", url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2194687" },
   { title: "MHI receives 20 bids for integrated sintered NdFeB magnet plants", source: "PIB, 13 Aug 2026", url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2299078" },
   { title: "Cabinet approves ₹1,500 crore incentive scheme to promote critical mineral recycling", source: "PIB, 3 Sep 2025", url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2163454" },
+  { title: "Govt launches 9th round of critical mineral auctions, 20 blocks across 8 states", source: "Devdiscourse, 6 Nov 2026", url: "https://www.devdiscourse.com/article/business/4002526-govt-launches-9th-round-of-critical-mineral-auctions-20-blocks-across-8-states-put-up-for-bidding" },
+  { title: "China extends suspension of rare earth export controls until January", source: "The Star, 9 Nov 2026", url: "https://www.thestar.com.my/aseanplus/aseanplus-news/2026/11/09/china-extends-suspension-of-rare-earth-export-controls-until-january" },
 ];

@@ -88,7 +88,7 @@ export function BasketResults({ answer, busy, onOpenStock }: { answer: BasketAns
         <SplitRow split={r.split} />
       </Panel>
 
-      <Panel title={`Signal heatmap · ${fmtDay(answer.lastDay, { short: true })} close`} info={
+      <Panel title={`Indicator heatmap · ${fmtDay(answer.lastDay, { short: true })} close`} info={
             <>
               Each stock&rsquo;s key readings on the last close; green is the side trend followers read as strength. Click a stock to open its own backtest with these rules.{" "}
               <Link href="/signals/indicators" className="font-semibold text-accent underline">

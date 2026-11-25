@@ -4,7 +4,7 @@ export const energy: SectorReport = {
   slug: "energy",
   title: "India Power Generation",
   subtitle: "A coal-anchored grid adding renewables, storage and new thermal at once",
-  asOf: "Oct 2026",
+  asOf: "Nov 2026",
 
   stance: {
     label: "Structural tailwind",
@@ -12,10 +12,10 @@ export const energy: SectorReport = {
     line: "Demand growth funds both new thermal and record renewables; value shifts toward storage, equipment makers and scale IPPs.",
   },
   keyStats: [
-    { label: "Installed capacity, FY26", value: "~515 GW", sub: "approx. (CEA)" },
-    { label: "Non-fossil share of capacity", value: ">50%", sub: "crossed mid-2025, 5 yrs early" },
+    { label: "Installed capacity, Mar 2026", value: "~533 GW", sub: "CEA, 31 Mar 2026" },
+    { label: "Non-fossil share of capacity", value: "~53%", sub: "283 GW, Mar 2026 (CEA); crossed 50% mid-2025" },
     { label: "Coal share of generation", value: "~73-75%", sub: "still the base-load backbone" },
-    { label: "Record peak demand", value: "250 GW+", sub: "CEA sees ~366 GW by FY32" },
+    { label: "Record peak demand", value: "270.8 GW", sub: "21 May 2026 (MoP); CEA sees ~366 GW by FY32" },
   ],
   thesis: [
     {
@@ -24,7 +24,7 @@ export const energy: SectorReport = {
     },
     {
       title: "Renewables need storage to keep scaling",
-      body: "Solar adds 30 GW+ a year, but evening peaks need firm power. Storage mandates, VGF and FDRE tenders turn BESS and pumped hydro into the next build-out.",
+      body: "Solar added a record 44.6 GW in FY26 (MNRE), but evening peaks need firm power. Storage mandates, VGF and FDRE tenders turn BESS and pumped hydro into the next build-out.",
     },
     {
       title: "Manufacturing moves onshore",
@@ -86,22 +86,22 @@ export const energy: SectorReport = {
     chart: {
       title: "Installed power generation capacity in India",
       unit: "GW",
-      source: "CEA installed capacity reports; FY26 approx., FY30 NextResearch estimate",
+      source: "CEA installed capacity reports (31 Mar each year); FY30 NextResearch estimate",
       points: [
         { label: "FY21", value: 382 },
         { label: "FY22", value: 399 },
         { label: "FY23", value: 416 },
         { label: "FY24", value: 442 },
         { label: "FY25", value: 475 },
-        { label: "FY26", value: 515 },
+        { label: "FY26", value: 533 },
         { label: "FY30P", value: 750, projected: true },
       ],
     },
     snapshot: [
-      { label: "Solar capacity, Mar 2025", value: "~106 GW", tone: "pos" },
+      { label: "Solar capacity, Mar 2026", value: "~150 GW", tone: "pos" },
       { label: "Coal PLF, FY25", value: "~69%", tone: "neutral" },
       { label: "Solar bid tariffs", value: "~₹2.5/kWh", tone: "pos" },
-      { label: "ALMM module vs cell capacity", value: "~100 vs ~25 GW", tone: "neutral" },
+      { label: "ALMM module vs cell capacity", value: "~225 vs ~38 GW", tone: "neutral" },
       { label: "Pumped storage operating", value: "~5-7 GW", tone: "neg" },
       { label: "Discom AT&C losses, FY24", value: "~16%", tone: "neg" },
     ],
@@ -123,14 +123,14 @@ export const energy: SectorReport = {
     { title: "Thermal pipeline", metric: "~80 GW by FY32", body: "New coal units for base load revive orders for BTG makers and capex for NTPC and private IPPs." },
   ],
   mix: {
-    title: "Installed capacity by source, Mar 2025 (approx.)",
-    source: "CEA installed capacity report",
+    title: "Installed capacity by source, 31 Mar 2026 (% of ~533 GW)",
+    source: "CEA installed capacity report, Mar 2026",
     slices: [
-      { label: "Coal & lignite", value: 47 },
-      { label: "Solar", value: 22 },
-      { label: "Wind", value: 11 },
+      { label: "Coal & lignite", value: 43 },
+      { label: "Solar", value: 28 },
+      { label: "Wind", value: 10 },
       { label: "Large hydro", value: 10 },
-      { label: "Gas, nuclear & others", value: 10 },
+      { label: "Gas, nuclear & others", value: 9 },
     ],
   },
 
@@ -156,7 +156,7 @@ export const energy: SectorReport = {
       { point: "Tariff disputes and change-in-law claims often go to CERC and APTEL, delaying cash flows.", impact: "neutral" },
     ],
     environmental: [
-      { point: "Net zero by 2070 and 50% non-fossil capacity by 2030 set a long runway for clean power.", impact: "pos" },
+      { point: "The 50% non-fossil capacity goal for 2030 was met early (mid-2025); next come 500 GW of non-fossil capacity by 2030 and net zero by 2070, a long runway for clean power.", impact: "pos" },
       { point: "Heatwaves, weak monsoons and coal-plant emission norms add operating and compliance risk.", impact: "neg" },
     ],
   },
@@ -180,7 +180,7 @@ export const energy: SectorReport = {
     { key: "adaniGreenEnergy", date: "2025", development: "Operational capacity crossed ~15 GW, led by the Khavda park in Gujarat.", impact: "Giga-scale parks set the cost benchmark for solar and wind tariffs.", tone: "pos" },
     { key: "ntpc", date: "Nov 2024", development: "Listed NTPC Green Energy via a ~₹10,000 Cr IPO.", impact: "Gives the PSU leader a separate vehicle to fund 60 GW of RE by 2032.", tone: "pos" },
     { key: "tataPowerEnergy", date: "2024-25", development: "Commissioned its 4.3 GW cell and module plant in Tirunelveli.", impact: "Early domestic cell supply ahead of ALMM-II requirements.", tone: "pos" },
-    { key: "waareeEnergy", date: "2025", development: "US launched anti-dumping probes on Indian-origin modules while Waaree expands US output.", impact: "Export margins are at risk; more supply may turn back to India.", tone: "neg" },
+    { key: "waareeEnergy", date: "Nov 2026", development: "US issued anti-dumping and countervailing duty orders on India-made cells and modules; Waaree doubled its Texas module plant to 3.2 GW.", impact: "Exports from India to the US are largely shut; more supply may turn back to India.", tone: "neg" },
   ],
 
   risks: [

@@ -14,7 +14,7 @@ type WithStatus = {
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
 /** "21 Oct 2026" -> UTC midnight of that day; ranges and month-only dates ("Aug 2026") -> null. */
-function parseDay(s: string): number | null {
+export function parseDay(s: string): number | null {
   const m = s.trim().match(/^(\d{1,2}) ([A-Za-z]{3})[a-z]* (\d{4})$/);
   if (!m) return null;
   const mon = MONTHS.indexOf(m[2].toLowerCase());

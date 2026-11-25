@@ -4,23 +4,23 @@ export const railways: SectorReport = {
   slug: "railways",
   title: "India Railways & Rolling Stock",
   subtitle: "A state-funded capex cycle shifting from track to trains, safety and signalling",
-  asOf: "Oct 2026",
+  asOf: "Nov 2026",
 
   stance: {
-    label: "Steady, budget-led",
+    label: "Budget-led, rising again",
     tone: "neutral",
-    line: "Capex is near a record but no longer rising fast; value is moving from civil EPC and wagons to trainsets, Kavach and components.",
+    line: "Capex was flat in FY26 but is budgeted at a record for FY27 (~10.5% higher); value is moving from civil EPC and wagons to trainsets, Kavach and components.",
   },
   keyStats: [
-    { label: "Railway capex, FY26 BE", value: "~₹2.65L Cr", sub: "approx. 4x FY14 levels" },
+    { label: "Railway capex, FY27 BE", value: "~₹2.93L Cr", sub: "record; ~10.5% above FY26 RE (Union Budget, Feb 2026)" },
     { label: "Broad-gauge electrified", value: "~99%", sub: "of the BG network" },
-    { label: "Freight loading, FY25", value: "~1.6 bn t", sub: "second only to China" },
+    { label: "Freight loading, FY26", value: "~1.67 bn t", sub: "record, up ~3% on FY25; second only to China" },
     { label: "Kavach coverage", value: "<5%", sub: "of ~69,000 route km, approx." },
   ],
   thesis: [
     {
       title: "The spend is large and sticky",
-      body: "Rail capex has run at ~₹2.4-2.65L Cr a year since FY24, funded almost entirely by the Centre. It is a policy priority that has survived fiscal tightening.",
+      body: "Rail capex ran at ~₹2.6-2.7L Cr a year in FY24-26 and is budgeted at a record ~₹2.93L Cr for FY27, ~95% funded by the Centre. It is a policy priority that has survived fiscal tightening.",
     },
     {
       title: "The mix is shifting to trains and safety",
@@ -33,6 +33,20 @@ export const railways: SectorReport = {
   ],
 
   developments: [
+    {
+      date: "Apr 2026",
+      title: "Freight loading hits a record 1.67 bn tonnes",
+      body: "Indian Railways loaded a record 1,670 MT of freight in FY26, up 3.25% on FY25 (Ministry of Railways, 1 Apr 2026), led by coal, iron ore and cement; rail's share of freight is still ~27%.",
+      impact: "pos",
+      tag: "Freight",
+    },
+    {
+      date: "Feb 2026",
+      title: "Budget lifts rail capex to a record ₹2.93L Cr",
+      body: "Union Budget 2026-27 set FY27 rail capex at ₹2,93,030 Cr, ~10.5% above FY26 RE, with ~95% from budget support. It proposed seven high-speed rail corridors (~4,000 km, ~₹16L Cr of investment, linking cities such as Mumbai, Pune, Hyderabad, Bengaluru, Chennai and Varanasi) and a new east-west Dankuni-Surat dedicated freight corridor (PRS, Feb 2026).",
+      impact: "pos",
+      tag: "Budget",
+    },
     {
       date: "Jan 2026",
       title: "First Vande Bharat sleeper enters service",
@@ -61,45 +75,31 @@ export const railways: SectorReport = {
       impact: "pos",
       tag: "Infrastructure",
     },
-    {
-      date: "Mar 2025",
-      title: "Freight loading crosses 1.6 bn tonnes",
-      body: "FY25 loading reached ~1,617 MT, led by coal, iron ore and containers, though rail's modal share is still ~27-28%.",
-      impact: "neutral",
-      tag: "Freight",
-    },
-    {
-      date: "Jul 2024",
-      title: "Kavach 4.0 approved by RDSO",
-      body: "The upgraded train-protection spec cleared the way for large rollout tenders on the Delhi-Mumbai and Delhi-Howrah trunk routes.",
-      impact: "pos",
-      tag: "Safety",
-    },
   ],
 
   overview: {
     narrative: [
-      "Indian Railways runs ~69,000 route km, carries ~700 crore passengers and ~1.6 bn tonnes of freight a year, and earns ~₹2.6-2.7L Cr in traffic receipts.",
+      "Indian Railways runs ~69,000 route km, carries ~700 crore passengers and ~1.67 bn tonnes of freight a year (FY26), and earns ~₹2.6-2.7L Cr in traffic receipts.",
       "Capex has risen roughly four-fold in a decade, almost all from gross budgetary support; IRFC funds rolling stock, while RVNL, IRCON and private EPC firms build lines.",
       "Operating ratio stays ~98%, so the system relies on the Budget. The next leg is trainsets, metro rolling stock (~1,000 km operational across ~20 cities) and Kavach.",
     ],
     chart: {
-      title: "Indian Railways capital expenditure",
+      title: "Indian Railways capital expenditure (all sources)",
       unit: "₹ '000 Cr",
-      source: "Union Budget / Ministry of Railways, FY28-30 NextResearch estimates",
+      source: "Union Budget / Ministry of Railways; FY24 Economic Survey 2024-25; FY25 actual, FY26 RE and FY27 BE from PRS (Feb 2026); FY28P and FY30P are NextResearch projections, not budget figures",
       points: [
         { label: "FY20", value: 148 },
-        { label: "FY22", value: 190 },
         { label: "FY23", value: 204 },
-        { label: "FY24", value: 240 },
-        { label: "FY25", value: 252 },
-        { label: "FY26BE", value: 265 },
-        { label: "FY28P", value: 290, projected: true },
-        { label: "FY30P", value: 320, projected: true },
+        { label: "FY24", value: 262 },
+        { label: "FY25", value: 269 },
+        { label: "FY26RE", value: 265 },
+        { label: "FY27BE", value: 293 },
+        { label: "FY28P", value: 315, projected: true },
+        { label: "FY30P", value: 360, projected: true },
       ],
     },
     snapshot: [
-      { label: "Capex growth, FY24-26", value: "~5% CAGR", tone: "neutral" },
+      { label: "Capex, FY27 BE vs FY26 RE", value: "+10.5%", tone: "pos" },
       { label: "Operating ratio", value: "~98%", tone: "neg" },
       { label: "Rail share of freight", value: "~27%", tone: "neg" },
       { label: "Vande Bharat services", value: "~150+", tone: "pos" },
@@ -118,7 +118,7 @@ export const railways: SectorReport = {
   ],
 
   drivers: [
-    { title: "Record budget support", metric: "~₹2.5L Cr+", body: "Gross budgetary support funds nearly all rail capex, insulating spend from Railways' thin operating surplus." },
+    { title: "Record budget support", metric: "~₹2.78L Cr (FY27 BE)", body: "Budget support funds ~95% of rail capex, insulating spend from Railways' thin operating surplus; it rises ~10% in FY27 after a flat FY26." },
     { title: "Trainset upgrade", metric: "Vande Bharat + sleeper", body: "Orders for chair-car, sleeper and Amrit Bharat trains replace ageing ICF coaches with higher-content trainsets." },
     { title: "Safety mandate", metric: "Kavach 4.0", body: "Train-protection rollout across trunk routes after recent accidents gives signalling vendors a multi-year pipeline." },
     { title: "Urban metro build-out", metric: "~1,000 km live", body: "Metro projects under construction in a dozen-plus cities drive coach, signalling and civil orders." },
@@ -189,8 +189,8 @@ export const railways: SectorReport = {
     { risk: "Supply bottlenecks in wheels and propulsion", mitigant: "Domestic forged wheel plant; localised IGBT and bogie capacity", severity: "low" },
   ],
   outlook: {
-    bull: "Capex climbs past ₹3L Cr by FY28 with large sleeper, metro and Kavach orders lifting both volumes and margins.",
-    base: "Capex grows ~5-6% a year; trainset, signalling and component makers outgrow EPC and wagon players.",
+    bull: "Capex climbs well past ₹3L Cr by FY28 as the high-speed and Dankuni-Surat freight corridors start drawing money, with large sleeper, metro and Kavach orders lifting both volumes and margins.",
+    base: "Capex grows ~7% a year from the FY27 budget level; trainset, signalling and component makers outgrow EPC and wagon players.",
     bear: "Budget support flattens, order inflow stays thin and L1 pricing erodes margins across the chain.",
   },
   reading: [
@@ -198,6 +198,7 @@ export const railways: SectorReport = {
     { title: "Indian Railways industry report", source: "IBEF", url: "https://www.ibef.org/industry/indian-railways" },
     { title: "Ministry of Railways portal", source: "Government of India", url: "https://indianrailways.gov.in/" },
     { title: "Union Budget documents", source: "Ministry of Finance", url: "https://www.indiabudget.gov.in/" },
+    { title: "Demand for Grants 2026-27 Analysis: Railways", source: "PRS Legislative Research, Feb 2026", url: "https://prsindia.org/budgets/parliament/demand-for-grants-2026-27-analysis-railways" },
     { title: "Research Designs & Standards Organisation", source: "RDSO, Ministry of Railways", url: "https://rdso.indianrailways.gov.in/" },
   ],
 };

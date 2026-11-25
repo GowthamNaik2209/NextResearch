@@ -29,10 +29,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const b = getIndustryBasket(slug);
   if (!b) return NOT_FOUND_METADATA;
   return {
-    title: `${b.name} stock basket: ${b.stocks.length} listed stocks backtested`,
-    description: `${b.category === "index" ? `All ${b.stocks.length} ${b.name} stocks` : b.sideStocks.length ? `The ${b.stocks.length} core listed ${b.name} companies NextResearch maps` : `All ${b.stocks.length} listed ${b.name} stocks NextResearch maps`}, as one basket backtested against the Nifty 50${b.indices[0] ? ` and the ${b.indices[0].name}` : ""}, with each stock's return and contribution.`,
+    title: `${b.name} stock basket: past performance of ${b.stocks.length} listed stocks`,
+    description: `${b.category === "index" ? `All ${b.stocks.length} ${b.name} stocks` : b.sideStocks.length ? `The ${b.stocks.length} core listed ${b.name} companies NextResearch maps` : `All ${b.stocks.length} listed ${b.name} stocks NextResearch maps`}, as one basket, its past performance against the Nifty 50${b.indices[0] ? ` and the ${b.indices[0].name}` : ""}, with each stock's return and contribution.`,
     alternates: { canonical: `/baskets/industry/${b.slug}` },
-    ...shareMeta({ title: `${b.name} stock basket`, line: `${b.stocks.length} stocks, backtested against the Nifty 50.`, path: `/baskets/industry/${b.slug}`, image: `/sector/${b.slug}/opengraph-image` }),
+    ...shareMeta({ title: `${b.name} stock basket`, line: `${b.stocks.length} stocks, past performance against the Nifty 50.`, path: `/baskets/industry/${b.slug}`, image: `/sector/${b.slug}/opengraph-image` }),
   };
 }
 
@@ -65,7 +65,7 @@ export default async function IndustryBasketPage({ params }: { params: Promise<{
           id={b.slug}
           name={b.category === "index" ? `${b.name} basket` : `${b.name} ${categoryWord(b.category)} basket`}
           description={b.category === "index"
-              ? `All ${b.stocks.length} stocks in the ${b.name} today: ${b.tagline}. Backtested as today's members held over the whole period, so it can beat the index itself, which swapped in these winners along the way.`
+              ? `All ${b.stocks.length} stocks in the ${b.name} today: ${b.tagline}. Past performance counts today's members held over the whole period, so it can beat the index itself, which swapped in these winners along the way.`
               : b.sideStocks.length
                 ? `The ${b.stocks.length} core companies on the ${b.name} map (${b.sideStocks.length} that supply or serve it, or earn little from it, are left out): ${b.tagline}`
                 : `All ${b.stocks.length} listed companies on the ${b.name} map: ${b.tagline}`}

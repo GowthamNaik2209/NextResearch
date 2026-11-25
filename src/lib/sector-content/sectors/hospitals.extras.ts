@@ -41,7 +41,7 @@ export const HOSPITALS_SCENARIOS: Scenario[] = [
     title: "Retail health insurance keeps surging",
     blurb: "GST-free premiums and IRDAI reforms push retail health cover deep into tier-2 towns",
     story:
-      "Health premiums grew ~15% in FY26 after individual policies became GST-free in Sep 2025. If retail cover keeps spreading to tier-2 and tier-3 families, more patients can afford private hospitals and planned surgery, and the paying mix shifts from cash and slow government schemes to insurers who pay on time. Chains in smaller cities and specialty networks gain the most; insurers grow premium but must hold claims ratios as hospitals lift prices.",
+      "Health premiums grew ~17% in FY26 (to ~₹1.37L Cr from ~₹1.17L Cr) after individual policies became GST-free in Sep 2025. If retail cover keeps spreading to tier-2 and tier-3 families, more patients can afford private hospitals and planned surgery, and the paying mix shifts from cash and slow government schemes to insurers who pay on time. Chains in smaller cities and specialty networks gain the most; insurers grow premium but must hold claims ratios as hospitals lift prices.",
     effect: "tailwind",
     impacts: [
       S("insurers", 3, "Premium growth and new retail customers"),

@@ -127,7 +127,7 @@ export function sinceRange(first: string, now: number): ChartRange {
 
 /** The Recent listings method, in the words its "i" and page use. */
 export const SINCE_LISTING_NOTE =
-  "Each stock is backtested from its first trading day: its equal share of the money is set aside on the first day and waits in cash until it lists, so it adds its share times its return since listing.";
+  "Each stock is counted from its first trading day: its equal share of the money is set aside on the first day and waits in cash until it lists, so it adds its share times its return since listing.";
 
 /**
  * ROCE means something only for a company that earns a profit on positive equity: on negative or
@@ -230,7 +230,7 @@ export function buildIdeas(all: IdeaStockInfo[], snap: PriceSnapshot, now: numbe
   ideas.push({
     id: "recent-ipos",
     title: "Recent listings",
-    blurb: "Covered companies that listed in the past two years, each backtested from its listing day.",
+    blurb: "Covered companies that listed in the past two years, each counted from its listing day.",
     rule: `Every covered company listed in the past two years, newest first; REITs, InvITs and demergers left out. ${ONE_OFF_NOTE} ${SINCE_LISTING_NOTE}`,
     range: earliest ? sinceRange(earliest, now) : "1Y",
     stocks: ipos.map((s) => ({ ticker: s.ticker, stat: `listed ${monthYear(stat(s.ticker).first)}` })),

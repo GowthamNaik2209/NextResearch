@@ -27,7 +27,7 @@ export const NIFTY50_SCENARIOS: Scenario[] = [
   {
     id: "rbi-cuts",
     section: "rates",
-    title: "RBI cuts rates further",
+    title: "RBI turns back to rate cuts",
     blurb: "Lower policy rates and easier bank liquidity",
     story:
       "When inflation is low the RBI can cut its policy rate and add liquidity to the banking system. Loans get cheaper and rate-sensitive buying (cars, homes, durables) picks up. NBFCs, which borrow in the bond market, gain most because their funding costs fall quickly; banks lend more, but their margins dip at first because loans reprice faster than deposits. Lower yields also lift richly valued growth stocks.",

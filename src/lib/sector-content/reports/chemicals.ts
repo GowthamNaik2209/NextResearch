@@ -9,18 +9,18 @@ export const chemicals: SectorReport = {
   stance: {
     label: "Split cycle: shortage winners, farm-input losers",
     tone: "neutral",
-    line: "The Gulf closure has lifted Indian makers with their own feedstock chains (phenol, fluorine, pyridine) while squeezing fertiliser margins, and a weak monsoon plus global destocking keep agrochem under pressure.",
+    line: "The Gulf shipping disruption has lifted Indian makers with their own feedstock chains (phenol, fluorine, pyridine) while squeezing fertiliser margins, and a weak monsoon plus global destocking keep agrochem under pressure.",
   },
   keyStats: [
-    { label: "Strait of Hormuz", value: "Closed since Mar 2026", sub: "2 transits on 15 Nov 2026 vs about 85 a day before the war (IMF PortWatch)" },
+    { label: "Strait of Hormuz", value: "Severely disrupted since Mar 2026", sub: "traffic about two-thirds below normal in mid-Nov 2026 (UK maritime trade office, UKMTO)" },
     { label: "P&K subsidy, rabi 2026-27", value: "₹62,370 Cr", sub: "about 64% above rabi 2025-26 (Cabinet, 11 Nov 2026)" },
     { label: "2026 monsoon rainfall", value: "12.6% below normal", sub: "weakest since 2015 (IMD, Jun-Sep)" },
-    { label: "Fertiliser subsidy, FY27 budget", value: "₹1.71L Cr", sub: "₹1.86L Cr revised for FY26; budgeted before the Gulf closure" },
+    { label: "Fertiliser subsidy, FY27 budget", value: "₹1.71L Cr", sub: "₹1.86L Cr revised for FY26; budgeted before the Gulf disruption" },
   ],
   thesis: [
     {
       title: "Own chemistry wins when Asia is short",
-      body: "Asian crackers and chemical plants depend on Gulf naphtha and gas. With the Strait of Hormuz shut since Mar 2026, Indian makers with integrated chains - phenol and acetone, benzene derivatives, pyridines, fluorine - sold more at better spreads: Deepak Nitrite's Sep 2026 quarter profit was 3.3 times a year earlier and Navin Fluorine's rose 82%.",
+      body: "Asian crackers and chemical plants depend on Gulf naphtha and gas. With shipping through the Strait of Hormuz severely disrupted since Mar 2026, Indian makers with integrated chains - phenol and acetone, benzene derivatives, pyridines, fluorine - sold more at better spreads: Deepak Nitrite's Sep 2026 quarter profit was 3.3 times a year earlier and Navin Fluorine's rose 82%.",
     },
     {
       title: "Fertiliser makers carry the Gulf shock",
@@ -55,6 +55,13 @@ export const chemicals: SectorReport = {
       tag: "Monsoon",
     },
     {
+      date: "Jul 2026",
+      title: "US now charges a 10% duty on chemicals",
+      body: "The 18% US tariff agreed in the 6 Feb 2026 interim framework fell when the US Supreme Court struck down those tariffs that month, and a temporary 10% stopgap surcharge lapsed on 24 Jul 2026. Since then a 10% US duty under a trade-investigation law (Section 301) applies to about 55% of India's US exports, chemicals included, with no end date (India's Commerce Ministry); generic medicines, smartphones and goods already under separate US steel, aluminium and auto-parts tariffs are outside it. A full trade deal is still unsigned.",
+      impact: "neutral",
+      tag: "Trade",
+    },
+    {
       date: "May 2026",
       title: "Gas to urea plants restored, imports stepped up",
       body: "By 2 May the petroleum ministry had raised gas allocations to fertiliser plants to about 98% of their six-month average, after March cuts. India tendered for about 1.7 MT of urea in late May to cover the kharif shortfall.",
@@ -63,25 +70,18 @@ export const chemicals: SectorReport = {
     },
     {
       date: "Mar 2026",
-      title: "Hormuz closure cuts gas, naphtha and urea",
+      title: "Hormuz disruption cuts gas, naphtha and urea",
       body: "After the 28 Feb strikes on Iran, shipping through the Strait of Hormuz stopped. GAIL, IOC and BPCL cut gas to fertiliser units on Qatar contracts, urea output fell by about 30% in March (FAO), and Asian crackers short of Gulf naphtha cut runs. DGTR also opened an anti-dumping case on phenol imports on 20 Mar 2026.",
       impact: "neg",
       tag: "Feedstock",
     },
-    {
-      date: "Feb 2026",
-      title: "US tariff on Indian goods cut to 18%",
-      body: "The India-US interim trade framework announced on 6 Feb 2026 lowered the US reciprocal tariff on most Indian goods, including organic chemicals, to 18% and removed the extra 25% penalty linked to Russian oil.",
-      impact: "pos",
-      tag: "Trade",
-    },
   ],
 
   overview: {
-    headline: "Fertiliser subsidy was budgeted at ₹1.71L Cr for FY27 - before the Gulf closure raised import costs",
+    headline: "Fertiliser subsidy was budgeted at ₹1.71L Cr for FY27 - before the Gulf disruption raised import costs",
     narrative: [
       "India's chemical chain has four layers: refiners, gas companies and terminals that supply and move the base molecules; commodity makers of soda ash, caustic soda, polymers and nitrates; specialty makers of intermediates, fluorochemicals, pigments, adhesives and contract molecules; and the crop-protection, fertiliser and seed companies that sell to farmers.",
-      "Two shocks hit in 2026. The Strait of Hormuz closed in March, cutting Gulf LNG, naphtha, LPG, urea and sulphur, which helped Indian specialty makers with their own chains but raised fertiliser costs. Then the monsoon ended 12.6% short, the weakest since 2015, hurting crop-protection and seed sales.",
+      "Two shocks hit in 2026. Shipping through the Strait of Hormuz was severely disrupted from March - still about 65% below pre-war levels in mid-Nov (UKMTO) - cutting Gulf LNG, naphtha, LPG, urea and sulphur, which helped Indian specialty makers with their own chains but raised fertiliser costs. Then the monsoon ended 12.6% short, the weakest since 2015, hurting crop-protection and seed sales.",
       "The government absorbs much of the farm-input shock through the fertiliser subsidy, so its size each season decides fertiliser makers' margins; elsewhere, spreads against Chinese prices decide who earns.",
     ],
     chart: {
@@ -117,7 +117,7 @@ export const chemicals: SectorReport = {
   ],
 
   drivers: [
-    { title: "Gulf feedstock shock", metric: "Hormuz closed since Mar 2026", body: "Gulf LNG, naphtha, LPG, urea and sulphur are short; Asian rivals cut output, Indian integrated makers gained share and fertiliser costs rose." },
+    { title: "Gulf feedstock shock", metric: "Hormuz disrupted since Mar 2026", body: "Gulf LNG, naphtha, LPG, urea and sulphur are short; Asian rivals cut output, Indian integrated makers gained share and fertiliser costs rose." },
     { title: "Monsoon and farm demand", metric: "12.6% rainfall deficit", body: "The weakest monsoon since 2015 cut crop-protection volumes and raised channel stock; rabi depends on reservoirs that are below last year." },
     { title: "China's export pricing", metric: "DGTR phenol case, Mar 2026", body: "Chinese overcapacity set Indian spreads in 2023-25; anti-dumping duties and the 2026 supply squeeze have lifted them for now." },
     { title: "Fertiliser subsidy", metric: "₹62,370 Cr for rabi 2026-27", body: "The nutrient-based subsidy decides whether phosphate makers' margins recover from the Sep 2026 squeeze; urea makers earn a regulated return." },
@@ -134,7 +134,7 @@ export const chemicals: SectorReport = {
   pestle: {
     political: [
       { point: "The Centre raised the rabi 2026-27 P&K subsidy by about 64% to shield farmers from global prices.", impact: "pos" },
-      { point: "War in the Gulf and the Hormuz closure leave India's gas and fertiliser imports hostage to diplomacy.", impact: "neg" },
+      { point: "War in the Gulf and the Hormuz disruption leave India's gas and fertiliser imports hostage to diplomacy.", impact: "neg" },
     ],
     economic: [
       { point: "Asian supply cuts lifted Indian specialty spreads and the rupee's fall helps exporters.", impact: "pos" },
@@ -181,21 +181,22 @@ export const chemicals: SectorReport = {
   ],
 
   risks: [
-    { risk: "The Hormuz closure lasts into 2027, keeping LNG, ammonia and sulphur short and costly", mitigant: "Higher subsidy rates, urea import tenders and non-Gulf LNG contracts", severity: "high" },
+    { risk: "The Hormuz disruption lasts into 2027, keeping LNG, ammonia and sulphur short and costly", mitigant: "Higher subsidy rates, urea import tenders and non-Gulf LNG contracts", severity: "high" },
     { risk: "Chinese overcapacity floods markets once feedstock returns, collapsing spreads again", mitigant: "Anti-dumping duties, innovator contracts and own-process cost advantages", severity: "high" },
     { risk: "A second weak monsoon in 2027 hits crop protection, seeds and fertiliser volumes", mitigant: "Export and contract businesses; subsidised fertiliser prices hold demand", severity: "medium" },
     { risk: "Plant fires, explosions or gas leaks in hazardous chemistry", mitigant: "Insurance and multi-site operations at larger makers", severity: "medium" },
   ],
   outlook: {
-    bull: "The Gulf reopens slowly enough that Indian makers keep the share they won in 2026, innovators restock, and a normal 2027 monsoon revives farm inputs.",
+    bull: "Gulf shipping normalises slowly enough that Indian makers keep the share they won in 2026, innovators restock, and a normal 2027 monsoon revives farm inputs.",
     base: "Spreads ease as Asian supply returns in 2027, fertiliser margins recover with subsidy support, and agrochem exports bottom out through FY27 before improving.",
-    bear: "The closure drags on while China dumps surplus once its plants restart, a second weak monsoon hits farm demand, and subsidy delays stretch fertiliser makers' balance sheets.",
+    bear: "The disruption drags on while China dumps surplus once its plants restart, a second weak monsoon hits farm demand, and subsidy delays stretch fertiliser makers' balance sheets.",
   },
   reading: [
     { title: "Government approves Nutrient Based Subsidy for Rabi 2026-27", source: "News On AIR", url: "https://newsonair.gov.in/govt-approves-nutrient-based-subsidy-for-rabi-2026-27-to-ensure-affordable-fertilisers-for-farmers/", year: "2026" },
     { title: "Strait to farms: West Asia war hits fertiliser supply", source: "Outlook Business", url: "https://www.outlookbusiness.com/economy-and-policy/strait-to-farms-west-asia-war-hits-fertiliser-supplycan-india-look-beyond", year: "2026" },
     { title: "India's 2026 monsoon ends 12.6% deficient, weakest since 2015", source: "DSIJ", url: "https://insights.dsij.in/dsijarticledetail/indias-2026-monsoon-ends-126-deficient-weakest-since-2015-59820", year: "2026" },
-    { title: "US and India interim trade agreement: 18% tariff", source: "India Briefing", url: "https://www.india-briefing.com/news/us-india-interim-trade-agreement-18-percent-tariff-42514.html/", year: "2026" },
+    { title: "Here's breaking down the Section 301 tariffs", source: "Business Today", url: "https://www.businesstoday.in/india/story/heres-breaking-down-the-section-301-tariffs-545110-2026-07-24", year: "2026" },
+    { title: "Gulf oil exports recover as Hormuz shipping struggles", source: "gCaptain", url: "https://gcaptain.com/gulf-oil-exports-recover-as-hormuz-shipping-struggles/", year: "2026" },
     { title: "2026 Iran war fuel crisis", source: "Wikipedia", url: "https://en.wikipedia.org/wiki/2026_Iran_war_fuel_crisis", year: "2026" },
   ],
 };

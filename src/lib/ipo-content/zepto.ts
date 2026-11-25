@@ -1,7 +1,8 @@
 import type { IpoReport } from "./types";
 
 // Zepto Ltd (formerly Kiranakart Technologies). Figures from the UDRHP-I dated 8 Jun 2026 (abridged
-// prospectus on SEBI) unless a field names another source. Status as reported to mid-Oct 2026.
+// prospectus on SEBI) unless a field names another source. Status as reported to late Nov 2026
+// (Inc42 IPO tracker, 22 Nov 2026).
 export const zepto: IpoReport = {
   slug: "zepto",
   name: "Zepto",
@@ -9,19 +10,19 @@ export const zepto: IpoReport = {
   icon: "ZPT",
   sectorLabel: "Quick commerce",
   tagline: "India's #2 quick-commerce app by orders, doubling revenue but still burning cash",
-  asOf: "Oct 2026",
+  asOf: "Nov 2026",
 
   status: {
     stage: "approved",
     label: "SEBI approved · on hold",
     detail:
-      "SEBI's observations came in May 2026 and the UDRHP-I was filed on 8 Jun, but on 1 Aug Zepto announced it would list in two to three quarters and raise ~₹1,000 Cr pre-IPO instead (first reported on 30 Jul); reports point to a Feb-May 2027 listing, with the approval reportedly valid until Nov 2027. Reports differ on the exact observation date (most trackers say 8 May) and no RHP or price band exists yet.",
+      "SEBI's observations came in May 2026 and the UDRHP-I was filed on 8 Jun. On 1 Aug Zepto said it would list in two to three quarters and first raise ~₹1,000 Cr in a pre-IPO round (first reported on 30 Jul). Inc42's IPO tracker (22 Nov 2026) still lists the IPO as on hold. The CEO aims to list between Feb and May 2027, and the ~US$105 Mn pre-IPO round is still described as planned. The approval is reportedly valid until Nov 2027. Reports differ on the exact observation date (most trackers say 8 May), and no RHP or price band exists yet.",
   },
   timeline: [
     { date: "Dec 2025", event: "Confidential pre-filing of the draft prospectus with SEBI", done: true },
     { date: "May 2026", event: "SEBI final observations (8 May per IPO trackers)", done: true },
     { date: "8 Jun 2026", event: "UDRHP-I filed: ₹8,010 Cr fresh issue + OFS of 11.35 crore shares", done: true },
-    { date: "1 Aug 2026", event: "IPO deferred; ~₹1,000 Cr pre-IPO placement at ~US$4.5bn", done: true },
+    { date: "1 Aug 2026", event: "IPO deferred; ~₹1,000 Cr (~US$105 Mn) pre-IPO placement announced, ~US$4.5bn reported", done: true },
     { date: "Feb-May 2027", event: "Reported listing window (RHP with updated financials needed first)", done: false },
     { date: "Nov 2027", event: "SEBI approval reportedly lapses if the issue has not opened", done: false },
   ],
@@ -35,7 +36,7 @@ export const zepto: IpoReport = {
     priceBand: null,
     lotSize: null,
     faceValue: "₹5",
-    valuation: "~US$4.5bn (~₹42,750 Cr at ~₹95/US$, 94.92 on 16 Oct 2026) in the reported Aug 2026 pre-IPO round; down from US$7bn in Oct 2025",
+    valuation: "~US$4.5bn (~₹42,750 Cr at ~₹95/US$, 94.92 on 16 Oct 2026) reported for the planned pre-IPO round announced Aug 2026; down from US$7bn in Oct 2025",
     valuationCr: 42750,
     reservation: "QIB at least 75% · NII up to 15% · Retail up to 10% (Reg 6(2), loss-making issuer)",
     exchanges: "NSE, BSE",
@@ -73,7 +74,7 @@ export const zepto: IpoReport = {
     },
     {
       title: "A valuation reset already under way",
-      body: "Domestic funds reportedly valued Zepto at US$2.5-3.5bn against the US$7bn private mark; the company chose a ~US$4.5bn pre-IPO round over a cut-price listing. Where the RHP prices it will be the real signal.",
+      body: "Domestic funds reportedly valued Zepto at US$2.5-3.5bn against the US$7bn private mark; the company opted to plan a pre-IPO round at a reported ~US$4.5bn rather than a cut-price listing. Where the RHP prices it will be the real signal.",
     },
   ],
 
@@ -178,7 +179,7 @@ export const zepto: IpoReport = {
     { label: "Brand marketing via subsidiary Zepto Marketplace", valueCr: 520 },
   ],
   proceedsNote:
-    "The four named objects total ₹5,209 Cr, deployed over several years after listing. The balance (~₹2,800 Cr) goes to unidentified acquisitions (capped at 10% of the fresh issue) and general corporate purposes (capped at 25%), amounts to be fixed at pricing. Any pre-IPO placement (up to ₹1,602 Cr allowed; ~₹1,000 Cr reportedly raised in Aug 2026) reduces the fresh issue. OFS money goes to the selling investors.",
+    "The four named objects total ₹5,209 Cr, deployed over several years after listing. The balance (~₹2,800 Cr) goes to unidentified acquisitions (capped at 10% of the fresh issue) and general corporate purposes (capped at 25%), amounts to be fixed at pricing. Any pre-IPO placement (up to ₹1,602 Cr allowed; a ~₹1,000 Cr, ~US$105 Mn round was announced in Aug 2026 and was still described as planned by Inc42 on 22 Nov 2026) reduces the fresh issue. OFS money goes to the selling investors.",
   shareholding: [
     { holder: "Promoters & promoter group (founders, Lazarus & Vohra trusts)", pct: 19.56 },
     { holder: "Nexus Venture Partners", pct: 13.12 },
@@ -205,7 +206,7 @@ export const zepto: IpoReport = {
     { name: "Avenue Supermarts (DMart)", ticker: "DMART", note: "Offline grocery benchmark; profitable, low-cost model" },
   ],
   valuationNote:
-    "At the ~₹42,750 Cr pre-IPO mark Zepto trades at ~1.9x FY26 revenue, below Swiggy and Eternal on sales (see the table), both of which also own profitable or scaled food-delivery arms.",
+    "At the ~₹42,750 Cr valuation reported for the planned pre-IPO round, Zepto would be valued at ~1.9x FY26 revenue. Compare that with Swiggy's and Eternal's sales multiples in the peer table below; both also own profitable or scaled food-delivery arms.",
 
   strengths: [
     {
@@ -222,7 +223,7 @@ export const zepto: IpoReport = {
     },
     {
       title: "Debt-free with a cash cushion",
-      body: "₹5,681 Cr of cash and investments and no borrowings at Mar 2026, topped up by ~₹1,000 Cr pre-IPO in Aug 2026.",
+      body: "₹5,681 Cr of cash and investments and no borrowings at Mar 2026, to be topped up by a planned ~₹1,000 Cr (~US$105 Mn) pre-IPO round announced in Aug 2026 (not yet confirmed as closed).",
     },
   ],
   risks: [
@@ -238,7 +239,7 @@ export const zepto: IpoReport = {
     },
     {
       risk: "Cash runway: reports put quarterly burn at ~₹700 Cr with limited runway before the IPO.",
-      mitigant: "Pre-IPO placement closed in Aug 2026 and the fresh issue would add up to ₹8,010 Cr.",
+      mitigant: "A ~US$105 Mn pre-IPO round is planned (announced Aug 2026; not yet confirmed as closed) and the fresh issue would add up to ₹8,010 Cr.",
       severity: "medium",
     },
     {
@@ -254,9 +255,9 @@ export const zepto: IpoReport = {
   ],
 
   outlook: {
-    bull: "Order density keeps rising, adjusted EBITDA turns positive within FY28, and the IPO prices near the pre-IPO mark with room for a re-rating toward Swiggy and Eternal multiples.",
-    base: "Listing in H1 2027 at a valuation close to the ~US$4.5bn pre-IPO round, with losses narrowing but cash burn still visible for several quarters.",
-    bear: "Amazon and Flipkart escalate spending, burn stays near ₹700 Cr a quarter, and the IPO is pushed close to the Nov 2027 deadline or priced below the private round.",
+    bull: "Order density keeps rising, adjusted EBITDA turns positive within FY28, and the IPO prices near the reported pre-IPO valuation with room for a re-rating toward Swiggy and Eternal multiples.",
+    base: "Listing in H1 2027 at a valuation close to the ~US$4.5bn reported for the pre-IPO round, with losses narrowing but cash burn still visible for several quarters.",
+    bear: "Amazon and Flipkart escalate spending, burn stays near ₹700 Cr a quarter, and the IPO is pushed close to the Nov 2027 deadline or priced below the reported pre-IPO valuation.",
   },
   sources: [
     { title: "Zepto Limited - UDRHP-I (8 Jun 2026)", source: "SEBI", url: "https://www.sebi.gov.in/filings/public-issues/jun-2026/zepto-limited-udrhp1_101929.html", year: "2026" },
@@ -266,6 +267,6 @@ export const zepto: IpoReport = {
     { title: "Zepto eyes listing in 2 to 3 quarters; announces pre-IPO placement", source: "Storyboard18", url: "https://www.storyboard18.com/brand-marketing/zepto-eyes-listing-in-2-to-3-quarters-announces-pre-ipo-equity-placement-106344.htm", year: "2026" },
     { title: "Think Quick Commerce: unlocking the US$90bn opportunity", source: "Redseer", url: "https://redseer.com/reports/think-quick-commerce-unlocking-the-90bn-opportunity/", year: "2026" },
     { title: "A 10-minute parcel comes for Dalal Street", source: "Zerodha Daily Brief", url: "https://thedailybrief.zerodha.com/p/a-10-minute-parcel-comes-for-dalal", year: "2026" },
-    { title: "Eternal Ltd consolidated financials", source: "Screener.in", url: "https://www.screener.in/company/ETERNAL/consolidated/", year: "2026" },
+    { title: "Indian startup IPO tracker 2026", source: "Inc42 (22 Nov 2026)", url: "https://inc42.com/features/indian-startup-ipo-tracker-2026/", year: "2026" },
   ],
 };

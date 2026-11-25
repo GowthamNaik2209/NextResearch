@@ -13,10 +13,21 @@ import { manipalHospitals } from "./manipal-hospitals";
 import { oyo } from "./oyo";
 import { zetwerk } from "./zetwerk";
 import { parasHealthcare } from "./paras-healthcare";
+import { mahanadiCoalfields } from "./mahanadi-coalfields";
+import { crystalCropProtection } from "./crystal-crop-protection";
+import { foodlink } from "./foodlink";
+import { integrisMedtech } from "./integris-medtech";
+import { matangiRubber } from "./matangi-rubber";
+import { monomarkEngineering } from "./monomark-engineering";
+import { encubeEthicals } from "./encube-ethicals";
 
 export type { IpoReport, IpoStage } from "./types";
 
-const IPOS: IpoReport[] = [zetwerk, jioPlatforms, parasHealthcare, zepto, phonepe, oyo, nse, manipalHospitals];
+const IPOS: IpoReport[] = [
+  foodlink, integrisMedtech, matangiRubber, monomarkEngineering, encubeEthicals,
+  mahanadiCoalfields, crystalCropProtection,
+  zetwerk, jioPlatforms, parasHealthcare, zepto, phonepe, oyo, nse, manipalHospitals,
+];
 
 // Nearest to listing first: open, then dated, then approved, then filed; recent listings last.
 const STAGE_ORDER: Record<IpoStage, number> = { open: 0, upcoming: 1, approved: 2, filed: 3, listed: 4 };

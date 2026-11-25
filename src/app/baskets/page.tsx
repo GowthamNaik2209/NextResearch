@@ -27,9 +27,9 @@ import { basketsFaq, faqJsonLd } from "@/lib/faq";
 export const metadata = {
   title: "Stock baskets: build your own from any mix of Indian industries",
   description:
-    "Create a stock basket from any mix of the industries NextResearch maps, from EVs and railways to defence, pharma, hospitals and capital markets, or start from a rule-based basket re-ranked daily: biggest gainers, highest ROCE, scarce suppliers, companies in 3+ industries, recent listings, consistent compounders, growth at a reasonable price, turnarounds and widening margins. Each one is backtested against the Nifty 50 and shareable by link.",
+    "Create a stock basket from any mix of the industries NextResearch maps, from EVs and railways to defence, pharma, hospitals and capital markets, or start from a rule-based basket re-ranked daily: biggest gainers, highest ROCE, scarce suppliers, companies in 3+ industries, recent listings, consistent compounders, growth at a reasonable price, turnarounds and widening margins. Each one shows its past performance against the Nifty 50 and is shareable by link.",
   alternates: { canonical: "/baskets" },
-  ...shareMeta({ title: "Stock baskets", line: "Mix any Indian industries, backtested against the Nifty 50.", path: "/baskets" }),
+  ...shareMeta({ title: "Stock baskets", line: "Mix any Indian industries, with past performance against the Nifty 50.", path: "/baskets" }),
 };
 
 // The industry table and the summary strip above it read the same figures: worked out once per request.
@@ -107,7 +107,7 @@ export default async function BasketsPage() {
                 recommendation or forecast.
               </InfoTip>
             </div>
-            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Lists picked by a fixed rule, re-ranked daily. Open one to backtest it, or copy it to your baskets.</p>
+            <p className="mt-0.5 text-xs text-ink-soft sm:text-sm">Lists picked by a fixed rule, re-ranked daily. Open one to see its past performance, or copy it to your baskets.</p>
           </div>
           <BasketIdeas />
         </section>

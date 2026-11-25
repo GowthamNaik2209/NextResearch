@@ -18,7 +18,7 @@
           ],
           "risks": [
             "Still working down a high loan-to-deposit ratio left by the merger, which limits loan growth",
-            "Margins pressured as policy rate cuts reprice loans faster than deposits"
+            "Margins swing with the RBI rate cycle, since loans reprice faster than deposits"
           ],
           "f": {
             "ticker": "HDFCBANK"
@@ -1196,6 +1196,27 @@
             "ticker": "RKFORGE"
           }
         },
+        "heromotors": {
+          "name": "Hero Motors",
+          "listed": true,
+          "role": "EV transmissions, electric motors and integrated drive units, so far mostly for e-bikes, electric two-wheelers and specialty EVs; listed 23 Sep 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "hero motors company"
+          ],
+          "strengths": [
+            "Already ships EV transmissions and integrated drive units to global customers, a base to bid for electric-car drive work",
+            "IPO money funds more capacity at its Uttar Pradesh plant"
+          ],
+          "risks": [
+            "Little electric-car business today - an early, small exposure next to e-axle leaders",
+            "Short listed record (since 23 Sep 2026) and heavy reliance on a few customers"
+          ],
+          "f": {
+            "ticker": "HEROMOTORS"
+          }
+        },
         "tataautocomp": {
           "name": "Tata AutoComp Systems",
           "listed": false,
@@ -1539,9 +1560,12 @@
           }
         },
         "hclfoxconn": {
-          "name": "HCL-Foxconn Semiconductor",
+          "name": "India Chip (HCL-Foxconn JV)",
           "listed": false,
-          "role": "Approved (May 2025) OSAT plant (Jewar, Uttar Pradesh) for display driver chips",
+          "aka": [
+            "hcl-foxconn"
+          ],
+          "role": "HCL group (60%) and Foxconn (40%) joint venture; approved (May 2025) OSAT plant (Jewar, Uttar Pradesh) for display driver chips",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -2868,7 +2892,7 @@
         "elgiequip": {
           "name": "Elgi Equipments",
           "listed": true,
-          "role": "Air compressors for railway braking and pneumatic systems",
+          "role": "Industrial air-compressor maker that also supplies railway-approved (RDSO) compressors feeding the brake and air systems of locomotives and electric trains - it makes the air supply, not the brakes, and rail is a small share of its sales",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -4347,6 +4371,29 @@
             "ticker": "AKSHOPTFBR"
           }
         },
+        "orientcables": {
+          "name": "Orient Cables (India)",
+          "listed": true,
+          "role": "Bhiwadi (Rajasthan) and Bengaluru maker of networking (CAT6/CAT6A LAN) cables, optical fibre cables and specialty power cables for telecom operators, broadband, data centres and OEMs; listed Oct 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "orient cables"
+          ],
+          "strengths": [
+            "Among India's top four networking-cable makers, with ~22.9% share in FY26 (1Lattice, cited in its RHP), and supplies two of India's top three telecom operators",
+            "Specialty power and optical fibre cables grew to ~21% of FY26 revenue; makes its own FRP rods for its Unitube and Multitube fibre cables",
+            "IPO money is adding cable capacity at Bhiwadi and repaying debt"
+          ],
+          "risks": [
+            "Top 10 customers were ~77% of FY26 revenue, and the largest alone ~39% in Q1 FY27",
+            "Copper and PVC are most of its costs; EBITDA margin slipped to ~8% in FY26 from ~10% in FY25",
+            "Listed only in Oct 2026, and most revenue is copper LAN cable rather than optical fibre"
+          ],
+          "f": {
+            "ticker": "ORIENTCABL"
+          }
+        },
         "tejasnetworks": {
           "name": "Tejas Networks",
           "listed": true,
@@ -4707,11 +4754,11 @@
         "bhartiairtel_op": {
           "name": "Bharti Airtel",
           "listed": true,
-          "role": "India's largest listed telco by market cap",
+          "role": "India's second-largest telco by subscribers, with the highest ARPU among the big operators (₹271 vs Jio's ~₹219 in Q2 FY27)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's largest telco by market cap with the strongest balance sheet among private operators gives it the capex firepower to lead 5G densification and fibreisation ahead of weaker rivals",
+            "The strongest balance sheet among private operators gives it the capex firepower to lead 5G densification and fibreisation ahead of weaker rivals",
             "Industry-leading ARPU and premiumisation trends give it pricing power that financially weaker operators cannot replicate"
           ],
           "risks": [
@@ -4781,7 +4828,7 @@
             "Developed an indigenous O-RAN-based 5G core/RAN technology stack in-house, reducing reliance on global equipment vendors"
           ],
           "risks": [
-            "Listed 28 Oct 2026, so its track record as a separately listed company is only days old",
+            "Listed only in Oct 2026, so it has little track record as a separately listed company",
             "Earnings growth leans on further tariff increases, which depend on the whole industry moving together",
             "Reliance Industries keeps control, so minority holders follow the group's capital-allocation choices"
           ],
@@ -5033,10 +5080,12 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's largest solar module manufacturer by capacity, with a growing order book and an expanding export business to the US"
+            "India's largest solar module manufacturer by capacity, with a growing order book",
+            "Serves the US from its own Texas plant (doubled to 3.2 GW, Oct 2026) rather than relying on exports from India"
           ],
           "risks": [
             "Listed Oct 2024, so its multi-year financial track record as a listed company is short",
+            "US anti-dumping and countervailing duty orders (Nov 2026) largely shut US exports of India-made cells and modules",
             "Industry-wide module capacity additions are running ahead of demand, risking margin pressure even for the market leader"
           ],
           "f": {
@@ -5683,10 +5732,12 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's largest solar module manufacturer by capacity, with a growing order book and an expanding export business to the US"
+            "India's largest solar module manufacturer by capacity, with a growing order book",
+            "Serves the US from its own Texas plant (doubled to 3.2 GW, Oct 2026) rather than relying on exports from India"
           ],
           "risks": [
-            "Listed Oct 2024 with limited multi-year financial track record"
+            "Listed Oct 2024 with limited multi-year financial track record",
+            "US anti-dumping and countervailing duty orders (Nov 2026) largely shut US exports of India-made cells and modules"
           ],
           "f": {
             "ticker": "WAAREEENER"
@@ -5756,6 +5807,29 @@
           ],
           "f": {
             "ticker": "INOXWIND"
+          }
+        },
+        "bonfiglioli": {
+          "name": "Bonfiglioli Transmissions (India)",
+          "listed": true,
+          "role": "Indian arm of Italy's Bonfiglioli group making yaw and pitch drives for wind turbines (about a third of revenue) alongside gearboxes, gear motors and drives for industry and off-highway machines; listed Oct 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "bonfiglioli"
+          ],
+          "strengths": [
+            "About 70% of domestic yaw and pitch drive sales (Frost & Sullivan, cited in its offer document), supplying turbine makers such as Suzlon, Nordex and Senvion",
+            "Its Chennai R&D centre is, per its offer document, the only lab in India equipped to test wind-turbine yaw and pitch drives",
+            "Repowering of older wind farms and new turbine orders both need its drives"
+          ],
+          "risks": [
+            "Wind sales follow turbine makers' order cycles, and a few OEMs buy most of them",
+            "Listed only in Oct 2026 through a pure offer for sale; the Bonfiglioli promoters still hold about three-quarters, and the Italian parent owns the IP in co-engineered wind products",
+            "Buys a share of parts from overseas suppliers (Italy, China, Germany), so currency moves hit costs"
+          ],
+          "f": {
+            "ticker": "BONFIG"
           }
         },
         "orientGreen": {
@@ -6845,7 +6919,7 @@
         "ambuja": {
           "name": "Ambuja Cements",
           "listed": true,
-          "role": "Adani group cement maker (with ACC, Sanghi, Penna and Orient Cement), number two in India",
+          "role": "Adani group cement maker, number two in India; absorbed Sanghi (effective 12 Mar 2026) and Penna (10 Apr 2026), and is merging in ACC (shareholders approved 29 Sep 2026, NCLT sanction pending) and Orient Cement",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -7759,6 +7833,11 @@
         "jswDulux": {
           "name": "JSW Dulux",
           "listed": true,
+          "aka": [
+            "Akzo Nobel",
+            "Akzo Nobel India",
+            "Dulux"
+          ],
           "role": "Dulux decorative paint maker, formerly Akzo Nobel India, bought by JSW Paints in 2025 and renamed",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
@@ -7826,6 +7905,97 @@
           ],
           "f": {
             "ticker": "HONAUT"
+          }
+        },
+        "elevateCampuses": {
+          "name": "Elevate Campuses",
+          "listed": true,
+          "role": "Student-housing landlord that owns and runs on-campus hostels for universities such as IIT Madras, Manipal, O.P. Jindal and UPES on 50-60 year contracts, manages more campuses for a fee, and owns K-12 school buildings; listed 30 Sep 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Long university contracts with built-in rent escalations, several with minimum-occupancy guarantees, make its income annuity-like",
+            "Grows asset-light by managing hostels it does not own",
+            "Students pay upfront, so the business runs on negative working capital"
+          ],
+          "risks": [
+            "About half the IPO money (~₹1,100 Cr) buys K-12 school entities and campuses from companies owned by the same funds that control its promoters - a related-party purchase priced by a company-appointed valuer",
+            "Listed only on 30 Sep 2026 - a short public record",
+            "Depends on a handful of partner universities, and occupancy at its owned campuses was under 90% at Mar 2026",
+            "Elevated debt, and the newly bought school buildings still to integrate"
+          ],
+          "f": {
+            "ticker": "ELEVATE"
+          }
+        },
+        "hdFire": {
+          "name": "HD Fire Protect",
+          "listed": true,
+          "aka": [
+            "HD Fire"
+          ],
+          "role": "Maker of sprinklers, alarm and deluge valves, foam systems, monitors and nozzles - the water and foam fire-fighting kit installed in towers, hospitals, data centres, warehouses and plants - from two Maharashtra plants; listed 21 Oct 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "UL-listed and FM-approved products, which building and plant fire specifications often require",
+            "Sells to fire-protection contractors, MEP and EPC firms and developers such as Godrej Properties, mostly as repeat business",
+            "In-house fire-test labs and R&D at both plants"
+          ],
+          "risks": [
+            "Buildings are one end market beside oil and gas, refining and power, so real-estate demand drives only part of sales",
+            "About a third of FY26 sales were exports, the Middle East the largest market - mostly unhedged currency exposure",
+            "Listed 21 Oct 2026 through an all-offer-for-sale IPO, so it raised no new money - a short public record"
+          ],
+          "f": {
+            "ticker": "HDFIRE"
+          }
+        },
+        "varmora": {
+          "name": "Varmora Granito",
+          "listed": true,
+          "aka": [
+            "Varmora"
+          ],
+          "role": "Morbi (Gujarat) tile maker - glazed vitrified, polished vitrified and ceramic tiles from eight plants - selling through its own brand showrooms, multi-brand dealers and direct to builders and contractors; listed 29 Sep 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Glazed vitrified and large-format technical tiles make up most of its tile sales",
+            "Retail reach through exclusive brand outlets and thousands of multi-brand dealers, plus project sales to developers",
+            "Own wind and solar capacity trims power costs for its kilns"
+          ],
+          "risks": [
+            "Sits in the Morbi cluster, where hundreds of makers cut prices when tile exports weaken",
+            "Gas price swings drive kiln costs",
+            "Listed 29 Sep 2026 after a modestly subscribed IPO; the new money, under half the issue, mostly repays debt - a short public record"
+          ],
+          "f": {
+            "ticker": "VARMORA"
+          }
+        },
+        "glassWall": {
+          "name": "Glass Wall Systems (India)",
+          "listed": true,
+          "aka": [
+            "Glass Wall Systems",
+            "Glass Wall"
+          ],
+          "role": "Façade and window specialist that designs, makes and installs glass curtain walls for offices, towers, hospitals and airports in India, supplies façade units to contractors in the US and Australia, and sells luxury windows and doors through its subsidiary Yes Systems; listed 16 Sep 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "strengths": [
+            "Façade record on Indian landmarks such as Lodha World One and Bagmane Rio",
+            "Export supply to US and Australian façade contractors spreads it beyond the Indian building cycle",
+            "IPO money funds its own glass processing unit, bringing more of the work in-house"
+          ],
+          "risks": [
+            "Project-based: revenue swings with developers' construction timelines and new contract wins",
+            "Overseas supply exposes it to currency moves and US trade rules",
+            "Listed 16 Sep 2026 - a short public record"
+          ],
+          "f": {
+            "ticker": "GLASSWALL"
           }
         }
       }
@@ -9552,6 +9722,29 @@
             "ticker": "LAXMIDENTL"
           }
         },
+        "smt": {
+          "name": "Sahajanand Medical Technologies",
+          "listed": true,
+          "role": "Maker of coronary stents (Supraflex Cruz), balloons, TAVI heart valves (Hydra) and occluders, with plants in India and Thailand and sales in 77 countries; listed 23 Oct 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "Sahajanand Medical"
+          ],
+          "strengths": [
+            "Close to a quarter of India's drug-eluting stent volumes in FY26 (Frost & Sullivan, in its offer document)",
+            "Nearly three-quarters of FY26 revenue came from outside India, Europe the largest part - less tied to Indian price caps",
+            "Structural-heart devices (TAVI valves, occluders) were about a sixth of FY26 revenue, beyond price-capped stents"
+          ],
+          "risks": [
+            "Newly listed (Oct 2026); the IPO was all shares sold by promoters and investors, so no new money for the company",
+            "NPPA caps on Indian stent prices limit pricing at home",
+            "About three-quarters of FY26 purchases were imported (metal and plastic tubes, drugs, polymers) - currency moves hit costs"
+          ],
+          "f": {
+            "ticker": "SMT"
+          }
+        },
         "meril": {
           "name": "Meril Life Sciences",
           "listed": false,
@@ -10662,6 +10855,31 @@
             "ticker": "KFINTECH"
           }
         },
+        "eaaa": {
+          "name": "EAAA India Alternatives (Edelweiss Alternatives)",
+          "listed": true,
+          "role": "Edelweiss group's alternative asset manager: private-credit funds and real-asset funds owning roads, transmission lines, solar plants and offices (through Sekura); earns management fees, carry and returns on its own stakes; listed 2 Nov 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "eaaa",
+            "edelweiss alternatives",
+            "edelweiss alternative asset advisors"
+          ],
+          "strengths": [
+            "About ₹95,000 Cr of AUM across private credit and real assets, roughly half of it fee-paying (Jun 2026, RHP)",
+            "Money comes about equally from institutions and non-institutional (wealthy) clients, and about a third from offshore investors - wider sources than a domestic mutual fund",
+            "Repeat clients provide about three-quarters of AUM, so new funds raise faster than first-time managers' do"
+          ],
+          "risks": [
+            "Performance-linked income (carry) is booked before it is collected and swings with exits, so profit and cash can diverge",
+            "Private-credit and infrastructure holdings are illiquid and valued by models; a stressed borrower or asset hits returns and fundraising",
+            "The IPO was entirely an offer for sale by the Edelweiss parent, which still controls it; group regulatory history and pending cases against group entities weigh on perception, and it has traded only since Nov 2026"
+          ],
+          "f": {
+            "ticker": "EDELALTS"
+          }
+        },
         "choice": {
           "name": "Choice International",
           "listed": true,
@@ -11244,6 +11462,29 @@
           ],
           "f": {
             "ticker": "MEIL"
+          }
+        },
+        "kanohar": {
+          "name": "Kanohar Electricals",
+          "listed": true,
+          "role": "Meerut (UP) maker of power and traction transformers for state transmission utilities, railways and renewable plants, with a smaller transmission-line and substation EPC arm; listed Sep 2026",
+          "dataStatus": "demo",
+          "sourceDate": "3 Nov 2026",
+          "aka": [
+            "kanohar"
+          ],
+          "strengths": [
+            "19,200 MVA of transformer capacity across two Meerut plants (Mar 2026), and has won 400 kV-class auto-transformer orders from state transcos such as Telangana's",
+            "One of four Indian makers approved by RDSO for 132 kV Scott (traction) transformers, so railway electrification is a second market for the same factories",
+            "IPO money is going into capex and working capital to take on more utility orders"
+          ],
+          "risks": [
+            "Top 10 customers were ~93% of FY26 revenue, mostly government utilities buying through tenders",
+            "Listed only in Sep 2026 and much smaller than the transformer leaders that are adding capacity",
+            "CRGO and copper costs on fixed-price orders; EPC jobs (~16% of FY26 revenue) carry time and cost overrun risk"
+          ],
+          "f": {
+            "ticker": "KANOHAR"
           }
         },
         "qpower": {
@@ -12294,7 +12535,7 @@
             "Monetisation outside UPI is still building"
           ],
           "notes": [
-            "Filed an updated DRHP (pure offer for sale) in Jan 2026; paused in Mar 2026; targeting a listing by Mar 2027 per reports",
+            "Filed an updated DRHP (an offer for sale) in Jan 2026; paused in Mar 2026; reported (Reuters, 25 Nov 2026) to have restarted IPO preparations, with a Jan-Mar 2027 listing reported (see the PhonePe IPO deck)",
             "No listed market data"
           ]
         },
@@ -12449,6 +12690,76 @@
           ],
           "f": {
             "ticker": "UNIECOM"
+          }
+        },
+        "acevector": {
+          "name": "AceVector (Snapdeal)",
+          "listed": true,
+          "role": "Parent of Snapdeal, a value-fashion and lifestyle marketplace for price-conscious shoppers in smaller towns, plus Stellaro Brands (its own value consumer brands) and the promoter stake in Unicommerce (seller software); listed Oct 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "snapdeal",
+            "stellaro"
+          ],
+          "strengths": [
+            "Snapdeal has narrowed to low-ticket fashion and lifestyle goods, where shoppers in tier-2 towns and smaller cities buy on price",
+            "Became adjusted free-cash-flow positive before listing, with most of the fresh issue earmarked for marketing and marketplace technology",
+            "Unicommerce's order and shipping software earns from sellers on every marketplace, not just Snapdeal"
+          ],
+          "risks": [
+            "Still loss-making at the net level (restated FY26) and much smaller than Meesho, Flipkart and Amazon in the same value segment",
+            "Quick commerce and Meesho are moving into cheap fashion and lifestyle, its core categories",
+            "Listed only in Oct 2026, so it has a short public record"
+          ],
+          "f": {
+            "ticker": "ACEVECTOR"
+          }
+        },
+        "rentomojo": {
+          "name": "Rentomojo",
+          "listed": true,
+          "role": "Online rental and subscription platform for furniture and appliances (beds, sofas, fridges, washing machines) in 29 cities; owns the items, refurbishes and re-rents them; listed Sep 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "rento mojo"
+          ],
+          "strengths": [
+            "Leader in organised online furniture and appliance rental, with an estimated 42-47% share by subscription revenue in FY25 (Redseer, in its RHP)",
+            "Each item is rented several times over its life, so refurbishment and reverse logistics turn one purchase into years of subscription income",
+            "Runs its own delivery, pickup and refurbishment network (20 warehouses, 82 experience stores, Mar 2026) behind an online-first storefront"
+          ],
+          "risks": [
+            "Capital-heavy for an internet business: it must buy stock up front and carries depreciation and write-off risk on returned items",
+            "A one-off tax credit flattered FY26 profit, and rival Furlenco is reportedly preparing its own listing",
+            "Listed in Sep 2026, mostly as an offer for sale, so little new money came in and the public record is short"
+          ],
+          "f": {
+            "ticker": "RENTOMOJO"
+          }
+        },
+        "mpimanipal": {
+          "name": "Manipal Payment & Identity Solutions",
+          "listed": true,
+          "role": "Manipal group company that makes and personalises debit, credit, prepaid and metal payment cards for banks and fintechs, plus driving-licence and ID cards and cheque printing; listed Sep 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "manipal payment"
+          ],
+          "strengths": [
+            "Prints the cards that fintech card programmes run on - 60 fintech clients (Mar 2026, RHP) alongside banks",
+            "Card-making is a physical step every card app or neo-bank still needs, so it earns whichever app wins the customer",
+            "Exports cards (including metal cards) to markets such as the UK, the UAE and Singapore"
+          ],
+          "risks": [
+            "UPI and phone-based payments reduce how many plastic debit cards app users need",
+            "Exposure here is indirect: it sells to the banks and fintechs that issue cards, not to the apps' users",
+            "Listed only in Sep 2026 after a modestly subscribed IPO, so the public record is short"
+          ],
+          "f": {
+            "ticker": "MPIMANIPAL"
           }
         },
         "saregama": {
@@ -12626,6 +12937,30 @@
           ],
           "f": {
             "ticker": "KISSHT"
+          }
+        },
+        "moneyview": {
+          "name": "Moneyview",
+          "listed": true,
+          "role": "App-based personal-loan platform: originates loans for partner banks and NBFCs and lends from its own NBFC, Whizdm Finance; also distributes cards and insurance; listed 1 Oct 2026",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "aka": [
+            "money view",
+            "whizdm"
+          ],
+          "strengths": [
+            "Most of its managed loans sit with partner banks and NBFCs, so it earns origination and servicing fees on far more credit than its own balance sheet holds",
+            "In-house data and AI underwriting lets it approve small personal loans quickly on the app, with banks, NBFCs and insurers as partners",
+            "IPO money is earmarked partly for Whizdm Finance's capital and partly for default-loss-guarantee-backed lending with partners"
+          ],
+          "risks": [
+            "Default-loss guarantees (capped at 5% under RBI rules) leave it bearing first losses on partner loans, on top of the full risk on Whizdm's own book",
+            "Unsecured small personal loans are the slice RBI watches most closely and where credit costs rise first",
+            "Borrowings have risen fast to fund growth, and it has traded only since Oct 2026"
+          ],
+          "f": {
+            "ticker": "MONEYVIEW"
           }
         },
         "paytm": {
@@ -14422,6 +14757,29 @@
             "ticker": "INFY"
           }
         },
+        "mpimanipal": {
+          "name": "Manipal Payment & Identity Solutions",
+          "listed": true,
+          "role": "Manipal group company that makes and personalises debit, credit and prepaid cards and prints cheques for banks, plus driving-licence and ID cards; listed Sep 2026",
+          "dataStatus": "demo",
+          "sourceDate": "18 Nov 2026",
+          "aka": [
+            "manipal payment"
+          ],
+          "strengths": [
+            "Card supplier to private, public-sector, small-finance and co-operative banks, including SBI, HDFC Bank and ICICI Bank",
+            "Every new card account and every card reissue needs a physical card, so it grows with card issuance and cards-in-force",
+            "Also prints bank cheques and runs secure card mailing (tamper-evident envelopes, secure logistics), adding to what it earns per bank"
+          ],
+          "risks": [
+            "UPI and tokenised phone payments reduce how many plastic debit cards banks issue",
+            "Banks negotiate hard on card prices and can split orders among several card makers",
+            "Listed only in Sep 2026 after a modestly subscribed IPO, so the public record is short"
+          ],
+          "f": {
+            "ticker": "MPIMANIPAL"
+          }
+        },
         "tataInvest": {
           "name": "Tata Investment Corporation",
           "listed": true,
@@ -15697,7 +16055,7 @@
             "Most revenue now from outside India"
           ],
           "notes": [
-            "Formerly Oravel Stays; updated draft IPO papers (UDRHP-I) filed 30 Jun 2026, no RHP yet",
+            "Formerly Oravel Stays; updated draft IPO papers (UDRHP-I) filed 30 Jun 2026, fresh issue halved to ₹3,350 Cr in Oct 2026, no RHP yet",
             "See the OYO IPO deck",
             "No listed market data"
           ]
@@ -17325,6 +17683,26 @@
             "ticker": "ALLDIGI"
           }
         },
+        "fusionCx": {
+          "name": "Fusion CX",
+          "listed": true,
+          "role": "Kolkata-based customer-experience firm running voice, chat, email and social-media support, mostly for North American telecom, tech, banking, retail and healthcare clients, from 40 centres in 13 countries, with its own AI tools (Omind); listed 22 Oct 2026",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "About 82% of FY26 revenue came from North America, billed mostly in dollars",
+            "Offshore and nearshore centres (India, the Philippines, Central America) price below US-based rivals",
+            "Acquisitions such as Ameridial and Boomsourcing (US) and Ready Call Center (Belize) widened its reach"
+          ],
+          "risks": [
+            "Newly listed (Oct 2026) - short public track record",
+            "One client was about 30% of FY26 revenue and the top ten 52%; most contracts run under two years and can end at short notice",
+            "Telecom and tech clients were 47% of FY26 revenue, and voice and chat seats are the work AI agents replace first"
+          ],
+          "f": {
+            "ticker": "FUSIONCX"
+          }
+        },
         "teleperformance": {
           "name": "Teleperformance India",
           "listed": false,
@@ -18281,7 +18659,7 @@
         "tmcv": {
           "name": "Tata Motors (commercial vehicles)",
           "listed": true,
-          "role": "India's largest truck and bus maker, separated from Tata's passenger cars on 1 Oct 2025 and listed 12 Nov 2025; owns about 89% of Europe's Iveco since 30 Oct 2026",
+          "role": "India's largest truck and bus maker, separated from Tata's passenger cars on 1 Oct 2025 and listed 12 Nov 2025; owns 96.25% of Europe's Iveco (control since 30 Oct 2026; squeeze-out of the rest under way)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "aka": [
@@ -19320,6 +19698,29 @@
           ],
           "f": {
             "ticker": "ROLEXRINGS"
+          }
+        },
+        "heromotors": {
+          "name": "Hero Motors",
+          "listed": true,
+          "role": "Gears, transmissions, electric motors and e-bike drive units for global vehicle and e-bike makers, plus sheet-metal and tube assemblies for vehicle makers; listed 23 Sep 2026",
+          "dataStatus": "demo",
+          "sourceDate": "20 Oct 2026",
+          "aka": [
+            "hero motors company"
+          ],
+          "strengths": [
+            "About 41% of FY26 revenue came from customers in 23 countries (BMW and Ducati among them), so it is less tied to Indian volumes",
+            "Its transmissions and drive units go into petrol and electric vehicles alike (e-bikes, electric two-wheelers, performance and specialty EVs), so electrification adds content instead of removing it",
+            "IPO money is going to cut debt and expand its Uttar Pradesh plant"
+          ],
+          "risks": [
+            "One customer was about 36% of FY26 revenue and the top 10 about 73% (RHP); vehicle programmes take years to replace",
+            "Hero MotoCorp, a separate company despite the shared name, is among its ten largest customers (FY26, RHP), so Indian two-wheeler volumes still matter",
+            "Short listed record (since 23 Sep 2026); European e-bike and car demand and currency swings move its export half"
+          ],
+          "f": {
+            "ticker": "HEROMOTORS"
           }
         },
         "mrf": {
@@ -20378,6 +20779,26 @@
             "ticker": "LXCHEM"
           }
         },
+        "prasol": {
+          "name": "Prasol Chemicals",
+          "listed": true,
+          "role": "Maker of more than 150 acetone-based (including isophorone) and phosphorus-based specialty chemicals at Khopoli and Mahad in Maharashtra, sold to agrochem, pharma, lubricant-additive, mining, paint and home-care makers; listed 16 Sep 2026",
+          "dataStatus": "demo",
+          "sourceDate": "19 Nov 2026",
+          "strengths": [
+            "India's only isophorone maker (CARE report in its offer document)",
+            "Over 1,600 customers, the top ten about a quarter of FY26 revenue - among them Coromandel, Lubrizol India and Alembic Pharmaceuticals",
+            "Phosphorus derivatives also feed agrochem makers as intermediates"
+          ],
+          "risks": [
+            "Newly listed (Sep 2026) - short public track record",
+            "No long-term supply contracts for acetone and yellow phosphorus - spreads swing with feedstock prices and imports",
+            "Hazardous phosphorus chemistry at two Maharashtra plants - safety and environmental compliance"
+          ],
+          "f": {
+            "ticker": "PRASOLCHEM"
+          }
+        },
         "neogen": {
           "name": "Neogen Chemicals",
           "listed": true,
@@ -20993,7 +21414,7 @@
             "Long-term contracts and tolling fees"
           ],
           "risks": [
-            "Qatar cargoes stopped by the Hormuz closure in 2026",
+            "Qatar cargoes cut by the Hormuz disruption in 2026",
             "Volumes depend on LNG prices"
           ],
           "f": {
@@ -21011,7 +21432,7 @@
             "Long contracts with oil companies"
           ],
           "risks": [
-            "LPG imports hit by the Gulf closure",
+            "LPG imports hit by the Gulf disruption",
             "Capex for new terminals"
           ],
           "f": {
@@ -22576,7 +22997,7 @@
             "Spice and grain raw-material prices"
           ],
           "f": {
-            "ticker": "ORKLA"
+            "ticker": "ORKLAINDIA"
           }
         },
         "cello": {
@@ -24441,8 +24862,13 @@
           }
         },
         "barbeque": {
-          "name": "Barbeque-Nation Hospitality",
+          "name": "United Foodbrands (Barbeque Nation)",
           "listed": true,
+          "aka": [
+            "Barbeque Nation",
+            "Barbeque-Nation Hospitality",
+            "BARBEQUE"
+          ],
           "role": "Runs Barbeque Nation buffet restaurants in India and abroad, plus Toscano and Salt",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
@@ -24455,7 +24881,7 @@
             "Competition from cheaper dining and delivery"
           ],
           "f": {
-            "ticker": "BARBEQUE"
+            "ticker": "UFBL"
           }
         },
         "electronicsMart": {
@@ -25530,7 +25956,7 @@
         "nftdc": {
           "name": "Non-Ferrous Materials Technology Development Centre (NFTDC)",
           "listed": false,
-          "role": "Government R&D centre in Hyderabad that developed the magnet and alloy technology licensed to Midwest",
+          "role": "Government R&D centre in Hyderabad (not a company, not investable) that developed the magnet and alloy technology licensed to Midwest",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -25542,7 +25968,7 @@
           "notes": [
             "Autonomous R&D centre under the Ministry of Mines",
             "Technology partner for the Midwest magnet project and the Midwest-Indonesia MoU (2026)",
-            "Not a company - no market data"
+            "Government R&D centre - not investable; shown only as the technology source"
           ]
         },
         "kmml": {
@@ -26130,7 +26556,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "P75(I) (~₹70,000 Cr, six submarines) cleared by the Finance Ministry and sent to the CCS (2026)",
+            "P75(I) (six submarines, about ₹70,000-80,000 Cr, reported) cleared by the Finance Ministry and sent to the CCS (2026)",
             "Only listed yard with a submarine franchise",
             "Strong profit growth and high returns on equity"
           ],
@@ -26381,6 +26807,30 @@
           ],
           "f": {
             "ticker": "AVANTEL"
+          }
+        },
+        "tonbo": {
+          "name": "Tonbo Imaging India",
+          "listed": true,
+          "role": "Thermal imagers, weapon sights, targeting and fire-control systems and uncooled missile seekers; designs in Bengaluru and outsources volume manufacturing to electronics contract makers; listed 23 Oct 2026",
+          "dataStatus": "demo",
+          "sourceDate": "26 Nov 2026",
+          "aka": [
+            "tonbo",
+            "tonbo imaging"
+          ],
+          "strengths": [
+            "Supplied about half of the thermal imaging units the Indian government bought in FY25-FY26 (Frost & Sullivan, cited in its RHP)",
+            "Works with Bharat Dynamics on uncooled imaging seekers for the Army's anti-tank guided missiles",
+            "Owns its designs and has exported to 24 countries; building a high-power microwave counter-drone system (deliveries expected only around FY29-FY30)"
+          ],
+          "risks": [
+            "FY26 revenue fell ~23% as export deliveries (Morocco, Armenia) slipped, and Q1 FY27 was a loss",
+            "Operating cash flow negative in FY25 and FY26 as inventory and receivables grew",
+            "Revenue hangs on the timing of a few large government tenders and export orders; short listed record (since 23 Oct 2026, through a pure offer for sale)"
+          ],
+          "f": {
+            "ticker": "TONBO"
           }
         },
         "zen": {
@@ -26730,7 +27180,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "ECMS approval (Jan 2026) for enclosures for mobile and IT hardware",
-            "Kanchipuram enclosure plant due to start around Oct-Nov 2026 (reported Aug 2026)",
+            "Kanchipuram enclosure plant was due around Oct-Nov 2026 (reported Aug 2026); start not confirmed as of late Nov 2026",
             "Global precision-manufacturing scale and balance sheet"
           ],
           "risks": [
@@ -26998,7 +27448,7 @@
           ],
           "notes": [
             "Wipro Enterprises is privately held; listed Wipro Ltd (IT services) is not the owner",
-            "Plant was due to go live around Oct-Nov 2026 (reported Aug 2026)",
+            "Plant was due to go live around Oct-Nov 2026 (reported Aug 2026); start not confirmed as of late Nov 2026",
             "No listed market data"
           ]
         },
@@ -27157,7 +27607,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "49th AGM (2026): a 40 GWh first phase on track for commissioning in 2026 with all equipment on site; long-term target raised to 120 GWh a year of LFP cells and BESS",
+            "49th AGM (2026): a 40 GWh first phase on track for commissioning in 2026 with all equipment on site; long-term target raised to 120 GWh a year of LFP cells and BESS. Early output is reported to be BESS assembly, with cell making integrated later (Business Today, Jan 2026)",
             "Captive demand: its Kutch renewable hub plans up to 150 MWh of battery containers a day at peak installation",
             "Balance sheet to fund the plant without the incentive"
           ],
@@ -27718,11 +28168,12 @@
           "strengths": [
             "SIGHT production awards in both tranches (90,000 tonnes a year in Jan 2024, 49,000 tonnes a year in Mar 2025) and 300 MW a year of electrolyser manufacturing (Jan 2024)",
             "Binding 15-year green ammonia supply deal with Korea's Samsung C&T worth over US$3bn, signed Mar 2026, with supply from the second half of FY29",
+            "Expects first green hydrogen output at Jamnagar in 2027, ramping up by 2028 (S&P Global, Sep 2026)",
             "Jamnagar refinery is a captive buyer for its own green hydrogen"
           ],
           "risks": [
             "Green hydrogen is a small, unreported part of a group dominated by oil-to-chemicals, retail and telecom",
-            "Timelines at the Jamnagar giga complex have slipped before",
+            "Timelines at the Jamnagar giga complex have slipped before; its electrolyser factory is among those reportedly deferred to Aug 2027 (Nov 2026)",
             "Captive electrolyser technology still being proven at scale"
           ],
           "f": {
@@ -27760,7 +28211,7 @@
             "Group can supply its own renewable power (Adani Green) and port (Adani Ports)"
           ],
           "risks": [
-            "Mundra hub has no confirmed commissioning date as of Oct 2026",
+            "Mundra hub has no confirmed commissioning date as of late Nov 2026, and Adani New Industries' electrolyser factory is among those reportedly deferred to Aug 2027",
             "Hydrogen is one of many capital-heavy bets inside Adani Enterprises",
             "Group governance and funding scrutiny"
           ],
@@ -28009,7 +28460,7 @@
             "Can pair hydrogen with its own solar modules and storage"
           ],
           "risks": [
-            "No electrolyser factory commissioning confirmed as of Oct 2026",
+            "No electrolyser factory commissioning reported as of late Nov 2026",
             "Hydrogen is tiny next to its module business",
             "Technology partner and stack design not widely disclosed"
           ],
@@ -28025,6 +28476,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Electrolyser awards in both tranches: 100 MW (Jan 2024, with Rajesh Power Services) and 200 MW (Aug 2024)",
+            "Opened a 30 MW first-phase alkaline electrolyser assembly line at Mehsana, Gujarat (13 Mar 2026); 100 MW and 300 MW phases are plans",
             "Hydrogen is material to its size, unlike the conglomerates"
           ],
           "risks": [

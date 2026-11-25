@@ -2,8 +2,9 @@
 // each industry's own index. Yahoo keeps full history for only a few NSE sector indices
 // (Pharma, IT); for the rest it returns a day or two, so those lines are drawn from an ETF
 // that tracks the index (`via`), which follows it to within its small fee drag.
-// Industries with no matching index (semiconductors, data centres, telecom, solar) get
-// none rather than a loose stand-in. Capital markets has an index, but its ETF (GROWWCAPM.NS)
+// Industries with no matching index (semiconductors, data centres, solar) get none rather
+// than a loose stand-in. Telecom and hospitals have NSE indices since Jun 2026 (Nifty
+// Telecommunications, Nifty Hospitals) but no Yahoo history or ETF yet; add them once one exists. Capital markets has an index, but its ETF (GROWWCAPM.NS)
 // only reaches a year of history in Dec 2026; add it then. Insurance has one too, but its only
 // ETF (INSUREIETF.NS) listed Aug 2026; add it from Aug 2027. Chemicals likewise: its ETFs (GROWWCHEM.NS from Jan 2026,
 // CHEMICAL.NS from Jul 2026) have under a year, and Yahoo returns one day for the index; add it from Jan 2027. Symbols checked against Yahoo, Nov 2026.

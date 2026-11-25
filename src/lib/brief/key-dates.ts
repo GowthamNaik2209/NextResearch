@@ -8,8 +8,10 @@ import type { KeyDate } from "./types";
 
 /** Dated events that follow no rule, "YYYY-MM-DD". Add each one when its date is announced. */
 export const SCHEDULED: KeyDate[] = [
-  // FOMC's published 2026 calendar: the decision lands early the next morning in India.
-  { day: "2026-12-09", what: "US Fed rate decision" },
+  // RBI MPC meeting 2-4 Dec 2026: the decision is announced on the last day.
+  { day: "2026-12-04", what: "RBI policy rate decision" },
+  // FOMC's published 2026 calendar (8-9 Dec): the decision lands early on 10 Dec in India.
+  { day: "2026-12-10", what: "US Fed rate decision" },
 ];
 
 const DAY_MS = 86_400_000;

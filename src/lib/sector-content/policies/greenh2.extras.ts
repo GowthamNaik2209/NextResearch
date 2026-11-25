@@ -11,7 +11,7 @@ export const GREENH2_SCENARIOS: Scenario[] = [
     title: "Plants miss their dates",
     blurb: "SIGHT factories and production plants slip by a year or more",
     story:
-      "As of Jul 2026 no SIGHT-backed electrolyser factory or production plant was fully running, and only ₹292 Cr of the ₹19,744 Cr mission had been spent. If Tranche I factories (due from Aug 2026) and the first green ammonia plants slip another year, incentives stay unpaid, electrolyser makers sit on idle lines, and fertiliser and refinery buyers keep using grey hydrogen. Conglomerates barely notice; small pure plays feel it most.",
+      "As of Jul 2026 no SIGHT-backed electrolyser factory or production plant was fully running, and only ₹292 Cr of the ₹19,744 Cr mission had been spent. Tranche I electrolyser factories were due from Aug 2026, and in Nov 2026 several were reported to have been given until Aug 2027. If they and the first green ammonia plants slip again, incentives stay unpaid, electrolyser makers sit on idle lines, and fertiliser and refinery buyers keep using grey hydrogen. Conglomerates barely notice; small pure plays feel it most.",
     effect: "headwind",
     impacts: [
       S("electrolysers", 3, "Factories built ahead of orders run far below capacity"),
