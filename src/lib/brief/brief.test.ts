@@ -35,7 +35,7 @@ const MARKET: MarketBrief = {
     { name: "Nifty 50", close: 24318.4, change: 142.6, pct: 0.59 },
     { name: "Sensex", close: 79942.1, change: 431.8, pct: 0.54 },
   ],
-  flows: { day: "2026-11-05", fiiNetCr: 2140, diiNetCr: -615, fiiStreak: 3, diiMonthCr: 8920 },
+  flows: { day: "2026-11-05", fiiNetCr: 2140, diiNetCr: -615, fiiMonthCr: 12450, diiMonthCr: 8920 },
   breadth: { up: 1820, down: 1240, flat: 60 },
   themes: [
     { slug: "grid", name: "Grid capex", kind: "Policy", ret: 3.4 },
@@ -110,13 +110,13 @@ test("watchlist dates: confirmed results and ex-dividend in the next two weeks, 
   );
 });
 
-test("FII streak and DII month to date", () => {
+test("FII and DII: the day's net and the month to date", () => {
   const d = (day: string, fii: number, dii: number) => ({ day: new Date(`${day}T00:00:00Z`), fiiNetCr: fii, diiNetCr: dii });
   assert.deepEqual(briefFlows([d("2026-10-30", -100, 50), d("2026-11-02", 10, 100), d("2026-11-03", 20, -30), d("2026-11-04", 30, 5)]), {
     day: "2026-11-04",
     fiiNetCr: 30,
     diiNetCr: 5,
-    fiiStreak: 3,
+    fiiMonthCr: 60,
     diiMonthCr: 75,
   });
   assert.equal(briefFlows([]), null);
@@ -177,8 +177,11 @@ test("the email escapes names, links each stock and carries the unsubscribe link
   assert.match(e.html, /Up &lt;day&gt;\./);
   assert.match(e.html, /href="https:\/\/news\.example\/a\?x=1&amp;y=2"[^>]*>Sensex jumps &lt;1,700&gt; points<\/a>/);
   assert.match(e.html, /Best-performing themes on NextResearch</);
-  assert.match(e.html, /Buying 3 days/);
+  // FII and DII: the day's net and the month to date only, no buying/selling streak.
+  assert.match(e.html, /Nov \+₹12,450 Cr/);
   assert.match(e.html, /Nov \+₹8,920 Cr/);
+  assert.doesNotMatch(e.html, /Buying|Selling|days in a row/);
+  assert.match(e.text, /FII net \(cash\): \+₹2,140 Cr \(Nov month to date \+₹12,450 Cr\)/);
   assert.match(e.html, /href="https:\/\/x\.test\/baskets\/industry\/grid"/);
   assert.match(e.html, /M&amp;M results<\/div><div[^>]*><span[^>]*>Your watchlist<\/span>/);
   assert.doesNotMatch(e.html, /worst|expiry/i);

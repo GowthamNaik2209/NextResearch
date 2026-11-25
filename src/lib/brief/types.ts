@@ -18,8 +18,8 @@ export type BriefFlows = {
   day: string;
   fiiNetCr: number;
   diiNetCr: number;
-  /** Days in a row the FII figure has had today's sign (1 = today only). */
-  fiiStreak: number;
+  /** FII net summed over the month so far. Missing on briefs stored before 25 Nov 2026. */
+  fiiMonthCr?: number;
   /** DII net summed over the month so far. */
   diiMonthCr: number;
 };

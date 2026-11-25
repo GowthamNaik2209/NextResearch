@@ -70,11 +70,10 @@ function closeSection(m: MarketBrief): string {
   const tiles: string[] = m.indices.map((i) => tile(i.name, inr(i.close, 1), C.ink, `${i.change >= 0 ? "+" : "−"}${inr(Math.abs(i.change), 1)} (${signedPct(i.pct, 2)})`, tone(i.pct)));
   if (m.flows) {
     const f = m.flows;
-    // Short enough for a tile on a 320px phone: "Buying 4 days", "Nov −₹7,783 Cr".
-    const side = f.fiiNetCr >= 0 ? "Buying" : "Selling";
-    const streak = f.fiiStreak > 1 ? `${side} ${f.fiiStreak} days` : f.fiiNetCr >= 0 ? "Net buyers" : "Net sellers";
-    tiles.push(tile("FII net (cash)", signedCr(f.fiiNetCr), tone(f.fiiNetCr), streak));
-    tiles.push(tile("DII net (cash)", signedCr(f.diiNetCr), tone(f.diiNetCr), `${MONTHS[Number(f.day.slice(5, 7)) - 1]} ${signedCr(f.diiMonthCr)}`));
+    // The day's net, then the month to date as "Nov −₹60,528 Cr": anything longer is cut off on a 320px phone.
+    const mtd = (cr: number) => `${MONTHS[Number(f.day.slice(5, 7)) - 1]} ${signedCr(cr)}`;
+    tiles.push(tile("FII net (cash)", signedCr(f.fiiNetCr), tone(f.fiiNetCr), f.fiiMonthCr != null ? mtd(f.fiiMonthCr) : ""));
+    tiles.push(tile("DII net (cash)", signedCr(f.diiNetCr), tone(f.diiNetCr), mtd(f.diiMonthCr)));
   }
   if (!tiles.length) return "";
   const rows: string[] = [];
@@ -214,7 +213,11 @@ function renderText(m: MarketBrief, w: WatchBrief | null, links: BriefLinks, sen
   if (first) out.push(`Thank you for using ${SITE_NAME}. This is your first morning brief: the market close, the best themes on ${SITE_NAME} and your watchlist, every trading day at 8 am.`, "");
   out.push(`CLOSE ON ${dayShort(m.day).toUpperCase()}`);
   for (const i of m.indices) out.push(`${i.name}: ${inr(i.close, 1)} (${signedPct(i.pct, 2)})`);
-  if (m.flows) out.push(`FII net (cash): ${signedCr(m.flows.fiiNetCr)}`, `DII net (cash): ${signedCr(m.flows.diiNetCr)}`);
+  if (m.flows) {
+    const f = m.flows;
+    const mtd = (cr: number | undefined) => (cr != null ? ` (${MONTHS[Number(f.day.slice(5, 7)) - 1]} month to date ${signedCr(cr)})` : "");
+    out.push(`FII net (cash): ${signedCr(f.fiiNetCr)}${mtd(f.fiiMonthCr)}`, `DII net (cash): ${signedCr(f.diiNetCr)}${mtd(f.diiMonthCr)}`);
+  }
   if (m.summary || m.headlines.length) out.push("", "MARKET HIGHLIGHTS", ...(m.summary ? [m.summary] : []), ...m.headlines.map((h) => `- ${h.headline} (${h.source}) ${h.url}`));
   if (m.themes.length) out.push("", `BEST-PERFORMING THEMES ON ${SITE_NAME.toUpperCase()}`, ...m.themes.map((t) => `${t.name} (${t.kind}): ${signedPct(t.ret)}`));
   if (w?.items.length) {
