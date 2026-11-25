@@ -80,7 +80,7 @@ export function defineDefenceproc(h) {
         keyRisks: ["Slips in big contract signings (QRSAM timing has already moved)", "Supply-chain delays that push revenue into later years", "Concentration on a few programmes per company"],
         investorMetrics: ["Order inflow vs guidance (BEL >₹55,000 Cr FY27 incl. QRSAM)", "Order book / trailing revenue", "Execution: revenue growth and gross margin per quarter", "CCS approvals for named missile programmes"],
         relatedComponents: ["radars_ew", "subsystems", "ammunition", "drones"],
-        suppliers: [{ key: "bdl", exposureType: "operator", exposureStrength: "high" }, { key: "bel", exposureType: "operator", exposureStrength: "high" }, { key: "apollo", exposureType: "direct_supplier", exposureStrength: "medium" }] },
+        suppliers: [{ key: "bdl", exposureType: "operator", exposureStrength: "high" }, { key: "bel", exposureType: "operator", exposureStrength: "high" }, { key: "apollo", exposureType: "direct_supplier", exposureStrength: "medium" }, { key: "tonbo", exposureType: "direct_supplier", exposureStrength: "low" }] },
 
       { id: "naval", color: "#3D5A80", label: "Warships & submarines", layer: 0, ...z("naval"),
         desc: "Frigates, destroyers, corvettes, submarines and auxiliaries built by Indian shipyards - the largest single contracts in defence.",
@@ -106,7 +106,7 @@ export function defineDefenceproc(h) {
         keyRisks: ["Lumpy, tender-driven orders - revenue can halve in a year (ideaForge FY25, Zen FY26)", "Low entry barriers: many start-ups bid", "Margin pressure as volumes rise"],
         investorMetrics: ["Order book and quarterly inflow", "Share of revenue from repeat customers", "Gross margin trend", "Indigenous content of key components"],
         relatedComponents: ["missiles", "radars_ew", "subsystems"],
-        suppliers: [{ key: "ideaforge", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "zen", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "solar", exposureType: "emerging_entrant", exposureStrength: "medium" }, { key: "paras", exposureType: "direct_supplier", exposureStrength: "medium" }] },
+        suppliers: [{ key: "ideaforge", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "zen", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "solar", exposureType: "emerging_entrant", exposureStrength: "medium" }, { key: "paras", exposureType: "direct_supplier", exposureStrength: "medium" }, { key: "tonbo", exposureType: "emerging_entrant", exposureStrength: "low" }] },
 
       // ---------------------------------------------------------------- layer 1: assembly hangar
       { id: "aircraft", color: "#2E86AB", label: "Fighters & helicopters", layer: 1, ...z("aircraft"),
@@ -173,7 +173,7 @@ export function defineDefenceproc(h) {
         keyRisks: ["Dependence on a few primes", "Working-capital heavy", "Volatile profits on small revenue bases"],
         investorMetrics: ["Order book / revenue", "Receivable days", "Share of own-design products"],
         relatedComponents: ["radars_ew", "missiles", "drones"],
-        suppliers: [{ key: "apollo", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "paras", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "avantel", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "datapatterns", exposureType: "direct_supplier", exposureStrength: "medium" }] },
+        suppliers: [{ key: "apollo", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "paras", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "avantel", exposureType: "direct_supplier", exposureStrength: "high" }, { key: "datapatterns", exposureType: "direct_supplier", exposureStrength: "medium" }, { key: "tonbo", exposureType: "direct_supplier", exposureStrength: "high" }] },
 
       // ---------------------------------------------------------------- layer 3: ordnance & materials
       { id: "ammunition", color: "#D96C2B", label: "Ammunition, rockets & explosives", layer: 3, ...z("ammunition"),
@@ -252,6 +252,9 @@ export function defineDefenceproc(h) {
       avantel: { name: "Avantel", listed: true, role: "Software-defined radios and satellite-communication terminals for the Navy and other forces", dataStatus: "demo", sourceDate: SD,
         strengths: ["Niche maker of naval satcom and SDR equipment", "Secure communications are part of 2026 approvals (DEFSAC)", "Debt-light and design-led"],
         risks: ["FY26 profit fell sharply (to ~₹15 Cr) on lower revenue", "Very high P/E on depressed earnings", "Navy-concentrated order book"], f: co("AVANTEL") },
+      tonbo: { name: "Tonbo Imaging India", listed: true, role: "Thermal imagers, weapon sights, targeting and fire-control systems and uncooled missile seekers; designs in Bengaluru and outsources volume manufacturing to electronics contract makers; listed 23 Oct 2026", dataStatus: "demo", sourceDate: "26 Nov 2026", aka: ["tonbo", "tonbo imaging"],
+        strengths: ["Supplied about half of the thermal imaging units the Indian government bought in FY25-FY26 (Frost & Sullivan, cited in its RHP)", "Works with Bharat Dynamics on uncooled imaging seekers for the Army's anti-tank guided missiles", "Owns its designs and has exported to 24 countries; building a high-power microwave counter-drone system (deliveries expected only around FY29-FY30)"],
+        risks: ["FY26 revenue fell ~23% as export deliveries (Morocco, Armenia) slipped, and Q1 FY27 was a loss", "Operating cash flow negative in FY25 and FY26 as inventory and receivables grew", "Revenue hangs on the timing of a few large government tenders and export orders; short listed record (since 23 Oct 2026, through a pure offer for sale)"], f: co("TONBO") },
       zen: { name: "Zen Technologies", listed: true, role: "Combat training simulators and counter-drone systems for all three services", dataStatus: "demo", sourceDate: SD,
         strengths: ["Order book ₹1,239 Cr (30 Jun 2026) plus a ₹177.5 Cr simulator order in July", "Counter-drone systems are a post-Sindoor priority (₹289 Cr upgrade order, Oct 2025)", "Targets 35% EBITDA margin in FY27"],
         risks: ["Revenue fell ~29% in FY26 and ~10% in Q1 FY27 - orders are lumpy", "Many counter-drone competitors, incl. BEL", "Valuation built on a rebound"], f: co("ZENTEC") },

@@ -159,7 +159,10 @@ const GENERIC = new Set(
     // "jewellery demand", "spirits and breweries", "living costs", "writing skills", "shoppers", "natural resources".
     "fashion fashions retail lifestyle brands consumer jewellery jewellers jewelers spirits breweries distilleries " +
     "distillers blenders beverages cookers writing agro restaurant restaurants living wellness vineyards activewear " +
-    "footwears textiles hygiene foodworks foodworld resources specialities shoppers product").split(" ")
+    "footwears textiles hygiene foodworks foodworld resources specialities shoppers product " +
+    // Recent listings (Nov 2026): "elevate", "college campuses", "protect", "power transmissions", "thermal imaging",
+    // "digital identity", "investment alternatives", "nuclear fusion", "a glass wall collapses".
+    "elevate campuses protect transmissions imaging identity alternative alternatives fusion wall").split(" ")
 );
 // "&" and "and" are dropped so "Transformers and Rectifiers" matches "Transformers & Rectifiers".
 const normalize = (s: string) =>
@@ -198,6 +201,11 @@ const GROUP = new Set(
 // here ("Mahindra" = M&M).
 const ALIASES: Record<string, string[]> = {
   "M&M": ["mahindra"],
+  // Recent listings (Nov 2026).
+  BONFIG: ["bonfiglioli"],
+  ACEVECTOR: ["snapdeal"],
+  MONEYVIEW: ["whizdm"],
+  EDELALTS: ["eaaa", "edelweiss alternatives", "edelweiss alternative"],
   MOTHERSON: ["motherson"],
   CYIENT: ["cyient"],
   WAAREEENER: ["waaree"],
@@ -657,10 +665,15 @@ const WORD_TICKERS = new Set(["EMBASSY", "ACI", "OIL", "ROUTE", "MEIL", "ARE&M",
   // CCL Industries), DOMS, TI (Texas Instruments), Symphony, Ethos, Redtape, Trent, Campus, Trident, Sapphire (the card),
   // Westlife (the band), Manorama, RBA (Reserve Bank of Australia), SFL (SFL Corp), UBL (United Bank Ltd), Arvind (a name).
   "CUPID", "FLAIR", "AGI", "EPL", "CCL", "DOMS", "TI", "SYMPHONY", "ETHOSLTD", "REDTAPE", "TRENT", "CAMPUS", "TRIDENT",
-  "SAPPHIRE", "WESTLIFE", "MANORAMA", "RBA", "SFL", "UBL", "ARVIND", "HAWKINCOOK"]);
+  "SAPPHIRE", "WESTLIFE", "MANORAMA", "RBA", "SFL", "UBL", "ARVIND", "HAWKINCOOK",
+  // Recent listings (Nov 2026): "elevate", SMT lines (surface-mount technology) in electronics plants.
+  "ELEVATE", "SMT"]);
 // Separately listed companies, outside our coverage, whose names contain one of ours. A match
 // that sits inside one of these (or inside another covered company's name) doesn't count.
 const OTHER_COMPANIES = [
+  // Recent listings (Nov 2026): look-alikes outside our coverage.
+  "Orient Paper", "Orient Bell", "Orient Technologies", "Bonfiglioli Riduttori", "Varmora Plastech",
+  "Manipal Technologies", "Sahajanand Laser",
   "Mahindra Lifespace", "Mahindra Logistics", "Mahindra Susten", "Mahindra EPC", "Siemens Energy", "Borosil Ltd", "Kirloskar Ferrous",
   "Kirloskar Industries", "Motherson Sumi Systems", "Indian Railway Catering", "Mahanagar Gas",
   "Sun Pharma Advanced Research", "Torrent Power", "Zydus Wellness", "Piramal Enterprises",
@@ -705,7 +718,7 @@ const OTHER_COMPANIES = [
   // Apollo Tyres, Bosch, Shriram Pistons, TVS Srichakra, Mahindra CIE and Aarti Industries are covered now.)
   "Wipro Consumer Care", "Wipro Consumer", "Wipro Enterprises", "NIIT University", "NIIT Foundation",
   "Bosch Global Software", "Robert Bosch", "Rane Holdings", "Fortis Escorts", "Escorts Heart Institute",
-  "SKF India Industrial", "Hero Motors", "Hero FinCorp", "Hero Electric", "Hero Future Energies", "Bajaj Auto Finance",
+  "SKF India Industrial", "Hero Cycles", "Hero FinCorp", "Hero Electric", "Hero Future Energies", "Bajaj Auto Finance",
   "Ola Krutrim", "ANI Technologies", "Sonata Finance", "Jubilant FoodWorks", "Jubilant Pharmova",
   "Godrej Consumer Products", "Aarti Surfactants", "Great Eastern Life", "Great Eastern Holdings",
   "DCM Shriram Industries", "DCM Shriram Fine Chemicals", "GHCL Textiles",
