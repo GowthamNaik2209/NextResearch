@@ -25,7 +25,7 @@ const fmcg = {
  headerSub: "India's everyday-goods chain as one street - from the farms and mills that grow the staples, through the food, drink and home-care brands, to the packs and shelves that reach the buyer",
  whyNow: [
   "Sep-quarter volumes rebounded (HUL 7%, Marico India 10%) off the low 2025 GST-switch base.",
-  "The Gulf closure keeps crude-linked packs and palm oil costly; brands are taking price rises.",
+  "Severe Gulf shipping disruption keeps crude-linked packs and palm oil costly; brands are taking price rises.",
   "Cigarettes pay new excise since Feb 2026; sugar mills lost most ethanol diversion for 2026-27.",
  ],
  thesisSummary: [
@@ -37,7 +37,7 @@ const fmcg = {
   "NIQ quarterly FMCG volume growth, rural vs urban, and the share of e-commerce in metros",
   "Underlying volume growth (UVG) and gross margin in the majors' quarterly results",
   "Landed palm and soybean oil prices, customs duty notifications and Malaysian palm futures",
-  "Crude, LAB and PET resin prices that set detergent and packaging costs while Hormuz is shut",
+  "Crude, LAB and PET resin prices that set detergent and packaging costs while Hormuz shipping is disrupted",
   "Sugar season output, monthly release quotas, export or import permits and ethanol prices",
   "Cigarette excise in the Feb 2027 Budget, pack price changes and seizures of smuggled brands",
   "Amul and Mother Dairy pouch-milk prices and farmer procurement prices",
@@ -180,7 +180,7 @@ const fmcg = {
  {id:"packaging", color:"#3D5A80", label:"Packs, tubes, bottles & labels", layer:3, pos:A.packaging.pos, side:A.packaging.side, desc:"Laminated tubes, flexible films and sachets, glass bottles, cartons and plastic pails (EPL, UFLEX, Huhtamaki India, AGI Greenpac, TCPL, Mold-Tek).",
   domainId:"shelf", displayOrder:11, dataStatus:"demo",
   roleInSystem:"Converts polymers, aluminium foil, paperboard and glass into the pack: EPL makes laminated toothpaste and cosmetic tubes for Colgate, HUL and P&G worldwide; UFLEX makes polyester films, printed laminates for sachets and chips bags, and aseptic liquid cartons; Huhtamaki India prints flexible laminates and labels; TCPL makes folding cartons and cigarette shells; AGI Greenpac makes glass bottles for liquor, beer, food and pharma; Mold-Tek moulds pails and food tubs with in-mould labels.",
-  whyItMatters:"A shampoo sachet, chips bag or soap wrapper is a multi-layer laminate, and packaging is often the biggest cost after the contents. Films and resins are priced off crude, so the Gulf closure raised packaging costs through 2026 (Varun Beverages blamed packaging for a lower gross margin). Sachet economics depend on packaging cost per gram, and plastic-waste rules (extended producer responsibility) are pushing recyclable mono-material laminates.",
+  whyItMatters:"A shampoo sachet, chips bag or soap wrapper is a multi-layer laminate, and packaging is often the biggest cost after the contents. Films and resins are priced off crude, so the Gulf shipping disruption raised packaging costs through 2026 (Varun Beverages blamed packaging for a lower gross margin). Sachet economics depend on packaging cost per gram, and plastic-waste rules (extended producer responsibility) are pushing recyclable mono-material laminates.",
   valuePoolDescription:"Converters earn a spread over resin and foil and pass costs on with a lag of one or two quarters. Tube makers with global customers (EPL) and film makers with their own resin plants earn more; glass makers depend on furnace utilisation and gas costs.",
   bottlenecks:["Polymer resin, aluminium foil and paperboard prices", "Customer qualification for each pack format", "EPR targets and recycled-content rules for plastic packs", "Gas for glass furnaces"],
   keyDrivers:["More sachets and small packs", "Recyclable and paper-based laminates", "Glass for premium food and liquor", "Exports to global FMCG makers"],

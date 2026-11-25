@@ -4,7 +4,7 @@ export const ecms: SectorReport = {
   slug: "ecms",
   title: "India Electronic Components (ECMS)",
   subtitle: "From assembling phones to making what goes inside them",
-  asOf: "Oct 2026",
+  asOf: "Nov 2026",
 
   stance: {
     label: "Positive, execution-heavy",
@@ -13,7 +13,7 @@ export const ecms: SectorReport = {
   },
   keyStats: [
     { label: "ECMS outlay", value: "₹40,000 Cr", sub: "up from ₹22,919 Cr (Budget 2026-27)" },
-    { label: "Approved investment", value: "₹69,548 Cr", sub: "106 projects by 17 Aug 2026 (MeitY)" },
+    { label: "Approved investment", value: "₹69,548 Cr", sub: "106 projects to 17 Aug 2026; 12 more (>₹7,500 Cr) on 6 Nov (MeitY)" },
     { label: "Expected production", value: "₹5.34L Cr", sub: "vs ₹4.57L Cr target (MeitY)" },
     { label: "Component imports, FY26", value: "~US$40bn", sub: "of which ICs ~US$30bn (CRISIL)" },
   ],
@@ -33,6 +33,13 @@ export const ecms: SectorReport = {
   ],
 
   developments: [
+    {
+      date: "6 Nov 2026",
+      title: "Sixth batch: 12 more applications, over ₹7,500 Cr",
+      body: "The government cleared a new tranche of 12 ECMS applications involving over ₹7,500 Cr of investment (IBEF, 9 Nov 2026). Company names and updated cumulative totals were not given: cumulative totals have been published only to 17 Aug 2026, and the 6 Nov list was not itemised.",
+      impact: "pos",
+      tag: "Approvals",
+    },
     {
       date: "Oct 2026",
       title: "States stack incentives on top of ECMS",
@@ -68,13 +75,6 @@ export const ecms: SectorReport = {
       impact: "pos",
       tag: "Approvals",
     },
-    {
-      date: "27 Oct 2025",
-      title: "First seven projects approved",
-      body: "₹5,532 Cr for Kaynes Circuits (HDI and multi-layer PCB, laminate, camera modules), Syrma (multi-layer PCB), Ascent Circuits (multi-layer PCB) and SRF (capacitor film).",
-      impact: "pos",
-      tag: "Approvals",
-    },
   ],
 
   overview: {
@@ -84,9 +84,9 @@ export const ecms: SectorReport = {
       "Approvals now exceed the scheme's investment (₹59,350 Cr) and production targets, but employment (74,628 vs 91,600) lags, and most big plants are still starting up.",
     ],
     chart: {
-      title: "ECMS approved investment, cumulative",
+      title: "ECMS approved investment, cumulative (to 17 Aug 2026)",
       unit: "₹ '000 Cr",
-      source: "MeitY / PIB tranche announcements (Oct 2025 - Aug 2026)",
+      source: "MeitY / PIB tranche announcements (Oct 2025 - Aug 2026); the 6 Nov 2026 tranche (12 applications, >₹7,500 Cr) is left out as no official cumulative total was published",
       points: [
         { label: "Oct 25", value: 5.5 },
         { label: "Nov 25", value: 12.7 },
@@ -96,7 +96,7 @@ export const ecms: SectorReport = {
       ],
     },
     snapshot: [
-      { label: "Projects approved (17 Aug 2026)", value: "106 in 15 states", tone: "pos" },
+      { label: "Projects approved (to 17 Aug 2026)", value: "106 in 15 states", tone: "pos" },
       { label: "Projects in production", value: "38 (16 under construction)", tone: "neutral" },
       { label: "Direct jobs approved vs target", value: "74,628 vs 91,600", tone: "neg" },
       { label: "Phone production, FY26", value: "~₹6.27L Cr", tone: "pos" },
@@ -120,11 +120,11 @@ export const ecms: SectorReport = {
     { title: "China+1 sourcing", metric: "~US$40bn imports, FY26", body: "Brands want non-China supply for US and European markets; import substitution is a large, visible pool." },
   ],
   mix: {
-    title: "ECMS approved investment by tranche",
+    title: "ECMS approved investment by tranche (to 17 Aug 2026)",
     source: "MeitY / PIB (₹69,548 Cr total, to 17 Aug 2026)",
     slices: [
       { label: "Oct 2025 (7 projects)", value: 8 },
-      { label: "Nov 2025 (17 projects)", value: 10 },
+      { label: "Nov 2025 (17 projects)", value: 11 },
       { label: "Jan 2026 (22 projects)", value: 60 },
       { label: "Mar 2026 (29 projects)", value: 10 },
       { label: "Aug 2026 (31 projects)", value: 11 },
@@ -172,7 +172,7 @@ export const ecms: SectorReport = {
   ],
 
   companyNews: [
-    { key: "kaynes", date: "Aug 2026", development: "In Aug 2026 Kaynes said its Chennai PCB plant would go live within about a month; start-up not yet confirmed as of Oct 2026.", impact: "The first large ECMS board fab to start - a test of yields and customer uptake.", tone: "pos" },
+    { key: "kaynes", date: "Aug 2026", development: "In Aug 2026 Kaynes said its Chennai PCB plant would go live within about a month; start-up not yet confirmed as of late Nov 2026.", impact: "The first large ECMS board fab to start - a test of yields and customer uptake.", tone: "pos" },
     { key: "acutaas", date: "Aug 2026", development: "ECMS approval for its Jhagadia electrolyte-additives plant: ₹119 Cr eligible investment, up to 25% incentive through FY31.", impact: "Chemicals companies join the electronics supply chain via battery materials.", tone: "pos" },
     { key: "amber", date: "Jun 2026", development: "Broke ground on the Ascent-K HDI/flex PCB plant near Jewar and signed a cooperation pact with Germany's Schweizer Electronic.", impact: "Shows HDI capacity moving from approval to construction with European know-how.", tone: "pos" },
     { key: "srf", date: "May 2026", development: "Commissioned phase 1 of its capacitor-grade BOPP film line at Indore (~₹277 Cr).", impact: "First local supply of the dielectric film inside film capacitors.", tone: "pos" },
@@ -196,6 +196,7 @@ export const ecms: SectorReport = {
     { title: "Guidelines and portal launch for ECMS", source: "Press Information Bureau", url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2124620" },
     { title: "First batch of seven ECMS projects approved", source: "Press Information Bureau", url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2182986" },
     { title: "ECMS 2025: incentives and eligibility", source: "India Briefing", url: "https://www.india-briefing.com/news/ecms-2025-application-incentives-eligibility-37134.html/" },
+    { title: "Government clears 12 electronics component manufacturing proposals under ECMS", source: "IBEF, 9 Nov 2026", url: "https://www.ibef.org/news/government-clears-12-electronics-component-manufacturing-proposals-worth-over-us-791-89-million-under-ecms" },
     { title: "Industry reports", source: "India Cellular & Electronics Association (ICEA)", url: "https://www.icea.org.in/" },
   ],
 };

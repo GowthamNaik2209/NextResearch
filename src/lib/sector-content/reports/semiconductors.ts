@@ -4,7 +4,7 @@ export const semiconductors: SectorReport = {
   slug: "semiconductors",
   title: "India Semiconductors",
   subtitle: "From a pure chip importer to a first wave of fabs and OSAT plants",
-  asOf: "Oct 2026",
+  asOf: "Nov 2026",
 
   stance: {
     label: "Early build-out",
@@ -24,7 +24,7 @@ export const semiconductors: SectorReport = {
     },
     {
       title: "Incentives de-risk the capex",
-      body: "The Centre funds ~50% of project cost and states add 20-25%, so promoters carry only a fraction of capex - turning plans into actual construction.",
+      body: "Under Semicon 1.0 the Centre funded 50% of project cost and states added 20-25%, so promoters carried only a fraction of capex. Semicon 2.0 (Jul 2026) pays 25-40% by plant type, so newer projects carry more of their own cost.",
     },
     {
       title: "Picks and shovels earn first",
@@ -34,11 +34,32 @@ export const semiconductors: SectorReport = {
 
   developments: [
     {
+      date: "Oct 2026",
+      title: "Tata's Assam chip plant starts pilot production",
+      body: "Tata Electronics completed its first cleanroom at Jagiroad and began pilot runs at partial capacity; commercial production is expected around Dec 2026-Jan 2027 (Assam Tribune). Planned output is 48 million chips a day.",
+      impact: "pos",
+      tag: "OSAT",
+    },
+    {
+      date: "Sep 2026",
+      title: "Five Semicon 1.0 plants now in production",
+      body: "On 17 Sep, at SEMICON India, the Prime Minister launched commercial production at CDIL (Mohali) and Suchi Semicon (Surat), joining Micron, Kaynes and CG Semi - five of the 12 approved units (ISM / MeitY).",
+      impact: "pos",
+      tag: "Milestone",
+    },
+    {
       date: "Jul 2026",
-      title: "Semicon 2.0 approved",
-      body: "Cabinet approved Semicon 2.0 (₹1.27L Cr) on 15 Jul 2026 to fund fabs, packaging, equipment, materials and design.",
+      title: "CG Semi plant opens; Semicon 2.0 approved",
+      body: "The Prime Minister inaugurated CG Semi's ₹7,600 Cr chip-packaging plant at Sanand on 4 Jul. On 15 Jul the Cabinet approved Semicon 2.0 (₹1.27L Cr) to fund fabs, packaging, equipment, materials and design, at 25-40% of capex against 50% under Semicon 1.0.",
       impact: "pos",
       tag: "Policy",
+    },
+    {
+      date: "Mar 2026",
+      title: "Kaynes Semicon starts commercial production",
+      body: "Kaynes' Sanand OSAT became India's second operating chip-packaging plant after Micron, making power modules for autos and industry.",
+      impact: "pos",
+      tag: "Capacity",
     },
     {
       date: "Sep 2025",
@@ -49,31 +70,10 @@ export const semiconductors: SectorReport = {
     },
     {
       date: "Aug 2025",
-      title: "Four more projects approved",
-      body: "Cabinet cleared ~₹4,600 Cr of units incl. SiCSem's silicon-carbide fab in Odisha and OSATs in Punjab and Andhra Pradesh, taking the tally to ten.",
+      title: "Approvals reach ten projects",
+      body: "After India Chip's (HCL-Foxconn) ~₹3,700 Cr display-driver OSAT at Jewar in May, Cabinet cleared ~₹4,600 Cr of units incl. SiCSem's silicon-carbide fab in Odisha and OSATs in Punjab and Andhra Pradesh, taking the tally to ten.",
       impact: "pos",
       tag: "Policy",
-    },
-    {
-      date: "May 2025",
-      title: "HCL-Foxconn OSAT at Jewar",
-      body: "A ~₹3,700 Cr display-driver chip unit near Noida Airport was approved, adding a north-India cluster.",
-      impact: "pos",
-      tag: "Capacity",
-    },
-    {
-      date: "Mar 2025",
-      title: "₹22,919 Cr components scheme",
-      body: "The Electronics Component Manufacturing Scheme backs passive parts, PCBs and modules, deepening local demand next to the OSATs.",
-      impact: "pos",
-      tag: "Policy",
-    },
-    {
-      date: "Feb 2024",
-      title: "Tata fab and three OSATs cleared",
-      body: "Cabinet approved Tata-PSMC's ₹91,000 Cr Dholera fab, Tata's Assam OSAT and the CG Power-Renesas OSAT at Sanand.",
-      impact: "pos",
-      tag: "Capacity",
     },
   ],
 
@@ -86,20 +86,20 @@ export const semiconductors: SectorReport = {
     chart: {
       title: "Semiconductor consumption in India",
       unit: "$ bn",
-      source: "IESA / Counterpoint estimates, 2026-30 NextResearch projections",
+      source: "IESA / Counterpoint estimates to 2024; 2030P = NITI Aayog projection (~US$90bn, May 2026); 2026P and 2028P are NextResearch estimates",
       points: [
         { label: "2021", value: 27 },
         { label: "2022", value: 33 },
         { label: "2023", value: 38 },
         { label: "2024", value: 45 },
         { label: "2026P", value: 55, projected: true },
-        { label: "2028P", value: 75, projected: true },
-        { label: "2030P", value: 105, projected: true },
+        { label: "2028P", value: 70, projected: true },
+        { label: "2030P", value: 90, projected: true },
       ],
     },
     snapshot: [
-      { label: "Demand growth, 2024-30P", value: "~14% CAGR", tone: "pos" },
-      { label: "Central fiscal support", value: "~50% of capex", tone: "pos" },
+      { label: "Demand growth, 2024-30P", value: "~12% CAGR", tone: "pos" },
+      { label: "Central support, Semicon 1.0 / Semicon 2.0", value: "50% / 25-40% of capex", tone: "pos" },
       { label: "Commercial fabs operating", value: "0 (Dholera guided mid-2028)", tone: "neg" },
       { label: "Share of global chip designers", value: "~20%", tone: "pos" },
       { label: "Chip import dependence", value: ">90%", tone: "neg" },
@@ -117,7 +117,7 @@ export const semiconductors: SectorReport = {
   ],
 
   drivers: [
-    { title: "Fiscal incentives", metric: "~70-75% of capex", body: "Central 50% pari-passu support plus state top-ups make India one of the cheapest places to build a fab or OSAT." },
+    { title: "Fiscal incentives", metric: "25-50% central", body: "Semicon 1.0 paid 50% pari-passu (states added 20-25%); Semicon 2.0 pays 40% for silicon fabs down to 25% for legacy packaging (notified Aug 2026). State top-ups still make India a cheap place to build a fab or OSAT." },
     { title: "Local electronics demand", metric: "~₹11L Cr", body: "Electronics production (FY25, approx.) led by phones creates a captive buyer base for packaged chips." },
     { title: "China+1 supply chains", metric: "Mature nodes", body: "Auto, industrial and power customers want non-China capacity for legacy and power chips." },
     { title: "Design talent", metric: "~20% of designers", body: "Global chip firms already run large design centres in India, feeding fabless and services growth." },
@@ -175,8 +175,8 @@ export const semiconductors: SectorReport = {
   ],
 
   companyNews: [
-    { key: "cgpower", date: "Aug 2025", development: "Inaugurated the pilot line at its Sanand OSAT, ahead of the main plant.", impact: "First listed company to produce packaged chips in India under ISM.", tone: "pos" },
-    { key: "kaynes", date: "Sep 2024", development: "Cabinet approved its ₹3,307 Cr OSAT at Sanand; first chips followed in 2025-26.", impact: "Gives listed investors a second OSAT pure play integrated with EMS.", tone: "pos" },
+    { key: "cgpower", date: "Jul 2026", development: "The Prime Minister inaugurated CG Semi's ₹7,600 Cr Sanand chip-packaging plant on 4 Jul, a year after its pilot line.", impact: "A listed company now runs an operating Indian chip plant; ramp-up losses are the near-term cost.", tone: "pos" },
+    { key: "kaynes", date: "Mar 2026", development: "Kaynes Semicon began commercial production at its ₹3,307 Cr Sanand OSAT (approved Sep 2024).", impact: "Gives listed investors a second operating OSAT, integrated with EMS; the test now is utilisation.", tone: "pos" },
     { key: "dixon", date: "2025-26", development: "Expanded into display and camera modules via JVs under component incentives.", impact: "Deepens local component demand that future Indian chips can serve.", tone: "pos" },
     { key: "moschip", date: "2025-26", development: "Grew design-services revenue strongly with larger ASIC and embedded programmes.", impact: "Shows India's design layer monetising ahead of manufacturing.", tone: "pos" },
     { key: "spelsemi", date: "2025-26", development: "Revenue stayed small and losses persisted as large new OSATs came up.", impact: "Scale and customer qualification matter more than being first.", tone: "neg" },
@@ -198,6 +198,7 @@ export const semiconductors: SectorReport = {
     { title: "Electronics and semiconductor policy", source: "Ministry of Electronics & IT", url: "https://www.meity.gov.in/" },
     { title: "Semiconductor Industry Outlook", source: "Deloitte Insights", url: "https://www.deloitte.com/us/en/insights/industry/technology/technology-media-telecom-outlooks/semiconductor-industry-outlook.html" },
     { title: "Industry research and reports", source: "India Electronics & Semiconductor Association", url: "https://www.iesaonline.org/" },
+    { title: "Future of India's Semiconductor Industry (roadmap to 2035)", source: "NITI Aayog, May 2026", url: "https://www.niti.gov.in/index.php/node/2328" },
     { title: "Global semiconductor market forecasts", source: "World Semiconductor Trade Statistics", url: "https://www.wsts.org/" },
   ],
 };

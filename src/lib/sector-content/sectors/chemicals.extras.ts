@@ -8,10 +8,10 @@ const S = (zone: string, severity: 1 | 2 | 3, why: string, effect?: "headwind" |
 export const CHEMICALS_SCENARIOS: Scenario[] = [
   {
     id: "hormuz-reopens",
-    title: "The Strait of Hormuz reopens",
+    title: "Hormuz shipping returns to normal",
     blurb: "Gulf LNG, naphtha, LPG and urea cargoes flow again and feedstock prices fall back",
     story:
-      "Since early Mar 2026 the Strait of Hormuz has been closed to most shipping, cutting Qatar's LNG, Gulf naphtha and LPG, and the Gulf's urea and sulphur exports. If it reopens, gas returns to Indian urea plants, phosphate makers pay less for ammonia and sulphur, and the government's fertiliser subsidy bill falls. But Asian crackers and Chinese chemical plants that cut output for lack of feedstock restart, so the shortage premium that lifted Indian phenol, amine and polymer spreads in 2026 fades. Terminals and LPG distributors see volumes return.",
+      "Since early Mar 2026 shipping through the Strait of Hormuz has been severely disrupted - traffic was still about 65% below pre-war levels in mid-Nov 2026 (UKMTO) and Qatar's LNG sailings about 30% of normal - cutting Qatar's LNG, Gulf naphtha and LPG, and the Gulf's urea and sulphur exports. If traffic returns to normal, gas returns to Indian urea plants, phosphate makers pay less for ammonia and sulphur, and the government's fertiliser subsidy bill falls. But Asian crackers and Chinese chemical plants that cut output for lack of feedstock restart, so the shortage premium that lifted Indian phenol, amine and polymer spreads in 2026 fades. Terminals and LPG distributors see volumes return.",
     effect: "tailwind",
     impacts: [
       S("fertilisers", 3, "Gas and raw-material costs fall faster than subsidy rates"),
@@ -94,5 +94,6 @@ export const CHEMICALS_DOCS: ResearchLink[] = [
   { title: "Government approves Nutrient Based Subsidy for Rabi 2026-27", source: "News On AIR (11 Nov 2026)", url: "https://newsonair.gov.in/govt-approves-nutrient-based-subsidy-for-rabi-2026-27-to-ensure-affordable-fertilisers-for-farmers/" },
   { title: "Strait to farms: West Asia war hits fertiliser supply - can India look beyond?", source: "Outlook Business (5 May 2026)", url: "https://www.outlookbusiness.com/economy-and-policy/strait-to-farms-west-asia-war-hits-fertiliser-supplycan-india-look-beyond" },
   { title: "India's 2026 monsoon ends 12.6% deficient, weakest since 2015", source: "DSIJ (3 Oct 2026)", url: "https://insights.dsij.in/dsijarticledetail/indias-2026-monsoon-ends-126-deficient-weakest-since-2015-59820" },
-  { title: "After 10 months of tariff deadlock, US and India find common ground on trade", source: "India Briefing (Feb 2026)", url: "https://www.india-briefing.com/news/us-india-interim-trade-agreement-18-percent-tariff-42514.html/" },
+  { title: "Here's breaking down the Section 301 tariffs", source: "Business Today (24 Jul 2026)", url: "https://www.businesstoday.in/india/story/heres-breaking-down-the-section-301-tariffs-545110-2026-07-24" },
+  { title: "Gulf oil exports recover as Hormuz shipping struggles", source: "gCaptain (13 Nov 2026)", url: "https://gcaptain.com/gulf-oil-exports-recover-as-hormuz-shipping-struggles/" },
 ];

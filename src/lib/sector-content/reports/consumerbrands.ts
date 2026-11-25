@@ -28,7 +28,7 @@ export const consumerbrands: SectorReport = {
     },
     {
       title: "Policy reshapes every aisle",
-      body: "GST 2.0 cut ACs to 18% and garments and shoes up to ₹2,500 to 5%; the gold duty rose to 15%; states set liquor excise; the UK FTA and US tariff cuts reopened textile exports; BIS orders are moving compressor and footwear making into India.",
+      body: "GST 2.0 cut ACs to 18% and garments and shoes up to ₹2,500 to 5%; the gold duty rose to 15%; states set liquor excise; the UK FTA and a US duty far below 2025's (now 10%) reopened textile exports; BIS orders are moving compressor and footwear making into India.",
     },
   ],
 
@@ -56,6 +56,13 @@ export const consumerbrands: SectorReport = {
     },
     {
       date: "Jul 2026",
+      title: "US duty on Indian goods settles at 10%",
+      body: "The Feb 2026 interim framework cut the US tariff on Indian goods from 25% to 18%, but the US Supreme Court struck down those tariffs that month, and a temporary 10% stopgap surcharge lapsed on 24 Jul 2026. Since then a 10% US duty under a trade-investigation law (Section 301), with no end date, applies on top of normal duties to about 55% of India's US exports (India's Commerce Ministry), and textiles won no exemption. Still far below 2025's 50%, it has kept export orders open; a full trade deal is unsigned.",
+      impact: "neutral",
+      tag: "Trade",
+    },
+    {
+      date: "Jul 2026",
       title: "India-UK FTA comes into force",
       body: "From 15 Jul 2026 Scotch duty fell from 150% to 75% (40% over ten years), while UK duties of about 12% on Indian textiles and up to 16% on leather and footwear went to zero.",
       impact: "pos",
@@ -68,20 +75,13 @@ export const consumerbrands: SectorReport = {
       impact: "neutral",
       tag: "Policy",
     },
-    {
-      date: "Feb 2026",
-      title: "US tariff on Indian goods cut",
-      body: "The interim India-US framework cut the reciprocal tariff on Indian goods, including textiles and apparel, from 25% to 18%; a later 15% all-country US tariff reset the arrangement. Textile exporters' order books reopened.",
-      impact: "pos",
-      tag: "Trade",
-    },
   ],
 
   overview: {
     narrative: [
       "This chain covers what Indian households buy once essentials are paid for: room ACs, fridges and fans; clothes, shoes and jewellery; meals at Domino's, KFC and McDonald's; whisky and beer; and cinema tickets. Most of it is still sold by unorganised shops and family jewellers, so listed brands and chains grow by taking share as well as with incomes.",
       "Store chains sit at the centre: Zudio, Westside, Vishal Mega Mart, Pantaloons and Reliance's Trends buy own-label goods from garment makers and sell at fixed low prices in small towns. Behind them sit apparel and footwear brands, spinning mills and garment exporters, and gold jewellers; around them, QSR franchisees, liquor makers selling state by state, and multiplexes.",
-      "2026 brought big policy moves: GST 2.0 (Sep 2025) lowered prices of ACs and mass clothing and footwear, the gold duty went to 15% in May, the UK FTA came into force in July and US tariffs on Indian goods fell. Box-office takings hit a record in 2025 on higher ticket prices even as footfalls fell.",
+      "2026 brought big policy moves: GST 2.0 (Sep 2025) lowered prices of ACs and mass clothing and footwear, the gold duty went to 15% in May, the UK FTA came into force in July and US duties on most Indian consumer goods fell to 10%. Box-office takings hit a record in 2025 on higher ticket prices even as footfalls fell.",
     ],
     chart: {
       title: "India gross box office, calendar years",
@@ -180,7 +180,7 @@ export const consumerbrands: SectorReport = {
     { risk: "Gold stays high or the duty rises again, cutting grams sold", mitigant: "Lighter designs, gold-exchange schemes and franchise growth", severity: "high" },
     { risk: "State excise hikes and price freezes on liquor", mitigant: "Premium mix and spread across many states", severity: "high" },
     { risk: "Same-store growth slows as chains open faster than demand", mitigant: "Openings in under-served towns; own-label margins", severity: "medium" },
-    { risk: "US tariffs reverse or cotton spikes for textile makers", mitigant: "UK FTA access and integrated cotton-to-garment chains", severity: "medium" },
+    { risk: "The US raises its 10% duty or cotton spikes for textile makers", mitigant: "UK FTA access and integrated cotton-to-garment chains", severity: "medium" },
   ],
   outlook: {
     bull: "Gold eases, a hot summer and normal monsoon arrive, and the US deal is finalised: jewellery volumes recover, ACs sell through, textile exports grow double digits and chains' same-store growth returns to high single digits.",
@@ -191,8 +191,8 @@ export const consumerbrands: SectorReport = {
     { title: "Gold Demand Trends: India Focus Q3 2026", source: "World Gold Council", url: "https://www.gold.org/goldhub/research/gold-demand-trends/gold-demand-trends-india-focus-q3-2026", year: "2026" },
     { title: "The Ormax Box Office Report 2025", source: "Ormax Media", url: "https://www.ormaxmedia.com/stories/the-ormax-box-office-report-2025.html", year: "2026" },
     { title: "The India Box Office Report: Jan-Jun 2026", source: "Ormax Media", url: "https://www.ormaxmedia.com/stories/the-india-box-office-report-jan-jun-2026.html", year: "2026" },
+    { title: "Here's breaking down the Section 301 tariffs", source: "Business Today", url: "https://www.businesstoday.in/india/story/heres-breaking-down-the-section-301-tariffs-545110-2026-07-24", year: "2026" },
     { title: "UK-India FTA goes live today: what gets cheaper and which Indian sectors gain", source: "Business Today", url: "https://www.businesstoday.in/latest/economy/story/uk-india-fta-goes-live-today-from-whisky-to-premium-cars-what-gets-cheaper-and-which-indian-sectors-gain-542803-2026-07-15", year: "2026" },
-    { title: "ABLBL Q2 FY27: double-digit growth for the 4th consecutive quarter", source: "Aditya Birla Group press release", url: "https://www.adityabirla.com/media/press-releases/ablbl-q2fy27-ablbl-delivers-double-digit-growth-for-4th-consecutive-quarter-with-pat-more-than-doubling-yoy/", year: "2026" },
     { title: "GST Council 56th meeting: rate changes", source: "Press Information Bureau / GST Council", url: "https://gstcouncil.gov.in/sites/default/files/2025-09/press_release_press_information_bureau.pdf", year: "2025" },
   ],
 };

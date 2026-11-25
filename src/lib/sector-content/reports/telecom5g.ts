@@ -4,7 +4,7 @@ export const telecom5g: SectorReport = {
   slug: "telecom5g",
   title: "India 5G & Telecom Infrastructure",
   subtitle: "From a rollout sprint to a long densification and monetisation cycle",
-  asOf: "Oct 2026",
+  asOf: "Nov 2026",
 
   stance: {
     label: "Mixed: monetise > build",
@@ -33,6 +33,13 @@ export const telecom5g: SectorReport = {
   ],
 
   developments: [
+    {
+      date: "Oct 2026",
+      title: "Jio Platforms lists",
+      body: "Reliance's telecom and digital arm raised ₹30,213 Cr in a fresh issue priced at ₹1,119 (top of the band), mostly to repay debt; it was subscribed ~15.6x and listed on 28 Oct 2026 at ₹1,358, 21% above the issue price. India's largest operator is now directly investable, not only through Reliance Industries.",
+      impact: "pos",
+      tag: "Capital markets",
+    },
     {
       date: "Late 2025",
       title: "AGR relief for Vodafone Idea",
@@ -67,13 +74,6 @@ export const telecom5g: SectorReport = {
       body: "Jio, Airtel and Vi raised mobile tariffs by ~11-25%, the largest hike in years and a direct boost to ARPU and operator cash flow.",
       impact: "pos",
       tag: "Pricing",
-    },
-    {
-      date: "Jun 2024",
-      title: "Muted spectrum auction",
-      body: "The auction raised only ~₹11,300 Cr against ~₹96,000 Cr on offer, signalling operators already hold enough 5G spectrum.",
-      impact: "neutral",
-      tag: "Spectrum",
     },
   ],
 

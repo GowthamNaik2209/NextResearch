@@ -12,8 +12,8 @@ export const capmarkets: SectorReport = {
     line: "SIP flows and new investors keep growing the steady layers (registrars, depositories, AMCs); options-linked earnings at exchanges and brokers stay hostage to SEBI and tax changes.",
   },
   keyStats: [
-    { label: "Mutual-fund AUM, Sep 2026", value: "₹82.6L Cr", sub: "₹73.7L Cr at Mar 2026 (AMFI)" },
-    { label: "Monthly SIP inflow, Sep 2026", value: "₹32,490 Cr", sub: "record; ~10 crore SIP accounts (AMFI)" },
+    { label: "Mutual-fund AUM, Oct 2026", value: "₹83.4L Cr", sub: "+0.9% MoM; ₹73.7L Cr at Mar 2026 (AMFI)" },
+    { label: "Monthly SIP inflow, Oct 2026", value: "₹32,160 Cr", sub: "Sep's ₹32,490 Cr is the record; ~10 crore SIP accounts (AMFI)" },
     { label: "Demat accounts, Jul 2026", value: "~23.4 crore", sub: "11.4 crore in Mar 2023 (CDSL, NSDL)" },
     { label: "Options trading volumes, FY26", value: "down ~50%", sub: "after SEBI's F&O curbs (SEBI annual report)" },
   ],
@@ -34,9 +34,9 @@ export const capmarkets: SectorReport = {
 
   developments: [
     {
-      date: "Oct 2026",
-      title: "SIPs hit a record as debt funds bleed",
-      body: "AMFI's September data showed SIP inflows of ₹32,490 Cr and equity net inflows near ₹38,300 Cr, while industry AUM fell 5.1% to ₹82.6L Cr on large debt-fund outflows at quarter-end.",
+      date: "Oct-Nov 2026",
+      title: "SIPs hold near their record; AUM recovers",
+      body: "AMFI's September data showed record SIP inflows of ₹32,490 Cr while industry AUM fell 5.1% to ₹82.6L Cr on quarter-end debt outflows. In October SIPs eased to ₹32,160 Cr, equity funds took in ₹32,994 Cr (a 68th straight month of inflows) and AUM rose 0.9% to ₹83.4L Cr as debt money returned.",
       impact: "pos",
       tag: "Flows",
     },
@@ -78,14 +78,14 @@ export const capmarkets: SectorReport = {
   ],
 
   overview: {
-    headline: "Mutual-fund assets grew ~19% a year from FY21 to Sep 2026, to ₹82.6L Cr, with no down year",
+    headline: "Mutual-fund assets grew ~19% a year from FY21 to Oct 2026, to ₹83.4L Cr, with no down year",
     narrative: [
-      "India's capital-markets chain earns small fees on very large flows: a management fee on ₹82L Cr of fund assets, a charge on every trade, a fee for every demat account and fund transaction. Most of these businesses need little capital and pay out much of their profit.",
+      "India's capital-markets chain earns small fees on very large flows: a management fee on ₹83L Cr of fund assets, a charge on every trade, a fee for every demat account and fund transaction. Most of these businesses need little capital and pay out much of their profit.",
       "Returns differ by layer. Exchanges, depositories and registrars are regulated duopolies with very high margins. AMCs and wealth managers compound with assets but face SEBI fee cuts. Brokers and investment banks are the most cyclical.",
       "The swing factor is regulation of derivatives. SEBI's 2024-26 rules and higher STT cut options volumes sharply, shifting growth toward cash equities, SIPs, commodities (MCX) and fee-based wealth.",
     ],
     chart: {
-      title: "Mutual-fund industry AUM (March-end; latest Sep 2026)",
+      title: "Mutual-fund industry AUM (March-end; latest Oct 2026)",
       unit: "₹ lakh crore",
       source: "AMFI monthly data",
       points: [
@@ -95,11 +95,11 @@ export const capmarkets: SectorReport = {
         { label: "FY24", value: 53.4 },
         { label: "FY25", value: 65.7 },
         { label: "FY26", value: 73.7 },
-        { label: "Sep 26", value: 82.6 },
+        { label: "Oct 26", value: 83.4 },
       ],
     },
     snapshot: [
-      { label: "SIP assets share of MF AUM, Sep 2026 (AMFI)", value: "21.6%", tone: "pos" },
+      { label: "SIP assets share of MF AUM, Oct 2026 (AMFI)", value: "21.2%", tone: "pos" },
       { label: "NSE options premium share, Q1 FY27 (NSE RHP)", value: "~68%, from ~97% in FY24", tone: "neg" },
       { label: "CAMS share of MF AUM serviced, Q2 FY27", value: "~67% (KFin the rest)", tone: "neutral" },
       { label: "Demat accounts by depository, Jul 2026", value: "CDSL ~18.8 Cr, NSDL ~4.6 Cr", tone: "neutral" },
@@ -117,7 +117,7 @@ export const capmarkets: SectorReport = {
   ],
 
   drivers: [
-    { title: "SIP habit", metric: "₹32,490 Cr a month", body: "Record SIP inflows in Sep 2026 (AMFI) keep equity AUM growing through market dips, feeding AMCs, registrars and distributors." },
+    { title: "SIP habit", metric: "₹32,160 Cr a month", body: "SIP inflows of ₹32,160 Cr in Oct 2026, just below Sep's record ₹32,490 Cr (AMFI), keep equity AUM growing through market dips, feeding AMCs, registrars and distributors." },
     { title: "New investors", metric: "~23.4 crore demat accounts", body: "Accounts doubled from Mar 2023 to Jul 2026; each one pays depositories and brokers, and smaller towns are the fastest-growing source." },
     { title: "Primary markets", metric: "NSE, SBI Funds, ICICI Pru AMC listed", body: "A deep IPO pipeline feeds bankers, listing fees, registrar allotments and new wealth for private-wealth firms." },
     { title: "Commodity options", metric: "MCX options turnover tripled", body: "Bullion options lifted MCX's Q1 FY27 options turnover more than threefold year on year - growth outside SEBI's equity F&O curbs." },

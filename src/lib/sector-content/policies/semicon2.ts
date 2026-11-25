@@ -26,7 +26,7 @@ export function defineSemicon2(h) {
       "MPMS is the near-term money: it pays assemblers on sales growth, so Dixon and the big iPhone assemblers benefit first.",
       "The local-sourcing bonus ties the two schemes together: more Indian parts and, later, Indian-packaged chips earn assemblers more.",
       "Semicon 2.0 is the long game: 25-40% capital support for fabs, chip packaging, equipment and materials, with first big fab output not before 2028.",
-      "Listed exposure is thin and mixed: most chip plants are unlisted (Tata, Micron, HCL-Foxconn); CG Power and Kaynes are the cleanest listed ways in.",
+      "Listed exposure is thin and mixed: most chip plants are unlisted (Tata, Micron, India Chip - the HCL-Foxconn JV); CG Power and Kaynes are the cleanest listed ways in.",
     ],
     featuredSignals: ["MPMS approvals list and first quarterly claims (MeitY)", "Monthly smartphone export data (Commerce Ministry / ICEA)", "Semicon 2.0 project approvals by Cabinet (ISM)", "Commercial-production dates at Tata Assam (pilot since Oct 2026) and Tata Dholera (guided 2028)", "Dixon, Amber and Optiemus export wins vs the MPMS growth hurdle (₹5,000 Cr over FY26 sales in FY27, rising each year)", "Global memory-chip prices and Indian smartphone demand"],
     dataStatus: "demo",

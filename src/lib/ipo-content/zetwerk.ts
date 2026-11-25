@@ -8,7 +8,7 @@ export const zetwerk: IpoReport = {
   sectorLabel: "Contract manufacturing & industrial supply",
   sectorSlug: "solarmodules",
   tagline: "An asset-light manufacturing platform raises ₹5,012 Cr at ~₹25,583 Cr, still loss-making",
-  asOf: "Oct 2026",
+  asOf: "Nov 2026",
   // NSE symbol (Screener lists ZETWERK); listed 23 Oct 2026.
   ticker: "ZETWERK",
 
@@ -16,7 +16,7 @@ export const zetwerk: IpoReport = {
     stage: "listed",
     label: "Listed 23 Oct",
     detail:
-      "Priced at ₹151 (top of the ₹143-151 band) after a ₹2,251 Cr anchor book and about 3.1x subscription (QIB 4.7x, NII 1.5x, retail 0.8x), the shares listed on 23 Oct 2026 at ₹159.20 on NSE and ₹159 on BSE, about 5.4% above the issue price.",
+      "Priced at ₹151 (top of the ₹143-151 band) after a ₹2,251 Cr anchor book and about 3.1x subscription (QIB 4.7x, NII 1.5x, retail 0.8x), the shares listed on 23 Oct 2026 at ₹159.25 on NSE and ₹159 on BSE, about 5.5% above the issue price on NSE.",
   },
   timeline: [
     { date: "Mar 2026", event: "Confidential pre-filing of the draft offer document with SEBI", done: true },
@@ -26,7 +26,7 @@ export const zetwerk: IpoReport = {
     { date: "14 Oct 2026", event: "Anchor book: ₹2,251 Cr", done: true },
     { date: "15 Oct 2026", event: "Issue opens", done: true },
     { date: "19 Oct 2026", event: "Issue closes, about 3.1x subscribed; allotment 21 Oct (tentative)", done: true },
-    { date: "23 Oct 2026", event: "Listed on BSE and NSE at ₹159.20 (NSE)", done: true },
+    { date: "23 Oct 2026", event: "Listed on BSE and NSE at ₹159.25 (NSE)", done: true },
   ],
 
   issue: {

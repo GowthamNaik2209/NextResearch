@@ -26,8 +26,8 @@ export const MARKET = {
   rf: 0.055,
   rfAsOf: "7 Oct 2026",
   /** Damodaran's total equity risk premium for India (mature market premium plus India's country premium). */
-  erp: 0.0708,
-  erpAsOf: "Jan 2026",
+  erp: 0.0692,
+  erpAsOf: "Jul 2026",
 } as const;
 /** How much a fundamentals score moves the expected return: tilt = IC x volatility x score. */
 export const IC = 0.05;

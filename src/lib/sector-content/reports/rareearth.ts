@@ -13,7 +13,7 @@ export const rareearth: SectorReport = {
   },
   keyStats: [
     { label: "Critical Mineral Mission", value: "₹16,300 Cr", sub: "government outlay to FY31, plus ~₹18,000 Cr expected from PSUs (Cabinet, 29 Jan 2025)" },
-    { label: "Blocks auctioned", value: "56 of 88", sub: "critical-mineral blocks offered, seven tranches to Jun 2026 (Ministry of Mines)" },
+    { label: "Blocks auctioned", value: "64 of 100", sub: "critical-mineral blocks offered in eight tranches; a ninth (20 blocks) opened 5 Nov 2026 (Ministry of Mines)" },
     { label: "Magnet scheme", value: "₹7,280 Cr", sub: "6,000 t/yr, 20 bids, no winners yet (MHI, Nov 2026)" },
     { label: "Recycling incentive", value: "₹1,500 Cr", sub: "FY26-FY31; targets 270 kt/yr of capacity (Cabinet, 3 Sep 2025)" },
   ],
@@ -34,25 +34,25 @@ export const rareearth: SectorReport = {
 
   developments: [
     {
+      date: "Nov 2026",
+      title: "China extends its pause; ninth auction tranche opens",
+      body: "On 9 Nov China's commerce ministry extended the suspension of its export controls by two months, to 10 Jan 2027 (The Star, 9 Nov 2026); the April 2025 licensing stays. On 5 Nov the Ministry of Mines launched a ninth tranche of 20 critical-mineral blocks across eight states, saying 64 of the 100 blocks offered in eight tranches have been auctioned. Rules notified on 16 Oct cut the minimum number of technically qualified bidders in a second-round auction from three to two.",
+      impact: "pos",
+      tag: "Auctions",
+    },
+    {
       date: "Sep 2026",
       title: "Eighth auction tranche bids in; copper at a record",
-      body: "Technical bids for the eighth tranche of 20 critical-mineral blocks (lithium, rare earths, graphite, tungsten, vanadium; launched 15 Jul) were due on 21 Sep; results were not out by 3 Nov. LME copper set back-to-back records in early Sep, reaching about US$14,694 a tonne on 8 Sep. Midwest's Hyderabad sintered-magnet line was reported close to commercial output.",
+      body: "Technical bids for the eighth tranche of 20 critical-mineral blocks (lithium, rare earths, graphite, tungsten, vanadium; launched 15 Jul) were due on 21 Sep; the ministry has not published tranche-level results, only the running total of 64 blocks auctioned. LME copper set back-to-back records in early Sep, reaching about US$14,694 a tonne on 8 Sep. Midwest's Hyderabad sintered-magnet line was reported close to commercial output.",
       impact: "pos",
       tag: "Auctions",
     },
     {
       date: "Aug 2026",
       title: "20 magnet-scheme bids; Coal India eyes Chile lithium",
-      body: "MHI opened 20 magnet-scheme bids on 13 Aug, including Coal India, L&T, 20 Microns, Proterial (India), NEO, Attero, Lohum, ReNew and a Midwest JV; no winner had been named by 3 Nov 2026. Reuters reported Coal India was weighing buying Wealth Minerals' Chilean lithium unit and setting up a Singapore minerals trading office.",
+      body: "MHI opened 20 magnet-scheme bids on 13 Aug, including Coal India, L&T, 20 Microns, Proterial (India), NEO, Attero, Lohum, ReNew and a Midwest JV; no winner had been named by late Nov 2026. Reuters reported Coal India was weighing buying Wealth Minerals' Chilean lithium unit and setting up a Singapore minerals trading office.",
       impact: "pos",
       tag: "Scheme",
-    },
-    {
-      date: "Jun 2026",
-      title: "Seventh tranche takes auctions to 56 blocks",
-      body: "Ten more blocks were auctioned (graphite, rare earths, vanadium, titanium, glauconite, phosphate), with Gujarat, Uttarakhand and Telangana joining for the first time - 56 of 88 offered since Nov 2023, plus 11 exploration-licence blocks.",
-      impact: "pos",
-      tag: "Auctions",
     },
     {
       date: "Apr 2026",
@@ -71,7 +71,7 @@ export const rareearth: SectorReport = {
     {
       date: "Nov 2025",
       title: "Magnet scheme cleared as China pauses curbs",
-      body: "The Cabinet approved the ₹7,280 Cr REPM scheme on 26 Nov 2025 (notified 15 Dec), two months after the ₹1,500 Cr recycling incentive (3 Sep). The same month China suspended its October 2025 export-control expansion for a year, to 10 Nov 2026; the April 2025 licensing stayed.",
+      body: "The Cabinet approved the ₹7,280 Cr REPM scheme on 26 Nov 2025 (notified 15 Dec), two months after the ₹1,500 Cr recycling incentive (3 Sep). The same month China suspended its October 2025 export-control expansion for a year, to 10 Nov 2026 (since extended to 10 Jan 2027); the April 2025 licensing stayed.",
       impact: "pos",
       tag: "Policy",
     },
@@ -81,7 +81,7 @@ export const rareearth: SectorReport = {
     headline: "NCMM carries most of the policy money: ₹16,300 Cr of government outlay plus ~₹18,000 Cr of expected PSU spend, against ₹7,280 Cr for REPM magnets",
     narrative: [
       "Critical minerals - lithium, cobalt, nickel, graphite, copper, rare earths, tungsten and others - go into batteries, motors, grids, electronics and weapons. China refines most of them and makes about 94% of the world's sintered rare-earth magnets (IEA). Its 2025 export licences cut Indian e-scooter output within weeks, turning supply security into policy.",
-      "India's answer is a stack. The National Critical Mineral Mission (Jan 2025) funds exploration, auctions of critical-mineral blocks (56 sold by June 2026), overseas assets through KABIL, Coal India and NMDC, a stockpile, and a ₹1,500 Cr recycling incentive. The ₹7,280 Cr REPM scheme pays five makers to build 6,000 tonnes a year of magnets from oxide.",
+      "India's answer is a stack. The National Critical Mineral Mission (Jan 2025) funds exploration, auctions of critical-mineral blocks (64 of 100 offered sold in eight tranches), overseas assets through KABIL, Coal India and NMDC, a stockpile, and a ₹1,500 Cr recycling incentive. The ₹7,280 Cr REPM scheme pays five makers to build 6,000 tonnes a year of magnets from oxide.",
       "For investors, the listed routes are mostly big miners and metal makers for whom critical minerals are a small new line - the exceptions being copper, which earns today, and a few small caps whose story hinges on one bid or plant.",
     ],
     chart: {
@@ -98,12 +98,12 @@ export const rareearth: SectorReport = {
       ],
     },
     snapshot: [
-      { label: "Critical-mineral blocks auctioned (to Jun 2026)", value: "56 of 88", tone: "pos" },
+      { label: "Critical-mineral blocks auctioned (eight tranches)", value: "64 of 100", tone: "pos" },
       { label: "Reasi lithium auctions (2024)", value: "Annulled twice", tone: "neg" },
       { label: "IREL NdPr oxide for magnet winners", value: "500 t/yr", tone: "neg" },
       { label: "China share of sintered magnets (IEA)", value: "~94%", tone: "neg" },
       { label: "LME copper record (8 Sep 2026)", value: "~US$14,694/t", tone: "pos" },
-      { label: "China curb pause runs to", value: "10 Nov 2026", tone: "neg" },
+      { label: "China's export-curb pause ends", value: "10 Jan 2027 (extended on 9 Nov)", tone: "neg" },
     ],
   },
 
@@ -116,10 +116,10 @@ export const rareearth: SectorReport = {
   ],
 
   drivers: [
-    { title: "Supply risk from China", metric: "Pause to 10 Nov 2026", body: "April 2025 licensing is still in force and the tougher October 2025 controls are only suspended; every new curb strengthens the case for Indian and allied supply." },
+    { title: "Supply risk from China", metric: "Pause to 10 Jan 2027", body: "April 2025 licensing is still in force and the tougher October 2025 controls are only suspended - on 9 Nov 2026 for just two more months; every new curb strengthens the case for Indian and allied supply." },
     { title: "Electrification demand", metric: "Copper at a record", body: "EVs, grids, storage and data centres pull on copper, lithium, nickel and magnets; the government expects India's magnet use to double from 2025 to 2030." },
     { title: "A full policy stack", metric: "₹41,500 Cr+", body: "NCMM (₹16,300 Cr of government money, the ₹1,500 Cr recycling incentive among it, plus ~₹18,000 Cr expected from PSUs) and REPM (₹7,280 Cr) fund mining, processing, magnets and recycling together." },
-    { title: "Auctions and overseas assets", metric: "56 blocks; 5 in Argentina", body: "Seven auction tranches have sold 56 blocks at home, and KABIL holds five lithium brine blocks in Catamarca, Argentina; Coal India is pursuing lithium in Chile." },
+    { title: "Auctions and overseas assets", metric: "64 blocks; 5 in Argentina", body: "Eight auction tranches have sold 64 of 100 blocks offered at home, with a ninth of 20 open since Nov 2026, and KABIL holds five lithium brine blocks in Catamarca, Argentina; Coal India is pursuing lithium in Chile." },
   ],
   mix: {
     title: "Critical Mineral Mission funding by source",
@@ -196,6 +196,7 @@ export const rareearth: SectorReport = {
     { title: "Cabinet approves ₹1,500 crore incentive scheme to promote critical mineral recycling", source: "PIB, 3 Sep 2025", url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2163454" },
     { title: "Cabinet approves Rs 7,280 crore scheme for sintered rare-earth permanent magnets", source: "PIB, 26 Nov 2025", url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2194687" },
     { title: "MHI receives 20 bids for integrated sintered NdFeB magnet plants", source: "PIB, 13 Aug 2026", url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2299078" },
+    { title: "Govt launches 9th round of critical mineral auctions, 20 blocks across 8 states", source: "Devdiscourse, 6 Nov 2026", url: "https://www.devdiscourse.com/article/business/4002526-govt-launches-9th-round-of-critical-mineral-auctions-20-blocks-across-8-states-put-up-for-bidding" },
     { title: "India's REE strategy: turning resources into capacity", source: "Observer Research Foundation", url: "https://www.orfonline.org/research/india-s-ree-strategy-turning-resources-into-capacity" },
   ],
 };

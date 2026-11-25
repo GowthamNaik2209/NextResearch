@@ -24,7 +24,7 @@ export const pliacc: SectorReport = {
     },
     {
       title: "The PLI has under-delivered; execution decides winners",
-      body: "Ola, Reliance and Rajesh Exports all missed the Dec 2024 milestone; MHI reset Ola's timelines in Aug 2026, Reliance still carries accrued penalties and Rajesh Exports' award is under review after a SEBI order. Meanwhile non-awardees are building: Exide commissioned 6 GWh in Sep 2026, Amara Raja, Agratas and Waaree follow, and Reliance's 40 GWh phase is due in 2026.",
+      body: "Ola, Reliance and Rajesh Exports all missed the Dec 2024 milestone; MHI reset Ola's timelines in Aug 2026, Reliance still carries accrued penalties and Rajesh Exports' award is under review after a SEBI order. Meanwhile non-awardees are building: Exide commissioned 6 GWh in Sep 2026, Amara Raja, Agratas and Waaree follow, and Reliance's 40 GWh phase is guided for 2026, though its early output is reported to be BESS assembly, with cells later.",
     },
     {
       title: "Materials are the next profit pool",
@@ -33,6 +33,13 @@ export const pliacc: SectorReport = {
   ],
 
   developments: [
+    {
+      date: "Nov 2026",
+      title: "22 bids for the last 10 GWh (grid storage)",
+      body: "MHI's global RFP of 15 Jul for 10 GWh of ACC capacity for grid-scale stationary storage (1-4 GWh per bidder, 25% value addition in two years and 40% in five) drew 22 bids, Reliance among them, by the 10 Nov deadline; technical bids were opened on 11 Nov and no award has been made yet (SolarQuarter, 13 Nov 2026).",
+      impact: "pos",
+      tag: "Policy",
+    },
     {
       date: "23 Sep 2026",
       title: "Exide commissions its first 6 GWh cell phase",
@@ -55,16 +62,9 @@ export const pliacc: SectorReport = {
       tag: "Policy",
     },
     {
-      date: "15 Jul 2026",
-      title: "Last 10 GWh re-tendered for grid storage",
-      body: "MHI issued a global RFP for 10 GWh of ACC capacity for grid-scale stationary storage: 1-4 GWh per bidder, 25% value addition in two years and 40% in five. Bids closed 13 Oct 2026.",
-      impact: "pos",
-      tag: "Policy",
-    },
-    {
       date: "Jun 2026",
-      title: "Reliance: 40 GWh first phase due this year",
-      body: "At its 49th AGM Reliance said its Jamnagar LFP cell and BESS gigafactory's 40 GWh first phase is on track for 2026 commissioning, with all equipment on site, and raised the target to 120 GWh a year.",
+      title: "Reliance: 40 GWh first phase guided for 2026",
+      body: "At its 49th AGM Reliance said its Jamnagar LFP cell and BESS gigafactory's 40 GWh first phase is on track for 2026 commissioning, with all equipment on site, and raised the target to 120 GWh a year. The plant is reported to assemble BESS first and integrate back into cell making later (Business Today, Jan 2026); no start-up was reported by late Nov 2026.",
       impact: "pos",
       tag: "Capacity",
     },
@@ -161,7 +161,7 @@ export const pliacc: SectorReport = {
     { key: "exide", tier: "core", why: "Second sizeable cell plant running (6 GWh commissioned Sep 2026), plus Hyundai-Kia localisation MoU." },
     { key: "amararaja", tier: "core", why: "Telangana Giga Corridor: 10 GWh BESS assembly and cells from 2027; bidding for the grid-storage tranche." },
     { key: "ola", tier: "core", why: "Only PLI-ACC awardee producing cells; MHI reset its timelines in Aug 2026 - it now needs 12 GWh by Jul 2027 to earn the incentive." },
-    { key: "reliance", tier: "core", why: "15 GWh of PLI awards and a 40 GWh first phase due in 2026; small vs the group." },
+    { key: "reliance", tier: "core", why: "15 GWh of PLI awards and a 40 GWh first phase guided for 2026 (BESS assembly first, cells later); small vs the group." },
     { key: "waaree", tier: "direct", why: "5.15 GWh BESS container plant running; 3.5-4 GWh cell line and a 16 GWh plant planned." },
     { key: "gfl", tier: "direct", why: "LiPF6 in commercial supply, PVDF qualified, LFP cathode line built." },
     { key: "himadri", tier: "direct", why: "First LFP cathode line due by Dec 2026; a 40,000 t Phase I targets full operations in FY29." },
@@ -196,5 +196,6 @@ export const pliacc: SectorReport = {
     { title: "Seven bids received in the 10 GWh PLI-ACC re-tender", source: "Press Information Bureau", url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2018576", year: "2024" },
     { title: "VGF scheme expands to 30 GWh of standalone BESS", source: "JMK Research", url: "https://jmkresearch.com/vgf-scheme-expands-to-support-30-gwh-of-new-standalone-bess-development-in-india/", year: "2025" },
     { title: "India has failed to build a battery-cell ecosystem: can a new PLI change this?", source: "Business Today", url: "https://www.businesstoday.in/auto/story/bt-big-story-india-has-failed-to-build-an-ecosystem-of-battery-cells-can-a-new-pli-change-this-562898-2026-10-22", year: "2026" },
+    { title: "MHI receives 22 bids for 10 GWh grid-scale battery manufacturing under PLI scheme", source: "SolarQuarter", url: "https://solarquarter.com/2026/11/13/mhi-receives-22-bids-for-10-gwh-grid-scale-battery-manufacturing-under-pli-scheme/", year: "2026" },
   ],
 };

@@ -31,7 +31,7 @@ export const INSURANCE_SCENARIOS: Scenario[] = [
     title: "Distribution gets squeezed",
     blurb: "Bima Sugam goes live and IRDAI tightens commission and mis-selling rules",
     story:
-      "Bima Sugam, the industry's public marketplace, was expected to launch around Nov 2026 (IRDAI chair, Sep 2026), starting with motor. If it gains traction for simple term, health and motor covers, and IRDAI keeps tightening the expense-of-management cap and mis-selling rules, the money insurers pay to sell a policy falls. Insurers keep more of each premium; online brokers, agent platforms and banks earn less per sale. Insurers with captive bank branches hold share; marketplaces must lean on advice and renewals.",
+      "Bima Sugam, the industry's public marketplace, has missed several launch targets; the IRDAI chair's latest (Sep 2026) was around Nov 2026, in phases starting with motor, but a live launch had not been confirmed by late Nov 2026. If it goes live and gains traction for simple term, health and motor covers, and IRDAI keeps tightening the expense-of-management cap and mis-selling rules, the money insurers pay to sell a policy falls. Insurers keep more of each premium; online brokers, agent platforms and banks earn less per sale. Insurers with captive bank branches hold share; marketplaces must lean on advice and renewals.",
     effect: "headwind",
     impacts: [
       S("digital_brokers", 3, "Take rates on simple covers fall when customers can buy on a public platform"),

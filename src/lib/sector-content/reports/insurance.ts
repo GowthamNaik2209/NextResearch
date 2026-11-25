@@ -14,7 +14,7 @@ export const insurance: SectorReport = {
   keyStats: [
     { label: "Insurance penetration, FY25", value: "3.7% of GDP", sub: "life 2.7%, non-life 1.0% (IRDAI annual report 2024-25)" },
     { label: "LIC share of first-year premium, H1 FY27", value: "58.77%", sub: "37.51% individual, 70.45% group (LIC, 5 Nov 2026)" },
-    { label: "Health insurance premium, FY26", value: "~₹1.37L Cr", sub: "up about 15% (General Insurance Council)" },
+    { label: "Health insurance premium, FY26", value: "~₹1.37L Cr", sub: "up about 17% from ~₹1.17L Cr in FY25 (General Insurance Council)" },
     { label: "Foreign ownership cap", value: "100%", sub: "raised from 74% by the Act of 20 Dec 2025" },
   ],
   thesis: [

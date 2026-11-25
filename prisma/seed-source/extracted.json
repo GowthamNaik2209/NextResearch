@@ -18,7 +18,7 @@
           ],
           "risks": [
             "Still working down a high loan-to-deposit ratio left by the merger, which limits loan growth",
-            "Margins pressured as policy rate cuts reprice loans faster than deposits"
+            "Margins swing with the RBI rate cycle, since loans reprice faster than deposits"
           ],
           "f": {
             "ticker": "HDFCBANK"
@@ -1539,9 +1539,12 @@
           }
         },
         "hclfoxconn": {
-          "name": "HCL-Foxconn Semiconductor",
+          "name": "India Chip (HCL-Foxconn JV)",
           "listed": false,
-          "role": "Approved (May 2025) OSAT plant (Jewar, Uttar Pradesh) for display driver chips",
+          "aka": [
+            "hcl-foxconn"
+          ],
+          "role": "HCL group (60%) and Foxconn (40%) joint venture; approved (May 2025) OSAT plant (Jewar, Uttar Pradesh) for display driver chips",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -2868,7 +2871,7 @@
         "elgiequip": {
           "name": "Elgi Equipments",
           "listed": true,
-          "role": "Air compressors for railway braking and pneumatic systems",
+          "role": "Industrial air-compressor maker that also supplies railway-approved (RDSO) compressors feeding the brake and air systems of locomotives and electric trains - it makes the air supply, not the brakes, and rail is a small share of its sales",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -4707,11 +4710,11 @@
         "bhartiairtel_op": {
           "name": "Bharti Airtel",
           "listed": true,
-          "role": "India's largest listed telco by market cap",
+          "role": "India's second-largest telco by subscribers, with the highest ARPU among the big operators (₹271 vs Jio's ~₹219 in Q2 FY27)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's largest telco by market cap with the strongest balance sheet among private operators gives it the capex firepower to lead 5G densification and fibreisation ahead of weaker rivals",
+            "The strongest balance sheet among private operators gives it the capex firepower to lead 5G densification and fibreisation ahead of weaker rivals",
             "Industry-leading ARPU and premiumisation trends give it pricing power that financially weaker operators cannot replicate"
           ],
           "risks": [
@@ -4781,7 +4784,7 @@
             "Developed an indigenous O-RAN-based 5G core/RAN technology stack in-house, reducing reliance on global equipment vendors"
           ],
           "risks": [
-            "Listed 28 Oct 2026, so its track record as a separately listed company is only days old",
+            "Listed only in Oct 2026, so it has little track record as a separately listed company",
             "Earnings growth leans on further tariff increases, which depend on the whole industry moving together",
             "Reliance Industries keeps control, so minority holders follow the group's capital-allocation choices"
           ],
@@ -5033,10 +5036,12 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's largest solar module manufacturer by capacity, with a growing order book and an expanding export business to the US"
+            "India's largest solar module manufacturer by capacity, with a growing order book",
+            "Serves the US from its own Texas plant (doubled to 3.2 GW, Oct 2026) rather than relying on exports from India"
           ],
           "risks": [
             "Listed Oct 2024, so its multi-year financial track record as a listed company is short",
+            "US anti-dumping and countervailing duty orders (Nov 2026) largely shut US exports of India-made cells and modules",
             "Industry-wide module capacity additions are running ahead of demand, risking margin pressure even for the market leader"
           ],
           "f": {
@@ -5683,10 +5688,12 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "India's largest solar module manufacturer by capacity, with a growing order book and an expanding export business to the US"
+            "India's largest solar module manufacturer by capacity, with a growing order book",
+            "Serves the US from its own Texas plant (doubled to 3.2 GW, Oct 2026) rather than relying on exports from India"
           ],
           "risks": [
-            "Listed Oct 2024 with limited multi-year financial track record"
+            "Listed Oct 2024 with limited multi-year financial track record",
+            "US anti-dumping and countervailing duty orders (Nov 2026) largely shut US exports of India-made cells and modules"
           ],
           "f": {
             "ticker": "WAAREEENER"
@@ -6845,7 +6852,7 @@
         "ambuja": {
           "name": "Ambuja Cements",
           "listed": true,
-          "role": "Adani group cement maker (with ACC, Sanghi, Penna and Orient Cement), number two in India",
+          "role": "Adani group cement maker, number two in India; absorbed Sanghi (effective 12 Mar 2026) and Penna (10 Apr 2026), and is merging in ACC (shareholders approved 29 Sep 2026, NCLT sanction pending) and Orient Cement",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -7759,6 +7766,11 @@
         "jswDulux": {
           "name": "JSW Dulux",
           "listed": true,
+          "aka": [
+            "Akzo Nobel",
+            "Akzo Nobel India",
+            "Dulux"
+          ],
           "role": "Dulux decorative paint maker, formerly Akzo Nobel India, bought by JSW Paints in 2025 and renamed",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
@@ -12294,7 +12306,7 @@
             "Monetisation outside UPI is still building"
           ],
           "notes": [
-            "Filed an updated DRHP (pure offer for sale) in Jan 2026; paused in Mar 2026; targeting a listing by Mar 2027 per reports",
+            "Filed an updated DRHP (an offer for sale) in Jan 2026; paused in Mar 2026; reported (Reuters, 25 Nov 2026) to have restarted IPO preparations, with a Jan-Mar 2027 listing reported (see the PhonePe IPO deck)",
             "No listed market data"
           ]
         },
@@ -15697,7 +15709,7 @@
             "Most revenue now from outside India"
           ],
           "notes": [
-            "Formerly Oravel Stays; updated draft IPO papers (UDRHP-I) filed 30 Jun 2026, no RHP yet",
+            "Formerly Oravel Stays; updated draft IPO papers (UDRHP-I) filed 30 Jun 2026, fresh issue halved to ₹3,350 Cr in Oct 2026, no RHP yet",
             "See the OYO IPO deck",
             "No listed market data"
           ]
@@ -18281,7 +18293,7 @@
         "tmcv": {
           "name": "Tata Motors (commercial vehicles)",
           "listed": true,
-          "role": "India's largest truck and bus maker, separated from Tata's passenger cars on 1 Oct 2025 and listed 12 Nov 2025; owns about 89% of Europe's Iveco since 30 Oct 2026",
+          "role": "India's largest truck and bus maker, separated from Tata's passenger cars on 1 Oct 2025 and listed 12 Nov 2025; owns 96.25% of Europe's Iveco (control since 30 Oct 2026; squeeze-out of the rest under way)",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "aka": [
@@ -20993,7 +21005,7 @@
             "Long-term contracts and tolling fees"
           ],
           "risks": [
-            "Qatar cargoes stopped by the Hormuz closure in 2026",
+            "Qatar cargoes cut by the Hormuz disruption in 2026",
             "Volumes depend on LNG prices"
           ],
           "f": {
@@ -21011,7 +21023,7 @@
             "Long contracts with oil companies"
           ],
           "risks": [
-            "LPG imports hit by the Gulf closure",
+            "LPG imports hit by the Gulf disruption",
             "Capex for new terminals"
           ],
           "f": {
@@ -22576,7 +22588,7 @@
             "Spice and grain raw-material prices"
           ],
           "f": {
-            "ticker": "ORKLA"
+            "ticker": "ORKLAINDIA"
           }
         },
         "cello": {
@@ -24441,8 +24453,13 @@
           }
         },
         "barbeque": {
-          "name": "Barbeque-Nation Hospitality",
+          "name": "United Foodbrands (Barbeque Nation)",
           "listed": true,
+          "aka": [
+            "Barbeque Nation",
+            "Barbeque-Nation Hospitality",
+            "BARBEQUE"
+          ],
           "role": "Runs Barbeque Nation buffet restaurants in India and abroad, plus Toscano and Salt",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
@@ -24455,7 +24472,7 @@
             "Competition from cheaper dining and delivery"
           ],
           "f": {
-            "ticker": "BARBEQUE"
+            "ticker": "UFBL"
           }
         },
         "electronicsMart": {
@@ -25530,7 +25547,7 @@
         "nftdc": {
           "name": "Non-Ferrous Materials Technology Development Centre (NFTDC)",
           "listed": false,
-          "role": "Government R&D centre in Hyderabad that developed the magnet and alloy technology licensed to Midwest",
+          "role": "Government R&D centre in Hyderabad (not a company, not investable) that developed the magnet and alloy technology licensed to Midwest",
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
@@ -25542,7 +25559,7 @@
           "notes": [
             "Autonomous R&D centre under the Ministry of Mines",
             "Technology partner for the Midwest magnet project and the Midwest-Indonesia MoU (2026)",
-            "Not a company - no market data"
+            "Government R&D centre - not investable; shown only as the technology source"
           ]
         },
         "kmml": {
@@ -26130,7 +26147,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "P75(I) (~₹70,000 Cr, six submarines) cleared by the Finance Ministry and sent to the CCS (2026)",
+            "P75(I) (six submarines, about ₹70,000-80,000 Cr, reported) cleared by the Finance Ministry and sent to the CCS (2026)",
             "Only listed yard with a submarine franchise",
             "Strong profit growth and high returns on equity"
           ],
@@ -26730,7 +26747,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "ECMS approval (Jan 2026) for enclosures for mobile and IT hardware",
-            "Kanchipuram enclosure plant due to start around Oct-Nov 2026 (reported Aug 2026)",
+            "Kanchipuram enclosure plant was due around Oct-Nov 2026 (reported Aug 2026); start not confirmed as of late Nov 2026",
             "Global precision-manufacturing scale and balance sheet"
           ],
           "risks": [
@@ -26998,7 +27015,7 @@
           ],
           "notes": [
             "Wipro Enterprises is privately held; listed Wipro Ltd (IT services) is not the owner",
-            "Plant was due to go live around Oct-Nov 2026 (reported Aug 2026)",
+            "Plant was due to go live around Oct-Nov 2026 (reported Aug 2026); start not confirmed as of late Nov 2026",
             "No listed market data"
           ]
         },
@@ -27157,7 +27174,7 @@
           "dataStatus": "demo",
           "sourceDate": "20 Oct 2026",
           "strengths": [
-            "49th AGM (2026): a 40 GWh first phase on track for commissioning in 2026 with all equipment on site; long-term target raised to 120 GWh a year of LFP cells and BESS",
+            "49th AGM (2026): a 40 GWh first phase on track for commissioning in 2026 with all equipment on site; long-term target raised to 120 GWh a year of LFP cells and BESS. Early output is reported to be BESS assembly, with cell making integrated later (Business Today, Jan 2026)",
             "Captive demand: its Kutch renewable hub plans up to 150 MWh of battery containers a day at peak installation",
             "Balance sheet to fund the plant without the incentive"
           ],
@@ -27718,11 +27735,12 @@
           "strengths": [
             "SIGHT production awards in both tranches (90,000 tonnes a year in Jan 2024, 49,000 tonnes a year in Mar 2025) and 300 MW a year of electrolyser manufacturing (Jan 2024)",
             "Binding 15-year green ammonia supply deal with Korea's Samsung C&T worth over US$3bn, signed Mar 2026, with supply from the second half of FY29",
+            "Expects first green hydrogen output at Jamnagar in 2027, ramping up by 2028 (S&P Global, Sep 2026)",
             "Jamnagar refinery is a captive buyer for its own green hydrogen"
           ],
           "risks": [
             "Green hydrogen is a small, unreported part of a group dominated by oil-to-chemicals, retail and telecom",
-            "Timelines at the Jamnagar giga complex have slipped before",
+            "Timelines at the Jamnagar giga complex have slipped before; its electrolyser factory is among those reportedly deferred to Aug 2027 (Nov 2026)",
             "Captive electrolyser technology still being proven at scale"
           ],
           "f": {
@@ -27760,7 +27778,7 @@
             "Group can supply its own renewable power (Adani Green) and port (Adani Ports)"
           ],
           "risks": [
-            "Mundra hub has no confirmed commissioning date as of Oct 2026",
+            "Mundra hub has no confirmed commissioning date as of late Nov 2026, and Adani New Industries' electrolyser factory is among those reportedly deferred to Aug 2027",
             "Hydrogen is one of many capital-heavy bets inside Adani Enterprises",
             "Group governance and funding scrutiny"
           ],
@@ -28009,7 +28027,7 @@
             "Can pair hydrogen with its own solar modules and storage"
           ],
           "risks": [
-            "No electrolyser factory commissioning confirmed as of Oct 2026",
+            "No electrolyser factory commissioning reported as of late Nov 2026",
             "Hydrogen is tiny next to its module business",
             "Technology partner and stack design not widely disclosed"
           ],
@@ -28025,6 +28043,7 @@
           "sourceDate": "20 Oct 2026",
           "strengths": [
             "Electrolyser awards in both tranches: 100 MW (Jan 2024, with Rajesh Power Services) and 200 MW (Aug 2024)",
+            "Opened a 30 MW first-phase alkaline electrolyser assembly line at Mehsana, Gujarat (13 Mar 2026); 100 MW and 300 MW phases are plans",
             "Hydrogen is material to its size, unlike the conglomerates"
           ],
           "risks": [

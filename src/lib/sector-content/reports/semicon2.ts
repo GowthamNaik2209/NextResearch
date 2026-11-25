@@ -41,9 +41,9 @@ export const semicon2: SectorReport = {
       tag: "OSAT",
     },
     {
-      date: "23 Sep 2026",
+      date: "17 Sep 2026",
       title: "Five Semicon 1.0 plants now in production",
-      body: "The Prime Minister launched commercial production at CDIL (Mohali) and Suchi Semicon (Surat), joining Micron, Kaynes and CG Semi - five of the 12 approved units (ISM).",
+      body: "At SEMICON India the Prime Minister launched commercial production at CDIL (Mohali) and Suchi Semicon (Surat), joining Micron, Kaynes and CG Semi - five of the 12 approved units (ISM).",
       impact: "pos",
       tag: "Chips",
     },
@@ -118,7 +118,7 @@ export const semicon2: SectorReport = {
     { title: "MPMS incentives", metric: "₹62,500 Cr over 5 years", body: "2.25-5% on phone sales growth, up to 6.5% with local sourcing; Indian brands up to 9.5%." },
     { title: "Export programmes", metric: "~US$29bn in FY26", body: "iPhones are ~three-quarters of smartphone exports; exports are the only way most assemblers clear MPMS's rising ₹5,000-crore-a-year growth hurdle." },
     { title: "Chip capex support", metric: "25-40% of capex", body: "Semicon 2.0 co-funds fabs (40%), compound fabs and advanced packaging (35%), legacy packaging (25%) and tools and materials (30%)." },
-    { title: "Indian chip demand", metric: "~US$90bn by 2030", body: "NITI Aayog projects ~19% a year growth to about US$90bn by 2030 and over US$200bn by 2035." },
+    { title: "Indian chip demand", metric: "~US$90bn by 2030", body: "NITI Aayog projects Indian chip demand of about US$90bn by 2030 and over US$200bn by 2035 (May 2026)." },
   ],
   mix: {
     title: "Semicon 1.0 approved investment by type (12 projects, ~₹1.64L Cr)",

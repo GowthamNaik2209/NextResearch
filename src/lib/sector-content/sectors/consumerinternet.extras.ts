@@ -27,10 +27,10 @@ export const CONSUMERINTERNET_SCENARIOS: Scenario[] = [
   },
   {
     id: "upi-mdr",
-    title: "UPI merchant fee starts after Diwali",
-    blurb: "The announced 0.4% MDR on UPI payments above ₹2,000 takes effect as planned",
+    title: "UPI merchant fee finally starts",
+    blurb: "The deferred 0.4% MDR on UPI payments above ₹2,000 is notified and takes effect",
     story:
-      "UPI and RuPay debit carried no merchant fee from 2020. On 15 Sep 2026 the Finance Ministry and NPCI announced a 0.4% MDR on person-to-merchant UPI payments above ₹2,000, capped at ₹300 a payment, paid by merchants; consumers, person-to-person transfers and small merchants are exempt. NPCI then pushed the 15 Oct start to after Diwali, on a date to be notified. Once it starts, payment apps and gateways earn on their largest pipe for the first time, though the ministry says only about 4% of merchant payments qualify; large platforms pay a new cost on bigger orders. A further delay or a cut in the rate would shrink the gain.",
+      "UPI and RuPay debit carried no merchant fee from 2020. On 15 Sep 2026 the Finance Ministry and NPCI announced a 0.4% MDR on person-to-merchant UPI payments above ₹2,000, capped at ₹300 a payment, paid by merchants; consumers, person-to-person transfers and small merchants are exempt. After traders pushed back, NPCI on 13 Oct deferred the 15 Oct start to after Diwali, on a date to be notified; none had been notified by late Nov 2026, and a 1 Jan 2027 start has been reported as under consideration. Once it starts, payment apps and gateways earn on their largest pipe for the first time, though the ministry says only about 4% of merchant payments qualify; large platforms pay a new cost on bigger orders. A further delay or a cut in the rate would shrink the gain.",
     effect: "tailwind",
     impacts: [
       S("payments", 3, "First revenue on UPI volume for apps and gateways"),

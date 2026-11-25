@@ -167,7 +167,7 @@ export const defenceproc: SectorReport = {
     { key: "bdl", tier: "core", why: "Missile programmes from the 2026 approvals (MRSAM, MPATGM, Astra) land in its range." },
     { key: "solar", tier: "core", why: "Pinaka rockets, ammunition and loitering munitions; defence revenue guided up ~70% in FY27." },
     { key: "bharatforge", tier: "direct", why: "Private artillery leader (ATAGS 60%), ₹11,196 Cr defence order book." },
-    { key: "mazdock", tier: "direct", why: "Preferred yard for the ~₹70,000 Cr P75(I) submarines, awaiting Cabinet approval." },
+    { key: "mazdock", tier: "direct", why: "Preferred yard for the P75(I) submarines (about ₹70,000-80,000 Cr, reported), awaiting Cabinet approval." },
     { key: "datapatterns", tier: "direct", why: "Design-led radar and EW electronics supplier to BEL, HAL and DRDO." },
     { key: "astra", tier: "direct", why: "RF sub-systems for radars; largest-ever HAL order for Uttam radar sub-systems." },
     { key: "beml", tier: "indirect", why: "Sarvatra bridge and military vehicles from the Sep 2026 AoN; defence is one of three businesses." },
@@ -180,7 +180,7 @@ export const defenceproc: SectorReport = {
     { key: "bharatforge", date: "Aug 2026", development: "Defence revenue +87.5% YoY in Q1 FY27; defence order book ₹11,196 Cr; KSSL margin up to 17.2%.", impact: "Private primes are scaling profitably in land systems.", tone: "pos" },
     { key: "astra", date: "Aug 2026", development: "Won its largest-ever order from HAL for Uttam AESA radar sub-systems, lifting the consolidated order book to ~₹4,300 Cr.", impact: "Indian fighter radars move from development to production, pulling in private RF suppliers.", tone: "pos" },
     { key: "bel", date: "Jul 2026", development: "Q1 FY27 revenue rose ~25% but order inflow fell ~49% to ~₹3,750 Cr; order book ₹72,258 Cr. Kept >₹55,000 Cr FY27 inflow guidance including QRSAM.", impact: "Shows how much of the year's orders hang on one Cabinet approval.", tone: "neutral" },
-    { key: "mazdock", date: "May 2026", development: "The ~₹70,000 Cr P75(I) six-submarine deal with TKMS cleared the Finance Ministry and went to the Cabinet Committee on Security; still unsigned in Oct 2026.", impact: "A textbook case of the gap between approval and contract.", tone: "neutral" },
+    { key: "mazdock", date: "May 2026", development: "The P75(I) six-submarine deal (about ₹70,000-80,000 Cr, reported) with TKMS cleared the Finance Ministry and went to the Cabinet Committee on Security; still unsigned in Oct 2026.", impact: "A textbook case of the gap between approval and contract.", tone: "neutral" },
   ],
 
   risks: [

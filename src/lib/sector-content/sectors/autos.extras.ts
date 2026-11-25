@@ -55,10 +55,10 @@ export const AUTOS_SCENARIOS: Scenario[] = [
   },
   {
     id: "trade-deals-open-exports",
-    title: "Trade deals cut tariffs on Indian parts",
-    blurb: "The US interim deal and the India-EU FTA lower duties on auto parts",
+    title: "Trade deals could cut tariffs on Indian parts",
+    blurb: "The US framework and the India-EU FTA promise lower duties on auto parts",
     story:
-      "The US-India framework of 6 Feb 2026 offers preferential quotas with 0-18% duties for many Indian auto parts once notified, and the India-EU FTA (concluded 27 Jan 2026) removes duties on car parts over 5-10 years. If both take effect, exporters of forgings, gears, bearings, cables and off-highway tyres win share from Chinese and European suppliers. The EU deal also lets up to 2.5 lakh European cars a year in at falling duties, a small headwind for premium carmakers.",
+      "The US-India framework of 6 Feb 2026 promised a lower-duty quota (0-18%) for many Indian auto parts that now pay the 25% US tariff on imported auto parts; it had not been put in place by late Nov 2026, as far as reported, and parts are outside the separate 10% US duty on other Indian goods. The India-EU FTA (concluded 27 Jan 2026) removes duties on car parts over 5-10 years. If both take effect, exporters of forgings, gears, bearings, cables and off-highway tyres win share from Chinese and European suppliers. The EU deal also lets up to 2.5 lakh European cars a year in at falling duties, a small headwind for premium carmakers.",
     effect: "tailwind",
     impacts: [
       S("driveline", 3, "Gears, axle shafts, bearings and rings are largely exported"),
@@ -74,5 +74,5 @@ export const AUTOS_DOCS: ResearchLink[] = [
   { title: "Auto industry hits 7-year peak in FY26 as all segments log record sales", source: "Autocar Professional, SIAM data (14 Apr 2026)", url: "https://www.autocarpro.in/news/auto-industry-hits-7-year-peak-in-fy26-as-all-segments-log-record-sales-132106" },
   { title: "Government notifies CAFE III norms: EVs get 3x credit, credit trading allowed", source: "Autocar Professional (30 Sep 2026)", url: "https://www.autocarpro.in/news/government-notifies-cafe-iii-norms-evs-get-3x-credit-credit-trading-allowed-134984" },
   { title: "Tractor retail sales rise 3.10% to 79,285 units in October", source: "Autocar Professional, FADA data (6 Nov 2026)", url: "https://www.autocarpro.in/analysis-sales/tractor-retail-sales-rise-310-percent-to-79285-units-in-october-fada-135779" },
-  { title: "Tata Motors completes initial settlement for Iveco Group, holds 89.42% stake", source: "Autocar Professional (30 Oct 2026)", url: "https://www.autocarpro.in/news/tata-motors-completes-initial-settlement-for-iveco-group-holds-8942-percent-stake-135592" },
+  { title: "Tata Motors sets Iveco stake at 96.25%, moves ahead with squeeze-out", source: "Autocar Professional (9 Nov 2026)", url: "https://www.autocarpro.in/news/tata-motors-sets-iveco-stake-at-9625-percent-moves-ahead-with-squeeze-out-135838" },
 ];

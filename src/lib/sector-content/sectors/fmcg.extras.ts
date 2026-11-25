@@ -9,9 +9,9 @@ export const FMCG_SCENARIOS: Scenario[] = [
   {
     id: "crude-palm-stay-high",
     title: "Crude and palm oil stay high",
-    blurb: "The Gulf stays shut into 2027 and crude-linked packs and palm oil stay costly",
+    blurb: "Gulf shipping stays disrupted into 2027 and crude-linked packs and palm oil stay costly",
     story:
-      "Since the Strait of Hormuz closed in Mar 2026, crude has traded high and the costs that follow it - PET and polyethylene for bottles and laminates, LAB for detergents, diesel for distribution trucks - have risen with it, while palm oil stays firm. FMCG brands sell most volume at fixed ₹5 and ₹10 price points, so they can only cut grams or raise prices in steps, and margins narrow first. Detergent and soap makers (LAB, palm), biscuit and snack makers (palm, packaging) and bottlers (PET) feel it most; packaging converters pass costs on a quarter or two late. Edible-oil refiners are the exception if duty cuts keep landed prices in check.",
+      "Since shipping through the Strait of Hormuz was severely disrupted in Mar 2026, crude has traded high and the costs that follow it - PET and polyethylene for bottles and laminates, LAB for detergents, diesel for distribution trucks - have risen with it, while palm oil stays firm. FMCG brands sell most volume at fixed ₹5 and ₹10 price points, so they can only cut grams or raise prices in steps, and margins narrow first. Detergent and soap makers (LAB, palm), biscuit and snack makers (palm, packaging) and bottlers (PET) feel it most; packaging converters pass costs on a quarter or two late. Edible-oil refiners are the exception if duty cuts keep landed prices in check.",
     effect: "headwind",
     impacts: [
       S("home_care", 3, "LAB, soda ash and polymer packs set detergent costs"),

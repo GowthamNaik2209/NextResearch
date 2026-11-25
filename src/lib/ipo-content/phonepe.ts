@@ -1,34 +1,36 @@
 import type { IpoReport } from "./types";
 
 // PhonePe Ltd. Figures from the UDRHP-I dated 21 Jan 2026 unless a field names another source;
-// FY26 numbers come from the audited annual accounts as reported in Jul 2026. Status to mid-Oct 2026.
+// FY26 numbers come from the audited annual accounts as reported in Jul 2026. Status to 25 Nov 2026
+// (IPO restart reported by Reuters and Kotak Neo; the company has not confirmed dates or size).
 export const phonepe: IpoReport = {
   slug: "phonepe",
   name: "PhonePe",
   legalName: "PhonePe Limited",
   icon: "PPE",
   sectorLabel: "Digital payments & fintech",
-  tagline: "Walmart-controlled UPI leader with ~47% of volumes, selling a pure OFS",
-  asOf: "Oct 2026",
+  tagline: "Walmart-controlled UPI leader with ~47% of volumes; a restart of its offer-for-sale IPO is reported",
+  asOf: "Nov 2026",
 
   status: {
     stage: "approved",
-    label: "SEBI approved · paused",
+    label: "SEBI approved · restart reported",
     detail:
-      "SEBI issued final observations on the confidential draft in Jan 2026 and the UDRHP-I was filed on 21 Jan, but PhonePe paused the IPO on 16 Mar 2026 citing volatile markets. Inc42 reported in Sep 2026, after the new UPI MDR framework, that it plans to refile updated papers by end-2026 and list by Mar 2027; the company has not confirmed a date. Reports put SEBI's nod at 20 Jan, while the UDRHP cites an observation letter dated 8 Jan.",
+      "SEBI issued final observations on the confidential draft in Jan 2026 and the UDRHP-I was filed on 21 Jan; PhonePe paused the IPO on 16 Mar 2026 citing volatile markets. On 25 Nov 2026 Reuters reported that it has restarted preparations for a Jan-Mar 2027 listing at US$12-15bn, and Kotak Neo that updated papers would follow the December-quarter results; the company has not confirmed dates, size or valuation. Reports put SEBI's nod at 20 Jan, while the UDRHP cites an observation letter dated 8 Jan.",
   },
   timeline: [
     { date: "23 Sep 2025", event: "Confidential pre-filed DRHP submitted to SEBI", done: true },
     { date: "8 Jan 2026", event: "SEBI final observation letter (per the UDRHP)", done: true },
     { date: "21 Jan 2026", event: "UDRHP-I filed: OFS of 5.07 crore shares, no fresh issue", done: true },
     { date: "16 Mar 2026", event: "IPO paused on market volatility", done: true },
-    { date: "15 Oct 2026", event: "UPI MDR of 0.4% on merchant payments above ₹2,000 takes effect", done: true },
-    { date: "Dec 2026", event: "Updated papers with FY26 numbers expected (Inc42, sources)", done: false },
-    { date: "Feb-Mar 2027", event: "Targeted listing window (reported, unconfirmed)", done: false },
+    { date: "13 Oct 2026", event: "UPI merchant fee start deferred; date to be notified", done: true },
+    { date: "25 Nov 2026", event: "IPO preparations restarted (Reuters, Kotak Neo; reported)", done: true },
+    { date: "Jan-Feb 2027", event: "Updated papers expected after December-quarter results (Kotak Neo, reported)", done: false },
+    { date: "Jan-Mar 2027", event: "Targeted listing window (Reuters, reported; unconfirmed)", done: false },
   ],
 
   issue: {
-    size: "OFS of 5.07 crore shares (~US$0.9-1.5bn reported)",
+    size: "OFS of 5.07 crore shares as filed; ₹15,000-18,000 Cr reported for the revived issue (Kotak Neo, 25 Nov 2026)",
     totalCr: null,
     freshCr: 0,
     ofsCr: null,
@@ -36,8 +38,8 @@ export const phonepe: IpoReport = {
     priceBand: null,
     lotSize: null,
     faceValue: "₹1",
-    valuation: "~US$10bn sought per Inc42 (Sep 2026); ~₹95,000 Cr at ~₹95/US$ (94.92 on 16 Oct 2026). Earlier reports: US$9-10.5bn (Mar 2026), ~US$15bn targeted around filing",
-    valuationCr: 95000,
+    valuation: "US$12-15bn targeted per Reuters (25 Nov 2026), ~₹1.14-1.43L Cr at ~₹95/US$; the ~₹1.28L Cr midpoint is used for the peer chart. Not a company figure. Earlier reports: ~US$10bn (Inc42, Sep 2026), US$9-10.5bn (Mar 2026)",
+    valuationCr: 128000,
     reservation: "QIB at least 75% · NII up to 15% · Retail up to 10% (Reg 6(2), loss-making issuer)",
     exchanges: "NSE, BSE",
     leadManagers: [
@@ -56,13 +58,13 @@ export const phonepe: IpoReport = {
   stance: {
     label: "Dominant franchise, thin monetisation",
     tone: "neutral",
-    line: "PhonePe owns India's payment habit (65.8 crore registered users, ~47% of UPI volume) but earns little per transaction; MDR, lending distribution and the 30% volume cap decide what that scale is worth.",
+    line: "PhonePe owns India's payment habit (65.8 crore registered users, ~47% of UPI volume) but earns little per transaction; the deferred UPI merchant fee, lending distribution and the 30% volume cap decide what that scale is worth.",
   },
   keyStats: [
     { label: "Revenue from operations, FY25", value: "₹7,115 Cr", sub: "+40.5%; FY26 ₹7,921 Cr (+11.5%)" },
     { label: "Adjusted EBITDA, FY25", value: "₹1,477 Cr", sub: "20.8% margin; H1 FY26 6.5%" },
     { label: "UPI volume share, Sep 2025", value: "46.85%", sub: "NPCI; 47.07% in Apr 2026" },
-    { label: "Offer for sale", value: "5.07 crore shares", sub: "Walmart sells ~9%, keeps control" },
+    { label: "Offer for sale", value: "5.07 crore shares", sub: "as filed; Walmart sells ~9%, keeps control" },
   ],
   thesis: [
     {
@@ -71,11 +73,11 @@ export const phonepe: IpoReport = {
     },
     {
       title: "Payments are the funnel; distribution is the profit pool",
-      body: "Lending and insurance distribution rose from 1% of revenue in FY23 to 11.6% in H1 FY26, and merchant payments to 30.8%. The new UPI MDR on merchant payments above ₹2,000 (from 15 Oct 2026) adds a direct monetisation lever.",
+      body: "Lending and insurance distribution rose from 1% of revenue in FY23 to 11.6% in H1 FY26, and merchant payments to 30.8%. A 0.4% UPI merchant fee (MDR) on payments above ₹2,000, announced in Sep 2026, would add a direct way to earn from payments once it starts; NPCI deferred it on 13 Oct and no start date had been notified by late Nov 2026.",
     },
     {
-      title: "An exit, not a capital raise",
-      body: "All proceeds go to Walmart, Microsoft and Tiger Global. Pricing will hinge on how investors treat ~₹2,400 Cr of yearly ESOP costs and the NPCI 30% market-share cap.",
+      title: "Mostly an exit, not a capital raise",
+      body: "As filed, all proceeds go to Walmart, Microsoft and Tiger Global; a ₹3,000-5,000 Cr fresh issue is reported for the revived IPO (Kotak Neo, 25 Nov 2026) but not confirmed. Pricing will hinge on how investors treat ~₹2,400 Cr of yearly ESOP costs and the NPCI 30% market-share cap.",
     },
   ],
 
@@ -121,7 +123,7 @@ export const phonepe: IpoReport = {
   industry: {
     narrative: [
       "UPI is India's default way to pay. Volumes rose from 46 billion transactions in FY22 to 242 billion in FY26, worth ₹314L Cr; Redseer (in the UDRHP) says UPI made up 87% of consumer payment value in FY25 and expects digital consumer payments to grow 15-18% a year to FY30.",
-      "The market is a near-duopoly: in Apr 2026 PhonePe had 47.1% of UPI volume, Google Pay 33.5% and Paytm 8.1%. NPCI's proposed 30% cap per app has been deferred to 31 Dec 2026, and from 15 Oct 2026 merchants pay 0.4% MDR on UPI payments above ₹2,000 (about 96% of P2M payments stay free).",
+      "The market is a near-duopoly: in Apr 2026 PhonePe had 47.1% of UPI volume, Google Pay 33.5% and Paytm 8.1%. NPCI's proposed 30% cap per app has been deferred to 31 Dec 2026. A 0.4% merchant fee (MDR) on UPI payments above ₹2,000 was announced for 15 Oct 2026 but deferred on 13 Oct, with no start date notified by late Nov (a Jan 2027 start has been reported as under consideration); about 96% of merchant payments would stay free.",
     ],
     chart: {
       title: "UPI transactions",
@@ -139,7 +141,7 @@ export const phonepe: IpoReport = {
       { label: "UPI value, FY26", value: "₹314L Cr (+21%)", tone: "pos" },
       { label: "UPI volume share, Apr 2026", value: "PhonePe 47.1% · Google Pay 33.5% · Paytm 8.1%" },
       { label: "NPCI volume cap", value: "30% per app; deferred to 31 Dec 2026", tone: "neg" },
-      { label: "UPI MDR from 15 Oct 2026", value: "0.4% on P2M above ₹2,000, cap ₹300", tone: "pos" },
+      { label: "UPI merchant fee (MDR), announced Sep 2026", value: "0.4% above ₹2,000, cap ₹300; deferred, start date not notified", tone: "neutral" },
       { label: "Digital consumer payments growth", value: "15-18% CAGR to FY30 (Redseer)" },
     ],
   },
@@ -179,7 +181,7 @@ export const phonepe: IpoReport = {
 
   useOfProceeds: [],
   proceedsNote:
-    "Pure offer for sale: PhonePe receives nothing. Selling shareholders get the proceeds after their share of offer expenses and taxes; the stated objects are listing benefits and visibility. PhonePe has raised over US$2.3bn privately and reports no borrowings.",
+    "As filed in the UDRHP-I, a pure offer for sale: PhonePe receives nothing, and selling shareholders get the proceeds after their share of offer expenses and taxes; the stated objects are listing benefits and visibility. Kotak Neo reported on 25 Nov 2026 that the revived issue of ₹15,000-18,000 Cr may pair an OFS of ₹12,000-13,000 Cr with a fresh issue of ₹3,000-5,000 Cr; the company has not confirmed this, and any fresh-issue objects would appear only in updated papers. PhonePe has raised over US$2.3bn privately and reports no borrowings.",
   shareholding: [
     { holder: "Walmart (WM Digital Commerce Holdings)", pct: 71.77 },
     { holder: "General Atlantic", pct: 8.98 },
@@ -204,7 +206,7 @@ export const phonepe: IpoReport = {
     { name: "Angel One", ticker: "ANGELONE", note: "Benchmark for Share.Market broking" },
   ],
   valuationNote:
-    "A ~US$10bn (~₹95,000 Cr) valuation is ~13.4x FY25 revenue of ₹7,115 Cr, the last full year in the offer document (~12x audited FY26 revenue of ₹7,921 Cr): close to Paytm's sales multiple (now profitable) and well above Policybazaar's (see the table).",
+    "At the reported US$12-15bn (~₹1.14-1.43L Cr; Reuters, 25 Nov 2026, not a company figure), PhonePe would be valued at ~16-20x FY25 revenue of ₹7,115 Cr, the last full year in the offer document (~14-18x audited FY26 revenue of ₹7,921 Cr). Compare that with the listed peers' multiples in the peer table below.",
 
   strengths: [
     {
@@ -232,7 +234,7 @@ export const phonepe: IpoReport = {
     },
     {
       risk: "Policy-driven revenue: UPI pricing, MDR rules and government incentives are set by NPCI and the government.",
-      mitigant: "The Oct 2026 MDR framework restores a fee on larger merchant payments, and distribution revenue is less policy-dependent.",
+      mitigant: "A 0.4% merchant fee on larger UPI payments has been announced (deferred, start date not yet notified), and distribution revenue is less policy-dependent.",
       severity: "medium",
     },
     {
@@ -253,18 +255,18 @@ export const phonepe: IpoReport = {
   ],
 
   outlook: {
-    bull: "Markets steady, PhonePe refiles with FY26 numbers, MDR and lending lift adjusted EBITDA margins back above 20%, and the IPO prices at US$12bn+.",
-    base: "Refiling around end-2026 and a listing in early 2027 near the reported ~US$10bn, with Walmart selling ~9% and reported losses narrowing slowly.",
-    bear: "NPCI enforces the 30% cap, MDR revenue proves small, and volatile markets push the listing beyond the approval window or force a lower valuation.",
+    bull: "Markets steady, PhonePe refiles after the December-quarter results, the UPI merchant fee starts, and it and lending lift adjusted EBITDA margins back above 20%, and the IPO prices at the top of the reported US$12-15bn range.",
+    base: "Updated papers in early 2027 and a Jan-Mar 2027 listing in the lower half of the reported US$12-15bn range, mostly an OFS with Walmart selling ~9%, and reported losses narrowing slowly.",
+    bear: "NPCI enforces the 30% cap, MDR revenue proves small, and volatile markets push the listing beyond the approval window or force a valuation below the reported range.",
   },
   sources: [
     { title: "PhonePe Limited - UDRHP-I (21 Jan 2026)", source: "SEBI", url: "https://www.sebi.gov.in/filings/public-issues/jan-2026/phonepe-limited-udrhp-i_99285.html", year: "2026" },
     { title: "PhonePe files updated DRHP for OFS-only IPO", source: "Inc42", url: "https://inc42.com/buzz/phonepe-files-updated-drhp-for-ofs-only-ipo/", year: "2026" },
     { title: "Walmart-backed PhonePe shelves IPO as global tensions rattle markets", source: "TechCrunch", url: "https://techcrunch.com/2026/03/16/walmart-backed-phonepe-shelves-ipo-as-global-tensions-rattle-markets/", year: "2026" },
     { title: "IPO-bound PhonePe posts Rs 2,792 Cr loss in FY26, revenue up 11.5%", source: "Inc42", url: "https://inc42.com/buzz/ipo-bound-phonepe-posts-%E2%82%B92792-cr-loss-in-fy26-revenue-up-11-5-yoy/", year: "2026" },
-    { title: "With UPI MDR clarity, PhonePe eyes IPO by March 2027", source: "Inc42", url: "https://inc42.com/buzz/with-upi-mdr-clarity-phonepe-eyes-ipo-by-march-2027/", year: "2026" },
+    { title: "PhonePe prepares to restart IPO process amid improving market conditions", source: "Business Standard (Reuters, 25 Nov 2026)", url: "https://business-standard.com/markets/ipo/phonepe-prepares-to-restart-ipo-process-amid-improving-market-conditions-126112500725_1.html", year: "2026" },
     { title: "UPI transaction value reaches Rs 314 lakh crore in FY26", source: "Outlook Money", url: "https://www.outlookmoney.com/banking/upi-transaction-value-reaches-rs-314-lakh-crore-in-fy26-govt-says-in-lok-sabha", year: "2026" },
     { title: "UPI in April: PhonePe tightens grip with over 47% market share", source: "Inc42", url: "https://inc42.com/buzz/upi-in-april-phonepe-tightens-grip-with-over-47-market-share/", year: "2026" },
-    { title: "One 97 Communications consolidated financials", source: "Screener.in", url: "https://www.screener.in/company/PAYTM/consolidated/", year: "2026" },
+    { title: "Walmart-owned PhonePe revives IPO plans, eyes US$12-15bn valuation and FY27 listing", source: "Kotak Neo (25 Nov 2026)", url: "https://kotakneo.com/news/ipos/walmart-owned-phonepe-revives-ipo-plans-eyes-12-15-billion-valuation-and-fy27-listing", year: "2026" },
   ],
 };

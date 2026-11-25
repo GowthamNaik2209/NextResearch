@@ -48,9 +48,9 @@ export const autos: SectorReport = {
       tag: "Results",
     },
     {
-      date: "Oct 2026",
+      date: "Oct-Nov 2026",
       title: "Tata Motors takes control of Iveco",
-      body: "Tata Motors (CV) settled its tender offer for Iveco Group on 30 Oct 2026 with 89.42% at €14.40 a share, making the European truck and bus maker a subsidiary; a reopened window ran 2-6 Nov.",
+      body: "Tata Motors (CV) settled its tender offer for Iveco Group on 30 Oct 2026 at €14.40 a share, making the European truck and bus maker a subsidiary; after the reopened window its stake reached 96.25% (excluding treasury shares, 9 Nov), and a Dutch legal squeeze-out of the remaining shares is under way.",
       impact: "neutral",
       tag: "M&A",
     },
@@ -71,7 +71,7 @@ export const autos: SectorReport = {
     {
       date: "Feb 2026",
       title: "US and EU trade deals open doors for parts",
-      body: "The US-India interim framework (6 Feb) offers quotas at 0-18% duty for many auto parts once notified; the India-EU FTA (27 Jan) phases out duties on car parts over 5-10 years and lets 2.5 lakh EU cars a year in at falling duties.",
+      body: "The US-India interim framework (6 Feb) promises quotas at 0-18% duty for many auto parts once put in place (not yet done by late Nov 2026, as far as reported); the India-EU FTA (27 Jan) phases out duties on car parts over 5-10 years and lets 2.5 lakh EU cars a year in at falling duties.",
       impact: "pos",
       tag: "Trade",
     },
@@ -175,7 +175,7 @@ export const autos: SectorReport = {
     { key: "mm", date: "Nov 2026", development: "Q2 FY27 consolidated revenue rose 25% to ₹57,553 Cr and profit 25% to ₹4,588 Cr; SUV volumes +26%, but tractor margin fell to 17.6% and the FY27 tractor outlook was cut to flat (5 Nov).", impact: "SUVs carry the cycle while farm demand cools.", tone: "pos" },
     { key: "bajajauto", date: "Oct 2026", development: "Q2 FY27 standalone revenue hit a record ₹20,003 Cr and profit rose 35% to ₹3,354 Cr; exports up 41% (27 Oct).", impact: "Exports are now a second engine for two-wheeler makers.", tone: "pos" },
     { key: "heromotoco", date: "Nov 2026", development: "Q2 FY27 revenue rose 23% to ₹14,971 Cr; consolidated profit rose 41% to ₹1,861 Cr including a ₹397 Cr one-time gain, standalone profit only 4.6%.", impact: "Rural commuter bikes grow, but cost inflation caps margins.", tone: "neutral" },
-    { key: "tmcv", date: "Oct 2026", development: "Settled the Iveco tender offer on 30 Oct with 89.42% at €14.40 a share; Iveco became an indirect subsidiary.", impact: "India's truck leader becomes a global CV group, with integration and debt to manage.", tone: "neutral" },
+    { key: "tmcv", date: "Nov 2026", development: "Settled the Iveco tender offer on 30 Oct at €14.40 a share and reached 96.25% after the reopened window; a Dutch squeeze-out of the remaining shares is under way.", impact: "India's truck leader becomes a global CV group, with integration and debt to manage.", tone: "neutral" },
     { key: "ceat", date: "Oct 2026", development: "Q2 FY27 revenue rose 26% to ₹4,762 Cr but EBITDA margin fell about 4 points to 9.5%; said a 7-8% price rise is needed.", impact: "Tyre makers are the most exposed to rubber and crude costs.", tone: "neg" },
   ],
 
@@ -195,7 +195,7 @@ export const autos: SectorReport = {
     { title: "Government notifies CAFE III norms: EVs get 3x credit, credit trading allowed", source: "Autocar Professional", url: "https://www.autocarpro.in/news/government-notifies-cafe-iii-norms-evs-get-3x-credit-credit-trading-allowed-134984", year: "2026" },
     { title: "Maruti Suzuki Q2 net profit drops 27% to Rs 2,415 crore amid input cost inflation", source: "Autocar Professional", url: "https://www.autocarpro.in/news/maruti-suzuki-q2-net-profit-drops-27-percent-to-rs-2415-crore-amid-input-cost-inflation-135496", year: "2026" },
     { title: "Tractor retail sales rise 3.10% to 79,285 units in October", source: "Autocar Professional (FADA data)", url: "https://www.autocarpro.in/analysis-sales/tractor-retail-sales-rise-310-percent-to-79285-units-in-october-fada-135779", year: "2026" },
-    { title: "Tata Motors completes initial settlement for Iveco Group, holds 89.42% stake", source: "Autocar Professional", url: "https://www.autocarpro.in/news/tata-motors-completes-initial-settlement-for-iveco-group-holds-8942-percent-stake-135592", year: "2026" },
+    { title: "Tata Motors sets Iveco stake at 96.25%, moves ahead with squeeze-out", source: "Autocar Professional", url: "https://www.autocarpro.in/news/tata-motors-sets-iveco-stake-at-9625-percent-moves-ahead-with-squeeze-out-135838", year: "2026" },
     { title: "GST on small cars, motorcycles slashed to 18% from 28%", source: "Autocar Professional", url: "https://www.autocarpro.in/news/gst-cut-on-autos-farm-machinery-to-boost-demand-128419", year: "2025" },
   ],
 };

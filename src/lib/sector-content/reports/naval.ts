@@ -4,7 +4,7 @@ export const naval: SectorReport = {
   slug: "naval",
   title: "India Naval Shipbuilding",
   subtitle: "A decade-long warship and submarine build-out moving onshore",
-  asOf: "Oct 2026",
+  asOf: "Nov 2026",
 
   stance: {
     label: "Structural tailwind",
@@ -34,6 +34,27 @@ export const naval: SectorReport = {
 
   developments: [
     {
+      date: "Oct 2026",
+      title: "P-75I submarines await final approval",
+      body: "The Finance Ministry cleared the six-submarine P-75I programme (Mazagon Dock with Germany's TKMS) in late May 2026, leaving the Cabinet Committee on Security's final approval. In early Oct the programme, put at about ₹70,000-80,000 Cr (reported), was still awaiting that decision (Business Today); no contract signing has been reported.",
+      impact: "neutral",
+      tag: "Submarines",
+    },
+    {
+      date: "Jun 2026",
+      title: "Record defence production of ₹1.78L Cr",
+      body: "MoD said FY26 defence production rose 15.6% to an all-time high of ₹1.78L Cr; the private sector's share rose to about 24% from 22%, and defence exports hit a record ₹38,424 Cr.",
+      impact: "pos",
+      tag: "Industry",
+    },
+    {
+      date: "Feb 2026",
+      title: "FY27 defence budget up 15%, capital outlay up 22%",
+      body: "The Union Budget 2026-27 gave defence a record ₹7.85L Cr (+15.2% over FY26 BE), with capital outlay up 21.8% to ₹2.19L Cr and capital acquisition about ₹1.85L Cr - the pool that pays for new ships and submarines.",
+      impact: "pos",
+      tag: "Budget",
+    },
+    {
       date: "Sep 2025",
       title: "₹69,725 Cr shipbuilding package",
       body: "Cabinet approved financial assistance, a ₹25,000 Cr Maritime Development Fund and a cluster-development scheme to scale Indian yards and docks.",
@@ -53,27 +74,6 @@ export const naval: SectorReport = {
       body: "Approvals included mine countermeasure vessels, naval surface-to-air missiles and autonomous underwater vessels, all under indigenous categories.",
       impact: "pos",
       tag: "Orders",
-    },
-    {
-      date: "Apr 2025",
-      title: "26 Rafale-M deal signed with France",
-      body: "The ~₹63,000 Cr government-to-government deal for carrier fighters includes local manufacturing and MRO work for Indian suppliers.",
-      impact: "neutral",
-      tag: "Procurement",
-    },
-    {
-      date: "Jan 2025",
-      title: "Three frontline combatants commissioned",
-      body: "Destroyer INS Surat, frigate INS Nilgiri and Scorpene submarine INS Vaghsheer, all built at Mazagon Dock, entered service on one day.",
-      impact: "pos",
-      tag: "Execution",
-    },
-    {
-      date: "Jan 2025",
-      title: "MDL-TKMS picked for P-75I talks",
-      body: "MoD moved to negotiate the six-submarine AIP programme (approx. ₹70,000 Cr+) with Mazagon Dock and Germany's TKMS after the rival bid was found non-compliant.",
-      impact: "pos",
-      tag: "Submarines",
     },
   ],
 
@@ -118,18 +118,18 @@ export const naval: SectorReport = {
 
   drivers: [
     { title: "Fleet expansion", metric: "175-200 ships", body: "Navy targets a larger fleet by ~2035 to cover the Indian Ocean, replacing ageing frigates, minesweepers and submarines." },
-    { title: "Submarine programmes", metric: "₹70,000 Cr+", body: "P-75I conventional submarines and follow-on Scorpenes are among the largest single shipbuilding contracts in the pipeline." },
+    { title: "Submarine programmes", metric: "₹70,000-80,000 Cr (reported)", body: "P-75I conventional submarines and follow-on Scorpenes are among the largest single shipbuilding contracts in the pipeline." },
     { title: "Indigenisation rules", metric: "~75% domestic", body: "A rising share of the capital acquisition budget is earmarked for Indian industry, with positive lists banning imports of many items." },
     { title: "Exports & commercial", metric: "₹38,424 Cr", body: "Defence exports and the commercial shipbuilding push give yards a second order stream beyond the Indian Navy." },
   ],
   mix: {
-    title: "Union defence budget split, FY26 BE (approx.)",
-    source: "Ministry of Defence / Union Budget 2025-26",
+    title: "Union defence budget split, FY27 BE",
+    source: "Ministry of Defence / Union Budget 2026-27 (1 Feb 2026), via Business Today",
     slices: [
-      { label: "Revenue (incl. pay)", value: 46 },
-      { label: "Capital outlay", value: 26 },
-      { label: "Pensions", value: 24 },
-      { label: "Civil organisations", value: 4 },
+      { label: "Revenue (pay + operations)", value: 46.6 },
+      { label: "Capital outlay", value: 28 },
+      { label: "Pensions", value: 21.8 },
+      { label: "Civil organisations", value: 3.6 },
     ],
   },
 
@@ -139,7 +139,7 @@ export const naval: SectorReport = {
       { point: "Large awards hinge on government decisions that can slip by years.", impact: "neg" },
     ],
     economic: [
-      { point: "Capital outlay rising ~10% a year gives steady funding for multi-year contracts.", impact: "pos" },
+      { point: "Capital outlay rose 21.8% to ₹2.19L Cr in FY27 BE, giving steady funding for multi-year contracts.", impact: "pos" },
       { point: "Fixed-price contracts expose yards to steel, labour and currency overruns.", impact: "neg" },
     ],
     social: [
@@ -174,7 +174,7 @@ export const naval: SectorReport = {
   ],
 
   companyNews: [
-    { key: "mazagondock", date: "Jan 2025", development: "Selected with TKMS for P-75I negotiations; delivered the sixth Scorpene, INS Vaghsheer.", impact: "Keeps India's submarine build base at one yard and anchors the next decade of orders.", tone: "pos" },
+    { key: "mazagondock", date: "2025-26", development: "Selected with TKMS for P-75I in Jan 2025; the Finance Ministry cleared the programme in late May 2026, and final Cabinet approval was still pending in Oct 2026.", impact: "A signed P-75I would keep India's submarine build base at one yard and anchor the next decade of orders.", tone: "pos" },
     { key: "grse", date: "Aug 2025", development: "INS Himgiri, its first P-17A stealth frigate, was commissioned.", impact: "Proves a second yard can deliver frontline frigates, widening Navy capacity.", tone: "pos" },
     { key: "lt_naval", date: "Jan 2025", development: "L&T-Navantia bid for P-75I was reported non-compliant.", impact: "Private yards stay second-tier on submarines for now.", tone: "neg" },
     { key: "cochinshipyard", date: "2025", development: "Signed a cooperation pact with Korea's HD Hyundai on shipbuilding and design.", impact: "Brings large-yard know-how that can lift capacity and productivity.", tone: "pos" },
@@ -198,5 +198,6 @@ export const naval: SectorReport = {
     { title: "Department of Defence Production", source: "Ministry of Defence", url: "https://www.ddpmod.gov.in/" },
     { title: "Trends in World Military Expenditure, 2024", source: "SIPRI", url: "https://www.sipri.org/publications/2025/sipri-fact-sheets/trends-world-military-expenditure-2024", year: "2025" },
     { title: "Arms Transfers Database", source: "SIPRI", url: "https://www.sipri.org/databases/armstransfers" },
+    { title: "India's ₹80,000 crore submarine push: Project 75I nears final approval", source: "Business Today", url: "https://www.businesstoday.in/india/story/indias-rs80000-crore-submarine-push-project-75i-nears-final-approval-559352-2026-10-03", year: "2026" },
   ],
 };

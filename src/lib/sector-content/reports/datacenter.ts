@@ -4,16 +4,16 @@ export const datacenter: SectorReport = {
   slug: "datacenter",
   title: "India Data Centres & AI Infrastructure",
   subtitle: "From colocation for Indian enterprises to gigawatt AI campuses",
-  asOf: "Oct 2026",
+  asOf: "Nov 2026",
 
   stance: {
     label: "Structural tailwind",
     tone: "pos",
-    line: "Capacity is set to roughly triple by 2030; electrical, cooling and backup suppliers book orders well before any AI revenue shows up.",
+    line: "JLL expects capacity to nearly quadruple, from 1.6 GW to ~6 GW by 2029; electrical, cooling and backup suppliers book orders well before any AI revenue shows up.",
   },
   keyStats: [
-    { label: "Installed IT capacity, 2025", value: "~1.4 GW", sub: "approx., industry estimates" },
-    { label: "Projected capacity, 2030", value: "~4-5 GW", sub: "incl. announced AI campuses" },
+    { label: "Installed IT capacity, H1 2026", value: "~1.6-1.75 GW", sub: "JLL (mid-2026) / CBRE (H1 2026); ~2 GW expected by end-2026" },
+    { label: "Projected capacity, 2029", value: "~6 GW", sub: "JLL; CBRE sees 3 GW+ by 2028" },
     { label: "Build cost per MW", value: "₹45-60 Cr", sub: "approx., shell + electricals + cooling" },
     { label: "Share in Mumbai", value: "~50%", sub: "Chennai a distant second" },
   ],
@@ -33,6 +33,20 @@ export const datacenter: SectorReport = {
   ],
 
   developments: [
+    {
+      date: "Oct 2026",
+      title: "Capacity reaches ~1.75 GW, 2 GW in sight",
+      body: "CBRE's H1 2026 monitor put India's operational capacity at about 1.75 GW after ~130 MW was added in Jan-Jun, 94% of it in Mumbai, with 200 MW+ more due in H2 to reach about 2 GW by end-2026. JLL counts 1.6 GW in mid-2026 and expects 6 GW by 2029.",
+      impact: "pos",
+      tag: "Capacity",
+    },
+    {
+      date: "Feb 2026",
+      title: "Budget offers a tax holiday to 2047 for global cloud firms",
+      body: "The Union Budget 2026-27 (1 Feb) proposed a tax holiday until 2047 for foreign companies that serve customers worldwide from data centres in India (Indian customers through an Indian reseller), plus a 15%-on-cost safe-harbour margin for related-party data-centre services.",
+      impact: "pos",
+      tag: "Policy",
+    },
     {
       date: "Feb 2026",
       title: "India AI Impact Summit in New Delhi",
@@ -61,23 +75,10 @@ export const datacenter: SectorReport = {
       impact: "pos",
       tag: "Investment",
     },
-    {
-      date: "Oct 2025",
-      title: "TCS plans a 1 GW AI data centre",
-      body: "TCS announced HyperVault, a ~1 GW AI data-centre business, signalling IT services firms moving into physical infrastructure.",
-      impact: "pos",
-      tag: "Investment",
-    },
-    {
-      date: "Mar 2024",
-      title: "IndiaAI Mission approved",
-      body: "Cabinet cleared ₹10,372 Cr over five years; subsidised GPU tenders have since empanelled 30,000+ GPUs with Indian cloud providers.",
-      impact: "pos",
-      tag: "Policy",
-    },
   ],
 
   overview: {
+    headline: "JLL expects India's data-centre capacity to rise from 1.6 GW in mid-2026 to ~6 GW by 2029",
     narrative: [
       "India's data-centre base was built for enterprise colocation, banking and telecom. Cloud adoption, UPI-scale digital services and video lifted it past ~1 GW by 2024, and AI is now pulling in larger, denser campuses.",
       "Policy is supportive: infrastructure status (2022), state data-centre policies with power and land incentives, data-localisation rules and IndiaAI GPU subsidies.",
@@ -86,18 +87,17 @@ export const datacenter: SectorReport = {
     chart: {
       title: "Installed data-centre IT capacity in India",
       unit: "MW",
-      source: "JLL / CBRE / Colliers industry estimates, 2027-30 NextResearch estimates",
+      source: "JLL / CBRE / Colliers industry estimates for 2020-24; JLL for mid-2026 (1.6 GW; CBRE counts ~1.75 GW) and the 2029 forecast",
       points: [
         { label: "2020", value: 500 },
         { label: "2022", value: 750 },
         { label: "2024", value: 1050 },
-        { label: "2025", value: 1400 },
-        { label: "2027P", value: 2400, projected: true },
-        { label: "2030P", value: 4500, projected: true },
+        { label: "Jun 26", value: 1600 },
+        { label: "2029P", value: 6000, projected: true },
       ],
     },
     snapshot: [
-      { label: "Capacity growth, 2025", value: "~30%", tone: "pos" },
+      { label: "Growth implied by JLL's 2029 forecast", value: "~45% a year", tone: "pos" },
       { label: "Rack density, AI halls", value: "30-100+ kW", tone: "neutral" },
       { label: "Power cost share of opex", value: "~40-60%", tone: "neg" },
       { label: "Typical PUE, new builds", value: "~1.4-1.5", tone: "neutral" },
@@ -189,14 +189,15 @@ export const datacenter: SectorReport = {
     { risk: "Oversupply in Mumbai compresses rentals", mitigant: "Pre-leasing to hyperscalers; expansion into new cities", severity: "low" },
   ],
   outlook: {
-    bull: "Capacity passes ~6 GW by 2030 as India becomes a regional AI hub and liquid-cooled campuses multiply.",
-    base: "Capacity reaches ~4-4.5 GW by 2030, with steady orders for transformers, gensets, cooling and cables.",
-    bear: "Power constraints and a global AI pullback hold capacity near ~3 GW by 2030.",
+    bull: "Capacity beats JLL's ~6 GW by 2029 as India becomes a regional AI hub, the 2047 cloud tax holiday pulls in global workloads and liquid-cooled campuses multiply.",
+    base: "Capacity passes 3 GW by 2028 (CBRE) and reaches ~5-6 GW by 2030 - more cautious than JLL's ~6 GW by 2029 - with steady orders for transformers, gensets, cooling and cables.",
+    bear: "Power constraints and a global AI pullback hold capacity near ~3-3.5 GW by 2030.",
   },
   reading: [
     { title: "Energy and AI", source: "International Energy Agency", url: "https://www.iea.org/reports/energy-and-ai", year: "2025" },
     { title: "IndiaAI Mission", source: "Ministry of Electronics & IT", url: "https://indiaai.gov.in/" },
     { title: "Ministry of Electronics & IT", source: "Government of India", url: "https://www.meity.gov.in/" },
-    { title: "India real estate insights incl. data centres", source: "JLL", url: "https://www.jll.com/en-in/insights" },
+    { title: "India data centers", source: "JLL", url: "https://www.jll.com/en-in/insights/market-dynamics/india-data-centers", year: "2026" },
+    { title: "India Data Centre Market Monitor H1 2026", source: "CBRE", url: "https://www.cbre.com.au/insights/figures/india-data-centre-market-monitor-h1-2026", year: "2026" },
   ],
 };

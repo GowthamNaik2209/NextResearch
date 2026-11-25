@@ -111,25 +111,25 @@
   },
   {
     "ticker": "NIACL",
-    "period": "Q1 FY27",
-    "periodEnd": "2026-06-30",
+    "period": "Q2 FY27",
+    "periodEnd": "2026-09-30",
     "vnbMargin": null,
     "embeddedValueCr": null,
-    "combinedRatio": 121.44,
-    "solvencyRatio": 1.8,
-    "sourceUrl": "https://www.newindia.co.in/company-financials",
-    "readOn": "2026-11-18"
+    "combinedRatio": 156.2,
+    "solvencyRatio": 1.61,
+    "sourceUrl": "https://www.newindia.co.in/assets/docs/public-disclosure/Public%20Disclosure%20September%20_2026.pdf",
+    "readOn": "2026-11-25"
   },
   {
     "ticker": "GICRE",
-    "period": "Q1 FY27",
-    "periodEnd": "2026-06-30",
+    "period": "Q2 FY27",
+    "periodEnd": "2026-09-30",
     "vnbMargin": null,
     "embeddedValueCr": null,
-    "combinedRatio": 104.88,
-    "solvencyRatio": 4.32,
-    "sourceUrl": "https://www.gicre.in/images/2026/PressRelease13thAugust2026.pdf",
-    "readOn": "2026-11-18"
+    "combinedRatio": 110.23,
+    "solvencyRatio": 4.18,
+    "sourceUrl": "https://www.gicre.in/images/2026/signedOutcomeofBM30102026.pdf",
+    "readOn": "2026-11-25"
   },
   {
     "ticker": "RELIGARE",

@@ -4,7 +4,7 @@ export const solarmodules: SectorReport = {
   slug: "solarmodules",
   title: "India Solar Manufacturing & ALMM",
   subtitle: "How a procurement list is moving the solar value chain onshore",
-  asOf: "Oct 2026",
+  asOf: "Nov 2026",
 
   stance: {
     label: "Policy-led tailwind",
@@ -12,15 +12,15 @@ export const solarmodules: SectorReport = {
     line: "ALMM does not create solar demand; it decides who supplies it. Value moved first to listed module makers and, since June 2026, to cell makers.",
   },
   keyStats: [
-    { label: "ALMM module capacity", value: ">100 GW", sub: "enlisted, approx. (MNRE, 2025)" },
+    { label: "ALMM module capacity", value: "~225 GW", sub: "enlisted, approx. (MNRE, Sep 2026)" },
     { label: "ALMM List-II (cells)", value: "Jun 2026", sub: "domestic cells mandated" },
-    { label: "Solar added, FY26", value: "~35-38 GW", sub: "approx., record year" },
+    { label: "Solar added, FY26", value: "44.6 GW", sub: "record; FY25 23.8 GW (MNRE)" },
     { label: "Wafer & polysilicon", value: ">90%", sub: "still imported, mostly China" },
   ],
   thesis: [
     {
       title: "A list, not a subsidy, redirects demand",
-      body: "Government-linked, net-metered and open-access projects must buy ALMM-listed modules, so India's ~35 GW+ annual build flows to domestic factories regardless of Chinese prices.",
+      body: "Government-linked, net-metered and open-access projects must buy ALMM-listed modules, so much of India's record 44.6 GW build in FY26 flows to domestic factories regardless of Chinese prices.",
     },
     {
       title: "The profit pool moves upstream in phases",
@@ -34,6 +34,13 @@ export const solarmodules: SectorReport = {
 
   developments: [
     {
+      date: "Nov 2026",
+      title: "US duty orders on Indian cells and modules",
+      body: "The US Commerce Department set final duty rates in Sep 2026 for most Indian producers: 123.04% against below-cost selling (anti-dumping) and 126.09% against subsidies (anti-subsidy, or countervailing). In Oct 2026 the US International Trade Commission found that the imports harmed US makers, and in Nov 2026 the US put both duties in force, largely shutting the US market for India-made panels.",
+      impact: "neg",
+      tag: "Trade",
+    },
+    {
       date: "Jun 2026",
       title: "ALMM List-II for cells takes effect",
       body: "Projects bid after the Aug 2025 cut-off must use modules made with ALMM-listed domestic cells, creating a captive market for Indian cell lines.",
@@ -46,13 +53,6 @@ export const solarmodules: SectorReport = {
       body: "MNRE signalled a third list for ingots and wafers from June 2028, extending the localisation push further upstream.",
       impact: "pos",
       tag: "Policy",
-    },
-    {
-      date: "Jul 2025",
-      title: "US anti-dumping case on Indian modules",
-      body: "A US petition sought AD/CVD duties on solar cells and modules from India, Indonesia and Laos, clouding the export outlet for Indian makers.",
-      impact: "neg",
-      tag: "Trade",
     },
     {
       date: "Dec 2024",
@@ -79,21 +79,21 @@ export const solarmodules: SectorReport = {
 
   overview: {
     narrative: [
-      "India has ~130 GW of installed solar and targets 500 GW of non-fossil capacity by 2030, implying 40-50 GW of solar additions a year. Demand is set by targets and tenders, not by ALMM.",
+      "India had ~150 GW of installed solar at March 2026 (MNRE) and targets 500 GW of non-fossil capacity by 2030, implying 40-50 GW of solar additions a year. Demand is set by targets and tenders, not by ALMM.",
       "ALMM, alongside 40% basic customs duty on modules and the ₹24,000 Cr PLI for high-efficiency modules, turned India from an importer of Chinese panels into a module-surplus market within four years.",
       "The gap is upstream: cell capacity is a fraction of module capacity, and polysilicon and wafers are almost entirely imported. List-II and List-III are designed to close it.",
     ],
     chart: {
       title: "Annual solar capacity additions in India",
       unit: "GW",
-      source: "MNRE / CEA, FY26 approx., FY28-30 NextResearch estimates",
+      source: "MNRE / CEA; FY28-30 NextResearch estimates",
       points: [
         { label: "FY21", value: 5.5 },
         { label: "FY22", value: 13.9 },
         { label: "FY23", value: 12.8 },
         { label: "FY24", value: 15.0 },
         { label: "FY25", value: 23.8 },
-        { label: "FY26", value: 36 },
+        { label: "FY26", value: 44.6 },
         { label: "FY28P", value: 45, projected: true },
         { label: "FY30P", value: 50, projected: true },
       ],
@@ -101,7 +101,7 @@ export const solarmodules: SectorReport = {
     snapshot: [
       { label: "BCD on modules / cells", value: "40% / 25%", tone: "neutral" },
       { label: "PLI for HE modules", value: "₹24,000 Cr", tone: "pos" },
-      { label: "Module vs cell capacity", value: "~4-5x gap", tone: "neg" },
+      { label: "ALMM module vs cell capacity", value: "~225 vs ~38 GW", tone: "neg" },
       { label: "Domestic module premium", value: "Narrowing", tone: "neg" },
       { label: "Cell ALMM mandate", value: "From Jun 2026", tone: "pos" },
       { label: "Wafer import dependence", value: ">90%", tone: "neg" },
@@ -124,12 +124,12 @@ export const solarmodules: SectorReport = {
     { title: "Production incentives and duties", metric: "₹24,000 Cr", body: "The high-efficiency module PLI and 40%/25% customs duties reward integrated capacity over imports." },
   ],
   mix: {
-    title: "Solar capacity additions by segment, FY25 (approx.)",
-    source: "MNRE / Mercom India Research",
+    title: "Solar capacity additions by segment, FY26 (% of 44.6 GW)",
+    source: "MNRE (rooftop 8.71 GW, PM-KUSUM 7.67 GW); utility-scale & other is the remainder",
     slices: [
-      { label: "Utility-scale", value: 75 },
-      { label: "Rooftop", value: 18 },
-      { label: "Off-grid / KUSUM", value: 7 },
+      { label: "Utility-scale & other", value: 63 },
+      { label: "Rooftop", value: 20 },
+      { label: "PM-KUSUM (farm solar)", value: 17 },
     ],
   },
 
@@ -152,7 +152,7 @@ export const solarmodules: SectorReport = {
     ],
     legal: [
       { point: "ALMM enlistment requires BIS certification and factory inspection, a real entry barrier.", impact: "pos" },
-      { point: "US AD/CVD and forced-labour rules expose export-heavy makers to trade cases.", impact: "neg" },
+      { point: "US anti-dumping and countervailing duty orders (Nov 2026) and forced-labour rules hit export-heavy makers.", impact: "neg" },
     ],
     environmental: [
       { point: "Solar is central to India's net-zero 2070 path and coal displacement.", impact: "pos" },
@@ -179,19 +179,19 @@ export const solarmodules: SectorReport = {
     { key: "adanient", date: "2025-26", development: "Scaling the Mundra integrated plant toward ~10 GW across ingot to module.", impact: "Shows India can host polysilicon-to-module integration at scale.", tone: "pos" },
     { key: "tataPowerSolar", date: "2025", development: "Ramped its 4.3 GW cell and module plant in Tirunelveli.", impact: "Captive cells support DCR rooftop and EPC demand.", tone: "pos" },
     { key: "borosilRenew", date: "2024-25", development: "Anti-dumping duties on Chinese and Vietnamese solar glass after losses.", impact: "Trade protection is decisive for upstream materials economics.", tone: "neutral" },
-    { key: "waaree", date: "Jul 2025", development: "Named in US anti-dumping petition on Indian modules.", impact: "Export upside to the US is at risk; domestic ALMM demand matters more.", tone: "neg" },
+    { key: "waaree", date: "Nov 2026", development: "Doubled its Texas module plant to 3.2 GW (production from 29 Oct 2026) as US duty orders on India-made cells and modules were issued.", impact: "US sales shift to US-made modules; exports from India to the US are largely shut, so domestic ALMM demand matters more.", tone: "neutral" },
   ],
 
   risks: [
     { risk: "Module overcapacity compresses margins", mitigant: "Cell integration; List-II restricts competition to listed cells", severity: "high" },
     { risk: "Cell supply lags and ALMM II is diluted or deferred", mitigant: "Rapid cell capex; exemption cut-offs already fixed", severity: "medium" },
-    { risk: "US trade action shuts the export outlet", mitigant: "US-based plants; redirect to domestic demand", severity: "medium" },
+    { risk: "US duty orders keep the export outlet shut", mitigant: "US-based plants; redirect to domestic demand", severity: "medium" },
     { risk: "Technology shift strands PERC lines", mitigant: "New capacity largely TOPCon; upgrade capex", severity: "medium" },
   ],
   outlook: {
     bull: "List-II and List-III hold firm, cell capacity reaches ~60 GW+ by FY28 and integrated makers keep a durable premium.",
     base: "Cell mandate holds with tight supply into FY27; module margins normalise while cell makers earn the premium.",
-    bear: "Overcapacity and diluted mandates erode domestic premiums; only the most integrated players earn returns.",
+    bear: "With the US outlet shut by duty orders, module overcapacity and diluted mandates erode domestic premiums; only the most integrated players earn returns.",
   },
   reading: [
     { title: "Approved List of Models and Manufacturers (ALMM)", source: "Ministry of New and Renewable Energy", url: "https://mnre.gov.in/en/approved-list-of-models-and-manufacturers-almm/" },
