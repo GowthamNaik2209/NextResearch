@@ -173,13 +173,14 @@ export const integrisMedtech: IpoReport = {
   ],
 
   peers: [
+    { name: "Sahajanand Medical Technologies", ticker: "SMT", note: "India's largest coronary stent maker, listed Oct 2026; the closest listed match for Integris's heart business." },
     { name: "Poly Medicure", ticker: "POLYMED", note: "Named in the DRHP's peer set; an own-brand maker of vascular-access and other disposables." },
     { name: "Laxmi Dental", ticker: "LAXMIDENTL", note: "Named in the DRHP's peer set; an Indian dental-devices maker." },
     { name: "Tarsons Products", ticker: "TARSONS", note: "Lab plasticware maker for research and diagnostic labs; closest listed match for scientific lab solutions." },
     { name: "Entero Healthcare Solutions", ticker: "ENTERO", note: "Healthcare products distributor; a reference for the traded-goods model behind most of the lab business." },
   ],
   valuationNote:
-    "With no price band there is no IPO multiple yet. The DRHP itself says it has no listed peer of similar size and model: Poly Medicure and Laxmi Dental make their own products and earn higher margins than Integris, while most Integris revenue is resold partner brands, closer to a distributor such as Entero. The Jun 2025 share-swap reference (~₹7,000 Cr) would be about 100x FY25 reported earnings but under 4x FY25 revenue; see the peer table for the listed companies' current figures.",
+    "With no price band there is no IPO multiple yet. The DRHP itself says it has no listed peer of similar size and model: Poly Medicure and Laxmi Dental make their own products and earn higher margins than Integris, while most Integris revenue is resold partner brands, closer to a distributor such as Entero. For the stent business, the nearest listed match is Sahajanand Medical Technologies, which listed in Oct 2026. The Jun 2025 share-swap reference (~₹7,000 Cr) would be about 100x FY25 reported earnings but under 4x FY25 revenue; see the peer table for the listed companies' current figures.",
 
   strengths: [
     { title: "A leading Indian stent maker with evidence", body: "India's #2 coronary stent maker by volume with a 22% share of drug-eluting stents, the only Indian company with a US FDA-approved stent, and two stent platforms backed by 10-year clinical data." },

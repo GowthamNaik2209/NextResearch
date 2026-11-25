@@ -172,13 +172,14 @@ export const monomarkEngineering: IpoReport = {
   sellers: [],
 
   peers: [
+    { name: "Power Mech Projects", ticker: "POWERMECH", note: "Named in the RHP's peer set; power-plant erection plus operation and maintenance, the closest listed match for Monomark's plant services." },
     { name: "Thermax", ticker: "THERMAX", note: "Listed peer named in the RHP; energy and environment equipment with plant services and outsourced utilities for metals and cement." },
     { name: "Larsen & Toubro", ticker: "LT", note: "Leader in industrial EPC and mechanical construction per the RHP's industry report; far larger and more diversified." },
     { name: "KEC International", ticker: "KEC", note: "Named in the RHP's industry report for steel fabrication; an EPC contractor with similarly thin margins." },
     { name: "Quess Corp", ticker: "QUESS", note: "Manpower-led outsourced services; the closest listed model for a labour-heavy contract business." },
   ],
   valuationNote:
-    "At ~24x FY26 earnings after the issue (~17x on the pre-issue share count), Monomark is priced below Thermax and L&T on P/E but above KEC and Quess, which run similar thin-margin, contract-led models. On sales (~1.1x) it sits between the contractors and the larger engineering groups (see the table). The offer document also names Power Mech Projects, Thejo Engineering and ANI Integrated Services as peers.",
+    "At ~24x FY26 earnings after the issue (~17x on the pre-issue share count), Monomark is priced below Thermax and L&T on P/E but above KEC and Quess, which run similar thin-margin, contract-led models. On sales (~1.1x) it sits between the contractors and the larger engineering groups (see the table). Power Mech Projects, the closest listed match in the offer document's peer set, is priced below Monomark on earnings and a little above it on sales. The offer document also names Thejo Engineering and ANI Integrated Services.",
 
   strengths: [
     { title: "One contractor across the plant's life", body: "It offers plant operation and maintenance, project erection and metal fabrication together, so a client can use one vendor instead of several." },

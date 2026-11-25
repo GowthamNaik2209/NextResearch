@@ -182,10 +182,11 @@ export const matangiRubber: IpoReport = {
   peers: [
     { name: "CEAT", ticker: "CEATLTD", note: "Named in the offer document's peer set; a full-range tyre maker many times Matangi's size." },
     { name: "TVS Srichakra", ticker: "TVSSRICHAK", note: "Named in the offer document's peer set; two- and three-wheeler tyre specialist, the market Matangi's own tyres target." },
+    { name: "Tolins Tyres", ticker: "TOLINS", note: "Named in the offer document's peer set; a small Kerala maker of tyres and tread rubber, the closest in size to Matangi." },
     { name: "JK Tyre & Industries", ticker: "JKTYRE", note: "Not an offer-document peer but Matangi's key customer; its truck and bus tyre volumes drive flap orders." },
   ],
   valuationNote:
-    "At the ₹172 upper band Matangi is valued at ~22x FY26 earnings (~19x on annualised Q1 FY27 profit, per Chittorgarh) and ~3.8x FY26 revenue. Its margins and returns are well above those of the listed tyre makers in the table, but those companies sell their own brands and are not like-for-like. The offer document's peer set also includes Tolins Tyres, which is not in the table.",
+    "At the ₹172 upper band Matangi is valued at ~22x FY26 earnings (~19x on annualised Q1 FY27 profit, per Chittorgarh) and ~3.8x FY26 revenue. Its margins and returns are well above those of the listed tyre makers in the table, but those companies sell their own brands and are not like-for-like. Tolins Tyres, the offer-document peer closest in size, trades well below Matangi on both earnings and sales (see the table).",
 
   strengths: [
     { title: "Long relationship with JK Tyre", body: "A long-standing supplier of tyre flaps and parts to a large tyre maker, with an agreement that covers contract manufacturing and support services." },
