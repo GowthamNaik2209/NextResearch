@@ -10,7 +10,7 @@ import { fmtDay } from "@/lib/format";
 
 export function SavedPanel({ saved, current, onOpen, onAlerts, onDelete }: { saved: SavedSignal[]; current: string | null; onOpen: (s: SavedSignal) => void; onAlerts: (s: SavedSignal, on: boolean) => void; onDelete: (s: SavedSignal) => void }) {
   return (
-    <Panel title={`My signals · ${saved.length}`} info="Rules you saved, one set per stock or basket. They open where you left them. With the email switch on, you get an email when a saved rule is met on a close.">
+    <Panel title={`My strategies · ${saved.length}`} info="Rules you saved, one set per stock or basket. They open where you left them. With the email switch on, you get an email when a saved rule is met on a close.">
       {saved.length ? (
         <ul className="flex flex-col">
           {saved.map((s) => {
@@ -29,7 +29,7 @@ export function SavedPanel({ saved, current, onOpen, onAlerts, onDelete }: { sav
                   <input type="checkbox" checked={s.alerts} onChange={(e) => onAlerts(s, e.target.checked)} className="size-4 accent-[var(--accent)]" />
                   Email
                 </label>
-                <button type="button" onClick={() => onDelete(s)} aria-label={`Delete saved signal for ${s.name}`} className="inline-flex min-h-8 min-w-8 flex-none items-center justify-center rounded border border-btn text-ink-soft hover:text-ink">
+                <button type="button" onClick={() => onDelete(s)} aria-label={`Delete saved strategy for ${s.name}`} className="inline-flex min-h-8 min-w-8 flex-none items-center justify-center rounded border border-btn text-ink-soft hover:text-ink">
                   ×
                 </button>
               </li>

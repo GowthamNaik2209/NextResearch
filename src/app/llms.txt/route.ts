@@ -44,14 +44,14 @@ export async function GET() {
     for (const s of reports) out.push(`- [${s.name}: research report](${SITE_URL}/docs/${s.slug}): a 10-slide report with its primary sources.`);
   }
   out.push("", "## Stock baskets", "");
-  out.push(`- [Build a basket](${SITE_URL}/baskets): mix stocks from any covered industry or policy, backtested against the Nifty 50, with Bear, Base and Bull projections.`);
+  out.push(`- [Build a basket](${SITE_URL}/baskets): mix stocks from any covered industry or policy, with past performance against the Nifty 50 and Bear, Base and Bull projections.`);
   for (const s of sectors)
     out.push(
       s.category === "index"
         ? `- [${s.name} basket](${SITE_URL}/baskets/industry/${s.slug}): today's ${s.name} stocks as one basket, held over the period and compared with the index itself.`
         : s.basketCoreOnly
-          ? `- [${s.name} basket](${SITE_URL}/baskets/industry/${s.slug}): the core listed ${s.name} companies as one basket (side links on the map left out), backtested against the Nifty 50.`
-          : `- [${s.name} basket](${SITE_URL}/baskets/industry/${s.slug}): all ${sectorCompanyCounts(s).listed} listed ${s.name} stocks as one basket, backtested against the Nifty 50.`,
+          ? `- [${s.name} basket](${SITE_URL}/baskets/industry/${s.slug}): the core listed ${s.name} companies as one basket (side links on the map left out), with past performance against the Nifty 50.`
+          : `- [${s.name} basket](${SITE_URL}/baskets/industry/${s.slug}): all ${sectorCompanyCounts(s).listed} listed ${s.name} stocks as one basket, with past performance against the Nifty 50.`,
     );
   out.push("", "## Rule-based baskets (re-ranked daily)", "");
   for (const i of ideaCatalog()) out.push(`- [${i.title}](${SITE_URL}/baskets/ideas/${i.id}): ${sentence(i.blurb)}`);
@@ -61,7 +61,7 @@ export async function GET() {
     "",
     `- [How basket projections are worked out](${SITE_URL}/baskets/projections): Bear, Base and Bull 1- and 2-year ranges from a market-implied return (RBI repo rate plus beta times India's equity risk premium) and each stock's volatility, with out-of-sample checks.`,
     `- [Trend and P/E in context](${SITE_URL}/baskets/signals): a stock's past-year return ranked among covered stocks, and today's P/E against its own history and its industry's median.`,
-    `- [Technical indicators guide](${SITE_URL}/signals/indicators): what each indicator in the signal backtest (moving averages, RSI, MACD and others) measures, how it is worked out and where it misleads.`,
+    `- [Technical indicators guide](${SITE_URL}/signals/indicators): what each indicator in the strategy tester (moving averages, RSI, MACD and others) measures, how it is worked out and where it misleads.`,
   );
   out.push("", "## Companies", "");
   for (const c of companies) {
@@ -76,11 +76,11 @@ export async function GET() {
     `- [Analysis: every industry, policy and IPO deep dive, report and basket chart](${SITE_URL}/docs)`,
     `- [All companies A-Z](${SITE_URL}/companies)`,
     `- [Companies in several supply chains](${SITE_URL}/connections)`,
-    `- [Stock baskets, backtested against the Nifty 50](${SITE_URL}/baskets)`,
+    `- [Stock baskets, with past performance against the Nifty 50](${SITE_URL}/baskets)`,
     `- [Upcoming IPO prospectus summaries](${SITE_URL}/ipos)`,
     `- [Industry and company news](${SITE_URL}/updates)`,
     `- [FII and DII flows](${SITE_URL}/updates?view=flows): daily foreign and domestic institutional cash flows, FII index-futures positioning, sector flows, quarterly stake changes and bulk and block deals.`,
-    `- [Signal backtests](${SITE_URL}/signals) (free account, tablet or computer): test a technical rule on any covered stock or a saved basket, save it and get an email when it fires.`,
+    `- [Strategy tester](${SITE_URL}/signals) (free account, tablet or computer): test entry and exit rules from technical indicators on any covered stock or a saved basket, save them as a strategy and get an email when it fires.`,
     "",
   );
   return new Response(out.join("\n"), { headers: { "Content-Type": "text/plain; charset=utf-8" } });

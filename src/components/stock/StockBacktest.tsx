@@ -204,7 +204,7 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <div className={MINI_SEG} role="group" aria-label="View">
           <button type="button" aria-pressed={!projOn} onClick={() => setMode("backtest")} className={modeBtn(!projOn)}>
-            Backtest
+            Past performance
           </button>
           <button type="button" aria-pressed={projOn} onClick={openProjection} className={modeBtn(projOn)}>
             Projection
@@ -219,7 +219,7 @@ export function StockBacktest({ ticker, name }: { ticker: string; name: string }
           // Tablets and computers only for now (docs/SIGNALS.md).
           className="inline-flex min-h-9 items-center rounded border border-btn px-3 text-xs font-semibold text-accent hover:bg-accent/10 max-sm:hidden sm:min-h-8 pointer-coarse:min-h-10"
         >
-          Signals
+          Strategy tester
         </button>
         {projOn ? (
           <>

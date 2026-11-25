@@ -14,7 +14,7 @@ export function BacktestButton({ onClick, variant }: { onClick: () => void; vari
     <button
       type="button"
       onClick={onClick}
-      title="Backtest this stock against the Nifty 50, and project it 1 or 2 years ahead"
+      title="See this stock's past performance against the Nifty 50, and project it 1 or 2 years ahead"
       className={
         "inline-flex flex-none items-center gap-1.5 border border-accent bg-accent font-semibold text-bg hover:opacity-90 " +
         (tab
@@ -27,7 +27,7 @@ export function BacktestButton({ onClick, variant }: { onClick: () => void; vari
         <path d="M7 15l4-4 3 3 6-7" />
       </svg>
       <span>
-        Backtest<span className="max-sm:hidden"> &amp; project</span>
+        Performance<span className="max-sm:hidden"> &amp; projection</span>
       </span>
     </button>
   );

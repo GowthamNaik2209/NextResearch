@@ -160,7 +160,7 @@ export function basketsFaq(ruleBasketTitles: string[]): Faq[] {
       a: "A basket is a group of stocks you hold together as one position, such as every listed company in an industry's supply chain or your own pick from several industries. NextResearch shows how that group would have performed as a whole, against the Nifty 50.",
     },
     {
-      q: "How is a basket backtested?",
+      q: "How is a basket's past performance worked out?",
       a: "The basket is bought on the first day of the period you pick (from 1 month to 5 years) at equal weights, by market cap or at weights you set, and then held or rebalanced monthly, quarterly or when a stock drifts too far from its target. Its daily value is charted against the Nifty 50 (or the Sensex) and, where one exists, its industry's NSE index, with each stock's return and contribution.",
     },
     {

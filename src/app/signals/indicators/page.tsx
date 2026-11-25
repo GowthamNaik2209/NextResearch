@@ -31,7 +31,7 @@ export default function IndicatorsGuidePage() {
       <main className="mx-auto flex w-full min-w-0 max-w-4xl flex-1 flex-col gap-5 px-4 pt-5 pb-14 sm:px-5">
         <nav aria-label="Back" className="-my-1 flex flex-wrap items-center gap-x-4 text-xs font-semibold text-accent">
           <Link href="/signals" className="inline-flex min-h-8 items-center hover:underline pointer-coarse:min-h-9">
-            &larr; Signal backtest
+            &larr; Strategy tester
           </Link>
         </nav>
         <header className="flex flex-col gap-1.5">

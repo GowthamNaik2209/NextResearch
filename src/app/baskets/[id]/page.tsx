@@ -21,10 +21,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const b = await getVisibleBasket(id, user?.id ?? null);
   return {
     title: b ? `${b.name}: a stock basket` : "Page not found",
-    description: b ? `${b.items.length} stocks, backtested against the Nifty 50 and their industry on NextResearch.` : undefined,
+    description: b ? `${b.items.length} stocks, with past performance against the Nifty 50 and their industry on NextResearch.` : undefined,
     robots: { index: false, follow: false },
     // Shared by link, so the preview names the basket rather than the home page.
-    ...(b ? shareMeta({ title: b.name, line: `A basket of ${b.items.length} stocks, backtested against the Nifty 50.`, path: `/baskets/${id}` }) : {}),
+    ...(b ? shareMeta({ title: b.name, line: `A basket of ${b.items.length} stocks, with past performance against the Nifty 50.`, path: `/baskets/${id}` }) : {}),
   };
 }
 

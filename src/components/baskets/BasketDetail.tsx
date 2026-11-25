@@ -882,7 +882,7 @@ export function BasketDetail(p: BasketDetailProps) {
         stats: data ? seriesStats(data.points) : null,
         rel: data && bench ? relativeStats(data.points, bench) : null,
         projection: proj,
-        disclaimer: `${PROJECTION_DISCLAIMER} Backtests are past prices only. A tracking and research tool, not investment advice.`,
+        disclaimer: `${PROJECTION_DISCLAIMER} Past performance uses past prices only. A tracking and research tool, not investment advice.`,
       });
       const bytes = buildXlsx(sheets);
       const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
@@ -1063,7 +1063,7 @@ export function BasketDetail(p: BasketDetailProps) {
       aria-checked={projOn}
       disabled={!stocks.length}
       onClick={() => pickProjection(!projRef.current.on)}
-      title={!stocks.length ? "Add stocks to see a projection" : projOn ? "Back to the backtest" : "Project the basket 1 or 2 years ahead from today"}
+      title={!stocks.length ? "Add stocks to see a projection" : projOn ? "Back to past performance" : "Project the basket 1 or 2 years ahead from today"}
       className={
         "inline-flex flex-none items-center gap-1.5 rounded border px-2 font-sans text-[11px] font-semibold min-h-9 sm:min-h-7 pointer-coarse:min-h-9 disabled:opacity-40 " +
         (projOn ? "border-accent bg-accent/15 text-ink" : "border-btn bg-bg text-ink-soft hover:bg-accent/10 hover:text-ink")
@@ -1564,7 +1564,7 @@ export function BasketDetail(p: BasketDetailProps) {
                 title="Backtest entry and exit rules from technical indicators on this basket's stocks (signed in)"
                 className={btnSec + " max-sm:hidden"}
               >
-                Signals
+                Strategy tester
               </button>
             )}
             {canEdit && !draft && (
@@ -1698,14 +1698,14 @@ export function BasketDetail(p: BasketDetailProps) {
                     </>
                   ) : (
                   <>
-                    Backtest · <span className="sm:hidden">{range}</span>
+                    Performance · <span className="sm:hidden">{range}</span>
                     <span className="max-sm:hidden">{pastPeriod(range)}</span> · {basisLabel(strategy)}
                   </>
                   )
                 }
-                label={projOn ? `Projection chart, next ${HORIZON_LONG[projSet.h]}, ${projSet.scenario} case` : `Backtest chart, ${pastPeriod(range)}, ${basisLabel(strategy)}`}
+                label={projOn ? `Projection chart, next ${HORIZON_LONG[projSet.h]}, ${projSet.scenario} case` : `Performance chart, ${pastPeriod(range)}, ${basisLabel(strategy)}`}
                 bodyClassName="p-3"
-                infoLabel="About the backtest chart"
+                infoLabel="About the past performance chart"
                 toolsInline
                 info={
                   projOn ? (
@@ -1738,7 +1738,7 @@ export function BasketDetail(p: BasketDetailProps) {
               >
                 {/* Empty: one short line, not a chart-sized blank; the prompt to add stocks is in the Stocks panel. */}
                 {empty ? (
-                  <div className="flex min-h-24 items-center justify-center px-6 text-center text-sm text-ink-soft">The backtest chart appears with the first stock.</div>
+                  <div className="flex min-h-24 items-center justify-center px-6 text-center text-sm text-ink-soft">The past performance chart appears with the first stock.</div>
                 ) : (
                 <BasketChart
                   range={range}
@@ -1947,7 +1947,7 @@ export function BasketDetail(p: BasketDetailProps) {
                             <span aria-hidden className="w-9 flex-none" />
                             <div className="min-w-0 flex-1">
                               <div className="font-mono text-[13px] font-semibold text-ink-soft">{t}</div>
-                              <div className="text-[11px] text-ink-soft">No longer among covered companies, so it is left out of the backtest.</div>
+                              <div className="text-[11px] text-ink-soft">No longer among covered companies, so it is left out of past performance.</div>
                             </div>
                             {canEdit && (showRemove ? removeButton({ ticker: t, name: t }, false) : <span aria-hidden className="w-9 flex-none" />)}
                           </li>
@@ -2083,7 +2083,7 @@ export function BasketDetail(p: BasketDetailProps) {
                                   <span className="block text-[10px]">No longer covered</span>
                                 </td>
                                 <td colSpan={(sinceShown ? 8 : 7) + (p.pickedOn ? 1 : 0) + (projOn ? 2 : 0)} className="px-2 py-1.5 text-right text-[11px]">
-                                  Left out of the backtest
+                                  Left out of past performance
                                 </td>
                                 {xColumn && <td className="w-9 px-1 py-1">{showRemove ? removeButton({ ticker: t, name: t }, true) : <span aria-hidden className="block w-7 pointer-coarse:w-9" />}</td>}
                               </tr>
@@ -2110,7 +2110,7 @@ export function BasketDetail(p: BasketDetailProps) {
                 </div>
                 {!empty && !projOn && tbt?.status === "error" && (
                   <p className="px-3 pb-2 text-xs text-ink-soft">
-                    Couldn&rsquo;t backtest the basket right now.{" "}
+                    Couldn&rsquo;t load the basket&rsquo;s past performance right now.{" "}
                     <button type="button" onClick={retry} className="font-semibold text-accent underline">
                       Retry
                     </button>
@@ -2140,7 +2140,7 @@ export function BasketDetail(p: BasketDetailProps) {
             Bought on the first day at {weighting === "equal" ? "equal weights" : weighting === "custom" ? "your custom weights" : "weights by market cap"}
             {rebalanced ? `, then ${rebalanceLabel(strategy)}` : " and held"}; price only, no costs. Not investment advice.{" "}
             <span className="inline-flex align-middle">
-              <InfoTip label="How the backtest works">
+              <InfoTip label="How past performance works">
                 {p.joinAtListing
                   ? "A stock listed during the period counts from its listing. "
                   : "Stocks listed during the period are left out. "}
@@ -2163,7 +2163,7 @@ export function BasketDetail(p: BasketDetailProps) {
         {/* Side column (from lg, beside the results and kept in view while they scroll): the
             statistics. The stocks and their chart lines are in the Stocks table. After the results
             in the page order, so keyboards and screen readers reach the chart and table first. */}
-        <aside aria-label="Backtest statistics" className="sticky top-20 hidden max-h-[calc(100vh-6rem)] min-w-0 flex-col gap-2 overflow-y-auto lg:flex">
+        <aside aria-label="Performance statistics" className="sticky top-20 hidden max-h-[calc(100vh-6rem)] min-w-0 flex-col gap-2 overflow-y-auto lg:flex">
           {stats(true)}
         </aside>
       </div>
@@ -2185,13 +2185,13 @@ export function BasketDetail(p: BasketDetailProps) {
           ) : (
             "No stock in this basket meets that yet, so there is nothing to project."
           )}{" "}
-          This changes only the projection, not the backtest.
+          This changes only the projection, not past performance.
         </p>
       </ConfirmDialog>
       {canEdit && !draft && (
         <>
           <ConfirmDialog open={confirm === "share"} title="Share this basket by link?" confirmLabel="Share and copy link" onConfirm={share} onCancel={() => setConfirm(null)}>
-            <p>Anyone with the link can open this basket and see its stocks, weights and backtest. It isn&rsquo;t listed anywhere or shown in search, and they can&rsquo;t change it.</p>
+            <p>Anyone with the link can open this basket and see its stocks, weights and past performance. It isn&rsquo;t listed anywhere or shown in search, and they can&rsquo;t change it.</p>
             <p className="mt-2">You can make it private again at any time from the ⋯ menu.</p>
           </ConfirmDialog>
           <ConfirmDialog open={confirm === "delete"} title={`Delete “${name}”?`} confirmLabel={deleting ? "Deleting…" : "Delete basket"} danger busy={deleting} onConfirm={destroy} onCancel={() => setConfirm(null)}>

@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   await ensureFinancials();
   return {
     title: "Analysis: deep dives, research reports and stock charts for Indian industries, policies and IPOs",
-    description: `Every industry and policy NextResearch maps - ${themeNames(10)} - as a deep dive into its supply chain and listed companies, a curated 10-slide research report, and a chart backtesting its listed stocks as a basket against the Nifty 50, plus prospectus summaries of upcoming IPOs.`,
+    description: `Every industry and policy NextResearch maps - ${themeNames(10)} - as a deep dive into its supply chain and listed companies, a curated 10-slide research report, and a chart of its listed stocks' past performance as a basket against the Nifty 50, plus prospectus summaries of upcoming IPOs.`,
     alternates: { canonical: "/docs" },
     ...shareMeta({ title: "Analysis: industries, policies and IPOs", line: "Deep dives, 10-slide reports and basket charts.", path: "/docs" }),
   };
@@ -32,7 +32,7 @@ export default async function DocsPage({ searchParams }: { searchParams: Promise
             Every covered industry and policy, two ways. Deep dive maps its supply chain: the layers, who supplies them and
             which companies are listed. Reports are ten-slide summaries for investors: latest developments, value chain, PESTLE,
             the listed beneficiaries and their financials, and the research behind it. Each industry&rsquo;s Charts button shows the
-            price chart of any of its listed stocks, picked by layer; Baskets backtests them together against the Nifty 50. The IPOs tab summarises the
+            price chart of any of its listed stocks, picked by layer; Baskets shows their past performance together against the Nifty 50. The IPOs tab summarises the
             prospectus of each big upcoming issue.
           </p>
         </div>

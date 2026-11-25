@@ -188,10 +188,10 @@ export function BasketStats({
   ];
 
   return (
-    <section aria-label="Backtest statistics" className="rounded-md border border-line bg-panel">
+    <section aria-label="Performance statistics" className="rounded-md border border-line bg-panel">
       <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-1.5">
         <H className="min-w-0 flex-1 text-balance text-[10px] font-semibold uppercase tracking-wider text-ink-soft sm:text-[11px]">
-          <span className="whitespace-nowrap">Backtest statistics</span>
+          <span className="whitespace-nowrap">Performance statistics</span>
           {scope ? ` · ${scope}` : ""} · {period ?? (
             <>
               <span className={compact ? "" : "sm:hidden"}>{range}</span>

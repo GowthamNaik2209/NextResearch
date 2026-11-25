@@ -76,9 +76,9 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
       ["Link", x.url],
       ["Stocks", x.stocks.length],
       ["Weighting", weightingLabel(x.strategy)],
-      ["Rebalancing (backtest)", rebalanceLabel(x.strategy)],
-      ["Backtest period", x.range],
-      ["Backtest from", x.backtest?.points[0]?.t.slice(0, 10) ?? null, "to", x.backtest?.points[x.backtest.points.length - 1]?.t.slice(0, 10) ?? null],
+      ["Rebalancing (past performance)", rebalanceLabel(x.strategy)],
+      ["Past performance period", x.range],
+      ["Past performance from", x.backtest?.points[0]?.t.slice(0, 10) ?? null, "to", x.backtest?.points[x.backtest.points.length - 1]?.t.slice(0, 10) ?? null],
       ["Benchmark", x.benchName],
       ...(x.picks ? [["Your picks", x.picks.join(", ")]] : []),
       ...(ps
@@ -88,12 +88,12 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
         : []),
       [],
       ["Sheets"],
-      ["Stocks", "Every stock: weights, backtest return and contribution, projection inputs and returns"],
-      ["Backtest stats", "The statistics panel, stocks left out of the backtest, rebalances"],
-      ["Backtest series", "The basket's value each bar (100 at the start) beside the benchmark"],
+      ["Stocks", "Every stock: weights, past return and contribution, projection inputs and returns"],
+      ["Performance stats", "The statistics panel, stocks left out of past performance, rebalances"],
+      ["Performance series", "The basket's value each bar (100 at the start) beside the benchmark"],
       ["Projection", "The basket's projected return in every case, the simulation's risk figures, stocks left out"],
       ["Projection path", "The chosen case's weekly path and likely range"],
-      ["Method", "How the backtest and the projections are worked out"],
+      ["Method", "How past performance and the projections are worked out"],
       [],
       [x.disclaimer],
     ];
@@ -108,7 +108,7 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
       "Layer",
       "Industry",
       "Target weight %",
-      `Backtest ${x.range}: start %`,
+      `Past ${x.range}: start %`,
       "End %",
       "Return %",
       "Pts added",
@@ -207,7 +207,7 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
     if (x.backtest?.excluded?.length) {
       rows.push([]);
       bold.push(rows.length);
-      rows.push(["Not in the backtest", "Name", "Reason"]);
+      rows.push(["Not in past performance", "Name", "Reason"]);
       for (const e of x.backtest.excluded) {
         const since = e.ret != null ? `, ${e.ret >= 0 ? "+" : ""}${e.ret.toFixed(1)}% since listing` : "";
         const why = e.reason === "late" ? `listed during the period${e.from ? ` (from ${e.from.slice(0, 10)}${since})` : ""}` : e.reason === "zero" ? "set to 0%" : "no price data";
@@ -220,7 +220,7 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
       rows.push(["Rebalance date", "Turnover % (one way)", "Trades"]);
       for (const rb of x.backtest.rebalances) rows.push([rb.t.slice(0, 10), r2(rb.turnover), rb.trades]);
     }
-    sheets.push(sheet("Backtest stats", rows, bold, [28, 14, 30]));
+    sheets.push(sheet("Performance stats", rows, bold, [28, 14, 30]));
   }
 
   // ---- Backtest series: the value line, 100 at the start, the benchmark read at the same dates.
@@ -239,7 +239,7 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
       }
       rows.push([p.t.slice(0, 10), r2(p.c), r2(b)]);
     }
-    sheets.push(sheet("Backtest series", rows, [0], [12, 20, 22], true));
+    sheets.push(sheet("Performance series", rows, [0], [12, 20, 22], true));
   }
 
   // ---- Projection: every case for the basket (and the picks), the chosen case's risk figures.
@@ -308,9 +308,9 @@ export function basketWorkbook(x: WorkbookInput): Sheet[] {
   // ---- Method
   {
     const lines: Cell[][] = [
-      ["Backtest"],
+      ["Past performance"],
       [`Bought on the first day of the period at the weighting's target weights and ${x.strategy.rebalance === "never" ? "held without rebalancing" : rebalanceLabel(x.strategy)}. Price change only: no dividends, costs or taxes. Stocks listed during the period are left out of it.`],
-      ["Stocks listed during the period are left out of the backtest; the Backtest stats sheet lists each with its own move since listing."],
+      ["Stocks listed during the period are left out of past performance; the Performance stats sheet lists each with its own move since listing."],
       [],
       ["Trend"],
       ["Where the stock's past-year price return ranks among covered stocks, as a percentile: (companies with a lower return + half of those with the same) ÷ (companies ranked − 1) × 100. Under a year listed: none. It describes the past year and is not part of the projection."],
