@@ -36,7 +36,6 @@ export type Filing = {
 const BY_SUBJECT: Record<string, FilingType> = {
   "Integrated Filing- Financial": "results",
   "Clarification - Financial Results": "results",
-  "Investor Presentation": "results",
 
   "Bagging/Receiving of orders/contracts": "orders",
   "Awarding of order(s)/contract(s)": "orders",
@@ -97,6 +96,8 @@ const NOTICE_ONLY = /\b(to consider|will consider|is scheduled|scheduled (on|for
 const ORDERS = /\b(received (an? |the )?([\w-]+ ){0,3}(orders?|contracts?)|(orders?|contracts?) (worth|valued|aggregating|from|of rs)|awarded|letters? of (award|intent)|LoA|LoI|work orders?|purchase orders?|selected bidder|lowest bidder|L1 bidder|commissioned)\b/i;
 // Court and regulator matters ("order of the tribunal") are material, but not order wins.
 const LEGAL = /\b(litigation|court|tribunal|nclt|nclat|arbitration|penalty|show cause|sebi order)\b/i;
+// Insider-trading paperwork filed under the catch-all subjects.
+const PAPERWORK = /\b(insider trading|form c\b|regulation 7\s*\(2\)|reg\.? 7\s*\(2\)|trading window|loss of share certificate|newspaper)/i;
 // Meets and calls repeat what was already disclosed.
 const MEET = /\b((analysts?|investors?)( and (analysts?|investors?))? (meet|meeting|call)|con(ference)? call|earnings call)\b/i;
 const DEALS = /\b(acqui(re|red|res|sition)|merger|amalgamation|demerger|stake|joint venture|open offer|preferential|qip|rights issue)\b/i;
@@ -109,13 +110,15 @@ export function classifyFiling(subject: string, text: string): FilingType | null
   const mapped = BY_SUBJECT[s];
   if (mapped) return mapped;
   const results = RESULTS.test(text) && !NOTICE_ONLY.test(text);
+  // A results deck is results; a deck for a conference repeats what is already out.
+  if (s === "Investor Presentation") return results ? "results" : null;
   if (s === "Outcome of Board Meeting") {
     if (results) return "results";
     if (PAYOUTS.test(text)) return "payouts";
     return "other";
   }
   if (s === "General Updates" || s === "Updates" || s === "Press Release" || s === "Press Release (Revised)") {
-    if (MEET.test(text)) return null;
+    if (MEET.test(text) || PAPERWORK.test(text)) return null;
     if (LEGAL.test(text)) return "other";
     if (results) return "results";
     if (ORDERS.test(text)) return "orders";

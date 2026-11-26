@@ -74,3 +74,9 @@ test("court orders and analyst meets are not order wins or results", () => {
   assert.equal(classifyFiling("General Updates", "has received a trial purchase order for its Steel Tyre Cord"), "orders");
   assert.equal(classifyFiling("Updates", "has commissioned an additional 65.1 MWp capacity"), "orders");
 });
+
+test("conference decks and insider-trading paperwork are left out", () => {
+  assert.equal(classifyFiling("Investor Presentation", "filed a corporate presentation for the Nomura Investment Forum in Tokyo"), null);
+  assert.equal(classifyFiling("Investor Presentation", "investor presentation on the unaudited financial results for the quarter ended September 30"), "results");
+  assert.equal(classifyFiling("Updates", "reported a violation of its Code of Conduct for Prevention of Insider Trading; a penalty was levied"), null);
+});

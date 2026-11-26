@@ -45,8 +45,13 @@ export function readJson(text: string | null): unknown {
 
 /** Material filings for one URL, or null when NSE didn't answer with JSON. */
 async function load(url: string): Promise<Filing[] | null> {
-  const json = readJson(await fetchText(url, "application/json"));
-  return Array.isArray(json) ? parseAnnouncements(json) : null;
+  const text = await fetchText(url, "application/json");
+  const json = readJson(text);
+  if (!Array.isArray(json)) {
+    console.warn(`filings: NSE gave no data for ${url} (${text == null ? "request failed" : `body ${text.slice(0, 60)}`})`);
+    return null;
+  }
+  return parseAnnouncements(json);
 }
 
 const tag = (f: Filing, c: Pick<CompanyMetrics, "sectorSlug" | "sectorName">): FilingItem => ({ ...f, sectorSlug: c.sectorSlug, sectorName: c.sectorName });

@@ -49,7 +49,7 @@ NSE's `desc` maps to a chip; anything unmapped is dropped.
 
 | Chip | NSE types |
 |---|---|
-| Results | Outcome of Board Meeting (when the text mentions results), Integrated Filing- Financial, Clarification - Financial Results, Investor Presentation |
+| Results | Outcome of Board Meeting and Investor Presentation (when the text is about results), Integrated Filing- Financial, Clarification - Financial Results |
 | Orders | Bagging/Receiving of orders/contracts, Awarding of order(s)/contract(s), Agreements, Arrangements for … tie up, Capacity addition, Commencement of commercial production/operations, Product launch |
 | Deals & stakes | Acquisition, Sale or disposal, Amalgamation/Merger, Demerger, Scheme of Arrangement, Other Restructuring, Open Offer / Public Announcement-Open Offer, Disclosure under SEBI Takeover Regulations, Issue of Securities, Preferential issue, Rights Issue |
 | Payouts | Dividend, Record Date, Buyback / Public Announcement - Buyback, Bonus, Stock split |

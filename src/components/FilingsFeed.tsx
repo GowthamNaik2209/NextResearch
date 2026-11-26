@@ -46,7 +46,8 @@ async function FilingsFeedContent({ sectorSlug, tickers, type, limit, showSector
   const box = "rounded-2xl border border-line bg-panel px-5 py-6 text-sm text-ink-soft";
   return (
     <div className="flex flex-col gap-3">
-      {counts && header?.(counts)}
+      {/* No chips when NSE didn't answer: every count would read 0. */}
+      {counts && res.live && header?.(counts)}
       {!res.live ? (
         <p className={box}>
           NSE&rsquo;s filings aren&rsquo;t answering right now. Try again in a few minutes, or see them on{" "}
