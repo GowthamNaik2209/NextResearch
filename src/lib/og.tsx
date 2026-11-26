@@ -16,8 +16,15 @@ export type OgCard = {
   kicker: string;
   title: string;
   subtitle?: string;
+  // Shown as "<value> <label>", so the label is written to follow the number: "listed companies",
+  // "market cap", "ROCE" (lower case unless it is an acronym, singular when the value is 1).
   stats?: { label: string; value: string }[];
 };
+
+/** "1 IPO covered" / "4 IPOs covered": pick the label form that reads right after the number. */
+export function countLabel(n: number, one: string, many: string) {
+  return n === 1 ? one : many;
+}
 
 export function renderOgCard({ kicker, title, subtitle, stats = [] }: OgCard) {
   const line = subtitle && subtitle.length <= MAX_SUBTITLE ? subtitle : null;
@@ -77,19 +84,25 @@ export function renderOgCard({ kicker, title, subtitle, stats = [] }: OgCard) {
             {title}
           </div>
           {line && <div style={{ fontSize: 32, color: BRAND.inkSoft, lineHeight: 1.3, display: "block", width: "100%" }}>{line}</div>}
+          {/* Each number reads as a phrase ("12 supply-chain layers") on one line, right under the title.
+              It used to sit bottom-left with a small caption below, and X lays its title chip over exactly
+              that corner, so the cards showed bare numbers. Keep the bottom-left corner empty. */}
+          {stats.length > 0 && (
+            <div style={{ display: "flex", alignItems: "baseline", gap: 28, marginTop: 12 }}>
+              {stats.slice(0, MAX_STATS).map((s, i) => (
+                <div key={s.label} style={{ display: "flex", alignItems: "baseline", gap: 28 }}>
+                  {i > 0 && <div style={{ fontSize: 48, color: BRAND.inkSoft, display: "flex" }}>·</div>}
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+                    <div style={{ fontSize: 52, fontWeight: 700, color: BRAND.accent, display: "flex" }}>{s.value}</div>
+                    <div style={{ fontSize: 34, color: BRAND.ink, display: "flex" }}>{s.label}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", gap: 56 }}>
-            {stats.slice(0, MAX_STATS).map((s) => (
-              <div key={s.label} style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ fontSize: 48, fontWeight: 700, color: BRAND.accent, display: "flex" }}>{s.value}</div>
-                <div style={{ fontSize: 18, color: BRAND.inkSoft, textTransform: "uppercase", letterSpacing: 1, display: "flex" }}>
-                  {s.label}
-                </div>
-              </div>
-            ))}
-          </div>
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <div style={{ fontSize: 16, color: BRAND.inkSoft, display: "flex" }}>For information only · not investment advice</div>
         </div>
       </div>
