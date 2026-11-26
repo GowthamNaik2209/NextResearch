@@ -13,6 +13,7 @@ import { MAX_QUOTE_AGE_DAYS } from "@/lib/live/freshness";
 import { getChartWithFallback, getOhlcChart, getSymbolChart, HISTORY_FROM, type ChartData, type ChartRange, type Exchange, type OhlcData } from "@/lib/live/yahoo";
 import { adjustDemergers } from "@/lib/live/demergers";
 import { rangeInterval, rollUp, sinceDays, STORE_DAYS, storedRange, toCandles, toPoints, type StoredBar } from "./bars";
+import { createReadGate, ReadTimedOut, StorePaused } from "./read-gate";
 
 const DAY = 86_400_000;
 // The store moves once a day: an instance's in-memory copy may be this old (it asks the shared cache
@@ -22,35 +23,22 @@ const TTL_MS = 30 * 60 * 1000;
 // scripts/refresh-prices.ts (or a top-up that couldn't expire it) within a day.
 export const PRICES_TAG = "price-store";
 const SHARED_REVALIDATE_SECONDS = 24 * 60 * 60;
-// A store query slower than this gives up and the caller fetches Yahoo (as slow a deadline as Yahoo's
-// own). It times the query, not the wait for a turn (READS_AT_ONCE), which a busy instance's
-// background reads can make long without anything being wrong.
-const READ_TIMEOUT_MS = 8000;
-
-function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const late = new Promise<never>((_, reject) => (timer = setTimeout(() => reject(new Error("price store: read timed out")), ms)));
-  return Promise.race([p, late]).finally(() => clearTimeout(timer));
-}
-
 type Loaded = { source: string; exchange: Exchange; bars: StoredBar[] };
 
-// At most this many store reads at once per instance: background work (the projections' statistics,
-// a rule-based list build) reads hundreds of series, and must leave the rest of the instance's small
-// database pool (src/lib/prisma.ts, 5) to page queries. A read takes milliseconds, so they queue briefly.
+// The database gate (./read-gate.ts). At most READS_AT_ONCE store queries per instance, counted until
+// each query really ends: background work (the projections' statistics, a rule-based list build)
+// reads hundreds of series, and must leave the rest of the instance's small database pool
+// (src/lib/prisma.ts, 5) to page queries. A read takes milliseconds, so they queue briefly.
+// A query slower than READ_TIMEOUT_MS gives up and the caller fetches Yahoo (as slow a deadline as
+// Yahoo's own); the deadline times the query, not the wait for a turn. After such a miss the store
+// is skipped for PAUSE_MS on this instance, so a slow database isn't handed more reads to choke on.
 const READS_AT_ONCE = 2;
-let reading = 0;
-const waiting: (() => void)[] = [];
-async function oneRead<T>(read: () => Promise<T>): Promise<T> {
-  if (reading >= READS_AT_ONCE) await new Promise<void>((r) => waiting.push(r));
-  reading++;
-  try {
-    return await withTimeout(read(), READ_TIMEOUT_MS);
-  } finally {
-    reading--;
-    waiting.shift()?.();
-  }
-}
+const READ_TIMEOUT_MS = 8000;
+const PAUSE_MS = 60_000;
+const gate = createReadGate({ atOnce: READS_AT_ONCE, timeoutMs: READ_TIMEOUT_MS, pauseMs: PAUSE_MS, holdMaxMs: 60_000 });
+const oneRead = gate.run;
+/** This instance is skipping the store after a slow read, so price histories it fetches now may be Yahoo's. */
+export const priceStorePaused = () => gate.paused();
 
 /**
  * A series' whole stored span (every range is cut from it), read from the database at most about
@@ -106,10 +94,13 @@ let absentUntil = 0;
 async function storedBars(key: string, range: ChartRange, candles: boolean, dailyOnly = false): Promise<(Loaded & { interval: "1d" | "1wk" | "1mo"; lastDay: string | null }) | null> {
   const r0 = storedRange(range);
   const r = r0 && dailyOnly ? { ...r0, interval: "1d" as const } : r0;
+  // A pause (gate) only skips database reads: series already held in memory or the shared cache still answer.
   if (!r || Date.now() < absentUntil) return null;
   const got = await load(key, candles).catch((e: unknown) => {
     if ((e as { code?: string })?.code === "P2021") absentUntil = Date.now() + 10 * 60_000;
-    else console.error(`price store: reading ${key} failed`, e);
+    // Handled: Yahoo answers instead. One line per slow read (at most READS_AT_ONCE per pause), none for the skipped ones.
+    else if (e instanceof ReadTimedOut) console.warn(`price store: reading ${key} took over ${READ_TIMEOUT_MS / 1000}s; using Yahoo on this instance for ${PAUSE_MS / 1000}s`);
+    else if (!(e instanceof StorePaused)) console.error(`price store: reading ${key} failed`, e);
     return null;
   });
   if (!got) return null;
