@@ -94,7 +94,8 @@ export function renderOgCard({ kicker, title, subtitle, stats = [] }: OgCard) {
                   {i > 0 && <div style={{ fontSize: 48, color: BRAND.inkSoft, display: "flex" }}>·</div>}
                   <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
                     <div style={{ fontSize: 52, fontWeight: 700, color: BRAND.accent, display: "flex" }}>{s.value}</div>
-                    <div style={{ fontSize: 34, color: BRAND.ink, display: "flex" }}>{s.label}</div>
+                    {/* satori's baseline alignment leaves the smaller label ~6px low; lift it onto the number's baseline. */}
+                    <div style={{ fontSize: 34, color: BRAND.ink, display: "flex", position: "relative", top: -6 }}>{s.label}</div>
                   </div>
                 </div>
               ))}
