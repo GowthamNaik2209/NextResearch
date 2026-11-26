@@ -44,7 +44,7 @@ export function WatchlistNewsGate({ tickers, children }: { tickers: string[]; ch
   return (
     <div className="min-w-0">
       {children}
-      {still.length < tickers.length && <p className="mt-2 text-[11px] text-ink-soft">News for the stocks you just removed drops off when the page reloads.</p>}
+      {still.length < tickers.length && <p className="mt-2 text-[11px] text-ink-soft">News and filings for the stocks you just removed drop off when the page reloads.</p>}
     </div>
   );
 }

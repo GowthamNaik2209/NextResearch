@@ -17,7 +17,7 @@ export function IndustrySelect({ options, active, view, period }: { options: Opt
 
   return (
     <form method="get" action="/updates" className="min-w-0 flex-[1_1_9rem] sm:max-w-sm">
-      {view === "flows" && <input type="hidden" name="view" value="flows" />}
+      {view !== "news" && <input type="hidden" name="view" value={view} />}
       {period && period !== DEFAULT_PERIOD && <input type="hidden" name="period" value={period} />}
       <label htmlFor="sector" className="sr-only">
         Industry

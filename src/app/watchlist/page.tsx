@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { NewsFeed } from "@/components/NewsFeed";
+import { FilingsFeed } from "@/components/FilingsFeed";
+import { FeedToggle } from "./FeedToggle";
 import { findSupplierByTicker, primarySector } from "@/lib/sector-content";
 import { getQuote, type Quote } from "@/lib/live/yahoo";
 import { basketStock } from "@/lib/baskets/industry";
@@ -38,7 +40,8 @@ async function quotes(tickers: string[]): Promise<Map<string, Quote>> {
   return out;
 }
 
-export default async function WatchlistPage() {
+export default async function WatchlistPage({ searchParams }: { searchParams: Promise<{ feed?: string }> }) {
+  const feed = (await searchParams).feed === "filings" ? "filings" : "news";
   await ensureFinancials();
   await ensureRiskStats();
   const user = await getCurrentUser();
@@ -215,12 +218,21 @@ export default async function WatchlistPage() {
             {rows.length > 0 && (
               <WatchlistNewsGate tickers={watched}>
                 <section aria-labelledby="stock-news-heading">
-                  <h2 id="stock-news-heading" className="font-display text-lg font-bold text-ink">
-                    News on your stocks
-                  </h2>
-                  <p className="mt-1 text-xs text-ink-soft">Headlines on the companies you saved.</p>
+                  <div className="flex items-center justify-between gap-3">
+                    <h2 id="stock-news-heading" className="min-w-0 font-display text-lg font-bold text-ink">
+                      {feed === "filings" ? "Filings by your stocks" : "News on your stocks"}
+                    </h2>
+                    <FeedToggle feed={feed} />
+                  </div>
+                  <p className="mt-1 text-xs text-ink-soft">
+                    {feed === "filings" ? "Material announcements the companies you saved made to NSE." : "Headlines on the companies you saved."}
+                  </p>
                   <div className="mt-3">
-                    <NewsFeed tickers={watched} limit={20} showSector={false} listClassName={NEWS_BOX} />
+                    {feed === "filings" ? (
+                      <FilingsFeed key="filings" tickers={watched} limit={20} showSector={false} listClassName={NEWS_BOX} />
+                    ) : (
+                      <NewsFeed key="news" tickers={watched} limit={20} showSector={false} listClassName={NEWS_BOX} />
+                    )}
                   </div>
                 </section>
               </WatchlistNewsGate>

@@ -31,6 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...sectors.map((s) => ({ url: `${SITE_URL}/baskets/industry/${s.slug}`, lastModified: updated, changeFrequency: "weekly" as const, priority: 0.6 })),
     { url: `${SITE_URL}/connections`, lastModified: updated, changeFrequency: "weekly", priority: 0.6 },
     { url: `${SITE_URL}/updates`, lastModified: updated, changeFrequency: "daily", priority: 0.6 },
+    { url: `${SITE_URL}/updates?view=filings`, lastModified: updated, changeFrequency: "daily", priority: 0.6 },
     { url: `${SITE_URL}/updates?view=flows`, lastModified: updated, changeFrequency: "daily", priority: 0.6 },
     ...sectors.map((s) => ({ url: `${SITE_URL}/sector/${s.slug}`, lastModified: updated, changeFrequency: "weekly" as const, priority: 0.9 })),
     ...sectors

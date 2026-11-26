@@ -1,6 +1,7 @@
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { NewsFeed } from "@/components/NewsFeed";
+import { FilingsFeed } from "@/components/FilingsFeed";
 import { FlowsView } from "@/components/flows/FlowsView";
 import { listSectors } from "@/lib/sector-content";
 import { ensureFinancials } from "@/lib/financials/load";
@@ -9,17 +10,28 @@ import type { Tone } from "@/lib/news-tone";
 import { IndustrySelect } from "./IndustrySelect";
 import { ViewSwitch } from "./ViewSwitch";
 import { ToneChips } from "./ToneChips";
-import { TONES, type UpdatesView } from "./controls";
+import { TypeChips } from "./TypeChips";
+import { TONES, parseFilingType, parseView } from "./controls";
 import { PeriodSelect } from "./PeriodSelect";
 import { parsePeriod } from "@/lib/flows/periods";
 import { FaqSection } from "@/components/FaqSection";
 import { JsonLd, webPageLd } from "@/components/JsonLd";
 import { FLOWS_FAQ, faqJsonLd } from "@/lib/faq";
 
-// The two views are two pages to search engines: news, and the FII / DII flows (?view=flows), each with
-// its own title and canonical. Other filters (industry, tone, period) fold into their view's canonical.
+// The three views are three pages to search engines: news, corporate filings (?view=filings) and the
+// FII / DII flows (?view=flows), each with its own title and canonical. Other filters (industry, tone,
+// type, period) fold into their view's canonical.
 export async function generateMetadata({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
-  if ((await searchParams).view === "flows")
+  const view = parseView((await searchParams).view);
+  if (view === "filings")
+    return {
+      title: "Corporate filings: results, orders and deals from covered companies",
+      description:
+        "The latest material NSE announcements from the listed companies NextResearch covers: quarterly results, order wins, acquisitions and stake changes, dividends and buybacks, credit ratings and management changes, by industry.",
+      alternates: { canonical: "/updates?view=filings" },
+      ...shareMeta({ title: "Corporate filings", line: "Results, orders and deals, straight from NSE.", path: "/updates?view=filings" }),
+    };
+  if (view === "flows")
     return {
       title: "FII and DII flows today: cash, futures, sector flows and stake changes",
       description:
@@ -37,13 +49,14 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 
 const GROUP = { policy: "Policies", index: "Indices" } as const;
 
-export default async function UpdatesPage({ searchParams }: { searchParams: Promise<{ sector?: string; view?: string; tone?: string; period?: string }> }) {
+export default async function UpdatesPage({ searchParams }: { searchParams: Promise<{ sector?: string; view?: string; tone?: string; type?: string; period?: string }> }) {
   await ensureFinancials();
   const params = await searchParams;
   const sectors = listSectors().filter((s) => !s.muted);
   // Ignore an unknown ?sector= or ?tone= value rather than showing an empty page.
   const active = sectors.find((s) => s.slug === params.sector);
-  const view: UpdatesView = params.view === "flows" ? "flows" : "news";
+  const view = parseView(params.view);
+  const type = parseFilingType(params.type);
   const tone = TONES.find((t) => t === params.tone) as Tone | undefined;
   const period = parsePeriod(params.period);
 
@@ -55,7 +68,7 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
       <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-5 px-5 pt-6 pb-14 sm:py-14">
         <div className="max-w-3xl">
           <h1 className="font-display text-3xl font-bold tracking-tight text-ink">What&rsquo;s new</h1>
-          <p className="mt-2 text-sm leading-relaxed text-ink-soft">The latest headlines on covered companies, plus where institutional money is moving.</p>
+          <p className="mt-2 text-sm leading-relaxed text-ink-soft">The latest headlines and exchange filings on covered companies, plus where institutional money is moving.</p>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <IndustrySelect
@@ -75,6 +88,16 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
               <FaqSection faqs={FLOWS_FAQ} headingClassName="text-xs font-bold uppercase tracking-widest text-ink-soft" />
             </div>
           </>
+        ) : view === "filings" ? (
+          <FilingsFeed
+            key={`filings-${active?.slug ?? "all"}-${type ?? "all"}`}
+            sectorSlug={active?.slug}
+            type={type}
+            limit={30}
+            twoColumns
+            showSector={!active}
+            header={(counts) => <TypeChips counts={counts} active={type} sector={active?.slug} period={period} />}
+          />
         ) : (
           <NewsFeed
             key={`news-${active?.slug ?? "all"}-${tone ?? "all"}`}
@@ -92,7 +115,9 @@ export default async function UpdatesPage({ searchParams }: { searchParams: Prom
           graph={
             view === "flows"
               ? [webPageLd({ path: "/updates?view=flows", name: "FII and DII flows" }), faqJsonLd(FLOWS_FAQ)]
-              : [webPageLd({ type: "CollectionPage", path: "/updates", name: "Industry, policy and company news" })]
+              : view === "filings"
+                ? [webPageLd({ type: "CollectionPage", path: "/updates?view=filings", name: "Corporate filings from covered companies" })]
+                : [webPageLd({ type: "CollectionPage", path: "/updates", name: "Industry, policy and company news" })]
           }
         />
       </main>
