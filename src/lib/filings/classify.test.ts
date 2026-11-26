@@ -69,7 +69,8 @@ test("summary falls back to the attachment text", () => {
 
 test("court orders and analyst meets are not order wins or results", () => {
   assert.equal(classifyFiling("General Updates", "update regarding litigation; the City Civil Court passed an order"), "other");
-  assert.equal(classifyFiling("General Updates", "held an investors and analysts meet; discussion covered financial results already disclosed"), null);
+  assert.equal(classifyFiling("General Updates", "held an investors and analysts meet; the discussion covered information already disclosed"), null);
+  assert.equal(classifyFiling("General Updates", "will hold an analysts meet on 5 December"), null);
   assert.equal(classifyFiling("Updates", "filed a corporate presentation for the quarter; capacity utilisation rose"), null);
   assert.equal(classifyFiling("General Updates", "has received a trial purchase order for its Steel Tyre Cord"), "orders");
   assert.equal(classifyFiling("Updates", "has commissioned an additional 65.1 MWp capacity"), "orders");
@@ -79,4 +80,21 @@ test("conference decks and insider-trading paperwork are left out", () => {
   assert.equal(classifyFiling("Investor Presentation", "filed a corporate presentation for the Nomura Investment Forum in Tokyo"), null);
   assert.equal(classifyFiling("Investor Presentation", "investor presentation on the unaudited financial results for the quarter ended September 30"), "results");
   assert.equal(classifyFiling("Updates", "reported a violation of its Code of Conduct for Prevention of Insider Trading; a penalty was levied"), null);
+});
+
+test("review cases: calls, schedules, courts, awards, record dates", () => {
+  assert.equal(classifyFiling("Press Release", "announced unaudited financial results for the quarter. Management will host an earnings call"), "results");
+  assert.equal(classifyFiling("Press Release", "received an order worth Rs 500 crore, to be discussed at its investor meet"), "orders");
+  assert.equal(classifyFiling("Outcome of Board Meeting", "The board approved the unaudited financial results for the quarter. The next meeting is scheduled for February"), "results");
+  assert.equal(classifyFiling("General Updates", "awarded a contract worth Rs 200 crore by the High Court building authority"), "orders");
+  assert.equal(classifyFiling("General Updates", "won the Best Employer award, awarded by CII"), null);
+  assert.equal(classifyFiling("Record Date", "record date for payment of interest on non-convertible debentures"), null);
+  assert.equal(classifyFiling("Record Date", "record date for the interim dividend"), "payouts");
+});
+
+test("one event filed under two subjects shows once", () => {
+  const row = (desc: string, t: string) => ({ symbol: "PARKHOTELS", sm_name: "Park Hotels", desc, voiceSummary: "Received a Letter of Award from Meghalaya", attchmntText: "", attchmntFile: `https://nsearchives.nseindia.com/corporate/${desc.length}.pdf`, sort_date: t });
+  const out = parseAnnouncements([row("Capacity addition", "2026-11-26 19:37:07"), row("Bagging/Receiving of orders/contracts", "2026-11-26 19:38:00")]);
+  assert.equal(out.length, 1);
+  assert.equal(out[0].subject, "Bagging/Receiving of orders/contracts");
 });

@@ -10,7 +10,7 @@ export function FeedToggle({ feed }: { feed: WatchlistFeed }) {
     { feed: "filings", label: "Filings", href: "/watchlist?feed=filings" },
   ];
   return (
-    <nav aria-label="Stock updates view" className="inline-flex flex-none rounded-full border border-btn bg-panel p-[3px]">
+    <nav aria-label="Stock updates view" className="-my-1 inline-flex flex-none rounded-full border border-btn bg-panel p-[3px]">
       {views.map((v) => {
         const on = v.feed === feed;
         return (

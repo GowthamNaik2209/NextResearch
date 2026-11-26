@@ -45,7 +45,7 @@ export default async function WatchlistPage({ searchParams }: { searchParams: Pr
   await ensureFinancials();
   await ensureRiskStats();
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/watchlist");
+  if (!user) redirect(feed === "filings" ? "/login?next=%2Fwatchlist%3Ffeed%3Dfilings" : "/login?next=/watchlist");
 
   const rows = await prisma.watchlist.findMany({
     where: { userId: user.id },
@@ -218,7 +218,9 @@ export default async function WatchlistPage({ searchParams }: { searchParams: Pr
             {rows.length > 0 && (
               <WatchlistNewsGate tickers={watched}>
                 <section aria-labelledby="stock-news-heading">
-                  <div className="flex items-center justify-between gap-3">
+                  {/* The toggle's negative margin keeps this row as tall as the heading beside it (the
+                      followed-industries half), so both lists start level on desktop. Wraps on a narrow phone. */}
+                  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                     <h2 id="stock-news-heading" className="min-w-0 font-display text-lg font-bold text-ink">
                       {feed === "filings" ? "Filings by your stocks" : "News on your stocks"}
                     </h2>

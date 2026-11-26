@@ -27,7 +27,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     return {
       title: "Corporate filings: results, orders and deals from covered companies",
       description:
-        "The latest material NSE announcements from the listed companies NextResearch covers: quarterly results, order wins, acquisitions and stake changes, dividends and buybacks, credit ratings and management changes, by industry.",
+        "The latest material NSE announcements from covered companies: quarterly results, order wins, acquisitions and stake changes, dividends and buybacks, credit ratings and management changes, by industry.",
       alternates: { canonical: "/updates?view=filings" },
       ...shareMeta({ title: "Corporate filings", line: "Results, orders and deals, straight from NSE.", path: "/updates?view=filings" }),
     };

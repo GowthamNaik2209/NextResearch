@@ -23,7 +23,8 @@ export function TypeChips({ counts, active, sector, period }: { counts: Record<F
             {n != null && <span className={"font-mono font-normal " + (on ? "text-bg/80" : "text-ink-soft")}>{n}</span>}
           </>
         );
-        return n === 0 ? (
+        // A type with nothing in it can't be picked; one already picked (a shared link) stays a link.
+        return n === 0 && !on ? (
           <span key={c.label} aria-disabled="true" className={cls + " opacity-50"}>
             {body}
           </span>

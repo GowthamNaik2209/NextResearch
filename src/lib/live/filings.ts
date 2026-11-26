@@ -25,11 +25,11 @@ export const WATCHLIST_DAYS = 30;
 const pad2 = (n: number) => String(n).padStart(2, "0");
 const ddmmyyyy = (d: Date) => `${pad2(d.getUTCDate())}-${pad2(d.getUTCMonth() + 1)}-${d.getUTCFullYear()}`;
 
-/** The last `days` days up to today in India, as NSE's from_date / to_date (DD-MM-YYYY). */
+/** The last `days` days, today in India included, as NSE's from_date / to_date (DD-MM-YYYY). */
 export function nseRange(days: number, now = new Date()): { from: string; to: string } {
   const ist = new Date(now.getTime() + 330 * 60_000);
   const to = new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate()));
-  const from = new Date(to.getTime() - days * 86_400_000);
+  const from = new Date(to.getTime() - (days - 1) * 86_400_000);
   return { from: ddmmyyyy(from), to: ddmmyyyy(to) };
 }
 
@@ -64,10 +64,34 @@ function pool(sectorSlug?: string): Map<string, CompanyMetrics> {
 
 const emptyCounts = (): Record<FilingType, number> => ({ results: 0, orders: 0, deals: 0, payouts: 0, ratings: 0, management: 0, other: 0 });
 
+/** Every listed covered company, in any theme: what the market-wide answer is kept to before caching. */
+const covered = () => new Set(listCompanyMetrics().map((c) => c.ticker));
+
+/** Calls `fn` on every item, at most `limit` at a time. */
+async function pooled<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(items.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (next < items.length) {
+        const i = next++;
+        out[i] = await fn(items[i]);
+      }
+    })
+  );
+  return out;
+}
+
 /** Latest filings across covered companies (or one theme's), with each chip's count before the type filter. */
 export async function getLatestFilings({ sectorSlug, type, limit = 30 }: { sectorSlug?: string; type?: FilingType; limit?: number } = {}): Promise<FilingsResult & { counts: Record<FilingType, number> }> {
   const { from, to } = nseRange(UPDATES_DAYS);
-  const all = await cached(`filings:market:${from}:${to}`, TTL_MS, () => load(`${API}&from_date=${from}&to_date=${to}`));
+  // Kept to covered companies before caching: the full answer covers every NSE company (several MB).
+  const all = await cached(`filings:market:${from}:${to}`, TTL_MS, async () => {
+    const got = await load(`${API}&from_date=${from}&to_date=${to}`);
+    if (!got) return null;
+    const ours = covered();
+    return got.filter((f) => ours.has(f.ticker));
+  });
   const counts = emptyCounts();
   if (!all) return { items: [], live: false, counts };
   const companies = pool(sectorSlug);
@@ -84,8 +108,9 @@ export async function getLatestFilings({ sectorSlug, type, limit = 30 }: { secto
 export async function getFilingsForTickers(tickers: string[], limit = 20): Promise<FilingsResult> {
   const { from, to } = nseRange(WATCHLIST_DAYS);
   const home = new Map(listCompanyMetrics().map((c) => [c.ticker, c]));
-  const per = await Promise.all(
-    [...new Set(tickers)].map((t) => cached(`filings:sym:${t}:${from}:${to}`, TTL_MS, () => load(`${API}&symbol=${encodeURIComponent(t)}&from_date=${from}&to_date=${to}`)))
+  // Four at a time, so a long watchlist doesn't fire dozens of requests at NSE at once.
+  const per = await pooled([...new Set(tickers)], 4, (t) =>
+    cached(`filings:sym:${t}:${from}:${to}`, TTL_MS, () => load(`${API}&symbol=${encodeURIComponent(t)}&from_date=${from}&to_date=${to}`))
   );
   // Live when NSE answered for at least one stock; a stock it refused simply shows nothing.
   const live = per.some((p) => p !== null);
