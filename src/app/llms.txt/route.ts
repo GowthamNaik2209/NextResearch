@@ -79,6 +79,7 @@ export async function GET() {
     `- [Stock baskets, with past performance against the Nifty 50](${SITE_URL}/baskets)`,
     `- [Upcoming IPO prospectus summaries](${SITE_URL}/ipos)`,
     `- [Industry and company news](${SITE_URL}/updates)`,
+    `- [Corporate filings](${SITE_URL}/updates?view=filings): the latest material NSE announcements from covered companies (results, order wins, acquisitions and stake changes, dividends and buybacks, credit ratings, management changes), by industry.`,
     `- [FII and DII flows](${SITE_URL}/updates?view=flows): daily foreign and domestic institutional cash flows, FII index-futures positioning, sector flows, quarterly stake changes and bulk and block deals.`,
     `- [Strategy tester](${SITE_URL}/signals) (free account, tablet or computer): test entry and exit rules from technical indicators on any covered stock or a saved basket, save them as a strategy and get an email when it fires.`,
     "",
