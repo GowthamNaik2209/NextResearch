@@ -1,5 +1,5 @@
 import { listIpos } from "@/lib/ipo-content";
-import { OG_CONTENT_TYPE, OG_SIZE, renderOgCard } from "@/lib/og";
+import { OG_CONTENT_TYPE, OG_SIZE, countLabel, renderOgCard } from "@/lib/og";
 import { ensureFinancials } from "@/lib/financials/load";
 
 // Figures come from the database; re-render on the same clock as the cached table (load.ts).
@@ -16,6 +16,6 @@ export default async function Image() {
     kicker: "Upcoming IPOs",
     title: "Prospectus summaries",
     subtitle: "Each upcoming IPO in ten slides.",
-    stats: [{ label: "IPOs covered", value: String(ipos.length) }],
+    stats: [{ label: countLabel(ipos.length, "IPO covered", "IPOs covered"), value: String(ipos.length) }],
   });
 }

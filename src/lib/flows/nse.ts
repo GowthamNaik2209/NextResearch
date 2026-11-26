@@ -108,9 +108,10 @@ async function nseCookies(): Promise<string | undefined> {
 
 /**
  * The body of a GET, or null on any failure. For www.nseindia.com a 401/403 gets one retry with the
- * home page's cookies (see the header comment).
+ * home page's cookies (see the header comment). Also used for NSE's corporate filings
+ * (src/lib/live/filings.ts).
  */
-async function fetchText(url: string, accept = "*/*"): Promise<string | null> {
+export async function fetchText(url: string, accept = "*/*"): Promise<string | null> {
   let res = await get(url, accept);
   if (res && (res.status === 401 || res.status === 403) && url.startsWith(NSE_HOME)) {
     await res.text().catch(() => "");

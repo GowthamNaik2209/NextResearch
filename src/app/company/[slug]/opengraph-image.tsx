@@ -28,7 +28,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const stats = [];
   // Same formatters as the company page, so the share card reads "₹1.69L Cr" like the page.
   const cap = croreFromLabel(f?.mcap);
-  if (cap != null) stats.push({ label: "Market cap", value: croreShort(cap) });
+  if (cap != null) stats.push({ label: "market cap", value: croreShort(cap) });
   if (f?.kpi?.[3] != null) stats.push({ label: "ROCE", value: pct(f.kpi[3]) });
   const primary = primaryAppearance(c);
   const isIndex = (a: { sectorSlug: string }) => getSector(a.sectorSlug)?.category === "index";

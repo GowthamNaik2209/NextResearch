@@ -83,3 +83,12 @@ test("robots.txt keeps account and API pages out, and nothing indexable", () => 
   for (const p of ["/api/", "/auth/", "/watchlist", "/login", "/signup"]) assert.ok(robots.includes(`"${p}"`), p);
   for (const p of ["/baskets", "/signals/indicators", "/updates", "/company"]) assert.ok(!robots.includes(`"${p}"`), `${p} must stay crawlable`);
 });
+
+test("each /updates view has its own canonical, sitemap entry and llms.txt line", () => {
+  const page = code(readFileSync(join(APP, "updates", "page.tsx"), "utf8"));
+  for (const view of ["/updates?view=filings", "/updates?view=flows"]) {
+    assert.ok(page.includes(`canonical: "${view}"`), `${view}: canonical`);
+    assert.ok(listed(sitemap, view), `${view}: sitemap`);
+    assert.ok(listed(llms, view), `${view}: llms.txt`);
+  }
+});

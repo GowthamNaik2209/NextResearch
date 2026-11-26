@@ -3,11 +3,12 @@ import type { Period } from "@/lib/flows/periods";
 import { updatesHref, type UpdatesView } from "./controls";
 
 const VIEWS: { view: UpdatesView; label: string }[] = [
-  { view: "news", label: "Updates" },
+  { view: "news", label: "News" },
+  { view: "filings", label: "Filings" },
   { view: "flows", label: "FII / DII" },
 ];
 
-// Headlines or the FII / DII view, for the industry picked beside it. Links, so each view has its own
+// Headlines, corporate filings or the FII / DII view, for the industry picked beside it. Links, so each view has its own
 // address and the browser's back button returns to the other.
 export function ViewSwitch({ view, sector, period }: { view: UpdatesView; sector?: string; period?: Period }) {
   return (

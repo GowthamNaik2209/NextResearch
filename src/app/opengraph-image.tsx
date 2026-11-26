@@ -17,8 +17,8 @@ export default async function Image() {
     kicker: "India · Thematic research",
     title: "All your thematic research on India, in one place",
     stats: [
-      { label: "Themes", value: String(s.sectors) },
-      { label: "Listed companies", value: String(s.listed) },
+      { label: "themes", value: String(s.sectors) },
+      { label: "listed companies", value: String(s.listed) },
     ],
   });
 }
